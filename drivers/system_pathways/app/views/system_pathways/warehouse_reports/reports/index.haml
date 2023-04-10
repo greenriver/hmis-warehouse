@@ -1,9 +1,7 @@
 #sankey
 - content_for :page_js do
   :javascript
-    // Copyright 2021 Observable, Inc.
-    // Released under the ISC license.
-    // https://observablehq.com/@d3/sankey-diagram
+
 
     const d3Sankey = d3
     let data = [
@@ -180,6 +178,21 @@
       "Permanent Destinations": 10,
     }
 
+    let options = {
+      nodeGroup: d => d.id.split(/\W/)[0], // take first word for color
+      // nodeAlign, // e.g., d3.sankeyJustify; set by input above
+      // linkColor, // e.g., "source" or "target"; set by input above
+      targetColors: targetColors,
+      nodeWeights: nodeWeights,
+      format: (f => d => `${f(d)} TWh`)(d3.format(",.1~f")),
+      width: 1200,
+      height: 400,
+    }
+    let sankeyChart = new App.D3Chart.Sankey('#sankey', options);
+    sankeyChart.prepare();
+    sankeyChart.draw(data);
+
+    /*
     function SankeyChart({
       nodes, // an iterable of node objects (typically [{id}, …]); implied by links if missing
       links // an iterable of link objects (typically [{source, target}, …])
@@ -236,7 +249,7 @@
       links = d3.map(links, (_, i) => ({source: LS[i], target: LT[i], value: LV[i]}));
 
       // Ignore a group-based linkColor option if no groups are specified.
-      if (!G && ["source", "target", "source-target"].includes(linkColor)) linkColor = "currentColor";
+      if (!G && ["source", "target", "source-target"].includes(linkColor)) linkColor = "currrentColor";
 
       // Compute default domains.
       if (G && nodeGroups === undefined) nodeGroups = G;
@@ -385,9 +398,10 @@
       height: 600
     });
     // return_link = links.find(link => link.target == 'Returns to Homelessness')
-    // console.log(links, return_link, return_link.index)
+    // console.log(links, return_link, return_link.index)nodeGroup
     document.getElementById('sankey').appendChild(chart);
 
     // Tooltips: https://d3-graph-gallery.com/graph/interactivity_tooltip.html
     // https://gramener.github.io/d3js-playbook/tooltips.html
     // https://www.d3sankey.com/tooltips
+    */
