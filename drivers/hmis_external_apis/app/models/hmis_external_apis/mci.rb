@@ -4,6 +4,24 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# To connect to the API, you need a remote credential labeled 'mci'. Replace
+# the empty strings below with values from the documentation.
+#
+#  creds = GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'mci').first_or_initialize
+#
+#  creds.client_id = ''
+#  creds.client_secret = ''
+#  creds.oauth_scope = 'API_TEST'
+#  creds.token_url = ''
+#  creds.base_url = ''
+#  creds.additional_headers = {
+#    'Ocp-Apim-Subscription-Key' => ''
+#  }
+#
+#  Then
+#
+#  mci = HmisExternalApis::Mci.new
+
 module HmisExternalApis
   class Mci
     # Performing "clearance"

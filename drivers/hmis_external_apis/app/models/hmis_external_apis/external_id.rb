@@ -7,9 +7,10 @@
 # FIXME: Any chance this would be used by processes outside of this driver?
 module HmisExternalApis
   class ExternalId < GrdaWarehouseBase
-    validates :value, presence: true
-    belongs_to :source, polymorphic: true
-    belongs_to :remote_credential, class_name: 'GrdaWarehouse::RemoteCredential'
     belongs_to :external_request_log
+    belongs_to :remote_credential, class_name: 'GrdaWarehouse::RemoteCredential'
+    belongs_to :source, polymorphic: true
+
+    validates :value, presence: true
   end
 end
