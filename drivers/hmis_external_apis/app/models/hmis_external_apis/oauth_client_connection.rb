@@ -42,15 +42,20 @@ module HmisExternalApis
           raise "invalid verb #{verb}"
         end
 
-      OpenStruct.new(
+      OauthClientResult.new(
         status: result.status,
         body: result.body,
+        content_type: result.content_type,
+        http_method: verb,
+        ip: nil,
         parsed_body: JSON.parse(result.body),
+        request: url,
+        request_headers: merged_headers,
         error: nil,
         error_type: nil,
       )
     rescue StandardError => e
-      OpenStruct.new(
+      OauthClientResult.new(
         status: result&.status,
         body: result&.body,
         parsed_body: nil,

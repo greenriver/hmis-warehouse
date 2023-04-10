@@ -53,6 +53,8 @@ module HmisExternalApis
     def create_mci_id(client)
       external_id = ExternalId.where(source: client).where(remote_credential: creds).first_or_initialize
 
+      raise 'Client needs to be saved first' unless client.persisted?
+
       if external_id.persisted?
         # FIXME: Handle in a more clean way
         raise 'Client already has an MCI id'
@@ -62,18 +64,21 @@ module HmisExternalApis
 
       result = conn.post('clients/v1/api/clients/newclient', payload)
 
-      external_id.value = result.parsed_payload
+      raise result.error&.detail if result.error
+
+      external_id.value = result.parsed_body
 
       external_id.external_request_log = ExternalRequestLog.new(
         initiator: creds,
         content_type: result.content_type,
-        method: result.method,
+        http_method: result.http_method,
         ip: result.ip,
         request_headers: result.request_headers,
         request: result.request,
-        response: result.payload,
+        response: result.body,
         requested_at: Time.now,
       )
+
       external_id.save!
 
       client

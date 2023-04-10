@@ -8,5 +8,6 @@
 module HmisExternalApis
   class ExternalRequestLog < GrdaWarehouseBase
     has_one :external_id
+    belongs_to :initiator, polymorphic: true
   end
 end

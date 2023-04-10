@@ -17,10 +17,10 @@ module HmisExternalApis
       #   Perhaps it's: "0001-01-01T00:00:00"
       payload = {
         # 'userID' => 'string',
-        'otherNames' => {
-          'firstName' => client.preferred_name,
-          'lastName' => client.preferred_name,
-        },
+        # 'otherNames' => {
+        #   'firstName' => client.preferred_name,
+        #   'lastName' => client.preferred_name,
+        # },
         # 'isHomeless' => true,
         'ssnAlias' => client.ssn, # Should be last 4 digits of ssn, if we only have that
         'ethnicityCode' => 7, # Gig to do mapping

@@ -8,7 +8,7 @@ class ClientMciId < ActiveRecord::Migration[6.1]
 
       t.string :content_type
       t.string :url, null: false
-      t.string :method, null: false, default: 'GET'
+      t.string :http_method, null: false, default: 'GET'
       t.inet :ip
       t.jsonb :request_headers, default: {}, null: false
       t.text :request, null: false
