@@ -7,14 +7,15 @@
 module HmisExternalApis
   class MciPayload
     def self.from_client(client)
+      raise 'First name is missing' unless client.first_name.present?
+      raise 'Last name is missing' unless client.last_name.present?
+      raise 'DOB is missing' unless client.dob.present?
+
       # FIXME: I need more documentation on what's required and how to
       # correctly leave things out. Various attempts at partial payloads result
       # in error messages that aren't helpful like:
       #   "Object reference not set to an instance of an object."
       #   "Length cannot be less than zero. (Parameter 'length')"
-      #
-      #   What do we send when we don't have a date? null doesn't seem to work nor the empty string.
-      #   Perhaps it's: "0001-01-01T00:00:00"
       payload = {
         # 'userID' => 'string',
         # 'otherNames' => {
@@ -22,40 +23,53 @@ module HmisExternalApis
         #   'lastName' => client.preferred_name,
         # },
         # 'isHomeless' => true,
-        'ssnAlias' => client.ssn, # Should be last 4 digits of ssn, if we only have that
-        'ethnicityCode' => 7, # Gig to do mapping
-        'ethnicityDesc' => 'WCDesc', # I would guess not needed, but can pull from ::HudLists.ethnicity_map
+        'ethnicityCode' => 7, # TODO: Gig to do mapping
+        'ethnicityDesc' => 'WCDesc', # TODO: Gig to do mapping, ::HudLists.ethnicity_map
         # 'tribeCode' => 414,
         # 'tribeDesc' => 'WCDesc',
         # 'maritalStatus' => 8,
         # 'housingStatus' => 15,
-        'genderCode' => 1, # Gig to do mapping
+        'genderCode' => 1, # TODO: Gig to do mapping
         # 'residencyCode' => 3,
         'firstName' => client.first_name,
         'middleName' => client.middle_name,
         'lastName' => client.last_name,
         'suffix' => client.name_suffix,
-        'ssn' => client.ssn, # Should be complete SSN, if we have it
+        'ssn' => client.ssn,
+        # 'ssnAlias' => client.ssn,
         'birthDate' => client.dob.to_s(:db),
-        'raceCodes' => '2-,', # Gig to do mapping
+        'raceCodes' => '2-,', # TODO: Gig to do mapping
         # 'deathDate' => '2019-05-09T11:23:31.129Z',
+        'mciId' => client.external_ids_by_slug('mci').first,
       }
-
-      # if false # FIXME: get external id if we have it
-      #   # FIXME: pseudo-code:
-      #   # payload["mciId"] => client.external_ids.mci_id
-      # end
 
       payload
     end
 
-    # FIXME: what do we need?
     def self.build_client(parsed_body)
+      cleaned_ssn = clean_ssn(parsed_body['ssn'] || parsed_body['ssnAlias'])
       Hmis::Hud::Client.new(
         first_name: parsed_body['firstName'],
+        middle_name: parsed_body['middleName'],
         last_name: parsed_body['lastName'],
-        mci_id: parsed_body['mciId'],
+        name_suffix: parsed_body['suffix'],
+        ssn: cleaned_ssn,
+        dob: parsed_body['birthDate'], # FIXME does it need parsing?
+        # TODO(gig): parsed_body['raceCodes'],
+        # TODO(gig): parsed_body['ethnicityCode'],
+        # TODO(gig): parsed_body['genderCode'],
       )
+
+      # TODO: create related ExternalId record with value parsed_body['mciId']
+    end
+
+    # TODO: ensure SSN is HUD-compliant (exactly 9 chars, missing values replaced with X or x)
+    def self.clean_ssn(ssn)
+      # Strip any dashes or non-numeric non-[X|x] chars
+      # If 9 chars and all numeric or x|X, return
+      # If <9 chars, prefix with X's to make it be 9 chars
+      # If >9 chars, trim to 9?
+      ssn
     end
   end
 end

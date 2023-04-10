@@ -80,7 +80,8 @@ module HmisExternalApis
 
       payload = MciPayload.from_client(client)
 
-      result = conn.post('clients/v1/api/clients/newclient', payload)
+      endpoint = 'clients/v1/api/clients/newclient'
+      result = conn.post(endpoint, payload)
 
       raise result.error&.detail if result.error
 
@@ -95,6 +96,7 @@ module HmisExternalApis
         request: result.request,
         response: result.body,
         requested_at: Time.now,
+        url: "#{creds.endpoint}#{endpoint}",
       )
 
       external_id.save!
@@ -123,17 +125,25 @@ module HmisExternalApis
     # ID already. If we do, include that in the response. If we don't, call the
     # MCI ID lookup endpoint and new up a Hmis::Hud::Client.
     def get_clients_by_mci_ids(mci_ids)
-      clients = Hmis::Hud::Client.where(mci_id: mci_ids).order(:mci_id).to_a
+      existing_external_ids = HmisExternalApis::ExternalId.where(
+        source_type: 'Hmis::Hud::Client',
+        remote_credential: creds,
+        value: mci_ids,
+      )
+      clients = existing_external_ids.map(&:source)
+      existing_mci_ids = existing_external_ids.map(&:value)
+
+      new_mci_ids = mci_ids - existing_mci_ids
       new_clients = []
 
       # FIXME: This is just a naïve implementation until I know how to batch
       # requests
-      mci_ids.each do |mci_id|
-        next if clients.bsearch { |c| c.mci_id == mci_id }
-
+      new_mci_ids.each do |mci_id|
         result = conn.get("clients/v1/api/Clients/#{mci_id}")
+        # FIXME: handle missing/failed result
 
         new_clients << MciPayload.build_client(result.parsed_body)
+        # FIXME: need to create actual ExternalID record for new client
       end
 
       clients + new_clients
