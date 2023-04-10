@@ -1,9 +1,9 @@
 - content_for :panel_collapse_content_search do
   .row
     .col-sm-6
-      = search_form_for @q, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+      = simple_form_for :search_form, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
         .input-group{style: 'margin-bottom: 20px;'}
-          = f.search_field :full_text_search, label: false, class: 'form-control'
+          = f.input :q, label: false, class: 'form-control', placeholder: 'Search clients...', input_html: { value: @search_string }
           %span.input-group-append
             %button.btn.btn-primary{type: :submit} Search
 
