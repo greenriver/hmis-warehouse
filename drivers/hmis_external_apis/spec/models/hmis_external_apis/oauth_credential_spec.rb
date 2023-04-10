@@ -7,7 +7,7 @@
 require 'rails_helper'
 
 # We need many secrets to test this. Essentially, this runs locally or on staging
-Rspec.describe HmisExternalApis::OauthClientConnection, type: :model do
+RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
   if ENV['OAUTH_CREDENTIAL_TEST'] == 'true'
     let(:host) { ENV.fetch('MCI_HOST', 'someapi.net') }
     let(:client_id) { ENV.fetch('MCI_CLIENT_ID', '1234567890') }
