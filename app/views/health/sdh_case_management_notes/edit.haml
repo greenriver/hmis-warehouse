@@ -1,4 +1,59 @@
 = render 'health/breadcrumbs'
 %div{data: {behavior: 'container'}}
   = render 'form'
-= render 'form_js'
+
+- content_for :page_js do
+  :javascript
+    const versions = [#{Health::QualifyingActivity::VERSIONS.map(&:js_model).join(', ').html_safe}]
+
+    // Handle QA date changes
+    $('body').on('change', '.sdh-note__activity .jDateOfActivity', function(e) {
+      let qa_date = new Date($(e.target).val())
+      $('.sdh-note__activity').find('.jVersionedInputs').addClass('hide');
+      versions.forEach(function(version) {
+        console.log(qa_date, version, qa_date <= version.range_end && qa_date >= version.range_start)
+
+        let section = $('.sdh-note__activity').find(`.${version.css_class}`);
+        if(qa_date <= version.range_end && qa_date >= version.range_start) {
+          section.removeClass('hide');
+        }
+      });
+    });
+
+    $('body').on('change', '.string-collection-with-other__control', function(e) {
+      let container = $(e.target).parents('.string-collection-with-other__container');
+      updateTextBoxVisibility(container);
+      updateDatePickerVisibility(e.target, container);
+    });
+
+    // Show text box for other values
+    function updateTextBoxVisibility(container) {
+      let otherInput = container.find('.string-collection-with-other__input');
+      let otherValue = otherInput.data('other-value');
+      let inputs = container.find('.string-collection-with-other__control:checked');
+
+      let selectedValues = [];
+      inputs.each(function() {
+        selectedValues.push($(this).val());
+      });
+      if(selectedValues.indexOf(otherValue) > -1) {
+        otherInput.slideDown();
+      } else {
+        otherInput.find('input').val('');
+        otherInput.slideUp();
+      }
+    }
+
+    // Show date picker for housing statuses w/ dates
+    function updateDatePickerVisibility(input, container) {
+      let dateInput = container.find('.string-collection-date__input');
+      if(dateInput.length === 1) {
+        let dateValues = dateInput.data('date-values');
+        let value = $(input).val()
+        if($(input).is(':checked') && dateValues.indexOf(value) > -1) {
+          dateInput.slideDown();
+        } else {
+          dateInput.slideUp();
+        }
+      }
+    }
