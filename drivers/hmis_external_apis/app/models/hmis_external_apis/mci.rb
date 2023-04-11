@@ -24,6 +24,8 @@
 
 module HmisExternalApis
   class Mci
+    Error = StandardError.new
+
     # Performing "clearance"
     #
     # Input: Hmis::Hud::Client instance, which may or may not be persisted yet.
@@ -57,7 +59,15 @@ module HmisExternalApis
         'searchWithOR' => 0,
       }
 
-      conn.post('clients/v1/api/clients/clearance', payload)
+      result = conn.post('clients/v1/api/clients/clearance', payload)
+
+      save_log!(result, payload)
+
+      raise(Error, result.error&.detail) if result.error
+
+      Rails.logger.info "Did clearance for client #{client.id}"
+
+      result
     end
 
     # Creating a client
@@ -69,38 +79,30 @@ module HmisExternalApis
     # https://www.pivotaltracker.com/story/show/184816322), and return the
     # client
     def create_mci_id(client)
-      external_id = ExternalId.where(source: client).where(remote_credential: creds).first_or_initialize
+      raise(Error, 'Client needs to be saved first') unless client.persisted?
 
-      raise 'Client needs to be saved first' unless client.persisted?
+      external_id = get_external_id(client)
 
-      if external_id.persisted?
-        # FIXME: Handle in a more clean way
-        raise 'Client already has an MCI id'
-      end
+      raise(Error, 'Client already has an MCI id') if external_id.persisted?
 
       payload = MciPayload.from_client(client)
 
       endpoint = 'clients/v1/api/clients/newclient'
       result = conn.post(endpoint, payload)
 
-      raise result.error&.detail if result.error
+      if result.error
+        save_log!(result, payload)
 
-      external_id.value = result.parsed_body
+        raise(Error, result.error&.detail) if result.error
+      else
+        external_id.value = result.parsed_body
 
-      external_id.external_request_log = ExternalRequestLog.new(
-        initiator: creds,
-        content_type: result.content_type,
-        http_method: result.http_method,
-        ip: result.ip,
-        request_headers: result.request_headers,
-        http_status: result.http_status,
-        request: payload,
-        response: result.body,
-        requested_at: Time.now,
-        url: result.url,
-      )
+        external_id.external_request_log = save_log!(result, payload)
 
-      external_id.save!
+        external_id.save!
+      end
+
+      Rails.logger.info "Gave client #{client.id} an external ID with primary key of #{external_id.id}"
 
       client
     end
@@ -112,10 +114,21 @@ module HmisExternalApis
     # Behavior: Hit updateclient with any demographic info you can get off the
     # Client, log the request, return
     def update_client(client)
+      raise(Error, 'Client needs to be saved first') unless client.persisted?
+
+      external_id = get_external_id(client)
+
+      raise(Error, 'Client must already have an MCI id') if external_id.new_record?
+
       payload = MciPayload.from_client(client)
+
       result = conn.post('clients/v1/api/clients/updateclient', payload)
 
-      ap result
+      save_log!(result, payload)
+
+      raise(Error, result.error&.detail) if result.error
+
+      Rails.logger.info "Updated MCI information for client #{client.id} with external ID with primary key of #{external_id.id}"
 
       client
     end
@@ -136,7 +149,7 @@ module HmisExternalApis
       @gender_lookup ||= table_values('GENDER')
       @gender_lookup_inverted ||= @gender_lookup.invert
 
-      raise 'Only specify code or word' if code.present? && word.present?
+      raise(Error, 'Only specify code or word') if code.present? && word.present?
 
       code.present? ? @gender_lookup[code.to_s] : @gender_lookup_inverted[word]
     end
@@ -146,6 +159,25 @@ module HmisExternalApis
     end
 
     private
+
+    def save_log!(result, payload)
+      ExternalRequestLog.create!(
+        initiator: creds,
+        content_type: result.content_type,
+        http_method: result.http_method,
+        ip: result.ip,
+        request_headers: result.request_headers,
+        http_status: result.http_status,
+        request: payload,
+        response: result.body,
+        requested_at: Time.now,
+        url: result.url,
+      )
+    end
+
+    def get_external_id(client)
+      ExternalId.where(source: client).where(remote_credential: creds).first_or_initialize
+    end
 
     def creds
       @creds ||= GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: 'mci')

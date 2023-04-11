@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# FIXME: Any chance this would be used by processes outside of this driver?
 module HmisExternalApis
   class ExternalId < GrdaWarehouseBase
     belongs_to :external_request_log
