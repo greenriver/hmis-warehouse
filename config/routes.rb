@@ -66,7 +66,7 @@ Rails.application.routes.draw do
       end
       resources :services, controller: '/health/services'
       resources :backup_plans, controller: '/health/backup_plans'
-      resources :qualifying_activities, only: [:index, :destroy], controller: '/health/qualifying_activities'
+      resources :qualifying_activities, controller: '/health/qualifying_activities'
       resources :patient_referrals, only: [:index], controller: '/health/patient_referrals'
       resources :durable_equipments, except: [:index], controller: '/health/durable_equipments'
       resources :files, only: [:index, :show], controller: '/health/files'

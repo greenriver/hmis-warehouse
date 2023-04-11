@@ -29,7 +29,7 @@
       Careplan Sent
     .signature-date
       (#{careplan.careplan_sent_on&.to_date})
-  - elsif careplan.patient_signed_on
+  - elsif (careplan.cp1? && careplan.needs_rereview?) || (careplan.cp2? && careplan.patient_signed_on)
     - if current_user.can_approve_careplan? || current_user.can_approve_cha?
       = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
         Review Care Plan
@@ -86,19 +86,21 @@
   -# - else
   -#   = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
   -#     Upload signed pdf or enter signature date
-- expires_on = careplan.expires_on
-- if expires_on.present?
-  - if careplan.cp1?
+- if careplan.cp1? && careplan.needs_rereview?
+  .pctp__expiration.mt-2
+    Careplan needs review
+- elsif careplan.cp1?
+  .pctp__expiration.mt-2
+    Archived Careplan
+- elsif careplan.completed?
+  - expires_on = careplan.expires_on
+  - if expires_on > Date.current
     .pctp__expiration.mt-2
-      Careplan needs review
+      Careplan expires
+      %br
+      #{expires_on}
   - else
-    - if expires_on > Date.current
-      .pctp__expiration.mt-2
-        Careplan expires
-        %br
-        #{expires_on}
-    - else
-      .pctp__expired.mt-2
-        Careplan expired
-        %br
-        #{expires_on}
+    .pctp__expired.mt-2
+      Careplan expired
+      %br
+      #{expires_on}
