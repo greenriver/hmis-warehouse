@@ -226,7 +226,7 @@ gem 'todo_or_die'
 gem 'reline'
 
 gem 'business_time', '~> 0.10.0'
-gem 'cable_ready', '~> 4.5'
+gem 'cable_ready', '>= 5.0.0.rc2'
 gem 'graphql', '~> 2.0'
 gem 'sentry-rails', '~> 5.5'
 gem 'warning'
