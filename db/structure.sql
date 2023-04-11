@@ -49,39 +49,6 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: access_controls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.access_controls (
-    id bigint NOT NULL,
-    access_group_id bigint,
-    role_id bigint,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.access_controls_id_seq OWNED BY public.access_controls.id;
-
-
---
 -- Name: access_group_members; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1508,6 +1475,40 @@ CREATE SEQUENCE public.notifications_id_seq
 
 
 --
+-- Name: oauth_identities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_identities (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    user_id bigint,
+    provider character varying NOT NULL,
+    raw_info json,
+    uid character varying NOT NULL
+);
+
+
+--
+-- Name: oauth_identities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_identities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_identities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_identities_id_seq OWNED BY public.oauth_identities.id;
+
+
+--
 -- Name: old_passwords; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2000,7 +2001,6 @@ CREATE TABLE public.roles (
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
     can_approve_careplan boolean DEFAULT false
 );
 
@@ -2502,39 +2502,6 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
--- Name: user_access_controls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.user_access_controls (
-    id bigint NOT NULL,
-    access_control_id bigint,
-    user_id bigint,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.user_access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.user_access_controls_id_seq OWNED BY public.user_access_controls.id;
-
-
---
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2626,10 +2593,10 @@ CREATE TABLE public.users (
     training_completed boolean DEFAULT false,
     last_training_completed date,
     receive_account_request_notifications boolean DEFAULT false,
-    provider character varying,
-    uid character varying,
-    provider_raw_info json,
-    provider_set_at timestamp without time zone,
+    deprecated_provider character varying,
+    deprecated_uid character varying,
+    deprecated_provider_raw_info json,
+    deprecated_provider_set_at timestamp without time zone,
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL,
@@ -2764,13 +2731,6 @@ CREATE SEQUENCE public.weighting_rules_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
---
--- Name: access_controls id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.access_controls ALTER COLUMN id SET DEFAULT nextval('public.access_controls_id_seq'::regclass);
 
 
 --
@@ -2942,6 +2902,13 @@ ALTER TABLE ONLY public.nicknames ALTER COLUMN id SET DEFAULT nextval('public.ni
 
 
 --
+-- Name: oauth_identities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_identities ALTER COLUMN id SET DEFAULT nextval('public.oauth_identities_id_seq'::regclass);
+
+
+--
 -- Name: old_passwords id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3040,13 +3007,6 @@ ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uplo
 
 
 --
--- Name: user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.user_access_controls_id_seq'::regclass);
-
-
---
 -- Name: user_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3072,14 +3032,6 @@ ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.ver
 --
 
 ALTER TABLE ONLY public.warehouse_alerts ALTER COLUMN id SET DEFAULT nextval('public.warehouse_alerts_id_seq'::regclass);
-
-
---
--- Name: access_controls access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.access_controls
-    ADD CONSTRAINT access_controls_pkey PRIMARY KEY (id);
 
 
 --
@@ -3283,6 +3235,14 @@ ALTER TABLE ONLY public.nicknames
 
 
 --
+-- Name: oauth_identities oauth_identities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_identities
+    ADD CONSTRAINT oauth_identities_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: old_passwords old_passwords_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3403,14 +3363,6 @@ ALTER TABLE ONLY public.uploads
 
 
 --
--- Name: user_access_controls user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_access_controls
-    ADD CONSTRAINT user_access_controls_pkey PRIMARY KEY (id);
-
-
---
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3450,17 +3402,10 @@ CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority,
 
 
 --
--- Name: index_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_oauth_on_provider_and_uid; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls USING btree (access_group_id);
-
-
---
--- Name: index_access_controls_on_role_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_controls_on_role_id ON public.access_controls USING btree (role_id);
+CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
 
 
 --
@@ -3639,6 +3584,20 @@ CREATE INDEX index_login_activities_on_ip ON public.login_activities USING btree
 
 
 --
+-- Name: index_oauth_identities_on_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_identities_on_uid ON public.oauth_identities USING btree (uid);
+
+
+--
+-- Name: index_oauth_identities_on_user_id_and_provider; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_identities_on_user_id_and_provider ON public.oauth_identities USING btree (user_id, provider);
+
+
+--
 -- Name: index_password_archivable; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3793,20 +3752,6 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
--- Name: index_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_access_controls_on_access_control_id ON public.user_access_controls USING btree (access_control_id);
-
-
---
--- Name: index_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_access_controls_on_user_id ON public.user_access_controls USING btree (user_id);
-
-
---
 -- Name: index_user_roles_on_role_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3867,13 +3812,6 @@ CREATE INDEX index_users_on_invited_by_id ON public.users USING btree (invited_b
 --
 
 CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING btree (reset_password_token);
-
-
---
--- Name: index_users_on_uid_and_provider; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_users_on_uid_and_provider ON public.users USING btree (uid, provider);
 
 
 --
@@ -4218,8 +4156,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230321123918'),
 ('20230322195141'),
 ('20230322204908'),
-('20230329102609'),
-('20230329112926'),
-('20230329112954');
+('20230328150855');
 
 

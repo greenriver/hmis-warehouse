@@ -7,9 +7,12 @@ module OmniAuth
     class CustomOkta < OmniAuth::Strategies::OAuth2
       DEFAULT_SCOPE = %(openid profile email)
 
-      option :name, 'okta'
+      # specify name option when adding strategy to the stack
+      # option :name, 'okta'
       option :skip_jwt, false
       option :jwt_leeway, 60
+      option :full_host, nil
+      option :after_failure, nil
 
       # These are defaults that need to be overriden on an implementation
       option :client_options, {
@@ -68,8 +71,40 @@ module OmniAuth
         raise ::Timeout::Error
       end
 
+      # override to allow custom handling
+      def fail!(message_key, exception = nil)
+        env['omniauth.error'] = exception
+        env['omniauth.error.type'] = message_key.to_sym
+        env['omniauth.error.strategy'] = self
+
+        message = "Authentication failure! #{message_key} encountered."
+        Sentry.capture_message(message)
+        if exception
+          log :error, "#{message}: #{exception.class}, #{exception.message}"
+        else
+          log :error, message
+        end
+
+        if options[:on_failure]
+          options[:on_failure].call(env)
+        else
+          OmniAuth.config.on_failure.call(env)
+        end
+      end
+
+      # uncomment to test failure case
+      # def request_phase
+      #   fail!(:authenticity_error)
+      # end
+
       def callback_url
         options[:redirect_uri] || (full_host + callback_path)
+      end
+
+      # allow override of full_host via options rather than inferring it from the request
+      # (in the case of proxy from HMIS front-end, this hostname might not be public)
+      def full_host
+        options[:full_host] || super
       end
 
       # Returns the qualified URL for the authorization server

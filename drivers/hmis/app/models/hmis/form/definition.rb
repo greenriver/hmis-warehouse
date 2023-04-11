@@ -42,7 +42,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
     FILE: {
       class_name: 'Hmis::File',
-      permission: :can_manage_any_client_files,
+      permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
       resolve_as: 'Types::HmisSchema::File',
     },
