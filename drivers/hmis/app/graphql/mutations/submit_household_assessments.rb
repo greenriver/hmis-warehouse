@@ -72,7 +72,7 @@ module Mutations
       # Get the HoH entry date (or proposed entry date) for validation
       if is_intake
         hoh_entry_date = if includes_hoh
-          assessments.find { |a| a.enrollment.head_of_household? }.assessment_date_item
+          assessments.find { |a| a.enrollment.head_of_household? }.assessment_date
         else
           assessments.first.enrollment.hoh_entry_date
         end
@@ -120,6 +120,7 @@ module Mutations
       end
 
       # Return any validation errors
+      errors.deduplicate!
       return { errors: errors } if errors.any?
 
       return { assessments: assessments, errors: [] } if validate_only
