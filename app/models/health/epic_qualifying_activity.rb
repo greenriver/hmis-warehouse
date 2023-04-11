@@ -179,6 +179,8 @@ module Health
           'Care Plan completed'
         when 'Care planning'
           'Intake/reassessment (completing consent ROI, comprehensive assessment, care plan)'
+        when 'Support for transitions of care'
+          'Emergency Department visit (7 days)'
         else
           activity
         end
