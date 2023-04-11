@@ -20136,17 +20136,19 @@ CREATE TABLE public.system_pathways_clients (
     household_type character varying,
     ce boolean,
     system boolean,
-    es boolean,
-    sh boolean,
-    th boolean,
-    rrh boolean,
-    psh boolean,
-    oph boolean,
-    ph boolean,
     destination integer,
-    returned integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    destination_homeless boolean DEFAULT false,
+    destination_temporary boolean DEFAULT false,
+    destination_institutional boolean DEFAULT false,
+    destination_other boolean DEFAULT false,
+    destination_permanent boolean DEFAULT false,
+    returned_project_type integer,
+    returned_project_name character varying,
+    returned_project_entry_date date,
+    returned_project_enrollment_id integer,
+    returned_project_project_id integer
 );
 
 
@@ -20167,6 +20169,60 @@ CREATE SEQUENCE public.system_pathways_clients_id_seq
 --
 
 ALTER SEQUENCE public.system_pathways_clients_id_seq OWNED BY public.system_pathways_clients.id;
+
+
+--
+-- Name: system_pathways_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_enrollments (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    from_project_type integer,
+    project_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    project_type integer NOT NULL,
+    destination integer,
+    project_name character varying,
+    entry_date date,
+    exit_date date,
+    stay_length integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN system_pathways_enrollments.from_project_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.system_pathways_enrollments.from_project_type IS 'null for System';
+
+
+--
+-- Name: COLUMN system_pathways_enrollments.destination; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.system_pathways_enrollments.destination IS 'Only stored for final enrollment';
+
+
+--
+-- Name: system_pathways_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_enrollments_id_seq OWNED BY public.system_pathways_enrollments.id;
 
 
 --
@@ -24017,6 +24073,13 @@ ALTER TABLE ONLY public.system_pathways_clients ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: system_pathways_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_enrollments ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_enrollments_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26900,6 +26963,14 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses
 
 ALTER TABLE ONLY public.system_pathways_clients
     ADD CONSTRAINT system_pathways_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_enrollments system_pathways_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_enrollments
+    ADD CONSTRAINT system_pathways_enrollments_pkey PRIMARY KEY (id);
 
 
 --
@@ -48272,6 +48343,27 @@ CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathway
 
 
 --
+-- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system_pathways_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51690,6 +51782,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322220754'),
 ('20230327202808'),
 ('20230328171436'),
-('20230403144801');
+('20230403144801'),
+('20230411193836');
 
 
