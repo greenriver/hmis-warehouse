@@ -43,31 +43,37 @@ module HmisExternalApis
         end
 
       OauthClientResult.new(
-        http_status: result.status,
         body: result.body,
         content_type: result.content_type,
-        http_method: verb,
-        ip: nil,
-        parsed_body: JSON.parse(result.body),
-        url: url,
-        request_headers: merged_headers,
         error: nil,
         error_type: nil,
+        http_method: verb,
+        http_status: result.status,
+        ip: nil,
+        parsed_body: JSON.parse(result.body),
+        request_headers: merged_headers,
+        url: url,
       )
     rescue StandardError => e
       OauthClientResult.new(
-        http_status: result&.status,
-        body: result&.body,
+        body: result&.body || e.message,
         content_type: result&.content_type,
-        http_method: verb,
-        ip: nil,
-        parsed_body: nil,
         error: begin
                  JSON.parse(e.message)
                rescue StandardError
                  e.message
                end,
         error_type: e.class.name,
+        http_method: verb,
+        http_status: result&.status,
+        ip: nil,
+        parsed_body: begin
+                       JSON.parse(result&.body) || JSON.parse(e.message)
+                     rescue StandardError
+                       e.message
+                     end,
+        request_headers: merged_headers,
+        url: url,
       )
     end
 

@@ -40,7 +40,7 @@ module HmisExternalApis
         'birthDate' => client.dob.to_s(:db),
         'raceCodes' => '2-,', # TODO: Gig to do mapping
         # 'deathDate' => '2019-05-09T11:23:31.129Z',
-        'mciId' => client.external_ids_by_slug('mci').first,
+        'mciId' => client.external_ids_by_slug('mci').first&.value,
       }
 
       payload

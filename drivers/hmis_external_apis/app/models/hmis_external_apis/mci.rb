@@ -63,7 +63,7 @@ module HmisExternalApis
 
       save_log!(result, payload)
 
-      raise(Error, result.error&.detail) if result.error
+      raise(Error, result.error) if result.error
 
       Rails.logger.info "Did clearance for client #{client.id}"
 
@@ -93,7 +93,7 @@ module HmisExternalApis
       if result.error
         save_log!(result, payload)
 
-        raise(Error, result.error&.detail) if result.error
+        raise(Error, result.error['detail']) if result.error
       else
         external_id.value = result.parsed_body
 
@@ -126,7 +126,7 @@ module HmisExternalApis
 
       save_log!(result, payload)
 
-      raise(Error, result.error&.detail) if result.error
+      raise(Error, result.error) if result.error
 
       Rails.logger.info "Updated MCI information for client #{client.id} with external ID with primary key of #{external_id.id}"
 
