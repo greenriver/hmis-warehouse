@@ -120,36 +120,6 @@ module HmisExternalApis
       client
     end
 
-    # Input: list of MCI ids
-    # Returns: list of Hmis::Hud::Clients
-    # Behavior: For each MCI ID, first check if we have a Client with that MCI
-    # ID already. If we do, include that in the response. If we don't, call the
-    # MCI ID lookup endpoint and new up a Hmis::Hud::Client.
-    def get_clients_by_mci_ids(mci_ids)
-      existing_external_ids = HmisExternalApis::ExternalId.where(
-        source_type: 'Hmis::Hud::Client',
-        remote_credential: creds,
-        value: mci_ids,
-      )
-      clients = existing_external_ids.map(&:source)
-      existing_mci_ids = existing_external_ids.map(&:value)
-
-      new_mci_ids = mci_ids - existing_mci_ids
-      new_clients = []
-
-      # FIXME: This is just a naïve implementation until I know how to batch
-      # requests
-      new_mci_ids.each do |mci_id|
-        result = conn.get("clients/v1/api/Clients/#{mci_id}")
-        # FIXME: handle missing/failed result
-
-        new_clients << MciPayload.build_client(result.parsed_body)
-        # FIXME: need to create actual ExternalID record for new client
-      end
-
-      clients + new_clients
-    end
-
     # def search
     #   payload = {}
     #   conn.post('clients/v1/api/Clients/search', payload)

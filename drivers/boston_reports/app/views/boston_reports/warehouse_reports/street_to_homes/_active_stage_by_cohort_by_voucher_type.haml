@@ -20,12 +20,11 @@
       %h3.text-center= @report.housed_string
       #moved-in-cohort-by-voucher-type-chart
 :ruby
-  @report.matched_cohort_by_voucher_type['columns'] = @report.invert_columns(@report.matched_cohort_by_voucher_type['columns'])
   matched_cohort_by_voucher_type = @report.matched_cohort_by_voucher_type
+  -# matched_cohort_by_voucher_type['columns'] = @report.invert_columns(matched_cohort_by_voucher_type['columns'])
   matched_cohort_by_voucher_type_max_value = matched_cohort_by_voucher_type['columns'].drop(1).map { |values| values.drop(1).compact.sum }.max
   moved_in_cohort_by_voucher_type = @report.moved_in_cohort_by_voucher_type
   moved_in_cohort_by_voucher_type_max_value = moved_in_cohort_by_voucher_type['columns'].drop(1).map { |values| values.drop(1).compact.sum }.max
-
 = content_for :page_js do
   :javascript
     let abs_label_format = {
@@ -83,7 +82,7 @@
         width: 26,
       },
       size: {
-        height: 230,
+        height: #{@report.voucher_type_count} * 40,
       },
       axis: {
         rotated: true,
@@ -126,7 +125,7 @@
         width: 26,
       },
       size: {
-        height: 250,
+        height: #{@report.voucher_type_count} * 40 + 20,
       },
       axis: {
         rotated: true,
@@ -153,20 +152,23 @@
         contents: {
           bindto: '#moved-in-cohort-by-voucher-type-legend',
           template: "<span><div class='d-flex ml-4 mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div></span>"
-        }
+        },
+        item: {
+          onclick: function(id) {
+            return false;
+          },
+          onover: function(id) {
+            ['matched-cohort-by-voucher-type-chart', 'moved-in-cohort-by-voucher-type-chart'].forEach(chart_id => {
+              let chart = bb.instance.filter(v => v.$.chart.attr("id") === chart_id)[0];
+              chart.focus(id);
+            });
+          },
+          onout: function(id) {
+            ['matched-cohort-by-voucher-type-chart', 'moved-in-cohort-by-voucher-type-chart'].forEach(chart_id => {
+              let chart = bb.instance.filter(v => v.$.chart.attr("id") === chart_id)[0];
+              chart.revert();
+            });
+          }
+        },
       }
     });
-    // Bind event handler to handle all generated charts
-    // FIXME: these get removed for some reason on window resize
-    d3.selectAll("#moved-in-cohort-by-voucher-type-legend span").
-      on('mouseover', (e) => {
-        const id = e.target.innerHTML;
-        matched_cohort_by_voucher_type_chart.focus(id);
-        moved_in_cohort_by_voucher_type_chart.focus(id);
-      });
-    d3.selectAll("#moved-in-cohort-by-voucher-type-legend span").
-      on('mouseout', (e) => {
-        const id = e.target.innerHTML;
-        matched_cohort_by_voucher_type_chart.revert();
-        moved_in_cohort_by_voucher_type_chart.revert();
-      });

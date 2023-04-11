@@ -138,7 +138,7 @@ class SystemStatusController < ApplicationController
   end
 
   def actioncable
-    @cmd = "ActionCable.server.broadcast('test', message: 'Hello world')"
+    @cmd = "ActionCable.server.broadcast('test', { message: 'Hello world' })"
     render
   end
 end

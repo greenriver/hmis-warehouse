@@ -11,6 +11,10 @@ module GrdaWarehouse
 
     after_save :invalidate_cache
 
+    def self.cas_enabled?
+      CasBase.db_exists?
+    end
+
     def self.available_cas_methods
       {
         'Use Available in CAS flag' => :cas_flag,
