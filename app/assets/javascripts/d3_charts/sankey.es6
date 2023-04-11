@@ -9,7 +9,6 @@ App.D3Chart.Sankey = class Sankey {
     chart_selector,
     {
       nodeGroup,
-      format,
       targetColors,
       nodeWeights,
       width,
@@ -20,7 +19,6 @@ App.D3Chart.Sankey = class Sankey {
     this.d3Sankey = d3;
     this.chart_selector = chart_selector;
     this.nodeGroup = nodeGroup;
-    this.format = format;
     this.targetColors = targetColors;
     this.nodeWeights = nodeWeights;
     this.width = width;
@@ -36,21 +34,20 @@ App.D3Chart.Sankey = class Sankey {
       .attr('viewBox', `0 0 ${width} ${height}`)
       .attr('viewBox', [0, 0, width, height])
       .attr('style', 'max-width: 100%; height: auto; height: intrinsic;');
-    this.tooltipContainer = this.wrapper
+    this.Tooltip = this.wrapper
       .append('div')
-      .attr('id', 'tooltip-container')
-      .append('div')
-      .text('THIS');
+      .style('opacity', 0)
+      .attr('class', 'tooltip')
+      .style('background-color', 'white')
+      .style('box-shadow', '5px 5px 10px 1px #ABABAB');
   }
 
   draw(links) {
-    let format = this.format;
-    let align = 'justify'; // Sankey node alignment strategy: left, right, justify, center
     let nodeId = d => d.id; // given d in nodes, returns a unique identifier (string)
-    let nodeGroup = d => d.id.split(/\W/)[0]; // take first word for color
-    let nodeTitle = d => `${d.id}\n${format(d.value)}`; // given d in (computed) nodes, hover text
-    let nodeWidth = 100; // width of node rects
-    let nodePadding = 50; // vertical separation between adjacent nodes
+    let nodeGroup = d => d.id; //.split(/\W/)[0]; // take first word for color
+    // let nodeTitle = d => `${d.id}\n${format(d.value)}`; // given d in (computed) nodes, hover text
+    let nodeWidth = 25; // width of node rects
+    let nodePadding = 40; // vertical separation between adjacent nodes
     let nodeLabelPadding = 0; // horizontal separation between node and label
     let nodeStroke = 'currentColor'; // stroke around node rects
     let nodeStrokeWidth = 0; // width of stroke around node rects, in pixels
@@ -59,7 +56,7 @@ App.D3Chart.Sankey = class Sankey {
     let linkValue = ({ value }) => value; // given d in links, returns the quantitative value
     let targetColors = {};
     let linkPath = this.d3Sankey.sankeyLinkHorizontal(); // given d in (computed) links, returns the SVG path
-    let linkTitle = d => `${d.source.id} → ${d.target.id}\n${format(d.value)}`; // given d in (computed) links
+    // let linkTitle = d => `${d.source.id} → ${d.target.id}\n${format(d.value)}`; // given d in (computed) links
     let linkColor = 'source-target'; // source, target, source-target, or static color
     let linkStrokeOpacity = 0.5; // link stroke opacity
     let linkMixBlendMode = 'multiply'; // link blending mode
@@ -99,7 +96,7 @@ App.D3Chart.Sankey = class Sankey {
     let nodeGroups = G;
 
     // Construct the scales.
-    const color = d3.scaleOrdinal(nodeGroups, colors);
+    this.color = d3.scaleOrdinal(nodeGroups, colors);
 
     // Compute the Sankey layout.
     this.sankey
@@ -112,10 +109,10 @@ App.D3Chart.Sankey = class Sankey {
     this.sankey({ nodes, links });
 
     // Compute titles and labels using layout nodes, so as to access aggregate values.
-    if (typeof format !== 'function') format = d3.format(format);
+    // if (typeof format !== 'function') format = d3.format(format);
     const Tl = N;
-    const Tt = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
-    const Lt = linkTitle == null ? null : d3.map(links, linkTitle);
+    // const Tt = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
+    // const Lt = linkTitle == null ? null : d3.map(links, linkTitle);
 
     // A unique identifier for clip paths (to avoid conflicts).
     const uid = `O-${Math.random().toString(16).slice(2)}`;
@@ -136,14 +133,17 @@ App.D3Chart.Sankey = class Sankey {
       .attr('height', d => d.y1 - d.y0)
       .attr('width', d => d.x1 - d.x0);
 
-    if (G) node.attr('fill', ({ index: i }) => this.color_for_target(G[i], color))
+    if (G) node.attr('fill', ({ index: i }) => this.color_for_target(G[i]))
     //if (Tt) node.append('title').text(({ index: i }) => Tt[i]);
     node
       .on('mouseover', (d, i) => {
-        this.over(d, i, this.sankey)
+        this.over(d, i, 'node')
       })
       .on('mouseout', (d, i) => {
-        this.out(d, i, this.sankey)
+        this.out(d, i, 'node')
+      })
+      .on('mousemove', (d, i) => {
+        this.move(d, i, 'node')
       })
 
     let return_link = links.find(link => link.target.id == 'Returns to Homelessness')
@@ -165,10 +165,10 @@ App.D3Chart.Sankey = class Sankey {
       .attr('x2', d => d.target.x0)
       .call(gradient => gradient.append('stop')
         .attr('offset', '0%')
-        .attr('stop-color', ({ source: { index: i } }) => this.color_for_target(G[i], color)))
+        .attr('stop-color', ({ source: { index: i } }) => this.color_for_target(G[i])))
       .call(gradient => gradient.append('stop')
         .attr('offset', '100%')
-        .attr('stop-color', ({ target: { index: i } }) => this.color_for_target(G[i], color)));
+        .attr('stop-color', ({ target: { index: i } }) => this.color_for_target(G[i])));
     // Target specific node and link
     // move it
     // d3.select(‘#id’).node().__datum___
@@ -179,8 +179,17 @@ App.D3Chart.Sankey = class Sankey {
           : linkColor === 'target' ? ({ target: { index: i } }) => color(G[i])
             : linkColor)
       .attr('stroke-width', ({ width }) => Math.max(1, width))
-      .call(Lt ? path => path.append('title').text(({ index: i }) => Lt[i]) : () => { });
-
+      // .call(Lt ? path => path.append('title').text(({ index: i }) => Lt[i]) : () => { });
+    link
+      .on('mouseover', (d, i) => {
+        this.over(d, i, 'link')
+      })
+      .on('mouseout', (d, i) => {
+        this.out(d, i, 'link')
+      })
+      .on('mousemove', (d, i) => {
+        this.move(d, i, 'link')
+      })
     // Text
     if (Tl) svg.append('g')
       .attr('font-family', 'sans-serif')
@@ -200,7 +209,7 @@ App.D3Chart.Sankey = class Sankey {
         //console.log(words.josvin(''))
         return Tl[i]
       });
-
+    let color = this.color
     this.wrapper.node().appendChild(Object.assign(svg.node(), { scales: { color } }))
     // return Object.assign(svg.node(), { scales: { color } });
   } // end draw
@@ -210,7 +219,7 @@ App.D3Chart.Sankey = class Sankey {
   }
 
   color_for_target(id, color) {
-    return this.targetColors[id] == null ? color(id) : this.targetColors[id]
+    return this.targetColors[id] == null ? this.color(id) : this.targetColors[id]
   }
 
   tranlate_location(d) {
@@ -230,32 +239,79 @@ App.D3Chart.Sankey = class Sankey {
     return a_weight > b_weight
   }
 
-  over(event, node) {
-    console.log('over', event, node)
-    // sankey.dflows(d.flows);
-    // drawDLink(sankey.dlinks());
-    // updateTooltip(d);
-    let table = this.d3Sankey.create('table')
+  over(event, node, type) {
+    // console.log('over', node)
+    // Reset container
+    this.Tooltip.html('');
+    // Append tooltip contents
+    let table = this.Tooltip
+      .style('opacity', 1)
+      .append('table')
       .attr('class', 'table');
-    table
-      .append('thead')
+
+    table.append('thead')
       .append('tr')
       .append('th')
-      .text(node.id);
-    this.tooltipContainer.style('color', 'red')
-      .style('display', 'block')
-      .html(table.html())
-    // this.tooltipContainer
-    //   .append(table)
-    //   .style('display', 'block');
-    console.log(table.node(), this.tooltipContainer.html())
+      .attr('colspan', '2')
+      .style('background', this.background(node))
+      .style('color', 'white')
+      .text(this.title(node));
+    this.tooltip_details(node, table.append('tbody'))
+  }
+
+  tooltip_details(node, tbody) {
+    let count_tr = tbody
+      .append('tr');
+    count_tr
+      .append('td')
+      .text('Households')
+    count_tr
+      .append('td')
+      .text(d3.format(",.1~f")(node.value))
+    if(node.id) {
+      return
+    } else {
+      let percent_tr = tbody
+        .append('tr')
+      percent_tr
+        .append('td')
+        .text(`Percent ${node.source.id}`)
+      let percent = node.value / node.source.value
+      percent_tr
+        .append('td')
+        .text(d3.format(".0%")(percent))
+    }
+  }
+
+  background(node) {
+    if (node.id) {
+      return this.color_for_target(node.id)
+    } else {
+      return `linear-gradient(0.25turn, ${this.color_for_target(node.source.id)}, ${this.color_for_target(node.target.id)})`
+    }
+  }
+
+  title(node) {
+    if(node.id) {
+      return node.id
+    } else {
+      return `${node.source.id} → ${node.target.id}`
+    }
+  }
+
+  move(event, node) {
+    this.Tooltip
+      .style('left', (this.d3Sankey.pointer(event)[0] + 10) + 'px')
+      .style('top', (this.d3Sankey.pointer(event)[1]) + 'px');
   }
 
   out(event, node) {
-    console.log('out', event, node)
+    // console.log('out', event, node)
     // sankey.dflows(d.flows);
     // drawDLink(sankey.dlinks());
     // updateTooltip(d);
-    // this.tooltipContainer.style('display', 'none');
+    this.Tooltip
+      .style('opacity', 0);
+    this.Tooltip.html('');
   }
 };

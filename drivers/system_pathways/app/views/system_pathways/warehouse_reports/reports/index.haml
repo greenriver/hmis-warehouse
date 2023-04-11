@@ -81,6 +81,12 @@
         "target": "PSH",
         "value": 3
       },
+      // RRH -> PSH
+      {
+        "source": "RRH",
+        "target": "PSH",
+        "value": 2
+      },
       // RRH to destinations
       {
         "source": "RRH",
@@ -108,6 +114,11 @@
         "value": 32
       },
       // PSH to destinations
+      {
+        "source": "PSH",
+        "target": "Homeless",
+        "value": 0
+      },
       {
         "source": "PSH",
         "target": "Unknown/Other",
@@ -152,23 +163,23 @@
 
     ];
     const targetColors = {
-      "ES": '#85B5B2',
-      "Institutional": '#ABABAB',
-      "Temporary": '#ABABAB',
-      "Unknown": '#ABABAB',
-      "Homeless": '#ABABAB',
+      "ES/SH": '#85B5B2',
+      "Institutional Destinations": '#808080',
+      "Temporary Destinations": '#808080',
+      "Unknown/Other": '#808080',
+      "Homeless": '#808080',
       "Returns": '#967762',
       "RRH": '#D1605E',
       "TH": '#A77C9F',
       "PSH": '#E7CA60',
-      "Other": '#E49344',
-      "Permanent": '#6A9F58',
+      "Other Pathways": '#E49344',
+      "Permanent Destinations": '#6A9F58',
     }
 
     const nodeWeights = {
       "ES/SH": -1,
       "RRH": 0,
-      "PSH": 1,
+      "PSH": 11,
       "TH": 2,
       "Other Pathways": 5,
       "Homeless": 3,
@@ -184,7 +195,6 @@
       // linkColor, // e.g., "source" or "target"; set by input above
       targetColors: targetColors,
       nodeWeights: nodeWeights,
-      format: (f => d => `${f(d)} TWh`)(d3.format(",.1~f")),
       width: 1200,
       height: 400,
     }
