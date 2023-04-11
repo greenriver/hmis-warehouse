@@ -13,6 +13,7 @@ class ClientMciId < ActiveRecord::Migration[6.1]
       t.jsonb :request_headers, default: {}, null: false
       t.text :request, null: false
       t.text :response, null: false
+      t.integer :http_status
       t.datetime :requested_at, null: false
       t.timestamps
 
@@ -29,7 +30,7 @@ class ClientMciId < ActiveRecord::Migration[6.1]
       t.timestamps
 
       t.index :value
-      t.index [:source_id, :source_type, :value], unique: true
+      t.index [:source_id, :source_type, :remote_credential_id, :value], unique: true, name: "external_ids_uniq"
     end
   end
 end

@@ -7,9 +7,9 @@ module HmisExternalApis
     :http_method,
     :ip,
     :parsed_body,
-    :request,
     :request_headers,
-    :status,
+    :http_status,
+    :url,
     keyword_init: true,
   ) do
   end

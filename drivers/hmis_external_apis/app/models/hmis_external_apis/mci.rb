@@ -93,10 +93,11 @@ module HmisExternalApis
         http_method: result.http_method,
         ip: result.ip,
         request_headers: result.request_headers,
-        request: result.request,
+        http_status: result.http_status,
+        request: payload,
         response: result.body,
         requested_at: Time.now,
-        url: "#{creds.endpoint}#{endpoint}",
+        url: result.url,
       )
 
       external_id.save!

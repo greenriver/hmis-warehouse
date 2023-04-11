@@ -6928,6 +6928,7 @@ CREATE TABLE public.external_request_logs (
     request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
     request text NOT NULL,
     response text NOT NULL,
+    http_status integer,
     requested_at timestamp without time zone NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -27547,6 +27548,13 @@ CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
 
 
 --
+-- Name: external_ids_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX external_ids_uniq ON public.external_ids USING btree (source_id, source_type, remote_credential_id, value);
+
+
+--
 -- Name: fq_r_id_p; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42181,13 +42189,6 @@ CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids U
 --
 
 CREATE INDEX index_external_ids_on_source ON public.external_ids USING btree (source_type, source_id);
-
-
---
--- Name: index_external_ids_on_source_id_and_source_type_and_value; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_external_ids_on_source_id_and_source_type_and_value ON public.external_ids USING btree (source_id, source_type, value);
 
 
 --
