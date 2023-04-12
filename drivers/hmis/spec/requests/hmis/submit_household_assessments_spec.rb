@@ -299,16 +299,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
 
       expected_hoh_message = Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others
-      # expected_member_message = Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(a1.assessment_date)
+      expected_member_message = Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(a1.assessment_date)
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         expect(assessments).to be_nil
-        expect(errors.size).to eq(1)
+        expect(errors.size).to eq(3)
         expect(errors).to match([
+                                  a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a2.id.to_s),
+                                  a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a3.id.to_s),
                                   a_hash_including('severity' => 'warning', 'message' => expected_hoh_message, 'recordId' => a1.id.to_s),
-                                  # a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a2.id.to_s),
-                                  # a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a3.id.to_s),
                                 ])
       end
     end
