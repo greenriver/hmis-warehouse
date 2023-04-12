@@ -33,20 +33,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should delete a client who has no multi-person enrollments' do
+    expect(Hmis::Hud::Client.all).to include(have_attributes(id: c1.id))
+
     response, result = post_graphql(input: { id: c1.id }) { mutation }
+
     aggregate_failures 'checking response' do
-      # byebug
-      expect(Hmis::Hud::Client.all).to include(
-        have_attributes(id: c1.id),
-      )
       expect(response.status).to eq 200
       client = result.dig('data', 'deleteClient', 'client')
       errors = result.dig('data', 'deleteClient', 'errors')
       expect(client).to be_present
       expect(errors).to be_empty
-      expect(Hmis::Hud::Client.all).not_to include(
-        have_attributes(id: c1.id),
-      )
+      expect(Hmis::Hud::Client.all).not_to include(have_attributes(id: c1.id))
     end
   end
 
