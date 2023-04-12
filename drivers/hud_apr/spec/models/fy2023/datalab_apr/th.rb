@@ -309,7 +309,8 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22e',
-
+        # FIXME: previously
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'B7',
           'D7',
@@ -317,11 +318,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
           'D11',
           'B13',
           'D13',
-          # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
-          # 'D13',
-          # 'E13',
-          # 'D14',
-          # 'E14',
         ],
       )
     end
