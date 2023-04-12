@@ -20,7 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'file upload setup'
 
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
-  let!(:f1) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
+  let!(:f1) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id }
   let(:u2) { create(:user) }
 
   let(:mutation) do
@@ -70,7 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should throw error if only allowed to manage own files and trying to delete file that is not their own' do
       remove_permissions(hmis_user, :can_manage_any_client_files)
       file_id = f1.id
-      f1.update(user_id: u2.id)
+      f1.update!(user_id: u2.id)
       file, errors = call_mutation(file_id)
       expect(file).to be_nil
       expect(errors).to contain_exactly(include('type' => 'not_allowed'))
