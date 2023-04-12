@@ -20208,11 +20208,7 @@ CREATE TABLE public.system_pathways_clients (
     transgender boolean,
     questioning boolean,
     no_single_gender boolean,
-    disabling_condition boolean,
-    relationship_to_hoh integer,
     veteran_status integer,
-    household_id character varying,
-    household_type character varying,
     ce boolean,
     system boolean,
     destination integer,
@@ -20267,7 +20263,11 @@ CREATE TABLE public.system_pathways_enrollments (
     exit_date date,
     stay_length integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
+    household_id character varying,
+    household_type character varying
 );
 
 
@@ -51973,6 +51973,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230403144801'),
 ('20230406154235'),
 ('20230406183420'),
-('20230411193836');
+('20230411193836'),
+('20230412163545');
 
 

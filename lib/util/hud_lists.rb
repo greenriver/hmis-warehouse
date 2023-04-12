@@ -129,6 +129,24 @@ module HudLists
     }.freeze
   end
 
+  def project_type_brief_map
+    {
+      1 => 'ES',
+      2 => 'TH',
+      3 => 'PSH',
+      4 => 'SO',
+      6 => 'SSO',
+      7 => 'Other',
+      8 => 'SH',
+      9 => 'PH',
+      10 => 'OPH',
+      11 => 'Day Shelter',
+      12 => 'HP',
+      13 => 'RRH',
+      14 => 'CE',
+    }.freeze
+  end
+
   # 2.02.8
   def target_population_map
     {

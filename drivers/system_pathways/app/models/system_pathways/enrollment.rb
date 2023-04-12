@@ -9,6 +9,7 @@ module SystemPathways
     self.table_name = :system_pathways_enrollments
     acts_as_paranoid
 
-    belongs_to :client
+    # Uses a compound key so we can reference a client without needing to know the report.client.id
+    belongs_to :client, primary_key: [:client_id, :report_id], foreign_key: [:client_id, :report_id]
   end
 end
