@@ -21,6 +21,7 @@ module Types
     field :delete_project_coc, mutation: Mutations::DeleteProjectCoc
     field :delete_funder, mutation: Mutations::DeleteFunder
     field :delete_inventory, mutation: Mutations::DeleteInventory
+    field :delete_client, mutation: Mutations::DeleteClient
 
     field :create_units, mutation: Mutations::CreateUnits
     field :create_beds, mutation: Mutations::CreateBeds
