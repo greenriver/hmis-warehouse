@@ -12,10 +12,8 @@ class Hmis::AppSettingsController < Hmis::BaseController
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
 
     logo = ENV['LOGO']
-    logo_path = if SerializedAsset.exists?(logo)
-      SerializedAsset.get_src(logo)
-    else
-      "theme/logo/#{logo}"
+    if logo.present?
+      logo_path = SerializedAsset.exists?(logo) ? SerializedAsset.get_src(logo) : "theme/logo/#{logo}"
     end
 
     hostname = ENV['FQDN']
