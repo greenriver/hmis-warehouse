@@ -20,6 +20,7 @@ module Types
     field :section, String, null: true
     field :type, HmisSchema::Enums::ValidationType, null: false
     field :severity, HmisSchema::Enums::ValidationSeverity, null: false
+    field :data, JsonObject, null: true
 
     def attribute
       object.attribute.to_s

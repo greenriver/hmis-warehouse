@@ -78,6 +78,8 @@ module HmisErrors
         'operation not allowed'
       when :server_error
         'failed to validate due to a server error'
+      when :information
+        'has additional information'
       else
         I18n.t("errors.messages.#{err_type}", default: 'is invalid')
       end
