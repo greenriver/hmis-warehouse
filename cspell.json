@@ -1,0 +1,18 @@
+{
+  "language": "en",
+  "enableFiletypes": [
+    "asciidoc",
+    "css",
+    "dockerfile",
+    "javascript",
+    "javascriptreact",
+    "json",
+    "ruby",
+    "scss",
+    "sql",
+    "typescript",
+    "typescriptreact",
+    "yaml"
+  ],
+  "words": ["datetime", "funder", "coc", "hmis", "grda"]
+}

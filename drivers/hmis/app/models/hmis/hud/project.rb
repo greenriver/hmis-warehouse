@@ -20,6 +20,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
+  has_many :external_referral_requests, class_name: 'HmisExternalApis::ReferralRequest', dependent: :destroy
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
