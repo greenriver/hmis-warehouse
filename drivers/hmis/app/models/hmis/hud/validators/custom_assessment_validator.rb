@@ -43,7 +43,7 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
 
     # Error: date in the future
     errors.add :assessment_date, :out_of_range, message: future_message, **options if date.future?
-    # Error: >20yr ogo
+    # Error: > 20 yr ago
     errors.add :assessment_date, :out_of_range, message: over_twenty_years_ago_message, **options if date < (Date.today - 20.years)
     return errors.errors if errors.any?
 

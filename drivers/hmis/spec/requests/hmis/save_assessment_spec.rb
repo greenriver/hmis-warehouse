@@ -217,7 +217,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ],
       [
         'should error if assessment date is after exit date',
-        Date.yesterday,
+        1.day.ago,
         {
           'message' => Hmis::Hud::Validators::BaseValidator.after_exit_message(3.days.ago),
           'type' => 'out_of_range',
