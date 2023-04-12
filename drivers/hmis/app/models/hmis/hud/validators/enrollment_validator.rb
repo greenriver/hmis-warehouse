@@ -28,6 +28,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     errors.add :entry_date, :out_of_range, message: over_twenty_years_ago_message, **options if entry_date < (Date.today - 20.years)
     errors.add :entry_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > entry_date
     errors.add :entry_date, :out_of_range, message: after_exit_message(exit_date), **options if exit_date.present? && exit_date < entry_date
+    return errors.errors if errors.any?
 
     unless enrollment.head_of_household?
       household_members ||= enrollment.household_members

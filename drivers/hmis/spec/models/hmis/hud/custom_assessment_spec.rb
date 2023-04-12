@@ -55,7 +55,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     end
   end
 
-  describe 'assessment date validation on HUD assessments' do
+  describe 'custom assessment validator' do
     include_context 'hmis base setup'
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_ho_h: 1 }
     let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
@@ -107,7 +107,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       end
     end
 
-    describe 'household exit date validation' do
+    describe 'for household exits' do
       let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_ho_h: 2, household_id: e1.household_id }
       let!(:e2_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e2, client: e2.client }
       let!(:assessment2) { create(:hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e2) }

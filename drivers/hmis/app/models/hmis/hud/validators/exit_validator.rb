@@ -34,10 +34,13 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
 
     enrollment = exit.enrollment
     entry_date = enrollment.entry_date
+    dob = enrollment.client&.dob
     household_members ||= enrollment.household_members
 
     errors.add :exit_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > exit_date
     errors.add :exit_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if exit_date < (Date.today - 30.days)
+    errors.add :exit_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > exit_date
+    return errors.errors if errors.any?
 
     if household_members.size > 1
       member_exit_dates ||= household_members.map(&:exit_date).compact
