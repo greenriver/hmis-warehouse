@@ -58,7 +58,7 @@ class Hmis::File < GrdaWarehouse::File
   def self.authorize_proc
     ->(record, user) do
       return true if user.can_manage_any_client_files_for?(record.client)
-      return true if user.can_manage_own_client_files_for?(record.client) && (record.id.nil? || (record.user_id == user.id))
+      return true if user.can_manage_own_client_files_for?(record.client) && record.user_id == user.id
 
       false
     end
