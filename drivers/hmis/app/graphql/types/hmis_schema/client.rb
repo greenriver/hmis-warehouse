@@ -24,6 +24,7 @@ module Types
 
     description 'HUD Client'
     field :id, ID, null: false
+    field :warehouse_url, String, null: false
     hud_field :personal_id
     hud_field :first_name
     hud_field :middle_name
@@ -94,6 +95,10 @@ module Types
       can :manage_own_client_files
       can :view_any_nonconfidential_client_files
       can :view_any_confidential_client_files
+    end
+
+    def warehouse_url
+      "https://#{ENV['FQDN']}/clients/#{object.id}/from_source"
     end
 
     def enrollments(**args)

@@ -6,9 +6,10 @@
       .col-sm-3
         = f.input :end, as: :date_picker
       .col-sm-3
-        = f.input :user_id, as: :select_two, collection: User.all, label: 'Warehouse User', include_blank: 'All', selected: nil
+        = f.input :user_id, as: :select_two, collection: User.all.map { |u| [u.name_with_email, u.id] }, label: 'Warehouse User', include_blank: 'All', selected: nil
       .col-sm-3
-        = f.input :cas_user_id, as: :select_two, collection: CasAccess::User.all, label_method: :name_with_email, label: 'CAS User', include_blank: 'All', selected: nil
+        - if GrdaWarehouse::Config.cas_enabled?
+          = f.input :cas_user_id, as: :select_two, collection: CasAccess::User.all.map { |u| [u.name_with_email, u.id] }, label: 'CAS User', include_blank: 'All', selected: nil
 
   - content_for :filter_actions do
     = f.submit 'Generate Download', class: ['btn', 'btn-primary'], data: { disable_with: false }

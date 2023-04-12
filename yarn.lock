@@ -2,15 +2,6 @@
 # yarn lockfile v1
 
 
-"@cable_ready/polyfills@^4.4.6":
-  version "4.4.6"
-  resolved "https://registry.yarnpkg.com/@cable_ready/polyfills/-/polyfills-4.4.6.tgz#57d242b3363902f4da3e76ed8c72d24d4a527f92"
-  integrity sha512-qdRzfUCx4Tal49XC1vHRxm0A7FxbBeF/7dOxmAFOqmXWVkO+pclk9v7KqK2G/OnYt7CyZrD/YxDV8rooog14Qg==
-  dependencies:
-    "@webcomponents/template" "^1.4.4"
-    core-js "^3.4.0"
-    element-closest "^3.0.2"
-
 "@eslint/eslintrc@^1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-1.0.3.tgz#41f08c597025605f672251dcc4e8be66b5ed7366"
@@ -85,11 +76,6 @@
   integrity sha512-Cn6WYCm0tXv8p6k+A8PvbDG763EDpBoTzHdA+Q/MF6H3sapGjCm9NzoaJncJS9tUKSuCoDs9XHxYYsQDgxR6kw==
   dependencies:
     "@types/node" "*"
-
-"@webcomponents/template@^1.4.4":
-  version "1.4.4"
-  resolved "https://registry.yarnpkg.com/@webcomponents/template/-/template-1.4.4.tgz#2ca5a68b65b6e9cd9b17b25a951514f254c00742"
-  integrity sha512-QqCmmywIKJTilkl6UIPLxEBBuqhDaOBpvQyKOnUEwl9lJuVHBrVlhMIhhnp9VSZJ6xEUnp+PiX8DST1k0q/v4Q==
 
 acorn-jsx@^5.3.1:
   version "5.3.2"
@@ -216,13 +202,6 @@ buffer@^5.2.1, buffer@^5.5.0:
   dependencies:
     base64-js "^1.3.1"
     ieee754 "^1.1.13"
-
-cable_ready@^5.0.0-pre0:
-  version "5.0.0-pre1"
-  resolved "https://registry.yarnpkg.com/cable_ready/-/cable_ready-5.0.0-pre1.tgz#9a78834a99c4eeecd8e4a81ab90b0d2f0fcb04c7"
-  integrity sha512-rwF/jZfh/5Zsab2G567o8A8sEerNotUNiAi+i3N2FGMuaCOp0WpLKo2DhVRU9qrT6fZzFYMnoDiBoKdijPDw+A==
-  dependencies:
-    morphdom "^2.6.1"
 
 callsites@^3.0.0:
   version "3.1.0"
@@ -638,11 +617,6 @@ element-closest@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/element-closest/-/element-closest-2.0.2.tgz#72a740a107453382e28df9ce5dbb5a8df0f966ec"
   integrity sha1-cqdAoQdFM4LijfnOXbtajfD5Zuw=
-
-element-closest@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/element-closest/-/element-closest-3.0.2.tgz#3814a69a84f30e48e63eaf57341f4dbf4227d2aa"
-  integrity sha512-JxKQiJKX0Zr5Q2/bCaTx8P+UbfyMET1OQd61qu5xQFeWr1km3fGaxelSJtnfT27XQ5Uoztn2yIyeamAc/VX13g==
 
 end-of-stream@^1.1.0, end-of-stream@^1.4.1:
   version "1.4.4"
@@ -1060,11 +1034,6 @@ moment@^2.10.2, moment@^2.29.4:
   version "2.29.4"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
-
-morphdom@^2.6.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/morphdom/-/morphdom-2.6.1.tgz#e868e24f989fa3183004b159aed643e628b4306e"
-  integrity sha512-Y8YRbAEP3eKykroIBWrjcfMw7mmwJfjhqdpSvoqinu8Y702nAwikpXcNFDiIkyvfCLxLM9Wu95RZqo4a9jFBaA==
 
 ms@2.1.2:
   version "2.1.2"

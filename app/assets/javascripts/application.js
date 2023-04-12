@@ -62,7 +62,6 @@
 //= require ./cable
 //= require ./test_channel
 //= require ./init_stimulus
-//= require cable_ready.cjs.umd
 //= require ./background_render
 //= require_directory ./admin/client_matches
 //= require_directory ./census

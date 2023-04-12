@@ -14,7 +14,7 @@ module Types
         field :id, ID, null: false
 
         def id
-          [object.respond_to?(:id) ? object.id : nil, current_user&.id].compact.join(':')
+          [object.respond_to?(:id) ? object.id : nil, current_user&.id].compact.first
         end
       end
     end

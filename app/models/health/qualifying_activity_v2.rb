@@ -21,6 +21,14 @@ module Health
       @qa = qa
     end
 
+    def self.versioned_attribute_names
+      QualifyingActivity.column_names.map do |c|
+        next c unless c.to_sym.in?(QualifyingActivity::VERSIONED_ATTRIBUTES)
+
+        "#{c}#{ATTRIBUTE_SUFFIX}"
+      end
+    end
+
     def self.modes_of_contact
       @modes_of_contact ||= {
         in_person: {

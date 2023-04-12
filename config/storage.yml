@@ -33,7 +33,7 @@ amazon:
 minio:
   service: S3
   force_path_style: true # don't force dns hoop jumping
-  endpoint: https://s3.dev.test:9000
+  endpoint: <%= ENV.fetch('MINIO_ENDPOINT', "https://s3.dev.test:9000") %>
   access_key_id:  local_access_key
   secret_access_key: local_secret_key
   region: us-east-1
