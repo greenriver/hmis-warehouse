@@ -16,7 +16,6 @@ module Mutations
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 
-      definition = assessment.custom_form.definition
       enrollment = assessment.enrollment
 
       errors = HmisErrors::Errors.new
@@ -47,14 +46,6 @@ module Mutations
       errors.add :assessment, :invalid, full_message: 'Cannot exit an incomplete enrollment. Please complete the entry assessment first.' if assessment.exit? && enrollment.in_progress?
       return { errors: errors } if errors.any?
 
-      # Determine the Assessment Date and validate it
-      assessment_date, date_validation_errors = definition.find_and_validate_assessment_date(
-        values: input.values,
-        enrollment: enrollment,
-        ignore_warnings: input.confirmed,
-      )
-      errors.push(*date_validation_errors)
-
       # Update values
       assessment.custom_form.assign_attributes(
         values: input.values,
@@ -62,11 +53,11 @@ module Mutations
       )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
-        assessment_date: assessment_date || assessment.assessment_date,
+        assessment_date: assessment.custom_form.find_assessment_date_from_values,
       )
 
       # Validate form values based on FormDefinition
-      form_validations = assessment.custom_form.collect_form_validations(ignore_warnings: input.confirmed)
+      form_validations = assessment.custom_form.collect_form_validations
       errors.push(*form_validations)
 
       # Run processor to create/update related records
@@ -76,11 +67,11 @@ module Mutations
       is_valid = assessment.valid? && assessment.custom_form.valid?
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = assessment.custom_form.collect_record_validations(
-        user: current_user,
-        ignore_warnings: input.confirmed,
-      )
+      record_validations = assessment.custom_form.collect_record_validations(user: current_user)
       errors.push(*record_validations)
+
+      errors.drop_warnings! if input.confirmed
+      errors.deduplicate!
 
       # If this is an existing assessment and all the errors are warnings, save changes before returning
       if errors.any? && assessment.id.present? && errors.all?(&:warning?)
@@ -88,8 +79,6 @@ module Mutations
         assessment.save!
         assessment.touch
       end
-
-      errors.deduplicate!
       return { errors: errors } if errors.any?
 
       return { assessments: assessments, errors: [] } if input.validate_only

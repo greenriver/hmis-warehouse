@@ -24,25 +24,29 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     "is after the Head of Household's exit date (#{hoh_exit_date.strftime('%m/%d/%Y')})"
   end
 
-  def self.validate_exit_date(exit_date, enrollment:, member_exit_dates: nil, options: {})
+  def self.validate_exit_date(exit, household_members: nil, options: {})
+    exit_date = exit&.exit_date
     return [] unless exit_date.present?
 
     errors = HmisErrors::Errors.new
 
     errors.add :exit_date, :out_of_range, message: future_message, **options if exit_date.future?
 
+    enrollment = exit.enrollment
     entry_date = enrollment.entry_date
+    household_members ||= enrollment.household_members
+
     errors.add :exit_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > exit_date
     errors.add :exit_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if exit_date < (Date.today - 30.days)
 
-    member_enrollments = enrollment.household_members
-    if member_enrollments.size > 1
-      member_exit_dates ||= member_enrollments.map(&:exit_date).compact
+    if household_members.size > 1
+      member_exit_dates ||= household_members.map(&:exit_date).compact
+
       # If HoH, other members exit dates shouldn't be later
       errors.add :exit_date, :out_of_range, severity: :warning, message: hoh_exits_before_others if enrollment.head_of_household? && member_exit_dates.any? { |date| date > exit_date }
 
       # If non-HoH, shouldn't be after HoH member
-      hoh_exit_date = member_enrollments.heads_of_households.first&.exit_date unless enrollment.head_of_household?
+      hoh_exit_date = household_members.find(&:head_of_household?)&.exit_date unless enrollment.head_of_household?
       errors.add :exit_date, :out_of_range, severity: :warning, message: member_exits_after_hoh(hoh_exit_date) if hoh_exit_date && exit_date > hoh_exit_date
     end
 
@@ -51,7 +55,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
 
   def self.hmis_validate(record, role: nil, **_)
     errors = HmisErrors::Errors.new
-    errors.push(*validate_exit_date(record.exit_date, enrollment: record.enrollment)) if role == :EXIT
+    errors.push(*validate_exit_date(record)) if role == :EXIT
     errors.errors
   end
 

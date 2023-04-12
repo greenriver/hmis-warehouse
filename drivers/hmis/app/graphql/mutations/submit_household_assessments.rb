@@ -69,57 +69,33 @@ module Mutations
 
       return { errors: errors } if errors.any?
 
-      # Get the HoH entry date (or proposed entry date) for validation
-      if is_intake
-        hoh_entry_date = if includes_hoh
-          assessments.find { |a| a.enrollment.head_of_household? }.assessment_date
-        else
-          assessments.first.enrollment.hoh_entry_date
-        end
-      end
-
-      # Get all members exit dates (and/or proposed exit dates) for validation
-      if is_exit
-        member_exit_dates = assessments.map(&:assessment_date)
-        member_exit_dates.push(*household_enrollments_not_included.map(&:exit_date).compact)
-      end
-
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
-        # Validate the assessment date
-        date_validation_errors = assessment.custom_form.definition.validate_assessment_date(
-          date: assessment.assessment_date,
-          enrollment: assessment.enrollment,
-          ignore_warnings: confirmed,
-          hoh_entry_date: hoh_entry_date,
-          member_exit_dates: member_exit_dates,
-        )
-        errors.add_with_record_id(date_validation_errors, assessment.id)
-
-        # Collect other form validations
-        form_validations = assessment.custom_form.collect_form_validations(ignore_warnings: confirmed)
+        form_validations = assessment.custom_form.collect_form_validations
         errors.add_with_record_id(form_validations, assessment.id)
       end
 
-      all_valid = true
-      # Run form processor on each assessment, validate all records
+      # Run form processor on each assessment
       assessments.each do |assessment|
         assessment.assign_attributes(user_id: hmis_user.user_id)
         # Run processor to create/update related records
         assessment.custom_form.form_processor.run!
-        # Run both validations
-        is_valid = assessment.valid? && assessment.custom_form.valid?
-        all_valid = false unless is_valid
+      end
 
-        # Collect validations and warnings from AR Validator classes
+      # Collect validations (hmis_validate and AR validation)
+      all_valid = true
+      household_members = assessments.map(&:enrollment)
+      assessments.each do |assessment|
+        all_valid = false unless assessment.valid? && assessment.custom_form.valid?
         record_validations = assessment.custom_form.collect_record_validations(
           user: current_user,
-          ignore_warnings: confirmed,
+          household_members: household_members,
         )
         errors.add_with_record_id(record_validations, assessment.id)
       end
 
       # Return any validation errors
+      errors.drop_warnings! if confirmed
       errors.deduplicate!
       return { errors: errors } if errors.any?
 

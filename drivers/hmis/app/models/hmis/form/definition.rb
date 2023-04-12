@@ -140,63 +140,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     @assessment_date_item ||= link_id_item_hash.values.find(&:assessment_date)
   end
 
-  # Pull out the Assessment Date from the values hash
-  def find_assessment_date(values:)
-    errors = HmisErrors::Errors.new
-    item = assessment_date_item
-    return [nil, errors.errors] unless item.present? && values.present?
-
-    error_context = {
-      readable_attribute: item.brief_text || item.text,
-      link_id: item.link_id,
-      attribute: item.field_name.to_sym,
-    }
-
-    date_string = values[item.link_id]
-    # Add validation error if date is missing from HUD assessment
-    errors.add item.field_name, :required, **error_context if !date_string.present? && hud_assessment?
-    return [nil, errors.errors] unless date_string.present?
-
-    date = HmisUtil::Dates.safe_parse_date(date_string: date_string)
-    # Add validation error if date was unparseable
-    errors.add item.field_name, :invalid, **error_context unless date.present?
-
-    [date, errors.errors]
-  end
-
-  # Validate the Assessment Date
-  def validate_assessment_date(date:, enrollment:, ignore_warnings: false, hoh_entry_date: nil, member_exit_dates: nil)
-    errors = HmisErrors::Errors.new
-    item = assessment_date_item
-    error_context = {
-      readable_attribute: item.brief_text || item.text,
-      link_id: item&.link_id,
-      attribute: item.field_name.to_sym,
-    }
-
-    # Additional validations for HUD assessment dates to be within appropriate entry/exit bounds
-    validations = if intake?
-      Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(date, enrollment: enrollment, hoh_entry_date: hoh_entry_date, options: error_context)
-    elsif exit?
-      Hmis::Hud::Validators::ExitValidator.validate_exit_date(date, enrollment: enrollment, member_exit_dates: member_exit_dates, options: error_context)
-    else
-      Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(date, enrollment: enrollment, options: error_context)
-    end
-    errors.push(*validations)
-    errors.drop_warnings! if ignore_warnings
-    errors.errors
-  end
-
-  def find_and_validate_assessment_date(values:, enrollment:, ignore_warnings: false)
-    date, errors = find_assessment_date(values: values)
-    return [date, errors] if errors.any?
-
-    errors = validate_assessment_date(date: date, enrollment: enrollment, ignore_warnings: ignore_warnings) if hud_assessment? && date.present?
-    date = nil if errors.reject(&:warning?).any?
-
-    [date, errors]
-  end
-
   def validate_form_values(form_values)
     errors = HmisErrors::Errors.new
 
