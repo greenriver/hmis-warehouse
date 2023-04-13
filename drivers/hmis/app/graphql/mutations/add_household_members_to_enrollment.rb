@@ -46,7 +46,7 @@ module Mutations
         )
       end
 
-      # Validate entry date. Drop warnings for now, because we don't handle them yet in the frontend.
+      # Validate entry date
       validations = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollments.first)
       validations.reject!(&:warning?) if confirmed
       return { errors: validations } if validations.any?
