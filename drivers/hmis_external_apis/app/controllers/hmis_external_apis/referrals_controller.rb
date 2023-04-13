@@ -11,7 +11,6 @@ module HmisExternalApis
     prepend_before_action :skip_timeout
 
     def create
-      # FIXME: add param validation / error handling
       referral = HmisExternalApis::CreateReferralJob.perform_now(params: unsafe_params)
       render json: { message: 'Referral Created', id: referral.identifier }
     end
@@ -26,6 +25,5 @@ module HmisExternalApis
       # FIXME: token auth or oauth?
       raise unless Rails.env.development? || Rails.env.test?
     end
-
   end
 end

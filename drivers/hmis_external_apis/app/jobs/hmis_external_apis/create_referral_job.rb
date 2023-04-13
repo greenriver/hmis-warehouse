@@ -91,7 +91,8 @@ module HmisExternalApis
     def create_referral_clients(referral)
       member_params = params.fetch(:household_members)
       mci_ids = member_params.map { |a| a.fetch(:mci_id) }
-      hud_clients_by_mci_id = mci_vendor.external_ids
+
+      hud_clients_by_mci_id = mci_cred.external_ids
         .where(source_type: 'Hmis::Hud::Client')
         .where(value: mci_ids)
         .pluck(:value, :source_id)
@@ -107,7 +108,7 @@ module HmisExternalApis
           client.hud_client_id = found_id
         else
           client.hud_client = create_hud_client(attrs)
-          mci_vendor.external_ids.create!(source: client.hud_client, value: mci_id)
+          mci_cred.external_ids.create!(source: client.hud_client, value: mci_id)
         end
         client.save!
         client
@@ -132,8 +133,8 @@ module HmisExternalApis
       @data_source ||= GrdaWarehouse::DataSource.hmis.first!
     end
 
-    def mci_vendor
-      @mci_vendor ||= GrdaWarehouse::RemoteCredentials::Token.mci
+    def mci_cred
+      @mci_cred ||= GrdaWarehouse::RemoteCredential.mci
     end
   end
 end

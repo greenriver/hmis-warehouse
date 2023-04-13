@@ -10,7 +10,7 @@ require 'faker'
 RSpec.describe HmisExternalApis::ReferralsController, type: :request do
   describe 'send referral' do
 
-    let(:mci_vendor) do
+    let(:mci_cred) do
       create(:remote_token_credential, slug: 'mci')
     end
 
@@ -18,7 +18,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
       2.times.map do
         client = create(:hmis_hud_client_complete)
         mci_id = SecureRandom.uuid
-        mci_vendor.external_ids.create!(source: client, value: mci_id)
+        mci_cred.external_ids.create!(source: client, value: mci_id)
         [client, mci_id]
       end
     end
@@ -71,7 +71,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
 
       hud_clients.each do |client, mci_id|
         found = referral.referral_clients.where(hud_client_id: client.id).first!
-        expect(mci_vendor.external_ids.where(source: found.hud_client, value: mci_id).count).to(eq(1))
+        expect(mci_cred.external_ids.where(source: found.hud_client, value: mci_id).count).to(eq(1))
       end
     end
 

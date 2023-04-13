@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :remote_token_credential, class: 'GrdaWarehouse::RemoteCredentials::Token' do
+  factory :remote_token_credential, class: 'GrdaWarehouse::RemoteCredentials::Oauth' do
     sequence :slug
 
     # these are required by db schema

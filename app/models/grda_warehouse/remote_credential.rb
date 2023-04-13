@@ -17,5 +17,9 @@ module GrdaWarehouse
       where(active: true)
     end
 
+    def self.mci
+      where(slug: 'mci').first!
+    end
+
   end
 end
