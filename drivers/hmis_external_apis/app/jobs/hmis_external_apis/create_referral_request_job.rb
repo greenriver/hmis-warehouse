@@ -9,6 +9,7 @@ module HmisExternalApis
   class CreateReferralRequestJob < ApplicationJob
     # @param referral_request [HmisExternalApis::ReferralRequest]
     def perform(referral_request:, url:)
+      # if it's persisted, the assumption is that it's already been sent
       raise if referral_request.persisted?
 
       response = post_referral_request(url, payload(referral_request))
@@ -28,6 +29,7 @@ module HmisExternalApis
       date.strftime('%Y/%m/%d')
     end
 
+    # FIXME: not sure best to lookup mper ids... assuming they are external_ids that will already exist?
     def mper_id(record)
       mper_cred.external_ids.where(source: record).first!.value
     end

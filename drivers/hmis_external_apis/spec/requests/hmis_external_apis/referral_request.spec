@@ -22,7 +22,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
       'http://example.com/'
     end
 
-    it 'successfully creates a referral' do
+    it 'has no smoke' do
       referral_request = build(:hmis_external_api_referral_request)
 
       # setup external ids

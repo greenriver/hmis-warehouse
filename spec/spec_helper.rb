@@ -123,7 +123,7 @@ RSpec.configure do |config|
 
   config.before(:each) do
     # stub requests to pwned api
-    stub_request(:get, /https:\/\/api.pwnedpasswords.com\/.*/).
+    stub_request(:get, /https:\/\/api\.pwnedpasswords\.com\/.*/).
       with(
         headers: {
           'User-Agent' => 'devise_pwned_password',
