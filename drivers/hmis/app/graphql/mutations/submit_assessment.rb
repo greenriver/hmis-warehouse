@@ -72,13 +72,6 @@ module Mutations
 
       errors.drop_warnings! if input.confirmed
       errors.deduplicate!
-
-      # If this is an existing assessment and all the errors are warnings, save changes before returning
-      if errors.any? && assessment.id.present? && errors.all?(&:warning?)
-        assessment.custom_form.save!
-        assessment.save!
-        assessment.touch
-      end
       return { errors: errors } if errors.any?
 
       return { assessments: assessments, errors: [] } if input.validate_only
@@ -91,9 +84,9 @@ module Mutations
         # Save the assessment as non-WIP
         assessment.save_not_in_progress
         # If this is an intake assessment, ensure the enrollment is no longer in WIP status
-        enrollment.save_not_in_progress if assessment.intake?
+        assessment.enrollment.save_not_in_progress if assessment.intake?
         # Update DateUpdated on the Enrollment
-        enrollment.touch
+        assessment.enrollment.touch
       else
         # These are potentially unfixable errors. Maybe should be server error instead.
         # For now, return them all because they are useful in development.

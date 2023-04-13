@@ -136,8 +136,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     before(:each) do
       # create the initial WIP assessment
       _resp, result = post_graphql(input: { input: test_input }) { save_wip_mutation }
-      id = result.dig('data', 'saveAssessment', 'assessment', 'id')
-      @assessment = Hmis::Hud::CustomAssessment.find(id)
+      @assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
     end
 
     it 'should update and submit assessment successfully' do
@@ -145,7 +144,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
-        assessment_id: @assessment.id,
+        assessment_id: @assessment_id,
         values: { 'linkid-date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
       }
@@ -164,17 +163,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
         expect(Hmis::Hud::CustomAssessment.where(enrollment_id: Hmis::Hud::CustomAssessment::WIP_ID).count).to eq(0)
         expect(Hmis::Wip.count).to eq(0)
-        @assessment.reload
-        expect(@assessment.in_progress?).to eq(false)
+
+        record = Hmis::Hud::CustomAssessment.find(@assessment_id)
+        expect(record.in_progress?).to eq(false)
       end
     end
 
-    it 'should save without submitting if there are unconfirmed warnings' do
+    it 'should not save if there were unconfirmed warnings' do
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
 
       new_information_date = (e1.entry_date + 5.days).strftime('%Y-%m-%d')
       input = {
-        assessment_id: @assessment.id,
+        assessment_id: @assessment_id,
         values: { 'linkid-date' => new_information_date, 'linkid-choice' => nil },
         hud_values: { 'informationDate' => new_information_date, 'linkid-choice' => nil },
       }
@@ -187,12 +187,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to match([a_hash_including('severity' => 'warning', 'type' => 'data_not_collected')])
         expect(assessment).to be_nil
 
-        @assessment.reload
-        # It is still WIP, but its values and assessment date have been updated
-        expect(@assessment.in_progress?).to eq(true)
-        expect(@assessment.assessment_date).to eq(Date.parse(new_information_date))
-        expect(@assessment.custom_form.values).to include(**input[:values])
-        expect(@assessment.custom_form.hud_values).to include(**input[:hud_values])
+        record = Hmis::Hud::CustomAssessment.find(@assessment_id)
+        # It is still WIP, and fields should NOT have been updated
+        expect(record.in_progress?).to eq(true)
+        expect(record.assessment_date).not_to eq(Date.parse(new_information_date))
+        expect(record.custom_form.values).not_to include(**input[:values])
+        expect(record.custom_form.hud_values).not_to include(**input[:hud_values])
       end
     end
   end
