@@ -35,7 +35,7 @@ module Mutations
       warnings = []
       resolvable_enrollments = []
 
-      client.enrollments.each do |enrollment|
+      client.enrollments.viewable_by(current_user).each do |enrollment|
         next unless enrollment.relationship_to_ho_h == 1
 
         members = enrollment.household_members
@@ -48,10 +48,10 @@ module Mutations
         warnings << HmisErrors::Error.new(
           :id,
           :information,
-          full_message: "If this client is deleted, #{problem_enrollments.size} households will have no Head of Household.",
+          full_message: "If this client is deleted, #{problem_enrollments.size} #{'household'.pluralize(problem_enrollments.size)} will have no Head of Household.",
           severity: :warning,
           data: {
-            text: 'The Head of Household for the following households should be changed:',
+            text: "The Head of Household for the following #{'household'.pluralize(problem_enrollments.size)} should be changed before this client is deleted:",
             enrollments: problem_enrollments.map do |e|
               {
                 id: e.id.to_s,
