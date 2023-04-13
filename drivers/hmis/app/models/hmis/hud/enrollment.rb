@@ -169,6 +169,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.RelationshipToHoH == 1
   end
 
+  def age_over_18?
+    client.age.present? && client.age > 18
+  end
+
   def household_members
     Hmis::Hud::Enrollment.where(household_id: household_id, data_source_id: data_source_id)
   end

@@ -24,11 +24,11 @@ module Mutations
 
       is_hoh_change = relationship_to_ho_h == 1
       if is_hoh_change
-        household_enrollments = enrollment.household_members
+        household_enrollments = enrollment.household_members.preload(:client)
         # Give an informational warning about the HoH change.
         unless confirmed
-          old_hoh_name = household_enrollments.where(relationship_to_ho_h: 1).first&.client&.first_name
-          new_hoh_name = enrollment.client&.first_name
+          old_hoh_name = household_enrollments.where(relationship_to_ho_h: 1).first&.client&.brief_name
+          new_hoh_name = enrollment.client&.brief_name
           full_message = if old_hoh_name.present?
             "Head of Household will change from #{old_hoh_name} to #{new_hoh_name}."
           else
@@ -37,15 +37,16 @@ module Mutations
           errors.add :enrollment, :informational, severity: :warning, full_message: full_message
         end
 
-        # WIP member cannot be HoH, unless all members are WIP
-        errors.add :enrollment, :invalid, full_message: 'Selected member cannot be the Head of Household because their enrollment is incomplete.' if enrollment.in_progress? && household_enrollments.not_in_progress.exists?
-        # Exited member shouldn't be HoH if there are other un-exited clients (but allow it for edge cases, such as they are about to delete this client)
-        errors.add :enrollment, :invalid, severity: :warning, full_message: 'An Exited client will be set as the Head of Household.' if enrollment.exit.present? && household_enrollments.open_on_date(Date.tomorrow).exists?
-
-        # TODO add child warning
+        # HoH shouldn't be WIP, unless all members are WIP
+        errors.add :enrollment, :informational, severity: :warning, full_message: 'Selected HoH has an incomplete enrollment.' if enrollment.in_progress? && household_enrollments.not_in_progress.exists?
+        # HoH shouldn't be Exited, unless all clients are Exited
+        errors.add :enrollment, :informational, severity: :warning, full_message: 'Selected HoH is exited.' if enrollment.exit.present? && household_enrollments.open_on_date(Date.tomorrow).exists?
+        # HoH shouldn't be a child, unless all members are children
+        new_hoh_age = enrollment.client.age
+        errors.add :enrollment, :informational, severity: :warning, full_message: 'Selected HoH is a child.' if new_hoh_age.present? && new_hoh_age < 18 && household_enrollments.find(&:age_over_18?)
       end
 
-      errors.reject!(&:warning?) if confirmed
+      errors.drop_warnings! if confirmed
       return { errors: errors } if errors.any?
 
       update_params = { user_id: hmis_user.user_id }
