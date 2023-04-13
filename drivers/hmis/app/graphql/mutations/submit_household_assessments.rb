@@ -76,16 +76,20 @@ module Mutations
       end
 
       # Run form processor on each assessment
-      assessments.each do |assessment|
+      assessment_enrollment_pairs = assessments.map { |a| [a, a.enrollment] }
+      assessment_enrollment_pairs.each do |assessment, enrollment|
         assessment.assign_attributes(user_id: hmis_user.user_id)
         # Run processor to create/update related records
-        assessment.custom_form.form_processor.run!
+        assessment.custom_form.form_processor.run!(enrollment: enrollment)
+        # Rails.logger.info(">>> enrollment.entry_date  #{enrollment.entry_date}")
+        # Rails.logger.info(">>> assessment.enrollment.entry_date  #{assessment.enrollment.entry_date}")
+        assessment.enrollment = enrollment
       end
 
       # Collect validations (hmis_validate and AR validation)
       all_valid = true
-      household_members = assessments.map(&:enrollment)
-      assessments.each do |assessment|
+      household_members = assessment_enrollment_pairs.map(&:last)
+      assessment_enrollment_pairs.each do |assessment, _enrollment|
         all_valid = false unless assessment.valid? && assessment.custom_form.valid?
         record_validations = assessment.custom_form.collect_record_validations(
           user: current_user,

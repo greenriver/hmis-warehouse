@@ -457,6 +457,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
 
       assessment.custom_form.form_processor.run!
+      # Unsaved changes should be present on the enrollment
+      expect(assessment.enrollment.entry_date).to eq(Date.parse(new_entry_date))
+
       assessment.custom_form.form_processor.save!
       assessment.save_not_in_progress
       assessment.reload

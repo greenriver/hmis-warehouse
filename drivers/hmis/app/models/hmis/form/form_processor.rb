@@ -23,8 +23,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   validate :hmis_records_are_valid
   before_save :save_enrollment
 
-  def run!
+  def run!(enrollment: nil)
     return unless custom_form.hud_values.present?
+
+    @enrollment_factory = enrollment
 
     custom_form.hud_values.each do |key, value|
       # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
