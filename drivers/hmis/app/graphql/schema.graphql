@@ -5105,6 +5105,10 @@ input UpdateRelationshipToHoHInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+
+  """
+  Whether user has confirmed the action
+  """
   confirmed: Boolean
   enrollmentId: ID!
   relationshipToHoH: RelationshipToHoH!
