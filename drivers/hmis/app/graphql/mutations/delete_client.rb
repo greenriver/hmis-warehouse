@@ -54,7 +54,7 @@ module Mutations
             text: 'The Head of Household for the following households should be changed:',
             enrollments: problem_enrollments.map do |e|
               {
-                id: e.id,
+                id: e.id.to_s,
                 name: e.project&.project_name,
                 entryDate: e.entry_date,
                 exitDate: e.exit_date,

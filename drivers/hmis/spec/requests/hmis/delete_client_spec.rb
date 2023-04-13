@@ -44,15 +44,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  # it 'should delete a client who has no multi-person enrollments' do
-  #   expect(Hmis::Hud::Client.all).to include(have_attributes(id: c1.id))
+  it 'should delete a client who has no multi-person enrollments' do
+    expect(Hmis::Hud::Client.all).to include(have_attributes(id: c1.id))
 
-  #   mutate(input: { id: c1.id }) do |client, errors|
-  #     expect(client).to be_present
-  #     expect(errors).to be_empty
-  #     expect(Hmis::Hud::Client.all).not_to include(have_attributes(id: c1.id))
-  #   end
-  # end
+    mutate(input: { id: c1.id }) do |client, errors|
+      expect(client).to be_present
+      expect(errors).to be_empty
+      expect(Hmis::Hud::Client.all).not_to include(have_attributes(id: c1.id))
+    end
+  end
 
   it 'should delete a client who has a 2-person enrollment' do
     e2 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1', user: u1
@@ -71,7 +71,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     mutate(input: { id: c1.id }) do |client, errors|
       expect(client).to be_nil
-      expect(errors).to contain_exactly(include('type' => 'information', 'severity' => 'warning'))
+      expect(errors).to contain_exactly(
+        include(
+          'type' => 'information',
+          'severity' => 'warning',
+          'data' => include(
+            'enrollments' => contain_exactly(
+              include(
+                'id' => e1.id.to_s,
+                'entryDate' => e1.entry_date&.to_s(:db),
+                'exitDate' => e1.exit_date&.to_s(:db),
+                'name' => e1.project.project_name,
+              ),
+            ),
+          ),
+        ),
+      )
       expect(Hmis::Hud::Client.all).to include(have_attributes(id: c1.id))
     end
 

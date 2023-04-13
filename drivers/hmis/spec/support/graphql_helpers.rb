@@ -49,6 +49,7 @@ module GraphqlHelpers
         type
         severity
         readableAttribute
+        data
         __typename
       }
     ERRORS

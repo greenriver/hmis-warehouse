@@ -31,6 +31,7 @@ module HmisErrors
         record_id: nil,
         link_id: nil,
         section: nil,
+        data: nil,
         **kwargs,
       }.each do |key, value|
         define_singleton_method(key) { value }
