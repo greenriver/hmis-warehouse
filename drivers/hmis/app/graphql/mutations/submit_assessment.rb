@@ -64,7 +64,8 @@ module Mutations
       assessment.custom_form.form_processor.run!(owner: assessment)
 
       # Run both validations
-      is_valid = assessment.valid? && assessment.custom_form.valid?
+      is_valid = assessment.valid?
+      is_valid = assessment.custom_form.valid? && is_valid
 
       # Collect validations and warnings from AR Validator classes
       record_validations = assessment.custom_form.collect_record_validations(user: current_user)

@@ -32,7 +32,8 @@ module Mutations
       return { errors: errors } if errors.any?
 
       errors = HmisErrors::Errors.new
-      is_valid = assessment.valid? && assessment.custom_form.valid?
+      is_valid = assessment.valid?
+      is_valid = assessment.custom_form.valid? && is_valid
       if is_valid
         assessment.custom_form.save!
         assessment.save_in_progress

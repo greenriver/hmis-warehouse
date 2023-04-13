@@ -69,7 +69,8 @@ module Mutations
       custom_form.form_processor.run!(owner: record)
 
       # Run both validations
-      is_valid = record.valid? && custom_form.valid?
+      is_valid = record.valid?
+      is_valid = custom_form.valid? && is_valid
 
       # Collect validations and warnings from AR Validator classes
       record_validations = custom_form.collect_record_validations(user: current_user)
