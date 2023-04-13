@@ -6,8 +6,34 @@
 
 module SystemPathways
   class Report < SimpleReports::ReportInstance
-    include Rails.application.routes.url_helpers
+    include Filter::ControlSections
+    include Filter::FilterScopes
     include Reporting::Status
+    include Rails.application.routes.url_helpers
+    include ActionView::Helpers::NumberHelper
+    include ArelHelper
+
+    belongs_to :user, optional: true
+    has_many :clients
+    has_many :enrollments
+
+    after_initialize :filter
+
+    # NOTE: this differs from viewable_by which looks at the report definitions
+    scope :visible_to, ->(user) do
+      return all if user.can_view_all_reports?
+      return where(user_id: user.id) if user.can_view_assigned_reports?
+
+      none
+    end
+
+    scope :diet, -> do
+      select(column_names - ['build_for_questions', 'remaining_questions'])
+    end
+
+    scope :ordered, -> do
+      order(created_at: :desc)
+    end
 
     def run_and_save!
       start
@@ -23,33 +49,106 @@ module SystemPathways
       update(completed_at: Time.current)
     end
 
-    def title
+    def self.untranslated_title
       'System Pathways'
     end
 
-    private def filter
-      @filter ||= ::Filters::FilterBase.new(
-        user_id: user_id,
-        enforce_one_year_range: false,
-      ).update(options)
+    def title
+      _(self.class.untranslated_title)
     end
 
-    def describe_filter_as_html
-      filter.describe_filter_as_html(self.class.report_options)
+    def description
+      _('A tool to look at client pathways through the continuum including some equity analysis.')
     end
 
-    # TODO: this will need to be updated when the filter is added
-    def self.report_options
+    def describe_filter_as_html(keys = nil, inline: false, limited: true)
+      keys ||= [
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
+      filter.describe_filter_as_html(keys, inline: inline, limited: limited)
+    end
+
+    def known_params
       [
         :start,
         :end,
+        :coc_codes,
+        :project_type_codes,
         :project_ids,
-        :age_ranges,
-      ].freeze
+        :project_group_ids,
+        :data_source_ids,
+        :funder_ids,
+        :default_project_type_codes,
+      ]
+    end
+
+    def filter=(filter_object)
+      self.options = filter_object.to_h
+      # force reset the filter cache
+      @filter = nil
+      filter
+    end
+
+    def filter
+      @filter ||= begin
+        f = ::Filters::HudFilterBase.new(
+          user_id: user_id,
+          enforce_one_year_range: false,
+          require_service_during_range: false,
+        )
+        f.update(options.with_indifferent_access.merge(enforce_one_year_range: false, require_service_during_range: false)) if options.present?
+        f
+      end
+    end
+
+    def self.url
+      'hmis_data_quality_tool/warehouse_reports/reports'
     end
 
     def url
       system_pathways_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
+    end
+
+    def show_path
+      system_pathways_warehouse_reports_report_path(self)
+    end
+
+    def index_path
+      system_pathways_warehouse_reports_reports_path
+    end
+
+    def report_path_array
+      [
+        :system_pathways,
+        :warehouse_reports,
+        :reports,
+      ]
+    end
+
+    def multiple_project_types?
+      true
+    end
+
+    def project_type_ids
+      # any project type we know how to display plus CE
+      allowed_states[nil] + [HudUtility.project_type_number('CE')]
+    end
+
+    def default_project_type_codes
+      [
+        :ph,
+        :oph,
+        :th,
+        :es,
+        :so,
+        :sh,
+        :ce,
+        :rrh,
+        :psh,
+      ]
     end
 
     private def allowed_states

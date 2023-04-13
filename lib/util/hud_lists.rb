@@ -133,16 +133,16 @@ module HudLists
     {
       1 => 'ES',
       2 => 'TH',
-      3 => 'PSH',
+      3 => 'PH - PSH',
       4 => 'SO',
       6 => 'SSO',
       7 => 'Other',
       8 => 'SH',
-      9 => 'PH',
-      10 => 'OPH',
+      9 => 'PH - PH',
+      10 => 'PH - OPH',
       11 => 'Day Shelter',
       12 => 'HP',
-      13 => 'RRH',
+      13 => 'PH - RRH',
       14 => 'CE',
     }.freeze
   end

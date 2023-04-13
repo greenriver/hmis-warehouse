@@ -7,85 +7,145 @@
 module SystemPathways::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
+    include BaseFilters
+    before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
     before_action :set_report, only: [:show, :destroy, :details]
 
     def index
-      @pagy, @reports = pagy(report_scope)
-      @filter = ::Filters::HudFilterBase.new(user_id: current_user.id, **default_filter_params)
-    end
+      @pagy, @reports = pagy(report_scope.diet.ordered)
+      @report = report_class.new(user_id: current_user.id)
+      @filter.default_project_type_codes = @report.default_project_type_codes
+      previous_report = report_scope.where(user_id: current_user.id).last
+      @filter.update(previous_report.options) if previous_report
 
-    def create
-      @filter = ::Filters::HudFilterBase.new(user_id: current_user.id).update(filter_params)
-
-      if @filter.valid?
-        @report = report_scope.create(user_id: @filter.user_id, options: report_options(@filter))
-        ::WarehouseReports::GenericReportJob.perform_later(
-          user_id: @filter.user_id,
-          report_class: @report.class.name,
-          report_id: @report.id,
-        )
-        redirect_to action: :index
-      else
-        @pagy, @reports = pagy(report_scope)
-        render :index # Show validation errors
-      end
+      # Make sure the form will work
+      filters
     end
 
     def show
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
+    end
+
+    def create
+      @report = report_class.new(
+        user_id: current_user.id,
+      )
+      @report.filter = @filter
+
+      if @filter.valid?
+        @report.save
+        ::WarehouseReports::GenericReportJob.perform_later(
+          user_id: current_user.id,
+          report_class: @report.class.name,
+          report_id: @report.id,
+        )
+        # Make sure the form will work
+        filters
+        respond_with(@report, location: @report.index_path)
+      else
+        @pagy, @reports = pagy(report_scope.ordered)
+        filters
+        render :index
+      end
     end
 
     def destroy
       @report.destroy
-      flash[:notice] = 'Report removed.'
-      redirect_to action: :index
+      respond_with(@report, location: @report.index_path)
     end
 
     def details
-      cell = params[:cell].to_sym
-      @cell = @report.label(cell)
-
-      text = @report.cell_label(cell)
-      @cell = "#{@cell}: #{text}" if text.present?
-
-      @members = @report.cell(params[:cell]).members
+      @key = @report.results_for_display[details_params[:category_name]][:reporting].keys.detect do |k|
+        details_params[:key] == k.to_s
+      end
+      @category_name = @report.results_for_display.keys.detect { |m| m == details_params[:category_name] }
+      @result = @report.results_for_display[@category_name][:reporting][@key]
+      @comparison = @report.results_for_display[@category_name][:comparison][@key]
     end
+
+    def items
+      @key = @report.known_keys.detect do |k|
+        details_params[:key] == k.to_s
+      end
+
+      @result = @report.result_from_key(@key)
+      @items = @report.items_for(@key)
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          title = "#{@result.category} #{@result.title}"
+          filename = "#{sanitized_name(title)}-#{Date.current.to_s(:db)}.xlsx"
+          headers['Content-Type'] = GrdaWarehouse::DocumentExport::EXCEL_MIME_TYPE
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
+    end
+
+    def sanitized_name(name)
+      # See https://www.keynotesupport.com/excel-basics/worksheet-names-characters-allowed-prohibited.shtml
+      name.gsub(/[',\*\/\\\?\[\]\:]/, '-').gsub(' - ', '-').gsub(' ', '-')
+    end
+
+    def details_params
+      params.permit(:key)
+    end
+    helper_method :details_params
+
+    private def set_report
+      @report = report_class.find(params[:id].to_i)
+    end
+
+    # Since this report uses the hud version of report instance, and it isn't STI
+    # we need to limit to those with a report name matching this one
+    private def report_scope
+      report_class.
+        visible_to(current_user)
+    end
+
+    private def set_filter
+      @filter = filter_class.new(user_id: current_user.id, enforce_one_year_range: false, require_service_during_range: false)
+      @filter.update(filter_params[:filters]) if filter_params[:filters].present?
+    end
+
+    def filter_params
+      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes
+      default_options = {
+        sub_population: :clients,
+        coc_codes: site_coc_codes,
+        comparison_pattern: :prior_year,
+      }
+      return { filters: default_options } unless params[:filters].present?
+
+      filters = params.permit(filters: @filter.known_params)
+      filters[:filters][:coc_codes] ||= site_coc_codes
+      filters
+    end
+    helper_method :filter_params
+
+    private def filter_class
+      ::Filters::HudFilterBase
+    end
+
+    private def flash_interpolation_options
+      { resource_name: @report.title }
+    end
+
+    def formatted_cell(cell)
+      return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
+      return view_context.yes_no(cell) if cell.in?([true, false])
+
+      cell
+    end
+    helper_method :formatted_cell
 
     def report_class
       SystemPathways::Report
-    end
-
-    def report_scope
-      report_class.viewable_by(current_user).order(id: :desc)
-    end
-
-    private def filter_params
-      return [] unless params[:filter].present?
-
-      params.require(:filter).permit(
-        :start,
-        :end,
-        age_ranges: [],
-        project_ids: [],
-      )
-    end
-
-    # FIXME
-    private def default_filter_params
-      prior_project_ids = report_class.last&.options.try(:[], 'project_ids')
-      day_in_last_quarter = Date.current - 90.days
-      {
-        start: day_in_last_quarter.beginning_of_quarter,
-        end: day_in_last_quarter.end_of_quarter,
-        project_ids: prior_project_ids,
-      }
-    end
-
-    def report_options(filter)
-      filter.to_h.slice(*report_class.report_options)
-    end
-
-    private def set_report
-      @report = report_scope.find(params[:id].to_i)
     end
   end
 end
