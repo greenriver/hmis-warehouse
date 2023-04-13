@@ -5,13 +5,16 @@
 ###
 
 class BackgroundRender::AnalysisToolJob < BackgroundRenderJob
-  def render_html(filters:, user_id:)
+  def render_html(filters:, user_id:, row_breakdown:, col_breakdown:)
     current_user = User.find(user_id)
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filters).with_indifferent_access)
     set_report
     @section = 'table'
     @section = @report.section_subpath + @section
-
+    @report.breakdowns = {
+      row: row_breakdown,
+      col: col_breakdown,
+    }
     AnalysisTool::WarehouseReports::AnalysisToolController.render(
       partial: @section,
       assigns: {
