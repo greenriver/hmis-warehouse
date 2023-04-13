@@ -8,26 +8,20 @@
 module HmisExternalApis
   class CreateReferralRequestJob < ApplicationJob
     # @param referral_request [HmisExternalApis::ReferralRequest]
-    def perform(referral_request:)
+    def perform(referral_request:, url:)
       raise if referral_request.persisted?
 
-      response = post_referral_request(payload(referral_request))
-      project.external_referral_requests.create!(
-        identifier: response.fetch('referral_request_id'),
-        project: project,
-      )
+      response = post_referral_request(url, payload(referral_request))
+      referral_request.identifier = response.fetch('referral_request_id')
+      referral_request.save!
+      referral_request
     end
 
     protected
 
-    def post_referral_request(params)
+    def post_referral_request(url, params)
       response = Faraday.post(url, params)
       JSON.parse(response.body)
-    end
-
-    def url
-      # FIXME: endpoint TBD
-      raise
     end
 
     def format_date(date)
@@ -43,18 +37,18 @@ module HmisExternalApis
     end
 
     def payload(record)
-      project = record.provider
+      project = record.project
       organization = project.organization
       unit_type = record.unit_type
       {
         requested_date: format_date(record.requested_on),
         provider_id: mper_id(organization),
-        provider_name: organization.name,
+        provider_name: organization.OrganizationName,
         project_id: mper_id(project),
-        project_name: project.name,
+        project_name: project.ProjectName,
         unit_type_id: mper_id(unit_type),
         unit_type_description: unit_type.description,
-        estimated_date_needed: format_date(unit_type.needed_by),
+        estimated_date_needed: format_date(record.needed_by),
         requested_by: record.requestor_name,
         requestor_phone_number: record.requestor_phone,
         requestor_email: record.requestor_email,

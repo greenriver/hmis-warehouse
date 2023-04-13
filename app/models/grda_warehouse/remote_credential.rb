@@ -21,5 +21,9 @@ module GrdaWarehouse
       where(slug: 'mci').first!
     end
 
+    def self.mper
+      where(slug: 'mper').first!
+    end
+
   end
 end

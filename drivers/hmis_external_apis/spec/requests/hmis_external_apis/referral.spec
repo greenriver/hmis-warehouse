@@ -11,7 +11,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
   describe 'send referral' do
 
     let(:mci_cred) do
-      create(:remote_token_credential, slug: 'mci')
+      create(:remote_oauth_credential, slug: 'mci')
     end
 
     let(:hud_clients) do
