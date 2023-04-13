@@ -6,14 +6,14 @@
 
 module Mutations
   class UpdateRelationshipToHoH < BaseMutation
-    argument :id, ID, required: true
+    argument :enrollment_id, ID, required: true
     argument :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, required: true
     argument :confirmed, Boolean, required: false
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
 
-    def resolve(id:, relationship_to_ho_h:, confirmed: false)
-      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
+    def resolve(enrollment_id:, relationship_to_ho_h:, confirmed: false)
+      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
 
       errors = HmisErrors::Errors.new
       errors.add :enrollment, :not_found unless enrollment.present?

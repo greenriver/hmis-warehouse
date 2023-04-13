@@ -5106,7 +5106,7 @@ input UpdateRelationshipToHoHInput {
   """
   clientMutationId: String
   confirmed: Boolean
-  id: ID!
+  enrollmentId: ID!
   relationshipToHoH: RelationshipToHoH!
 }
 
