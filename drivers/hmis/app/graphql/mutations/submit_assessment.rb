@@ -61,7 +61,7 @@ module Mutations
       errors.push(*form_validations)
 
       # Run processor to create/update related records
-      assessment.custom_form.form_processor.run!
+      assessment.custom_form.form_processor.run!(owner: assessment)
 
       # Run both validations
       is_valid = assessment.valid? && assessment.custom_form.valid?
@@ -84,11 +84,10 @@ module Mutations
       return { assessments: assessments, errors: [] } if input.validate_only
 
       if is_valid
-        # We need to call save on the processor directly to get the before_save hook to invoke.
-        # If this is removed, the Enrollment won't save.
-        assessment.custom_form.form_processor.save!
-        # Save CustomForm to save the rest of the related records
+        # Save CustomForm to save related records
         assessment.custom_form.save!
+        # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
+        assessment.enrollment.save!
         # Save the assessment as non-WIP
         assessment.save_not_in_progress
         # If this is an intake assessment, ensure the enrollment is no longer in WIP status

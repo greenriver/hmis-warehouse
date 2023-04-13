@@ -75,21 +75,16 @@ module Mutations
         errors.add_with_record_id(form_validations, assessment.id)
       end
 
-      # Run form processor on each assessment
-      assessment_enrollment_pairs = assessments.map { |a| [a, a.enrollment] }
-      assessment_enrollment_pairs.each do |assessment, enrollment|
+      # Run form processor on each assessment to create/update related records
+      assessments.each do |assessment|
         assessment.assign_attributes(user_id: hmis_user.user_id)
-        # Run processor to create/update related records
-        assessment.custom_form.form_processor.run!(enrollment: enrollment)
-        # Rails.logger.info(">>> enrollment.entry_date  #{enrollment.entry_date}")
-        # Rails.logger.info(">>> assessment.enrollment.entry_date  #{assessment.enrollment.entry_date}")
-        assessment.enrollment = enrollment
+        assessment.custom_form.form_processor.run!(owner: assessment)
       end
 
       # Collect validations (hmis_validate and AR validation)
       all_valid = true
-      household_members = assessment_enrollment_pairs.map(&:last)
-      assessment_enrollment_pairs.each do |assessment, _enrollment|
+      household_members = assessments.map(&:enrollment) # Enrollments with unsaved changes to Entry dates
+      assessments.each do |assessment|
         all_valid = false unless assessment.valid? && assessment.custom_form.valid?
         record_validations = assessment.custom_form.collect_record_validations(
           user: current_user,
@@ -105,14 +100,21 @@ module Mutations
 
       return { assessments: assessments, errors: [] } if validate_only
 
-      if all_valid
-        # Save all assessments
+      unless all_valid
         assessments.each do |assessment|
-          # We need to call save on the processor directly to get the before_save hook to invoke.
-          # If this is removed, the Enrollment won't save.
-          assessment.custom_form.form_processor.save!
-          # Save CustomForm to save the rest of the related records
+          errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+          errors.add_ar_errors(assessment.errors&.errors)
+        end
+        return { errors: errors }
+      end
+
+      # Save all assessments and related records
+      Hmis::Hud::CustomAssessment.transaction do
+        assessments.each do |assessment|
+          # Save CustomForm to save related records
           assessment.custom_form.save!
+          # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
+          assessment.enrollment.save!
           # Save the assessment as non-WIP
           assessment.save_not_in_progress
           # If this is an intake assessment, ensure the enrollment is no longer in WIP status
@@ -120,19 +122,11 @@ module Mutations
           # Update DateUpdated on the Enrollment
           assessment.enrollment.touch
         end
-      else
-        # These are potentially unfixable errors. Maybe should be server error instead.
-        # For now, return them all because they are useful in development.
-        assessments.each do |assessment|
-          errors.add_ar_errors(assessment.custom_form&.errors&.errors)
-          errors.add_ar_errors(assessment.errors&.errors)
-        end
-        assessments = []
       end
 
       {
         assessments: assessments,
-        errors: errors,
+        errors: [],
       }
     end
   end
