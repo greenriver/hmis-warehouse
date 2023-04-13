@@ -8,7 +8,7 @@ module Mutations
   class UpdateRelationshipToHoH < BaseMutation
     argument :enrollment_id, ID, required: true
     argument :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, required: true
-    argument :confirmed, Boolean, required: false
+    argument :confirmed, Boolean, 'Whether user has confirmed the action', required: false
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
 
@@ -25,12 +25,24 @@ module Mutations
       is_hoh_change = relationship_to_ho_h == 1
       if is_hoh_change
         household_enrollments = enrollment.household_members
-        # WIP member cannot be HoH, unless all members are WIP
-        errors.add :client_id, :invalid, full_message: 'Selected member cannot be the Head of Household because their enrollment is incomplete.' if enrollment.in_progress? && household_enrollments.not_in_progress.exists?
-        # Exited member cannot be HoH, unless all members are exited
-        errors.add :client_id, :invalid, full_message: 'Exited member cannot be the Head of Household.' if enrollment.exit.present? && household_enrollments.open_on_date(Date.tomorrow).exists?
+        # Give an informational warning about the HoH change.
+        unless confirmed
+          old_hoh_name = household_enrollments.where(relationship_to_ho_h: 1).first&.client&.first_name
+          new_hoh_name = enrollment.client&.first_name
+          full_message = if old_hoh_name.present?
+            "Head of Household will change from #{old_hoh_name} to #{new_hoh_name}."
+          else
+            "#{new_hoh_name} will be the Head of Household."
+          end
+          errors.add :enrollment, :informational, severity: :warning, full_message: full_message
+        end
 
-        # TODO add child warning, make the above exited one a warnings
+        # WIP member cannot be HoH, unless all members are WIP
+        errors.add :enrollment, :invalid, full_message: 'Selected member cannot be the Head of Household because their enrollment is incomplete.' if enrollment.in_progress? && household_enrollments.not_in_progress.exists?
+        # Exited member shouldn't be HoH if there are other un-exited clients (but allow it for edge cases, such as they are about to delete this client)
+        errors.add :enrollment, :invalid, severity: :warning, full_message: 'An Exited client will be set as the Head of Household.' if enrollment.exit.present? && household_enrollments.open_on_date(Date.tomorrow).exists?
+
+        # TODO add child warning
       end
 
       errors.reject!(&:warning?) if confirmed
