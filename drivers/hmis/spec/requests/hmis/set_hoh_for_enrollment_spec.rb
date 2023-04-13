@@ -22,10 +22,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
+  let(:test_input) do
+    {
+      confirmed: true,
+      relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(1).first,
+    }
+  end
+
   let(:mutation) do
     <<~GRAPHQL
-      mutation SetHoHForEnrollment($input: SetHoHForEnrollmentInput!) {
-        setHoHForEnrollment(input: $input) {
+      mutation UpdateRelationshipToHoH($input: UpdateRelationshipToHoHInput!) {
+        updateRelationshipToHoH(input: $input) {
           enrollment {
             id
             relationshipToHoH
@@ -40,12 +47,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should change hoh correctly' do
-    response, result = post_graphql(input: { household_id: '1', client_id: c3.id }) { mutation }
+    response, result = post_graphql(input: { enrollment_id: e3.id, **test_input }) { mutation }
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
-      enrollment = result.dig('data', 'setHoHForEnrollment', 'enrollment')
-      errors = result.dig('data', 'setHoHForEnrollment', 'errors')
+      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be_present
       expect(errors).to be_empty
       expect(Hmis::Hud::Enrollment.all).to contain_exactly(
@@ -58,12 +65,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should throw error if unauthorized' do
     remove_permissions(hmis_user, :can_edit_enrollments)
-    response, result = post_graphql(input: { household_id: '1', client_id: c3.id }) { mutation }
+    response, result = post_graphql(input: { enrollment_id: e3.id, **test_input }) { mutation }
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
-      enrollment = result.dig('data', 'setHoHForEnrollment', 'enrollment')
-      errors = result.dig('data', 'setHoHForEnrollment', 'errors')
+      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be_nil
       expect(errors).to be_present
       expect(errors).to contain_exactly(include('type' => 'not_allowed'))
@@ -73,39 +80,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Validity tests' do
     [
       [
-        'should emit error if client doesn\'t exist',
-        ->(_client = nil) do
+        'should emit error if enrollment doesn\'t exist',
+        ->(_enrollment = nil) do
           {
-            household_id: '1',
-            client_id: '0',
+            enrollment_id: '0',
           }
         end,
         {
           severity: :error,
           type: :not_found,
-          attribute: :clientId,
-        },
-      ],
-      [
-        'should emit error if household doesn\'t exist',
-        ->(client = nil) do
-          {
-            household_id: '0',
-            client_id: client&.id,
-          }
-        end,
-        {
-          type: :not_found,
-          attribute: :householdId,
-          severity: :error,
+          attribute: :enrollment,
         },
       ],
     ].each do |test_name, input_proc, error_attrs|
       it test_name do
-        response, result = post_graphql(input: input_proc.call(c1)) { mutation }
+        input = input_proc.call(e1).merge(test_input)
+        response, result = post_graphql(input: input) { mutation }
 
-        enrollment = result.dig('data', 'setHoHForEnrollment', 'enrollment')
-        errors = result.dig('data', 'setHoHForEnrollment', 'errors')
+        enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+        errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200
           expect(enrollment).to be_nil

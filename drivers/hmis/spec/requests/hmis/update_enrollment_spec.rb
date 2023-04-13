@@ -20,10 +20,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1', user: u2 }
 
+  let(:test_input) do
+    {
+      enrollment_id: e2.id,
+      relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(3).first,
+      confirmed: true,
+    }
+  end
   let(:mutation) do
     <<~GRAPHQL
-      mutation UpdateEnrollment($input: UpdateEnrollmentInput!) {
-        updateEnrollment(input: $input) {
+      mutation UpdateRelationshipToHoH($input: UpdateRelationshipToHoHInput!) {
+        updateRelationshipToHoH(input: $input) {
           enrollment {
             #{scalar_fields(Types::HmisSchema::Enrollment)}
             client {
@@ -46,17 +53,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       prev_date_updated = e2.date_updated
       expect(e2.user_id).to eq(u2.user_id)
 
-      response, result = post_graphql(
-        input: {
-          id: e2.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(3).first,
-        },
-      ) { mutation }
+      response, result = post_graphql(input: test_input) { mutation }
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
-        enrollment = result.dig('data', 'updateEnrollment', 'enrollment')
-        errors = result.dig('data', 'updateEnrollment', 'errors')
+        enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+        errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
         expect(e2.reload.date_updated > prev_date_updated).to eq(true)
         expect(e2.reload.user_id).to eq(u1.user_id)
         expect(enrollment).to be_present
@@ -82,17 +84,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should not update enrollment' do
       prev_date_updated = e2.date_updated
       expect(e2.user_id).to eq(u2.user_id)
-      response, result = post_graphql(
-        input: {
-          id: e2.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(3).first,
-        },
-      ) { mutation }
+      response, result = post_graphql(input: test_input) { mutation }
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
-        enrollment = result.dig('data', 'updateEnrollment', 'enrollment')
-        errors = result.dig('data', 'updateEnrollment', 'errors')
+        enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+        errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
         expect(e2.reload.date_updated > prev_date_updated).to eq(false)
         expect(e2.reload.user_id).to eq(u2.user_id)
         expect(enrollment).to be_nil
