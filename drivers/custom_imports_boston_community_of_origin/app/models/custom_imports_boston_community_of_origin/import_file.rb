@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CustomImportsBostonCommunityOfOrigins
+module CustomImportsBostonCommunityOfOrigin
   class ImportFile < GrdaWarehouse::CustomImports::ImportFile
     has_many :rows
 
@@ -93,9 +93,8 @@ module CustomImportsBostonCommunityOfOrigins
           next unless row.client.present?
 
           lat, lon = location(row)
-          location_batch << ::ClientLocationHistory::Location.new(
-            source: row,
-            client: row.client,
+          location_batch << row.build_client_location(
+            client_id: row.client.destination_client.id,
             located_on: contact_date(row),
             lat: lat,
             lon: lon,
@@ -112,6 +111,12 @@ module CustomImportsBostonCommunityOfOrigins
       end
 
       update(status: 'complete', completed_at: Time.current)
+      delayed_enrollment_location_histories
+    end
+
+    def delayed_enrollment_location_histories
+      GrdaWarehouse::Hud::Enrollment.delay.maintain_location_histories
+      Delayed::Worker.new.work_off if Rails.env.test?
     end
 
     def contact_date(row)
