@@ -169,8 +169,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.RelationshipToHoH == 1
   end
 
-  def age_over_18?
-    client.age.present? && client.age > 18
+  def adult?
+    client.adult?
   end
 
   def household_members

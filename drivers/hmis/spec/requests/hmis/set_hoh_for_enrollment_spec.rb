@@ -12,7 +12,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Sally' }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1', user: u1 }
   let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, relationship_to_ho_h: 3, household_id: '1', user: u1 }
@@ -24,8 +24,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:test_input) do
     {
-      confirmed: true,
+      enrollment_id: e3.id,
       relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(1).first,
+      confirmed: true,
     }
   end
 
@@ -47,7 +48,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should change hoh correctly' do
-    response, result = post_graphql(input: { enrollment_id: e3.id, **test_input }) { mutation }
+    response, result = post_graphql(input: test_input) { mutation }
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
@@ -63,9 +64,79 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  it 'should warn if unconfirmed' do
+    response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
+      expect(enrollment).to be nil
+      expect(errors).to match([
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.change_hoh_message(c1, c3)),
+                              ])
+      e3.reload
+      expect(e3.relationship_to_ho_h).not_to eq(1)
+    end
+  end
+
+  it 'should warn if hoh is a child' do
+    c3.update(dob: 13.years.ago)
+    response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
+      expect(enrollment).to be nil
+      expect(errors).to match([
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.change_hoh_message(c1, c3)),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.child_hoh_message),
+                              ])
+      e3.reload
+      expect(e3.relationship_to_ho_h).not_to eq(1)
+    end
+  end
+
+  it 'should warn if WIP enrollment' do
+    e3.save_in_progress
+    response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
+      expect(enrollment).to be nil
+      expect(errors).to match([
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.change_hoh_message(c1, c3)),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.incomplete_hoh_message),
+                              ])
+      e3.reload
+      expect(e3.relationship_to_ho_h).not_to eq(1)
+    end
+  end
+
+  it 'should warn if Exited enrollment' do
+    create(:hmis_hud_exit, data_source: ds1, client: c3, enrollment: e3)
+    response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
+      expect(enrollment).to be nil
+      expect(errors).to match([
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.change_hoh_message(c1, c3)),
+                                a_hash_including('severity' => 'warning', 'fullMessage' => Mutations::UpdateRelationshipToHoH.exited_hoh_message),
+                              ])
+      e3.reload
+      expect(e3.relationship_to_ho_h).not_to eq(1)
+    end
+  end
+
   it 'should throw error if unauthorized' do
     remove_permissions(hmis_user, :can_edit_enrollments)
-    response, result = post_graphql(input: { enrollment_id: e3.id, **test_input }) { mutation }
+    response, result = post_graphql(input: test_input) { mutation }
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
@@ -94,7 +165,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ],
     ].each do |test_name, input_proc, error_attrs|
       it test_name do
-        input = input_proc.call(e1).merge(test_input)
+        input = test_input.merge(input_proc.call(e1))
         response, result = post_graphql(input: input) { mutation }
 
         enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
