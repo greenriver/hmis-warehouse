@@ -91,6 +91,11 @@ input AssessmentInput {
   hudValues: JsonObject
 
   """
+  Validate assessment but don't submit it
+  """
+  validateOnly: Boolean
+
+  """
   Raw form state as JSON
   """
   values: JsonObject
@@ -157,6 +162,12 @@ type AssessmentsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+enum AuditEventType {
+  create
+  destroy
+  update
 }
 
 """
@@ -328,6 +339,7 @@ type Client {
   access: ClientAccess!
   age: Int
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -357,15 +369,44 @@ type Client {
   ssnDataQuality: SSNDataQuality!
   user: User
   veteranStatus: NoYesReasonsForMissingData!
+  warehouseUrl: String!
 }
 
 type ClientAccess {
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
+  canManageAnyClientFiles: Boolean!
+  canManageOwnClientFiles: Boolean!
+  canViewAnyConfidentialClientFiles: Boolean!
+  canViewAnyNonconfidentialClientFiles: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
+}
+
+type ClientAuditEvent {
+  createdAt: ISO8601DateTime!
+  event: AuditEventType!
+  id: ID!
+  item: Client!
+
+  """
+  Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }
+  """
+  objectChanges: JsonObject
+  user: ApplicationUser
+}
+
+type ClientAuditEventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ClientAuditEvent!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -1291,6 +1332,7 @@ type Enrollment {
   project: Project!
   relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   user: User
 }
@@ -1308,6 +1350,41 @@ HUD Enrollment Sorting Options
 """
 enum EnrollmentSortOption {
   MOST_RECENT
+}
+
+"""
+Status of this enrollment
+"""
+enum EnrollmentStatus {
+  """
+  Active
+  """
+  ACTIVE
+
+  """
+  Household Entry Incomplete
+  """
+  ANY_ENTRY_INCOMPLETE
+
+  """
+  Household Exit Incomplete
+  """
+  ANY_EXIT_INCOMPLETE
+
+  """
+  Exited
+  """
+  EXITED
+
+  """
+  Entry Incomplete
+  """
+  OWN_ENTRY_INCOMPLETE
+
+  """
+  Exit Incomplete
+  """
+  OWN_EXIT_INCOMPLETE
 }
 
 type EnrollmentsPaginated {
@@ -1550,10 +1627,17 @@ type File {
   contentType: String!
   createdAt: ISO8601DateTime!
   effectiveDate: ISO8601Date
+  enrollment: Enrollment
+  enrollmentId: ID
   expirationDate: ISO8601Date
+  fileBlobId: ID!
   id: ID!
   name: String!
+  ownFile: Boolean!
+  tags: [String!]!
   updatedAt: ISO8601DateTime!
+  updatedBy: ApplicationUser
+  uploadedBy: ApplicationUser
   url: String!
 }
 
@@ -1595,6 +1679,7 @@ type FormDefinitionJson {
 }
 
 input FormInput {
+  clientId: ID
   confirmed: Boolean
   enrollmentId: ID
   formDefinitionId: ID!
@@ -1784,6 +1869,11 @@ enum FormRole {
   (EXIT) Exit Assessment
   """
   EXIT
+
+  """
+  (FILE) File
+  """
+  FILE
 
   """
   (FUNDER) Funder
@@ -2608,6 +2698,7 @@ enum ItemType {
   CURRENCY
   DATE
   DISPLAY
+  FILE
   GROUP
   IMAGE
   INTEGER
@@ -3272,6 +3363,7 @@ type Organization {
 type OrganizationAccess {
   canDeleteOrganization: Boolean!
   canEditOrganization: Boolean!
+  id: ID!
 }
 
 """
@@ -3351,6 +3443,7 @@ type PickListOption {
 enum PickListType {
   AVAILABLE_FILE_TYPES
   AVAILABLE_UNITS
+  CLIENT_ENROLLMENTS
   COC
   CURRENT_LIVING_SITUATION
   DESTINATION
@@ -3422,6 +3515,7 @@ type ProjectAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
 }
 
 type ProjectCoc {
@@ -3580,6 +3674,7 @@ type Query {
   Enrollment lookup
   """
   enrollment(id: ID!): Enrollment
+  file(id: ID!): File
 
   """
   Funder lookup
@@ -3626,6 +3721,7 @@ type Query {
 
 type QueryAccess {
   canAdministerHmis: Boolean!
+  canAuditClients: Boolean!
   canDeleteAssignedProjectData: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteOrganization: Boolean!
@@ -3634,12 +3730,16 @@ type QueryAccess {
   canEditEnrollments: Boolean!
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
-  canManageClientFiles: Boolean!
+  canManageAnyClientFiles: Boolean!
+  canManageOwnClientFiles: Boolean!
+  canViewAnyConfidentialClientFiles: Boolean!
+  canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
 }
 
 """
@@ -4812,7 +4912,7 @@ type SubmitFormPayload {
 """
 Union type of allowed records for form submission response
 """
-union SubmitFormResult = Client | Funder | Inventory | Organization | Project | ProjectCoc | Service
+union SubmitFormResult = Client | File | Funder | Inventory | Organization | Project | ProjectCoc | Service
 
 """
 Autogenerated input type of SubmitHouseholdAssessments
@@ -4829,6 +4929,11 @@ input SubmitHouseholdAssessmentsInput {
   Whether warnings have been confirmed
   """
   confirmed: Boolean
+
+  """
+  Validate assessments but don't submit them
+  """
+  validateOnly: Boolean
 }
 
 """

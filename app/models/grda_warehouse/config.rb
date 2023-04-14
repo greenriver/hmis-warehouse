@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +10,10 @@ module GrdaWarehouse
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym == :project_group }
 
     after_save :invalidate_cache
+
+    def self.cas_enabled?
+      CasBase.db_exists?
+    end
 
     def self.available_cas_methods
       {

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,8 +32,9 @@ module Types
 
       private
 
-      def scoped_clients(scope, sort_order: :last_name_a_to_z, no_sort: false, user: current_user)
-        scope = scope.visible_to(user)
+      def scoped_clients(scope, sort_order: :last_name_a_to_z, no_sort: false, _user: current_user)
+        # The visible_to scope is already applied when we get here in every case so far
+        # scope = scope.visible_to(user)
         scope = scope.sort_by_option(sort_order) unless no_sort
         scope
       end

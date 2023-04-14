@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -190,7 +190,7 @@ module BostonProjectScorecard
       if apr.present?
         # Project Performance
         one_a_value = percentage(answer(apr, 'Q23c', 'B46'))
-        one_b_value = percentage((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) / (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f)
+        one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B45')).to_f)
 
         assessment_answers.merge!(
           {
@@ -207,12 +207,12 @@ module BostonProjectScorecard
 
         # Data Quality
         # need unique count of client_ids not, sum of counts since someone might appear more than once
-        total_served = answer(apr, 'Q5a', 'B1')
+        total_served = answer(apr, 'Q5a', 'B2')
         total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
         percent_ude_errors = percentage(total_ude_errors / total_served.to_f)
 
         # Include adults, leavers, and all HoHs in denominators
-        denominator = [2, 5, 14, 15].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
+        denominator = [3, 6, 15, 17].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
         total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
         percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
         assessment_answers.merge!(
@@ -277,7 +277,7 @@ module BostonProjectScorecard
         'Question 22',
         'Question 23',
       ]
-      generator = HudApr::Generators::Apr::Fy2021::Generator
+      generator = HudApr::Generators::Apr::Fy2023::Generator
       apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
 

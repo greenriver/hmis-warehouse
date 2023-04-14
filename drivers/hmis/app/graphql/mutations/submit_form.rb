@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module Mutations
   class SubmitForm < BaseMutation
     description 'Submit a form to create/update HUD record(s)'
@@ -23,20 +29,28 @@ module Mutations
       hud_user = Hmis::Hud::User.from_user(current_user)
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
-        record&.assign_attributes(user: hud_user)
+        if record.is_a?(Hmis::File)
+          record&.assign_attributes(updated_by: current_user)
+        else
+          record&.assign_attributes(user: hud_user)
+        end
       else
         record = klass.new(
-          user: hud_user,
+          user: klass == Hmis::File ? current_user : hud_user,
           data_source_id: hud_user.data_source_id,
           **related_id_attributes(klass.name, input),
         )
+        record.updated_by = current_user if klass == Hmis::File
       end
 
       errors.add :record, :not_found unless record.present?
       return { errors: errors } if errors.any?
 
       # Check permission
-      errors.add :record, :not_allowed unless current_user.permissions_for?(record, definition.record_editing_permission)
+      allowed = true
+      allowed = current_user.permissions_for?(record, *Array(definition.record_editing_permission)) if definition.record_editing_permission.present?
+      allowed = definition.allowed_proc.call(record, current_user) if definition.allowed_proc.present?
+      errors.add :record, :not_allowed unless allowed
       return { errors: errors } if errors.any?
 
       # Create CustomForm
@@ -80,7 +94,7 @@ module Mutations
         end
 
         # Update DateUpdated on the Enrollment, if record is Enrollment-related
-        record.enrollment.touch if record.respond_to?(:enrollment)
+        record.enrollment&.touch if record.respond_to?(:enrollment)
       else
         # These are potentially unfixable errors. Maybe should be server error instead.
         # For now, return them all because they are useful in development.
@@ -125,6 +139,11 @@ module Mutations
         {
           enrollment_id: enrollment&.EnrollmentID,
           personal_id: enrollment&.PersonalID,
+        }
+      when 'Hmis::File'
+        {
+          client_id: Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id)&.id,
+          enrollment_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.id,
         }
       else
         {}

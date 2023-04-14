@@ -1,3 +1,16 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+###
+# 🚨🚨 WARNING:
+# db:seed is called on every deploy. This seed script will be run on
+# production. Ensure operations are idempotent. Seeds for testing or
+# development should be conditional on Rails.env or equiv.
+###
+
 require 'faker'
 
 def setup_fake_user
@@ -320,19 +333,48 @@ end
 
 def setup_hmis_admin_access
   return unless ENV['HMIS_HOSTNAME'].present?
+  return if Rails.env.production?
 
-  hmis_ds = GrdaWarehouse::DataSource.source.where.not(hmis: nil).first_or_create do |ds|
-    ds.hmis = ENV['HMIS_HOSTNAME']
-    ds.name = 'HMIS Data Source'
+  # Create HMIS Administrator role
+  hmis_admin_role = Hmis::Role.where(can_administer_hmis: true).first_or_create! do |role|
+    role.name = 'HMIS Administrator'
   end
-  return if Hmis::Role.where(can_administer_hmis: true).exists?
 
-  role = Hmis::Role.create(name: 'HMIS Administrator', can_administer_hmis: true)
+  # Create HMIS Data Source
+  hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: ENV['HMIS_HOSTNAME']).first_or_create! do |ds|
+    ds.name = 'HMIS Data Source'
+    ds.short_name = 'HMIS'
+  end
+
+  return if hmis_admin_role.users.any?
+
+  # Give a user HMIS Admin access by setting up a basic Access Control List
   user = Hmis::User.not_system.first
   return unless user.present?
 
   user.hmis_data_source_id = hmis_ds.id
-  user.user_hmis_data_sources_roles.create(role: role, data_source_id: user.hmis_data_source_id)
+
+  # Create Access Group with no data access
+  access_group = Hmis::AccessGroup.where(name: 'Empty Access Group').first_or_create!
+  # Create ACL linking the group and the role
+  acl = Hmis::AccessControl.where(role: hmis_admin_role, access_group: access_group).first_or_create!
+  # Assign user to the ACL
+  user.user_access_controls.create(user: user, access_control: acl)
+  puts "#{user.name} is now an HMIS Administrator. Go to https://hmis-warehouse.dev.test/hmis_admin/roles to manage data access and permissions."
+end
+
+def load_hmis_data
+  return unless ENV['ENABLE_HMIS_API'] == 'true'
+
+  # Load FormDefinitions from JSON files
+  HmisUtil::JsonForms.seed_record_form_definitions
+  HmisUtil::JsonForms.seed_assessment_form_definitions
+
+  datasources = GrdaWarehouse::DataSource.hmis
+  return unless datasources.present?
+
+  # Load HUD service types
+  datasources.each { |hmis_ds| HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id) }
 end
 
 ensure_db_triggers_and_functions
@@ -342,6 +384,7 @@ maintain_data_sources
 GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
 maintain_health_seeds
 setup_hmis_admin_access
+load_hmis_data
 # install_shapes() # run manually as needed
 maintain_lookups
 GrdaWarehouse::Help.setup_default_links

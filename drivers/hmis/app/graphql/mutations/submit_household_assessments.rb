@@ -1,13 +1,20 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module Mutations
   class SubmitHouseholdAssessments < BaseMutation
     description 'Submit multiple assessments in a household'
 
     argument :assessment_ids, [ID], required: true
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
+    argument :validate_only, Boolean, 'Validate assessments but don\'t submit them', required: false
 
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
-    def resolve(assessment_ids:, confirmed:)
+    def resolve(assessment_ids:, confirmed:, validate_only: false)
       assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
         where(id: assessment_ids).
         preload(:enrollment, :custom_form)
@@ -34,9 +41,8 @@ module Mutations
       # HoH Exit constraints
       includes_hoh = enrollments.map(&:relationship_to_ho_h).uniq.include?(1)
       if assessments.first.exit? && includes_hoh
-        # FIXME: If exit dates can be in the future, `open_on_date` should check against HoH exit date
-        # and the max assessment date on all assessments being submitted. Maybe do in Exit validator instead.
-        open_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).open_on_date.
+        # "Date.tomorrow" because it's OK if the exit date is today, but not if there is no exit date, or if the exit date is in the future (shouldn't happen)
+        open_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).open_on_date(Date.tomorrow).
           where(household_id: household_ids.first).
           where.not(enrollment_id: enrollments.map(&:enrollment_id))
 
@@ -86,6 +92,8 @@ module Mutations
 
       # Return any validation errors
       return { errors: errors } if errors.any?
+
+      return { assessments: assessments, errors: [] } if validate_only
 
       if all_valid
         # Save all assessments

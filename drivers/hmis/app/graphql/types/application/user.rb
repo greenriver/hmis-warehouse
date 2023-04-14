@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     def name
-      [object.user_first_name, object.user_last_name].compact.join(' ')
+      [object.first_name, object.last_name].compact.join(' ')
     end
 
     def recent_items

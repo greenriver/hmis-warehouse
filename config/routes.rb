@@ -15,7 +15,6 @@ Rails.application.routes.draw do
   devise_for :users, controllers: {
     invitations: 'users/invitations',
     sessions: 'users/sessions',
-    omniauth_callbacks: ('users/omniauth_callbacks' if ENV['OKTA_DOMAIN'].present?),
   }
 
   devise_scope :user do
@@ -23,6 +22,9 @@ Rails.application.routes.draw do
     match 'timeout' => 'users/sessions#timeout', via: :get
     match 'users/invitations/confirm', via: :post
     match 'logout_talentlms' => 'users/sessions#destroy', via: :get
+    if ENV['OKTA_DOMAIN'].present?
+      get "/users/auth/okta/callback" => "users/omniauth_callbacks#okta" if ENV['OKTA_CLIENT_ID']
+    end
   end
 
   namespace :users do

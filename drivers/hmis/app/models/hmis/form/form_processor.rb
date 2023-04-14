@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -203,6 +203,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       Inventory: Hmis::Hud::Processors::InventoryProcessor,
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
+      File: Hmis::Hud::Processors::FileProcessor,
     }.freeze
   end
 

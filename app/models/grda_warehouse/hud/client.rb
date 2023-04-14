@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -1768,10 +1768,6 @@ module GrdaWarehouse::Hud
 
     def total_days_of_service
       ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown' # rubocop:disable Style/RescueModifier
-    end
-
-    def self.ransackable_scopes(auth_object = nil) # rubocop:disable Lint/UnusedMethodArgument
-      [:full_text_search]
     end
 
     def self.text_search(text, client_scope:)

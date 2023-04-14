@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -47,7 +47,7 @@ module HmisErrors
     end
 
     def deduplicate!
-      @errors = @errors.uniq { |e| [e.attribute.to_s, e.type.to_sym, e.severity, e.full_message] }
+      @errors = @errors.uniq { |e| [e.attribute.to_s.downcase, e.type.to_sym, e.severity, e.full_message.downcase] }
     end
 
     def self.errors_are_equal(first, second)

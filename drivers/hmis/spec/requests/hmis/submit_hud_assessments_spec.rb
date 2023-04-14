@@ -1,7 +1,12 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
-require_relative '../../models/hmis/form/hmis_form_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -12,7 +17,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
-  include_context 'hmis form setup'
 
   TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
 
@@ -312,13 +316,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
     _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
     errors = result.dig('data', 'submitAssessment', 'errors')
-    expect(errors).to match([
-                              a_hash_including(
-                                'severity' => 'error',
-                                'attribute' => 'insuranceFromAnySource',
-                                'fullMessage' => Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED,
-                              ),
-                            ])
+    expected_error = {
+      'severity' => 'error',
+      'attribute' => 'insuranceFromAnySource',
+      'fullMessage' => Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED,
+    }
+    expect(errors).to match([a_hash_including(expected_error)])
+
+    # Ensure using validate_only gives the same error
+    _resp, result = post_graphql(input: { input: input.merge(validate_only: true) }) { submit_assessment_mutation }
+    errors = result.dig('data', 'submitAssessment', 'errors')
+    expect(errors).to match([a_hash_including(expected_error)])
   end
 end
 

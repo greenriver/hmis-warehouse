@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 def csv_file_path(klass, exporter: @exporter)
   File.join(exporter.file_path, exporter.file_name_for(klass))
 end

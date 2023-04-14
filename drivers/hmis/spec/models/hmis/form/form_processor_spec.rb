@@ -1,4 +1,11 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
+require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let!(:ds) { create :hmis_data_source }
@@ -684,6 +691,31 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
     end
 
+    it 'handles SSN and DOB fields being hidden' do
+      existing_client = c1
+      new_client = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_client, new_client].each do |client|
+        expected_values = client.attributes.slice('SSN', 'DOB', 'DOBDataQuality', 'SSNDataQuality')
+        expected_values['DOBDataQuality'] = 99 if client.dob_data_quality.nil?
+        expected_values['SSNDataQuality'] = 99 if client.ssn_data_quality.nil?
+
+        custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          'dob' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'dobDataQuality' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'ssn' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'ssnDataQuality' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+        )
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        client.reload
+
+        expected_values.each do |key, val|
+          expect(client.send(key)).to eq(val)
+        end
+      end
+    end
+
     [
       [
         'fails if first and last are both nil',
@@ -1065,12 +1097,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   end
 
   describe 'Form processing for Service' do
-    before(:each) do
-      ::HmisUtil::ServiceTypes.seed_hud_service_types(ds.id)
-    end
-    let!(:csc1) { create :hmis_custom_service_category, data_source: ds, user: hmis_hud_user }
-    let!(:cst1) { create :hmis_custom_service_type, data_source: ds, custom_service_category: csc1, user: hmis_hud_user }
-    let!(:hud_s1) { create :hmis_hud_service, data_source: ds, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: hmis_hud_user }
+    include_context 'hmis base setup'
+    include_context 'hmis service setup'
+    let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: hmis_hud_user }
     let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
 
     let(:definition) { Hmis::Form::Definition.find_by(role: :SERVICE) }
@@ -1113,6 +1142,47 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(hmis_service.fa_amount).to be nil
         expect(hmis_service.referral_outcome).to be nil
         expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
+      end
+    end
+  end
+
+  describe 'Form processing for File' do
+    include_context 'file upload setup'
+
+    let(:definition) { Hmis::Form::Definition.find_by(role: :FILE) }
+    let(:hud_values) do
+      {
+        'tags' => [
+          tag2.id.to_s,
+        ],
+        'clientId' => e1.client.id.to_s,
+        'enrollmentId' => e1.id.to_s,
+        'effectiveDate' => '2023-03-17',
+        'expirationDate' => '2023-03-17',
+        'confidential' => true,
+        'fileBlobId' => blob.id.to_s,
+      }
+    end
+
+    let!(:existing_file) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
+    let!(:new_file) { Hmis::File.new(name: blob.filename) }
+
+    it 'should test' do
+      [existing_file, new_file].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = hud_values
+        custom_form.form_processor.run!
+
+        hmis_file = custom_form.owner
+        hmis_file.save!
+        file = Hmis::File.find_by(id: hmis_file.id)
+        expect(file.name).to eq(blob.filename.to_s)
+        expect(file.client).to eq(c1)
+        expect(file.enrollment).to eq(e1)
+        expect(file.effective_date.strftime('%Y-%m-%d')).to eq(hud_values['effectiveDate'])
+        expect(file.expiration_date.strftime('%Y-%m-%d')).to eq(hud_values['expirationDate'])
+        expect(file.confidential).to eq(hud_values['confidential'])
+        expect(file.client_file.blob).to eq(blob)
       end
     end
   end

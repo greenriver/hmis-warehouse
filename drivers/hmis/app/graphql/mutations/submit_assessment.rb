@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module Mutations
   class SubmitAssessment < BaseMutation
     description 'Create/Submit assessment, and create/update related HUD records'
@@ -28,7 +34,7 @@ module Mutations
 
       # Non-HoH Intake constraints
       if !enrollment.head_of_household? && assessment.intake?
-        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date.
+        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow).
           heads_of_households.
           viewable_by(current_user).
           where(household_id: enrollment.household_id).
@@ -85,6 +91,8 @@ module Mutations
 
       errors.deduplicate!
       return { errors: errors } if errors.any?
+
+      return { assessments: assessments, errors: [] } if input.validate_only
 
       if is_valid
         # We need to call save on the processor directly to get the before_save hook to invoke.

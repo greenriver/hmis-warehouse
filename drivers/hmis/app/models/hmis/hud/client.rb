@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,10 +50,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  scope :visible_to, ->(user) do
-    return none unless user.can_view_clients?
+  scope :with_access, ->(user, *permissions, **kwargs) do
+    return none unless user.permissions?(*permissions, **kwargs)
 
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
+  end
+
+  scope :visible_to, ->(user) do
+    with_access(user, :can_view_clients)
   end
 
   class << self

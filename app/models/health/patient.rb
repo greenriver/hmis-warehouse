@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -1281,10 +1281,6 @@ module Health
 
     def self.default_sort_direction
       :asc
-    end
-
-    def self.ransackable_scopes(_auth_object = nil)
-      [:full_text_search]
     end
 
     def self.text_search(text, patient_scope:)

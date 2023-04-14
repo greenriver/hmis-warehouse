@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,7 @@ module Types
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasFiles
+    include Types::HmisSchema::HasAuditHistory
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
@@ -23,6 +24,7 @@ module Types
 
     description 'HUD Client'
     field :id, ID, null: false
+    field :warehouse_url, String, null: false
     hud_field :personal_id
     hud_field :first_name
     hud_field :middle_name
@@ -48,6 +50,34 @@ module Types
     assessments_field
     services_field
     files_field
+    audit_history_field(
+      field_permissions: {
+        'SSN' => :can_view_full_ssn,
+        'DOB' => :can_view_dob,
+      },
+      transform_changes: ->(version, changes) do
+        result = changes
+        [
+          ['race', Hmis::Hud::Client.race_enum_map, :RaceNone],
+          ['gender', Hmis::Hud::Client.gender_enum_map, :GenderNone],
+        ].each do |input_field, enum_map, none_field|
+          relevant_fields = [*enum_map.base_members.map { |member| member[:key].to_s }, none_field.to_s, input_field]
+          next unless changes.slice(*relevant_fields).present?
+
+          result = result.except(*relevant_fields)
+          old_client = version.reify
+          new_client = version.next.reify
+
+          old_value = { input_field => nil }
+          old_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(old_client, input_field, enum_map, none_field) if old_client.present?
+          new_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(new_client, input_field, enum_map, none_field)
+
+          result = result.merge(input_field => [old_value[input_field], new_value[input_field]])
+        end
+
+        result
+      end,
+    )
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
@@ -61,6 +91,14 @@ module Types
       can :view_enrollment_details
       can :edit_enrollments
       can :delete_enrollments
+      can :manage_any_client_files
+      can :manage_own_client_files
+      can :view_any_nonconfidential_client_files
+      can :view_any_confidential_client_files
+    end
+
+    def warehouse_url
+      "https://#{ENV['FQDN']}/clients/#{object.id}/from_source"
     end
 
     def enrollments(**args)

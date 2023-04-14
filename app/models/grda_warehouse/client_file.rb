@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,6 +11,9 @@ module GrdaWarehouse
     attr_accessor :callbacks_skipped
     include ClientFileBase
     include ArelHelper
+
+    mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
+    acts_as_taggable
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
