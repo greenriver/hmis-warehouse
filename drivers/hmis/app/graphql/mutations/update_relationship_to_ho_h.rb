@@ -68,7 +68,8 @@ module Mutations
 
       update_params = { user_id: hmis_user.user_id }
       Hmis::Hud::Enrollment.transaction do
-        household_enrollments.where(relationship_to_ho_h: 1).update_all(relationship_to_ho_h: 99, **update_params) if is_hoh_change
+        # If HoH change, set old HoH to 99. (Don't use update_all because it won't create papertrail)
+        household_enrollments.where(relationship_to_ho_h: 1).each { |en| en.update(relationship_to_ho_h: 99, **update_params) } if is_hoh_change
         enrollment.update(relationship_to_ho_h: relationship_to_ho_h, **update_params)
         enrollment.touch
       end
