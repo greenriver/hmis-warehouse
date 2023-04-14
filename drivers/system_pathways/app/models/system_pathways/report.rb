@@ -85,6 +85,15 @@ module SystemPathways
       ]
     end
 
+    private def build_control_sections
+      # ensure filter has been set
+      filter
+      [
+        build_funding_section,
+        build_hoh_control_section,
+      ]
+    end
+
     def filter=(filter_object)
       self.options = filter_object.to_h
       # force reset the filter cache

@@ -7,6 +7,8 @@
 module SystemPathways::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
+    include AjaxModalRails::Controller
+    include ArelHelper
     include BaseFilters
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
     before_action :set_report, only: [:show, :destroy, :details]
@@ -114,7 +116,7 @@ module SystemPathways::WarehouseReports
     end
 
     def filter_params
-      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes
+      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [@filter.coc_code_options_for_select(user: current_user).first]
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,
