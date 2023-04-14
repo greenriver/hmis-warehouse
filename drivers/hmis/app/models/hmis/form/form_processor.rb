@@ -246,9 +246,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end.compact.uniq
   end
 
-  # Get HmisError::Errors object containing related record errors that can be resolved
+  # Get HmisError::Errors object containing related record AR errors that can be resolved
   # as GraphQL ValidationErrors.
-  def collect_hmis_errors
+  def collect_active_record_errors
     errors = HmisErrors::Errors.new
     related_records.each do |record|
       next if record.errors.none?

@@ -43,6 +43,7 @@ module GraphqlHelpers
       errors {
         id
         linkId
+        recordId
         attribute
         message
         fullMessage

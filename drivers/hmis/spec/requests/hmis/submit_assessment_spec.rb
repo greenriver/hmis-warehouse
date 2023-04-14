@@ -27,7 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
-  let(:test_assessment_date) { (e1.entry_date + 2.days).strftime('%Y-%m-%d') }
+  let(:test_assessment_date) { 1.week.ago.strftime('%Y-%m-%d') }
   let(:test_input) do
     {
       enrollment_id: e1.id.to_s,
@@ -88,7 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Re-Submitting a form that has already been submitted' do
     before(:each) do
-      # create tha initial submitted assessment
+      # create the initial submitted assessment
       _resp, result = post_graphql(input: { input: test_input }) { mutation }
       id = result.dig('data', 'submitAssessment', 'assessment', 'id')
       @assessment = Hmis::Hud::CustomAssessment.find(id)
@@ -198,6 +198,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Validity tests' do
+    let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
+    before(:each) { e1_exit.update(exit_date: 3.days.ago) }
+
     [
       [
         'should emit error if assessment doesn\'t exist',
@@ -245,6 +248,80 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq 200
           expect(errors).to match(expected_errors.map { |h| a_hash_including(**h) })
         end
+      end
+    end
+
+    [
+      [
+        'should error if assessment date is missing',
+        nil,
+        {
+          'fullMessage' => 'Information Date must exist',
+          'type' => 'required',
+          'severity' => 'error',
+        },
+      ],
+      [
+        'should error if assessment date is before entry date',
+        3.weeks.ago,
+        {
+          'message' => Hmis::Hud::Validators::BaseValidator.before_entry_message(2.weeks.ago),
+          'type' => 'out_of_range',
+          'severity' => 'error',
+        },
+      ],
+      [
+        'should error if assessment date is after exit date',
+        1.day.ago,
+        {
+          'message' => Hmis::Hud::Validators::BaseValidator.after_exit_message(3.days.ago),
+          'type' => 'out_of_range',
+          'severity' => 'error',
+        },
+      ],
+      [
+        'should error if assessment date is in the future',
+        Date.current + 5.days,
+        {
+          'message' => Hmis::Hud::Validators::BaseValidator.future_message,
+          'severity' => 'error',
+        },
+      ],
+      [
+        'should error if assessment date is >20 years ago',
+        25.years.ago,
+        {
+          'message' => Hmis::Hud::Validators::BaseValidator.over_twenty_years_ago_message,
+          'severity' => 'error',
+        },
+      ],
+      [
+        'should warn if assessment date is >30 days ago',
+        2.months.ago,
+        {
+          'message' => Hmis::Hud::Validators::BaseValidator.before_entry_message(2.weeks.ago),
+          'severity' => 'error',
+        },
+        {
+          'message' => Hmis::Hud::Validators::BaseValidator.over_thirty_days_ago_message,
+          'severity' => 'warning',
+        },
+      ],
+    ].each do |test_name, date, *expected_errors|
+      it test_name do
+        input = test_input.merge(
+          hud_values: { 'informationDate' => date&.strftime('%Y-%m-%d') },
+          values: { 'linkid-date' => date&.strftime('%Y-%m-%d') },
+        )
+        response, result = post_graphql(input: { input: input }) { mutation }
+        errors = result.dig('data', 'submitAssessment', 'errors')
+        expect(response.status).to eq 200
+        expected_match = expected_errors.map do |h|
+          a_hash_including(**h, 'readableAttribute' => 'Information Date',
+                                'attribute' => 'informationDate',
+                                'linkId' => 'linkid-date')
+        end
+        expect(errors).to match(expected_match)
       end
     end
   end

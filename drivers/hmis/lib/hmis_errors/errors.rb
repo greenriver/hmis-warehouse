@@ -47,7 +47,7 @@ module HmisErrors
     end
 
     def deduplicate!
-      @errors = @errors.uniq { |e| [e.attribute.to_s.downcase, e.type.to_sym, e.severity, e.full_message.downcase] }
+      @errors = @errors.uniq { |e| [e.attribute.to_s.downcase, e.type.to_sym, e.severity, e.full_message.downcase, e.record_id] }
     end
 
     def self.errors_are_equal(first, second)

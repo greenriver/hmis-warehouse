@@ -62,7 +62,7 @@ module Mutations
       )
 
       # Validate based on FormDefinition
-      form_validations = custom_form.collect_form_validations(ignore_warnings: input.confirmed)
+      form_validations = custom_form.collect_form_validations
       errors.push(*form_validations)
 
       # Run processor to create/update record(s)
@@ -72,9 +72,10 @@ module Mutations
       is_valid = record.valid? && custom_form.valid?
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = custom_form.collect_record_validations(ignore_warnings: input.confirmed, user: current_user)
+      record_validations = custom_form.collect_record_validations(user: current_user)
       errors.push(*record_validations)
 
+      errors.drop_warnings! if input.confirmed
       errors.deduplicate!
       return { errors: errors } if errors.any?
 

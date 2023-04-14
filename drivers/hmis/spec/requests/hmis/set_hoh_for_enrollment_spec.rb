@@ -81,8 +81,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         end,
         {
-          fullMessage: 'Client not found',
           severity: :error,
+          type: :not_found,
+          attribute: :clientId,
         },
       ],
       [
@@ -94,8 +95,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         end,
         {
-          fullMessage: "No enrollment for this client with household ID '0'",
+          type: :not_found,
           attribute: :householdId,
+          severity: :error,
         },
       ],
     ].each do |test_name, input_proc, error_attrs|
