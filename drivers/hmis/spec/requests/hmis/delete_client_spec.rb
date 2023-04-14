@@ -95,7 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client).to be_present
       expect(errors).to be_empty
       expect(Hmis::Hud::Client.all).not_to include(have_attributes(id: c1.id))
-      # HoH shouldn't have changed for household
+      # HoH shouldn't have changed for household since we ignored warnings
       [e2, e3].each { |e| expect(e.relationship_to_ho_h).not_to eq(1) }
     end
   end
