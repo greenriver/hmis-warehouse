@@ -25,6 +25,8 @@ module SystemPathways::WarehouseReports
     end
 
     def show
+      @filter = @report.filter
+      @filter.update(filter_params[:filters].merge(coc_codes: @filter.coc_codes))
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -120,7 +122,6 @@ module SystemPathways::WarehouseReports
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,
-        comparison_pattern: :prior_year,
       }
       return { filters: default_options } unless params[:filters].present?
 

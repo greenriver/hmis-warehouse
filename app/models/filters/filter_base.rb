@@ -73,6 +73,7 @@ module Filters
     attribute :report_version, Symbol
     attribute :inactivity_days, Integer, default: 365 * 2
     attribute :lsa_scope, Integer, default: nil
+    attribute :involves_ce, Boolean, default: false
 
     validates_presence_of :start, :end
 
@@ -142,6 +143,7 @@ module Filters
       self.rrh_move_in = filters.dig(:rrh_move_in).in?(['1', 'true', true]) unless filters.dig(:rrh_move_in).nil?
       self.psh_move_in = filters.dig(:psh_move_in).in?(['1', 'true', true]) unless filters.dig(:psh_move_in).nil?
       self.first_time_homeless = filters.dig(:first_time_homeless).in?(['1', 'true', true]) unless filters.dig(:first_time_homeless).nil?
+      self.involves_ce = filters.dig(:involves_ce).in?(['1', 'true', true]) unless filters.dig(:involves_ce).nil?
       self.returned_to_homelessness_from_permanent_destination = filters.dig(:returned_to_homelessness_from_permanent_destination).in?(['1', 'true', true]) unless filters.dig(:returned_to_homelessness_from_permanent_destination).nil?
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true]) unless filters.dig(:coordinated_assessment_living_situation_homeless).nil?
       self.ce_cls_as_homeless = filters.dig(:ce_cls_as_homeless).in?(['1', 'true', true]) unless filters.dig(:ce_cls_as_homeless).nil?
@@ -200,6 +202,7 @@ module Filters
           rrh_move_in: rrh_move_in,
           psh_move_in: psh_move_in,
           first_time_homeless: first_time_homeless,
+          involves_ce: involves_ce,
           returned_to_homelessness_from_permanent_destination: returned_to_homelessness_from_permanent_destination,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
           ce_cls_as_homeless: ce_cls_as_homeless,
@@ -234,6 +237,7 @@ module Filters
         :rrh_move_in,
         :psh_move_in,
         :first_time_homeless,
+        :involves_ce,
         :returned_to_homelessness_from_permanent_destination,
         :coordinated_assessment_living_situation_homeless,
         :ce_cls_as_homeless,
@@ -319,6 +323,7 @@ module Filters
         opts['With RRH Move-in'] = 'Yes' if rrh_move_in
         opts['With PSH Move-in'] = 'Yes' if psh_move_in
         opts['First Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
+        opts['Involves CE'] = 'Yes' if involves_ce
         opts['Returned to Homelessness from Permanent Destination'] = 'Yes' if returned_to_homelessness_from_permanent_destination
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
