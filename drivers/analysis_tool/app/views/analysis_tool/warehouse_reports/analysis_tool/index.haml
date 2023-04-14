@@ -21,4 +21,8 @@
         .mr-4= render 'disaggregation_picker'
         .ml-auto.mb-4
           = render 'report_downloads/report_download', export: nil, excel_download_path: analysis_tool_warehouse_reports_analysis_tool_index_path({format: :xlsx}.merge(link_params))
-      = render 'table'
+      -# = render 'table'
+      = render 'background_render', url: render_section_analysis_tool_warehouse_reports_analysis_tool_index_path, fetch_params: {partial: 'table', filters: @filter.for_params[:filters], row_breakdown: breakdowns[:row], col_breakdown: breakdowns[:col] } do
+        .rollup
+          .rollup-container.well
+      = render 'common/section_not_loading', path_to_section: section_analysis_tool_warehouse_reports_analysis_tool_index_path(partial: 'table', filters: @filter.for_params[:filters], row_breakdown: breakdowns[:row], col_breakdown: breakdowns[:col])

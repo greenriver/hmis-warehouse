@@ -72,7 +72,7 @@ module UserConcern
     belongs_to :agency, optional: true
 
     scope :diet, -> do
-      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes']))
+      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes', 'deprecated_provider', 'deprecated_provider_raw_info']))
     end
 
     scope :receives_file_notifications, -> do
