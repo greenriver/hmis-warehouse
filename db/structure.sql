@@ -49,39 +49,6 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: access_controls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.access_controls (
-    id bigint NOT NULL,
-    access_group_id bigint,
-    role_id bigint,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.access_controls_id_seq OWNED BY public.access_controls.id;
-
-
---
 -- Name: access_group_members; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1334,8 +1301,8 @@ CREATE TABLE public.roles (
     can_search_own_clients boolean DEFAULT false,
     can_view_confidential_project_names boolean DEFAULT false,
     can_report_on_confidential_projects boolean DEFAULT false,
-    can_view_chronic_tab boolean DEFAULT false,
     can_edit_assigned_project_groups boolean DEFAULT false,
+    can_view_chronic_tab boolean DEFAULT false,
     can_configure_cohorts boolean DEFAULT false,
     can_add_cohort_clients boolean DEFAULT false,
     can_manage_cohort_data boolean DEFAULT false,
@@ -1345,7 +1312,6 @@ CREATE TABLE public.roles (
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
     can_approve_careplan boolean DEFAULT false
 );
 
@@ -1693,39 +1659,6 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
--- Name: user_access_controls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.user_access_controls (
-    id bigint NOT NULL,
-    access_control_id bigint,
-    user_id bigint,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.user_access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.user_access_controls_id_seq OWNED BY public.user_access_controls.id;
-
-
---
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1922,25 +1855,6 @@ CREATE SEQUENCE public.warehouse_alerts_id_seq
 --
 
 ALTER SEQUENCE public.warehouse_alerts_id_seq OWNED BY public.warehouse_alerts.id;
-
-
---
--- Name: weighting_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.weighting_rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: access_controls id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.access_controls ALTER COLUMN id SET DEFAULT nextval('public.access_controls_id_seq'::regclass);
 
 
 --
@@ -2217,13 +2131,6 @@ ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uplo
 
 
 --
--- Name: user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.user_access_controls_id_seq'::regclass);
-
-
---
 -- Name: user_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2249,14 +2156,6 @@ ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.ver
 --
 
 ALTER TABLE ONLY public.warehouse_alerts ALTER COLUMN id SET DEFAULT nextval('public.warehouse_alerts_id_seq'::regclass);
-
-
---
--- Name: access_controls access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.access_controls
-    ADD CONSTRAINT access_controls_pkey PRIMARY KEY (id);
 
 
 --
@@ -2588,14 +2487,6 @@ ALTER TABLE ONLY public.uploads
 
 
 --
--- Name: user_access_controls user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_access_controls
-    ADD CONSTRAINT user_access_controls_pkey PRIMARY KEY (id);
-
-
---
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2639,20 +2530,6 @@ CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority,
 --
 
 CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
-
-
---
--- Name: index_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls USING btree (access_group_id);
-
-
---
--- Name: index_access_controls_on_role_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_controls_on_role_id ON public.access_controls USING btree (role_id);
 
 
 --
@@ -2996,20 +2873,6 @@ CREATE INDEX index_two_factors_memorized_devices_on_user_id ON public.two_factor
 --
 
 CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_at);
-
-
---
--- Name: index_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_access_controls_on_access_control_id ON public.user_access_controls USING btree (access_control_id);
-
-
---
--- Name: index_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_access_controls_on_user_id ON public.user_access_controls USING btree (user_id);
 
 
 --
@@ -3418,10 +3281,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322195141'),
 ('20230322204908'),
 ('20230328150855'),
-('20230329102609'),
-('20230329112926'),
-('20230329112954'),
-('20230330161305');
+('20230330161305'),
 ('20230412142430');
 
 
