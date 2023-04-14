@@ -21,9 +21,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :exit, class_name: 'Hmis::Hud::Exit', optional: true, autosave: true
 
   validate :hmis_records_are_valid
-  before_save :save_enrollment
 
-  def run!
+  attr_accessor :owner
+
+  def run!(owner:)
+    # Set the owner reference so we are updating the correct record. Unpersisted changes can't be validated correctly if you go through custom_form.owner.
+    self.owner = owner
     return unless custom_form.hud_values.present?
 
     custom_form.hud_values.each do |key, value|
@@ -34,7 +37,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         container, field = match[1..2]
       else
         # Key format is "projectType", and the container is the owner type ("Project")
-        container = custom_form.owner.class.name.demodulize
+        container = owner.class.name.demodulize
         field = key
       end
 
@@ -48,24 +51,22 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     valid_containers.values.each do |processor|
       processor.new(self).information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?
     end
-  end
 
-  def save_enrollment
-    enrollment_factory.save! if enrollment_factory.present?
+    owner.enrollment = enrollment_factory if owner.is_a?(Hmis::Hud::CustomAssessment)
   end
 
   def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
-    custom_form.owner
+    owner
   end
 
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
-    custom_form.owner.owner if custom_form.owner.is_a? Hmis::Hud::HmisService
+    @service_factory ||= owner.owner if owner.is_a? Hmis::Hud::HmisService
   end
 
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
-    @enrollment_factory ||= custom_form.owner.enrollment if custom_form.owner.respond_to?(:enrollment)
+    @enrollment_factory ||= owner.enrollment if owner.is_a?(Hmis::Hud::CustomAssessment)
   end
 
   def common_attributes

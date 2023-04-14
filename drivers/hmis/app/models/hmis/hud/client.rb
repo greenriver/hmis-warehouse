@@ -231,4 +231,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     client_files&.client_photos&.newest_first&.first&.destroy!
     @image = nil
   end
+
+  # Mirrors `clientBriefName` in frontend
+  def brief_name
+    preferred_name || [first_name, last_name].compact.join(' ')
+  end
 end

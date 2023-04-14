@@ -47,7 +47,13 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
     # Collect ActiveRecord validations (as HmisErrors)
     errors = form_processor.collect_active_record_errors
     # Collect validations on the Assessment Date (if this is an assessment form)
-    errors.push(*Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment, household_members: household_members)) if assessment?
+    if assessment?
+      errors.push(*Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(
+        assessment,
+        # Need to pass household members so we can validate based on their unpersisted entry/exit dates
+        household_members: household_members,
+      ))
+    end
 
     # Collect errors from custom validator, in the context of this role
     role = definition.role

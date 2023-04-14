@@ -59,10 +59,10 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
     errors.add :assessment_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if date < (Date.today - 30.days)
 
     # Add Entry Date validations if this is an intake assessment
-    errors.push(*Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(assessment.enrollment, household_members: household_members, options: options)) if assessment.intake?
+    errors.push(*Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment, household_members: household_members, options: options)) if assessment.intake?
 
     # Add Exit Date validations if this is an intake assessment
-    errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(assessment.enrollment.exit, household_members: household_members, options: options)) if assessment.exit?
+    errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(enrollment.exit, household_members: household_members, options: options)) if assessment.exit?
 
     errors.deduplicate! # Drop any duplicates from entry/exit and default
     errors.errors

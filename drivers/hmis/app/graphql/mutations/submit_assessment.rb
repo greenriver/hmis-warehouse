@@ -61,10 +61,11 @@ module Mutations
       errors.push(*form_validations)
 
       # Run processor to create/update related records
-      assessment.custom_form.form_processor.run!
+      assessment.custom_form.form_processor.run!(owner: assessment)
 
       # Run both validations
-      is_valid = assessment.valid? && assessment.custom_form.valid?
+      is_valid = assessment.valid?
+      is_valid = assessment.custom_form.valid? && is_valid
 
       # Collect validations and warnings from AR Validator classes
       record_validations = assessment.custom_form.collect_record_validations(user: current_user)
@@ -72,29 +73,21 @@ module Mutations
 
       errors.drop_warnings! if input.confirmed
       errors.deduplicate!
-
-      # If this is an existing assessment and all the errors are warnings, save changes before returning
-      if errors.any? && assessment.id.present? && errors.all?(&:warning?)
-        assessment.custom_form.save!
-        assessment.save!
-        assessment.touch
-      end
       return { errors: errors } if errors.any?
 
       return { assessments: assessments, errors: [] } if input.validate_only
 
       if is_valid
-        # We need to call save on the processor directly to get the before_save hook to invoke.
-        # If this is removed, the Enrollment won't save.
-        assessment.custom_form.form_processor.save!
-        # Save CustomForm to save the rest of the related records
+        # Save CustomForm to save related records
         assessment.custom_form.save!
+        # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
+        assessment.enrollment.save!
         # Save the assessment as non-WIP
         assessment.save_not_in_progress
         # If this is an intake assessment, ensure the enrollment is no longer in WIP status
-        enrollment.save_not_in_progress if assessment.intake?
+        assessment.enrollment.save_not_in_progress if assessment.intake?
         # Update DateUpdated on the Enrollment
-        enrollment.touch
+        assessment.enrollment.touch
       else
         # These are potentially unfixable errors. Maybe should be server error instead.
         # For now, return them all because they are useful in development.

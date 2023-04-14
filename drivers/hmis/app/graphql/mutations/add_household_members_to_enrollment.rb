@@ -9,10 +9,11 @@ module Mutations
     argument :household_id, ID, required: true
     argument :entry_date, GraphQL::Types::ISO8601Date, required: true
     argument :household_members, [Types::HmisSchema::EnrollmentHouseholdMemberInput], required: true
+    argument :confirmed, Boolean, required: false
 
     field :enrollments, [Types::HmisSchema::Enrollment], null: true
 
-    def resolve(household_id:, entry_date:, household_members:)
+    def resolve(household_id:, entry_date:, household_members:, confirmed:)
       errors = HmisErrors::Errors.new
       existing_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
 
@@ -45,10 +46,10 @@ module Mutations
         )
       end
 
-      # Validate entry date. Drop warnings for now, because we don't handle them yet in the frontend.
-      validation_errors = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollments.first)
-      validation_errors = validation_errors.reject(&:warning?)
-      return { errors: validation_errors } if validation_errors.any?
+      # Validate entry date
+      validations = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollments.first)
+      validations.reject!(&:warning?) if confirmed
+      return { errors: validations } if validations.any?
 
       errors = []
       enrollments.each(&:valid?).each do |enrollment|
@@ -56,7 +57,9 @@ module Mutations
       end
       return { errors: errors } if errors.any?
 
-      enrollments.each(&:save_in_progress)
+      Hmis::Hud::Enrollment.transaction do
+        enrollments.each(&:save_in_progress)
+      end
 
       {
         enrollments: enrollments,
