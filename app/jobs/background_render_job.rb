@@ -41,7 +41,7 @@ class BackgroundRenderJob < BaseJob
         html: message,
       )
     end
-
+    Sentry.capture_exception(error)
     payload.broadcast
   end
 end

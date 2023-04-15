@@ -62,19 +62,21 @@ module Mutations
       )
 
       # Validate based on FormDefinition
-      form_validations = custom_form.collect_form_validations(ignore_warnings: input.confirmed)
+      form_validations = custom_form.collect_form_validations
       errors.push(*form_validations)
 
       # Run processor to create/update record(s)
-      custom_form.form_processor.run!
+      custom_form.form_processor.run!(owner: record)
 
       # Run both validations
-      is_valid = record.valid? && custom_form.valid?
+      is_valid = record.valid?
+      is_valid = custom_form.valid? && is_valid
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = custom_form.collect_record_validations(ignore_warnings: input.confirmed, user: current_user)
+      record_validations = custom_form.collect_record_validations(user: current_user)
       errors.push(*record_validations)
 
+      errors.drop_warnings! if input.confirmed
       errors.deduplicate!
       return { errors: errors } if errors.any?
 
@@ -93,8 +95,12 @@ module Mutations
           record.touch
         end
 
-        # Update DateUpdated on the Enrollment, if record is Enrollment-related
-        record.enrollment&.touch if record.respond_to?(:enrollment)
+        if record.respond_to?(:enrollment)
+          # Update DateUpdated on the Enrollment, if record is Enrollment-related
+          record.enrollment&.touch
+          # Update Enrollment itself in case this form changed any fields on Enrollment
+          record.enrollment&.save!
+        end
       else
         # These are potentially unfixable errors. Maybe should be server error instead.
         # For now, return them all because they are useful in development.

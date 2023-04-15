@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
-  describe 'Datalab 2023 APR - RRH CoC II' do
-    let(:results_dir) { 'apr/rrh_coc_2' }
+RSpec.shared_context 'datalab rrh coc 1 and 2 apr', shared_context: :metadata do
+  describe 'Datalab 2023 APR - RRH CoC II and DataLab - RRH CoC I projects' do
+    let(:results_dir) { 'apr/rrh_coc_1_and_2' }
     before(:all) do
       generator = HudApr::Generators::Apr::Fy2023::Generator
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['DataLab - RRH CoC II']).pluck(:id)
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['DataLab - RRH CoC II', 'DataLab - RRH CoC I']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
@@ -254,9 +254,6 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
-        skip: [
-          'F3', # insignificant rounding error
-        ],
       )
     end
 
@@ -512,5 +509,5 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab rrh coc 2 apr', include_shared: true
+  rspec.include_context 'datalab rrh coc 1 and 2 apr', include_shared: true
 end

@@ -169,6 +169,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.RelationshipToHoH == 1
   end
 
+  def adult?
+    client.adult?
+  end
+
   def household_members
     Hmis::Hud::Enrollment.where(household_id: household_id, data_source_id: data_source_id)
   end
