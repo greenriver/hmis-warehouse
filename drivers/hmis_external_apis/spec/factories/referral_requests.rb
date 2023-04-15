@@ -12,7 +12,8 @@ FactoryBot.define do
     association :unit_type, factory: :hmis_unit_type
     requested_on { Date.today }
     needed_by { Date.today + 1.week }
-    association :requested_by, factory: :hmis_user
+    # FIXME - this doesn't work due to data source issue
+    # association :requested_by, factory: :hmis_user
     requestor_name { Faker::Name.name }
     requestor_phone { Faker::PhoneNumber.phone_number }
     requestor_email { Faker::Internet.email }

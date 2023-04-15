@@ -6,9 +6,10 @@
 
 module HmisExternalApis
   # A member of a household that is referred for services
-  class ReferralClient < HmisExternalApisBase
-    self.table_name = 'hmis_external_referral_clients'
+  class ReferralHouseholdMember < HmisExternalApisBase
+    self.table_name = 'hmis_external_referral_household_members'
     belongs_to :referral, class_name: 'HmisExternalApis::Referral'
-    belongs_to :hud_client, class_name: 'Hmis::Hud::Client'
+    belongs_to :client, class_name: 'Hmis::Hud::Client'
+    validates :relationship_to_hoh, inclusion: { in: ::HudLists.relationship_to_ho_h_map.keys }, allow_blank: false
   end
 end

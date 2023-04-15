@@ -10,6 +10,8 @@ require 'webmock/rspec'
 
 RSpec.describe HmisExternalApis::ReferralsController, type: :request do
   describe 'create referral request' do
+    include_context 'hmis base setup'
+
     let(:mper_cred) do
       create(:remote_token_credential, slug: 'mci')
     end
@@ -23,7 +25,10 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
     end
 
     it 'has no smoke' do
-      referral_request = build(:hmis_external_api_referral_request)
+      referral_request = build(
+        :hmis_external_api_referral_request,
+        requested_by: hmis_user, # defined in 'hmis_base_setup' context
+      )
 
       # setup external ids
       mper_cred = create(:remote_oauth_credential, slug: 'mper')
@@ -32,7 +37,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
         referral_request.project,
         referral_request.project.organization,
       ].each do |record|
-        mper_cred.external_ids.create!(source: record, value:  SecureRandom.uuid)
+        mper_cred.external_ids.create!(source: record, value: SecureRandom.uuid)
       end
 
       payload = { referral_request_id: referral_request_id }

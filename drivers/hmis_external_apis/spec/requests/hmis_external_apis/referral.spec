@@ -9,12 +9,13 @@ require 'faker'
 
 RSpec.describe HmisExternalApis::ReferralsController, type: :request do
   describe 'send referral' do
+    include_context 'hmis base setup'
 
     let(:mci_cred) do
       create(:remote_oauth_credential, slug: 'mci')
     end
 
-    let(:hud_clients) do
+    let(:clients) do
       2.times.map do
         client = create(:hmis_hud_client_complete)
         mci_id = SecureRandom.uuid
@@ -23,11 +24,11 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
       end
     end
 
-    def referral_params(referral_requests, clients)
+    def household_member_params(clients)
       household_members = clients.map do |client, mci_id|
         {
           mci_id: mci_id,
-          relationship_to_hoh: 1,
+          relationship_to_hoh: 99,
           first_name: client.first_name,
           middle_name: client.middle_name,
           last_name: client.last_name,
@@ -41,39 +42,83 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
           # disabling_condition: 0,
         }
       end
+      { household_members: household_members }
+    end
+
+    def posting_params(referral_requests)
       postings = referral_requests.map do |rr|
         {
-          posting_id: 1,
+          posting_id: SecureRandom.uuid,
           referral_request_id: rr.identifier,
         }
       end
+      { postings: postings }
+    end
 
+    def posting_assignment_params(project_mper_ids)
+      postings = project_mper_ids.map do |mper_id|
+        {
+          posting_id: SecureRandom.uuid,
+          program_id: mper_id, # project == program
+        }
+      end
+      { postings: postings }
+    end
+
+    def referral_params
       {
         referral_id: SecureRandom.uuid,
         referral_date: Date.today,
         service_coordinator: Faker::Name.name,
-        household_members: household_members,
-        postings: postings,
       }
     end
 
-    let :referral_request  do
-      create(:hmis_external_api_referral_request)
+    let :referral_request do
+      create(
+        :hmis_external_api_referral_request,
+        requested_by: hmis_user, # defined in 'hmis_base_setup' context
+      )
     end
 
-    it 'successfully receives a valid referral for known clients' do
-      params = referral_params([referral_request], hud_clients)
+    before(:each) do
+      create(:remote_oauth_credential, slug: 'mper')
+    end
+
+    it 'receives referral for referral request' do
+      params = referral_params
+        .merge(posting_params([referral_request]))
+        .merge(household_member_params(clients))
       post hmis_external_apis_referrals_path, params: params, as: :json
       expect(response.status).to eq 200
-      referral = HmisExternalApis::Referral.where(identifier: params.fetch(:referral_id)).first
-      expect(referral.referral_postings.map(&:referral_request_id)).to(eq([referral_request.id]))
-      expect(referral.referral_clients.size).to(eq(hud_clients.size))
 
-      hud_clients.each do |client, mci_id|
-        found = referral.referral_clients.where(hud_client_id: client.id).first!
-        expect(mci_cred.external_ids.where(source: found.hud_client, value: mci_id).count).to(eq(1))
+      referral = HmisExternalApis::Referral.where(identifier: params.fetch(:referral_id)).first
+      expect(referral.postings.map(&:referral_request_id)).to(eq([referral_request.id]))
+      expect(referral.postings.map(&:project_id)).to(eq([referral_request.project_id]))
+      expect(referral.household_members.size).to(eq(clients.size))
+
+      clients.each do |client, mci_id|
+        found = referral.household_members.where(client_id: client.id).first!
+        expect(mci_cred.external_ids.where(source: found.client, value: mci_id).count).to(eq(1))
       end
     end
 
+    it 'receives referral assignment' do
+      # assignment identifies project with mper instead of referral request
+      project_mper_id = SecureRandom.uuid
+      project = create(:hmis_hud_project)
+      GrdaWarehouse::RemoteCredential.mper
+        .external_ids.where(source: project)
+        .create!(value: project_mper_id)
+
+      params = referral_params
+        .merge(posting_assignment_params([project_mper_id]))
+        .merge(household_member_params(clients))
+      post hmis_external_apis_referrals_path, params: params, as: :json
+      expect(response.status).to eq 200
+
+      referral = HmisExternalApis::Referral.where(identifier: params.fetch(:referral_id)).first
+      expect(referral.postings.map(&:project_id)).to(eq([project.id]))
+      expect(referral.household_members.size).to(eq(clients.size))
+    end
   end
 end

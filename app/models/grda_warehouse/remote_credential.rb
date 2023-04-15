@@ -9,9 +9,9 @@ module GrdaWarehouse
     acts_as_paranoid
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
     has_many :external_ids,
-      class_name: 'HmisExternalApis::ExternalId',
-      foreign_key: :remote_credential_id,
-      dependent: :restrict_with_exception
+             class_name: 'HmisExternalApis::ExternalId',
+             foreign_key: :remote_credential_id,
+             dependent: :restrict_with_exception
 
     scope :active, -> do
       where(active: true)
@@ -24,6 +24,5 @@ module GrdaWarehouse
     def self.mper
       where(slug: 'mper').first!
     end
-
   end
 end

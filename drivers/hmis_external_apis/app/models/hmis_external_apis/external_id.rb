@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-
 # https://github.com/greenriver/hmis-warehouse/pull/2933/files#r1164091887
 # A local entity's identity in an external system (such as an MCI ID)
 # NOTE: The ID values are not necessarily unique. For example two clients

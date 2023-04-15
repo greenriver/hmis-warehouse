@@ -28,14 +28,14 @@ class AddExternalReferrals < ActiveRecord::Migration[6.1]
       t.string :identifier, null: false, index: { unique: true, name: 'uidx_hmis_external_referrals_identifier' }
       t.date :referral_date, null: false
       t.string :service_coordinator, null: false
-      t.string :raw_request
     end
 
-    create_table :hmis_external_referral_clients do |t|
+    create_table :hmis_external_referral_household_members do |t|
       t.timestamps
-      t.references :referral, null: false, foreign_key: { to_table: :hmis_external_referrals }, index: { name: 'idx_hmis_external_referral_clients_on_referral_id' }
-      t.references :hud_client, null: false, index: false, foreign_key: { to_table: 'Client' }
-      t.index [:hud_client_id, :referral_id], unique: true, name: 'uidx_hmis_external_referral_clients_1'
+      t.integer :relationship_to_hoh, null: false
+      t.references :referral, null: false, foreign_key: { to_table: :hmis_external_referrals }, index: { name: 'idx_hmis_external_referral_hms_on_referral_id' }
+      t.references :client, null: false, index: false, foreign_key: { to_table: 'Client' }
+      t.index [:client_id, :referral_id], unique: true, name: 'uidx_hmis_external_referral_hms_1'
     end
 
     create_table :hmis_external_referral_postings do |t|
@@ -43,7 +43,9 @@ class AddExternalReferrals < ActiveRecord::Migration[6.1]
       t.string :identifier, null: false, index: { unique: true, name: 'uidx_hmis_external_referral_posting_identifier' }
       t.integer :status, null: false
       t.references :referral, null: false, foreign_key: { to_table: :hmis_external_referrals }, index: false
-      t.references :referral_request, null: false, foreign_key: { to_table: :hmis_external_referral_requests },
+      t.references :project, null: false, foreign_key: { to_table: 'Project' }
+      # t.references :unit_type, null: false, foreign_key: { to_table: :hmis_unit_types }
+      t.references :referral_request, null: true, foreign_key: { to_table: :hmis_external_referral_requests },
                                       index: { name: 'idx_hmis_external_referral_postings_on_request_id' }
       t.index [:referral_id, :referral_request_id], unique: true, name: 'uidx_hmis_external_referral_postings_1'
     end

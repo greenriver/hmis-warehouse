@@ -30,7 +30,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', foreign_key: :source_id
+  has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', as: :source
+  has_many :external_referral_household_members, class_name: 'HmisExternalApis::ReferralHouseholdMember', dependent: :destroy, inverse_of: :client
 
   validates_with Hmis::Hud::Validators::ClientValidator
 

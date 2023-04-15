@@ -26,10 +26,9 @@ module HmisExternalApis
     end
 
     def format_date(date)
-      date.strftime('%Y/%m/%d')
+      date.strftime('%Y-%m-%d')
     end
 
-    # FIXME: not sure best to lookup mper ids... assuming they are external_ids that will already exist?
     def mper_id(record)
       mper_cred.external_ids.where(source: record).first!.value
     end
