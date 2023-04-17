@@ -16,7 +16,7 @@ module Mutations
     end
 
     def resolve(id:, confirmed: false)
-      client = Hmis::Hud::Client.find_by(id: id)
+      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: id)
 
       warnings, resolvable_enrollments = check_enrollments(client, ignore_warnings: confirmed)
 
