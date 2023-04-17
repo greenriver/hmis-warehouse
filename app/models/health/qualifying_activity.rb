@@ -64,7 +64,7 @@ module Health
       return if attr.blank?
 
       @version_suffix_regexp ||= VERSIONS.map { |version| version::ATTRIBUTE_SUFFIX + '$' }.join('|')
-      stripped_attr = attr.gsub(/#{@version_suffix_regexp}/, '')
+      stripped_attr = attr.to_s.gsub(/#{@version_suffix_regexp}/, '')&.to_sym
       return super(stripped_attr) if stripped_attr.in?(VERSIONED_ATTRIBUTES)
 
       super(attr)
