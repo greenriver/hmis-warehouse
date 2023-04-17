@@ -6,6 +6,7 @@
 
 module HmisExternalApis
   class CreateReferralJob < ApplicationJob
+    include HmisExternalApis::ReferralJobMixin
     attr_accessor :params
 
     # @param params [Hash] api payload
@@ -33,10 +34,6 @@ module HmisExternalApis
       referral.service_coordinator = :service_coordinator
       referral.save!
       referral
-    end
-
-    def mper_cred
-      @mper_cred ||= GrdaWarehouse::RemoteCredential.mper
     end
 
     def create_referral_postings(referral)
@@ -138,11 +135,6 @@ module HmisExternalApis
         member.save!
         member
       end
-    end
-
-    def authorize_request
-      # FIXME: token auth or oauth?
-      raise unless Rails.env.development? || Rails.env.test?
     end
 
     def referral_scope

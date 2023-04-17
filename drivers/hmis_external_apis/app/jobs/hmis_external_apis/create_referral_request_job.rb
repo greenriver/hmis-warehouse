@@ -7,6 +7,8 @@
 # An HMIS User indicates that there is a vacancy in a program.
 module HmisExternalApis
   class CreateReferralRequestJob < ApplicationJob
+    include HmisExternalApis::ReferralJobMixin
+
     # @param referral_request [HmisExternalApis::ReferralRequest]
     def perform(referral_request:, url:)
       # if it's persisted, the assumption is that it's already been sent
@@ -20,21 +22,8 @@ module HmisExternalApis
 
     protected
 
-    def post_referral_request(url, params)
-      response = Faraday.post(url, params)
-      JSON.parse(response.body)
-    end
-
     def format_date(date)
       date.strftime('%Y-%m-%d')
-    end
-
-    def mper_id(record)
-      mper_cred.external_ids.where(source: record).first!.value
-    end
-
-    def mper_cred
-      @mper_cred ||= GrdaWarehouse::RemoteCredential.mper
     end
 
     def payload(record)
