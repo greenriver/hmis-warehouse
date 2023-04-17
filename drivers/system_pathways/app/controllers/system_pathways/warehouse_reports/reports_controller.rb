@@ -68,13 +68,26 @@ module SystemPathways::WarehouseReports
       @node = @report.sanitized_node(details_params[:node])
       @source = @report.sanitized_node(details_params[:source])
       @target = @report.sanitized_node(details_params[:target])
+      @detail_options = {
+        node: @node,
+        source: @source,
+        target: @target,
+      }
       @filter = @report.filter
       @filter.update(filter_params[:filters].merge(coc_codes: @filter.coc_codes))
       chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
-      @clients = if @node
-        chart.transition_clients(@source, @target)
+      if @node
+        @clients = chart.node_clients(@node).distinct
+        @details_title = @node
       else
-        chart.node_clients(@node)
+        target_project_number = HudUtility.project_type_number(@target)
+        @clients = chart.transition_clients(@source.presence, target_project_number).distinct
+        @source_title = if @source.present?
+          @source
+        else
+          'Served by Homeless System'
+        end
+        @details_title = "#{@source_title} → #{@target}"
       end
     end
 

@@ -8,8 +8,9 @@
       = render 'filters/view_filter_details', filter_hash: opts, selected_keys: @report.known_params
 .mb-4
   = render 'live_filter'
-- pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
-#sankey
+.sankey-chart{style: 'position: relative;'}
+  - pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
+  #sankey
 
 - content_for :page_js do
   :javascript

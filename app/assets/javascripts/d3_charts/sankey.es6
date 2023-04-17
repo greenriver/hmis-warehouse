@@ -33,8 +33,12 @@ App.D3Chart.Sankey = class Sankey {
     const width = this.width;
     const height = this.height;
     this.chart = d3.create('svg')
-      .attr('viewBox', `0 0 ${width} ${height}`)
-      .attr('viewBox', [0, 0, width, height])
+      // FIXME: the tooltip doesn't follow the mouse correctly if the chart is setup with viewBox
+      // but the chart doesn't resize if it's not
+      // .attr('viewBox', `0 0 ${width} ${height}`)
+      // .attr('viewBox', [0, 0, width, height])
+      .attr("width", width)
+      .attr("height", height)
       .attr('style', 'max-width: 100%; height: auto; height: intrinsic;');
     this.Tooltip = this.wrapper
       .append('div')
@@ -313,16 +317,17 @@ App.D3Chart.Sankey = class Sankey {
   }
 
   move(event, node) {
+    console.log({ 'this.width': this.width, 'this.height': this.height, 'this.chart': this.chart}, this.d3Sankey.pointer(event, this.chart.node()), event)
     this.Tooltip
-      .style('left', (this.d3Sankey.pointer(event)[0] + 10) + 'px')
-      .style('top', (this.d3Sankey.pointer(event)[1]) + 'px');
+      // FIXME: the tooltip doesn't follow the mouse correctly if the chart is setup with viewBox
+      // .style('left', (event.x + 10) + 'px')
+      // .style('top', (event.y + 50) + 'px');
+      .style('left', (this.d3Sankey.pointer(event, this.chart.node())[0] + 10) + 'px')
+      .style('top', (this.d3Sankey.pointer(event, this.chart.node())[1] + 50) + 'px');
+
   }
 
   out(event, node) {
-    // console.log('out', event, node)
-    // sankey.dflows(d.flows);
-    // drawDLink(sankey.dlinks());
-    // updateTooltip(d);
     this.Tooltip
       .style('opacity', 0);
     this.Tooltip.html('');

@@ -161,6 +161,8 @@ module SystemPathways
     end
 
     def sanitized_node(node)
+      return node if node == 'Returns to Homelessness'
+
       available = available_project_types.map do |p_type|
         HudUtility.project_type_brief(p_type)
       end + destination_lookup.keys
@@ -172,7 +174,18 @@ module SystemPathways
       [1, 2, 3, 4, 8, 9, 10, 13, 14]
     end
 
-    private def destination_lookup
+    def detail_headers
+      {
+        'First Name' => ->(c) {
+          c.first_name
+        },
+        'Last Name' => ->(c) {
+          c.last_name
+        },
+      }
+    end
+
+    def destination_lookup
       {
         'Permanent Destinations' => 'destination_permanent',
         'Homeless Destinations' => 'destination_homeless',
@@ -182,13 +195,15 @@ module SystemPathways
       }
     end
 
-    private def allowed_states
+    def allowed_states
       {
-        nil => [1, 2, 3, 4, 8, 9, 10, 13],
-        1 => [2, 3, 9, 10, 13], # FIXME: 1 -> 4 should not be possible, which makes me think accept_enrollments isn't working correctly
+        # Transition order is defined by array
+        # ES (1), SH (8), TH (2), SO (4), PH - RRH (13), PH - PSH (3), PH - PH (9), PH - OPH (10)
+        nil => [1, 8, 2, 4, 13, 3, 9, 10],
+        1 => [2, 3, 9, 10, 13],
         2 => [3, 9, 10, 13],
         3 => [],
-        4 => [1, 2, 3, 9, 10, 13],
+        4 => [1, 2, 3, 8, 9, 10, 13],
         8 => [2, 3, 9, 10, 13],
         9 => [],
         10 => [],
@@ -237,11 +252,18 @@ module SystemPathways
           next unless final_enrollment.present?
 
           returned_enrollment = enrollments.detect do |en|
-            next false if final_enrollment.exit_date.blank? || ! HudUtility.destination_type(final_enrollment.destination) == 'Permanent'
+            # If we're still enrolled, we can't return
+            next false if final_enrollment.exit_date.blank?
+            # If our final enrollment didn't exit to a permanent destination we can't return
+            next false unless HudUtility.destination_type(final_enrollment.destination) == 'Permanent'
+            # If this enrollment starts before the end of the final enrollment, we can't have returned
+            next false unless en.entry_date > final_enrollment.exit_date
 
             en.homeless?
           end
 
+          # NOTE: we'll calculate age from the latter of the first enrollment entry date or report start
+          date = [accepted_enrollments.first.entry_date, filter.start].max
           report_client = report_clients[client] || Client.new(
             client_id: client.id,
             report_id: id,
@@ -249,7 +271,7 @@ module SystemPathways
             last_name: client.last_name,
             personal_ids: client.source_clients.map(&:personal_id).uniq.join('; '),
             dob: client.dob,
-            age: client.age(@start_date),
+            age: client.age(date),
             am_ind_ak_native: client.am_ind_ak_native == 1,
             asian: client.asian == 1,
             black_af_american: client.black_af_american == 1,
@@ -281,8 +303,8 @@ module SystemPathways
             from_project_type = nil
             from_project_type = accepted_enrollments[i - 1].computed_project_type if i.positive?
             stay_length = (en.entry_date .. [en.exit_date, filter.end].compact.min).count
-            household_id = en.household_id || "#{en.enrollment_group_id}*hh"
-
+            household_id = get_hh_id(en)
+            household_type = household_makeup(household_id, date)
             report_enrollments << Enrollment.new(
               client_id: client.id,
               report_id: id,
@@ -298,8 +320,8 @@ module SystemPathways
               disabling_condition: en.enrollment.disabling_condition,
               relationship_to_hoh: en.enrollment.relationship_to_hoh,
               household_id: household_id,
-              # FIXME: need to use HUD household calculation
-              # household_type: household_type,
+              household_type: household_type,
+              final_enrollment: en.id == final_enrollment.id,
             )
           end
         end
@@ -310,8 +332,98 @@ module SystemPathways
       end
     end
 
+    private def households
+      return @households if @households.present?
+
+      @households ||= {}
+      @hoh_enrollments ||= {}
+
+      client_ids.each_slice(100) do |batch|
+        enrollments_by_client_id = clients_with_enrollments(batch)
+        enrollments_by_client_id.each do |_, enrollments|
+          enrollments.each do |enrollment|
+            @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
+            next unless enrollment&.enrollment&.client.present?
+
+            date = [enrollment.first_date_in_program, filter.start].max
+            age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
+            @households[get_hh_id(enrollment)] ||= []
+            @households[get_hh_id(enrollment)] << {
+              client_id: enrollment.client_id,
+              source_client_id: enrollment.enrollment.client.id,
+              dob: enrollment.enrollment.client.DOB,
+              age: age,
+              veteran_status: enrollment.enrollment.client.VeteranStatus,
+              chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
+              chronic_detail: enrollment.enrollment.chronically_homeless_at_start,
+              relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
+              # Include dates for determining if someone was present at assessment date
+              entry_date: enrollment.first_date_in_program,
+              exit_date: enrollment.last_date_in_program,
+            }.with_indifferent_access
+          end
+        end
+        GC.start
+      end
+      return @households
+    end
+
+    private def household_makeup(household_id, date)
+      household_ages = ages_for(household_id, date)
+      return :adults_and_children if adults?(household_ages) && children?(household_ages)
+      return :adults_only if adults?(household_ages) && ! children?(household_ages) && ! unknown_ages?(household_ages)
+      return :children_only if children?(household_ages) && ! adults?(household_ages) && ! unknown_ages?(household_ages)
+
+      :unknown
+    end
+
+    private def ages_for(household_id, date)
+      return [] unless households[household_id]
+
+      households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
+    end
+
+    private def adults?(ages)
+      ages.reject(&:blank?).any? do |age|
+        age >= 18
+      end
+    end
+
+    private def children?(ages)
+      ages.reject(&:blank?).any? do |age|
+        age < 18
+      end
+    end
+
+    private def unknown_ages?(ages)
+      ages.any? do |age|
+        # NOTE: 0 is a valid child age
+        age.blank? || age.negative?
+      end
+    end
+
+    private def get_hh_id(service_history_enrollment)
+      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
+    end
+
+    private def clients_with_enrollments(batch)
+      enrollment_scope.
+        where(client_id: batch).
+        order(first_date_in_program: :asc).
+        group_by(&:client_id).
+        reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
+    end
+
+    private def nbn_with_no_service?(enrollment)
+      enrollment.project_tracking_method == 3 &&
+        ! enrollment.service_history_services.
+          bed_night.
+          service_within_date_range(start_date: filter.start, end_date: filter.end).
+          exists?
+    end
+
     private def client_ids
-      @client_ids ||= enrollment_scope.where(client_id: 29348).distinct.pluck(:client_id)
+      @client_ids ||= enrollment_scope.distinct.pluck(:client_id)
     end
 
     def enrollment_scope
@@ -320,7 +432,7 @@ module SystemPathways
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         in_project_type(available_project_types).
-        preload(:enrollment, :project, client: :source_clients).
+        preload(:project, enrollment: :client, client: :source_clients).
         joins(:project).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
       filter.apply(scope, except: [:filter_for_enrollment_cocs])

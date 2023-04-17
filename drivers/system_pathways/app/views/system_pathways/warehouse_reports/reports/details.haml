@@ -1,6 +1,49 @@
-- content_for :title, "#{@report.title} details: #{@details_title}}"
+= content_for :crumbs do
+  = link_to @report.show_path do
+    = "« #{@report.title}"
+- content_for :title, "#{@report.title} details: #{@details_title}"
 
 
-= debug @node
-= debug @source
-= debug @target
+= debug @detail_options
+
+.d-flex.mb-2
+  %h1= content_for :title
+
+.d-flex.mb-4
+  .mr-4
+    .input-group
+      %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+      %span.input-group-append
+        %button.btn.btn-secondary Search
+  .ml-auto
+    = link_to details_system_pathways_warehouse_reports_report_path(@filter.for_params.merge(@detail_options).merge(format: :xlsx)), class: ['btn', 'btn-secondary'] do
+      %i.icon-file-excel
+      Download Excel
+
+- if @clients.blank?
+  .none-found No records found.
+- else
+  .card
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
+        %thead.thead-dark
+          %tr
+            %th
+            - @report.detail_headers.each_key do |header|
+              %th= header
+        %tbody.thead-dark
+          - @clients.each.with_index do |client, i|
+            %tr
+              %th= i + 1
+              - @report.detail_headers.each_value do |lamda|
+                %td{style: 'max-width: 600px;'}
+                  = lamda.(client)
+    = content_for :page_js do
+      :javascript
+        table = $('.datatable').DataTable({
+          paging: false,
+          "dom": 'lrtip'
+        });
+        $('#table_search').keyup(function(){
+          table.search($(this).val()).draw() ;
+        })
