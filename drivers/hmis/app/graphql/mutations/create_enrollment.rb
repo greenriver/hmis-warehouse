@@ -9,6 +9,7 @@ module Mutations
     argument :project_id, ID, required: true
     argument :entry_date, GraphQL::Types::ISO8601Date, required: true
     argument :household_members, [Types::HmisSchema::EnrollmentHouseholdMemberInput], required: true
+    argument :confirmed, Boolean, required: false
 
     field :enrollments, [Types::HmisSchema::Enrollment], null: true
 
@@ -30,7 +31,7 @@ module Mutations
       result
     end
 
-    def resolve(project_id:, entry_date:, household_members:)
+    def resolve(project_id:, entry_date:, household_members:, confirmed: false)
       user = hmis_user
       errors = HmisErrors::Errors.new
       errors.add :relationship_to_ho_h, full_message: 'Exactly one client must be head of household' if household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
@@ -50,10 +51,10 @@ module Mutations
         )
       end
 
-      # Validate entry date. Drop warnings for now, because we don't handle them yet in the frontend.
-      validation_errors = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollments.first)
-      validation_errors = validation_errors.reject(&:warning?)
-      return { errors: validation_errors } if validation_errors.any?
+      # Validate entry date
+      validations = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollments.first)
+      validations.reject!(&:warning?) if confirmed
+      return { errors: validations } if validations.any?
 
       # FIXME: enrollment creation should happen in a transaction
       valid_enrollments = []
