@@ -7,7 +7,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/dba/partition_all.rb",
-      "line": 20,
+      "line": 26,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"sed -i -e \\\"/self.table_name/a\\\\    self.primary_key = 'id'\\\" #{`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`}\")",
       "render_path": null,
@@ -79,46 +79,6 @@
       "user_input": "access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
       "confidence": "Medium",
       "note": ""
-    },
-    {
-      "warning_type": "Redirect",
-      "warning_code": 18,
-      "fingerprint": "0d56b723a341f97ce38e8bd32d706526cad0a202177cc4c9ab6e22a23f7a3676",
-      "check_name": "Redirect",
-      "message": "Possible unprotected redirect",
-      "file": "app/controllers/users/omniauth_callbacks_controller.rb",
-      "line": 22,
-      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(after_sign_in_path_for(User.from_omniauth(request.env[\"omniauth.auth\"])))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Users::OmniauthCallbacksController",
-        "method": "okta"
-      },
-      "user_input": "User.from_omniauth(request.env[\"omniauth.auth\"])",
-      "confidence": "Weak",
-      "note": "after_sign_in_path_for does sometimes return an offsite redirect but not an uncontrolled one"
-    },
-    {
-      "warning_type": "Redirect",
-      "warning_code": 18,
-      "fingerprint": "0d56b723a341f97ce38e8bd32d706526cad0a202177cc4c9ab6e22a23f7a3676",
-      "check_name": "Redirect",
-      "message": "Possible unprotected redirect",
-      "file": "app/controllers/users/omniauth_callbacks_controller.rb",
-      "line": 29,
-      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(after_sign_in_path_for(User.from_omniauth(request.env[\"omniauth.auth\"])))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Users::OmniauthCallbacksController",
-        "method": "okta"
-      },
-      "user_input": "User.from_omniauth(request.env[\"omniauth.auth\"])",
-      "confidence": "Weak",
-      "note": "after_sign_in_path_for does sometimes return an offsite redirect but not an uncontrolled one"
     },
     {
       "warning_type": "SQL Injection",
@@ -817,7 +777,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/jobs/worker_status.rb",
-      "line": 108,
+      "line": 114,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`curl #{ENV[\"ECS_CONTAINER_METADATA_URI_V4\"]}/task`",
       "render_path": null,
@@ -1146,7 +1106,7 @@
           "type": "controller",
           "class": "Health::SdhCaseManagementNotesController",
           "method": "edit",
-          "line": 44,
+          "line": 43,
           "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
           "rendered": {
             "name": "health/sdh_case_management_notes/edit",
@@ -1409,7 +1369,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "drivers/hmis/app/graphql/mutations/submit_form.rb",
-      "line": 18,
+      "line": 24,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name.constantize",
       "render_path": null,
@@ -1609,7 +1569,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/dba/database_bloat.rb",
-      "line": 137,
+      "line": 143,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"pg_repack #{\"--no-superuser-check -U #{ar_base_class.connection_db_config.configuration_hash[:username]} -d #{ar_base_class.connection_db_config.configuration_hash[:database]} -h #{(CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) or ar_base_class.connection_db_config.configuration_hash[:host])} -p #{(ar_base_class.connection_db_config.configuration_hash[:port].presence or \"5432\")} -t #{row[\"schemaname\"]}.#{row[\"tblname\"]}\"}\")",
       "render_path": null,
@@ -1788,7 +1748,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 461,
+      "line": 466,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1999,7 +1959,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/jobs/worker_status.rb",
-      "line": 66,
+      "line": 72,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`curl -k https://#{ENV[\"FQDN\"]}/system_status/details`",
       "render_path": null,
@@ -2529,7 +2489,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/dba/partition_all.rb",
-      "line": 15,
+      "line": 21,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`",
       "render_path": null,
@@ -2609,7 +2569,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/dba/partition_all.rb",
-      "line": 72,
+      "line": 78,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"DROP TABLE IF EXSITS \\\"#{table}_saved\\\"\\n\")",
       "render_path": null,
@@ -2763,6 +2723,26 @@
       "note": ""
     },
     {
+      "warning_type": "Denial of Service",
+      "warning_code": 76,
+      "fingerprint": "fa3c76143ef1b1af288e9f4ba624abe711f9407919ae94cf296c608cda6d96d8",
+      "check_name": "RegexDoS",
+      "message": "Model attribute used in regular expression",
+      "file": "app/models/health/qualifying_activity.rb",
+      "line": 67,
+      "link": "https://brakemanscanner.org/docs/warning_types/denial_of_service/",
+      "code": "/#{[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map do\n (version::ATTRIBUTE_SUFFIX + \"$\")\n end.join(\"|\")}/",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Health::QualifyingActivity",
+        "method": "Health::QualifyingActivity.human_attribute_name"
+      },
+      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "Dynamic Render Path",
       "warning_code": 15,
       "fingerprint": "fde02e1709a167801d237e080ec6ee9c281c0a4aaaef4e81a09c70c01613e32d",
@@ -2808,7 +2788,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "drivers/hmis/app/graphql/types/hmis_schema/submit_form_result.rb",
-      "line": 20,
+      "line": 29,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Hmis::Form::Definition::FORM_ROLE_CONFIG.find do\n (value[:class_name] == object.class.name)\n end.last[:resolve_as].constantize",
       "render_path": null,
@@ -2822,6 +2802,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-04-06 15:10:53 -0400",
+  "updated": "2023-04-17 16:52:07 -0400",
   "brakeman_version": "5.0.4"
 }
