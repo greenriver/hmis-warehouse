@@ -65,12 +65,17 @@ module SystemPathways::WarehouseReports
     end
 
     def details
-      @key = @report.results_for_display[details_params[:category_name]][:reporting].keys.detect do |k|
-        details_params[:key] == k.to_s
+      @node = @report.sanitized_node(details_params[:node])
+      @source = @report.sanitized_node(details_params[:source])
+      @target = @report.sanitized_node(details_params[:target])
+      @filter = @report.filter
+      @filter.update(filter_params[:filters].merge(coc_codes: @filter.coc_codes))
+      chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
+      @clients = if @node
+        chart.transition_clients(@source, @target)
+      else
+        chart.node_clients(@node)
       end
-      @category_name = @report.results_for_display.keys.detect { |m| m == details_params[:category_name] }
-      @result = @report.results_for_display[@category_name][:reporting][@key]
-      @comparison = @report.results_for_display[@category_name][:comparison][@key]
     end
 
     def items
@@ -97,7 +102,7 @@ module SystemPathways::WarehouseReports
     end
 
     def details_params
-      params.permit(:key)
+      params.permit(:node, :source, :target)
     end
     helper_method :details_params
 

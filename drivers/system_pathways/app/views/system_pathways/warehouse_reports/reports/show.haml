@@ -1,19 +1,16 @@
-= simple_form_for @filter, as: :filters, url: @report.show_path, method: :get do |f|
-  .row
-    .col
-      = render 'filters/filter_controls/races/input', f: f, control: OpenStruct.new(label: 'Race')
-    .col
-      = render 'filters/filter_controls/ethnicities/input', f: f, control: OpenStruct.new(label: 'Ethnicity')
-    .col
-      = render 'filters/filter_controls/veteran_statuses/input', f: f, control: OpenStruct.new(label: 'Veteran Status')
-    .col
-      = render 'filters/filter_controls/household_type/input', f: f, control: OpenStruct.new(label: 'Household Type')
-    .col
-      = f.input :involves_ce, as: :boolean, label: 'CE Involved', required: false, hint: 'Limits universe to clients who were enrolled in CE'
 
-  = f.submit 'Update View'
+.card.mb-4
+  .report-parameters
+    = @report.describe_filter_as_html(@report.known_params)
+    - opts = @report.filter.to_h
+    - opts[:default_project_type_codes] = @report.default_project_type_codes
+    .ml-auto.nobr
+      = render 'filters/view_filter_details', filter_hash: opts, selected_keys: @report.known_params
+.mb-4
+  = render 'live_filter'
 - pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
 #sankey
+
 - content_for :page_js do
   :javascript
     let data = #{pathways_chart.chart_data.to_json.html_safe};
@@ -28,6 +25,7 @@
       nodeWeights: nodeWeights,
       width: 1200,
       height: 400,
+      detail_path: '#{details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params)}',
     }
     let sankeyChart = new App.D3Chart.Sankey('#sankey', options);
     sankeyChart.prepare();

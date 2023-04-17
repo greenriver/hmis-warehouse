@@ -13,6 +13,7 @@ App.D3Chart.Sankey = class Sankey {
       nodeWeights,
       width,
       height,
+      detail_path,
     },
   ) {
     //this._build_chart = this._build_chart.bind(this);
@@ -23,6 +24,7 @@ App.D3Chart.Sankey = class Sankey {
     this.nodeWeights = nodeWeights;
     this.width = width;
     this.height = height;
+    this.detail_path = detail_path;
     this.wrapper = this.d3Sankey.select(chart_selector);
     this.sankey = this.d3Sankey.sankey();
   }
@@ -145,6 +147,11 @@ App.D3Chart.Sankey = class Sankey {
       .on('mousemove', (d, i) => {
         this.move(d, i, 'node')
       })
+      .on('click', (e, d) => {
+        let url = new URL(this.detail_path);
+        url.searchParams.append('node', d.id);
+        window.open(url.toString(), '_blank')
+      })
 
     let return_link = links.find(link => link.target.id == 'Returns to Homelessness')
     if (return_link) {
@@ -189,6 +196,12 @@ App.D3Chart.Sankey = class Sankey {
       })
       .on('mousemove', (d, i) => {
         this.move(d, i, 'link')
+      })
+      .on('click', (e, d) => {
+        let url = new URL(this.detail_path);
+        url.searchParams.append('source', d.source.id);
+        url.searchParams.append('target', d.target.id);
+        window.open(url, '_blank')
       })
     // Text
     if (Tl) svg.append('g')

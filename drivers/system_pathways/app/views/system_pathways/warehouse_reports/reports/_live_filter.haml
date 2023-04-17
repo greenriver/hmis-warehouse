@@ -1,0 +1,13 @@
+= simple_form_for @filter, as: :filters, url: @report.show_path, method: :get do |f|
+  .row
+    .col
+      = render 'filters/filter_controls/races/input', f: f, control: OpenStruct.new(label: 'Race')
+    .col
+      = render 'filters/filter_controls/ethnicities/input', f: f, control: OpenStruct.new(label: 'Ethnicity')
+    .col
+      = render 'filters/filter_controls/veteran_statuses/input', f: f, control: OpenStruct.new(label: 'Veteran Status')
+    .col
+      = render 'filters/filter_controls/household_type/input', f: f, control: OpenStruct.new(label: 'Household Type')
+    .col
+      = f.input :involves_ce, as: :boolean, label: 'CE Involved', required: false, hint: 'Limits universe to clients who were enrolled in CE'
+  = f.submit 'Update View'

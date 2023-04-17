@@ -160,13 +160,35 @@ module SystemPathways
       ]
     end
 
+    def sanitized_node(node)
+      available = available_project_types.map do |p_type|
+        HudUtility.project_type_brief(p_type)
+      end + destination_lookup.keys
+
+      available.detect { |m| m == node }
+    end
+
+    def available_project_types
+      [1, 2, 3, 4, 8, 9, 10, 13, 14]
+    end
+
+    private def destination_lookup
+      {
+        'Permanent Destinations' => 'destination_permanent',
+        'Homeless Destinations' => 'destination_homeless',
+        'Institutional Destinations' => 'destination_institutional',
+        'Temporary Destinations' => 'destination_temporary',
+        'Other Destinations' => 'destination_other',
+      }
+    end
+
     private def allowed_states
       {
         nil => [1, 2, 3, 4, 8, 9, 10, 13],
         1 => [2, 3, 9, 10, 13], # FIXME: 1 -> 4 should not be possible, which makes me think accept_enrollments isn't working correctly
         2 => [3, 9, 10, 13],
         3 => [],
-        4 => [2, 3, 9, 10, 13],
+        4 => [1, 2, 3, 9, 10, 13],
         8 => [2, 3, 9, 10, 13],
         9 => [],
         10 => [],
@@ -192,6 +214,8 @@ module SystemPathways
     end
 
     private def create_universe
+      clients.delete_all
+      enrollments.delete_all
       client_ids.each_slice(250) do |ids|
         enrollment_batch = enrollment_scope.where(client_id: ids)
 
@@ -287,17 +311,19 @@ module SystemPathways
     end
 
     private def client_ids
-      @client_ids ||= enrollment_scope.distinct.pluck(:client_id)
+      @client_ids ||= enrollment_scope.where(client_id: 29348).distinct.pluck(:client_id)
     end
 
     def enrollment_scope
+      # For compatability with filter_scopes
+      filter.project_ids = filter.effective_project_ids
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
-        in_project_type([1, 2, 3, 4, 8, 9, 10, 13, 14]).
+        in_project_type(available_project_types).
         preload(:enrollment, :project, client: :source_clients).
         joins(:project).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
-      filter.apply(scope)
+      filter.apply(scope, except: [:filter_for_enrollment_cocs])
     end
   end
 end

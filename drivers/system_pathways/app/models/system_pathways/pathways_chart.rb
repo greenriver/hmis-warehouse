@@ -84,17 +84,34 @@ module SystemPathways
     end
 
     def transition_clients(from, to)
-      from_project_type = HudUtility.project_type_number(from)
-      to_project_type = HudUtility.project_type_number(to)
-      filtered_clients.joins(:enrollments).
-        merge(SystemPathways::Enrollment.where(from_project_type: from_project_type, project_type: to_project_type))
+      if to&.include?('destination')
+        final_transition_clients(from, to)
+      else
+        from_project_type = HudUtility.project_type_number(from)
+        to_project_type = HudUtility.project_type_number(to)
+        filtered_clients.joins(:enrollments).
+          merge(SystemPathways::Enrollment.where(from_project_type: from_project_type, project_type: to_project_type)).
+          distinct
+      end
     end
 
     def final_transition_clients(from, destination_category)
       from_project_type = HudUtility.project_type_number(from)
       filtered_clients.where(destination_category => true).
         joins(:enrollments).
-        merge(SystemPathways::Enrollment.where(from_project_type: from_project_type))
+        merge(SystemPathways::Enrollment.where(from_project_type: from_project_type)).
+        distinct
+    end
+
+    def node_clients(node)
+      if node&.include?('destination')
+        filtered_clients.where(node => true)
+      else
+        to_project_type = HudUtility.project_type_number(node)
+        filtered_clients.joins(:enrollments).
+          merge(SystemPathways::Enrollment.where(project_type: to_project_type)).
+          distinct
+      end
     end
 
     def chart_data
@@ -109,32 +126,32 @@ module SystemPathways
         {
           'source': 'ES',
           'target': 'Institutional Destinations',
-          'value': final_transition_clients('ES', 'destination_institutional').count,
+          'value': transition_clients('ES', 'destination_institutional').count,
         },
         {
           'source': 'ES',
           'target': 'Temporary Destinations',
-          'value': final_transition_clients('ES', 'destination_temporary').count,
+          'value': transition_clients('ES', 'destination_temporary').count,
         },
         {
           'source': 'ES',
           'target': 'Unknown/Other',
-          'value': final_transition_clients('ES', 'destination_other').count,
+          'value': transition_clients('ES', 'destination_other').count,
         },
         {
           'source': 'ES',
           'target': 'Homeless',
-          'value': final_transition_clients('ES', 'destination_homeless').count,
+          'value': transition_clients('ES', 'destination_homeless').count,
         },
         # // ES -> Other types
         {
           'source': 'ES',
-          'target': 'RRH',
+          'target': 'PH - RRH',
           'value': transition_clients('ES', 'PH - RRH').count,
         },
         {
           'source': 'ES',
-          'target': 'PSH',
+          'target': 'PH - PSH',
           'value': transition_clients('ES', 'PH - PSH').count,
         },
         {
@@ -145,12 +162,12 @@ module SystemPathways
         # // Remaining types from system
         {
           'source': 'Served by Homeless System',
-          'target': 'RRH',
+          'target': 'PH - RRH',
           'value': transition_clients(nil, 'PH - RRH').count,
         },
         {
           'source': 'Served by Homeless System',
-          'target': 'PSH',
+          'target': 'PH - PSH',
           'value': transition_clients(nil, 'PH - PSH').count,
         },
         {
@@ -163,83 +180,124 @@ module SystemPathways
           'target': 'SO',
           'value': transition_clients(nil, 'SO').count,
         },
+        # // SO -> ES
+        {
+          'source': 'SO',
+          'target': 'ES',
+          'value': transition_clients('SO', 'ES').count,
+        },
+        {
+          'source': 'SO',
+          'target': 'SH',
+          'value': transition_clients('SO', 'SH').count,
+        },
+        {
+          'source': 'SO',
+          'target': 'PH - RRH',
+          'value': transition_clients('SO', 'PH - RRH').count,
+        },
+        {
+          'source': 'SO',
+          'target': 'PH - PSH',
+          'value': transition_clients('SO', 'PH - PSH').count,
+        },
+        {
+          'source': 'SO',
+          'target': 'TH',
+          'value': transition_clients('SO', 'TH').count,
+        },
         # // TH -> RRH
         {
           'source': 'TH',
-          'target': 'RRH',
+          'target': 'PH - RRH',
           'value': transition_clients('TH', 'PH - RRH').count,
         },
         # // TH -> PSH
         {
           'source': 'TH',
-          'target': 'PSH',
+          'target': 'PH - PSH',
           'value': transition_clients('TH', 'PH - PSH').count,
         },
         # // RRH -> PSH
         {
-          'source': 'RRH',
-          'target': 'PSH',
+          'source': 'PH - RRH',
+          'target': 'PH - PSH',
           'value': transition_clients('PH - RRH', 'PH - PSH').count,
         },
         # // RRH to destinations
         {
-          'source': 'RRH',
-          'target': 'Institutional Destinations',
-          'value': transition_clients('TH', 'PH - RRH').count,
-        },
-        {
-          'source': 'RRH',
+          'source': 'PH - RRH',
           'target': 'Temporary Destinations',
-          'value': final_transition_clients('PH - RRH', 'destination_temporary').count,
+          'value': transition_clients('PH - RRH', 'destination_temporary').count,
         },
         {
-          'source': 'RRH',
+          'source': 'PH - RRH',
           'target': 'Unknown/Other',
-          'value': final_transition_clients('PH - RRH', 'destination_other').count,
+          'value': transition_clients('PH - RRH', 'destination_other').count,
         },
         {
-          'source': 'RRH',
+          'source': 'PH - RRH',
           'target': 'Homeless',
-          'value': final_transition_clients('PH - RRH', 'destination_homeless').count,
+          'value': transition_clients('PH - RRH', 'destination_homeless').count,
         },
         {
-          'source': 'RRH',
+          'source': 'PH - RRH',
           'target': 'Permanent Destinations',
-          'value': final_transition_clients('PH - RRH', 'destination_permanent').count,
+          'value': transition_clients('PH - RRH', 'destination_permanent').count,
         },
         # // PSH to destinations
         {
-          'source': 'PSH',
+          'source': 'PH - PSH',
           'target': 'Homeless',
-          'value': final_transition_clients('PH - PSH', 'destination_homeless').count,
+          'value': transition_clients('PH - PSH', 'destination_homeless').count,
         },
         {
-          'source': 'PSH',
+          'source': 'PH - PSH',
           'target': 'Unknown/Other',
-          'value': final_transition_clients('PH - PSH', 'destination_other').count,
+          'value': transition_clients('PH - PSH', 'destination_other').count,
         },
         {
-          'source': 'PSH',
+          'source': 'PH - PSH',
           'target': 'Permanent Destinations',
-          'value': final_transition_clients('PH - PSh', 'destination_permanent').count,
+          'value': transition_clients('PH - PSh', 'destination_permanent').count,
         },
 
         # // TH to destinations
         {
           'source': 'TH',
           'target': 'Temporary Destinations',
-          'value': final_transition_clients('TH', 'destination_temporary').count,
+          'value': transition_clients('TH', 'destination_temporary').count,
         },
         {
           'source': 'TH',
           'target': 'Permanent Destinations',
-          'value': final_transition_clients('TH', 'destination_permanent').count,
+          'value': transition_clients('TH', 'destination_permanent').count,
         },
         # // other pathways to destinations
         {
           'source': 'SO',
+          'target': 'Institutional Destinations',
+          'value': transition_clients('SO', 'destination_institutional').count,
+        },
+        {
+          'source': 'SO',
+          'target': 'Temporary Destinations',
+          'value': transition_clients('SO', 'destination_temporary').count,
+        },
+        {
+          'source': 'SO',
+          'target': 'Unknown/Other',
+          'value': transition_clients('SO', 'destination_other').count,
+        },
+        {
+          'source': 'SO',
+          'target': 'Homeless',
+          'value': transition_clients('SO', 'destination_homeless').count,
+        },
+        {
+          'source': 'SO',
           'target': 'Permanent Destinations',
-          'value': final_transition_clients('SO', 'destination_permanent').count,
+          'value': transition_clients('SO', 'destination_permanent').count,
         },
 
         # // returns
@@ -252,7 +310,7 @@ module SystemPathways
         {
           'source': 'ES',
           'target': 'Permanent Destinations',
-          'value': final_transition_clients('ES', 'destination_permanent').count,
+          'value': transition_clients('ES', 'destination_permanent').select(:client_id).count,
         },
       ]
     end
@@ -266,9 +324,9 @@ module SystemPathways
         'Unknown/Other': '#808080',
         'Homeless': '#808080',
         'Returns': '#967762',
-        'RRH': '#D1605E',
+        'PH - RRH': '#D1605E',
         'TH': '#A77C9F',
-        'PSH': '#E7CA60',
+        'PH - PSH': '#E7CA60',
         'Other Pathways': '#E49344',
         'Permanent Destinations': '#6A9F58',
       }
@@ -278,8 +336,8 @@ module SystemPathways
       {
         'ES': -1,
         'SH': -1,
-        'RRH': 0,
-        'PSH': 11,
+        'PH - RRH': 0,
+        'PH - PSH': 11,
         'TH': 2,
         'Other Pathways': 5,
         'Homeless': 3,
