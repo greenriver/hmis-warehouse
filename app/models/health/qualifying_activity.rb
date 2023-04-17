@@ -60,6 +60,15 @@ module Health
       end
     end
 
+    def self.human_attribute_name(attr, *_options)
+      return if attr.blank?
+
+      stripped_attr = attr.to_s[..-4].to_sym
+      return super(stripped_attr) if stripped_attr.in?(VERSIONED_ATTRIBUTES)
+
+      super(attr)
+    end
+
     def qa_version
       # If the QA doesn't have a date, use the creation date as a fallback to determine the version
       date = date_of_activity || created_at.to_date

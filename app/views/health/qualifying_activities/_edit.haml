@@ -1,0 +1,7 @@
+.jQaForm
+  = simple_form_for @qa, url: client_health_qualifying_activity_path(@client, @qa), remote: true do |f|
+    .m-4
+      = render 'form', f: f
+      .form__actions.form__actions--right.mt-4
+        = f.submit 'Save Qualifying Activity', class: 'btn btn-primary'
+
