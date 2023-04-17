@@ -63,7 +63,8 @@ module Health
     def self.human_attribute_name(attr, *_options)
       return if attr.blank?
 
-      stripped_attr = attr.to_s[..-4].to_sym
+      @version_suffix_regexp ||= VERSIONS.map { |version| version::ATTRIBUTE_SUFFIX + '$' }.join('|')
+      stripped_attr = attr.gsub(/#{@version_suffix_regexp}/, '')
       return super(stripped_attr) if stripped_attr.in?(VERSIONED_ATTRIBUTES)
 
       super(attr)
