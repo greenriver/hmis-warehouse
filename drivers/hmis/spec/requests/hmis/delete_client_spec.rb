@@ -72,12 +72,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     mutate(input: { id: c1.id }) do |client, errors|
       expect(client).to be_nil
       expect(errors).to contain_exactly(
-        include(
+        a_hash_including(
           'type' => 'information',
           'severity' => 'warning',
-          'data' => include(
+          'fullMessage' => Mutations::DeleteClient.problem_enrollments_message(1),
+          'data' => a_hash_including(
             'enrollments' => contain_exactly(
-              include(
+              a_hash_including(
                 'id' => e1.id.to_s,
                 'entryDate' => e1.entry_date&.to_s(:db),
                 'exitDate' => e1.exit_date&.to_s(:db),
