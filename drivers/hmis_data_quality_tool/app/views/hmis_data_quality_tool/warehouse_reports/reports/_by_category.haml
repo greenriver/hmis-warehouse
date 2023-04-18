@@ -1,0 +1,18 @@
+= render 'summary'
+- @report.results.group_by(&:category).each do |category, results|
+  %h2= category
+  .card.mb-6
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Section
+          %th Description
+          %th Required for
+          %th Overall Number in Universe
+          %th Number of Invalid Values
+          %th Percent Valid
+      %tbody
+        - results.each do |result|
+          = render 'row', result: result
+
+= render 'informational'

@@ -345,7 +345,7 @@ module HmisDataQualityTool
       sum / count
     end
 
-    private def result_groups
+    def result_groups
       {
         'Clients' => {
           name_issues: Client,

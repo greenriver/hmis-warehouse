@@ -1,0 +1,34 @@
+.mt-4
+  = render 'common/pagination_top', item_name: 'client'
+
+.card.mb-6
+  %table.table.table-sm.table-bordered.table-fixed.table-striped
+    %thead.thead-dark
+      %tr
+        %th{colspan: 4}
+        - @groups.each_with_index do |(title, group), index|
+          - bg = index % 2 == 0 ? 'bg-light text-dark' : nil
+          %th.text-center{colspan: group.size, class: bg}= title
+      %tr
+        %th
+        %th Personal ID
+        %th Last Name
+        %th First Name
+        - @groups.values.map(&:keys).flatten.each do |key|
+          %th= @lookup[key]
+    %tbody
+      - @clients.each do |client|
+        %tr
+          - if @clients_with_flags.include?([client.personal_id, client.data_source_id])
+            %td.text-warning.icon-warning
+          -else
+            %td
+          %td= client.personal_id
+          %td= client.last_name
+          %td= client.first_name
+          - @groups.values.map(&:keys).flatten.each do |key|
+            - marked = @flags[@lookup[key]].include?([client.personal_id, client.data_source_id])
+            - if marked
+              %td.text-danger.text-center.icon-cross
+            -else
+              %td

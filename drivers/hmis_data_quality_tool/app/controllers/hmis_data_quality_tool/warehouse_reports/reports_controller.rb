@@ -12,7 +12,8 @@ module HmisDataQualityTool::WarehouseReports
     include BaseFilters
 
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
-    before_action :set_report, only: [:show, :destroy, :details, :items]
+    before_action :set_report, only: [:show, :by_client, :destroy, :details, :items]
+    before_action :pivot_report, only: [:by_client]
     # before_action :set_pdf_export, only: [:show]
 
     def index
@@ -34,6 +35,27 @@ module HmisDataQualityTool::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def by_client
+      @clients = @report.clients.order(:last_name, :first_name)
+      @pagy, @clients = pagy(@clients)
+    end
+
+    private def pivot_report
+      @groups = @report.result_groups.except('Inventory')
+      @lookup = (
+        ::HmisDataQualityTool::Client.sections(@report).map { |k, v| [k, v[:title]] } +
+          ::HmisDataQualityTool::Enrollment.sections(@report).map { |k, v| [k, v[:title]] } +
+          ::HmisDataQualityTool::CurrentLivingSituation.sections(@report).map { |k, v| [k, v[:title]] }
+      ).to_h
+
+      @flags = {}
+      @groups.values.map(&:keys).flatten.each do |key|
+        question_name = "#{@lookup[key]}__invalid"
+        @flags[@lookup[key]] = @report.universe(question_name).members.pluck(:personal_id, :data_source_id)
+      end
+      @clients_with_flags = @flags.values.flatten(1).uniq
     end
 
     def create
