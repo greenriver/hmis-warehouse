@@ -99,17 +99,23 @@ module SystemPathways
     def final_transition_clients(exit_from, destination_category)
       filtered_clients.where(destination_category => true).
         joins(:enrollments).
-        merge(SystemPathways::Enrollment.where(project_type: exit_from, final_enrollment: true)).
+        merge(
+          SystemPathways::Enrollment.
+            where(project_type: exit_from, final_enrollment: true).
+            where(sp_e_t[:destination].eq(sp_c_t[:destination])),
+        ).
         distinct
     end
 
     def node_clients(node)
-      if node.in?(report.destination_lookup.values)
+      if node.in?(report.destination_lookup.keys)
         destination_category = report.destination_lookup[node]
-        sp_c_t = Client.arel_table
         filtered_clients.where(destination_category => true).
           joins(:enrollments).
-          merge(SystemPathways::Enrollment.where(destination: sp_c_t[:destination], final_enrollment: true))
+          merge(
+            SystemPathways::Enrollment.where(final_enrollment: true).
+              where(sp_e_t[:destination].eq(sp_c_t[:destination])),
+          ).distinct
       elsif node == 'Returns to Homelessness'
         clients.where.not(returned_project_type: nil).
           distinct
@@ -121,29 +127,42 @@ module SystemPathways
       end
     end
 
+    private def sp_c_t
+      Client.arel_table
+    end
+
+    private def sp_e_t
+      Enrollment.arel_table
+    end
+
     private def combinations
       @combinations ||= report.allowed_states.map do |source, project_types|
         project_types.map do |target|
           source_label = project_type_label_lookup(source)
           target_label = project_type_label_lookup(target)
+          count = transition_clients(source, target).count
           combination = []
           combination << {
             source: source_label,
             target: target_label,
-            value: transition_clients(source, target).count,
+            value: count,
           }
+
           next combination unless source.nil?
 
           report.destination_lookup.map do |destination_label, dest|
+            destination_count = transition_clients(target, dest).count
+            next unless destination_count.positive?
+
             combination << {
               source: target_label,
               target: destination_label,
-              value: transition_clients(target, dest).count,
+              value: destination_count,
             }
           end
           combination
         end
-      end.flatten << {
+      end.compact.flatten << {
         source: 'Permanent Destinations',
         target: 'Returns to Homelessness',
         value: transition_clients('Permanent Destinations', 'Returns to Homelessness').count,
@@ -194,6 +213,26 @@ module SystemPathways
         'Temporary Destinations': 5,
         'Institutional Destinations': 6,
         'Permanent Destinations': 10,
+      }
+    end
+
+    def node_columns
+      {
+        'Served by Homeless System': 0,
+        'SO': 1,
+        'ES': 2,
+        'SH': 2,
+        'TH': 3,
+        'PH - RRH': 4,
+        'PH - PSH': 5,
+        'PH - PH': 5,
+        'PH - OPH': 5,
+        'Homeless Destinations': 6,
+        'Other Destinations': 6,
+        'Temporary Destinations': 6,
+        'Institutional Destinations': 6,
+        'Permanent Destinations': 6,
+        'Returns to Homelessness': 7,
       }
     end
   end

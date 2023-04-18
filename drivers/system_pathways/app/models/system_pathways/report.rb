@@ -321,7 +321,7 @@ module SystemPathways
               relationship_to_hoh: en.enrollment.relationship_to_hoh,
               household_id: household_id,
               household_type: household_type,
-              final_enrollment: en.id == final_enrollment.id,
+              final_enrollment: i == accepted_enrollments.count - 1,
             )
           end
         end
@@ -432,7 +432,7 @@ module SystemPathways
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         in_project_type(available_project_types).
-        preload(:project, enrollment: :client, client: :source_clients).
+        preload(:project, enrollment: [:client, :project, :disabilities_at_entry], client: :source_clients).
         joins(:project).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
       filter.apply(scope, except: [:filter_for_enrollment_cocs])

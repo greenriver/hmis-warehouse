@@ -3,11 +3,12 @@
     = "« #{@report.title}"
 - content_for :title, "#{@report.title} details: #{@details_title}"
 
-
-= debug @detail_options
-
 .d-flex.mb-2
   %h1= content_for :title
+
+- # Debugging
+- # = debug @detail_options
+- #= debug @clients.to_sql
 
 .d-flex.mb-4
   .mr-4

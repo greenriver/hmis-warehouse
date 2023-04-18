@@ -79,6 +79,13 @@ module SystemPathways::WarehouseReports
       if @node
         @clients = chart.node_clients(@node).distinct
         @details_title = @node
+      elsif @target.in?(@report.destination_lookup.keys)
+        # Looking at Project Type -> Destination transition
+        source_project_number = HudUtility.project_type_number(@source)
+        target_group = @report.destination_lookup[@target]
+        @clients = chart.transition_clients(source_project_number, target_group).distinct
+        @source_title = @source
+        @details_title = "#{@source} → #{@target}"
       else
         target_project_number = HudUtility.project_type_number(@target)
         @clients = chart.transition_clients(@source.presence, target_project_number).distinct

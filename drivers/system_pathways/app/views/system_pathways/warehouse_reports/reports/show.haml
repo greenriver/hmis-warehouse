@@ -1,5 +1,12 @@
+= content_for :crumbs do
+  = link_to @report.index_path do
+    = "« #{@report.title} Reports"
+- content_for :title, @report.title
 
-.card.mb-4
+.d-flex.mb-2
+  %h1= content_for :title
+
+.well.mb-4
   .report-parameters
     = @report.describe_filter_as_html(@report.known_params)
     - opts = @report.filter.to_h
@@ -17,6 +24,7 @@
     let data = #{pathways_chart.chart_data.to_json.html_safe};
     const targetColors = #{pathways_chart.target_colors.to_json.html_safe};
     const nodeWeights = #{pathways_chart.node_weights.to_json.html_safe};
+    const nodeColumns = #{pathways_chart.node_columns.to_json.html_safe};
 
     let options = {
       nodeGroup: d => d.id.split(/\W/)[0], // take first word for color
@@ -25,7 +33,7 @@
       targetColors: targetColors,
       nodeWeights: nodeWeights,
       width: 1200,
-      height: 400,
+      height: 600,
       detail_path: '#{details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params)}',
     }
     let sankeyChart = new App.D3Chart.Sankey('#sankey', options);

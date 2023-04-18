@@ -11,6 +11,7 @@ App.D3Chart.Sankey = class Sankey {
       nodeGroup,
       targetColors,
       nodeWeights,
+      nodeColumns,
       width,
       height,
       detail_path,
@@ -22,6 +23,7 @@ App.D3Chart.Sankey = class Sankey {
     this.nodeGroup = nodeGroup;
     this.targetColors = targetColors;
     this.nodeWeights = nodeWeights;
+    this.nodeColumns = nodeColumns;
     this.width = width;
     this.height = height;
     this.detail_path = detail_path;
@@ -33,12 +35,10 @@ App.D3Chart.Sankey = class Sankey {
     const width = this.width;
     const height = this.height;
     this.chart = d3.create('svg')
-      // FIXME: the tooltip doesn't follow the mouse correctly if the chart is setup with viewBox
-      // but the chart doesn't resize if it's not
-      // .attr('viewBox', `0 0 ${width} ${height}`)
-      // .attr('viewBox', [0, 0, width, height])
-      .attr("width", width)
-      .attr("height", height)
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('viewBox', [0, 0, width, height])
+      // .attr("width", width)
+      // .attr("height", height)
       .attr('style', 'max-width: 100%; height: auto; height: intrinsic;');
     this.Tooltip = this.wrapper
       .append('div')
@@ -74,15 +74,6 @@ App.D3Chart.Sankey = class Sankey {
     let marginBottom = 5; // bottom margin, in pixels
     let marginLeft = 1; // left margin, in pixels
 
-    let d3Sankey = this.d3Sankey;
-    // Convert nodeAlign from a name to a function (since d3-sankey is not part of core d3).
-    let nodeAlign = d3Sankey.sankeyLeft;
-    // let nodeAlign = {
-    //   left: d3Sankey.sankeyLeft,
-    //   right: d3Sankey.sankeyRight,
-    //   center: d3Sankey.sankeyCenter
-    // }[align] || d3Sankey.sankeyJustify;
-
     // Compute values.
     const LS = d3.map(links, linkSource).map(this.intern);
     const LT = d3.map(links, linkTarget).map(this.intern);
@@ -92,9 +83,8 @@ App.D3Chart.Sankey = class Sankey {
     const G = d3.map(nodes, nodeGroup).map(this.intern);
 
     // Replace the input nodes and links with mutable objects for the simulation.
-    nodes = d3.map(nodes, (_, i) => ({ id: N[i] }));
+    nodes = d3.map(nodes, (_, i) => ({ id: N[i], layer: nodeColumns[N[i]] }));
     links = d3.map(links, (_, i) => ({ source: LS[i], target: LT[i], value: LV[i] }));
-
     // Ignore a group-based linkColor option if no groups are specified.
     if (!G && ['source', 'target', 'source-target'].includes(linkColor)) linkColor = 'currentColor';
 
@@ -104,10 +94,16 @@ App.D3Chart.Sankey = class Sankey {
     // Construct the scales.
     this.color = d3.scaleOrdinal(nodeGroups, colors);
 
+    // Make note of nodes for later
+    this.nodes = nodes;
+
     // Compute the Sankey layout.
     this.sankey
       .nodeId(({ index: i }) => N[i])
-      .nodeAlign(nodeAlign)
+      // Force nodes to specific horizontal locations
+      .nodeAlign((node, n) => {
+        return node.layer;
+      })
       .nodeWidth(nodeWidth)
       .nodePadding(nodePadding)
       .nodeSort((a, b) => this.node_sorter(a, b))
@@ -139,7 +135,7 @@ App.D3Chart.Sankey = class Sankey {
       .attr('height', d => d.y1 - d.y0)
       .attr('width', d => d.x1 - d.x0);
 
-    if (G) node.attr('fill', ({ index: i }) => this.color_for_target(G[i]))
+    if (G) node.attr('fill', ({ index: i }) => this.color_for_target(G[i], nodes[i]))
     //if (Tt) node.append('title').text(({ index: i }) => Tt[i]);
     node
       .on('mouseover', (d, i) => {
@@ -176,10 +172,10 @@ App.D3Chart.Sankey = class Sankey {
       .attr('x2', d => d.target.x0)
       .call(gradient => gradient.append('stop')
         .attr('offset', '0%')
-        .attr('stop-color', ({ source: { index: i } }) => this.color_for_target(G[i])))
+        .attr('stop-color', ({ source: { index: i }}, d) => this.color_for_target(G[i], links[d])))
       .call(gradient => gradient.append('stop')
         .attr('offset', '100%')
-        .attr('stop-color', ({ target: { index: i } }) => this.color_for_target(G[i])));
+        .attr('stop-color', ({ target: { index: i }}, d) => this.color_for_target(G[i], links[d])));
     // Target specific node and link
     // move it
     // d3.select(‘#id’).node().__datum___
@@ -221,9 +217,10 @@ App.D3Chart.Sankey = class Sankey {
       //.attr('transform', 'rotate(90)')
       .attr('style', 'font-weight:600;fill:black;stroke:white;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.5;')
       .html(({ index: i }) => {
-        //let words = [];
-        //Tl[i].split(/\b/).forEach(item => words.push('<tspan dx='0' dy='1.2em'>' + item + '</tspan>'))
-        //console.log(words.josvin(''))
+        // hide items with no values
+        if (nodes[i].value == 0) {
+          return '';
+        }
         return Tl[i]
       });
     let color = this.color
@@ -235,7 +232,11 @@ App.D3Chart.Sankey = class Sankey {
     return value !== null && typeof value === 'object' ? value.valueOf() : value;
   }
 
-  color_for_target(id, color) {
+  color_for_target(id, item) {
+    // Hide any items where the link or node value is 0
+    if(item.value == 0) {
+      return 'transparent'
+    }
     return this.targetColors[id] == null ? this.color(id) : this.targetColors[id]
   }
 
@@ -302,9 +303,9 @@ App.D3Chart.Sankey = class Sankey {
 
   background(node) {
     if (node.id) {
-      return this.color_for_target(node.id)
+      return this.color_for_target(node.id, node)
     } else {
-      return `linear-gradient(0.25turn, ${this.color_for_target(node.source.id)}, ${this.color_for_target(node.target.id)})`
+      return `linear-gradient(0.25turn, ${this.color_for_target(node.source.id, node.source)}, ${this.color_for_target(node.target.id, node.target)})`
     }
   }
 
@@ -317,13 +318,26 @@ App.D3Chart.Sankey = class Sankey {
   }
 
   move(event, node) {
-    console.log({ 'this.width': this.width, 'this.height': this.height, 'this.chart': this.chart}, this.d3Sankey.pointer(event, this.chart.node()), event)
+    let domain = { 'x domain': [0, $(this.chart_selector).width()], 'y domain': [0, $(this.chart_selector).height()]  }
+    let range = { 'x range': [0, this.width], 'y range': [0, this.height] }
+    let xScale = this.d3Sankey.scaleLinear();
+    let yScale = this.d3Sankey.scaleLinear();
+    xScale
+      .domain([0, this.width])
+      .range([0, $(this.chart_selector).width()])
+    yScale
+      .domain([0, this.height])
+      .range([0, $(this.chart_selector).height()])
+    let original_x = this.d3Sankey.pointer(event)[0];
+    let original_y = this.d3Sankey.pointer(event)[1];
+    let scaled_x = xScale(original_x);
+    let scaled_y = yScale(original_y);
+    // console.log(range, domain, [original_x, original_y], [scaled_x, scaled_y])
     this.Tooltip
-      // FIXME: the tooltip doesn't follow the mouse correctly if the chart is setup with viewBox
-      // .style('left', (event.x + 10) + 'px')
-      // .style('top', (event.y + 50) + 'px');
-      .style('left', (this.d3Sankey.pointer(event, this.chart.node())[0] + 10) + 'px')
-      .style('top', (this.d3Sankey.pointer(event, this.chart.node())[1] + 50) + 'px');
+      .style('left', (scaled_x + 10) + 'px')
+      .style('top', (scaled_y + 30) + 'px');
+      // .style('left', (this.d3Sankey.pointer(event, this.chart.node())[0] + 10) + 'px')
+      // .style('top', (this.d3Sankey.pointer(event, this.chart.node())[1] + 50) + 'px');
 
   }
 
