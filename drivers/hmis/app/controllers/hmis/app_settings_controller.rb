@@ -23,6 +23,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
       logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
       warehouseUrl: "https://#{hostname}",
       warehouseName: _('Boston DND Warehouse'),
+      appName: _('Open Path HMIS'),
       resetPasswordUrl: "https://#{hostname}/users/password/new",
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
