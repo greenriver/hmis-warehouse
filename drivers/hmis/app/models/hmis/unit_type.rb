@@ -6,8 +6,6 @@
 
 module Hmis
   class UnitType < HmisBase
-    has_many :external_referral_requests, class_name: 'HmisExternalApis::ReferralRequest', dependent: :restrict_with_exception
-    # has_many :external_referral_postings, class_name: 'HmisExternalApis::ReferralPosting', dependent: :restrict_with_exception
 
     # https://docs.google.com/spreadsheets/d/1xuXIohyPguAw10KcqlqiF23qgbNzKvAR/edit#gid=844425140
     enum(
@@ -46,5 +44,7 @@ module Hmis
         supportive_service_only_capacity: 28,
       },
     )
+
+    include RailsDrivers::Extensions
   end
 end
