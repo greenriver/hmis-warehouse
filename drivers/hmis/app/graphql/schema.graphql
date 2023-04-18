@@ -543,6 +543,11 @@ enum Component {
   INPUT_GROUP
 
   """
+  MCI linking component
+  """
+  MCI
+
+  """
   Render a choice input item as radio buttons
   """
   RADIO_BUTTONS
