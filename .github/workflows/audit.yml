@@ -40,7 +40,7 @@ jobs:
 
       - name: Ruby version
         run: |
-          ruby -v
+          bundle exec ruby --version
 
       - name: Install gems
         run: |
