@@ -19,5 +19,6 @@ module Types
     # Condition specifying when to perform this autofill
     field :autofill_behavior, Types::Forms::Enums::EnableBehavior, null: false
     field :autofill_when, [Types::Forms::EnableWhen], null: false
+    field :autofill_readonly, Boolean, 'Whether to perform autofill when displaying a read-only view (defaults to false)', null: true
   end
 end
