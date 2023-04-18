@@ -13,7 +13,7 @@ module Mutations
 
     field :enrollments, [Types::HmisSchema::Enrollment], null: true
 
-    def resolve(household_id:, entry_date:, household_members:, confirmed:)
+    def resolve(household_id:, entry_date:, household_members:, confirmed: false)
       errors = HmisErrors::Errors.new
       existing_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
 
