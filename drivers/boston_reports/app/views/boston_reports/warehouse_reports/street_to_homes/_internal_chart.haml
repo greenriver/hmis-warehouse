@@ -38,6 +38,21 @@
 
         return window.open(url.toString());
       },
+      labels:  {
+        centered: true,
+        format: function(v, id, i, j) {
+          if (v == 0) {
+            return '';
+          }
+          let data = d3.map(internal_#{active_demographic}_by_#{active_group}.columns, (r) => r);
+          let columns = d3.map(data, (row) => row)
+          let numbers = d3.map(columns, (row) => Number.isInteger(row[i + 1]) ? row[i + 1] : 0);
+          let total = numbers.reduce((partialSum, a) => partialSum + a, 0);
+          let percentage = v/total;
+
+          return d3.format('.0%')(percentage);
+        }
+      }
     });
     window.charts = window.charts || {}
     window.charts.internal_#{active_demographic}_by_#{active_group}_chart = bb.generate({

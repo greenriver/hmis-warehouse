@@ -3,10 +3,10 @@
   .stage-by-cohort-switcher.btn-group.btn-group-toggle.btn-sm.ml-auto{ data: { toggle: :buttons }}
     %label.btn.btn-secondary.btn-sm.active
       %input#stage{ type: :radio, name: :stage_by_cohort, checked: :checked}
-      Stages
+      Cohorts
     %label.btn.btn-secondary.btn-sm
       %input#cohort{ type: :radio, name: :stage_by_cohort}
-      Cohorts
+      Stages
 
 .well
   .row.stage-by-cohort-wrapper.hide
@@ -72,11 +72,13 @@
         x: {
           type: 'category',
         },
+        /*
         y: {
           tick: {
             values: [0, #{cohort_by_stage_max_value}]
           }
         }
+        */
       },
       legend: {
         contents: {
