@@ -38,10 +38,6 @@ jobs:
             shared-mime-info
           gem install bundler --version=2.4.6
 
-      - name: Ruby version
-        run: |
-          bundle exec ruby --version
-
       - name: Install gems
         run: |
           bundle config set --local without 'production staging development'

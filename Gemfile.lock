@@ -262,7 +262,7 @@ GEM
       sassc-rails (>= 2.0.0)
     bootstrap3-datetimepicker-rails (4.17.47)
       momentjs-rails (>= 2.8.1)
-    brakeman (5.0.4)
+    brakeman (5.4.1)
     browser (5.3.1)
     builder (3.2.4)
     bumbler (0.9.0)
@@ -991,7 +991,7 @@ DEPENDENCIES
   bootsnap
   bootstrap (~> 4.3)
   bootstrap3-datetimepicker-rails (~> 4.17.42)
-  brakeman (~> 5.0.4)
+  brakeman
   browser
   bumbler
   bundler-audit
