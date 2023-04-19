@@ -59,6 +59,7 @@
       "link_id": "non-cash-benefits-group",
       "component": "INPUT_GROUP",
       "text": "Select Benefit(s)",
+      "readonly_text": "Non-Cash Benefit Sources",
       "enable_behavior": "ANY",
       "enable_when": [
         {

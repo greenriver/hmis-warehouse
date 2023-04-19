@@ -143,6 +143,15 @@ class Hmis::Role < ::ApplicationRecord
           'Client Access',
         ],
       },
+      can_delete_clients: {
+        description: 'Grants access to delete clients',
+        administrative: false,
+        access: [:editable],
+        global: true,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_full_ssn: {
         description: 'Allow the user to see client\'s full SSN.',
         administrative: false,

@@ -25,8 +25,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     c1.update({ dob: Date.today - 18.years, ssn: '123456789' })
   end
 
-  let!(:f1) { create :file, client: c1, blob: blob, user_id: hmis_user.id, tags: [tag] }
-  let!(:f2) { create :file, client: c1, blob: blob, user_id: hmis_user.id, tags: [tag], confidential: true }
+  let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
+  let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
 
   let(:query) do
     <<~GRAPHQL
@@ -86,15 +86,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should return no files if not allowed to see any' do
-    remove_permissions(hmis_user, :can_view_any_confidential_client_files, :can_view_any_nonconfidential_client_files)
+    remove_permissions(hmis_user, :can_manage_own_client_files, :can_view_any_confidential_client_files, :can_view_any_nonconfidential_client_files)
     _response, result = post_graphql(id: c1.id) { query }
     expect(result.dig('data', 'client')).to include('files' => { 'nodes' => be_empty })
   end
 
   it 'should return only non-confidential files if not allowed to see confidential' do
-    remove_permissions(hmis_user, :can_view_any_confidential_client_files)
+    remove_permissions(hmis_user, :can_manage_own_client_files, :can_view_any_confidential_client_files)
     _response, result = post_graphql(id: c1.id) { query }
     expect(result.dig('data', 'client')).to include('files' => { 'nodes' => contain_exactly(include('id' => f1.id.to_s)) })
+  end
+
+  it 'should return user\' own files if allowed to manage own files, regardless of any view permissions' do
+    remove_permissions(hmis_user, :can_view_any_confidential_client_files, :can_view_any_nonconfidential_client_files)
+    create :file, client: c1, blob: blob, user: nil, tags: [tag]
+    expect(Hmis::File.count).to eq(3)
+    _response, result = post_graphql(id: c1.id) { query }
+    expect(result.dig('data', 'client', 'files', 'nodes')).to contain_exactly(include('id' => f1.id.to_s), include('id' => f2.id.to_s))
   end
 end
 

@@ -20,6 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       household_id: enrollment.household_id,
       entry_date: Date.yesterday.strftime('%Y-%m-%d'),
+      confirmed: true,
       household_members: [
         {
           id: c2.id,

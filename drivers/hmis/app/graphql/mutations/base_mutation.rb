@@ -85,11 +85,12 @@ module Mutations
     end
 
     # Default CRUD Delete functionality
-    def default_delete_record(record:, field_name:, **auth_args)
+    def default_delete_record(record:, field_name:, after_delete: nil, **auth_args)
       return { errors: [HmisErrors::Error.new(field_name, :not_found)] } unless record.present?
       return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } unless allowed?(record: record, **auth_args)
 
       record.destroy
+      after_delete&.call
 
       {
         field_name => record,

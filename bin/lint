@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+base = ARGV[0]
+
+if base.nil?
+  puts "Specify the base branch to compare to. Only files that differ will be linted."
+  exit 1
+end
+
+ruby_files = `git diff --no-color --diff-filter=ACMR -w --stat=2000 origin/#{base}... | sed -e 's/{.* => \\(.*\\)}/\\1/' | awk '{print $1}' | egrep 'rb|Gemfile|rake' | grep -v Gemfile.lock | grep -v brakeman`.split.join(' ')
+
+if ARGV[1] == "--fix"
+  exec "bundle exec rubocop -A #{ruby_files}"
+else
+  puts "Run with --fix to automatically fix"
+  exec "bundle exec rubocop -P #{ruby_files}"
+end

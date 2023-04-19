@@ -5880,8 +5880,8 @@ CREATE TABLE public.configs (
     roi_model character varying DEFAULT 'explicit'::character varying,
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
-    verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
     supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
+    verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
     youth_hoh_cohort boolean DEFAULT false NOT NULL,
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
@@ -6527,7 +6527,7 @@ ALTER SEQUENCE public.enrollment_change_histories_id_seq OWNED BY public.enrollm
 
 CREATE TABLE public.enrollment_extras (
     id integer NOT NULL,
-    enrollment_id integer NOT NULL,
+    enrollment_id integer,
     vispdat_grand_total integer,
     vispdat_added_at date,
     vispdat_started_at date,
@@ -6878,6 +6878,83 @@ ALTER SEQUENCE public.exports_id_seq OWNED BY public.exports.id;
 
 
 --
+-- Name: external_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_ids (
+    id bigint NOT NULL,
+    value character varying NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    remote_credential_id bigint,
+    external_request_log_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: external_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_ids_id_seq OWNED BY public.external_ids.id;
+
+
+--
+-- Name: external_request_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_request_logs (
+    id bigint NOT NULL,
+    initiator_type character varying,
+    initiator_id bigint,
+    identifier character varying,
+    content_type character varying,
+    url character varying NOT NULL,
+    http_method character varying DEFAULT 'GET'::character varying NOT NULL,
+    ip inet,
+    request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
+    request text NOT NULL,
+    response text NOT NULL,
+    http_status integer,
+    requested_at timestamp without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: external_request_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_request_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_request_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_request_logs_id_seq OWNED BY public.external_request_logs.id;
+
+
+--
 -- Name: fake_data; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7063,7 +7140,8 @@ CREATE TABLE public.files (
     consent_revoked_at timestamp without time zone,
     coc_codes jsonb DEFAULT '[]'::jsonb,
     enrollment_id bigint,
-    confidential boolean
+    confidential boolean,
+    updated_by_id bigint
 );
 
 
@@ -13716,14 +13794,14 @@ CREATE TABLE public.hmis_dqt_clients (
     overlapping_nbn integer,
     overlapping_pre_move_in integer,
     overlapping_post_move_in integer,
+    ch_at_most_recent_entry boolean DEFAULT false,
+    ch_at_any_entry boolean DEFAULT false,
     veteran_status integer,
     ssn character varying,
     ssn_data_quality integer,
     name_data_quality integer,
     ethnicity integer,
-    reporting_age integer,
-    ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false
+    reporting_age integer
 );
 
 
@@ -13829,6 +13907,7 @@ CREATE TABLE public.hmis_dqt_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     project_type integer,
+    ch_at_entry boolean DEFAULT false,
     project_id integer,
     household_type character varying,
     household_min_age integer,
@@ -13854,20 +13933,19 @@ CREATE TABLE public.hmis_dqt_enrollments (
     cash_income_as_expected_at_entry boolean DEFAULT false,
     cash_income_as_expected_at_annual boolean DEFAULT false,
     cash_income_as_expected_at_exit boolean DEFAULT false,
-    ncb_from_any_source_at_entry boolean DEFAULT false,
-    ncb_from_any_source_at_annual boolean DEFAULT false,
-    ncb_from_any_source_at_exit boolean DEFAULT false,
+    ncb_from_any_source_at_entry integer,
+    ncb_from_any_source_at_annual integer,
+    ncb_from_any_source_at_exit integer,
     ncb_as_expected_at_entry boolean DEFAULT false,
     ncb_as_expected_at_annual boolean DEFAULT false,
     ncb_as_expected_at_exit boolean DEFAULT false,
-    insurance_from_any_source_at_entry boolean DEFAULT false,
-    insurance_from_any_source_at_annual boolean DEFAULT false,
-    insurance_from_any_source_at_exit boolean DEFAULT false,
+    insurance_from_any_source_at_entry integer,
+    insurance_from_any_source_at_annual integer,
+    insurance_from_any_source_at_exit integer,
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
     disability_at_entry_collected boolean DEFAULT false,
-    ch_at_entry boolean DEFAULT false,
     previous_street_es_sh integer,
     entry_date_entered_at timestamp without time zone,
     exit_date_entered_at timestamp without time zone,
@@ -15134,8 +15212,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    personal_id character varying,
-    client_created_at timestamp without time zone
+    client_created_at timestamp without time zone,
+    personal_id character varying
 );
 
 
@@ -16956,6 +17034,33 @@ ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.i
 
 
 --
+-- Name: organization_47_tes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.organization_47_tes (
+    source_id integer
+);
+
+
+--
+-- Name: organization_48_tes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.organization_48_tes (
+    source_id integer
+);
+
+
+--
+-- Name: organization_49_tes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.organization_49_tes (
+    source_id integer
+);
+
+
+--
 -- Name: performance_measurement_goals; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18156,6 +18261,34 @@ CREATE TABLE public.recent_report_enrollments (
 
 
 --
+-- Name: recent_service_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.recent_service_history (
+    id bigint,
+    client_id integer,
+    data_source_id integer,
+    date date,
+    first_date_in_program date,
+    last_date_in_program date,
+    enrollment_group_id character varying(50),
+    age smallint,
+    destination integer,
+    head_of_household_id character varying(50),
+    household_id character varying(50),
+    project_id integer,
+    project_type smallint,
+    project_tracking_method integer,
+    organization_id integer,
+    housing_status_at_entry integer,
+    housing_status_at_exit integer,
+    service_type smallint,
+    computed_project_type smallint,
+    presented_as_individual boolean
+);
+
+
+--
 -- Name: recurring_hmis_export_links; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18295,7 +18428,9 @@ CREATE TABLE public.remote_credentials (
     endpoint character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    additional_headers jsonb DEFAULT '{}'::jsonb,
+    slug character varying
 );
 
 
@@ -20047,6 +20182,126 @@ CREATE SEQUENCE public.synthetic_youth_education_statuses_id_seq
 --
 
 ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.synthetic_youth_education_statuses.id;
+
+
+--
+-- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    personal_ids character varying,
+    dob date,
+    age integer,
+    am_ind_ak_native boolean,
+    asian boolean,
+    black_af_american boolean,
+    native_hi_pacific boolean,
+    white boolean,
+    ethnicity integer,
+    male boolean,
+    female boolean,
+    gender_other boolean,
+    transgender boolean,
+    questioning boolean,
+    no_single_gender boolean,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
+    veteran_status integer,
+    household_id character varying,
+    household_type character varying,
+    ce boolean,
+    system boolean,
+    destination integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    destination_homeless boolean DEFAULT false,
+    destination_temporary boolean DEFAULT false,
+    destination_institutional boolean DEFAULT false,
+    destination_other boolean DEFAULT false,
+    destination_permanent boolean DEFAULT false,
+    returned_project_type integer,
+    returned_project_name character varying,
+    returned_project_entry_date date,
+    returned_project_enrollment_id integer,
+    returned_project_project_id integer
+);
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_clients_id_seq OWNED BY public.system_pathways_clients.id;
+
+
+--
+-- Name: system_pathways_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_enrollments (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    from_project_type integer,
+    project_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    project_type integer NOT NULL,
+    destination integer,
+    project_name character varying,
+    entry_date date,
+    exit_date date,
+    stay_length integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN system_pathways_enrollments.from_project_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.system_pathways_enrollments.from_project_type IS 'null for System';
+
+
+--
+-- Name: COLUMN system_pathways_enrollments.destination; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.system_pathways_enrollments.destination IS 'Only stored for final enrollment';
+
+
+--
+-- Name: system_pathways_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_enrollments_id_seq OWNED BY public.system_pathways_enrollments.id;
 
 
 --
@@ -21913,6 +22168,20 @@ ALTER TABLE ONLY public.exports_ad_hoc_anons ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.exports_ad_hocs ALTER COLUMN id SET DEFAULT nextval('public.exports_ad_hocs_id_seq'::regclass);
+
+
+--
+-- Name: external_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids ALTER COLUMN id SET DEFAULT nextval('public.external_ids_id_seq'::regclass);
+
+
+--
+-- Name: external_request_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_request_logs ALTER COLUMN id SET DEFAULT nextval('public.external_request_logs_id_seq'::regclass);
 
 
 --
@@ -23890,6 +24159,20 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_clients_id_seq'::regclass);
+
+
+--
+-- Name: system_pathways_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_enrollments ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_enrollments_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24917,6 +25200,22 @@ ALTER TABLE ONLY public.exports_ad_hocs
 
 ALTER TABLE ONLY public.exports
     ADD CONSTRAINT exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_ids external_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT external_ids_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_request_logs external_request_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_request_logs
+    ADD CONSTRAINT external_request_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -26768,6 +27067,22 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses
 
 
 --
+-- Name: system_pathways_clients system_pathways_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients
+    ADD CONSTRAINT system_pathways_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_enrollments system_pathways_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_enrollments
+    ADD CONSTRAINT system_pathways_enrollments_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: taggings taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -27067,6 +27382,90 @@ CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree
 
 
 --
+-- Name: Enrollment_2735; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_2735" ON public."Enrollment" USING btree ("ProjectID", "HouseholdID");
+
+
+--
+-- Name: Enrollment_3085; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_3085" ON public."Enrollment" USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: Enrollment_34e3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_34e3" ON public."Enrollment" USING btree ("EnrollmentID", "ProjectID", "EntryDate");
+
+
+--
+-- Name: Enrollment_42af; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_42af" ON public."Enrollment" USING btree ("ProjectID");
+
+
+--
+-- Name: Enrollment_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_42d5" ON public."Enrollment" USING btree ("DateUpdated");
+
+
+--
+-- Name: Enrollment_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_4337" ON public."Enrollment" USING btree ("EnrollmentID");
+
+
+--
+-- Name: Enrollment_5328; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID");
+
+
+--
+-- Name: Enrollment_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
+
+
+--
+-- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: Enrollment_c548; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_c548" ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: Enrollment_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_d381" ON public."Enrollment" USING btree ("DateCreated");
+
+
+--
+-- Name: Enrollment_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_f3a2" ON public."Enrollment" USING btree ("DateDeleted");
+
+
+--
 -- Name: IncomeBenefits_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27200,6 +27599,13 @@ CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree
 
 
 --
+-- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_id_rsh_index ON public.recent_service_history USING btree (client_id);
+
+
+--
 -- Name: client_last_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27211,6 +27617,20 @@ CREATE INDEX client_last_name ON public."Client" USING btree ("LastName");
 --
 
 CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
+
+
+--
+-- Name: coc_code_test; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX coc_code_test ON public."EnrollmentCoC" USING btree ("CoCCode");
+
+
+--
+-- Name: computed_project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX computed_project_type_rsh_index ON public.recent_service_history USING btree (computed_project_type);
 
 
 --
@@ -27232,6 +27652,13 @@ CREATE INDEX cur_liv_sit_p_id_en_id_ds_id_cur_id ON public."CurrentLivingSituati
 --
 
 CREATE UNIQUE INDEX cur_liv_sit_sit_id_ds_id ON public."CurrentLivingSituation" USING btree ("CurrentLivingSitID", data_source_id);
+
+
+--
+-- Name: date_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX date_rsh_index ON public.recent_service_history USING btree (date);
 
 
 --
@@ -27323,6 +27750,13 @@ CREATE INDEX employment_education_export_id ON public."EmploymentEducation" USIN
 --
 
 CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID", data_source_id);
+
+
+--
+-- Name: en_tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -27435,6 +27869,13 @@ CREATE INDEX exit_p_id_ds_id ON public."Exit" USING btree ("PersonalID", data_so
 --
 
 CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
+
+
+--
+-- Name: external_ids_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX external_ids_uniq ON public.external_ids USING btree (source_id, source_type, remote_credential_id, value);
 
 
 --
@@ -39891,6 +40332,13 @@ CREATE INDEX "hmiscsv2022youtheducationstatuses_xGU1" ON public.hmis_csv_2022_yo
 
 
 --
+-- Name: household_id_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree (household_id);
+
+
+--
 -- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39944,6 +40392,13 @@ CREATE UNIQUE INDEX hud_report_hic_projects_uniqueness_constraint ON public.hud_
 --
 
 CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
+
+
+--
+-- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX id_rsh_index ON public.recent_service_history USING btree (id);
 
 
 --
@@ -42054,6 +42509,62 @@ CREATE INDEX index_exports_on_export_id ON public.exports USING btree (export_id
 
 
 --
+-- Name: index_external_ids_on_external_request_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_external_request_log_id ON public.external_ids USING btree (external_request_log_id);
+
+
+--
+-- Name: index_external_ids_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids USING btree (remote_credential_id);
+
+
+--
+-- Name: index_external_ids_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_source ON public.external_ids USING btree (source_type, source_id);
+
+
+--
+-- Name: index_external_ids_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_value ON public.external_ids USING btree (value);
+
+
+--
+-- Name: index_external_request_logs_on_initiator; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_initiator ON public.external_request_logs USING btree (initiator_type, initiator_id);
+
+
+--
+-- Name: index_external_request_logs_on_initiator_id_and_initiator_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_initiator_id_and_initiator_type ON public.external_request_logs USING btree (initiator_id, initiator_type);
+
+
+--
+-- Name: index_external_request_logs_on_ip; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_ip ON public.external_request_logs USING btree (ip);
+
+
+--
+-- Name: index_external_request_logs_on_requested_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_requested_at ON public.external_request_logs USING btree (requested_at);
+
+
+--
 -- Name: index_favorites_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42093,6 +42604,13 @@ CREATE INDEX index_files_on_enrollment_id ON public.files USING btree (enrollmen
 --
 
 CREATE INDEX index_files_on_type ON public.files USING btree (type);
+
+
+--
+-- Name: index_files_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_updated_by_id ON public.files USING btree (updated_by_id);
 
 
 --
@@ -47990,6 +48508,34 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system_pathways_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48557,6 +49103,20 @@ CREATE INDEX project_project_override_index ON public."Project" USING btree (COA
 
 
 --
+-- Name: project_tracking_method_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX project_tracking_method_rsh_index ON public.recent_service_history USING btree (project_tracking_method);
+
+
+--
+-- Name: project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX project_type_rsh_index ON public.recent_service_history USING btree (project_type);
+
+
+--
 -- Name: services_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48652,6 +49212,13 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 --
 
 CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
+
+
+--
+-- Name: tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -49804,6 +50371,14 @@ ALTER TABLE ONLY public.service_history_services_2036
 
 
 --
+-- Name: external_ids fk_rails_01fbc7ded3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT fk_rails_01fbc7ded3 FOREIGN KEY (remote_credential_id) REFERENCES public.remote_credentials(id);
+
+
+--
 -- Name: service_history_services_2023 fk_rails_0702601703; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -50041,6 +50616,14 @@ ALTER TABLE ONLY public.service_history_services_2017
 
 ALTER TABLE ONLY public.service_history_services_2039
     ADD CONSTRAINT fk_rails_6c0d4085ac FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: external_ids fk_rails_6c5b5c909b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT fk_rails_6c5b5c909b FOREIGN KEY (external_request_log_id) REFERENCES public.external_request_logs(id);
 
 
 --
@@ -51382,9 +51965,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230313122300'),
 ('20230313152950'),
 ('20230319133739'),
+('20230320131930'),
 ('20230322183901'),
 ('20230322220754'),
 ('20230327202808'),
-('20230328171436');
+('20230328171436'),
+('20230403144801'),
+('20230406154235'),
+('20230406183420'),
+('20230411193836');
 
 

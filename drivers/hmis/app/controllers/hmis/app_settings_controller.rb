@@ -10,8 +10,24 @@ class Hmis::AppSettingsController < Hmis::BaseController
 
   def show
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
+
+    logo = ENV['LOGO']
+    if logo.present?
+      logo_path = SerializedAsset.exists?(logo) ? SerializedAsset.get_src(logo) : "theme/logo/#{logo}"
+    end
+
+    hostname = ENV['FQDN']
+
     render json: {
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
+      logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
+      warehouseUrl: "https://#{hostname}",
+      warehouseName: _('Boston DND Warehouse'),
+      appName: _('Open Path HMIS'),
+      resetPasswordUrl: "https://#{hostname}/users/password/new",
+      unlockAccountUrl: "https://#{hostname}/users/unlock/new",
+      manageAccountUrl: "https://#{hostname}/account/edit",
+      casUrl: GrdaWarehouse::Config.get(:cas_url),
     }
   end
 end

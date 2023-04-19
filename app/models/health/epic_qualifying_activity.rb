@@ -160,6 +160,10 @@ module Health
           'Person-Centered Treatment Plan signed'
         when 'Follow-up within 3 days of hospital discharge (with client)'
           'Follow-up from inpatient hospital discharge (with client)'
+        when 'Follow up after discharge'
+          'Follow-up from inpatient hospital discharge (with client)'
+        when 'Support for transitions of care'
+          'Care transitions (working with care team)'
         else
           activity
         end
@@ -175,6 +179,8 @@ module Health
           'Care Plan completed'
         when 'Care planning'
           'Intake/reassessment (completing consent ROI, comprehensive assessment, care plan)'
+        when 'Support for transitions of care'
+          'Emergency Department visit (7 days)'
         else
           activity
         end

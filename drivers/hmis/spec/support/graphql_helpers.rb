@@ -43,12 +43,14 @@ module GraphqlHelpers
       errors {
         id
         linkId
+        recordId
         attribute
         message
         fullMessage
         type
         severity
         readableAttribute
+        data
         __typename
       }
     ERRORS

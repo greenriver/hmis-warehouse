@@ -24,7 +24,8 @@ class Hmis::File < GrdaWarehouse::File
 
   belongs_to :enrollment, class_name: '::Hmis::Hud::Enrollment', optional: true
   belongs_to :client, class_name: '::Hmis::Hud::Client'
-  belongs_to :user, class_name: 'Hmis::Hud::User', optional: true
+  belongs_to :user, class_name: 'Hmis::User', optional: true
+  belongs_to :updated_by, class_name: 'Hmis::User', optional: true
 
   scope :with_owner, ->(user) do
     where(user_id: user.id)
@@ -34,10 +35,11 @@ class Hmis::File < GrdaWarehouse::File
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
   scope :viewable_by, ->(user) do
-    new_scope = where(client_id: Hmis::Hud::Client.with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files))
-    new_scope = new_scope.nonconfidential unless user.can_view_any_confidential_client_files?
+    view_scope = where(client_id: Hmis::Hud::Client.with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files))
+    view_scope = view_scope.nonconfidential unless user.can_view_any_confidential_client_files?
+    edit_scope = user.can_manage_own_client_files? ? where(user_id: user.id) : none
 
-    new_scope
+    view_scope.or(edit_scope)
   end
 
   def self.sort_by_option(option)
@@ -55,8 +57,8 @@ class Hmis::File < GrdaWarehouse::File
 
   def self.authorize_proc
     ->(record, user) do
-      return true if user.permissions_for?(record.client, :can_manage_any_client_files)
-      return true if user.permissions_for?(record.client, :can_manage_own_client_files) && record.user&.id == user.id
+      return true if user.can_manage_any_client_files_for?(record.client)
+      return true if user.can_manage_own_client_files_for?(record.client) && record.user_id == user.id
 
       false
     end

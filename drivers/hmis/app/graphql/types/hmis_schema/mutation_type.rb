@@ -13,14 +13,14 @@ module Types
     field :delete_client_file, mutation: Mutations::DeleteClientFile
     field :create_enrollment, mutation: Mutations::CreateEnrollment
     field :add_household_members_to_enrollment, mutation: Mutations::AddHouseholdMembersToEnrollment
-    field :set_ho_h_for_enrollment, mutation: Mutations::SetHoHForEnrollment
-    field :update_enrollment, mutation: Mutations::UpdateEnrollment
+    field :update_relationship_to_ho_h, mutation: Mutations::UpdateRelationshipToHoH
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :delete_organization, mutation: Mutations::DeleteOrganization
     field :delete_project, mutation: Mutations::DeleteProject
     field :delete_project_coc, mutation: Mutations::DeleteProjectCoc
     field :delete_funder, mutation: Mutations::DeleteFunder
     field :delete_inventory, mutation: Mutations::DeleteInventory
+    field :delete_client, mutation: Mutations::DeleteClient
 
     field :create_units, mutation: Mutations::CreateUnits
     field :create_beds, mutation: Mutations::CreateBeds

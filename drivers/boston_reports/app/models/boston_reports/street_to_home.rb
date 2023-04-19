@@ -20,12 +20,15 @@ module BostonReports
       @config = BostonReports::Config.first_or_create(&:default_colors)
     end
 
-    def self.comparison_patterns
+    def self.default_filter_options
       {
-        no_comparison_period: 'None',
-        prior_year: 'Same period, prior year',
-        prior_period: 'Prior Period',
-      }.invert.freeze
+        filters: {
+          cohort_column: :user_select_12,
+          cohort_column_voucher_type: :user_select_9,
+          cohort_column_housed_date: :housed_date,
+          cohort_column_matched_date: :user_date_4,
+        },
+      }
     end
 
     def self.viewable_by(user)
@@ -275,7 +278,7 @@ module BostonReports
             counts[key.to_s] << client.client_id if stage[:calculation].call(client)
           end
           voucher_types.each do |voucher_type|
-            counts[voucher_type] << client.client_id if client[voucher_type_column] == voucher_type
+            counts[voucher_type] << client.client_id if client[voucher_type_column] == voucher_type && client[voucher_date_instance.column].present?
           end
           # Loop over all races so we don't end up with missing categories
           races.each do |race_key, race|
@@ -322,6 +325,8 @@ module BostonReports
       @housed_by_cohort ||= {}.tap do |data|
         active_months = stages[housed_string][:scope].pluck(housed_date_instance.column).
           reject(&:blank?).
+          map(&:to_date).
+          reject { |d| d < Date.new(2010, 1, 1) }. # Ignore move-in dates pre-2010 (they are probably mistakes)
           map(&:beginning_of_month).uniq.sort
         months = [active_months.first]
         month = active_months.first
@@ -360,7 +365,9 @@ module BostonReports
       @matched_by_cohort ||= {}.tap do |data|
         active_months = stages[matched_string][:scope].pluck(voucher_date_instance.column).
           reject(&:blank?).
-          map { |d| Date.parse(d).beginning_of_month }.uniq.sort
+          map { |d| Date.parse(d).beginning_of_month }.
+          reject { |d| d < Date.new(2010, 1, 1) }. # Ignore voucher dates pre-2010 (they are probably mistakes)
+          uniq.sort
         months = [active_months.first]
         month = active_months.first
         while month < active_months.last
@@ -646,23 +653,22 @@ module BostonReports
         data['types'] = {
           'Total' => 'scatter',
         }
-        totals = {}
+        totals = voucher_types.map { |type| [type, 0] }.to_h
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
           bg_color = config["breakdown_1_color_#{i}"]
           data['colors'][cohort] = bg_color
           data['labels']['colors'][cohort] = config.foreground_color(bg_color)
           voucher_types.each do |type|
-            totals[type] ||= 0
             count = (clients[matched_string] & clients[cohort] & clients[type]).count
             row << count
             totals[type] += count
           end
           data['columns'] << row
         end
-        data['columns'] << ['Total'] + voucher_types.map do |type|
-          totals[type] if totals[type].positive?
-        end
+        data['columns'] << ['Total'] + totals.values
+        data['labels']['colors']['Total'] = config['total_color']
+        data['colors']['Total'] = config['total_color']
       end
     end
 
@@ -677,23 +683,22 @@ module BostonReports
         data['types'] = {
           'Total' => 'scatter',
         }
-        totals = {}
+        totals = voucher_types.map { |type| [type, 0] }.to_h
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
           bg_color = config["breakdown_1_color_#{i}"]
           data['colors'][cohort] = bg_color
           data['labels']['colors'][cohort] = config.foreground_color(bg_color)
           voucher_types.each do |type|
-            totals[type] ||= 0
             count = (clients[housed_string] & clients[cohort] & clients[type]).count
             row << count
             totals[type] += count
           end
           data['columns'] << row
         end
-        data['columns'] << ['Total'] + voucher_types.map do |type|
-          totals[type] if totals[type].positive?
-        end
+        data['columns'] << ['Total'] + totals.values
+        data['labels']['colors']['Total'] = config['total_color']
+        data['colors']['Total'] = config['total_color']
       end
     end
 
@@ -804,6 +809,10 @@ module BostonReports
       GrdaWarehouse::CohortColumnOption.active.ordered.
         where(cohort_column: voucher_type_column).
         pluck(:value)
+    end
+
+    def voucher_type_count
+      voucher_types.count
     end
 
     # Get the PIT dates for the two prior years (this assumes last wednesday of January)

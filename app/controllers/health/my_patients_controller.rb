@@ -12,10 +12,11 @@ module Health
     include ClientPathGenerator
     include HealthPatientDashboard
     include ArelHelper
+    include Search
 
     def index
-      @q = @patients.ransack(params[:q])
-      @patients = @q.result(distinct: true) if params[:q].present?
+      @search = search_setup(scope: :full_text_search)
+      @patients = @search.distinct if @search_string.present?
       if params[:filter].present?
         @active_filter = true if params[:filter][:population] != 'all'
         case params[:filter][:population]
@@ -75,6 +76,10 @@ module Health
           render(xlsx: 'index', filename: "Tracking Sheet #{date}.xlsx")
         end
       end
+    end
+
+    private def search_scope
+      patient_scope
     end
 
     def patient_scope
