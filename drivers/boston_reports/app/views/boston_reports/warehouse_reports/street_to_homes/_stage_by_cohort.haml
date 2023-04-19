@@ -129,6 +129,11 @@
     $('.stage-by-cohort-switcher').on('change', function(e) {
       $('.stage-by-cohort-wrapper').toggleClass('hide');
       $('.cohort-by-stage-wrapper').toggleClass('hide');
-      stage_by_cohort_chart.flush();
-      cohort_by_stage_chart.flush();
+
+      if($('.stage-by-cohort-wrapper:visible').length > 0) {
+        stage_by_cohort_chart.flush();
+      }
+      if($('.cohort-by-stage-wrapper:visible').length > 0) {
+        cohort_by_stage_chart.flush();
+      }
     });

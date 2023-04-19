@@ -286,6 +286,41 @@ module BostonReports
       end
     end
 
+    def unsheltered_in_past_year
+      GrdaWarehouse::Hud::Client.joins(:service_history_entries).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.
+            enrollment_open_in_prior_years(years: 1).
+            in_project_type(4),
+        )
+    end
+
+    def race_counts_for(scope)
+      values = scope.distinct.pluck(*GrdaWarehouse::Hud::Client.race_fields)
+      counts = {}
+      GrdaWarehouse::Hud::Client.race_fields.each.with_index do |col, i|
+        race = HudUtility.race(col)
+        counts[race] ||= 0
+        values.each do |row|
+          val = row[i]
+          # Count any where the value is 1.  For RaceNone, count any positive value
+          counts[race] += 1 if (col == 'RaceNone' && val&.positive?) || val == 1
+        end
+      end
+      counts
+    end
+
+    def ethnicity_counts_for(scope)
+      values = scope.distinct.where(Ethnicity: [0, 1]).pluck(:Ethnicity)
+      counts = ethnicities.values.map { |e| [e, 0] }.to_h
+
+      values.each do |ethnicity|
+        counts[HudUtility.ethnicity(0)] += 1 if ethnicity&.zero?
+        counts[HudUtility.ethnicity(1)] += 1 if ethnicity == 1
+      end
+      counts
+    end
+
     def summary_counts
       @summary_counts ||= {}.tap do |data|
         data['total'] = all_client_breakdowns['Total'].slice(:label, :count)
@@ -415,12 +450,12 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + ['Inactive'] + stages.values.map { |d| d[:label] }]
+        data['columns'] = [['x', 'Unsheltered Population', 'Inactive'] + stages.values.map { |d| d[:label] }]
         data['groups'] = [races.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         races.each_value.with_index do |race, i|
-          row = [race]
+          row = [race, race_counts_for(unsheltered_in_past_year)[race]]
           { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each_key do |k|
             row << (clients[k.to_s] & clients[race]).count
           end
@@ -436,12 +471,12 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + cohort_names]
+        data['columns'] = [['x', 'Unsheltered Population'] + cohort_names]
         data['groups'] = [races.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         races.each_value.with_index do |race, i|
-          row = [race]
+          row = [race, race_counts_for(unsheltered_in_past_year)[race]]
           cohort_names.each do |cohort|
             row << (clients[cohort] & clients[race]).count
           end
@@ -499,12 +534,12 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + ['Inactive'] + stages.values.map { |d| d[:label] }]
+        data['columns'] = [['x', 'Unsheltered Population', 'Inactive'] + stages.values.map { |d| d[:label] }]
         data['groups'] = [ethnicities.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         ethnicities.each_value.with_index do |ethnicity, i|
-          row = [ethnicity]
+          row = [ethnicity, ethnicity_counts_for(unsheltered_in_past_year)[ethnicity]]
           { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each_key do |k|
             row << (clients[k.to_s] & clients[ethnicity]).count
           end
@@ -520,12 +555,12 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + cohort_names]
+        data['columns'] = [['x', 'Unsheltered Population'] + cohort_names]
         data['groups'] = [ethnicities.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         ethnicities.each_value.with_index do |ethnicity, i|
-          row = [ethnicity]
+          row = [ethnicity, ethnicity_counts_for(unsheltered_in_past_year)[ethnicity]]
           cohort_names.each do |cohort|
             row << (clients[cohort] & clients[ethnicity]).count
           end

@@ -30,6 +30,10 @@
     let internal_#{active_demographic}_by_#{active_group} = #{@report.public_send(data_method).to_json.html_safe};
     internal_#{active_demographic}_by_#{active_group} = $.extend(true, {}, internal_#{active_demographic}_by_#{active_group}, {
       onclick: function(d, element) {
+        // Don't allow drill-down on the unsheltered population
+        if (this.categories()[d.x] == 'Unsheltered Population') {
+          return false;
+        }
         let sets = new URLSearchParams();
         let demographic = internal_#{active_demographic}_by_#{active_group}.columns[0][d.x + 1];
         sets.append('sets[]', demographic);
