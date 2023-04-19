@@ -176,6 +176,11 @@ Value to autofill based on conditional logic
 """
 type AutofillValue {
   autofillBehavior: EnableBehavior!
+
+  """
+  Whether to perform autofill when displaying a read-only view (defaults to false)
+  """
+  autofillReadonly: Boolean
   autofillWhen: [EnableWhen!]!
 
   """
@@ -1839,6 +1844,11 @@ type FormItem {
   Whether human editing is allowed
   """
   readOnly: Boolean
+
+  """
+  Text to use for the item when displayed in read-only view
+  """
+  readonlyText: String
 
   """
   Record type to use for population and extraction
