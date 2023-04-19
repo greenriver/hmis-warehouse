@@ -12,5 +12,7 @@ module GrdaWarehouse
     scope :active, -> do
       where(active: true)
     end
+
+    include RailsDrivers::Extensions
   end
 end

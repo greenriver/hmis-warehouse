@@ -69,6 +69,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :data_source, inverse_of: :clients
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
+    # The "HUD user" that most recently updated the client record
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :clients, optional: true
 
     has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source

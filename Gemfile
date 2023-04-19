@@ -237,7 +237,7 @@ group :development, :test do
   gem 'byebug'
   gem 'pry-rails'
   gem 'bundler-audit', require: false
-  gem 'brakeman', '~> 5.0.4', require: false
+  gem 'brakeman', require: false
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
   gem 'vcr'
