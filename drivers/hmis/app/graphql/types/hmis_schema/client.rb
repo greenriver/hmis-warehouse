@@ -66,14 +66,20 @@ module Types
 
           result = result.except(*relevant_fields)
           old_client = version.reify
-          new_client = version.next.reify
+
+          # Reify the next version to get next values; If no next version, then we're at the latest update and the current object will have the next values
+          new_client =  version.next&.reify || version.item
 
           old_value = { input_field => nil }
-          old_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(old_client, input_field, enum_map, none_field) if old_client.present?
-          new_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(new_client, input_field, enum_map, none_field)
+          new_value = nil
 
-          result = result.merge(input_field => [old_value[input_field], new_value[input_field]])
+          old_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(old_client, input_field, enum_map, none_field) if old_client.present?
+          new_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(new_client, input_field, enum_map, none_field) if new_client.present?
+
+          result = result.merge(input_field => [old_value[input_field], new_value&.[](input_field)])
         end
+
+        result = result.except('UserID', 'id', 'data_source_id', 'DateCreated')
 
         result
       end,
