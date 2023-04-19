@@ -213,6 +213,26 @@ module HmisDataQualityTool
       user.can_access_some_version_of_clients?
     end
 
+    def pivot_details
+      @pivot_details ||= OpenStruct.new.tap do |struct|
+        struct.groups = result_groups.except('Inventory')
+        struct.lookup = (
+          Client.sections(self).map { |k, v| [k, v[:title]] } +
+            Enrollment.sections(self).map { |k, v| [k, v[:title]] } +
+            CurrentLivingSituation.sections(self).map { |k, v| [k, v[:title]] }
+        ).to_h
+
+        struct.flags = {}.tap do |flags|
+          struct.groups.values.map(&:keys).flatten.each do |key|
+            question_name = "#{struct.lookup[key]}__invalid"
+            flags[struct.lookup[key]] = universe(question_name).members.pluck(:personal_id, :data_source_id)
+          end
+        end
+
+        struct.clients_with_flags = struct.flags.values.flatten(1).uniq
+      end
+    end
+
     private def populate_universe
       report_clients = clients.map { |c| [c.client_id, c] }.to_h
       Client.calculate(report_items: report_clients, report: self)
@@ -345,7 +365,7 @@ module HmisDataQualityTool
       sum / count
     end
 
-    def result_groups
+    private def result_groups
       {
         'Clients' => {
           name_issues: Client,
