@@ -79,6 +79,7 @@
       "link_id": "health-insurance-group",
       "component": "INPUT_GROUP",
       "text": "Select Insurance Provider(s)",
+      "readonly_text": "Insurance Providers",
       "enable_behavior": "ANY",
       "enable_when": [
         {

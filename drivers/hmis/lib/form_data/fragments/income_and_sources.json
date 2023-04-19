@@ -771,6 +771,7 @@
           "text": "Montly Total Income",
           "autofill_values": [
             {
+              "autofill_readonly": true,
               "autofill_behavior": "ANY",
               "autofill_when": [],
               "sum_questions": [
