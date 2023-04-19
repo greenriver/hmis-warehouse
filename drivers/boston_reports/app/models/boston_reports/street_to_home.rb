@@ -183,13 +183,6 @@ module BostonReports
             voucher_type_instance.class.new(cohort_client: cc).display_read_only(filter.user)
           end
         },
-        # voucher_date_instance.title => ->(cc, download: false) {
-        #   if download
-        #     voucher_date_instance.class.new(cohort_client: cc).value(cc)
-        #   else
-        #     voucher_date_instance.class.new(cohort_client: cc).display_read_only(filter.user)
-        #   end
-        # },
         housed_date_instance.title => ->(cc, download: false) {
           if download
             housed_date_instance.class.new(cohort_client: cc).value(cc)
