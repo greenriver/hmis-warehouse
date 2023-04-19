@@ -341,9 +341,9 @@ module Health
       return false if modifiers.include?('U3') && modifiers.include?('95') # Marked as both indirect and telehealth
 
       # In-person contacts must reach the client, EXCEPT for outreach
-      return false if modifiers.include?('U2') && (!modifiers.include?('U1') || activity_sym == activities[:outreach][:code])
+      valid_options = activities[activity_sym]
+      return false if modifiers.include?('U2') && (!modifiers.include?('U1') && !valid_options[:code] == activities[:outreach][:code])
 
-      valid_options = qa_version.activities[activity_sym]
       # Must be a QA in the CP
       return false unless valid_options
 
