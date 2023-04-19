@@ -649,7 +649,8 @@ module Filters
 
     def cohort_columns_for_dates
       GrdaWarehouse::Cohort.available_columns.select do |column|
-        column.class.ancestors.include?(CohortColumns::CohortDate)
+        # Ignore non-dates and untranslated custom dates
+        column.class.ancestors.include?(CohortColumns::CohortDate) && ! column.title.match?(/^User Date \d+$/)
       end.map do |column|
         [
           column.title,
