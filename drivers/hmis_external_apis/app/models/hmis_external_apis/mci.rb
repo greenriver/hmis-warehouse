@@ -60,7 +60,7 @@ module HmisExternalApis
                                  mci_id: mci_id,
                                  score: score,
                                  client: MciPayload.build_client(clearance_result),
-                                 existing_client_id: find_client_by_mci(mci_id),
+                                 existing_client_id: find_client_by_mci(mci_id)&.id,
                                })
       end
     end
