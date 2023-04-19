@@ -26,39 +26,25 @@ module HmisExternalApis
   class Mci
     Error = StandardError.new
 
-    # Performing "clearance"
+    # Perform "clearance" to find potential matches for a client in MCI
     #
-    # Input: Hmis::Hud::Client instance, which may or may not be persisted yet.
-    # Returns: the API response (1-N clients with their scores), which we will resolve as a GraphQL type, according to the openapi structure (see comment below, I don't think we want to transform it too much/ at all)
-    # Behavior: Just does the clearance and returns the response. Probably we
-    # log the request and response body somewhere, Elliot and I were discussing
-    # that.
+    # @param client [Hmis::Hud::Client] client, which may or may not be persisted
+    # @return [Array{HmisExternalApis::MciClearanceResult}]
     def clearance(client)
-      # FIXME: Is this the right way to determine this?
-      gender_code =
-        if client.female?
-          gender(word: 'Female')
-        elsif client.male?
-          gender(word: 'Male')
-        else
-          gender(word: 'Unknown')
-        end
-
       payload = {
-        "firstName": client.first_name,
-        # "firstNameSearchCriteria" => 0, # FIXME: No documentation for how to use this
-        "middleName": client.middle_name,
-        # "middleNameSearchCriteria": 0,  # FIXME: No documentation for how to use this
-        "lastName": client.last_name,
-        # "lastNameSearchCriteria": 0,    # FIXME: No documentation for how to use this
-        "ssn": client.ssn, # FIXME: Is this the correct ssn field?
-        "genderCode": gender_code,
-        # "dobFrom": "string",
-        # "dobTo": "string",
-        "birthDate": (client.dob.present? and client.dob.to_s(:db) + 'T00:00:00'),
+        **MciPayload.from_client(client).slice(
+          'firstName',
+          'middleName',
+          'lastName',
+          'ssn',
+          'birthDate',
+          'genderCode',
+        ),
         'searchWithOR' => 0,
+        # "firstNameSearchCriteria" => 0, # FIXME: No documentation for how to use this
+        # "middleNameSearchCriteria": 0,  # FIXME: No documentation for how to use this
+        # "lastNameSearchCriteria": 0,    # FIXME: No documentation for how to use this
       }
-
       result = conn.post('clients/v1/api/clients/clearance', payload)
 
       save_log!(result, payload)
@@ -67,17 +53,22 @@ module HmisExternalApis
 
       Rails.logger.info "Did clearance for client #{client.id}"
 
-      result
+      result.parsed_body.map do |clearance_result|
+        mci_id = clearance_result['mciId'].to_s
+        score = clearance_result['score'].to_i
+        MciClearanceResult.new({
+                                 mci_id: mci_id,
+                                 score: score,
+                                 client: MciPayload.build_client(clearance_result),
+                                 existing_client_id: find_client_by_mci(mci_id),
+                               })
+      end
     end
 
-    # Creating a client
+    # Create a new MCI ID for a client
     #
-    # Input: Hmis::Hud::Client instance (persisted)
-    # Returns: client
-    # Behavior: Hit createclient with any demographic info you can get off the
-    # Client, store the MCI ID (needs a DB update
-    # https://www.pivotaltracker.com/story/show/184816322), and return the
-    # client
+    # @param client [Hmis::Hud::Client] Persisted client
+    # @return [Hmis::Hud::Client] Client with MCI ID attached
     def create_mci_id(client)
       raise(Error, 'Client needs to be saved first') unless client.persisted?
 
@@ -85,7 +76,7 @@ module HmisExternalApis
 
       raise(Error, 'Client already has an MCI id') if external_id.persisted?
 
-      payload = MciPayload.from_client(client)
+      payload = MciPayload.from_client(client, mci_id: external_id.value)
 
       endpoint = 'clients/v1/api/clients/newclient'
       result = conn.post(endpoint, payload)
@@ -95,10 +86,9 @@ module HmisExternalApis
 
         raise(Error, result.error['detail']) if result.error
       else
+        # Store MCI ID for client
         external_id.value = result.parsed_body
-
         external_id.external_request_log = save_log!(result, payload)
-
         external_id.save!
       end
 
@@ -107,12 +97,10 @@ module HmisExternalApis
       client
     end
 
-    # Updating client
+    # Update client details in MCI
     #
-    # Input: Hmis::Hud::Client instance (that has an MCI ID attached to it)
-    # Returns: client
-    # Behavior: Hit updateclient with any demographic info you can get off the
-    # Client, log the request, return
+    # @param client [Hmis::Hud::Client]
+    # @return [Hmis::Hud::Client]
     def update_client(client)
       raise(Error, 'Client needs to be saved first') unless client.persisted?
 
@@ -120,7 +108,7 @@ module HmisExternalApis
 
       raise(Error, 'Client must already have an MCI id') if external_id.new_record?
 
-      payload = MciPayload.from_client(client)
+      payload = MciPayload.from_client(client, mci_id: external_id.value)
 
       result = conn.post('clients/v1/api/clients/updateclient', payload)
 
@@ -133,30 +121,25 @@ module HmisExternalApis
       client
     end
 
-    # def search
-    #   payload = {}
-    #   conn.post('clients/v1/api/Clients/search', payload)
+    # def table_values(table_name)
+    #   value = table_name.upcase.gsub(/[^A-Z_]/, '')
+    #   result = conn.get("clients/v1/api/Lookup/#{value}")
+
+    #   result.parsed_body.map { |x| [x['key'], x['value']] }.to_h
     # end
 
-    def table_values(table_name)
-      value = table_name.upcase.gsub(/[^A-Z_]/, '')
-      result = conn.get("clients/v1/api/Lookup/#{value}")
+    # def gender(code: nil, word: nil)
+    #   @gender_lookup ||= table_values('GENDER')
+    #   @gender_lookup_inverted ||= @gender_lookup.invert
 
-      result.parsed_body.map { |x| [x['key'], x['value']] }.to_h
-    end
+    #   raise(Error, 'Only specify code or word') if code.present? && word.present?
 
-    def gender(code: nil, word: nil)
-      @gender_lookup ||= table_values('GENDER')
-      @gender_lookup_inverted ||= @gender_lookup.invert
+    #   code.present? ? @gender_lookup[code.to_s] : @gender_lookup_inverted[word]
+    # end
 
-      raise(Error, 'Only specify code or word') if code.present? && word.present?
-
-      code.present? ? @gender_lookup[code.to_s] : @gender_lookup_inverted[word]
-    end
-
-    def lookup_tables
-      conn.get('clients/v1/api/Lookup/logicalTables')
-    end
+    # def lookup_tables
+    #   conn.get('clients/v1/api/Lookup/logicalTables')
+    # end
 
     private
 
@@ -167,7 +150,6 @@ module HmisExternalApis
         http_method: result.http_method,
         ip: result.ip,
         request_headers: result.request_headers,
-        http_status: result.http_status,
         request: payload,
         response: result.body,
         requested_at: Time.now,
@@ -179,8 +161,13 @@ module HmisExternalApis
       ExternalId.where(source: client).where(remote_credential: creds).first_or_initialize
     end
 
+    def find_client_by_mci(mci_id)
+      # If multiple clients with this mci id, choose client with earliest creation date
+      ExternalId.where(remote_credential: creds, value: mci_id).map(&:source).min_by(&:date_created)
+    end
+
     def creds
-      @creds ||= GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: 'mci')
+      @creds ||= ::GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: 'mci')
     end
 
     def conn

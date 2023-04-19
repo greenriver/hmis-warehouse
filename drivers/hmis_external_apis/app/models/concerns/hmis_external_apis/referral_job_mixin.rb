@@ -23,7 +23,7 @@ module HmisExternalApis
     end
 
     def mper_cred
-      @mper_cred ||= GrdaWarehouse::RemoteCredential.mper
+      @mper_cred ||= ::GrdaWarehouse::RemoteCredential.mper
     end
   end
 end

@@ -48,7 +48,7 @@ module HmisExternalApis
         end
       projects_ids_by_mper_id = external_id_map(
         cred: mper_cred,
-        scope: Hmis::Hud::Project,
+        scope: ::Hmis::Hud::Project,
         external_ids: posting_attrs.map { |a| a[:program_id] }.compact,
       )
 
@@ -79,7 +79,7 @@ module HmisExternalApis
 
     def create_client(attrs)
       attrs => {first_name:, last_name:, middle_name:, dob:, ssn:}
-      client = Hmis::Hud::Client.new
+      client = ::Hmis::Hud::Client.new
       client.user = system_user
       client.data_source = data_source
       client.first_name = first_name
@@ -117,7 +117,7 @@ module HmisExternalApis
       member_params = params.fetch(:household_members)
       clients_ids_by_mci_id = external_id_map(
         cred: mci_cred,
-        scope: Hmis::Hud::Client,
+        scope: ::Hmis::Hud::Client,
         external_ids: member_params.map { |a| a.fetch(:mci_id) },
       )
 
@@ -147,15 +147,15 @@ module HmisExternalApis
 
     def data_source
       # FIXME: not sure what the data source is
-      @data_source ||= GrdaWarehouse::DataSource.hmis.first!
+      @data_source ||= ::GrdaWarehouse::DataSource.hmis.first!
     end
 
     def system_user
-      @system_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
+      @system_user ||= ::Hmis::Hud::User.system_user(data_source_id: data_source.id)
     end
 
     def mci_cred
-      @mci_cred ||= GrdaWarehouse::RemoteCredential.mci
+      @mci_cred ||= ::GrdaWarehouse::RemoteCredential.mci
     end
 
     # map records from external_ids to local db ids
