@@ -113,8 +113,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def mci_url
-    # TODO: Put in the right logic for this URL
-    "https://clientview.com/#{mci_id}/blah"
+    # TODO: Put in the logic for this URL
   end
 
   def external_identifiers
@@ -131,7 +130,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       },
       mci_id: {
         id: mci_id,
-        # TODO: Put in the right logic for this URL
         url: mci_url,
       },
     }
