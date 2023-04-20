@@ -1,0 +1,4 @@
+export PGPASSWORD=postgres
+psql --set ON_ERROR_STOP=1 --quiet --no-psqlrc -h db -U postgres -d postgres -c "drop database hmis_warehouse_test"
+psql --set ON_ERROR_STOP=1 --quiet --no-psqlrc -h db -U postgres -d postgres -c "create database hmis_warehouse_test"
+psql --set ON_ERROR_STOP=1 --quiet --no-psqlrc -h db -U postgres --file /app/db/warehouse_structure.sql hmis_warehouse_test

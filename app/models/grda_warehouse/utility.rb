@@ -113,6 +113,10 @@ class GrdaWarehouse::Utility
 
     tables.each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY #{modifier(klass)}")
+    rescue ActiveRecord::StatementInvalid => e
+      raise e unless e.message.match?(/relation.+does not exist/)
+
+      Rails.logger.warn "Ignoring #{e.message}"
     end
     # fix_sequences
 
