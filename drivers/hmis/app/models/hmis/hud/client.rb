@@ -100,8 +100,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     self.SSN&.[](-4..-1)
   end
 
-  def mci_id
-    external_ids_by_slug('mci').first
+  def mci_external_id
+    external_ids_by_slug('clientview').first
   end
 
   def warehouse_id
@@ -113,7 +113,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def mci_url
-    # TODO: Put in the logic for this URL
+    return unless mci_external_id&.remote_credential&.present?
+
+    "#{mci_external_id.remote_credential.link_base}/ClientInformation/Profile/#{mci_external_id.value}?aid=2"
   end
 
   def external_identifiers
@@ -129,7 +131,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
         url: warehouse_url,
       },
       mci_id: {
-        id: mci_id,
+        id: mci_external_id&.value,
         url: mci_url,
       },
     }
