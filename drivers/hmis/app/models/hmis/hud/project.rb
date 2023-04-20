@@ -89,4 +89,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     funders.where(end_date: nil).update_all(end_date: operating_end_date)
     inventories.where(inventory_end_date: nil).update_all(inventory_end_date: operating_end_date)
   end
+
+  include RailsDrivers::Extensions
 end

@@ -179,6 +179,10 @@ module HudReports
       @active_filter = @view_filter != defaults
     end
 
+    private def relevant_project_types
+      []
+    end
+
     private def filter
       year = if Date.current.month >= 10
         Date.current.year
@@ -186,7 +190,7 @@ module HudReports
         Date.current.year - 1
       end
       # Some sane defaults, using the previous report if available
-      @filter = filter_class.new(user_id: current_user.id, enforce_one_year_range: false)
+      @filter = filter_class.new(user_id: current_user.id, enforce_one_year_range: false, relevant_project_types: relevant_project_types)
       if filter_params.blank?
         prior_report = generator.find_report(current_user)
         options = prior_report&.options
