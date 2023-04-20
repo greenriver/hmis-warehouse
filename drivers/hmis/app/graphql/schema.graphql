@@ -355,6 +355,7 @@ type Client {
   dobDataQuality: DOBDataQuality!
   enrollments(includeInProgress: Boolean, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
+  externalIds: [ClientIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
   firstName: String
   gender: [Gender!]!
@@ -413,6 +414,23 @@ type ClientAuditEventsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+Client Identifier
+"""
+type ClientIdentifier {
+  """
+  API ID, not the actual identifier value
+  """
+  id: ID!
+
+  """
+  The client identifier value
+  """
+  identifier: ID!
+  label: String!
+  url: String
 }
 
 """

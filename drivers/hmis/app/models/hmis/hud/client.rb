@@ -31,6 +31,11 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
+  has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+  has_many :warehouse_client_destination, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
+  has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
+  has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
+
   validates_with Hmis::Hud::Validators::ClientValidator
 
   attr_accessor :image_blob_id
@@ -93,6 +98,43 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def ssn_serial
     self.SSN&.[](-4..-1)
+  end
+
+  def mci_id
+    external_ids_by_slug('mci').first
+  end
+
+  def warehouse_id
+    destination_client.id
+  end
+
+  def warehouse_url
+    "https://#{ENV['FQDN']}/clients/#{id}/from_source"
+  end
+
+  def mci_url
+    # TODO: Put in the right logic for this URL
+    "https://clientview.com/#{mci_id}/blah"
+  end
+
+  def external_identifiers
+    {
+      client_id: {
+        id: id,
+      },
+      personal_id: {
+        id: personal_id,
+      },
+      warehouse_id: {
+        id: warehouse_id,
+        url: warehouse_url,
+      },
+      mci_id: {
+        id: mci_id,
+        # TODO: Put in the right logic for this URL
+        url: mci_url,
+      },
+    }
   end
 
   SORT_OPTIONS = [
