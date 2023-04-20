@@ -14,6 +14,8 @@ module HmisExternalApis
       'involvement',
     ].freeze
 
+    attr_accessor :plain_text_api_key
+
     scope :well_ordered, -> { order(:internal_system_name, :external_system_name, :version) }
     scope :versions, ->(e, i) { where(external_system_name: e, internal_system_name: i).order('version desc') }
 
@@ -29,7 +31,7 @@ module HmisExternalApis
     def generate_key
       return if hashed_api_key.present?
 
-      plain_text_api_key = SecureRandom.hex(KEY_LENGTH / 2)
+      self.plain_text_api_key = SecureRandom.hex(KEY_LENGTH / 2)
 
       expires_in = Rails.env.development? ? 30.seconds : 30.minutes
 
