@@ -9,7 +9,9 @@ module HudPit::Generators::Pit::Fy2023
     QUESTION_NUMBER = 'Unaccompanied Youth'.freeze
 
     def self.filter_pending_associations(pending_associations)
-      pending_associations.select { |_, row| row[:max_age].present? && row[:max_age] < 25 && row[:household_type].to_s == 'adults_only' }
+      pending_associations.select do |_, row|
+        row[:max_age].present? && row[:max_age] < 25 && row[:household_member_count] == 1
+      end
     end
 
     def run_question!

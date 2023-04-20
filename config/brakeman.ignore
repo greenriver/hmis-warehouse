@@ -300,6 +300,40 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "194ffcfbbfb5dad65d6c2cd5fc8e010479f66a6251142ec091dc5436f8205abe",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/imports/show.haml",
+      "line": 1,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => import_scope.find(params.require(:id)), {})",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "ImportsController",
+          "method": "show",
+          "line": 23,
+          "file": "app/controllers/imports_controller.rb",
+          "rendered": {
+            "name": "imports/show",
+            "file": "app/views/imports/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "imports/show"
+      },
+      "user_input": "params.require(:id)",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "19b0be47dc59be902eb1e0500e9fba29ccf43752f0eb56a2180a222af552ceb0",
@@ -507,6 +541,28 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "2e16f45ec183ad1ea6f792c533e77535a7542d5c57e2a3987b2653445fa404fd",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "drivers/boston_reports/app/views/boston_reports/warehouse_reports/street_to_homes/section.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => params[:partial], {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "boston_reports/warehouse_reports/street_to_homes/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "High",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "34fd658393a9fb9bf9452d6dafc2a7dea87444ddd212196aef05e44065feeeb8",
@@ -560,6 +616,29 @@
       "confidence": "Weak",
       "cwe_id": [
         79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "39fbe5b21264364680753579cfb9bbfa2a05b5af5e3646dbe3bdcd6c65579db5",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/controllers/data_quality_reports_controller.rb",
+      "line": 27,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => report_scope.where(:project_id => params[:project_id].to_i).find(params[:id].to_i).model_name.element.to_sym, {})",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataQualityReportsController",
+        "method": "show"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
       ],
       "note": ""
     },
@@ -839,6 +918,28 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "5e218500963e50340c098eba0301ff524fef605cfe646cc30739c101b587d0af",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "drivers/disability_summary/app/views/disability_summary/warehouse_reports/disability_summary/section.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => params[:partial], {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "disability_summary/warehouse_reports/disability_summary/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "High",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "5f663e1330e1986e8d398745960c0bc7d3b81ecec41fbb3da180f7eed7495c70",
@@ -883,6 +984,40 @@
         77
       ],
       "note": "Injection from internal sources"
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "6012356b03eb94bac6208d03adf39acd1db517d644ec8c52e503b7efef462571",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/health/goals/edit.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => ::Health::Goal::Hpc.find(params[:id].to_i), { :readonly => false })",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::GoalsController",
+          "method": "edit",
+          "line": 34,
+          "file": "app/controllers/concerns/health_goal.rb",
+          "rendered": {
+            "name": "health/goals/edit",
+            "file": "app/views/health/goals/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/goals/edit"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
     },
     {
       "warning_type": "Command Injection",
@@ -1666,6 +1801,28 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "9328bc095a959b408f0e2e72a05a44ac66309ceae8bf9928b0a820c4b7afcd26",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "drivers/core_demographics_report/app/views/core_demographics_report/warehouse_reports/core/section.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => params[:partial], {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "core_demographics_report/warehouse_reports/core/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "High",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Dangerous Send",
       "warning_code": 23,
       "fingerprint": "9692613627d688f403a35e4849b3124d0777a54374a6433aeeddc593711e2e19",
@@ -2045,6 +2202,50 @@
       "note": "Injected value is from the environment"
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "b943aeb098e1d298b0a93b87df96a6d51af156941a6a8263d4dd96b2add2a5c4",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/admin/health/scheduled_documents/_form.haml",
+      "line": 25,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => scheduled_document_source.find(params[:id]), { :f => f })",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Admin::Health::ScheduledDocumentsController",
+          "method": "edit",
+          "line": 39,
+          "file": "app/controllers/admin/health/scheduled_documents_controller.rb",
+          "rendered": {
+            "name": "admin/health/scheduled_documents/edit",
+            "file": "app/views/admin/health/scheduled_documents/edit.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "admin/health/scheduled_documents/edit",
+          "line": 6,
+          "file": "app/views/admin/health/scheduled_documents/edit.haml",
+          "rendered": {
+            "name": "admin/health/scheduled_documents/_form",
+            "file": "app/views/admin/health/scheduled_documents/_form.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/health/scheduled_documents/_form"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "ba8ebc9d6a0ba16b9729b36fec201710ab5e28db8ca0266ba8df0cc2a56454f1",
@@ -2110,6 +2311,28 @@
       "confidence": "High",
       "cwe_id": [
         601
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "c0005570a238c0588abb23ceeeca1435585d73471894496817a57ba389867107",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/dashboards/base/section.html.haml",
+      "line": 2,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => (\"dashboards/base/\" + params[:partial]), {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "dashboards/base/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
       ],
       "note": ""
     },
@@ -2814,6 +3037,52 @@
       "note": ""
     },
     {
+      "warning_type": "Denial of Service",
+      "warning_code": 76,
+      "fingerprint": "fa3c76143ef1b1af288e9f4ba624abe711f9407919ae94cf296c608cda6d96d8",
+      "check_name": "RegexDoS",
+      "message": "Model attribute used in regular expression",
+      "file": "app/models/health/qualifying_activity.rb",
+      "line": 67,
+      "link": "https://brakemanscanner.org/docs/warning_types/denial_of_service/",
+      "code": "/#{[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map do\n (version::ATTRIBUTE_SUFFIX + \"$\")\n end.join(\"|\")}/",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Health::QualifyingActivity",
+        "method": "Health::QualifyingActivity.human_attribute_name"
+      },
+      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map",
+      "confidence": "Weak",
+      "cwe_id": [
+        20,
+        185
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "fde02e1709a167801d237e080ec6ee9c281c0a4aaaef4e81a09c70c01613e32d",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/clients/rollup.haml",
+      "line": 2,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => (\"clients/rollup/\" + params[:partial]), {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "clients/rollup"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "fe7de455d82a4e3fef770c1272e861fb8f1d73042b2f82f1b417753f2d17bec7",
@@ -2860,6 +3129,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-04-18 18:53:13 +0000",
+  "updated": "2023-04-20 13:03:36 +0000",
   "brakeman_version": "5.4.1"
 }
