@@ -26,7 +26,6 @@ module BostonReports
           cohort_column: :user_select_12,
           cohort_column_voucher_type: :user_select_9,
           cohort_column_housed_date: :housed_date,
-          cohort_column_matched_date: :user_date_4,
         },
       }
     end
@@ -114,8 +113,7 @@ module BostonReports
       filter.cohort_ids.present? &&
       filter.cohort_column.present? &&
       filter.cohort_column_voucher_type.present? &&
-      filter.cohort_column_housed_date.present? &&
-      filter.cohort_column_matched_date.present?
+      filter.cohort_column_housed_date.present?
     end
 
     private def build_general_control_section
@@ -139,11 +137,6 @@ module BostonReports
           id: 'cohort_column_housed_date',
           required: true,
           value: @filter.cohort_column_housed_date,
-        )
-        section.add_control(
-          id: 'cohort_column_matched_date',
-          required: true,
-          value: @filter.cohort_column_matched_date,
         )
       end
     end
@@ -183,21 +176,11 @@ module BostonReports
         'Cohort' => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
           cc[filter.cohort_column]
         },
-        voucher_type_instance.title => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
-          voucher_type_instance.class.new(cohort_client: cc).display_read_only(filter.user)
-        },
         voucher_type_instance.title => ->(cc, download: false) {
           if download
             voucher_type_instance.class.new(cohort_client: cc).value(cc)
           else
             voucher_type_instance.class.new(cohort_client: cc).display_read_only(filter.user)
-          end
-        },
-        voucher_date_instance.title => ->(cc, download: false) {
-          if download
-            voucher_date_instance.class.new(cohort_client: cc).value(cc)
-          else
-            voucher_date_instance.class.new(cohort_client: cc).display_read_only(filter.user)
           end
         },
         housed_date_instance.title => ->(cc, download: false) {
@@ -278,7 +261,7 @@ module BostonReports
             counts[key.to_s] << client.client_id if stage[:calculation].call(client)
           end
           voucher_types.each do |voucher_type|
-            counts[voucher_type] << client.client_id if client[voucher_type_column] == voucher_type && client[voucher_date_instance.column].present?
+            counts[voucher_type] << client.client_id if client[voucher_type_column] == voucher_type && client[voucher_type_instance.column].present?
           end
           # Loop over all races so we don't end up with missing categories
           races.each do |race_key, race|
@@ -294,6 +277,41 @@ module BostonReports
           end
         end
       end
+    end
+
+    def unsheltered_in_past_year
+      GrdaWarehouse::Hud::Client.joins(:service_history_entries).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.
+            enrollment_open_in_prior_years(years: 1).
+            in_project_type(4),
+        )
+    end
+
+    def race_counts_for(scope)
+      values = scope.distinct.pluck(*GrdaWarehouse::Hud::Client.race_fields)
+      counts = {}
+      GrdaWarehouse::Hud::Client.race_fields.each.with_index do |col, i|
+        race = HudUtility.race(col)
+        counts[race] ||= 0
+        values.each do |row|
+          val = row[i]
+          # Count any where the value is 1.  For RaceNone, count any positive value
+          counts[race] += 1 if (col == 'RaceNone' && val&.positive?) || val == 1
+        end
+      end
+      counts
+    end
+
+    def ethnicity_counts_for(scope)
+      values = scope.distinct.where(Ethnicity: [0, 1]).pluck(:Ethnicity)
+      counts = ethnicities.values.map { |e| [e, 0] }.to_h
+
+      values.each do |ethnicity|
+        counts[HudUtility.ethnicity(0)] += 1 if ethnicity&.zero?
+        counts[HudUtility.ethnicity(1)] += 1 if ethnicity == 1
+      end
+      counts
     end
 
     def summary_counts
@@ -328,6 +346,8 @@ module BostonReports
           map(&:to_date).
           reject { |d| d < Date.new(2010, 1, 1) }. # Ignore move-in dates pre-2010 (they are probably mistakes)
           map(&:beginning_of_month).uniq.sort
+        # If no active months were found, return something that doesn't throw an error
+        active_months = [1.months.ago.beginning_of_month.to_date, Date.current.beginning_of_month.to_date] unless active_months.any?
         months = [active_months.first]
         month = active_months.first
         while month < active_months.last
@@ -361,46 +381,46 @@ module BostonReports
       end
     end
 
-    def matched_by_cohort
-      @matched_by_cohort ||= {}.tap do |data|
-        active_months = stages[matched_string][:scope].pluck(voucher_date_instance.column).
-          reject(&:blank?).
-          map { |d| Date.parse(d).beginning_of_month }.
-          reject { |d| d < Date.new(2010, 1, 1) }. # Ignore voucher dates pre-2010 (they are probably mistakes)
-          uniq.sort
-        months = [active_months.first]
-        month = active_months.first
-        while month < active_months.last
-          month += 1.months
-          months << month
-        end
-        data['type'] = 'line'
-        data['x'] = 'dates'
-        data['columns'] = [['dates'] + months]
-        data['colors'] = {}
-        overall_for_dates = {}
-        cohort_names.each.with_index do |cohort, i|
-          row = [cohort]
-          ids = clients[cohort] & clients[matched_string]
-          dates = report_scope.where(client_id: ids).
-            pluck(voucher_date_instance.column).
-            reject(&:blank?).
-            map { |d| Date.parse(d).beginning_of_month }
+    # def matched_by_cohort
+    #   @matched_by_cohort ||= {}.tap do |data|
+    #     active_months = stages[matched_string][:scope].pluck(voucher_date_instance.column).
+    #       reject(&:blank?).
+    #       map { |d| Date.parse(d).beginning_of_month }.
+    #       reject { |d| d < Date.new(2010, 1, 1) }. # Ignore voucher dates pre-2010 (they are probably mistakes)
+    #       uniq.sort
+    #     months = [active_months.first]
+    #     month = active_months.first
+    #     while month < active_months.last
+    #       month += 1.months
+    #       months << month
+    #     end
+    #     data['type'] = 'line'
+    #     data['x'] = 'dates'
+    #     data['columns'] = [['dates'] + months]
+    #     data['colors'] = {}
+    #     overall_for_dates = {}
+    #     cohort_names.each.with_index do |cohort, i|
+    #       row = [cohort]
+    #       ids = clients[cohort] & clients[matched_string]
+    #       dates = report_scope.where(client_id: ids).
+    #         pluck(voucher_date_instance.column).
+    #         reject(&:blank?).
+    #         map { |d| Date.parse(d).beginning_of_month }
 
-          months.each do |month_start|
-            active_count = dates.count { |date| date == month_start }
-            row << active_count
+    #       months.each do |month_start|
+    #         active_count = dates.count { |date| date == month_start }
+    #         row << active_count
 
-            overall_for_dates[month_start] ||= 0
-            overall_for_dates[month_start] += active_count
-          end
-          data['columns'] << row
-          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
-        end
-        data['columns'] << ['Total'] + overall_for_dates.values
-        data['colors']['Total'] = config['total_color']
-      end
-    end
+    #         overall_for_dates[month_start] ||= 0
+    #         overall_for_dates[month_start] += active_count
+    #       end
+    #       data['columns'] << row
+    #       data['colors'][cohort] = config["breakdown_1_color_#{i}"]
+    #     end
+    #     data['columns'] << ['Total'] + overall_for_dates.values
+    #     data['colors']['Total'] = config['total_color']
+    #   end
+    # end
 
     def race_by_cohort
       @race_by_cohort ||= {}.tap do |charts|
@@ -425,12 +445,12 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + ['Inactive'] + stages.values.map { |d| d[:label] }]
+        data['columns'] = [['x', 'Unsheltered Population', 'Inactive'] + stages.values.map { |d| d[:label] }]
         data['groups'] = [races.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         races.each_value.with_index do |race, i|
-          row = [race]
+          row = [race, race_counts_for(unsheltered_in_past_year)[race]]
           { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each_key do |k|
             row << (clients[k.to_s] & clients[race]).count
           end
@@ -446,12 +466,12 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + cohort_names]
+        data['columns'] = [['x', 'Unsheltered Population'] + cohort_names]
         data['groups'] = [races.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         races.each_value.with_index do |race, i|
-          row = [race]
+          row = [race, race_counts_for(unsheltered_in_past_year)[race]]
           cohort_names.each do |cohort|
             row << (clients[cohort] & clients[race]).count
           end
@@ -509,12 +529,12 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + ['Inactive'] + stages.values.map { |d| d[:label] }]
+        data['columns'] = [['x', 'Unsheltered Population', 'Inactive'] + stages.values.map { |d| d[:label] }]
         data['groups'] = [ethnicities.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         ethnicities.each_value.with_index do |ethnicity, i|
-          row = [ethnicity]
+          row = [ethnicity, ethnicity_counts_for(unsheltered_in_past_year)[ethnicity]]
           { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each_key do |k|
             row << (clients[k.to_s] & clients[ethnicity]).count
           end
@@ -530,12 +550,12 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + cohort_names]
+        data['columns'] = [['x', 'Unsheltered Population'] + cohort_names]
         data['groups'] = [ethnicities.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         ethnicities.each_value.with_index do |ethnicity, i|
-          row = [ethnicity]
+          row = [ethnicity, ethnicity_counts_for(unsheltered_in_past_year)[ethnicity]]
           cohort_names.each do |cohort|
             row << (clients[cohort] & clients[ethnicity]).count
           end
@@ -769,16 +789,16 @@ module BostonReports
 
     private def stages
       @stages ||= {}.tap do |s|
-        if voucher_date_instance.present? && housed_date_instance.present?
+        if voucher_type_instance.present? && housed_date_instance.present?
           s[un_matched_string] = {
             label: un_matched_string,
-            calculation: ->(client) { client[housed_date_instance.column].blank? && client[voucher_date_instance.column].blank? },
-            scope: report_scope.active.where(c_client_t[voucher_date_instance.column].eq(nil).and(c_client_t[housed_date_instance.column].eq(nil))),
+            calculation: ->(client) { client[housed_date_instance.column].blank? && client[voucher_type_instance.column].blank? },
+            scope: report_scope.active.where(c_client_t[voucher_type_instance.column].eq(nil).and(c_client_t[housed_date_instance.column].eq(nil))),
           }
           s[matched_string] = {
             label: matched_string,
-            calculation: ->(client) { client[housed_date_instance.column].blank? && client[voucher_date_instance.column].present? },
-            scope: report_scope.active.where(c_client_t[voucher_date_instance.column].not_eq(nil).and(c_client_t[housed_date_instance.column].eq(nil))),
+            calculation: ->(client) { client[housed_date_instance.column].blank? && client[voucher_type_instance.column].present? },
+            scope: report_scope.active.where(c_client_t[voucher_type_instance.column].not_eq(nil).and(c_client_t[housed_date_instance.column].eq(nil))),
           }
         end
         s[housed_string] = {
@@ -791,10 +811,6 @@ module BostonReports
 
     private def voucher_type_column
       @voucher_type_column ||= voucher_type_instance&.column
-    end
-
-    private def voucher_date_instance
-      @voucher_date_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.column == filter.cohort_column_matched_date }
     end
 
     private def housed_date_instance

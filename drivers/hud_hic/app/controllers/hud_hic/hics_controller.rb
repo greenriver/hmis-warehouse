@@ -82,5 +82,9 @@ module HudHic
       new_hud_reports_hic_path
     end
     helper_method :path_for_new
+
+    private def relevant_project_types
+      generator.relevant_project_types
+    end
   end
 end

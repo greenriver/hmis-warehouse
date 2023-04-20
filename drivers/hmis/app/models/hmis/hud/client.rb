@@ -30,7 +30,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', foreign_key: :source_id
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
@@ -75,10 +74,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     rescue RangeError
       return none
     end
-  end
-
-  def external_ids_by_slug(slug)
-    external_ids.joins(:remote_credential).where(remote_credential: { slug: slug })
   end
 
   def custom_assessments_including_wip
@@ -236,4 +231,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   def brief_name
     preferred_name || [first_name, last_name].compact.join(' ')
   end
+
+  include RailsDrivers::Extensions
 end

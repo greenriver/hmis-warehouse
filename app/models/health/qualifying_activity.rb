@@ -60,6 +60,16 @@ module Health
       end
     end
 
+    def self.human_attribute_name(attr, *_options)
+      return if attr.blank?
+
+      @version_suffix_regexp ||= VERSIONS.map { |version| version::ATTRIBUTE_SUFFIX + '$' }.join('|')
+      stripped_attr = attr.to_s.gsub(/#{@version_suffix_regexp}/, '')&.to_sym
+      return super(stripped_attr) if stripped_attr.in?(VERSIONED_ATTRIBUTES)
+
+      super(attr)
+    end
+
     def qa_version
       # If the QA doesn't have a date, use the creation date as a fallback to determine the version
       date = date_of_activity || created_at.to_date
@@ -331,9 +341,9 @@ module Health
       return false if modifiers.include?('U3') && modifiers.include?('95') # Marked as both indirect and telehealth
 
       # In-person contacts must reach the client, EXCEPT for outreach
-      return false if modifiers.include?('U2') && (!modifiers.include?('U1') || activity_sym == activities[:outreach][:code])
+      valid_options = activities[activity_sym]
+      return false if modifiers.include?('U2') && (!modifiers.include?('U1') && !valid_options[:code] == activities[:outreach][:code])
 
-      valid_options = qa_version.activities[activity_sym]
       # Must be a QA in the CP
       return false unless valid_options
 

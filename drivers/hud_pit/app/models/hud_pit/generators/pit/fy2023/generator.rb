@@ -30,7 +30,7 @@ module  HudPit::Generators::Pit::Fy2023
     end
 
     def self.default_project_type_codes
-      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys
+      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
     end
 
     def url

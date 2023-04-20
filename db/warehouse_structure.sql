@@ -14150,6 +14150,148 @@ ALTER SEQUENCE public.hmis_dqt_inventories_id_seq OWNED BY public.hmis_dqt_inven
 
 
 --
+-- Name: hmis_external_referral_household_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_referral_household_members (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    relationship_to_hoh integer NOT NULL,
+    referral_id bigint NOT NULL,
+    client_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_external_referral_household_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_referral_household_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_referral_household_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_referral_household_members_id_seq OWNED BY public.hmis_external_referral_household_members.id;
+
+
+--
+-- Name: hmis_external_referral_postings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_referral_postings (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    identifier character varying NOT NULL,
+    status integer NOT NULL,
+    referral_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    referral_request_id bigint
+);
+
+
+--
+-- Name: hmis_external_referral_postings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_referral_postings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_referral_postings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_referral_postings_id_seq OWNED BY public.hmis_external_referral_postings.id;
+
+
+--
+-- Name: hmis_external_referral_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_referral_requests (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    identifier character varying NOT NULL,
+    project_id bigint NOT NULL,
+    unit_type_id bigint NOT NULL,
+    requested_on date NOT NULL,
+    needed_by date NOT NULL,
+    requested_by_id bigint,
+    requestor_name character varying NOT NULL,
+    requestor_phone character varying NOT NULL,
+    requestor_email character varying NOT NULL,
+    voided_at timestamp without time zone,
+    voided_by_id bigint
+);
+
+
+--
+-- Name: hmis_external_referral_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_referral_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_referral_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_referral_requests_id_seq OWNED BY public.hmis_external_referral_requests.id;
+
+
+--
+-- Name: hmis_external_referrals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_referrals (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    identifier character varying NOT NULL,
+    referral_date date NOT NULL,
+    service_coordinator character varying NOT NULL
+);
+
+
+--
+-- Name: hmis_external_referrals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_referrals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_referrals_id_seq OWNED BY public.hmis_external_referrals.id;
+
+
+--
 -- Name: hmis_form_definitions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14535,6 +14677,39 @@ CREATE SEQUENCE public.hmis_staff_x_clients_id_seq
 --
 
 ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_clients.id;
+
+
+--
+-- Name: hmis_unit_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_unit_types (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    description character varying,
+    bed_type integer,
+    unit_size integer
+);
+
+
+--
+-- Name: hmis_unit_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_unit_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_unit_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_unit_types_id_seq OWNED BY public.hmis_unit_types.id;
 
 
 --
@@ -15910,7 +16085,8 @@ CREATE TABLE public.hud_report_pit_clients (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     personal_id character varying,
-    hoh_age integer
+    hoh_age integer,
+    household_member_count integer
 );
 
 
@@ -23121,6 +23297,34 @@ ALTER TABLE ONLY public.hmis_dqt_inventories ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_external_referral_household_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referral_household_members_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_referral_postings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referral_postings_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_referral_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_requests ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referral_requests_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_referrals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referrals ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referrals_id_seq'::regclass);
+
+
+--
 -- Name: hmis_form_definitions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23167,6 +23371,13 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_x_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_unit_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_types ALTER COLUMN id SET DEFAULT nextval('public.hmis_unit_types_id_seq'::regclass);
 
 
 --
@@ -26288,6 +26499,38 @@ ALTER TABLE ONLY public.hmis_dqt_inventories
 
 
 --
+-- Name: hmis_external_referral_household_members hmis_external_referral_household_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT hmis_external_referral_household_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_referral_postings hmis_external_referral_postings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT hmis_external_referral_postings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_referral_requests hmis_external_referral_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_requests
+    ADD CONSTRAINT hmis_external_referral_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_referrals hmis_external_referrals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referrals
+    ADD CONSTRAINT hmis_external_referrals_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_form_definitions hmis_form_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -26341,6 +26584,14 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_unit_types hmis_unit_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_types
+    ADD CONSTRAINT hmis_unit_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -27881,6 +28132,13 @@ CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
 --
 
 CREATE UNIQUE INDEX external_ids_uniq ON public.external_ids USING btree (source_id, source_type, remote_credential_id, value);
+
+
+--
+-- Name: external_ids_uniq_source_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX external_ids_uniq_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id);
 
 
 --
@@ -40589,6 +40847,20 @@ CREATE INDEX idx_hmis_2020_users_imid_du ON public.hmis_2020_users USING btree (
 
 
 --
+-- Name: idx_hmis_external_referral_hms_on_referral_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_external_referral_hms_on_referral_id ON public.hmis_external_referral_household_members USING btree (referral_id);
+
+
+--
+-- Name: idx_hmis_external_referral_postings_on_request_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_external_referral_postings_on_request_id ON public.hmis_external_referral_postings USING btree (referral_request_id);
+
+
+--
 -- Name: idx_tpc_uniqueness; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43806,6 +44078,41 @@ CREATE INDEX index_hmis_dqt_inventories_on_project_id ON public.hmis_dqt_invento
 --
 
 CREATE INDEX index_hmis_dqt_inventories_on_report_id ON public.hmis_dqt_inventories USING btree (report_id);
+
+
+--
+-- Name: index_hmis_external_referral_postings_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_postings_on_project_id ON public.hmis_external_referral_postings USING btree (project_id);
+
+
+--
+-- Name: index_hmis_external_referral_requests_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_requests_on_project_id ON public.hmis_external_referral_requests USING btree (project_id);
+
+
+--
+-- Name: index_hmis_external_referral_requests_on_requested_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_requests_on_requested_by_id ON public.hmis_external_referral_requests USING btree (requested_by_id);
+
+
+--
+-- Name: index_hmis_external_referral_requests_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_requests_on_unit_type_id ON public.hmis_external_referral_requests USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_external_referral_requests_on_voided_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_requests_on_voided_by_id ON public.hmis_external_referral_requests USING btree (voided_by_id);
 
 
 --
@@ -49241,6 +49548,41 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: uidx_hmis_external_referral_hms_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referral_hms_1 ON public.hmis_external_referral_household_members USING btree (client_id, referral_id);
+
+
+--
+-- Name: uidx_hmis_external_referral_posting_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referral_posting_identifier ON public.hmis_external_referral_postings USING btree (identifier);
+
+
+--
+-- Name: uidx_hmis_external_referral_postings_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referral_postings_1 ON public.hmis_external_referral_postings USING btree (referral_id, referral_request_id);
+
+
+--
+-- Name: uidx_hmis_external_referral_requests_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referral_requests_identifier ON public.hmis_external_referral_requests USING btree (identifier);
+
+
+--
+-- Name: uidx_hmis_external_referrals_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_external_referrals USING btree (identifier);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50566,6 +50908,14 @@ ALTER TABLE ONLY public.service_history_services_2030
 
 
 --
+-- Name: hmis_external_referral_postings fk_rails_41274b755e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_41274b755e FOREIGN KEY (referral_request_id) REFERENCES public.hmis_external_referral_requests(id);
+
+
+--
 -- Name: service_history_services_2008 fk_rails_4726c968a2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -50614,6 +50964,14 @@ ALTER TABLE ONLY public.service_history_services_2040
 
 
 --
+-- Name: hmis_external_referral_requests fk_rails_5ee7846c8b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_requests
+    ADD CONSTRAINT fk_rails_5ee7846c8b FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: warehouse_clients fk_rails_5f845fa144; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -50627,6 +50985,14 @@ ALTER TABLE ONLY public.warehouse_clients
 
 ALTER TABLE ONLY public.service_history_services_2017
     ADD CONSTRAINT fk_rails_6371c8a27f FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_referral_postings fk_rails_669165b0ae; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_669165b0ae FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
 
 
 --
@@ -50659,6 +51025,14 @@ ALTER TABLE ONLY public.service_history_services_2047
 
 ALTER TABLE ONLY public.service_history_services_2024
     ADD CONSTRAINT fk_rails_7119cac661 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_referral_postings fk_rails_71a339e69d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_71a339e69d FOREIGN KEY (project_id) REFERENCES public."Project"(id);
 
 
 --
@@ -50787,6 +51161,14 @@ ALTER TABLE ONLY public."Disabilities"
 
 ALTER TABLE ONLY public.service_history_services_2049
     ADD CONSTRAINT fk_rails_9783c16a4a FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_referral_household_members fk_rails_993d7f8d95; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT fk_rails_993d7f8d95 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
 
 
 --
@@ -50966,6 +51348,14 @@ ALTER TABLE ONLY public."IncomeBenefits"
 
 
 --
+-- Name: hmis_external_referral_requests fk_rails_e4f6c14f81; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_requests
+    ADD CONSTRAINT fk_rails_e4f6c14f81 FOREIGN KEY (project_id) REFERENCES public."Project"(id);
+
+
+--
 -- Name: service_history_services_2043 fk_rails_e5a92ecf01; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -51003,6 +51393,14 @@ ALTER TABLE ONLY public.service_history_services
 
 ALTER TABLE ONLY public."Funder"
     ADD CONSTRAINT fk_rails_ee7363191f FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
 
 
 --
@@ -51992,10 +52390,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230403144801'),
 ('20230406154235'),
 ('20230406183420'),
+('20230407164611'),
 ('20230411193836'),
 ('20230412163545'),
+('20230412191455'),
 ('20230414130229'),
 ('20230414152958'),
-('20230417122614');
+('20230417122614'),
+('20230419162140');
 
 
