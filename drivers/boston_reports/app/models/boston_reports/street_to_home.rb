@@ -346,6 +346,8 @@ module BostonReports
           map(&:to_date).
           reject { |d| d < Date.new(2010, 1, 1) }. # Ignore move-in dates pre-2010 (they are probably mistakes)
           map(&:beginning_of_month).uniq.sort
+        # If no active months were found, return something that doesn't throw an error
+        active_months = [1.months.ago.beginning_of_month.to_date, Date.current.beginning_of_month.to_date] unless active_months.any?
         months = [active_months.first]
         month = active_months.first
         while month < active_months.last
