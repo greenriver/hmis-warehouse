@@ -35,7 +35,7 @@
         %tbody.thead-dark
           - @clients.each.with_index do |client, i|
             %tr
-              %th= i + 1
+              %th= number_with_delimiter(i + 1)
               - @report.detail_headers.each_value do |lamda|
                 %td{style: 'max-width: 600px;'}
                   = lamda.(client)

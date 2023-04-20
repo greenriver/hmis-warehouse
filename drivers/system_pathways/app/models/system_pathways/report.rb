@@ -215,15 +215,17 @@ module SystemPathways
       return accepted_enrollments if subsequent_enrollments.blank?
 
       enrollment = subsequent_enrollments.first
-      if enrollment.exit_date.blank? || HudUtility.destination_type(enrollment.destination) == 'Permanent'
-        accepted_enrollments << enrollment
-        return accepted_enrollments
-      end
-
+      # If the next enrollment is in the allowed categories
       if allowed_states[current_project_type].include?(enrollment.computed_project_type)
+        # Push it into the accepted batch
         accepted_enrollments << enrollment
+        # and return if it is a "final" enrollment
+        return accepted_enrollments if enrollment.exit_date.blank? || HudUtility.destination_type(enrollment.destination) == 'Permanent'
+
+        # otherwise move on to the next
         accept_enrollments(subsequent_enrollments.drop(1), enrollment.computed_project_type, accepted_enrollments)
       else
+        # if it's not in the acceptable types, just move on to the next one
         accept_enrollments(subsequent_enrollments.drop(1), current_project_type, accepted_enrollments)
       end
     end
@@ -305,6 +307,10 @@ module SystemPathways
             stay_length = (en.entry_date .. [en.exit_date, filter.end].compact.min).count
             household_id = get_hh_id(en)
             household_type = household_makeup(household_id, date)
+            days_to_move_in = 0
+            days_to_exit_after_move_in = nil
+            days_to_move_in = en.move_in_date - en.entry_date if en.move_in_date.present?
+            days_to_exit_after_move_in = en.exit_date - en.move_in_date if en.move_in_date.present? && en.exit_date.present?
             report_enrollments << Enrollment.new(
               client_id: client.id,
               report_id: id,
@@ -316,6 +322,9 @@ module SystemPathways
               project_name: en.project.name,
               entry_date: en.entry_date,
               exit_date: en.exit_date,
+              move_in_date: en.move_in_date,
+              days_to_move_in: days_to_move_in,
+              days_to_exit_after_move_in: days_to_exit_after_move_in,
               stay_length: stay_length,
               disabling_condition: en.enrollment.disabling_condition,
               relationship_to_hoh: en.enrollment.relationship_to_hoh,

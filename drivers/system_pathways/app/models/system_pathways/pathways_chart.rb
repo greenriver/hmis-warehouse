@@ -23,14 +23,21 @@ module SystemPathways
       scope = filter_for_ethnicity(scope)
       scope = filter_for_veteran_status(scope)
       scope = filter_for_ce_involvement(scope)
+      scope = filter_for_head_of_household(scope)
       scope
     end
 
+    def client_word
+      return 'Households' if filter.hoh_only
+
+      'Clients'
+    end
+
     private def filter_for_race(scope)
-      return scope unless @filter.races.present?
+      return scope unless filter.races.present?
 
       race_scope = nil
-      @filter.races.each do |column|
+      filter.races.each do |column|
         next if column == 'MultiRacial'
 
         race_scope = add_alternative(race_scope, SystemPathways::Client.where(column.underscore.to_sym => true))
@@ -38,7 +45,7 @@ module SystemPathways
 
       # Include anyone who has more than one race listed, anded with any previous alternatives
       race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if @filter.races.include?('MultiRacial')
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if filter.races.include?('MultiRacial')
       scope.merge(race_scope)
     end
 
@@ -66,21 +73,27 @@ module SystemPathways
     end
 
     private def filter_for_ethnicity(scope)
-      return scope unless @filter.ethnicities.present?
+      return scope unless filter.ethnicities.present?
 
-      scope.where(ethnicity: @filter.ethnicities)
+      scope.where(ethnicity: filter.ethnicities)
     end
 
     private def filter_for_veteran_status(scope)
-      return scope unless @filter.veteran_statuses.present?
+      return scope unless filter.veteran_statuses.present?
 
-      scope.where(veteran_status: @filter.veteran_statuses)
+      scope.where(veteran_status: filter.veteran_statuses)
     end
 
     private def filter_for_ce_involvement(scope)
-      return scope unless @filter.involves_ce
+      return scope unless filter.involves_ce
 
       scope.where(ce: true)
+    end
+
+    private def filter_for_head_of_household(scope)
+      return scope unless filter.hoh_only
+
+      scope.merge(Enrollment.where(relationship_to_hoh: 1))
     end
 
     def transition_clients(from, to)
@@ -135,6 +148,31 @@ module SystemPathways
       Enrollment.arel_table
     end
 
+    # returns an object with arrays for entering and leaving
+    def combinations_for(label)
+      incoming = combinations.select { |row| row[:target] == label }.sort_by { |m| node_weights[m[:source]] }.reverse
+      outgoing = combinations.select { |row| row[:source] == label }.sort_by { |m| node_weights[m[:target]] }.reverse
+      enrolled_count = incoming.map { |m| m[:value] }.sum # should be equivalent to node_clients(label).distinct.count but without the query
+      days_enrolled = node_clients(label).pluck(sp_e_t[:stay_length])
+      days_before_move_in = node_clients(label).pluck(sp_e_t[:days_to_move_in]).reject(&:blank?)
+      days_after_move_in_to_exit = node_clients(label).pluck(sp_e_t[:days_to_exit_after_move_in]).reject(&:blank?)
+      {
+        label: label,
+        enrolled: enrolled_count,
+        days_enrolled: average(days_enrolled.sum, days_enrolled.count).round,
+        days_before_move_in: average(days_before_move_in.sum, days_before_move_in.count).round,
+        days_after_move_in_to_exit: average(days_after_move_in_to_exit.sum, days_after_move_in_to_exit.count).round,
+        incoming: incoming,
+        outgoing: outgoing,
+      }
+    end
+
+    def average(value, count)
+      return 0 unless count.positive?
+
+      value.to_f / count
+    end
+
     private def combinations
       @combinations ||= report.allowed_states.map do |source, project_types|
         project_types.map do |target|
@@ -180,59 +218,98 @@ module SystemPathways
     end
 
     def target_colors
-      {
-        'ES': '#85B5B2',
-        'SH': '#85B5B2',
-        'TH': '#A77C9F',
-        'SO': '#E49344',
-        'PH - RRH': '#D1605E',
-        'PH - PSH': '#E7CA60',
-        'PH - PH': '#E7CA60',
-        'PH - OPH': '#E7CA60',
-        'Institutional Destinations': '#808080',
-        'Temporary Destinations': '#808080',
-        'Other Destinations': '#808080',
-        'Homeless Destinations': '#808080',
-        'Permanent Destinations': '#6A9F58',
-        'Returns to Homelessness': '#967762',
-      }
+      nodes.map { |k, data| [k, data[:color]] }.to_h
     end
 
     def node_weights
-      {
-        'ES': -1,
-        'SH': -1,
-        'TH': 2,
-        'SO': 5,
-        'PH - RRH': 0,
-        'PH - PSH': 11,
-        'PH - PH': 11,
-        'PH - OPH': 11,
-        'Homeless Destinations': 3,
-        'Other Destinations': 4,
-        'Temporary Destinations': 5,
-        'Institutional Destinations': 6,
-        'Permanent Destinations': 10,
-      }
+      nodes.map { |k, data| [k, data[:weight]] }.to_h
     end
 
     def node_columns
+      nodes.map { |k, data| [k, data[:column]] }.to_h
+    end
+
+    def node_names
+      nodes.keys
+    end
+
+    private def nodes
       {
-        'Served by Homeless System': 0,
-        'SO': 1,
-        'ES': 2,
-        'SH': 2,
-        'TH': 3,
-        'PH - RRH': 4,
-        'PH - PSH': 5,
-        'PH - PH': 5,
-        'PH - OPH': 5,
-        'Homeless Destinations': 6,
-        'Other Destinations': 6,
-        'Temporary Destinations': 6,
-        'Institutional Destinations': 6,
-        'Permanent Destinations': 6,
-        'Returns to Homelessness': 7,
+        'Served by Homeless System': {
+          color: '#5878A3',
+          weight: 0,
+          column: 0,
+        },
+        'ES': {
+          color: '#85B5B2',
+          weight: -1,
+          column: 2,
+        },
+        'SH': {
+          color: '#85B5B2',
+          weight: -1,
+          column: 2,
+        },
+        'TH': {
+          color: '#A77C9F',
+          weight: 2,
+          column: 3,
+        },
+        'SO': {
+          color: '#E49344',
+          weight: 5,
+          column: 1,
+        },
+        'PH - RRH': {
+          color: '#D1605E',
+          weight: 0,
+          column: 4,
+        },
+        'PH - PSH': {
+          color: '#E7CA60',
+          weight: 11,
+          column: 5,
+        },
+        'PH - PH': {
+          color: '#E7CA60',
+          weight: 11,
+          column: 5,
+        },
+        'PH - OPH': {
+          color: '#E7CA60',
+          weight: 11,
+          column: 5,
+        },
+        'Institutional Destinations': {
+          color: '#808080',
+          weight: 6,
+          column: 6,
+        },
+        'Temporary Destinations': {
+          color: '#808080',
+          weight: 5,
+          column: 6,
+        },
+        'Other Destinations': {
+          color: '#808080',
+          weight: 4,
+          column: 6,
+        },
+        'Homeless Destinations': {
+          color: '#808080',
+          weight: 3,
+          column: 6,
+        },
+        'Permanent Destinations': {
+          color: '#6A9F58',
+          weight: 10,
+          column: 6,
+        },
+        'Returns to Homelessness': {
+          color: '#967762',
+          weight: 11,
+          column: 7,
+        },
       }
     end
   end

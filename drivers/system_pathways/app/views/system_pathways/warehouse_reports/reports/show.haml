@@ -18,6 +18,7 @@
 .sankey-chart{style: 'position: relative;'}
   - pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
   #sankey
+= render 'node_details', pathways: pathways_chart
 
 - content_for :page_js do
   :javascript
@@ -28,13 +29,12 @@
 
     let options = {
       nodeGroup: d => d.id.split(/\W/)[0], // take first word for color
-      // nodeAlign, // e.g., d3.sankeyJustify; set by input above
-      // linkColor, // e.g., "source" or "target"; set by input above
       targetColors: targetColors,
       nodeWeights: nodeWeights,
       width: 1200,
       height: 600,
       detail_path: '#{details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params)}',
+      client_word: '#{pathways_chart.client_word}',
     }
     let sankeyChart = new App.D3Chart.Sankey('#sankey', options);
     sankeyChart.prepare();

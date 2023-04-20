@@ -15,6 +15,7 @@ App.D3Chart.Sankey = class Sankey {
       width,
       height,
       detail_path,
+      client_word,
     },
   ) {
     //this._build_chart = this._build_chart.bind(this);
@@ -27,6 +28,7 @@ App.D3Chart.Sankey = class Sankey {
     this.width = width;
     this.height = height;
     this.detail_path = detail_path;
+    this.client_word = client_word;
     this.wrapper = this.d3Sankey.select(chart_selector);
     this.sankey = this.d3Sankey.sankey();
   }
@@ -282,7 +284,7 @@ App.D3Chart.Sankey = class Sankey {
       .append('tr');
     count_tr
       .append('td')
-      .text('Households')
+      .text(this.client_word)
     count_tr
       .append('td')
       .text(d3.format(",.1~f")(node.value))

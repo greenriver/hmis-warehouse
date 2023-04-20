@@ -9,5 +9,7 @@
     .col
       = render 'filters/filter_controls/household_type/input', f: f, control: OpenStruct.new(label: 'Household Type')
     .col
+      = render 'filters/filter_controls/hoh_only/input', f: f, control: OpenStruct.new(label: 'Heads of Household Only')
+    .col
       = f.input :involves_ce, as: :boolean, label: 'CE Involved', required: false, hint: 'Limits universe to clients who were enrolled in CE'
   = f.submit 'Update View'
