@@ -259,6 +259,42 @@
     {
       "type": "GROUP",
       "required": false,
+      "link_id": "mci-clearance",
+      "text": "MCI ID",
+      "item": [
+        {
+          "type": "STRING",
+          "required": true,
+          "link_id": "mci-clearance-value",
+          "component": "MCI",
+          "text": "MCI ID",
+          "field_name": "mciIdFIXME",
+          "disabled_display": "PROTECTED",
+          "enable_behavior": "ALL",
+          "_comment": "TODO should also disable if client already has an mci id.",
+          "enable_when": [
+            {
+              "question": "first-name",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "last-name",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "dob",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "required": false,
       "link_id": "image",
       "text": "Image",
       "enable_behavior": "ANY",
