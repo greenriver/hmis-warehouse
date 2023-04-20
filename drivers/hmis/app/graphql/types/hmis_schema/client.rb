@@ -97,6 +97,7 @@ module Types
       can :view_enrollment_details
       can :edit_enrollments
       can :delete_enrollments
+      can :delete_assessments
       can :manage_any_client_files
       can :manage_own_client_files
       can :view_any_nonconfidential_client_files
