@@ -6,7 +6,6 @@
 
 module Hmis
   class UnitType < HmisBase
-
     # https://docs.google.com/spreadsheets/d/1xuXIohyPguAw10KcqlqiF23qgbNzKvAR/edit#gid=844425140
     enum(
       bed_type: {
