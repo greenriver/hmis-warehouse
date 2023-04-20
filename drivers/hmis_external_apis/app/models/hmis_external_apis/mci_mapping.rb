@@ -60,19 +60,20 @@ module HmisExternalApis
     end
 
     # MCI_GENDER = {
-    #   '2' => 'Female',
     #   '1' => 'Male',
+    #   '2' => 'Female',
     #   '4' => 'Unknown',
     # }.freeze
     def self.mci_gender(client)
-      if client.no_single_gender == 1
-        4
-      elsif client.female == 1 && client.male == 1
-        4
-      elsif client.female == 1
-        2
-      elsif client.male == 1
+      # Male only
+      if client.gender_multi == [1]
         1
+      # Female only
+      elsif client.gender_multi == [0]
+        2
+      # Any other gender(s)
+      elsif client.gender_multi.excluding(8, 9, 99).any?
+        4
       end
     end
 
