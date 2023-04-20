@@ -122,116 +122,116 @@ CREATE TYPE public.record_type AS ENUM (
 
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-      BEGIN
-      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-            INSERT INTO service_history_services_2050 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-            INSERT INTO service_history_services_2049 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-            INSERT INTO service_history_services_2048 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-            INSERT INTO service_history_services_2047 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-            INSERT INTO service_history_services_2046 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-            INSERT INTO service_history_services_2045 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-            INSERT INTO service_history_services_2044 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-            INSERT INTO service_history_services_2043 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-            INSERT INTO service_history_services_2042 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-            INSERT INTO service_history_services_2041 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-            INSERT INTO service_history_services_2040 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-            INSERT INTO service_history_services_2039 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-            INSERT INTO service_history_services_2038 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-            INSERT INTO service_history_services_2037 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-            INSERT INTO service_history_services_2036 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-            INSERT INTO service_history_services_2035 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-            INSERT INTO service_history_services_2034 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-            INSERT INTO service_history_services_2033 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-            INSERT INTO service_history_services_2032 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-            INSERT INTO service_history_services_2031 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-            INSERT INTO service_history_services_2030 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-            INSERT INTO service_history_services_2029 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-            INSERT INTO service_history_services_2028 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-            INSERT INTO service_history_services_2027 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-            INSERT INTO service_history_services_2026 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-            INSERT INTO service_history_services_2025 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-            INSERT INTO service_history_services_2024 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-            INSERT INTO service_history_services_2023 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-            INSERT INTO service_history_services_2022 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-            INSERT INTO service_history_services_2021 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-            INSERT INTO service_history_services_2020 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-            INSERT INTO service_history_services_2019 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-            INSERT INTO service_history_services_2018 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-            INSERT INTO service_history_services_2017 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-            INSERT INTO service_history_services_2016 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-            INSERT INTO service_history_services_2015 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-            INSERT INTO service_history_services_2014 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-            INSERT INTO service_history_services_2013 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-            INSERT INTO service_history_services_2012 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-            INSERT INTO service_history_services_2011 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-            INSERT INTO service_history_services_2010 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-            INSERT INTO service_history_services_2009 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-            INSERT INTO service_history_services_2008 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-            INSERT INTO service_history_services_2007 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-            INSERT INTO service_history_services_2006 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-            INSERT INTO service_history_services_2005 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-            INSERT INTO service_history_services_2004 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-            INSERT INTO service_history_services_2003 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-            INSERT INTO service_history_services_2002 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-            INSERT INTO service_history_services_2001 VALUES (NEW.*);
-         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-            INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
-      ELSE
-        INSERT INTO service_history_services_remainder VALUES (NEW.*);
-        END IF;
-        RETURN NULL;
-    END;
+    AS $$
+      BEGIN
+      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+            INSERT INTO service_history_services_2050 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+            INSERT INTO service_history_services_2049 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+            INSERT INTO service_history_services_2048 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+            INSERT INTO service_history_services_2047 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+            INSERT INTO service_history_services_2046 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+            INSERT INTO service_history_services_2045 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+            INSERT INTO service_history_services_2044 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+            INSERT INTO service_history_services_2043 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+            INSERT INTO service_history_services_2042 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+            INSERT INTO service_history_services_2041 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+            INSERT INTO service_history_services_2040 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+            INSERT INTO service_history_services_2039 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+            INSERT INTO service_history_services_2038 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+            INSERT INTO service_history_services_2037 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+            INSERT INTO service_history_services_2036 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+            INSERT INTO service_history_services_2035 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+            INSERT INTO service_history_services_2034 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+            INSERT INTO service_history_services_2033 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+            INSERT INTO service_history_services_2032 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+            INSERT INTO service_history_services_2031 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+            INSERT INTO service_history_services_2030 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+            INSERT INTO service_history_services_2029 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+            INSERT INTO service_history_services_2028 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+            INSERT INTO service_history_services_2027 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+            INSERT INTO service_history_services_2026 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+            INSERT INTO service_history_services_2025 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+            INSERT INTO service_history_services_2024 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+            INSERT INTO service_history_services_2023 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+            INSERT INTO service_history_services_2022 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+            INSERT INTO service_history_services_2021 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+            INSERT INTO service_history_services_2020 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+            INSERT INTO service_history_services_2019 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+            INSERT INTO service_history_services_2018 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+            INSERT INTO service_history_services_2017 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+            INSERT INTO service_history_services_2016 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+            INSERT INTO service_history_services_2015 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+            INSERT INTO service_history_services_2014 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+            INSERT INTO service_history_services_2013 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+            INSERT INTO service_history_services_2012 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+            INSERT INTO service_history_services_2011 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+            INSERT INTO service_history_services_2010 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+            INSERT INTO service_history_services_2009 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+            INSERT INTO service_history_services_2008 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+            INSERT INTO service_history_services_2007 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+            INSERT INTO service_history_services_2006 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+            INSERT INTO service_history_services_2005 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+            INSERT INTO service_history_services_2004 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+            INSERT INTO service_history_services_2003 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+            INSERT INTO service_history_services_2002 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+            INSERT INTO service_history_services_2001 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+            INSERT INTO service_history_services_2000 VALUES (NEW.*);
+        
+      ELSE
+        INSERT INTO service_history_services_remainder VALUES (NEW.*);
+        END IF;
+        RETURN NULL;
+    END;
     $$;
 
 
@@ -6527,7 +6527,7 @@ ALTER SEQUENCE public.enrollment_change_histories_id_seq OWNED BY public.enrollm
 
 CREATE TABLE public.enrollment_extras (
     id integer NOT NULL,
-    enrollment_id integer NOT NULL,
+    enrollment_id integer,
     vispdat_grand_total integer,
     vispdat_added_at date,
     vispdat_started_at date,
@@ -6875,6 +6875,83 @@ CREATE SEQUENCE public.exports_id_seq
 --
 
 ALTER SEQUENCE public.exports_id_seq OWNED BY public.exports.id;
+
+
+--
+-- Name: external_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_ids (
+    id bigint NOT NULL,
+    value character varying NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    remote_credential_id bigint,
+    external_request_log_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: external_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_ids_id_seq OWNED BY public.external_ids.id;
+
+
+--
+-- Name: external_request_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_request_logs (
+    id bigint NOT NULL,
+    initiator_type character varying,
+    initiator_id bigint,
+    identifier character varying,
+    content_type character varying,
+    url character varying NOT NULL,
+    http_method character varying DEFAULT 'GET'::character varying NOT NULL,
+    ip inet,
+    request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
+    request text NOT NULL,
+    response text NOT NULL,
+    http_status integer,
+    requested_at timestamp without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: external_request_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_request_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_request_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_request_logs_id_seq OWNED BY public.external_request_logs.id;
 
 
 --
@@ -13717,14 +13794,14 @@ CREATE TABLE public.hmis_dqt_clients (
     overlapping_nbn integer,
     overlapping_pre_move_in integer,
     overlapping_post_move_in integer,
+    ch_at_most_recent_entry boolean DEFAULT false,
+    ch_at_any_entry boolean DEFAULT false,
     veteran_status integer,
     ssn character varying,
     ssn_data_quality integer,
     name_data_quality integer,
     ethnicity integer,
-    reporting_age integer,
-    ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false
+    reporting_age integer
 );
 
 
@@ -13830,6 +13907,7 @@ CREATE TABLE public.hmis_dqt_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     project_type integer,
+    ch_at_entry boolean DEFAULT false,
     project_id integer,
     household_type character varying,
     household_min_age integer,
@@ -13855,20 +13933,19 @@ CREATE TABLE public.hmis_dqt_enrollments (
     cash_income_as_expected_at_entry boolean DEFAULT false,
     cash_income_as_expected_at_annual boolean DEFAULT false,
     cash_income_as_expected_at_exit boolean DEFAULT false,
-    ncb_from_any_source_at_entry boolean DEFAULT false,
-    ncb_from_any_source_at_annual boolean DEFAULT false,
-    ncb_from_any_source_at_exit boolean DEFAULT false,
+    ncb_from_any_source_at_entry integer,
+    ncb_from_any_source_at_annual integer,
+    ncb_from_any_source_at_exit integer,
     ncb_as_expected_at_entry boolean DEFAULT false,
     ncb_as_expected_at_annual boolean DEFAULT false,
     ncb_as_expected_at_exit boolean DEFAULT false,
-    insurance_from_any_source_at_entry boolean DEFAULT false,
-    insurance_from_any_source_at_annual boolean DEFAULT false,
-    insurance_from_any_source_at_exit boolean DEFAULT false,
+    insurance_from_any_source_at_entry integer,
+    insurance_from_any_source_at_annual integer,
+    insurance_from_any_source_at_exit integer,
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
     disability_at_entry_collected boolean DEFAULT false,
-    ch_at_entry boolean DEFAULT false,
     previous_street_es_sh integer,
     entry_date_entered_at timestamp without time zone,
     exit_date_entered_at timestamp without time zone,
@@ -15833,7 +15910,8 @@ CREATE TABLE public.hud_report_pit_clients (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     personal_id character varying,
-    hoh_age integer
+    hoh_age integer,
+    household_member_count integer
 );
 
 
@@ -16954,6 +17032,33 @@ CREATE SEQUENCE public.non_hmis_uploads_id_seq
 --
 
 ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.id;
+
+
+--
+-- Name: organization_47_tes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.organization_47_tes (
+    source_id integer
+);
+
+
+--
+-- Name: organization_48_tes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.organization_48_tes (
+    source_id integer
+);
+
+
+--
+-- Name: organization_49_tes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.organization_49_tes (
+    source_id integer
+);
 
 
 --
@@ -18324,7 +18429,9 @@ CREATE TABLE public.remote_credentials (
     endpoint character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    additional_headers jsonb DEFAULT '{}'::jsonb,
+    slug character varying
 );
 
 
@@ -20076,6 +20183,131 @@ CREATE SEQUENCE public.synthetic_youth_education_statuses_id_seq
 --
 
 ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.synthetic_youth_education_statuses.id;
+
+
+--
+-- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    personal_ids character varying,
+    dob date,
+    age integer,
+    am_ind_ak_native boolean,
+    asian boolean,
+    black_af_american boolean,
+    native_hi_pacific boolean,
+    white boolean,
+    ethnicity integer,
+    male boolean,
+    female boolean,
+    gender_other boolean,
+    transgender boolean,
+    questioning boolean,
+    no_single_gender boolean,
+    veteran_status integer,
+    ce boolean,
+    system boolean,
+    destination integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    destination_homeless boolean DEFAULT false,
+    destination_temporary boolean DEFAULT false,
+    destination_institutional boolean DEFAULT false,
+    destination_other boolean DEFAULT false,
+    destination_permanent boolean DEFAULT false,
+    returned_project_type integer,
+    returned_project_name character varying,
+    returned_project_entry_date date,
+    returned_project_enrollment_id bigint,
+    returned_project_project_id bigint,
+    report_id bigint,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_clients_id_seq OWNED BY public.system_pathways_clients.id;
+
+
+--
+-- Name: system_pathways_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_enrollments (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    from_project_type integer,
+    project_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    project_type integer NOT NULL,
+    destination integer,
+    project_name character varying,
+    entry_date date,
+    exit_date date,
+    stay_length integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
+    household_id character varying,
+    household_type character varying,
+    report_id bigint,
+    deleted_at timestamp without time zone,
+    final_enrollment boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: COLUMN system_pathways_enrollments.from_project_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.system_pathways_enrollments.from_project_type IS 'null for System';
+
+
+--
+-- Name: COLUMN system_pathways_enrollments.destination; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.system_pathways_enrollments.destination IS 'Only stored for final enrollment';
+
+
+--
+-- Name: system_pathways_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_enrollments_id_seq OWNED BY public.system_pathways_enrollments.id;
 
 
 --
@@ -21942,6 +22174,20 @@ ALTER TABLE ONLY public.exports_ad_hoc_anons ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.exports_ad_hocs ALTER COLUMN id SET DEFAULT nextval('public.exports_ad_hocs_id_seq'::regclass);
+
+
+--
+-- Name: external_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids ALTER COLUMN id SET DEFAULT nextval('public.external_ids_id_seq'::regclass);
+
+
+--
+-- Name: external_request_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_request_logs ALTER COLUMN id SET DEFAULT nextval('public.external_request_logs_id_seq'::regclass);
 
 
 --
@@ -23919,6 +24165,20 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_clients_id_seq'::regclass);
+
+
+--
+-- Name: system_pathways_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_enrollments ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_enrollments_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24946,6 +25206,22 @@ ALTER TABLE ONLY public.exports_ad_hocs
 
 ALTER TABLE ONLY public.exports
     ADD CONSTRAINT exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_ids external_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT external_ids_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_request_logs external_request_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_request_logs
+    ADD CONSTRAINT external_request_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -26797,6 +27073,22 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses
 
 
 --
+-- Name: system_pathways_clients system_pathways_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients
+    ADD CONSTRAINT system_pathways_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_enrollments system_pathways_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_enrollments
+    ADD CONSTRAINT system_pathways_enrollments_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: taggings taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -27096,6 +27388,90 @@ CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree
 
 
 --
+-- Name: Enrollment_2735; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_2735" ON public."Enrollment" USING btree ("ProjectID", "HouseholdID");
+
+
+--
+-- Name: Enrollment_3085; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_3085" ON public."Enrollment" USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: Enrollment_34e3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_34e3" ON public."Enrollment" USING btree ("EnrollmentID", "ProjectID", "EntryDate");
+
+
+--
+-- Name: Enrollment_42af; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_42af" ON public."Enrollment" USING btree ("ProjectID");
+
+
+--
+-- Name: Enrollment_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_42d5" ON public."Enrollment" USING btree ("DateUpdated");
+
+
+--
+-- Name: Enrollment_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_4337" ON public."Enrollment" USING btree ("EnrollmentID");
+
+
+--
+-- Name: Enrollment_5328; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID");
+
+
+--
+-- Name: Enrollment_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
+
+
+--
+-- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: Enrollment_c548; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_c548" ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: Enrollment_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_d381" ON public."Enrollment" USING btree ("DateCreated");
+
+
+--
+-- Name: Enrollment_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_f3a2" ON public."Enrollment" USING btree ("DateDeleted");
+
+
+--
 -- Name: IncomeBenefits_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27250,6 +27626,13 @@ CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
 
 
 --
+-- Name: coc_code_test; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX coc_code_test ON public."EnrollmentCoC" USING btree ("CoCCode");
+
+
+--
 -- Name: computed_project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27376,6 +27759,13 @@ CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("Enr
 
 
 --
+-- Name: en_tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
+
+
+--
 -- Name: enrollment_coc_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27485,6 +27875,13 @@ CREATE INDEX exit_p_id_ds_id ON public."Exit" USING btree ("PersonalID", data_so
 --
 
 CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
+
+
+--
+-- Name: external_ids_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX external_ids_uniq ON public.external_ids USING btree (source_id, source_type, remote_credential_id, value);
 
 
 --
@@ -42118,6 +42515,62 @@ CREATE INDEX index_exports_on_export_id ON public.exports USING btree (export_id
 
 
 --
+-- Name: index_external_ids_on_external_request_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_external_request_log_id ON public.external_ids USING btree (external_request_log_id);
+
+
+--
+-- Name: index_external_ids_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids USING btree (remote_credential_id);
+
+
+--
+-- Name: index_external_ids_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_source ON public.external_ids USING btree (source_type, source_id);
+
+
+--
+-- Name: index_external_ids_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_value ON public.external_ids USING btree (value);
+
+
+--
+-- Name: index_external_request_logs_on_initiator; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_initiator ON public.external_request_logs USING btree (initiator_type, initiator_id);
+
+
+--
+-- Name: index_external_request_logs_on_initiator_id_and_initiator_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_initiator_id_and_initiator_type ON public.external_request_logs USING btree (initiator_id, initiator_type);
+
+
+--
+-- Name: index_external_request_logs_on_ip; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_ip ON public.external_request_logs USING btree (ip);
+
+
+--
+-- Name: index_external_request_logs_on_requested_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_requested_at ON public.external_request_logs USING btree (requested_at);
+
+
+--
 -- Name: index_favorites_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48061,6 +48514,48 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system_pathways_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48737,6 +49232,13 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 --
 
 CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
+
+
+--
+-- Name: tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -49889,6 +50391,14 @@ ALTER TABLE ONLY public.service_history_services_2036
 
 
 --
+-- Name: external_ids fk_rails_01fbc7ded3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT fk_rails_01fbc7ded3 FOREIGN KEY (remote_credential_id) REFERENCES public.remote_credentials(id);
+
+
+--
 -- Name: service_history_services_2023 fk_rails_0702601703; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -50126,6 +50636,14 @@ ALTER TABLE ONLY public.service_history_services_2017
 
 ALTER TABLE ONLY public.service_history_services_2039
     ADD CONSTRAINT fk_rails_6c0d4085ac FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: external_ids fk_rails_6c5b5c909b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT fk_rails_6c5b5c909b FOREIGN KEY (external_request_log_id) REFERENCES public.external_request_logs(id);
 
 
 --
@@ -51467,10 +51985,19 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230313122300'),
 ('20230313152950'),
 ('20230319133739'),
+('20230320131930'),
 ('20230322183901'),
 ('20230322220754'),
 ('20230327202808'),
 ('20230328171436'),
-('20230403144801');
+('20230403144801'),
+('20230406154235'),
+('20230406183420'),
+('20230411193836'),
+('20230412163545'),
+('20230414130229'),
+('20230414152958'),
+('20230417122614'),
+('20230419162140');
 
 
