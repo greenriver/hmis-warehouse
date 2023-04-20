@@ -25,7 +25,7 @@ module Types
     description 'HUD Client'
     field :id, ID, null: false
     field :warehouse_url, String, null: false
-    field :external_ids, [Types::HmisSchema::ClientIdentifier], null: false
+    field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     hud_field :personal_id
     hud_field :first_name
     hud_field :middle_name
@@ -105,14 +105,14 @@ module Types
     end
 
     def external_ids
-      object.external_identifiers.
+      object.external_identifiers(current_user).
         reject { |_k, vals| vals[:id].nil? }.
         map do |key, vals|
           {
             id: [key, object.id].join(':'),
             identifier: vals[:id],
             url: vals[:url],
-            label: key.to_s.titleize(keep_id_suffix: true).sub(/Id$/, 'ID'),
+            label: vals[:label],
           }
         end
     end

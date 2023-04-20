@@ -32,9 +32,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
   has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
-  has_many :warehouse_client_destination, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
   has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
-  has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
@@ -100,10 +98,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     self.SSN&.[](-4..-1)
   end
 
-  def mci_external_id
-    external_ids_by_slug('clientview').first
-  end
-
   def warehouse_id
     destination_client.id
   end
@@ -112,27 +106,38 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     "https://#{ENV['FQDN']}/clients/#{id}/from_source"
   end
 
-  def mci_url
-    return unless mci_external_id&.remote_credential&.present?
-
-    "#{mci_external_id.remote_credential.link_base}/ClientInformation/Profile/#{mci_external_id.value}?aid=2"
+  def mci_id
+    external_ids_by_slug('mci').first&.value
   end
 
-  def external_identifiers
+  def mci_url(user = nil)
+    return if user && enrollments.viewable_by(user).empty?
+
+    link_base = GrdaWarehouse::RemoteCredentials::ExternalLink.where(slug: 'clientview').first&.link_base
+    return unless link_base&.present? && mci_id&.present?
+
+    "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
+  end
+
+  def external_identifiers(user = nil)
     {
       client_id: {
         id: id,
+        label: 'HMIS ID',
       },
       personal_id: {
         id: personal_id,
+        label: 'Personal ID',
       },
       warehouse_id: {
         id: warehouse_id,
         url: warehouse_url,
+        label: 'Warehouse ID',
       },
       mci_id: {
-        id: mci_external_id&.value,
-        url: mci_url,
+        id: mci_id,
+        url: mci_url(user),
+        label: 'MCI ID',
       },
     }
   end
