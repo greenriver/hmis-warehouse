@@ -348,7 +348,7 @@ type ClearMciPayload {
   """
   clientMutationId: String
   errors: [ValidationError!]!
-  matches: [MciClearanceResult!]
+  matches: [MciClearanceMatch!]
 }
 
 """
@@ -2991,20 +2991,14 @@ input MciClearanceInput {
   ssn: String!
 }
 
-type MciClearanceResult {
-  client: MciClient!
+type MciClearanceMatch {
+  age: Int!
+  dob: ISO8601Date!
 
   """
   ID of existing Client that has the same MCI ID
   """
   existingClientId: ID
-  id: ID!
-  score: Int!
-}
-
-type MciClient {
-  age: Int!
-  dob: ISO8601Date!
   firstName: String!
   gender: [Gender!]!
   id: ID!
@@ -3013,6 +3007,7 @@ type MciClient {
   middleName: String
   nameSuffix: String
   race: [Race!]!
+  score: Int!
   ssn: String
 }
 
