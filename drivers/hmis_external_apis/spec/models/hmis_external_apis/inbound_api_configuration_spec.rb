@@ -22,9 +22,9 @@ RSpec.describe HmisExternalApis::InboundApiConfiguration, type: :model do
 
   it 'checks for a key' do
     created = create(:inbound_api_configuration)
-    expect(created.plain_text_api_key).to be_present
+    expect(created.plain_text_key_with_fallback).to be_present
 
-    found = HmisExternalApis::InboundApiConfiguration.find_by_api_key(created.plain_text_api_key)
+    found = HmisExternalApis::InboundApiConfiguration.find_by_api_key(created.plain_text_key_with_fallback)
 
     expect(found).to eq(created)
   end

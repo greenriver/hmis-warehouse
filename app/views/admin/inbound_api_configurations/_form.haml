@@ -5,7 +5,8 @@
       = f.error_notification
       .form-inputs
         = f.input :external_system_name
-        = f.input :internal_system_name
+        - choices = HmisExternalApis::InboundApiConfiguration::VALID_INTERNAL_SYSTEMS
+        = f.input :internal_system_name, collection: choices, as: :select_two
 
       .form_actions
       = f.button :submit, 'Create Configuration'

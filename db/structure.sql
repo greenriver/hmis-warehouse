@@ -1313,7 +1313,7 @@ CREATE TABLE public.roles (
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
     can_approve_careplan boolean DEFAULT false,
-    can_manage_inbound_api_configurations boolean DEFAULT false NOT NULL
+    can_manage_inbound_api_configurations boolean DEFAULT false
 );
 
 

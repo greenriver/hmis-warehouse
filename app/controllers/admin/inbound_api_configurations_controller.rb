@@ -6,6 +6,8 @@
 
 module Admin
   class InboundApiConfigurationsController < ::ApplicationController
+    before_action :require_can_manage_inbound_api_configurations!
+
     def index
       @confs = HmisExternalApis::InboundApiConfiguration.well_ordered
       @pagy, @confs = pagy(@confs, items: 20)
@@ -19,7 +21,7 @@ module Admin
       @conf = HmisExternalApis::InboundApiConfiguration.new(permitted_params)
 
       if @conf.save
-        flash[:alert] = "Your key is #{@conf.plain_text_api_key}. It will not be shown again"
+        flash[:alert] = "Your key is #{@conf.plain_text_api_key_with_fallback}. It will not be shown again"
         redirect_to action: :index
       else
         render :new
@@ -29,7 +31,7 @@ module Admin
     def destroy
       @conf = HmisExternalApis::InboundApiConfiguration.find(params[:id])
       @conf.destroy!
-      redirect_to action: :index
+      respond_with(@conf, location: admin_inbound_api_configurations_path)
     end
 
     private
