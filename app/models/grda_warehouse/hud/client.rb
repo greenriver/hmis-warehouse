@@ -69,6 +69,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :data_source, inverse_of: :clients
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
+    # The "HUD user" that most recently updated the client record
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :clients, optional: true
 
     has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
@@ -1883,19 +1884,6 @@ module GrdaWarehouse::Hud
         ],
         elsewise: arel_table[:GenderNone],
       )
-    end
-
-    # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
-    def gender_multi
-      @gender_multi ||= [].tap do |gm|
-        gm << 0 if self.Female == 1
-        gm << 1 if self.Male == 1
-        gm << 4 if self.NoSingleGender == 1
-        gm << 5 if self.Transgender == 1
-        gm << 6 if self.Questioning == 1
-        # Per the data standards, only look to GenderNone if we don't have a more specific response
-        gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
-      end
     end
 
     def self.age(date:, dob:)

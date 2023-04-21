@@ -62,7 +62,7 @@ module Types
           name,
           {
             'fieldName' => name,
-            'displayName' => key.titleize,
+            'displayName' => key.titleize(keep_id_suffix: true),
             'values' => values,
           },
         ]

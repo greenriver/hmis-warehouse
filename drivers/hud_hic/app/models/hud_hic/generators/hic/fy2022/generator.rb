@@ -18,6 +18,13 @@ module  HudHic::Generators::Hic::Fy2022
       'HIC'
     end
 
+    # Project Types (HIC):
+    #   ES, TH, SH, PH (PSH, RRH, Other PH (OPH) – consists of PH – Housing with Services (no disability required for entry) and PH – Housing Only)
+    #   OR numerically
+    def self.relevant_project_types
+      [1, 2, 3, 8, 9, 10, 13]
+    end
+
     def self.file_prefix
       "#{short_name} #{fiscal_year}"
     end

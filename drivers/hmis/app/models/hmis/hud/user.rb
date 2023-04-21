@@ -27,4 +27,11 @@ class Hmis::Hud::User < Hmis::Hud::Base
       u.user_last_name = user.last_name
     end
   end
+
+  # @param data_source_id [Integer]
+  def self.system_user(data_source_id:)
+    system_user = Hmis::User.find(User.system_user.id)
+    system_user.hmis_data_source_id = data_source_id
+    Hmis::Hud::User.from_user(system_user)
+  end
 end

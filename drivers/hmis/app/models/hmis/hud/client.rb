@@ -30,7 +30,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', foreign_key: :source_id
+
+  has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+  has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
@@ -77,10 +79,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  def external_ids_by_slug(slug)
-    external_ids.joins(:remote_credential).where(remote_credential: { slug: slug })
-  end
-
   def custom_assessments_including_wip
     enrollment_ids = enrollments.pluck(:id, :enrollment_id)
     wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
@@ -98,6 +96,50 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def ssn_serial
     self.SSN&.[](-4..-1)
+  end
+
+  def warehouse_id
+    destination_client.id
+  end
+
+  def warehouse_url
+    "https://#{ENV['FQDN']}/clients/#{id}/from_source"
+  end
+
+  def mci_id
+    external_ids_by_slug('mci').first&.value
+  end
+
+  def mci_url(user = nil)
+    return if user && enrollments.viewable_by(user).empty?
+
+    link_base = GrdaWarehouse::RemoteCredentials::ExternalLink.where(slug: 'clientview').first&.link_base
+    return unless link_base&.present? && mci_id&.present?
+
+    "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
+  end
+
+  def external_identifiers(user = nil)
+    {
+      client_id: {
+        id: id,
+        label: 'HMIS ID',
+      },
+      personal_id: {
+        id: personal_id,
+        label: 'Personal ID',
+      },
+      warehouse_id: {
+        id: warehouse_id,
+        url: warehouse_url,
+        label: 'Warehouse ID',
+      },
+      mci_id: {
+        id: mci_id,
+        url: mci_url(user),
+        label: 'MCI ID',
+      },
+    }
   end
 
   SORT_OPTIONS = [
@@ -236,4 +278,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   def brief_name
     preferred_name || [first_name, last_name].compact.join(' ')
   end
+
+  include RailsDrivers::Extensions
 end

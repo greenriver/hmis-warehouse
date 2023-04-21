@@ -1,7 +1,3 @@
 - title = 'Add a Qualifying Activity'
 - content_for :modal_title, title
-= simple_form_for @qa, url: client_health_qualifying_activities_path(@client), remote: true do |f|
-  .m-4
-    = render 'form', f: f
-    .form__actions.form__actions--right.mt-4
-      = f.submit 'Add Qualifying Activity', class: 'btn btn-primary'
+= render 'new'

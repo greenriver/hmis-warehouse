@@ -943,6 +943,13 @@ class Role < ApplicationRecord
 
         ],
       },
+      can_manage_inbound_api_configurations: {
+        description: 'Can manage configuration (e.g. API keys) for external systems connecting to ours',
+        administrative: false,
+        categories: [
+          'Administration',
+        ],
+      },
     }
   end
 

@@ -47,9 +47,9 @@ class Hmis::File < GrdaWarehouse::File
 
     case option
     when :date_created
-      order(arel_table[:created_at].asc.nulls_last)
+      order(arel_table[:created_at].desc.nulls_last)
     when :date_updated
-      order(arel_table[:updated_at].asc.nulls_last)
+      order(arel_table[:updated_at].desc.nulls_last)
     else
       raise NotImplementedError
     end
