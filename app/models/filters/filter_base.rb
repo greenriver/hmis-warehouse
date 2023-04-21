@@ -643,7 +643,7 @@ module Filters
     def cohort_columns_for_select
       initialized_columns = GrdaWarehouse::CohortColumnOption.distinct.pluck(:cohort_column)
       GrdaWarehouse::Cohort.available_columns.select do |column|
-        column.column.in?(initialized_columns)
+        column.column.in?(initialized_columns) && ! column.title.match?(/^User Select \d+$/)
       end.map do |column|
         [
           column.title,
