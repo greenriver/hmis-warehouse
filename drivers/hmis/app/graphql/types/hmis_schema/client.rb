@@ -25,6 +25,7 @@ module Types
     description 'HUD Client'
     field :id, ID, null: false
     field :warehouse_url, String, null: false
+    field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     hud_field :personal_id
     hud_field :first_name
     hud_field :middle_name
@@ -103,8 +104,17 @@ module Types
       can :view_any_confidential_client_files
     end
 
-    def warehouse_url
-      "https://#{ENV['FQDN']}/clients/#{object.id}/from_source"
+    def external_ids
+      object.external_identifiers(current_user).
+        reject { |_k, vals| vals[:id].nil? }.
+        map do |key, vals|
+          {
+            id: [key, object.id].join(':'),
+            identifier: vals[:id],
+            url: vals[:url],
+            label: vals[:label],
+          }
+        end
     end
 
     def enrollments(**args)
