@@ -3,10 +3,13 @@
 #
 # License detail: https:#//github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+require 'memery'
 
 module SystemPathways
   class PathwaysChart
     include ArelHelper
+    include Memery
+
     attr_accessor :report, :filter
     def initialize(report:, filter:)
       self.report = report
@@ -99,8 +102,8 @@ module SystemPathways
     def transition_clients(from, to)
       if to.in?(report.destination_lookup.values)
         final_transition_clients(from, to)
-      elsif to.nil? # 'Returns to Homelessness'
-        clients.where.not(returned_project_type: nil).
+      elsif to.nil? || to == 'Returns to Homelessness'
+        filtered_clients.where.not(returned_project_type: nil).
           distinct
       else
         filtered_clients.joins(:enrollments).
@@ -130,7 +133,7 @@ module SystemPathways
               where(sp_e_t[:destination].eq(sp_c_t[:destination])),
           ).distinct
       elsif node == 'Returns to Homelessness'
-        clients.where.not(returned_project_type: nil).
+        filtered_clients.where.not(returned_project_type: nil).
           distinct
       else
         to_project_type = HudUtility.project_type_number(node)
@@ -149,14 +152,14 @@ module SystemPathways
     end
 
     # returns an object with arrays for entering and leaving
-    def combinations_for(label)
+    memoize def combinations_for(label)
       incoming = combinations.select { |row| row[:target] == label }.sort_by { |m| node_weights[m[:source]] }.reverse
       outgoing = combinations.select { |row| row[:source] == label }.sort_by { |m| node_weights[m[:target]] }.reverse
       enrolled_count = incoming.map { |m| m[:value] }.sum # should be equivalent to node_clients(label).distinct.count but without the query
       days_enrolled = node_clients(label).pluck(sp_e_t[:stay_length])
       days_before_move_in = node_clients(label).pluck(sp_e_t[:days_to_move_in]).reject(&:blank?)
       days_after_move_in_to_exit = node_clients(label).pluck(sp_e_t[:days_to_exit_after_move_in]).reject(&:blank?)
-      {
+      OpenStruct.new(
         label: label,
         enrolled: enrolled_count,
         days_enrolled: average(days_enrolled.sum, days_enrolled.count).round,
@@ -164,7 +167,7 @@ module SystemPathways
         days_after_move_in_to_exit: average(days_after_move_in_to_exit.sum, days_after_move_in_to_exit.count).round,
         incoming: incoming,
         outgoing: outgoing,
-      }
+      )
     end
 
     def average(value, count)
@@ -217,6 +220,10 @@ module SystemPathways
       combinations
     end
 
+    def bg_color(label)
+      target_colors[label]
+    end
+
     def target_colors
       nodes.map { |k, data| [k, data[:color]] }.to_h
     end
@@ -233,79 +240,100 @@ module SystemPathways
       nodes.keys
     end
 
+    def project_type_node_names
+      nodes.select { |_, n| n.key?(:project_type) }.keys
+    end
+
+    def project_type_node_names_with_data
+      project_type_node_names.select do |label|
+        combinations_for(label).enrolled.positive?
+      end
+    end
+
+    def uses_move_in?(label)
+      label.to_s.in?(['PH - RRH', 'PH - PSH', 'PH - PH', 'PH - OPH'])
+    end
+
     private def nodes
       {
-        'Served by Homeless System': {
+        'Served by Homeless System' => {
           color: '#5878A3',
           weight: 0,
           column: 0,
         },
-        'ES': {
+        'ES' => {
           color: '#85B5B2',
           weight: -1,
           column: 2,
+          project_type: 1,
         },
-        'SH': {
+        'SH' => {
           color: '#85B5B2',
           weight: -1,
           column: 2,
+          project_type: 8,
         },
-        'TH': {
+        'TH' => {
           color: '#A77C9F',
           weight: 2,
           column: 3,
+          project_type: 2,
         },
-        'SO': {
+        'SO' => {
           color: '#E49344',
           weight: 5,
           column: 1,
+          project_type: 4,
         },
-        'PH - RRH': {
+        'PH - RRH' => {
           color: '#D1605E',
           weight: 0,
           column: 4,
         },
-        'PH - PSH': {
+        'PH - PSH' => {
           color: '#E7CA60',
           weight: 11,
           column: 5,
+          project_type: 3,
         },
-        'PH - PH': {
+        'PH - PH' => {
           color: '#E7CA60',
           weight: 11,
           column: 5,
+          project_type: 9,
         },
-        'PH - OPH': {
+        'PH - OPH' => {
           color: '#E7CA60',
           weight: 11,
           column: 5,
+          project_type: 10,
         },
-        'Institutional Destinations': {
+        'Institutional Destinations' => {
           color: '#808080',
           weight: 6,
           column: 6,
         },
-        'Temporary Destinations': {
+        'Temporary Destinations' => {
           color: '#808080',
           weight: 5,
           column: 6,
         },
-        'Other Destinations': {
+        'Other Destinations' => {
           color: '#808080',
           weight: 4,
           column: 6,
         },
-        'Homeless Destinations': {
+        'Homeless Destinations' => {
           color: '#808080',
           weight: 3,
           column: 6,
         },
-        'Permanent Destinations': {
+        'Permanent Destinations' => {
           color: '#6A9F58',
           weight: 10,
           column: 6,
         },
-        'Returns to Homelessness': {
+        'Returns to Homelessness' => {
           color: '#967762',
           weight: 11,
           column: 7,
