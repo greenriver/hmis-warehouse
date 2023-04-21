@@ -398,6 +398,7 @@ module HmisDataQualityTool
           exit_date_issues: Enrollment,
           enrollment_outside_project_operating_dates_issues: Enrollment,
           dv_at_entry: Enrollment,
+          annual_assessment_issues: Enrollment,
         },
         'Enrollment Length' => {
           lot_es_90_issues: Enrollment,
@@ -470,6 +471,7 @@ module HmisDataQualityTool
             next if slug == :exit_date_entry_issues && goal_config.exit_date_entered_length == -1
             next if slug.in?([:date_to_street_issues, :times_homeless_issues, :months_homeless_issues]) &&
               ! goal_config.expose_ch_calculations
+            next if slug == :annual_assessment_issues && ! goal_config.show_annual_assessments
 
             title = item_class.section_title(slug, self)
             denominator_cell = universe("#{title}__denominator")

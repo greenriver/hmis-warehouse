@@ -12637,7 +12637,10 @@ CREATE TABLE public.hmis_dqt_enrollments (
     days_to_enter_exit_date integer,
     days_before_entry integer,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    annual_expected boolean,
+    enrollment_anniversary_date date,
+    annual_assessment_status json
 );
 
 
@@ -52889,6 +52892,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230406154235'),
 ('20230406183420'),
 ('20230410202101'),
-('20230419165219');
+('20230419165219'),
+('20230419190654');
 
 
