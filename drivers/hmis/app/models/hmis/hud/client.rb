@@ -163,6 +163,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     Hmis::Hud::Client.where(id: scope.select(:id))
   end
 
+  def self.order_by_created_at(dir = :asc)
+    order(date_created: dir)
+  end
+
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 

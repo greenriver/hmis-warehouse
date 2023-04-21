@@ -11,7 +11,7 @@ module HmisExternalApis
 
     # @param params [Hash] api payload
     def perform(params:)
-      self.params = params
+      self.params = params.deep_symbolize_keys
       # FIXME: add param validation and capture raw request
 
       referral = nil
@@ -37,44 +37,26 @@ module HmisExternalApis
     end
 
     def create_referral_postings(referral)
-      posting_attrs = params.fetch(:postings)
+      (posting_id, program_id, unit_type_id, referral_request_id) = params.values_at(:posting_id, :program_id, :unit_type_id, :referral_request_id)
+      raise unless posting_id && program_id # required fields
 
-      # build lookup tables for entities referenced in postings; avoid n+1 queries
-      referral_requests_by_identifier = posting_attrs
-        .map { |h| h[:referral_request_id] }
-        .compact
-        .then do |ids|
-          ids.any? ? referral_request_scope.preload(:project, :unit_type).where(identifier: ids).index_by(&:identifier) : {}
-        end
-      projects_ids_by_mper_id = external_id_map(
-        cred: mper_cred,
-        scope: ::Hmis::Hud::Project,
-        external_ids: posting_attrs.map { |a| a[:program_id] }.compact,
-      )
-
-      posting_attrs.map do |attrs|
-        (posting_id, referral_request_id, program_id) = attrs.values_at(:posting_id, :referral_request_id, :program_id).map(&:presence)
-        raise unless posting_id
-
-        posting = referral.postings.new(identifier: posting_id)
-        if referral_request_id
-          # the posting references an existing referral request
-          referral_request = referral_requests_by_identifier.fetch(referral_request_id)
-          posting.referral_request = referral_request
-          # posting.referral_request is optional; denormalize fields for consistency
-          posting.project = referral_request.project
-          # posting.unit_type = referral_request.unit_type
-        elsif program_id
-          # the posting is an assignment, the program id is MPER project ID
-          posting.project_id = projects_ids_by_mper_id.fetch(program_id)
-          # posting.unit_type = unit_types_by_identifier.fetch(unit_type_id)
-        else
-          raise "unexpected referral posting: #{attrs.inspect}"
-        end
-        posting.status = 'assigned_status'
-        posting.save!
-        posting
+      posting = referral.postings.new(identifier: posting_id)
+      # the posting is an assignment, the program id is MPER project ID
+      posting.project = ::Hmis::Hud::Project.find_by_external_id(cred: mper_cred, id: program_id)
+      if referral_request_id
+        # the posting references an existing referral request
+        posting.referral_request = referral_request_scope
+          .where(identifier: referral_request_id, project: posting.project).first!
       end
+
+      if unit_type_id
+        posting.unit_type = ::Hmis::UnitType
+          .find_by_external_id(cred: mper_cred, id: unit_type_id)
+      end
+
+      posting.status = 'assigned_status'
+      posting.save!
+      posting
     end
 
     def create_client(attrs)

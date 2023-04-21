@@ -1,0 +1,47 @@
+{
+  "$id": "open-path-schemas/referral.json",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "additionalProperties": false,
+  "title": "Referral",
+  "description": "Notify HMIS that a client and household members are eligible for a posting",
+  "type": "object",
+  "required": ["referral_id", "referral_date", "service_coordinator", "posting_id", "program_id"],
+  "properties": {
+    "referral_id": { "type": "string" },
+    "referral_date": { "type": "string", "format": "date" },
+    "service_coordinator": { "type": "string" },
+    "posting_id": { "type": "string" },
+    "referral_request_id": { "type": "string" },
+    "program_id": { "type": "string" },
+    "unit_type_id": { "type": "integer" },
+
+    "household_members": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["mci_id", "relationship_to_hoh", "first_name", "last_name", "dob"],
+        "properties": {
+          "mci_id": { "type": "string" },
+          "relationship_to_hoh": {
+            "type": "integer",
+            "enum": [1, 2, 3, 4, 5, 99]
+          },
+          "prefix": { "type": "string" },
+          "first_name": { "type": "string" },
+          "last_name": { "type": "string" },
+          "middle_name": { "type": "string" },
+          "suffix": { "type": "string" },
+          "preferred_name": { "type": "string" },
+          "gender": { "type": "string" },
+          "dob": { "type": "string", "format": "date" },
+          "veteran_status": { "type": "string" },
+          "discharge_status": { "type": "string" },
+          "ssn": { "type": "string", "pattern": "^\\d{3}-?\\d{2}-?\\d{4}$" },
+          "race": { "type": "string" },
+          "ethnicity": { "type": "string" }
+        }
+      }
+    }
+  }
+}

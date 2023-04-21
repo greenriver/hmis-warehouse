@@ -9,6 +9,7 @@ module HmisExternalApis
     module Hud
       module ProjectExtension
         extend ActiveSupport::Concern
+        include ExternallyIdentifiedMixin
 
         included do
           has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', as: :source
