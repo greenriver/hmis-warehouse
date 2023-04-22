@@ -22,7 +22,6 @@ module HmisExternalApis
             order(date_created: dir)
           end
         end
-
       end
     end
   end

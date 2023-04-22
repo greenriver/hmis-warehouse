@@ -70,7 +70,7 @@ module HmisExternalApis
     end
 
     def create_client(attrs)
-      attrs => {first_name:, last_name:, middle_name:, dob:, ssn:}
+      (first_name, last_name, middle_name, dob, ssn) = attrs.values_at(:first_name, :last_name, :middle_name, :dob, :ssn)
       client = ::Hmis::Hud::Client.new
       client.user = system_user
       client.data_source = data_source
