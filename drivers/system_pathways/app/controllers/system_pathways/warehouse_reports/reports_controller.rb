@@ -76,7 +76,7 @@ module SystemPathways::WarehouseReports
       @filter = @report.filter
       @filter.update(filter_params[:filters].merge(coc_codes: @filter.coc_codes))
       chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
-      if @node
+      if @node.present?
         @clients = chart.node_clients(@node).distinct
         @details_title = @node
       elsif @target.in?(@report.destination_lookup.keys)
@@ -88,7 +88,8 @@ module SystemPathways::WarehouseReports
         @details_title = "#{@source} → #{@target}"
       else
         target_project_number = HudUtility.project_type_number(@target)
-        @clients = chart.transition_clients(@source.presence, target_project_number).distinct
+        source_project_number = HudUtility.project_type_number(@source)
+        @clients = chart.transition_clients(source_project_number, target_project_number).distinct
         @source_title = if @source.present?
           @source
         else

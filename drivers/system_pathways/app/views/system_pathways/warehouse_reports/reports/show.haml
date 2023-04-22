@@ -19,7 +19,7 @@
   - pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
   #sankey
 = render 'node_details', pathways: pathways_chart
-
+= render 'equity'
 - content_for :page_js do
   :javascript
     let data = #{pathways_chart.chart_data.to_json.html_safe};
