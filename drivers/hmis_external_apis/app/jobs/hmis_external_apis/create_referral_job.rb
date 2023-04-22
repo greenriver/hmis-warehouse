@@ -7,28 +7,32 @@
 module HmisExternalApis
   class CreateReferralJob < ApplicationJob
     include HmisExternalApis::ReferralJobMixin
-    attr_accessor :params
+    attr_accessor :params, :errors
 
     # @param params [Hash] api payload
     def perform(params:)
       self.params = params.deep_symbolize_keys
       # FIXME: add param validation and capture raw request
 
-      referral = nil
+      self.errors = []
+      success = nil
       # transact assumes we are only mutating records in the warehouse db
       HmisExternalApis::Referral.transaction do
         referral = create_referral
-        create_referral_postings(referral)
-        create_referral_household_members(referral)
+        raise ActiveRecord::Rollback unless create_referral_posting(referral)
+
+        raise ActiveRecord::Rollback unless create_referral_household_members(referral)
+
+        success = referral
       end
-      referral
+      [success, errors]
     end
 
     protected
 
     def create_referral
       params => {referral_id:, referral_date:, service_coordinator:}
-      referral = referral_scope.new
+      referral = HmisExternalApis::Referral.new
       referral.identifier = referral_id
       referral.referral_date = referral_date
       referral.service_coordinator = :service_coordinator
@@ -36,22 +40,28 @@ module HmisExternalApis
       referral
     end
 
-    def create_referral_postings(referral)
+    def create_referral_posting(referral)
       (posting_id, program_id, unit_type_id, referral_request_id) = params.values_at(:posting_id, :program_id, :unit_type_id, :referral_request_id)
-      raise unless posting_id && program_id # required fields
+      raise unless posting_id && program_id # required fields, should be caught in validation
 
       posting = referral.postings.new(identifier: posting_id)
-      # the posting is an assignment, the program id is MPER project ID
-      posting.project = ::Hmis::Hud::Project.find_by_external_id(cred: mper_cred, id: program_id)
+      posting.project = ::Hmis::Hud::Project.first_by_external_id(cred: mper_cred, id: program_id)
+      return error_out('Project not found') unless posting.project
+
       if referral_request_id
         # the posting references an existing referral request
-        posting.referral_request = referral_request_scope
-          .where(identifier: referral_request_id, project: posting.project).first!
+        posting.referral_request = HmisExternalApis::ReferralRequest
+          .where(identifier: referral_request_id).first
+        return error_out('Referral Request not found') unless posting.referral_request
+
+        return error_out('Referral Request does not match Project') unless
+          posting.referral_request.project_id == posting.project_id
       end
 
       if unit_type_id
         posting.unit_type = ::Hmis::UnitType
-          .find_by_external_id(cred: mper_cred, id: unit_type_id)
+          .first_by_external_id(cred: mper_cred, id: unit_type_id)
+        return error_out('Unit Type not found') unless posting.unit_type
       end
 
       posting.status = 'assigned_status'
@@ -119,14 +129,6 @@ module HmisExternalApis
       end
     end
 
-    def referral_scope
-      HmisExternalApis::Referral
-    end
-
-    def referral_request_scope
-      HmisExternalApis::ReferralRequest
-    end
-
     def data_source
       # FIXME: not sure what the data source is
       @data_source ||= ::GrdaWarehouse::DataSource.hmis.first!
@@ -159,6 +161,11 @@ module HmisExternalApis
           ret[mci_id] ||= client_id
         end
       ret
+    end
+
+    def error_out(msg)
+      errors.push(msg)
+      return false
     end
   end
 end

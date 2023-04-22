@@ -16,6 +16,12 @@ module HmisExternalApis
           has_many :external_referral_household_members, class_name: 'HmisExternalApis::ReferralHouseholdMember', dependent: :destroy, inverse_of: :client
         end
 
+        class_methods do
+          def order_by_created_at(dir = :asc)
+            order(date_created: dir)
+          end
+        end
+
         def external_ids_by_slug(slug)
           external_ids.joins(:remote_credential).where(remote_credential: { slug: slug })
         end

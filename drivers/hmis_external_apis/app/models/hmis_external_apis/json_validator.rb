@@ -27,10 +27,5 @@ module HmisExternalApis
       schema = Pathname.new(path)
       JSONSchemer.schema(schema)
     end
-
-    def error_message(error)
-      property_name = error['data_pointer'].blank? ? error['data'] : error['data_pointer']&.delete_prefix('/')
-      "#{property_name} is invalid"
-    end
   end
 end

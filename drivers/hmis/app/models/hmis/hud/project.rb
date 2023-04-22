@@ -75,10 +75,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end
   end
 
-  def self.order_by_created_at(dir = :asc)
-    order(date_created: dir)
-  end
-
   def active
     return true unless operating_end_date.present?
 

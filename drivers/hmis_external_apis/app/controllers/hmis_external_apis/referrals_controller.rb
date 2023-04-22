@@ -22,7 +22,9 @@ module HmisExternalApis
       errors = validate_request(unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
-      referral = HmisExternalApis::CreateReferralJob.perform_now(params: unsafe_params)
+      (referral, errors) = HmisExternalApis::CreateReferralJob.perform_now(params: unsafe_params)
+      return respond_with_errors(errors) if errors.any?
+
       render json: { message: 'Referral Created', id: referral.identifier }
     end
 

@@ -9,7 +9,7 @@ module HmisExternalApis
   module ExternallyIdentifiedMixin
     extend ActiveSupport::Concern
     class_methods do
-      def find_by_external_id(cred:, id:)
+      def first_by_external_id(cred:, id:)
         id_scope = HmisExternalApis::ExternalId
           .where({ value: id, remote_credential: cred, source_type: name })
 
@@ -18,7 +18,7 @@ module HmisExternalApis
         where(id: id_scope.select(:source_id))
           .order_by_created_at
           .order(:id)
-          .first!
+          .first
       end
     end
   end

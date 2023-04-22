@@ -7,24 +7,23 @@
   "type": "object",
   "required": ["referral_id", "referral_date", "service_coordinator", "posting_id", "program_id"],
   "properties": {
-    "referral_id": { "type": "string" },
+    "referral_id": { "type": ["integer", "string"] },
     "referral_date": { "type": "string", "format": "date" },
     "service_coordinator": { "type": "string" },
-    "posting_id": { "type": "string" },
-    "referral_request_id": { "type": "string" },
-    "program_id": { "type": "string" },
-    "unit_type_id": { "type": "integer" },
-
+    "posting_id": { "type": ["integer", "string"] },
+    "referral_request_id": { "type": ["integer", "string"] },
+    "program_id": { "type": ["integer", "string"] },
+    "unit_type_id": { "type": ["integer", "string"] },
     "household_members": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "required": ["mci_id", "relationship_to_hoh", "first_name", "last_name", "dob"],
         "properties": {
-          "mci_id": { "type": "string" },
+          "mci_id": { "type": ["integer", "string"] },
           "relationship_to_hoh": {
-            "type": "integer",
             "enum": [1, 2, 3, 4, 5, 99]
           },
           "prefix": { "type": "string" },
