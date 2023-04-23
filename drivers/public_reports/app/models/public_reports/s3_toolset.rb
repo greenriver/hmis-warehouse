@@ -73,7 +73,7 @@ module PublicReports::S3Toolset
         secret_access_key: ENV.fetch('S3_PUBLIC_ACCESS_KEY_SECRET'),
       )
     else
-      Aws::S3::Client.new(stub_responses: Rails.env.test?)
+      Aws::S3::Client.new
     end
   end
 

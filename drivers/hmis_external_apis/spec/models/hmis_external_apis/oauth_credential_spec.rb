@@ -41,7 +41,7 @@ RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
   it 'supports a get' do
     path = 'test/resources/1'
     stub_request(:get, "#{subject.base_url}#{path}")
-      .to_return(status: 200, body: {helloWorld: 1}.to_json,
+      .to_return(status: 200, body: { helloWorld: 1 }.to_json,
                  headers: { 'Content-Type' => 'application/json' })
 
     result = subject.get(path)
