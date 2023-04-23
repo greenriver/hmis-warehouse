@@ -135,4 +135,4 @@ end
 
 # allow real requests, needed for minio
 require 'webmock/rspec'
-WebMock.allow_net_connect!
+# WebMock.allow_net_connect!
