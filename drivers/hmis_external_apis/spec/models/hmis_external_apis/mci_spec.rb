@@ -17,7 +17,7 @@ RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
     let(:ocp_apim_subscription_key) { ENV.fetch('MCI_OCP_APIM_SUBSCRIPTION_KEY') }
 
     let(:subject) do
-      HmisExternalApis::OauthCredential.new(
+      HmisExternalApis::OauthClientConnection.new(
         client_id: client_id,
         client_secret: client_secret,
         token_url: token_url,
@@ -29,23 +29,22 @@ RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
 
     it 'supports a get' do
       result = subject.get('clients/v1/api/Lookup/logicalTables')
-      expect(result.status).to eq(200)
+      expect(result.http_status).to eq(200)
       expect(result.parsed_body).to include('COUNTRY')
       expect(result.parsed_body).to include('RACE')
     end
 
     it 'handles errors' do
       result = subject.get('clients/v1/api/not-a-thing')
-      expect(result.status).to be_nil
-      expect(result.body).to be_nil
+      expect(result.http_status).to be_nil
       expect(result.parsed_body).to be_nil
       expect(result.error_type).to eq('OAuth2::Error')
     end
 
     it 'supports a post' do
       result = subject.post('clients/v1/api/Clients/clearance', { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
-      expect(result.status).to eq(200)
-      expect(result.parsed_body.length).to eq(470)
+      expect(result.http_status).to eq(200)
+      expect(result.parsed_body[0]).to include('lastName')
     end
   end
 end
