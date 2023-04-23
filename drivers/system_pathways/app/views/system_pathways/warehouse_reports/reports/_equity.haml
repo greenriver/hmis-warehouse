@@ -1,2 +1,22 @@
 - equity = SystemPathways::Equity.new(report: @report, filter: @filter)
-= debug equity.chart_data
+-# = debug equity.chart_data(:ethnicity)
+#equity-chart
+= content_for :page_js do
+  :javascript
+    let equity_chart_data = #{equity.chart_data(:ethnicity).to_json.html_safe};
+    let equity_chart = bb.generate({
+      data: equity_chart_data,
+      bindto: '#equity-chart',
+      size: {
+        height: 800,
+      },
+      bar: {
+        padding: 20,
+      },
+      axis: {
+        rotated: true,
+        x: {
+          type: 'category'
+        }
+      }
+    });

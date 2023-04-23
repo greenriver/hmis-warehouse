@@ -8,10 +8,12 @@ module SystemPathways::ChartBase
   extend ActiveSupport::Concern
 
   included do
-    attr_accessor :report, :filter
+    attr_accessor :report, :filter, :config
     def initialize(report:, filter:)
       self.report = report
       self.filter = filter
+      # TODO: this config should be moved to a more general Report config
+      self.config = BostonReports::Config.first_or_create(&:default_colors)
     end
 
     def clients
@@ -162,7 +164,9 @@ module SystemPathways::ChartBase
     end
 
     def node_clients(node)
-      if node.in?(report.destination_lookup.keys)
+      if node == 'Served by Homeless System'
+        filtered_clients.distinct
+      elsif node.in?(report.destination_lookup.keys)
         destination_category = report.destination_lookup[node]
         filtered_clients.where(destination_category => true).
           joins(:enrollments).
