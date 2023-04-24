@@ -23,7 +23,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
 
     let(:clients) do
       2.times.map do
-        client = create(:hmis_hud_client_complete)
+        client = create(:hmis_hud_client_complete, data_source: ds1)
         mci_id = random_id
         mci_cred.external_ids.create!(source: client, value: mci_id)
         [client, mci_id]
