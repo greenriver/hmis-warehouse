@@ -7,7 +7,7 @@
 FactoryBot.define do
   factory :hmis_form_custom_form, class: 'Hmis::Form::CustomForm' do
     definition { association :hmis_form_definition }
-    owner { association :hmis_hud_assessment }
+    owner { association :hmis_custom_assessment }
     values { {} }
     hud_values { {} }
   end

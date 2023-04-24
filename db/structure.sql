@@ -662,7 +662,7 @@ CREATE TABLE public.hmis_roles (
     can_view_any_confidential_client_files boolean DEFAULT false NOT NULL,
     can_audit_clients boolean DEFAULT false NOT NULL,
     can_delete_clients boolean DEFAULT false NOT NULL,
-    can_delete_assessments boolean DEFAULT false NOT NULL
+    can_delete_assessments boolean DEFAULT false
 );
 
 
@@ -1302,8 +1302,8 @@ CREATE TABLE public.roles (
     can_search_own_clients boolean DEFAULT false,
     can_view_confidential_project_names boolean DEFAULT false,
     can_report_on_confidential_projects boolean DEFAULT false,
-    can_view_chronic_tab boolean DEFAULT false,
     can_edit_assigned_project_groups boolean DEFAULT false,
+    can_view_chronic_tab boolean DEFAULT false,
     can_configure_cohorts boolean DEFAULT false,
     can_add_cohort_clients boolean DEFAULT false,
     can_manage_cohort_data boolean DEFAULT false,

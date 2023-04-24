@@ -19,7 +19,7 @@ module Mutations
           record: record,
           field_name: :assessment,
           authorize: ->(assessment, user) do
-            return false if !assessment.in_progress? && assessment.custom_form.definition.role == 'INTAKE'
+            return false if !assessment.in_progress? && role == 'INTAKE'
             return true if assessment.in_progress? && user.can_edit_enrollments_for?(assessment.client)
             return true if !assessment.in_progress? && user.can_delete_assessments_for?(assessment.client)
 
