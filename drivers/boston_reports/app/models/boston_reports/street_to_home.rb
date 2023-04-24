@@ -145,6 +145,7 @@ module BostonReports
       return GrdaWarehouse::CohortClient.none unless filter.cohort_ids.present? && filter.cohort_column.present?
 
       GrdaWarehouse::CohortClient.
+        active.
         where(cohort_id: filter.cohort_ids).
         where.not(filter.cohort_column => nil). # only include clients with a cohort or the report starts to have mis-calculations
         where.not(filter.cohort_column => '').

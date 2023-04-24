@@ -380,6 +380,7 @@ type Client {
 }
 
 type ClientAccess {
+  canDeleteAssessments: Boolean!
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
@@ -1623,7 +1624,7 @@ type ExternalIdentifier {
   """
   The identifier value
   """
-  identifier: ID!
+  identifier: ID
   label: String!
   url: String
 }
@@ -3571,6 +3572,7 @@ type Project {
 }
 
 type ProjectAccess {
+  canDeleteAssessments: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteProject: Boolean!
   canEditEnrollments: Boolean!
@@ -3786,6 +3788,7 @@ type Query {
 type QueryAccess {
   canAdministerHmis: Boolean!
   canAuditClients: Boolean!
+  canDeleteAssessments: Boolean!
   canDeleteAssignedProjectData: Boolean!
   canDeleteClients: Boolean!
   canDeleteEnrollments: Boolean!

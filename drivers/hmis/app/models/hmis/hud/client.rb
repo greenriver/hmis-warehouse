@@ -31,8 +31,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
+  # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
   has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
-  has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
@@ -99,7 +99,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def warehouse_id
-    destination_client.id
+    warehouse_client_source.destination_id
   end
 
   def warehouse_url
@@ -120,7 +120,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def external_identifiers(user = nil)
-    {
+    external_identifiers = {
       client_id: {
         id: id,
         label: 'HMIS ID',
@@ -134,12 +134,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
         url: warehouse_url,
         label: 'Warehouse ID',
       },
-      mci_id: {
+    }
+
+    if HmisExternalApis::Mci.enabled?
+      external_identifiers[:mci_id] = {
         id: mci_id,
         url: mci_url(user),
         label: 'MCI ID',
-      },
-    }
+      }
+    end
+
+    external_identifiers
   end
 
   SORT_OPTIONS = [

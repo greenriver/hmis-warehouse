@@ -56,7 +56,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     return none unless search_term.present?
 
     search_term.strip!
-    query = "%#{search_term}%"
+    query = "%#{search_term.split(/\W+/).join('%')}%"
     where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)))
   end
 
