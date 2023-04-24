@@ -193,6 +193,12 @@ module SystemPathways::ChartBase
       SystemPathways::Enrollment.arel_table
     end
 
+    private def pluck_to_hash(columns, scope)
+      scope.pluck(*columns.keys).map do |row|
+        Hash[columns.keys.zip(row)]
+      end
+    end
+
     private def nodes
       {
         'Served by Homeless System' => {

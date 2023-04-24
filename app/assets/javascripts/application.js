@@ -91,6 +91,7 @@
 //= require affix
 //= require list_search
 //= require stimulus_select
+//= require section_changer
 //= require filter_projects
 //= require TableWithToggleRows
 //= require role_table

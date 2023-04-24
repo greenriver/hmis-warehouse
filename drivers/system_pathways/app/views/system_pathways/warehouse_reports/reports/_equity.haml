@@ -1,22 +1,36 @@
 - equity = SystemPathways::Equity.new(report: @report, filter: @filter)
--# = debug equity.chart_data(:ethnicity)
-#equity-chart
-= content_for :page_js do
-  :javascript
-    let equity_chart_data = #{equity.chart_data(:ethnicity).to_json.html_safe};
-    let equity_chart = bb.generate({
-      data: equity_chart_data,
-      bindto: '#equity-chart',
-      size: {
-        height: 800,
-      },
-      bar: {
-        padding: 20,
-      },
-      axis: {
-        rotated: true,
-        x: {
-          type: 'category'
+-# = debug equity.chart_data(:race).to_json
+.equity{ data: { controller: 'section-changer' }}
+  - url = URI(@report.section_path('equity'))
+  .dropdown
+    %button.btn.btn-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
+      Demographic Breakdown
+      %i.ml-2.icon-angle-down
+    .dropdown-menu.options
+      - demo = [['Ethnicity', 'ethnicity'], ['Race', 'race']].each do |label, key|
+        - url.query = @filter.for_params.merge(demographic_breakdown: key).to_query
+        - data = { action: 'click->section-changer#replaceSection:prevent', 'section-changer-target' => 'changer' }
+        - classes = ['dropdown-item']
+        - classes << 'active' if params[:demographic_breakdown] == key
+        = link_to(label, url.to_s, data: data, class: classes)
+
+  #equity-chart
+  = content_for :page_js do
+    :javascript
+      let equity_chart_data = #{equity.chart_data(:race).to_json.html_safe};
+      let equity_chart = bb.generate({
+        data: equity_chart_data,
+        bindto: '#equity-chart',
+        size: {
+          height: 800,
+        },
+        bar: {
+          padding: 20,
+        },
+        axis: {
+          rotated: true,
+          x: {
+            type: 'category'
+          }
         }
-      }
-    });
+      });

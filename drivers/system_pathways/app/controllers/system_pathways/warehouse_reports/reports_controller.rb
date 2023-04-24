@@ -11,7 +11,7 @@ module SystemPathways::WarehouseReports
     include ArelHelper
     include BaseFilters
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
-    before_action :set_report, only: [:show, :destroy, :details]
+    before_action :set_report, only: [:show, :destroy, :details, :section]
 
     def index
       @pagy, @reports = pagy(report_scope.diet.ordered)
@@ -62,6 +62,11 @@ module SystemPathways::WarehouseReports
     def destroy
       @report.destroy
       respond_with(@report, location: @report.index_path)
+    end
+
+    def section
+      @section = @report.allowed_section(params[:section])
+      render layout: false
     end
 
     def details

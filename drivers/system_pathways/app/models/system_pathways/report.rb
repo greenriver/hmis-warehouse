@@ -85,6 +85,20 @@ module SystemPathways
       ]
     end
 
+    def known_sections
+      [
+        'equity',
+      ]
+    end
+
+    def allowed_section(section)
+      known_sections.detect { |m| m == section } || known_sections.first
+    end
+
+    def section_path(section)
+      section_system_pathways_warehouse_reports_report_path(self, allowed_section(section))
+    end
+
     private def build_control_sections
       # ensure filter has been set
       filter
