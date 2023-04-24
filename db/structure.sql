@@ -661,7 +661,8 @@ CREATE TABLE public.hmis_roles (
     can_view_any_nonconfidential_client_files boolean DEFAULT false NOT NULL,
     can_view_any_confidential_client_files boolean DEFAULT false NOT NULL,
     can_audit_clients boolean DEFAULT false NOT NULL,
-    can_delete_clients boolean DEFAULT false NOT NULL
+    can_delete_clients boolean DEFAULT false NOT NULL,
+    can_delete_assessments boolean DEFAULT false
 );
 
 
@@ -1312,7 +1313,8 @@ CREATE TABLE public.roles (
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
-    can_approve_careplan boolean DEFAULT false
+    can_approve_careplan boolean DEFAULT false,
+    can_manage_inbound_api_configurations boolean DEFAULT false
 );
 
 
@@ -3282,6 +3284,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322204908'),
 ('20230328150855'),
 ('20230330161305'),
-('20230412142430');
+('20230412142430'),
+('20230418170053'),
+('20230420195221');
 
 

@@ -28,11 +28,11 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   end
 
   def intake?
-    data_collection_stage == 1
+    assessment&.data_collection_stage == 1
   end
 
   def exit?
-    data_collection_stage == 3
+    assessment&.data_collection_stage == 3
   end
 
   # Validate `values` purely based on FormDefinition validation requirements
