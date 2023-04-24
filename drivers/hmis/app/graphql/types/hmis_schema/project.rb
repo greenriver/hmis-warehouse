@@ -50,6 +50,7 @@ module Types
       can :view_enrollment_details
       can :edit_enrollments
       can :delete_enrollments
+      can :delete_assessments
     end
 
     def enrollments(**args)

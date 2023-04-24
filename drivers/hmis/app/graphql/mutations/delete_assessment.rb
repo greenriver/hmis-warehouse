@@ -12,7 +12,24 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
-      default_delete_record(record: record, field_name: :assessment, permissions: [:can_edit_enrollments])
+
+      record.transaction do
+        role = record.custom_form.definition.role
+        default_delete_record(
+          record: record,
+          field_name: :assessment,
+          authorize: ->(assessment, user) do
+            return false if !assessment.in_progress? && role == 'INTAKE'
+            return true if assessment.in_progress? && user.can_edit_enrollments_for?(assessment.client)
+            return true if !assessment.in_progress? && user.can_delete_assessments_for?(assessment.client)
+
+            false
+          end,
+          after_delete: -> do
+            record.enrollment&.exit&.destroy if role == 'EXIT'
+          end,
+        )
+      end
     end
   end
 end

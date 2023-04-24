@@ -203,6 +203,14 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
+      can_delete_assessments: {
+        description: 'Ability to delete assessments that have been submitted',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Assessments',
+        ],
+      },
       can_manage_any_client_files: {
         description: 'Grants the ability to manage anyone\'s client files',
         administrative: false,

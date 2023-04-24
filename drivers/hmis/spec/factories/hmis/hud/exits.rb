@@ -23,7 +23,7 @@ FactoryBot.define do
     user { association :hmis_hud_user, data_source: data_source }
 
     after(:build) do |exit|
-      return unless exit.enrollment.present?
+      next unless exit.enrollment.present?
 
       # Set exit date to be after entry date (but not in the future) to ensure validity
       distances = [

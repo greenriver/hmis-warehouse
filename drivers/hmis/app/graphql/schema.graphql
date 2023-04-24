@@ -378,6 +378,7 @@ type Client {
   dobDataQuality: DOBDataQuality!
   enrollments(includeInProgress: Boolean, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
+  externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
   firstName: String
   gender: [Gender!]!
@@ -402,6 +403,7 @@ type Client {
 }
 
 type ClientAccess {
+  canDeleteAssessments: Boolean!
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
@@ -1631,6 +1633,23 @@ type EventsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+External Identifier
+"""
+type ExternalIdentifier {
+  """
+  API ID, not the actual identifier value
+  """
+  id: ID!
+
+  """
+  The identifier value
+  """
+  identifier: ID
+  label: String!
+  url: String
 }
 
 """
@@ -3615,6 +3634,7 @@ type Project {
 }
 
 type ProjectAccess {
+  canDeleteAssessments: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteProject: Boolean!
   canEditEnrollments: Boolean!
@@ -3830,6 +3850,7 @@ type Query {
 type QueryAccess {
   canAdministerHmis: Boolean!
   canAuditClients: Boolean!
+  canDeleteAssessments: Boolean!
   canDeleteAssignedProjectData: Boolean!
   canDeleteClients: Boolean!
   canDeleteEnrollments: Boolean!
