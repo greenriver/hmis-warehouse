@@ -20419,7 +20419,11 @@ CREATE TABLE public.system_pathways_clients (
     transgender boolean,
     questioning boolean,
     no_single_gender boolean,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
     veteran_status integer,
+    household_id character varying,
+    household_type character varying,
     ce boolean,
     system boolean,
     destination integer,
@@ -20433,10 +20437,8 @@ CREATE TABLE public.system_pathways_clients (
     returned_project_type integer,
     returned_project_name character varying,
     returned_project_entry_date date,
-    returned_project_enrollment_id bigint,
-    returned_project_project_id bigint,
-    report_id bigint,
-    deleted_at timestamp without time zone
+    returned_project_enrollment_id integer,
+    returned_project_project_id integer
 );
 
 
@@ -20476,14 +20478,7 @@ CREATE TABLE public.system_pathways_enrollments (
     exit_date date,
     stay_length integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    disabling_condition boolean,
-    relationship_to_hoh integer,
-    household_id character varying,
-    household_type character varying,
-    report_id bigint,
-    deleted_at timestamp without time zone,
-    final_enrollment boolean DEFAULT false NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -48898,13 +48893,6 @@ CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathway
 
 
 --
--- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
-
-
---
 -- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48923,13 +48911,6 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -52463,11 +52444,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230406183420'),
 ('20230407164611'),
 ('20230411193836'),
-('20230412163545'),
 ('20230412191455'),
-('20230414130229'),
-('20230414152958'),
-('20230417122614'),
 ('20230418163934'),
 ('20230419162140');
 
