@@ -136,7 +136,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       },
     }
 
-    if GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'mci').exists?
+    if HmisExternalApis::Mci.enabled?
       external_identifiers[:mci_id] = {
         id: mci_id,
         url: mci_url(user),
