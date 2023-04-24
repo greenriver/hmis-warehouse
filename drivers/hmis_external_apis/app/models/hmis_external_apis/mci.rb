@@ -143,6 +143,10 @@ module HmisExternalApis
     #   conn.get('clients/v1/api/Lookup/logicalTables')
     # end
 
+    def self.enabled?
+      ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: 'mci').exists?
+    end
+
     private
 
     def save_log!(result, payload)
@@ -169,7 +173,7 @@ module HmisExternalApis
     end
 
     def creds
-      @creds ||= ::GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: 'mci')
+      @creds ||= ::GrdaWarehouse::RemoteCredentials::Oauth.active.find_by(slug: 'mci')
     end
 
     def conn

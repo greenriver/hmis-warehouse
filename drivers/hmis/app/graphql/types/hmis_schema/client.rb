@@ -106,7 +106,6 @@ module Types
 
     def external_ids
       object.external_identifiers(current_user).
-        reject { |_k, vals| vals[:id].nil? }.
         map do |key, vals|
           {
             id: [key, object.id].join(':'),

@@ -28,6 +28,12 @@ class Hmis::AppSettingsController < Hmis::BaseController
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
       casUrl: GrdaWarehouse::Config.get(:cas_url),
+      globalFeatureFlags: {
+        # Whether to show MCI ID in client search results
+        mciId: HmisExternalApis::Mci.enabled?,
+        # Whether to show Referral and Denial screens
+        externalReferrals: GrdaWarehouse::RemoteCredential.active.where(slug: 'mper').exists?,
+      },
     }
   end
 end
