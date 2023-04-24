@@ -42,7 +42,7 @@ module HmisExternalApis
 
     def create_referral_posting(referral)
       (posting_id, program_id, unit_type_id, referral_request_id) = params.values_at(:posting_id, :program_id, :unit_type_id, :referral_request_id)
-      raise unless posting_id && program_id # required fields, should be caught in validation
+      raise unless posting_id && program_id && unit_type_id # required fields, should be caught in validation
 
       posting = referral.postings.new(identifier: posting_id)
       posting.project = ::Hmis::Hud::Project.first_by_external_id(cred: mper_cred, id: program_id)
@@ -58,11 +58,9 @@ module HmisExternalApis
           posting.referral_request.project_id == posting.project_id
       end
 
-      if unit_type_id
-        posting.unit_type = ::Hmis::UnitType
-          .first_by_external_id(cred: mper_cred, id: unit_type_id)
-        return error_out('Unit Type not found') unless posting.unit_type
-      end
+      posting.unit_type = ::Hmis::UnitType
+        .first_by_external_id(cred: mper_cred, id: unit_type_id)
+      return error_out('Unit Type not found') unless posting.unit_type
 
       posting.status = 'assigned_status'
       posting.save!

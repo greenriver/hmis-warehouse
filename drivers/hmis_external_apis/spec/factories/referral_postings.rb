@@ -9,6 +9,7 @@ FactoryBot.define do
     sequence :identifier, Zlib.crc32('HmisExternalApis::ReferralPosting')
     association :project, factory: :hmis_hud_project
     association :referral, factory: :hmis_external_api_referral
+    association :unit_type, factory: :hmis_unit_type
     status { 'assigned_status' }
   end
 end

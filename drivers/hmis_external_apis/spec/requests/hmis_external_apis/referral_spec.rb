@@ -30,6 +30,12 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
       end
     end
 
+    let(:unit_type_id) do
+      record = mper_cred.external_ids
+        .create!(source: create(:hmis_unit_type), value: random_id)
+      record.value
+    end
+
     def household_member_params(clients)
       clients.map do |client, mci_id|
         {
@@ -58,6 +64,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
         posting_id: random_id,
         program_id: project_mper_id, # project == program
         household_members: household_member_params(clients),
+        unit_type_id: unit_type_id,
       }
     end
 
