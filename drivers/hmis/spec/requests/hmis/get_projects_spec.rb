@@ -94,30 +94,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         check_search_term(term, expected)
       end
     end
-
-    # [
-    #   [
-    #     'project', # Search term
-    #     ->(_ctx) { [p1, p3] }, # Expected results
-    #     ->(_ctx) { p1.update(project_name: 'Project 1') }, # Test setup (optional)
-    #   ],
-    #   ['TestProject - ', ->(_ctx) { [p3] }],
-    #   ['TestProject - Name/with=special_chars', ->(_ctx) { [p3] }],
-    #   ['test name special', ->(_ctx) { [p3] }],
-    #   # Add more search term tests here
-    # ].each do |term, get_expected_projects, setup|
-    #   it "should match correctly for term '#{term}'" do
-    #     instance_eval(&setup) if setup.present?
-
-    #     search(search_term: term) do |projects|
-    #       expected_projects = instance_eval(&get_expected_projects)
-    #       expect(projects).to include(
-    #         'nodesCount' => expected_projects.size,
-    #         'nodes' => contain_exactly(*expected_projects.map { |p| include('id' => p.id.to_s) }),
-    #       )
-    #     end
-    #   end
-    # end
   end
 end
 
