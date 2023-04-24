@@ -35,10 +35,11 @@ class Hmis::File < GrdaWarehouse::File
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
   scope :viewable_by, ->(user) do
-    new_scope = where(client_id: Hmis::Hud::Client.with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files))
-    new_scope = new_scope.nonconfidential unless user.can_view_any_confidential_client_files?
+    view_scope = where(client_id: Hmis::Hud::Client.with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files))
+    view_scope = view_scope.nonconfidential unless user.can_view_any_confidential_client_files?
+    edit_scope = user.can_manage_own_client_files? ? where(user_id: user.id) : none
 
-    new_scope
+    view_scope.or(edit_scope)
   end
 
   def self.sort_by_option(option)
@@ -46,9 +47,9 @@ class Hmis::File < GrdaWarehouse::File
 
     case option
     when :date_created
-      order(arel_table[:created_at].asc.nulls_last)
+      order(arel_table[:created_at].desc.nulls_last)
     when :date_updated
-      order(arel_table[:updated_at].asc.nulls_last)
+      order(arel_table[:updated_at].desc.nulls_last)
     else
       raise NotImplementedError
     end
@@ -56,8 +57,8 @@ class Hmis::File < GrdaWarehouse::File
 
   def self.authorize_proc
     ->(record, user) do
-      return true if user.permissions_for?(record.client, :can_manage_any_client_files)
-      return true if user.permissions_for?(record.client, :can_manage_own_client_files) && (record.id.nil? || (record.user_id == user.id.to_s))
+      return true if user.can_manage_any_client_files_for?(record.client)
+      return true if user.can_manage_own_client_files_for?(record.client) && record.user_id == user.id
 
       false
     end

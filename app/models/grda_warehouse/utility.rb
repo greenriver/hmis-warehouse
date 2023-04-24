@@ -151,6 +151,7 @@ class GrdaWarehouse::Utility
     cascade_models = [
       GrdaWarehouse::DataSource,
       GrdaWarehouse::Hud::Client,
+      GrdaWarehouse::Hud::Project,
       GrdaWarehouse::ServiceHistoryEnrollment,
     ]
     return 'CASCADE' if cascade_models.include?(model)

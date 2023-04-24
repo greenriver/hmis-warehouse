@@ -20,5 +20,17 @@ module HudConcerns::Client
     def gender_fields
       ::HudUtility.gender_fields.select { |f| send(f).to_i == 1 }
     end
+
+    def adult?(on_date = Date.current)
+      return nil unless dob.present?
+
+      age(on_date) >= 18
+    end
+
+    def child?(on_date = Date.current)
+      return nil unless dob.present?
+
+      age(on_date) < 18
+    end
   end
 end

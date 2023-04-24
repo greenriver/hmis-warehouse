@@ -95,8 +95,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   def in_progress?
-    @in_progress = enrollment_id == WIP_ID if @in_progress.nil?
-    @in_progress
+    enrollment_id == WIP_ID
   end
 
   def intake?

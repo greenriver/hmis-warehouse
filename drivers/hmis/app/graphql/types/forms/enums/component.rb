@@ -23,5 +23,6 @@ module Types
     value 'ALERT_ERROR', 'Display text as an error alert'
     value 'ALERT_SUCCESS', 'Display text as a success alert'
     value 'SSN', 'SSN input component'
+    value 'MCI', 'MCI linking component'
   end
 end
