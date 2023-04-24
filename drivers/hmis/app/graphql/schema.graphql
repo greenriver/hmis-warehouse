@@ -1623,7 +1623,7 @@ type ExternalIdentifier {
   """
   The identifier value
   """
-  identifier: ID!
+  identifier: ID
   label: String!
   url: String
 }

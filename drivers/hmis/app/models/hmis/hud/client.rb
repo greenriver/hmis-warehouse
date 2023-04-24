@@ -120,7 +120,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def external_identifiers(user = nil)
-    {
+    external_identifiers = {
       client_id: {
         id: id,
         label: 'HMIS ID',
@@ -134,12 +134,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
         url: warehouse_url,
         label: 'Warehouse ID',
       },
-      mci_id: {
+    }
+
+    if GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'mci').exists?
+      external_identifiers[:mci_id] = {
         id: mci_id,
         url: mci_url(user),
         label: 'MCI ID',
-      },
-    }
+      }
+    end
+
+    external_identifiers
   end
 
   SORT_OPTIONS = [
