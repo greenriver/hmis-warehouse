@@ -4,9 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-FactoryBot.define do
-  factory :hmis_unit_type, class: 'Hmis::UnitType' do
-    bed_type { 13 }
-    unit_size { 200 }
+module GrdaWarehouse
+  class RemoteCredentials::ExternalLink < GrdaWarehouse::RemoteCredential
+    alias_attribute :link_base, :endpoint
   end
 end

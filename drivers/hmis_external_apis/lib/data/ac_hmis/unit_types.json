@@ -1,0 +1,162 @@
+[
+  {
+    "external_id": 22,
+    "name": "0 Bed Room",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 24,
+    "name": "0 Bed Room Accessible",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 23,
+    "name": "0 Bed Room Chronic Homeless",
+    "hud_bed_type": "CHBedInventory"
+  },
+  {
+    "external_id": 8,
+    "name": "1 Bed Room",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 10,
+    "name": "1 Bed Room Accessible",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 9,
+    "name": "1 Bed Room Chronic Homeless",
+    "hud_bed_type": "CHBedInventory"
+  },
+  {
+    "external_id": 20,
+    "name": "2 Bed Room",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 21,
+    "name": "2 Bed Room Accessible",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 19,
+    "name": "2 Bed Room Chronic Homeless",
+    "hud_bed_type": "CHBedInventory"
+  },
+  {
+    "external_id": 16,
+    "name": "3 Bed Room",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 18,
+    "name": "3 Bed Room Accessible",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 17,
+    "name": "3 Bed Room Chronic Homeless",
+    "hud_bed_type": "CHBedInventory"
+  },
+  {
+    "external_id": 4,
+    "name": "4 Bed Room",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 6,
+    "name": "4 Bed Room Accessible",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 5,
+    "name": "4 Bed Room Chronic Homeless",
+    "hud_bed_type": "CHBedInventory"
+  },
+  {
+    "external_id": 2,
+    "name": "5+ Bed Room",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 1,
+    "name": "5+ Bed Room Accessible",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 3,
+    "name": "5+ Bed Room Chronic Homeless",
+    "hud_bed_type": "CHBedInventory"
+  },
+  {
+    "external_id": 31,
+    "name": "Households with Children",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 32,
+    "name": "Households without Children",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 26,
+    "name": "Mass Shelter Accessible",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 25,
+    "name": "Mass Shelter Family",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 7,
+    "name": "Mass Shelter Single",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 11,
+    "name": "Rapid Re-Housing",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": "OtherBedInventory",
+    "name": "SRO",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 15,
+    "name": "SRO Accessible",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 14,
+    "name": "SRO Chronic Homeless",
+    "hud_bed_type": "CHBedInventory"
+  },
+  {
+    "external_id": 30,
+    "name": "Case Management",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 27,
+    "name": "Prevention",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 12,
+    "name": "Rental Assistance",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 29,
+    "name": "Street Outreach Capacity",
+    "hud_bed_type": "OtherBedInventory"
+  },
+  {
+    "external_id": 28,
+    "name": "Supportive Service Only Capacity",
+    "hud_bed_type": "OtherBedInventory"
+  }
+]
