@@ -3,7 +3,7 @@ BostonHmis::Application.routes.draw do
     namespace :warehouse_reports do
       resources :reports do
         get :details, on: :member
-        get 'section/:section', to: 'reports#section', on: :member, as: :section
+        get 'chart_data/:chart', to: 'reports#chart_data', on: :member, as: :chart_data
       end
     end
   end

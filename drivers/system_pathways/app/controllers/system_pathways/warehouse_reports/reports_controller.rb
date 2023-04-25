@@ -11,7 +11,7 @@ module SystemPathways::WarehouseReports
     include ArelHelper
     include BaseFilters
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
-    before_action :set_report, only: [:show, :destroy, :details, :section]
+    before_action :set_report, only: [:show, :destroy, :details, :chart_data]
 
     def index
       @pagy, @reports = pagy(report_scope.diet.ordered)
@@ -64,9 +64,18 @@ module SystemPathways::WarehouseReports
       respond_with(@report, location: @report.index_path)
     end
 
-    def section
-      @section = @report.allowed_section(params[:section])
-      render layout: false
+    def chart_data
+      @chart_data = @report.allowed_section(params[:chart_data])
+      respond_to do |format|
+        format.json do
+          data = case @chart_data
+          when 'equity'
+            equity = SystemPathways::Equity.new(report: @report, filter: @filter)
+            equity.chart_data(params[:demographic_breakdown])
+          end
+          render json: data.to_json
+        end
+      end
     end
 
     def details

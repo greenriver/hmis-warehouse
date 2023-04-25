@@ -95,8 +95,8 @@ module SystemPathways
       known_sections.detect { |m| m == section } || known_sections.first
     end
 
-    def section_path(section)
-      section_system_pathways_warehouse_reports_report_path(self, allowed_section(section))
+    def chart_data_path(section)
+      chart_data_system_pathways_warehouse_reports_report_path(self, allowed_section(section), format: :json)
     end
 
     private def build_control_sections

@@ -1,7 +1,7 @@
 - equity = SystemPathways::Equity.new(report: @report, filter: @filter)
 -# = debug equity.chart_data(:race).to_json
-.equity{ data: { controller: 'section-changer' }}
-  - url = URI(@report.section_path('equity'))
+.equity{ data: { controller: 'chart-loader', chart: 'document.equity' }}
+  - url = URI(@report.chart_data_path('equity'))
   .dropdown
     %button.btn.btn-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
       Demographic Breakdown
@@ -9,7 +9,7 @@
     .dropdown-menu.options
       - demo = [['Ethnicity', 'ethnicity'], ['Race', 'race']].each do |label, key|
         - url.query = @filter.for_params.merge(demographic_breakdown: key).to_query
-        - data = { action: 'click->section-changer#replaceSection:prevent', 'section-changer-target' => 'changer' }
+        - data = { action: 'click->chart-loader#loadChartData:prevent', 'chart-loader-target' => 'changer' }
         - classes = ['dropdown-item']
         - classes << 'active' if params[:demographic_breakdown] == key
         = link_to(label, url.to_s, data: data, class: classes)
@@ -17,9 +17,16 @@
   #equity-chart
   = content_for :page_js do
     :javascript
-      let equity_chart_data = #{equity.chart_data(:race).to_json.html_safe};
-      let equity_chart = bb.generate({
-        data: equity_chart_data,
+      document.equity = bb.generate({
+        data: {
+          columns: [],
+          type: 'bar',
+          x: 'x',
+          groups: [],
+          stack: {
+            normalize: true
+          },
+        },
         bindto: '#equity-chart',
         size: {
           height: 800,
