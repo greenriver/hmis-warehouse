@@ -11,7 +11,7 @@ module HmisExternalApis
     belongs_to :referral, class_name: 'HmisExternalApis::Referral'
     belongs_to :referral_request, class_name: 'HmisExternalApis::ReferralRequest', optional: true
     belongs_to :project, class_name: 'Hmis::Hud::Project'
-    # belongs_to :unit_type, class_name: 'Hmis::UnitType'
+    belongs_to :unit_type, class_name: 'Hmis::UnitType'
 
     # https://docs.google.com/spreadsheets/d/12wRLTjNdcs7A_1lHwkLUoKz1YWYkfaQs/edit#gid=26094550
     enum(
