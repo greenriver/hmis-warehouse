@@ -8,10 +8,17 @@ module HmisExternalApis
   module Hmis
     module UnitTypeExtension
       extend ActiveSupport::Concern
+      include ExternallyIdentifiedMixin
 
       included do
         has_many :external_referral_requests, class_name: 'HmisExternalApis::ReferralRequest', dependent: :restrict_with_exception
         # has_many :external_referral_postings, class_name: 'HmisExternalApis::ReferralPosting', dependent: :restrict_with_exception
+      end
+
+      class_methods do
+        def order_by_created_at(dir = :asc)
+          order(created_at: dir)
+        end
       end
     end
   end

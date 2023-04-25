@@ -5,46 +5,67 @@
 ###
 
 require 'rails_helper'
+require 'webmock/rspec'
 
-# We need many secrets to test this. Essentially, this runs locally or on staging
 RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
-  if ENV['OAUTH_CREDENTIAL_TEST'] == 'true'
-    let(:host) { ENV.fetch('MCI_HOST', 'someapi.net') }
-    let(:client_id) { ENV.fetch('MCI_CLIENT_ID', '1234567890') }
-    let(:client_secret) { ENV.fetch('MCI_CLIENT_SECRET', 'secretsecretsecret') }
-    let(:token_url) { ENV.fetch('MCI_TOKEN_URL', 'https://api.somewhere.com/oauth2/ausn4n76zqvelHaPb0h7/v1/token') }
-    let(:ocp_apim_subscription_key) { ENV.fetch('MCI_OCP_APIM_SUBSCRIPTION_KEY', '1234567eaeaeaeaea') }
+  let(:fake_token) { 'deadbeefdeadbeefdeadbeefdeadbeef' }
+  let(:host) { 'example.com' }
+  let(:client_id) { '1234567890' }
+  let(:client_secret) { 'secretsecretsecret' }
+  let(:token_url) { 'https://example.com/oauth2/v1/token' }
 
-    let(:subject) do
-      HmisExternalApis::OauthCredential.new(
-        client_id: client_id,
-        client_secret: client_secret,
-        token_url: token_url,
-        headers: { 'Ocp-Apim-Subscription-Key' => ocp_apim_subscription_key },
-        base_url: "https://#{host}/",
-        scope: 'API_TEST',
-      )
-    end
+  let(:subject) do
+    HmisExternalApis::OauthClientConnection.new(
+      client_id: client_id,
+      client_secret: client_secret,
+      token_url: token_url,
+      base_url: "https://#{host}/",
+      scope: 'API_TEST',
+    )
+  end
 
-    it 'supports a get' do
-      result = subject.get('clients/v1/api/Lookup/logicalTables')
-      expect(result.status).to eq(200)
-      expect(result.parsed_body).to include('COUNTRY')
-      expect(result.parsed_body).to include('RACE')
-    end
+  before(:each) do
+    # mock successful oauth
+    body = {
+      "access_token": fake_token,
+      "token_type": 'Bearer',
+      "expires_in": 3600,
+      "refresh_token": fake_token,
+      "scope": subject.scope,
+    }.to_json
+    stub_request(:post, 'https://example.com/oauth2/v1/token')
+      .to_return(status: 200, body: body,
+                 headers: { 'Content-Type' => 'application/json' })
+  end
 
-    it 'handles errors' do
-      result = subject.get('clients/v1/api/not-a-thing')
-      expect(result.status).to be_nil
-      expect(result.body).to be_nil
-      expect(result.parsed_body).to be_nil
-      expect(result.error_type).to eq('OAuth2::Error')
-    end
+  it 'supports a get' do
+    path = 'test/resources/1'
+    stub_request(:get, "#{subject.base_url}#{path}")
+      .to_return(status: 200, body: { helloWorld: 1 }.to_json,
+                 headers: { 'Content-Type' => 'application/json' })
 
-    it 'supports a post' do
-      result = subject.post('clients/v1/api/Clients/clearance', { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
-      expect(result.status).to eq(200)
-      expect(result.parsed_body.length).to eq(470)
-    end
+    result = subject.get(path)
+    expect(result.http_status).to eq(200)
+    expect(result.parsed_body).to include('helloWorld')
+  end
+
+  it 'handles errors' do
+    path = 'test/resources/2'
+    stub_request(:get, "#{subject.base_url}#{path}")
+      .to_return(status: 404, body: nil, headers: {})
+
+    result = subject.get(path)
+    expect(result.http_status).to be_nil
+    expect(result.body).to be_blank
+    expect(result.parsed_body).to be_blank
+    expect(result.error_type).to eq('OAuth2::Error')
+  end
+
+  it 'supports a post' do
+    path = 'test/resources'
+    stub_request(:post, "#{subject.base_url}#{path}")
+      .to_return(status: 201, body: nil, headers: {})
+    result = subject.post(path, { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
+    expect(result.http_status).to eq(201)
   end
 end

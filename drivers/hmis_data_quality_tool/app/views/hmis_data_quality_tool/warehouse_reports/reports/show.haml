@@ -1,41 +1,12 @@
-= render 'breadcrumbs'
-- content_for :title, @report.title
-%h1= content_for :title
-.d-flex.mb-2
-  %p= @report.description
-  %p.ml-auto= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+= render 'header'
 
-.well.report-listing.warehouse-reports__completed
-  .justify-content-between
-    - content_for :panel_collapse_content_universe, flush: true do
-      .d-flex
-        = @report.describe_filter_as_html(@report.known_params, limited: false)
-    - content_for :panel_collapse_heading_universe do
-      .d-flex.pt-4
-        %h2.mb-4.mr-6 Chosen Universe
-        = @report.describe_filter_as_html([:start, :comparison_pattern, :coc_codes], inline: true)
-        .ml-auto.d-flex
-          %i.icon-angle-right.j-toggle-arrow
-          .j-toggle-text.ml-2.show Show Details
-          .j-toggle-text.ml-2.hide Hide Details
-    .minimal-collapse
-      = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
+%ul.nav.nav-tabs.mb-0
+  %li.nav-item
+    %a.nav-link.active{href: '#by_category', role: "presentation", data: {toggle: :tab}, aria: {controls:"by-category", selected:"true"}}
+      By Category
+  %li.nav-item
+    = link_to 'By Client', by_client_hmis_data_quality_tool_warehouse_reports_report_path(@report), class: 'nav-link'
 
-= render 'summary'
-- @report.results.group_by(&:category).each do |category, results|
-  %h2= category
-  .card.mb-6
-    %table.table.table-striped
-      %thead
-        %tr
-          %th Section
-          %th Description
-          %th Required for
-          %th Overall Number in Universe
-          %th Number of Invalid Values
-          %th Percent Valid
-      %tbody
-        - results.each do |result|
-          = render 'row', result: result
-
-= render 'informational'
+.tab-content.mt-4
+  .tab-pane.show.active.fade#by_category{role: 'tabpanel', aria: {labelledby: 'by-category'}}
+    = render 'by_category'

@@ -6,8 +6,8 @@
 
 FactoryBot.define do
   factory :hmis_external_api_referral, class: 'HmisExternalApis::Referral' do
+    sequence :identifier, Zlib.crc32('HmisExternalApis::Referral')
     service_coordinator { Faker::Name.name }
-    identifier { SecureRandom.uuid }
     referral_date { Date.today }
   end
 end

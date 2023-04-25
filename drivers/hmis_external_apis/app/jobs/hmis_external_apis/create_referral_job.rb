@@ -7,28 +7,32 @@
 module HmisExternalApis
   class CreateReferralJob < ApplicationJob
     include HmisExternalApis::ReferralJobMixin
-    attr_accessor :params
+    attr_accessor :params, :errors
 
     # @param params [Hash] api payload
     def perform(params:)
-      self.params = params
+      self.params = params.deep_symbolize_keys
       # FIXME: add param validation and capture raw request
 
-      referral = nil
+      self.errors = []
+      success = nil
       # transact assumes we are only mutating records in the warehouse db
       HmisExternalApis::Referral.transaction do
         referral = create_referral
-        create_referral_postings(referral)
-        create_referral_household_members(referral)
+        raise ActiveRecord::Rollback unless create_referral_posting(referral)
+
+        raise ActiveRecord::Rollback unless create_referral_household_members(referral)
+
+        success = referral
       end
-      referral
+      [success, errors]
     end
 
     protected
 
     def create_referral
       params => {referral_id:, referral_date:, service_coordinator:}
-      referral = referral_scope.new
+      referral = HmisExternalApis::Referral.new
       referral.identifier = referral_id
       referral.referral_date = referral_date
       referral.service_coordinator = :service_coordinator
@@ -36,49 +40,35 @@ module HmisExternalApis
       referral
     end
 
-    def create_referral_postings(referral)
-      posting_attrs = params.fetch(:postings)
+    def create_referral_posting(referral)
+      (posting_id, program_id, unit_type_id, referral_request_id) = params.values_at(:posting_id, :program_id, :unit_type_id, :referral_request_id)
+      raise unless posting_id && program_id && unit_type_id # required fields, should be caught in validation
 
-      # build lookup tables for entities referenced in postings; avoid n+1 queries
-      referral_requests_by_identifier = posting_attrs
-        .map { |h| h[:referral_request_id] }
-        .compact
-        .then do |ids|
-          ids.any? ? referral_request_scope.preload(:project, :unit_type).where(identifier: ids).index_by(&:identifier) : {}
-        end
-      projects_ids_by_mper_id = external_id_map(
-        cred: mper_cred,
-        scope: ::Hmis::Hud::Project,
-        external_ids: posting_attrs.map { |a| a[:program_id] }.compact,
-      )
+      posting = referral.postings.new(identifier: posting_id)
+      posting.project = ::Hmis::Hud::Project.first_by_external_id(cred: mper_cred, id: program_id)
+      return error_out('Project not found') unless posting.project
 
-      posting_attrs.map do |attrs|
-        (posting_id, referral_request_id, program_id) = attrs.values_at(:posting_id, :referral_request_id, :program_id).map(&:presence)
-        raise unless posting_id
+      if referral_request_id
+        # the posting references an existing referral request
+        posting.referral_request = HmisExternalApis::ReferralRequest
+          .where(identifier: referral_request_id).first
+        return error_out('Referral Request not found') unless posting.referral_request
 
-        posting = referral.postings.new(identifier: posting_id)
-        if referral_request_id
-          # the posting references an existing referral request
-          referral_request = referral_requests_by_identifier.fetch(referral_request_id)
-          posting.referral_request = referral_request
-          # posting.referral_request is optional; denormalize fields for consistency
-          posting.project = referral_request.project
-          # posting.unit_type = referral_request.unit_type
-        elsif program_id
-          # the posting is an assignment, the program id is MPER project ID
-          posting.project_id = projects_ids_by_mper_id.fetch(program_id)
-          # posting.unit_type = unit_types_by_identifier.fetch(unit_type_id)
-        else
-          raise "unexpected referral posting: #{attrs.inspect}"
-        end
-        posting.status = 'assigned_status'
-        posting.save!
-        posting
+        return error_out('Referral Request does not match Project') unless
+          posting.referral_request.project_id == posting.project_id
       end
+
+      posting.unit_type = ::Hmis::UnitType
+        .first_by_external_id(cred: mper_cred, id: unit_type_id)
+      return error_out('Unit Type not found') unless posting.unit_type
+
+      posting.status = 'assigned_status'
+      posting.save!
+      posting
     end
 
     def create_client(attrs)
-      attrs => {first_name:, last_name:, middle_name:, dob:, ssn:}
+      (first_name, last_name, middle_name, dob, ssn) = attrs.values_at(:first_name, :last_name, :middle_name, :dob, :ssn)
       client = ::Hmis::Hud::Client.new
       client.user = system_user
       client.data_source = data_source
@@ -137,14 +127,6 @@ module HmisExternalApis
       end
     end
 
-    def referral_scope
-      HmisExternalApis::Referral
-    end
-
-    def referral_request_scope
-      HmisExternalApis::ReferralRequest
-    end
-
     def data_source
       # FIXME: not sure what the data source is
       @data_source ||= ::GrdaWarehouse::DataSource.hmis.first!
@@ -177,6 +159,11 @@ module HmisExternalApis
           ret[mci_id] ||= client_id
         end
       ret
+    end
+
+    def error_out(msg)
+      errors.push(msg)
+      return false
     end
   end
 end
