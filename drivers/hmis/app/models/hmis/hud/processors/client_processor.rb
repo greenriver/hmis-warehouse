@@ -15,9 +15,9 @@ module Hmis::Hud::Processors
 
       attributes = case attribute_name
       when 'race'
-        race_attributes(Array.wrap(attribute_value))
+        self.class.race_attributes(Array.wrap(attribute_value))
       when 'gender'
-        gender_attributes(Array.wrap(attribute_value))
+        self.class.gender_attributes(Array.wrap(attribute_value))
       when 'pronouns'
         { attribute_name => Array.wrap(attribute_value).any? ? Array.wrap(attribute_value).join('|') : nil }
       when 'ssn'
@@ -48,8 +48,8 @@ module Hmis::Hud::Processors
     def information_date(_)
     end
 
-    private def race_attributes(attribute_value)
-      self.class.input_to_multi_fields(
+    def self.race_attributes(attribute_value)
+      input_to_multi_fields(
         attribute_value,
         Hmis::Hud::Client.race_enum_map,
         :data_not_collected,
@@ -57,8 +57,9 @@ module Hmis::Hud::Processors
       )
     end
 
-    private def gender_attributes(attribute_value)
-      self.class.input_to_multi_fields(
+    # @param genders [Array<Integer>] HUD gender values
+    def self.gender_attributes(attribute_value)
+      input_to_multi_fields(
         attribute_value,
         Hmis::Hud::Client.gender_enum_map,
         'Data not collected',

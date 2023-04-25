@@ -12,28 +12,36 @@ module Mutations
 
     field :matches, [Types::AcHmis::MciClearanceMatch], null: true
 
+    MATCH_THRESHOLD = 80
+    AUTO_CLEAR_THRESHOLD = 97
+
     def resolve(input:)
-      # TODO: error if MCI connection isn't set up
+      errors = HmisErrors::Errors.new
+      errors.add :base, :server_error, full_message: 'MCI connection is not configured' unless HmisExternalApis::Mci.enabled?
+      return { errors: errors } if errors.any?
+
       mci = HmisExternalApis::Mci.new
-      # TODO: try catch
-      matches = mci.clearance(input.to_client)
-      _result = matches.map { |m| Types::AcHmis::MciClearanceMatch.from_mci_clearance_result(m) }
+
+      begin
+        response = mci.clearance(input.to_client)
+      rescue StandardError => e
+        errors.add :base, :server_error, full_message: e.message
+        return { errors: errors }
+      end
+
+      # Sort by match score, and drop any matches below 80
+      mci_matches = response.
+        filter { |m| m.score >= MATCH_THRESHOLD }.
+        sort_by { |m| [-m.score, m.mci_id] }
+
+      # Auto-clearance: if any match is above >97, drop all other matches
+      mci_matches = [mci_matches.first] if !mci_matches.empty? && mci_matches.first.score >= AUTO_CLEAR_THRESHOLD
+
+      # Transform to GraphQL type
+      # gql_matches = mci_matches.map { |m| Types::AcHmis::MciClearanceMatch.from_mci_clearance_result(m) }
 
       {
-        matches: [
-          {
-            id: 1,
-            score: 80,
-            clent: {
-              id: 2,
-              mci_id: '1234234',
-              first_name: 'foo',
-              last_name: 'bar',
-              dob: 30.years.ago,
-              age: 30,
-            },
-          },
-        ],
+        matches: mci_matches,
         errors: [],
       }
     end

@@ -3025,7 +3025,6 @@ type MciClearanceMatch {
   mciId: String!
   middleName: String
   nameSuffix: String
-  race: [Race!]!
   score: Int!
   ssn: String
 }
