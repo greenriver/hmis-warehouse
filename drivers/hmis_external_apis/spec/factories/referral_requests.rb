@@ -7,7 +7,7 @@
 require 'faker'
 FactoryBot.define do
   factory :hmis_external_api_referral_request, class: 'HmisExternalApis::ReferralRequest' do
-    identifier { SecureRandom.uuid }
+    sequence :identifier, Zlib.crc32('HmisExternalApis::ReferralRequest')
     association :project, factory: :hmis_hud_project
     association :unit_type, factory: :hmis_unit_type
     requested_on { Date.today }
