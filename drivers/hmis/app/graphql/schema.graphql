@@ -3134,7 +3134,7 @@ type Mutation {
   ): ApplicationUser
 
   """
-  Submit a form to create/update HUD record(s)
+  Perform MCI clearance and return matches
   """
   clearMci(
     """
