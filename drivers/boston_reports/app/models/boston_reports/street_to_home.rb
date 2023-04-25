@@ -289,7 +289,7 @@ module BostonReports
     end
 
     def race_counts_for(scope)
-      values = scope.distinct.pluck(*GrdaWarehouse::Hud::Client.race_fields)
+      values = scope.pluck(*GrdaWarehouse::Hud::Client.race_fields)
       counts = {}
       GrdaWarehouse::Hud::Client.race_fields.each.with_index do |col, i|
         race = HudUtility.race(col)
@@ -304,7 +304,7 @@ module BostonReports
     end
 
     def ethnicity_counts_for(scope)
-      values = scope.distinct.where(Ethnicity: [0, 1]).pluck(:Ethnicity)
+      values = scope.where(Ethnicity: [0, 1]).pluck(:Ethnicity)
       counts = ethnicities.values.map { |e| [e, 0] }.to_h
 
       values.each do |ethnicity|

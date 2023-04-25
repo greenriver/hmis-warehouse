@@ -5,7 +5,7 @@
   "title": "Referral",
   "description": "Notify HMIS that a client and household members are eligible for a posting",
   "type": "object",
-  "required": ["referral_id", "referral_date", "service_coordinator", "posting_id", "program_id"],
+  "required": ["referral_id", "referral_date", "service_coordinator", "posting_id", "program_id", "unit_type_id"],
   "properties": {
     "referral_id": { "type": ["integer", "string"] },
     "referral_date": { "type": "string", "format": "date" },

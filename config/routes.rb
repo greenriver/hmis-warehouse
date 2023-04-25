@@ -752,6 +752,9 @@ Rails.application.routes.draw do
         post :stop_impersonating
       end
     end
+
+    resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
+
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
     end

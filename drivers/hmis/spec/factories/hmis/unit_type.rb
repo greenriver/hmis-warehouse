@@ -6,7 +6,7 @@
 
 FactoryBot.define do
   factory :hmis_unit_type, class: 'Hmis::UnitType' do
-    bed_type { 1 }
+    bed_type { 13 }
     unit_size { 200 }
   end
 end

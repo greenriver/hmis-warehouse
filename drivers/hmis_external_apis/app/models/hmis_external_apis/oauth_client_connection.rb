@@ -50,31 +50,31 @@ module HmisExternalApis
         http_method: verb,
         http_status: result.status,
         ip: nil,
-        parsed_body: JSON.parse(result.body),
+        parsed_body: try_parse_json(result.body),
         request_headers: merged_headers,
         url: url,
       )
-    rescue StandardError => e
+    rescue OAuth2::Error => e
       OauthClientResult.new(
         body: result&.body || e.message,
         content_type: result&.content_type,
-        error: begin
-                 JSON.parse(e.message)
-               rescue StandardError
-                 e.message
-               end,
+        error: try_parse_json(e.message) || e.message,
         error_type: e.class.name,
         http_method: verb,
         http_status: result&.status,
         ip: nil,
-        parsed_body: begin
-                       JSON.parse(result&.body) || JSON.parse(e.message)
-                     rescue StandardError
-                       e.message
-                     end,
+        parsed_body: try_parse_json(result&.body),
         request_headers: merged_headers,
         url: url,
       )
+    end
+
+    def try_parse_json(str)
+      return nil unless str.present?
+
+      JSON.parse(str)
+    rescue JSON::ParserError
+      nil
     end
 
     # We can't cache this in redis, but we want to retain access tokens between

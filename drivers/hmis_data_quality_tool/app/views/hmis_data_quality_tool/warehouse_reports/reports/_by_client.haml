@@ -1,0 +1,35 @@
+.mt-4
+  = render 'common/pagination_top', item_name: 'client'
+
+.card.mb-6
+  %table.table.table-sm.table-bordered.table-fixed.table-striped
+    %thead.thead-dark
+      %tr
+        %th{colspan: 4}
+        - @pivot_details.groups.each_with_index do |(title, group), index|
+          - bg = index % 2 == 0 ? 'bg-light text-dark' : nil
+          %th.text-center{colspan: group.size, class: bg}= title
+      %tr
+        %th
+        %th Personal ID
+        %th Last Name
+        %th First Name
+        - @pivot_details.groups.values.map(&:keys).flatten.each do |key|
+          %th= @pivot_details.lookup[key]
+    %tbody
+      - @clients.each do |client|
+        %tr
+          - if @pivot_details.clients_with_flags.include?([client.personal_id, client.data_source_id])
+            %td.text-warning.icon-warning
+          -else
+            %td
+          %td= client.personal_id
+          %td= client.last_name
+          %td= client.first_name
+          - @pivot_details.groups.values.map(&:keys).flatten.each do |key|
+            - marked = @pivot_details.flags[@pivot_details.lookup[key]].include?([client.personal_id, client.data_source_id])
+            - if marked
+              %td
+                = checkmark_or_x(false)
+            -else
+              %td

@@ -13953,7 +13953,10 @@ CREATE TABLE public.hmis_dqt_enrollments (
     days_to_enter_exit_date integer,
     days_before_entry integer,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    annual_expected boolean,
+    enrollment_anniversary_date date,
+    annual_assessment_status json
 );
 
 
@@ -14075,7 +14078,8 @@ CREATE TABLE public.hmis_dqt_goals (
     deleted_at timestamp without time zone,
     entry_date_entered_length integer DEFAULT 6,
     exit_date_entered_length integer DEFAULT 6,
-    expose_ch_calculations boolean DEFAULT true NOT NULL
+    expose_ch_calculations boolean DEFAULT true NOT NULL,
+    show_annual_assessments boolean DEFAULT true
 );
 
 
@@ -16313,6 +16317,41 @@ CREATE SEQUENCE public.import_logs_id_seq
 --
 
 ALTER SEQUENCE public.import_logs_id_seq OWNED BY public.import_logs.id;
+
+
+--
+-- Name: inbound_api_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.inbound_api_configurations (
+    id bigint NOT NULL,
+    internal_system_name character varying NOT NULL,
+    external_system_name character varying NOT NULL,
+    hashed_api_key character varying NOT NULL,
+    plain_text_reminder character varying NOT NULL,
+    version integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: inbound_api_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.inbound_api_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: inbound_api_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.inbound_api_configurations_id_seq OWNED BY public.inbound_api_configurations.id;
 
 
 --
@@ -20448,7 +20487,9 @@ CREATE TABLE public.system_pathways_enrollments (
     household_type character varying,
     report_id bigint,
     deleted_at timestamp without time zone,
-    final_enrollment boolean DEFAULT false NOT NULL
+    final_enrollment boolean DEFAULT false NOT NULL,
+    move_in_date date,
+    days_to_move_in integer
 );
 
 
@@ -23567,6 +23608,13 @@ ALTER TABLE ONLY public.identify_duplicates_log ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.import_logs ALTER COLUMN id SET DEFAULT nextval('public.import_logs_id_seq'::regclass);
+
+
+--
+-- Name: inbound_api_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inbound_api_configurations ALTER COLUMN id SET DEFAULT nextval('public.inbound_api_configurations_id_seq'::regclass);
 
 
 --
@@ -26808,6 +26856,14 @@ ALTER TABLE ONLY public.identify_duplicates_log
 
 ALTER TABLE ONLY public.import_logs
     ADD CONSTRAINT import_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: inbound_api_configurations inbound_api_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inbound_api_configurations
+    ADD CONSTRAINT inbound_api_configurations_pkey PRIMARY KEY (id);
 
 
 --
@@ -40672,6 +40728,13 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
+-- Name: idx_api_conf_on_name_and_external_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_api_conf_on_name_and_external_name ON public.inbound_api_configurations USING btree (internal_system_name, external_system_name, version);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44610,6 +44673,20 @@ CREATE INDEX index_import_logs_on_loader_log_id ON public.import_logs USING btre
 --
 
 CREATE INDEX index_import_logs_on_updated_at ON public.import_logs USING btree (updated_at);
+
+
+--
+-- Name: index_inbound_api_configurations_on_hashed_api_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_inbound_api_configurations_on_hashed_api_key ON public.inbound_api_configurations USING btree (hashed_api_key);
+
+
+--
+-- Name: index_inbound_api_configurations_on_plain_text_reminder; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_inbound_api_configurations_on_plain_text_reminder ON public.inbound_api_configurations USING btree (plain_text_reminder);
 
 
 --
@@ -52397,6 +52474,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230414130229'),
 ('20230414152958'),
 ('20230417122614'),
-('20230419162140');
+('20230418163934'),
+('20230419162140'),
+('20230419165219'),
+('20230419190654'),
+('20230420164514');
 
 
