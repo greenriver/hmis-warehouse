@@ -8,18 +8,18 @@
 
 module Types
   class AcHmis::MciClearanceInput < Types::BaseInputObject
-    argument :first_name, String
-    argument :middle_name, String
+    argument :first_name, String, required: true
+    argument :middle_name, String, required: false
     argument :last_name, String, required: true
-    argument :ssn, String, required: true
+    argument :ssn, String, required: false
     argument :dob, GraphQL::Types::ISO8601Date, required: true
-    argument :gender, [Types::HmisSchema::Enums::Gender], required: true
+    argument :gender, [Types::HmisSchema::Enums::Gender], required: false
 
     def to_client
       attributes = to_h.except(:gender)
       Hmis::Hud::Client.new(
         **attributes,
-        **Hmis::Hud::Processors::ClientProcessor.gender_attributes(gender),
+        **Hmis::Hud::Processors::ClientProcessor.gender_attributes(gender || []),
         **HudUtility.races.keys.map { |k| [k, 99] }.to_h,
         ethnicity: 99,
         name_data_quality: 1,

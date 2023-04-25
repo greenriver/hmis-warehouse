@@ -97,7 +97,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should transform MciClearanceInput into Client with minimal values' do
-    client = to_gql_input_object({ **input.except(:middle_name, :ssn, :gender), gender: [] }, Types::AcHmis::MciClearanceInput).to_client
+    client = to_gql_input_object({ **input.except(:middle_name, :ssn, :gender) }, Types::AcHmis::MciClearanceInput).to_client
 
     expect(client.persisted?).to eq(false)
     expect(client.first_name).to eq(input[:first_name])

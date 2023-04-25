@@ -3004,10 +3004,10 @@ enum LivingSituation {
 input MciClearanceInput {
   dob: ISO8601Date!
   firstName: String!
-  gender: [Gender!]!
+  gender: [Gender!]
   lastName: String!
-  middleName: String!
-  ssn: String!
+  middleName: String
+  ssn: String
 }
 
 type MciClearanceMatch {
