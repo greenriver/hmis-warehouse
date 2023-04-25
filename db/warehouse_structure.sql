@@ -14198,7 +14198,8 @@ CREATE TABLE public.hmis_external_referral_postings (
     status integer NOT NULL,
     referral_id bigint NOT NULL,
     project_id bigint NOT NULL,
-    referral_request_id bigint
+    referral_request_id bigint,
+    unit_type_id bigint NOT NULL
 );
 
 
@@ -44151,6 +44152,13 @@ CREATE INDEX index_hmis_external_referral_postings_on_project_id ON public.hmis_
 
 
 --
+-- Name: index_hmis_external_referral_postings_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_postings_on_unit_type_id ON public.hmis_external_referral_postings USING btree (unit_type_id);
+
+
+--
 -- Name: index_hmis_external_referral_requests_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50969,6 +50977,14 @@ ALTER TABLE ONLY public.service_history_services_2045
 
 
 --
+-- Name: hmis_external_referral_postings fk_rails_376e889c6f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_376e889c6f FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: service_history_services_2006 fk_rails_3ab91d734b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -52478,6 +52494,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230419162140'),
 ('20230419165219'),
 ('20230419190654'),
-('20230420164514');
+('20230420164514'),
+('20230424194313');
 
 

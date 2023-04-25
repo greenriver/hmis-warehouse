@@ -78,27 +78,17 @@ module HmisExternalApis
       client.dob = dob
       client.ssn = ssn
 
-      # DQ = 1 needed for validations
-      client.NameDataQuality = 1
-      client.SSNDataQuality = 1
-      client.DOBDataQuality = 1
+      client.name_data_quality = 1 # Full name always present for MCI clients
+      client.dob_data_quality = 1 # Full DOB always present for MCI clients
+      client.ssn_data_quality = ssn.present? ? 1 : 99
 
-      # FIXME- demographics need to be mapped.
-      # set dummy values for now to let validation pass
-      client.AmIndAKNative = 0
-      client.Asian = 0
-      client.BlackAfAmerican = 0
-      client.NativeHIPacific = 0
-      client.White = 0
-      client.Ethnicity = 0
-      client.Female = 0
-      client.Male = 0
-      client.NoSingleGender = 0
-      client.Transgender = 0
-      client.Questioning = 0
-      client.Gender = 0
-      client.VeteranStatus = 0
+      # TODO: map races and ethnicities
+      HudUtility.races.keys.each { |k| client.send("#{k}=", 99) }
+      # TODO: map genders
+      HudUtility.gender_fields.each { |k| client.send("#{k}=", 99) }
 
+      client.veteran_status = 99
+      client.ethnicity = 99
       client.save!
       client
     end
@@ -107,7 +97,7 @@ module HmisExternalApis
       member_params = params.fetch(:household_members)
       clients_ids_by_mci_id = external_id_map(
         cred: mci_cred,
-        scope: ::Hmis::Hud::Client,
+        scope: ::Hmis::Hud::Client.where(data_source: data_source),
         external_ids: member_params.map { |a| a.fetch(:mci_id) },
       )
 
@@ -118,6 +108,7 @@ module HmisExternalApis
         found_id = clients_ids_by_mci_id[mci_id]
         if found_id
           member.client_id = found_id
+          # TODO: update client attributes based on the values we received
         else
           member.client = create_client(attrs)
           mci_cred.external_ids.create!(source: member.client, value: mci_id)
@@ -128,7 +119,7 @@ module HmisExternalApis
     end
 
     def data_source
-      # FIXME: not sure what the data source is
+      # Note: not set up to handle multiple HMIS data sources, since ac_hmis doesn't need it. Use the first one.
       @data_source ||= ::GrdaWarehouse::DataSource.hmis.first!
     end
 
