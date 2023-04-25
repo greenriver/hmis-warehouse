@@ -1,6 +1,6 @@
 = render 'summary'
 - @report.results.group_by(&:category).each do |category, results|
-  %h2= category
+  %h2.mt-2= category
   .card.mb-6
     %table.table.table-striped
       %thead
