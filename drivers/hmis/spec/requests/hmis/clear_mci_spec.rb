@@ -10,10 +10,6 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
-  # let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  # let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  # let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  # let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
   let(:stub_mci) { double }
 
@@ -25,14 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     allow(HmisExternalApis::Mci).to receive(:new).and_return(stub_mci)
   end
 
-  let!(:mci_cred) do
-    create(
-      :remote_oauth_credential,
-      slug: 'mci',
-      base_url: 'fake',
-      token_url: 'fake',
-    )
-  end
+  let!(:mci_cred) { create(:remote_oauth_credential, slug: 'mci') }
 
   let(:stub_clearance_results) do
     [
@@ -154,6 +143,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to be_empty
       expect(matches.length).to eq(1)
       expect(matches).to match([a_hash_including('score' => 98)])
+    end
+  end
+
+  it 'should prefer existing clients for auto-clearance if match score is the same' do
+    stub_clearance_results[0].score = 97
+    stub_clearance_results[0].existing_client_id = nil
+    stub_clearance_results[1].score = 97
+    stub_clearance_results[1].existing_client_id = '123'
+
+    allow(stub_mci).to receive(:clearance).and_return(stub_clearance_results)
+
+    mutate(input: { input: input }) do |matches, errors|
+      expect(errors).to be_empty
+      expect(matches.length).to eq(1)
+      expect(matches).to match([a_hash_including('existingClientId' => '123')])
     end
   end
 

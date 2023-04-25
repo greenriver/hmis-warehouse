@@ -6,7 +6,7 @@
 
 module Mutations
   class AcHmis::ClearMci < BaseMutation
-    description 'Submit a form to create/update HUD record(s)'
+    description 'Perform MCI clearance and return matches'
 
     argument :input, Types::AcHmis::MciClearanceInput, required: true
 
@@ -32,13 +32,11 @@ module Mutations
       # Sort by match score, and drop any matches below 80
       mci_matches = response.
         filter { |m| m.score >= MATCH_THRESHOLD }.
-        sort_by { |m| [-m.score, m.mci_id] }
+        # If score is the same, secondary sort prefers clients that already exist in HMIS
+        sort_by { |m| [-m.score, m.existing_client_id&.to_i || Float::INFINITY, m.mci_id] }
 
       # Auto-clearance: if any match is above >97, drop all other matches
       mci_matches = [mci_matches.first] if !mci_matches.empty? && mci_matches.first.score >= AUTO_CLEAR_THRESHOLD
-
-      # Transform to GraphQL type
-      # gql_matches = mci_matches.map { |m| Types::AcHmis::MciClearanceMatch.from_mci_clearance_result(m) }
 
       {
         matches: mci_matches,
