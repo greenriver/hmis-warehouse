@@ -1,0 +1,12 @@
+= render 'header'
+
+%ul.nav.nav-tabs.mb-0
+  %li.nav-item
+    = link_to 'By Category', hmis_data_quality_tool_warehouse_reports_report_path(@report), class: 'nav-link'
+  %li.nav-item
+    %a.nav-link.active{href: '#by_client', role: "presentation", data: {toggle: :tab}, aria: {controls:"by-client", selected:"true"}}
+      By Client
+
+.tab-content
+  .tab-pane.show.active.fade#by_category{role: 'tabpanel', aria: {labelledby: 'by-client'}}
+    = render 'by_client'
