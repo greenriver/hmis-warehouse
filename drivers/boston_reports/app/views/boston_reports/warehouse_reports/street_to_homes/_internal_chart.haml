@@ -53,7 +53,9 @@
           let numbers = d3.map(columns, (row) => Number.isInteger(row[i + 1]) ? row[i + 1] : 0);
           let total = numbers.reduce((partialSum, a) => partialSum + a, 0);
           let percentage = v/total;
-
+          if (percentage < 0.05) {
+            return '';
+          }
           return d3.format('.0%')(percentage);
         }
       }
