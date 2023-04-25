@@ -10,10 +10,10 @@
       "link_id": "mci-clearance-value",
       "component": "MCI",
       "text": "MCI ID",
-      "field_name": "mciIdFIXME",
+      "_comment": "TODO: should probably use custom field name",
+      "field_name": "mciId",
       "disabled_display": "PROTECTED",
       "enable_behavior": "ALL",
-      "_comment": "TODO should also disable if client already has an mci id.",
       "enable_when": [
         {
           "question": "first-name",
