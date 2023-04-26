@@ -1,7 +1,5 @@
 BostonHmis::Application.routes.draw do
-  namespace :hmis_external_apis do
-    # TODO
-    # get '/my_path', to: 'hmis_external_apis/my_controller'
-    resources :referrals, only: [:create]
+  scope(module: :hmis_external_apis) do
+    post('/hmis_external_api/ac_hmis/referrals', to: 'referrals#create', as: 'hmis_external_apis_referrals', defaults: { format: 'json' })
   end
 end
