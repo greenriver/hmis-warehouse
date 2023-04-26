@@ -21,12 +21,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
+    assign_viewable(edit_access_group, p1, hmis_user)
     c1.update({ dob: Date.today - 18.years, ssn: '123456789' })
   end
 
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
 
   let(:query) do
     <<~GRAPHQL
@@ -60,8 +61,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
   end
 
-  it 'should return no client if not viewable' do
-    remove_permissions(hmis_user, :can_view_clients)
+  it 'should return no client if not viewable due to no related enrollments' do
+    remove_permissions(hmis_user, :can_view_unenrolled_clients)
+    e1.destroy!
+    response, result = post_graphql(id: c1.id) { query }
+    expect(response.status).to eq 200
+    expect(result.dig('data', 'client')).to be_nil
+  end
+
+  it 'should return no client if not viewable due to no permissions' do
+    remove_permissions(hmis_user, :can_view_clients, :can_view_unenrolled_clients)
     response, result = post_graphql(id: c1.id) { query }
     expect(response.status).to eq 200
     expect(result.dig('data', 'client')).to be_nil
