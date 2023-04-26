@@ -5,7 +5,7 @@
 ###
 
 # common behavior for referral processing
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   module ReferralJobMixin
     extend ActiveSupport::Concern
 

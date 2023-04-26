@@ -6,8 +6,8 @@
 
 require 'faker'
 FactoryBot.define do
-  factory :hmis_external_api_referral_request, class: 'HmisExternalApis::ReferralRequest' do
-    sequence :identifier, Zlib.crc32('HmisExternalApis::ReferralRequest')
+  factory :hmis_external_api_ac_hmis_referral_request, class: 'HmisExternalApis::AcHmis::ReferralRequest' do
+    sequence :identifier, Zlib.crc32('HmisExternalApis::AcHmis::ReferralRequest')
     association :project, factory: :hmis_hud_project
     association :unit_type, factory: :hmis_unit_type
     requested_on { Date.today }
