@@ -150,10 +150,12 @@ module Health
 
     def initial_intake_due
       overdue = [@range.last, Date.current].min
+      due = overdue + 30.days
       @initial_intake_due ||= Health::Patient.
         where(id: patient_ids).
         where.not(id: with_initial_intake.keys).
-        where(engagement_date: overdue - 30.days .. overdue)
+        where(engagement_date: overdue .. due).
+        pluck(:id).uniq
     end
 
     def initial_intake_overdue
@@ -161,29 +163,34 @@ module Health
       @initial_intake_overdue ||= Health::Patient.
         where(id: patient_ids).
         where.not(id: with_initial_intake.keys).
-        where(engagement_date: ...overdue)
+        where(engagement_date: ...overdue).
+        pluck(:id).uniq
     end
 
     def intake_renewal_due
+      overdue = [@range.last, Date.current].min - 1.year
+      due = overdue + 30.days
       @intake_renewal_due ||= Health::Patient.
         where(id: patient_ids).
         joins(:recent_pctp_form).
-        where(h_cp_t[:careplan_sent_on].between(@range.last - 1.year - 30.days .. @range.last - 1.year))
+        where(h_cp_t[:careplan_sent_on].between(overdue .. due)).
+        pluck(:id).uniq
     end
 
     def intake_renewal_overdue
       overdue = [@range.last, Date.current].min - 1.year
-      @intake_renewal_overdue ||= Health::Patient.
+      @intake_renewal_overdue = Health::Patient.
         where(id: patient_ids).
         joins(:recent_pctp_form).
-        where(h_cp_t[:careplan_sent_on].lt(overdue))
-      []
+        where(h_cp_t[:careplan_sent_on].lt(overdue)).
+        pluck(:id).uniq
     end
 
     def with_required_wellcare_visit
+      anchor = [@range.last, Date.current].min
       @with_required_wellcare_visit ||= ClaimsReporting::MedicalClaim.
         annual_well_care_visits.
-        service_in(Date.today - 12.months...Date.today).
+        service_in(anchor - 12.months ... anchor).
         joins(:patient).
         where(hp_t[:id].in(patient_referrals.keys)).
         pluck(hp_t[:id]).uniq
