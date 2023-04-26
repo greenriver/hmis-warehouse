@@ -6,11 +6,11 @@
 
 # Void a previously made referral request
 # We should only call it if we have no Postings for this request
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   class VoidReferralRequestJob < ApplicationJob
-    include HmisExternalApis::ReferralJobMixin
+    include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    # @param referral_request [HmisExternalApis::ReferralRequest]
+    # @param referral_request [HmisExternalApis::AcHmis::ReferralRequest]
     # @param voided_by [Hmis::User]
     # @param url [String]
     def perform(referral_request:, voided_by:, url:)

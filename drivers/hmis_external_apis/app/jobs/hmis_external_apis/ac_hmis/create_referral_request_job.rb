@@ -5,11 +5,11 @@
 ###
 
 # An HMIS User indicates that there is a vacancy in a program.
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   class CreateReferralRequestJob < ApplicationJob
-    include HmisExternalApis::ReferralJobMixin
+    include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    # @param referral_request [HmisExternalApis::ReferralRequest]
+    # @param referral_request [HmisExternalApis::AcHmis::ReferralRequest]
     def perform(referral_request:, url:)
       # if it's persisted, the assumption is that it's already been sent
       raise if referral_request.persisted?

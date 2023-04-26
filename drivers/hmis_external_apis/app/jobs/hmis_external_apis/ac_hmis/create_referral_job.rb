@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   class CreateReferralJob < ApplicationJob
-    include HmisExternalApis::ReferralJobMixin
+    include HmisExternalApis::AcHmis::ReferralJobMixin
     attr_accessor :params, :errors
 
     # @param params [Hash] api payload
@@ -17,7 +17,7 @@ module HmisExternalApis
       self.errors = []
       success = nil
       # transact assumes we are only mutating records in the warehouse db
-      HmisExternalApis::Referral.transaction do
+      HmisExternalApis::AcHmis::Referral.transaction do
         referral = create_referral
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
 
@@ -32,7 +32,7 @@ module HmisExternalApis
 
     def create_referral
       params => {referral_id:, referral_date:, service_coordinator:}
-      referral = HmisExternalApis::Referral.new
+      referral = HmisExternalApis::AcHmis::Referral.new
       referral.identifier = referral_id
       referral.referral_date = referral_date
       referral.service_coordinator = :service_coordinator
@@ -50,7 +50,7 @@ module HmisExternalApis
 
       if referral_request_id
         # the posting references an existing referral request
-        posting.referral_request = HmisExternalApis::ReferralRequest
+        posting.referral_request = HmisExternalApis::AcHmis::ReferralRequest
           .where(identifier: referral_request_id).first
         return error_out('Referral Request not found') unless posting.referral_request
 

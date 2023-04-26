@@ -13,7 +13,7 @@ module HmisExternalApis
 
         included do
           has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', as: :source
-          has_many :external_referral_household_members, class_name: 'HmisExternalApis::ReferralHouseholdMember', dependent: :destroy, inverse_of: :client
+          has_many :external_referral_household_members, class_name: 'HmisExternalApis::AcHmis::ReferralHouseholdMember', dependent: :destroy, inverse_of: :client
         end
 
         class_methods do

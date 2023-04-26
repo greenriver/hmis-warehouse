@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis
-  class ReferralsController < BaseController
+module HmisExternalApis::AcHmis
+  class ReferralsController < HmisExternalApis::BaseController
     before_action :authorize_request
     skip_before_action :authenticate_user!
     prepend_before_action :skip_timeout
@@ -22,7 +22,7 @@ module HmisExternalApis
       errors = validate_request(unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
-      (referral, errors) = HmisExternalApis::CreateReferralJob.perform_now(params: unsafe_params)
+      (referral, errors) = HmisExternalApis::AcHmis::CreateReferralJob.perform_now(params: unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
       render json: { message: 'Referral Created', id: referral.identifier }

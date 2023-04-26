@@ -11,8 +11,8 @@ module HmisExternalApis
       include ExternallyIdentifiedMixin
 
       included do
-        has_many :external_referral_requests, class_name: 'HmisExternalApis::ReferralRequest', dependent: :restrict_with_exception
-        # has_many :external_referral_postings, class_name: 'HmisExternalApis::ReferralPosting', dependent: :restrict_with_exception
+        has_many :external_referral_requests, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', dependent: :restrict_with_exception
+        # has_many :external_referral_postings, class_name: ' HmisExternalApis::AcHmis::ReferralPosting', dependent: :restrict_with_exception
       end
 
       class_methods do
