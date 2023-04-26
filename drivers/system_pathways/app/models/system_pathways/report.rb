@@ -88,6 +88,7 @@ module SystemPathways
     def known_sections
       [
         'equity',
+        'time',
       ]
     end
 
@@ -280,6 +281,8 @@ module SystemPathways
 
           # NOTE: we'll calculate age from the latter of the first enrollment entry date or report start
           date = [accepted_enrollments.first.entry_date, filter.start].max
+          days_to_return = nil
+          days_to_return = returned_enrollment.entry_date - final_enrollment.exit_date if returned_enrollment.present?
           report_client = report_clients[client] || Client.new(
             client_id: client.id,
             report_id: id,
@@ -312,6 +315,7 @@ module SystemPathways
             returned_project_entry_date: returned_enrollment&.entry_date,
             returned_project_enrollment_id: returned_enrollment&.enrollment&.enrollment_id,
             returned_project_project_id: returned_enrollment&.project_id,
+            days_to_return: days_to_return,
           )
           report_clients[client] = report_client
 

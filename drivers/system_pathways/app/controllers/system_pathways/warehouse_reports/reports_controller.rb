@@ -65,14 +65,21 @@ module SystemPathways::WarehouseReports
     end
 
     def chart_data
-      @chart_data = @report.allowed_section(params[:chart_data])
+      @chart_data = @report.allowed_section(params[:chart])
       respond_to do |format|
         format.json do
           data = case @chart_data
           when 'equity'
             equity = SystemPathways::Equity.new(report: @report, filter: @filter)
             equity.chart_data(params[:demographic_breakdown])
+          when 'time'
+            time = SystemPathways::TimeChart.new(report: @report, filter: @filter)
+            time.chart_data(params[:demographic_breakdown])
+          else
+            raise 'unknown chart type'
           end
+          # NOTE: data will include some metadata
+          # actual chart data should be in data.data
           render json: data.to_json
         end
       end

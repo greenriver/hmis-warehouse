@@ -14,14 +14,42 @@ module SystemPathways
     def chart_data(chart)
       data = case chart.to_s
       when 'ethnicity'
-        ethnicity_data
+        {
+          chart: 'ethnicity',
+          data: ethnicity_data,
+          table: ethnicity_table,
+        }
       when 'race'
-        race_data
+        {
+          chart: 'race',
+          data: race_data,
+          table: race_counts,
+        }
       else
         {}
       end
 
       data
+    end
+
+    def ethnicity_table
+      # TODO: convert this to something like:
+      # {
+      #   headers: ['Project Type', 'Non-Hispanic', 'Hispanic', 'Client Refused', 'Unknown'],
+      #   body: {
+      #     'ES' => [1409, 351, 2, 1],
+      #   },
+      # }
+      ethnicity_counts
+    end
+
+    def ethnicity_counts
+      @ethnicity_counts ||= node_names.map do |label|
+        [
+          label,
+          node_clients(label).group(:ethnicity).count,
+        ]
+      end.to_h
     end
 
     private def ethnicity_data
@@ -37,12 +65,12 @@ module SystemPathways
         ethnicities.each.with_index do |(k, ethnicity), i|
           row = [ethnicity]
           node_names.each do |label|
-            counts = node_clients(label).group(:ethnicity).count
+            count = ethnicity_counts[label][k] || 0
 
             bg_color = config["breakdown_3_color_#{i}"]
             data['colors'][ethnicity] = bg_color
             data['labels']['colors'][ethnicity] = config.foreground_color(bg_color)
-            row << (counts[k] || 0)
+            row << count
             data['columns'] << row
           end
           [
@@ -51,6 +79,24 @@ module SystemPathways
           ]
         end
       end
+    end
+
+    def race_counts
+      @race_counts ||= node_names.map do |label|
+        counts = race_columns.values.map { |m| [m, 0] }.to_h
+        race_data = pluck_to_hash(race_columns.except('race_none'), node_clients(label))
+        races.each do |k, race|
+          counts[race] = if k == 'RaceNone'
+            race_data.map(&:values).count { |m| m.all?(false) }
+          else
+            race_data.select { |r| r[k.underscore] == true }.count
+          end
+        end
+        [
+          label,
+          counts,
+        ]
+      end.to_h
     end
 
     # Should look roughly like this:
@@ -70,7 +116,6 @@ module SystemPathways
     # }
     private def race_data
       @race_data ||= {}.tap do |data|
-        races = HudLists.race_map
         data['x'] = 'x'
         data['type'] = 'bar'
         data['groups'] = [races.values]
@@ -78,18 +123,10 @@ module SystemPathways
         data['labels'] = { 'colors' => {}, 'centered' => true }
         data['columns'] = [['x', *node_names]]
 
-        races.each.with_index do |(k, race), i|
+        races.each.with_index do |(_, race), i|
           row = [race]
           node_names.each do |label|
-            counts = race_columns.values.map { |m| [m, 0] }.to_h
-            race_data = pluck_to_hash(race_columns.except('race_none'), node_clients(label))
-
-            counts[race] = if k == 'RaceNone'
-              race_data.map(&:values).count { |m| m.all?(false) }
-            else
-              race_data.select { |r| r[k.underscore] == true }.count
-            end
-            row << (counts[race] || 0)
+            row << (race_counts[label][race] || 0)
           end
           bg_color = config["breakdown_1_color_#{i}"]
           data['colors'][race] = bg_color
@@ -102,21 +139,6 @@ module SystemPathways
           ]
         end
       end
-    end
-
-    private def race_columns
-      HudLists.race_map.transform_keys(&:underscore)
-    end
-
-    private def race_col_lookup
-      {
-        'am_ind_ak_native' => 'AmIndAKNative',
-        'asian' => 'Asian',
-        'black_af_american' => 'BlackAfAmerican',
-        'native_hi_pacific' => 'NativeHIPacific',
-        'white' => 'White',
-        'race_none' => 'RaceNone',
-      }
     end
   end
 end

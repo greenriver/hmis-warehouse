@@ -42,6 +42,7 @@
 //= require moment/moment
 //= require bootstrap-datetimepicker
 //= require stimulus/dist/stimulus.umd
+//= require vendor/rfdc/rfdc
 //= require promise-polyfill/dist/polyfill.min
 
 //////////////////////////

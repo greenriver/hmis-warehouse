@@ -20,6 +20,7 @@
   #sankey
 = render 'node_details', pathways: pathways_chart
 = render 'equity'
+= render 'time'
 - content_for :page_js do
   :javascript
     let data = #{pathways_chart.chart_data.to_json.html_safe};

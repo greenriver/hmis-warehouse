@@ -20441,7 +20441,8 @@ CREATE TABLE public.system_pathways_clients (
     returned_project_enrollment_id bigint,
     returned_project_project_id bigint,
     report_id bigint,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    days_to_return integer
 );
 
 
@@ -52495,6 +52496,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230419165219'),
 ('20230419190654'),
 ('20230420164514'),
-('20230424194313');
+('20230424194313'),
+('20230426175101');
 
 

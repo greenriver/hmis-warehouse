@@ -1,10 +1,9 @@
-- equity = SystemPathways::Equity.new(report: @report, filter: @filter)
--# = debug equity.chart_data(:race).to_json
-.equity.mt-4{ data: { controller: 'chart-loader', chart: 'document.equity' }}
-  - url = URI(@report.chart_data_path('equity'))
+- time = SystemPathways::TimeChart.new(report: @report, filter: @filter)
+.time.mt-4{ data: { controller: 'chart-loader', chart: 'document.time' }}
+  - url = URI(@report.chart_data_path('time'))
   .d-flex
     %h3
-      Clients by
+      Average Days by
       %span{ data: { 'chart-loader-target' => 'chartHeader' }} Ethnicity
     .dropdown.ml-auto
       %button.btn.btn-sm.btn-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
@@ -13,31 +12,23 @@
       .dropdown-menu.options
         - demo = [['Ethnicity', 'ethnicity'], ['Race', 'race']].each do |label, key|
           - url.query = @filter.for_params.merge(demographic_breakdown: key).to_query
-          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key }
+          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key  }
           - classes = ['dropdown-item']
           = link_to(label, url.to_s, data: data, class: classes)
-  #equity-chart
+  #time-chart
   = content_for :page_js do
     :javascript
-      document.equity = bb.generate({
+      document.time = bb.generate({
         data: {
           columns: [],
           type: 'bar',
           x: 'x',
-          groups: [],
           labels: {
             format: function(v, id, i, j) {
               if (v == 0) return '';
               if (! id) return v;
-
-              let numbers = d3.map(this.data(), d => d.values[i].value);
-              let total = numbers.reduce((partialSum, a) => partialSum + a, 0);
-              let percentage = v/total;
-              //console.log(i,j, d3.map(j, el => el.getBBox().width)[i])
-              if (percentage < 0.15) {
-                return '';
-              }
-              return d3.format('.0%')(percentage);
+              if (v < 5) return '';
+              return d3.format(",")(v);
             },
             centered: true,
           }
@@ -47,15 +38,11 @@
             value: (value, ratio, id, index) => d3.format(",")(value),
           },
         },
-        bindto: '#equity-chart',
+        bindto: '#time-chart',
         size: {
-          height: 800,
-        },
-        bar: {
-          padding: 20,
+          height: 400,
         },
         axis: {
-          rotated: true,
           x: {
             type: 'category'
           }

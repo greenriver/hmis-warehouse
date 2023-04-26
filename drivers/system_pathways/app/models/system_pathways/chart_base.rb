@@ -199,6 +199,25 @@ module SystemPathways::ChartBase
       end
     end
 
+    private def races
+      @races ||= HudLists.race_map
+    end
+
+    private def race_columns
+      HudLists.race_map.transform_keys(&:underscore)
+    end
+
+    private def race_col_lookup
+      {
+        'am_ind_ak_native' => 'AmIndAKNative',
+        'asian' => 'Asian',
+        'black_af_american' => 'BlackAfAmerican',
+        'native_hi_pacific' => 'NativeHIPacific',
+        'white' => 'White',
+        'race_none' => 'RaceNone',
+      }
+    end
+
     private def nodes
       {
         'Served by Homeless System' => {
