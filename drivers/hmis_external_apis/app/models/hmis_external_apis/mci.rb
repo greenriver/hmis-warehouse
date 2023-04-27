@@ -52,6 +52,7 @@ module HmisExternalApis
       raise(Error, result.error) if result.error
 
       Rails.logger.info "Did clearance for client #{client.id}"
+      return [] if result.http_status == 204
 
       result.parsed_body.map do |clearance_result|
         mci_id = clearance_result['mciId'].to_s

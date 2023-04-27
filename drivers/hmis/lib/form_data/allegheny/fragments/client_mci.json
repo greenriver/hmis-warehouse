@@ -29,6 +29,16 @@
           "question": "dob",
           "operator": "EXISTS",
           "answer_boolean": true
+        },
+        {
+          "question": "name-dq",
+          "operator": "EQUAL",
+          "answer_code": "FULL_NAME_REPORTED"
+        },
+        {
+          "question": "dob-dq",
+          "operator": "EQUAL",
+          "answer_code": "FULL_DOB_REPORTED"
         }
       ]
     }
