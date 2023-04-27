@@ -13,10 +13,12 @@
       .dropdown-menu.options
         - demo = [['Ethnicity', 'ethnicity'], ['Race', 'race']].each do |label, key|
           - url.query = @filter.for_params.merge(demographic_breakdown: key).to_query
-          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key }
+          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-id' => 'equity-table', 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params) }
           - classes = ['dropdown-item']
           = link_to(label, url.to_s, data: data, class: classes)
   #equity-chart
+  #equity-table
+
   = content_for :page_js do
     :javascript
       document.equity = bb.generate({

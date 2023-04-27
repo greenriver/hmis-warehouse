@@ -11,50 +11,36 @@ module SystemPathways
     include Memery
     include SystemPathways::ChartBase
 
-    def chart_data(chart)
-      data = case chart.to_s
-      when 'ethnicity'
-        {
-          chart: 'ethnicity',
-          data: ethnicity_data,
-          table: ethnicity_table,
-        }
-      when 'race'
-        {
-          chart: 'race',
-          data: race_data,
-          table: race_counts,
-        }
-      else
-        {}
-      end
-
-      data
-    end
-
-    def ethnicity_table
-      # TODO: convert this to something like:
-      # {
-      #   headers: ['Project Type', 'Non-Hispanic', 'Hispanic', 'Client Refused', 'Unknown'],
-      #   body: {
-      #     'ES' => [1409, 351, 2, 1],
-      #   },
-      # }
-      ethnicity_counts
-    end
+    # def ethnicity_table
+    #   # TODO: convert this to something like:
+    #   # [
+    #   #   ['Project Type', 'Non-Hispanic', 'Hispanic', 'Client Refused', 'Unknown'],
+    #   #   [ 'ES', 1409, 351, 2, 1],
+    #   # ]
+    #   @ethnicity_table ||= [].tap do |table|
+    #     table += ethnicities.values
+    #     ethnicity_counts.each do |k, values|
+    #       table += [k] + values.values
+    #     end
+    #   end
+    # end
 
     def ethnicity_counts
       @ethnicity_counts ||= node_names.map do |label|
+        data = {}
+        ethnicities.each_key do |k|
+          data[k] ||= 0
+        end
+        data.merge!(node_clients(label).group(:ethnicity).count)
         [
           label,
-          node_clients(label).group(:ethnicity).count,
+          data,
         ]
       end.to_h
     end
 
     private def ethnicity_data
       @ethnicity_data ||= {}.tap do |data|
-        ethnicities = HudLists.ethnicity_map
         data['x'] = 'x'
         data['type'] = 'bar'
         data['groups'] = [ethnicities.values]

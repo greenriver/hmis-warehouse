@@ -42,6 +42,27 @@ module SystemPathways::ChartBase
       value.to_f / count
     end
 
+    def chart_data(chart)
+      data = case chart.to_s
+      when 'ethnicity'
+        {
+          chart: 'ethnicity',
+          data: ethnicity_data,
+          table: as_table(ethnicity_counts, ['Project Type'] + ethnicities.values),
+        }
+      when 'race'
+        {
+          chart: 'race',
+          data: race_data,
+          table: as_table(race_counts, ['Project Type'] + races.values),
+        }
+      else
+        {}
+      end
+
+      data
+    end
+
     private def filter_for_race(scope)
       return scope unless filter.races.present?
 
@@ -201,6 +222,19 @@ module SystemPathways::ChartBase
 
     private def races
       @races ||= HudLists.race_map
+    end
+
+    private def ethnicities
+      @ethnicities ||= HudLists.ethnicity_map
+    end
+
+    private def as_table(data, headers)
+      [].tap do |table|
+        table << headers
+        data.each do |k, values|
+          table << [k] + values.values
+        end
+      end
     end
 
     private def race_columns
