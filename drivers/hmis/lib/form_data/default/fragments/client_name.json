@@ -1,0 +1,66 @@
+{
+  "type": "GROUP",
+  "link_id": "name",
+  "text": "Name",
+  "required": false,
+  "item": [
+    {
+      "type": "GROUP",
+      "link_id": "name-group",
+      "component": "HORIZONTAL_GROUP",
+      "item": [
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "first-name",
+          "text": "First Name",
+          "field_name": "firstName"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "middle-name",
+          "text": "Middle Name",
+          "field_name": "middleName"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "last-name",
+          "text": "Last Name",
+          "field_name": "lastName"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "name-suffix",
+          "text": "Suffix",
+          "field_name": "nameSuffix",
+          "size": "XSMALL"
+        }
+      ]
+    },
+    {
+      "type": "STRING",
+      "required": false,
+      "link_id": "preferred-name",
+      "text": "Preferred Name",
+      "field_name": "preferredName"
+    },
+    {
+      "type": "GROUP",
+      "component": "INFO_GROUP",
+      "link_id": "dq-group",
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "name-dq",
+          "text": "Name Data Quality",
+          "field_name": "nameDataQuality",
+          "pick_list_reference": "NameDataQuality"
+        }
+      ]
+    }
+  ]
+}
