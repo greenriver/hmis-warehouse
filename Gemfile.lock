@@ -969,6 +969,7 @@ DEPENDENCIES
   activerecord-session_store
   activerecord-sqlserver-adapter
   acts-as-taggable-on (~> 7.0)
+  addressable
   ajax_modal_rails (~> 1.0)
   amazing_print
   ansi
