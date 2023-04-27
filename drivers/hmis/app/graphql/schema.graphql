@@ -381,12 +381,15 @@ type Client {
 
 type ClientAccess {
   canDeleteAssessments: Boolean!
+  canDeleteClient: Boolean!
   canDeleteEnrollments: Boolean!
+  canEditClient: Boolean!
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageOwnClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
+  canViewClient: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -3807,6 +3810,7 @@ type QueryAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  canViewUnenrolledClients: Boolean!
   id: ID!
 }
 

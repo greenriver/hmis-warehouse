@@ -129,7 +129,6 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Allow the user to see clients at assigned projects.',
         administrative: false,
         access: [:viewable],
-        global: true,
         categories: [
           'Client Access',
         ],
@@ -147,7 +146,6 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants access to edit clients',
         administrative: false,
         access: [:editable],
-        global: true,
         categories: [
           'Client Access',
         ],
@@ -156,7 +154,6 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants access to delete clients',
         administrative: false,
         access: [:editable],
-        global: true,
         categories: [
           'Client Access',
         ],
@@ -165,7 +162,6 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Allow the user to see client\'s full SSN.',
         administrative: false,
         access: [:viewable],
-        global: true,
         categories: [
           'Client Details',
         ],
@@ -174,7 +170,6 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants access to view partial SSN',
         administrative: false,
         access: [:viewable],
-        global: true,
         categories: [
           'Client Access',
         ],
@@ -183,7 +178,6 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants access to view clients\' DOB',
         administrative: false,
         access: [:viewable],
-        global: true,
         categories: [
           'Client Access',
         ],

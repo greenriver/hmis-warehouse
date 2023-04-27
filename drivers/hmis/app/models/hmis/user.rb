@@ -63,9 +63,11 @@ class Hmis::User < ApplicationRecord
       base_entities = permissions_base_for_entity(entity)
 
       # No entity was specified and this permission is allowed to be global (for example Client access)
-      return true if !base_entities.present? && ::Hmis::Role.global_permissions.include?(permission)
+      return true if base_entities.nil? && ::Hmis::Role.global_permissions.include?(permission)
 
-      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" unless base_entities.present?
+      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" if base_entities.nil?
+
+      return false unless base_entities.present?
 
       access_group_ids = Hmis::GroupViewableEntity.includes_entities(base_entities).pluck(:access_group_id)
       role_ids = roles.where(permission => true).pluck(:id)
@@ -85,7 +87,7 @@ class Hmis::User < ApplicationRecord
   end
 
   private def permissions_base_for_entity(entity)
-    return [entity.data_source, *entity.projects] if entity.is_a? Hmis::Hud::Client
+    return entity.projects if entity.is_a? Hmis::Hud::Client
     return entity if entity.is_a? Hmis::Hud::Organization
     return entity if entity.is_a? Hmis::Hud::Project
 

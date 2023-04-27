@@ -99,6 +99,9 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
       can :delete_assessments
+      can :delete_clients, field_name: :can_delete_client
+      can :edit_clients, field_name: :can_edit_client
+      can :view_clients, field_name: :can_view_client
       can :manage_any_client_files
       can :manage_own_client_files
       can :view_any_nonconfidential_client_files

@@ -54,10 +54,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :with_access, ->(user, *permissions, **kwargs) do
-    projects_with_permissions = Hmis::Hud::Project.with_access(user, *permissions, **kwargs)
-    enrollments_with_permissions = Hmis::Hud::Enrollment.joins(:project).merge(projects_with_permissions)
+    # projects_with_permissions = Hmis::Hud::Project.with_access(user, *permissions, **kwargs)
+    # enrollments_with_permissions = Hmis::Hud::Enrollment.joins(:project).merge(projects_with_permissions)
 
-    joins(:enrollments).merge(enrollments_with_permissions)
+    joins(:projects).merge(Hmis::Hud::Project.with_access(user, *permissions, **kwargs))
   end
 
   scope :visible_to, ->(user) do
