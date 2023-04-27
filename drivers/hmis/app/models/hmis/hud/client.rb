@@ -54,15 +54,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :with_access, ->(user, *permissions, **kwargs) do
-    # projects_with_permissions = Hmis::Hud::Project.with_access(user, *permissions, **kwargs)
-    # enrollments_with_permissions = Hmis::Hud::Enrollment.joins(:project).merge(projects_with_permissions)
+    base_scope = left_outer_joins(:projects).joins(:data_source)
 
-    joins(:projects).merge(Hmis::Hud::Project.with_access(user, *permissions, **kwargs))
+    unenrolled_scope = user.permissions?(*permissions, **kwargs) ? base_scope.where(Project: { id: nil }).merge(GrdaWarehouse::DataSource.hmis(user)) : none
+    enrolled_scope = base_scope.merge(Hmis::Hud::Project.with_access(user, *permissions, **kwargs))
+
+    unenrolled_scope.or(enrolled_scope)
   end
 
   scope :visible_to, ->(user) do
-    return joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) if user.can_view_unenrolled_clients?
-
     with_access(user, :can_view_clients)
   end
 

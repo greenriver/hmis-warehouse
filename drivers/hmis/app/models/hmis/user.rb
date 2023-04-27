@@ -60,6 +60,9 @@ class Hmis::User < ApplicationRecord
     define_method("#{permission}_for?") do |entity|
       return false unless send("#{permission}?")
 
+      # Use global permission scope if client is unenrolled
+      return send("#{permission}?") if entity.is_a?(Hmis::Hud::Client) && entity.projects.empty?
+
       base_entities = permissions_base_for_entity(entity)
 
       # No entity was specified and this permission is allowed to be global (for example Client access)
@@ -92,7 +95,7 @@ class Hmis::User < ApplicationRecord
     return entity if entity.is_a? Hmis::Hud::Project
 
     if entity.is_a? Hmis::File
-      return [entity.client.data_source, *entity.client.projects] unless entity.enrollment.present?
+      return entity.client.data_source unless entity.enrollment.present?
 
       return entity.enrollment.project
     end

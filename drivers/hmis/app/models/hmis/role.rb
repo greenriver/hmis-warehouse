@@ -133,15 +133,6 @@ class Hmis::Role < ::ApplicationRecord
           'Client Access',
         ],
       },
-      can_view_unenrolled_clients: {
-        description: 'Allow the user to see unenrolled clients.',
-        administrative: false,
-        access: [:viewable],
-        global: true,
-        categories: [
-          'Client Access',
-        ],
-      },
       can_edit_clients: {
         description: 'Grants access to edit clients',
         administrative: false,

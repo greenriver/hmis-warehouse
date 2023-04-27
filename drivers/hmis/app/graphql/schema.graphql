@@ -3810,7 +3810,6 @@ type QueryAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
-  canViewUnenrolledClients: Boolean!
   id: ID!
 }
 
