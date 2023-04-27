@@ -7,7 +7,7 @@
 require 'rails_helper'
 require 'webmock/rspec'
 
-RSpec.describe HmisExternalApis::VoidReferralRequestJob do
+RSpec.describe HmisExternalApis::AcHmis::VoidReferralRequestJob do
   describe 'create referral request' do
     include_context 'hmis base setup'
 
@@ -17,7 +17,7 @@ RSpec.describe HmisExternalApis::VoidReferralRequestJob do
 
     it 'has no smoke' do
       referral_request = create(
-        :hmis_external_api_referral_request,
+        :hmis_external_api_ac_hmis_referral_request,
         requested_by: hmis_user,
       )
 
@@ -26,7 +26,7 @@ RSpec.describe HmisExternalApis::VoidReferralRequestJob do
       stub_request(:post, endpoint).
         to_return(status: 200, body: payload.to_json)
 
-      HmisExternalApis::VoidReferralRequestJob.perform_now(
+      HmisExternalApis::AcHmis::VoidReferralRequestJob.perform_now(
         url: endpoint,
         referral_request: referral_request,
         voided_by: hmis_user,

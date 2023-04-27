@@ -13,8 +13,8 @@ module HmisExternalApis
 
         included do
           has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', as: :source
-          has_many :external_referral_requests, class_name: 'HmisExternalApis::ReferralRequest', dependent: :destroy
-          has_many :external_referral_postings, class_name: 'HmisExternalApis::ReferralPosting', dependent: :destroy
+          has_many :external_referral_requests, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', dependent: :destroy
+          has_many :external_referral_postings, class_name: 'HmisExternalApis::AcHmis::ReferralPosting', dependent: :destroy
         end
 
         class_methods do

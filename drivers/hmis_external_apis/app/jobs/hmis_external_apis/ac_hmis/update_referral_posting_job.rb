@@ -6,11 +6,11 @@
 
 # An HMIS User changes the status of a Posting, for example accepting/rejecting/denying
 # a household into a program/project
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob
-    include HmisExternalApis::ReferralJobMixin
+    include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    # @param identifier [String] HmisExternalApis::ReferralPosting.identifier
+    # @param identifier [String]  HmisExternalApis::AcHmis::ReferralPosting.identifier
     # @param status [Integer] new status
     # @param referral_result [Integer] Only for denials. Value from HUD list 4.20.D.
     # @param url [String]
@@ -29,7 +29,7 @@ module HmisExternalApis
 
     # we may get references to postings that are do not belong to the updated referral
     def posting_scope
-      HmisExternalApis::ReferralPosting
+      HmisExternalApis::AcHmis::ReferralPosting
     end
 
     def update_referral_postings(posting_attrs)

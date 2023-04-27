@@ -17,6 +17,7 @@ module Types
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasAuditHistory
+    include Types::HmisSchema::HasGender
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
@@ -38,7 +39,7 @@ module Types
     hud_field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality
     hud_field :ssn
     hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
-    field :gender, [Types::HmisSchema::Enums::Gender], null: false
+    gender_field
     field :race, [Types::HmisSchema::Enums::Race], null: false
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
@@ -154,12 +155,6 @@ module Types
 
     def pronouns
       object.pronouns&.split('|') || []
-    end
-
-    def gender
-      selected_genders = ::HudUtility.gender_field_name_to_id.except(:GenderNone).select { |f| object.send(f).to_i == 1 }.values
-      selected_genders << object.GenderNone if object.GenderNone
-      selected_genders
     end
 
     def race

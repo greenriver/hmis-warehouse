@@ -7,7 +7,7 @@
 require 'rails_helper'
 require 'webmock/rspec'
 
-RSpec.describe HmisExternalApis::UpdateReferralPostingJob do
+RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
   describe 'create referral request' do
     include_context 'hmis base setup'
 
@@ -20,7 +20,7 @@ RSpec.describe HmisExternalApis::UpdateReferralPostingJob do
     end
 
     it 'has no smoke' do
-      posting = create(:hmis_external_api_referral_posting)
+      posting = create(:hmis_external_api_ac_hmis_referral_posting)
 
       # setup external ids
       mper_cred = create(:remote_oauth_credential, slug: 'mper')
@@ -31,7 +31,7 @@ RSpec.describe HmisExternalApis::UpdateReferralPostingJob do
         mper_cred.external_ids.create!(source: record, value: SecureRandom.uuid)
       end
 
-      accepted_status_code = HmisExternalApis::ReferralPosting.statuses.fetch(:accepted_status)
+      accepted_status_code = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch(:accepted_status)
       payload = { postings: [
         posting_id: posting.identifier,
         posting_status: accepted_status_code,
@@ -39,7 +39,7 @@ RSpec.describe HmisExternalApis::UpdateReferralPostingJob do
       stub_request(:post, endpoint).
         to_return(status: 200, body: payload.to_json)
 
-      HmisExternalApis::UpdateReferralPostingJob.perform_now(
+      HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
         url: endpoint,
         identifier: posting.id,
         status: accepted_status_code,

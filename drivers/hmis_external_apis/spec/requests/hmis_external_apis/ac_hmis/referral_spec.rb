@@ -7,7 +7,7 @@
 require 'rails_helper'
 require 'faker'
 
-RSpec.describe HmisExternalApis::ReferralsController, type: :request do
+RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
   describe 'send referral' do
     include_context 'hmis base setup'
 
@@ -76,7 +76,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
 
     let :referral_request do
       create(
-        :hmis_external_api_referral_request,
+        :hmis_external_api_ac_hmis_referral_request,
         project: project,
         requested_by: hmis_user, # defined in 'hmis_base_setup' context
       )
@@ -107,7 +107,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
       post hmis_external_apis_referrals_path, params: params, as: :json
       check_response_okay
 
-      referral = HmisExternalApis::Referral.where(identifier: params.fetch(:referral_id)).first
+      referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
       expect(referral.postings.map(&:referral_request_id)).to(eq([referral_request.id]))
       expect(referral.postings.map(&:project_id)).to(eq([referral_request.project_id]))
       expect(referral.household_members.size).to(eq(clients.size))
@@ -123,7 +123,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
       post hmis_external_apis_referrals_path, params: params, as: :json
       check_response_okay
 
-      referral = HmisExternalApis::Referral.where(identifier: params.fetch(:referral_id)).first
+      referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
       expect(referral.postings.map(&:project_id)).to(eq([project.id]))
       expect(referral.household_members.size).to(eq(clients.size))
     end
@@ -137,7 +137,7 @@ RSpec.describe HmisExternalApis::ReferralsController, type: :request do
       post hmis_external_apis_referrals_path, params: params, as: :json
       check_response_okay
 
-      referral = HmisExternalApis::Referral.where(identifier: params.fetch(:referral_id)).first
+      referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
       expect(referral.postings.map(&:project_id)).to(eq([project.id]))
       expect(referral.household_members.size).to(eq(new_clients.size))
       expect(Hmis::Hud::Client.first_by_external_id(cred: mci_cred, id: new_client_id)).to(be_present)
