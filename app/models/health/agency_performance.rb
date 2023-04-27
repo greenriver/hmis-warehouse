@@ -18,16 +18,21 @@ module Health
       'warehouse_reports/health/agency_performance'
     end
 
+    F2F_WINDOW = 60.days
+    COMPLETION_WINDOW = 30.days
+    RENEWAL_WINDOW = 365.days
+    WELLCARE_WINDOW = 12.months
+
     DESCRIPTIONS = {
       without_required_qa: 'Patients who have not completed intake and have not received a QA in the specified date range.',
-      without_required_f2f_visit: 'Patients who have not received a face-to-face visit in the two months preceding the specified end date.',
+      without_required_f2f_visit: "Patients who have not received a face-to-face visit in the #{F2F_WINDOW.inspect} preceding the specified end date.",
       with_discharge_followup_completed: 'Number of discharge follow-up QAs within the specified data range.',
       with_completed_intake: 'Patients with completed initial intake (Consent, Comp Assessment, HRSN, and Care Plan) as of the specified end date.',
-      initial_intake_due: 'Patients who need to receive an initial intake within 30 days of the specified end date.',
-      initial_intake_overdue: 'Patients who did not complete an initial intake within 153 days of their enrollment as of the earlier of the current date or the specified end date.',
-      intake_renewal_due: 'Patients who need to receive a renewal intake within 30 days of the specified end date.',
-      intake_renewal_overdue: 'Patients who did not receive a renewal intake within 365 days of their last intake as of the earlier of the current date or the specified end date.',
-      without_required_wellcare_visit: 'Patients that did not have a comprehensive well-care visit with a PCP or an OB/GYN practitioner within 12 months of the earlier of the current date or the specified end date. Such visits are identified by paid claims, as specified by the Mathematica Annual Well-Care Visits Measure calculation. *NOTE:* Claims data is approximately 3 months out of date, so any annual well care visits that occured in the past 3 months may not be included.',
+      initial_intake_due: "Patients who need to receive an initial intake within #{COMPLETION_WINDOW.inspect} of the specified end date.",
+      initial_intake_overdue: "Patients who did not complete an initial intake within #{Health::PatientReferral::ENGAGEMENT_IN_DAYS.inspect} of their enrollment as of the earlier of the current date or the specified end date.",
+      intake_renewal_due: "Patients who need to receive a renewal intake within #{COMPLETION_WINDOW.inspect} of the specified end date.",
+      intake_renewal_overdue: "Patients who did not receive a renewal intake within #{RENEWAL_WINDOW.inspect} of their last intake as of the earlier of the current date or the specified end date.",
+      without_required_wellcare_visit: "Patients that did not have a comprehensive well-care visit with a PCP or an OB/GYN practitioner within #{WELLCARE_WINDOW.inspect} of the earlier of the current date or the specified end date. Such visits are identified by paid claims, as specified by the Mathematica Annual Well-Care Visits Measure calculation. *NOTE:* Claims data is approximately 3 months out of date, so any annual well care visits that occured in the past 3 months may not be included.",
     }.freeze
 
     def agency_counts
@@ -103,7 +108,7 @@ module Health
         payable.
         not_valid_unpayable.
         where(patient_id: patient_ids).
-        in_range(@range.last - 60.days .. @range.last).
+        in_range(@range).
         pluck(:patient_id).uniq
     end
 
@@ -113,7 +118,7 @@ module Health
         not_valid_unpayable.
         face_to_face.
         where(patient_id: patient_ids).
-        in_range(@range.last - 60.days .. @range.last).
+        in_range(@range.last - F2F_WINDOW .. @range.last).
         pluck(:patient_id).uniq
     end
 
@@ -146,7 +151,7 @@ module Health
 
     def initial_intake_due
       overdue = [@range.last, Date.current].min
-      due = overdue + 30.days
+      due = overdue + COMPLETION_WINDOW
       @initial_intake_due ||= Health::Patient.
         where(id: patient_ids).
         where.not(id: with_initial_intake.keys).
@@ -164,8 +169,8 @@ module Health
     end
 
     def intake_renewal_due
-      overdue = [@range.last, Date.current].min - 1.year
-      due = overdue + 30.days
+      overdue = [@range.last, Date.current].min - RENEWAL_WINDOW
+      due = overdue + COMPLETION_WINDOW
       @intake_renewal_due ||= Health::Patient.
         where(id: patient_ids).
         joins(:recent_pctp_form).
@@ -174,7 +179,7 @@ module Health
     end
 
     def intake_renewal_overdue
-      overdue = [@range.last, Date.current].min - 1.year
+      overdue = [@range.last, Date.current].min - RENEWAL_WINDOW
       @intake_renewal_overdue = Health::Patient.
         where(id: patient_ids).
         joins(:recent_pctp_form).
@@ -186,7 +191,7 @@ module Health
       anchor = [@range.last, Date.current].min
       @with_required_wellcare_visit ||= ClaimsReporting::MedicalClaim.
         annual_well_care_visits.
-        service_in(anchor - 12.months ... anchor).
+        service_in(anchor - WELLCARE_WINDOW ... anchor).
         joins(:patient).
         where(hp_t[:id].in(patient_ids)).
         pluck(hp_t[:id]).uniq
