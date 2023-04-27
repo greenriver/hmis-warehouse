@@ -1,0 +1,23 @@
+{
+  "type": "GROUP",
+  "required": false,
+  "link_id": "image",
+  "text": "Image",
+  "enable_behavior": "ANY",
+  "enable_when": [
+    {
+      "question": "client-id",
+      "operator": "EXISTS",
+      "answer_boolean": false
+    }
+  ],
+  "item": [
+    {
+      "type": "IMAGE",
+      "required": false,
+      "link_id": "image_blob_id",
+      "text": "Image",
+      "field_name": "imageBlobId"
+    }
+  ]
+}

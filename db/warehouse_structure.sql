@@ -13953,7 +13953,10 @@ CREATE TABLE public.hmis_dqt_enrollments (
     days_to_enter_exit_date integer,
     days_before_entry integer,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    annual_expected boolean,
+    enrollment_anniversary_date date,
+    annual_assessment_status json
 );
 
 
@@ -14075,7 +14078,8 @@ CREATE TABLE public.hmis_dqt_goals (
     deleted_at timestamp without time zone,
     entry_date_entered_length integer DEFAULT 6,
     exit_date_entered_length integer DEFAULT 6,
-    expose_ch_calculations boolean DEFAULT true NOT NULL
+    expose_ch_calculations boolean DEFAULT true NOT NULL,
+    show_annual_assessments boolean DEFAULT true
 );
 
 
@@ -14194,7 +14198,8 @@ CREATE TABLE public.hmis_external_referral_postings (
     status integer NOT NULL,
     referral_id bigint NOT NULL,
     project_id bigint NOT NULL,
-    referral_request_id bigint
+    referral_request_id bigint,
+    unit_type_id bigint NOT NULL
 );
 
 
@@ -20419,11 +20424,7 @@ CREATE TABLE public.system_pathways_clients (
     transgender boolean,
     questioning boolean,
     no_single_gender boolean,
-    disabling_condition boolean,
-    relationship_to_hoh integer,
     veteran_status integer,
-    household_id character varying,
-    household_type character varying,
     ce boolean,
     system boolean,
     destination integer,
@@ -20437,8 +20438,10 @@ CREATE TABLE public.system_pathways_clients (
     returned_project_type integer,
     returned_project_name character varying,
     returned_project_entry_date date,
-    returned_project_enrollment_id integer,
-    returned_project_project_id integer
+    returned_project_enrollment_id bigint,
+    returned_project_project_id bigint,
+    report_id bigint,
+    deleted_at timestamp without time zone
 );
 
 
@@ -20478,7 +20481,16 @@ CREATE TABLE public.system_pathways_enrollments (
     exit_date date,
     stay_length integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
+    household_id character varying,
+    household_type character varying,
+    report_id bigint,
+    deleted_at timestamp without time zone,
+    final_enrollment boolean DEFAULT false NOT NULL,
+    move_in_date date,
+    days_to_move_in integer
 );
 
 
@@ -44140,6 +44152,13 @@ CREATE INDEX index_hmis_external_referral_postings_on_project_id ON public.hmis_
 
 
 --
+-- Name: index_hmis_external_referral_postings_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_postings_on_unit_type_id ON public.hmis_external_referral_postings USING btree (unit_type_id);
+
+
+--
 -- Name: index_hmis_external_referral_requests_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48893,6 +48912,13 @@ CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathway
 
 
 --
+-- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
+
+
+--
 -- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48911,6 +48937,13 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -50944,6 +50977,14 @@ ALTER TABLE ONLY public.service_history_services_2045
 
 
 --
+-- Name: hmis_external_referral_postings fk_rails_376e889c6f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_376e889c6f FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: service_history_services_2006 fk_rails_3ab91d734b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -52444,8 +52485,16 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230406183420'),
 ('20230407164611'),
 ('20230411193836'),
+('20230412163545'),
 ('20230412191455'),
+('20230414130229'),
+('20230414152958'),
+('20230417122614'),
 ('20230418163934'),
-('20230419162140');
+('20230419162140'),
+('20230419165219'),
+('20230419190654'),
+('20230420164514'),
+('20230424194313');
 
 

@@ -41,5 +41,7 @@ module Types
     field :add_recent_item, mutation: Mutations::AddRecentItem
     field :clear_recent_items, mutation: Mutations::ClearRecentItems
     field :submit_form, mutation: Mutations::SubmitForm
+
+    field :clear_mci, mutation: Mutations::AcHmis::ClearMci
   end
 end

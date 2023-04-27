@@ -9,9 +9,17 @@ module HmisExternalApis
     module Hud
       module ClientExtension
         extend ActiveSupport::Concern
+        include ExternallyIdentifiedMixin
+
         included do
           has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', as: :source
-          has_many :external_referral_household_members, class_name: 'HmisExternalApis::ReferralHouseholdMember', dependent: :destroy, inverse_of: :client
+          has_many :external_referral_household_members, class_name: 'HmisExternalApis::AcHmis::ReferralHouseholdMember', dependent: :destroy, inverse_of: :client
+        end
+
+        class_methods do
+          def order_by_created_at(dir = :asc)
+            order(date_created: dir)
+          end
         end
 
         def external_ids_by_slug(slug)
