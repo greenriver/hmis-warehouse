@@ -1,0 +1,36 @@
+{
+  "type": "GROUP",
+  "required": false,
+  "link_id": "mci-clearance",
+  "text": "MCI ID",
+  "item": [
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "mci-clearance-value",
+      "component": "MCI",
+      "text": "MCI ID",
+      "_comment": "TODO: should probably use custom field name",
+      "field_name": "mciId",
+      "disabled_display": "PROTECTED",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "first-name",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        },
+        {
+          "question": "last-name",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        },
+        {
+          "question": "dob",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        }
+      ]
+    }
+  ]
+}
