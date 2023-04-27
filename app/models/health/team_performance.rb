@@ -19,9 +19,9 @@ module Health
     end
 
     DESCRIPTIONS = {
-      without_required_qa: 'Patients who have not completed intake and have not received a QA in the specified date range.',
-      without_required_f2f_visit: 'Patients who have not received a face-to-face visit in the two months preceding the specified end date.',
-      with_discharge_followup_completed: 'Number of discharge follow-up QAs within the specified data range.',
+      without_required_qa: 'Patients who have not completed intake and have not received a QA in the month.',
+      without_required_f2f_visit: 'Patients who have not received a face-to-face visit in the current or preceding month.',
+      with_discharge_followup_completed: 'Number of discharge follow-up QAs within the month.',
       with_completed_intake: 'Patients with completed initial intake (Consent, Comp Assessment, HRSN, and Care Plan).',
       initial_intake_due: 'Patients who need to receive an initial intake within 30 days.',
       initial_intake_overdue: 'Patients who did not complete an initial intake within 153 days of their enrollment.',
@@ -133,6 +133,7 @@ module Health
 
     def with_completed_intake
       @with_completed_intake ||= Health::Patient.
+        where(id: patient_ids).
         joins(:careplans).
         where(h_cp_t[:careplan_sent].eq(true)).
         distinct.
@@ -192,7 +193,7 @@ module Health
         annual_well_care_visits.
         service_in(anchor - 12.months ... anchor).
         joins(:patient).
-        where(hp_t[:id].in(patient_referrals.keys)).
+        where(hp_t[:id].in(patient_ids)).
         pluck(hp_t[:id]).uniq
     end
   end

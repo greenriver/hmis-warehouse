@@ -128,6 +128,7 @@ module Health
 
     def with_completed_intake
       @with_completed_intake ||= Health::Patient.
+        where(id: patient_ids).
         joins(:careplans).
         where(h_cp_t[:careplan_sent].eq(true)).
         distinct.
@@ -187,7 +188,7 @@ module Health
         annual_well_care_visits.
         service_in(anchor - 12.months ... anchor).
         joins(:patient).
-        where(hp_t[:id].in(patient_referrals.keys)).
+        where(hp_t[:id].in(patient_ids)).
         pluck(hp_t[:id]).uniq
     end
   end
