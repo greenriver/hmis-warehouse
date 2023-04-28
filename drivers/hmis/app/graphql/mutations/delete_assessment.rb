@@ -21,6 +21,7 @@ module Mutations
           record: record,
           field_name: :assessment,
           authorize: ->(assessment, user) do
+            # WIP assessments, including WIP Intakes, can be deleted by users that have "can_edit_enrollments"
             return user.can_edit_enrollments_for?(assessment.enrollment) if is_wip
 
             if role == 'INTAKE'
