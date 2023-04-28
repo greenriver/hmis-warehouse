@@ -85,6 +85,17 @@ module SystemPathways
       ]
     end
 
+    def known_detail_params
+      known_params + [
+        :ethnicities,
+        :races,
+        :veteran_statuses,
+        :household_type,
+        :hoh_only,
+        :involves_ce,
+      ]
+    end
+
     def known_sections
       [
         'equity',
@@ -176,7 +187,7 @@ module SystemPathways
     end
 
     def sanitized_node(node)
-      return node if node == 'Returns to Homelessness'
+      return node if node.in?(['Returns to Homelessness', 'Served by Homeless System'])
 
       available = available_project_types.map do |p_type|
         HudUtility.project_type_brief(p_type)
@@ -197,7 +208,43 @@ module SystemPathways
         'Last Name' => ->(c) {
           c.last_name
         },
+        'Ethnicity' => ->(c) {
+          HudUtility.ethnicity(c.ethnicity)
+        },
+        'Race' => ->(c) {
+          races = []
+          race_col_lookup.each_key do |k|
+            races << race_col_lookup[k] if c[k]
+          end
+          races.map do |r|
+            HudUtility.race(r)
+          end.join(',')
+        },
       }
+    end
+
+    def race_columns
+      race_col_lookup.keys
+    end
+
+    def race_col_lookup
+      {
+        'am_ind_ak_native' => 'AmIndAKNative',
+        'asian' => 'Asian',
+        'black_af_american' => 'BlackAfAmerican',
+        'native_hi_pacific' => 'NativeHIPacific',
+        'white' => 'White',
+        'race_none' => 'RaceNone',
+      }
+    end
+
+    def chart_model(slug = 'pathways')
+      models = {
+        'pathways' => SystemPathways::PathwaysChart,
+        'equity' => SystemPathways::Equity,
+        'time' => SystemPathways::TimeChart,
+      }
+      models[slug] || models['pathways']
     end
 
     def destination_lookup

@@ -11,19 +11,36 @@ module SystemPathways
     include Memery
     include SystemPathways::ChartBase
 
-    # def ethnicity_table
-    #   # TODO: convert this to something like:
-    #   # [
-    #   #   ['Project Type', 'Non-Hispanic', 'Hispanic', 'Client Refused', 'Unknown'],
-    #   #   [ 'ES', 1409, 351, 2, 1],
-    #   # ]
-    #   @ethnicity_table ||= [].tap do |table|
-    #     table += ethnicities.values
-    #     ethnicity_counts.each do |k, values|
-    #       table += [k] + values.values
-    #     end
-    #   end
-    # end
+    def chart_data(chart)
+      data = case chart.to_s
+      when 'ethnicity'
+        {
+          chart: 'ethnicity',
+          data: ethnicity_data,
+          table: as_table(ethnicity_counts, ['Project Type'] + ethnicities.values),
+          # array for rows and array for columns to indicate which link params
+          # should be attached for each
+          link_params: {
+            columns: [[]] + ethnicities.keys.map { |k| ['filters[ethnicities][]', k] },
+            rows: [[]] + node_names.map { |k| ['node', k] },
+          },
+        }
+      when 'race'
+        {
+          chart: 'race',
+          data: race_data,
+          table: as_table(race_counts, ['Project Type'] + races.values),
+          link_params: {
+            columns: [[]] + races.keys.map { |k| ['filters[races][]', k] },
+            rows: [[]] + node_names.map { |k| ['node', k] },
+          },
+        }
+      else
+        {}
+      end
+
+      data
+    end
 
     def ethnicity_counts
       @ethnicity_counts ||= node_names.map do |label|
@@ -70,12 +87,14 @@ module SystemPathways
     def race_counts
       @race_counts ||= node_names.map do |label|
         counts = race_columns.values.map { |m| [m, 0] }.to_h
-        race_data = pluck_to_hash(race_columns.except('race_none'), node_clients(label))
-        races.each do |k, race|
-          counts[race] = if k == 'RaceNone'
+        # Get rid of the distinct from node_clients
+        scope = SystemPathways::Client.where(id: node_clients(label).select(:id))
+        race_data = pluck_to_hash(race_columns.except('race_none'), scope)
+        race_columns.each do |k, race|
+          counts[race] = if k == 'race_none'
             race_data.map(&:values).count { |m| m.all?(false) }
           else
-            race_data.select { |r| r[k.underscore] == true }.count
+            race_data.select { |r| r[k] == true }.count
           end
         end
         [

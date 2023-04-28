@@ -96,7 +96,7 @@ module SystemPathways::WarehouseReports
       }
       @filter = @report.filter
       @filter.update(filter_params[:filters].merge(coc_codes: @filter.coc_codes))
-      chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
+      chart = @report.chart_model(details_params[:chart]).new(report: @report, filter: @filter)
       if @node.present?
         @clients = chart.node_clients(@node).distinct
         @details_title = @node
@@ -144,7 +144,7 @@ module SystemPathways::WarehouseReports
     end
 
     def details_params
-      params.permit(:node, :source, :target)
+      params.permit(:node, :source, :target, :chart)
     end
     helper_method :details_params
 

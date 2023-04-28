@@ -12,10 +12,11 @@
       .dropdown-menu.options
         - demo = [['Ethnicity', 'ethnicity'], ['Race', 'race']].each do |label, key|
           - url.query = @filter.for_params.merge(demographic_breakdown: key).to_query
-          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key  }
+          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-id' => 'time-table', 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(chart: 'time')) }
           - classes = ['dropdown-item']
           = link_to(label, url.to_s, data: data, class: classes)
   #time-chart
+  #time-table
   = content_for :page_js do
     :javascript
       document.time = bb.generate({

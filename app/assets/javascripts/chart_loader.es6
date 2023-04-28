@@ -40,36 +40,40 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
 
   updateTable(data, event) {
     let link_base = this.activeTarget(event).dataset['table-link'];
-    let table = this.createTable(data.table, link_base)
+    let table = this.createTable(data.table, link_base, data.link_params)
     let table_target = document.getElementById(this.activeTarget(event).dataset['table-id'])
-    table_target.appendChild(table);
+    if (table_target) table_target.innerHTML = table.outerHTML;
   }
 
-  createTable(data, link_base) {
+  createTable(data, link_base, link_params) {
     let table = document.createElement('table');
     table.classList.add('table', 'table-striped')
     // TODO: break table header out
     let tableBody = document.createElement('tbody');
-    let row, cell, link, url, url_params;
+    let row, cell, link, url;
+    console.log('here', data, link_params)
     data.forEach(function (data_row, i) {
       row = document.createElement('tr');
 
       data_row.forEach(function (data_cell, j) {
-        if(i > 0 && j > 0) {
+        if(i > 0 && j > 0 && link_base) {
           url = new URL(link_base);
-          url_params = new URLSearchParams(url.search);
           // TODO: this is specific to the system pathways report
           // and should be generalized
-          console.log(data[i][0], data[0][j])
-          url_params.append('key2', 'value2');
+          //url.searchParams.append('demographic', data[0][j]);
+          //url.searchParams.append('node', data[i][0]);
+          url.searchParams.append(...link_params.columns[j]);
+          url.searchParams.append(...link_params.rows[i]);
+          // console.log(link_params.columns[j], link_params.rows[i])
           cell = document.createElement('td');
           link = document.createElement('a')
-          link.appendChild(document.createTextNode(data_cell));
-          link.href = link_base;
+          link.setAttribute('target', '_blank');
+          link.appendChild(document.createTextNode(data_cell.toLocaleString('en-US')));
+          link.href = url.href;
           cell.appendChild(link);
         } else {
           cell = document.createElement('th');
-          cell.appendChild(document.createTextNode(data_cell));
+          cell.appendChild(document.createTextNode(data_cell.toLocaleString('en-US')));
         }
         row.appendChild(cell);
       });

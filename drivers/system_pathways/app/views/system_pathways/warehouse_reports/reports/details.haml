@@ -6,6 +6,10 @@
 .d-flex.mb-2
   %h1= content_for :title
 
+.well.report-listing.warehouse-reports__completed
+  .justify-content-between.d-flex
+    = @report.describe_filter_as_html(@report.known_detail_params)
+
 .d-flex.mb-4
   .mr-4
     .input-group

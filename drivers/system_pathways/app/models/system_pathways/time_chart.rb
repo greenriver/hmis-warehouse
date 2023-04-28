@@ -22,12 +22,20 @@ module SystemPathways
           chart: 'ethnicity',
           data: ethnicity_data,
           table: as_table(ethnicity_table_data, ['Project Type'] + ethnicities.values),
+          link_params: {
+            columns: [[]] + ethnicities.keys.map { |k| ['filters[ethnicities][]', k] },
+            rows: [[]] + node_names.map { |k| ['node', k] },
+          },
         }
       when 'race'
         {
           chart: 'race',
           data: race_data,
-          table: as_table(race_counts.values.flatten(1), ['Project Type'] + races.values),
+          table: as_table(race_table_data, ['Project Type'] + races.values),
+          link_params: {
+            columns: [[]] + races.keys.map { |k| ['filters[races][]', k] },
+            rows: [[]] + node_names.map { |k| ['node', k] },
+          },
         }
       else
         {}
@@ -49,6 +57,13 @@ module SystemPathways
       ethnicity_counts[:ph_counts].transform_keys { |k| ph_projects[k] }
       flat_counts = ethnicity_counts[:project_type_counts].merge(ethnicity_counts[:ph_counts])
       flat_counts['Returned to Homelessness'] = ethnicity_counts[:return_counts]
+      flat_counts
+    end
+
+    private def race_table_data
+      race_counts[:ph_counts].transform_keys { |k| ph_projects[k] }
+      flat_counts = race_counts[:project_type_counts].merge(race_counts[:ph_counts])
+      flat_counts['Returned to Homelessness'] = race_counts[:return_counts]
       flat_counts
     end
 
@@ -94,12 +109,16 @@ module SystemPathways
       @race_counts ||= {}.tap do |r_counts|
         project_type_counts = project_type_node_names.map do |label|
           counts = race_columns.values.map { |m| [m, 0] }.to_h
-          race_data = pluck_to_hash(race_columns.except('race_none'), node_clients(label))
-          races.each do |k, race|
-            counts[race] = if k == 'RaceNone'
-              race_data.map(&:values).count { |m| m.all?(false) }
+          # Get rid of the distinct from node_clients
+          scope = SystemPathways::Client.where(id: node_clients(label).select(:id))
+          # FIXME: This needs to calculate average days, not counts, so we need to
+          # also bring back the average days, but not use it in the race calculations
+          race_data = pluck_to_hash(race_columns.except('race_none'), scope)
+          race_columns.each do |k, race|
+            counts[race] = if k == 'race_none'
+              race_data.map(&:values).select { |m| m.all?(false) }
             else
-              race_data.select { |r| r[k.underscore] == true }.count
+              race_data.select { |r| r[k] == true }.count
             end
           end
           [
@@ -111,12 +130,14 @@ module SystemPathways
 
         ph_counts = ph_projects.map do |p_type|
           counts = race_columns.values.map { |m| [m, 0] }.to_h
-          race_data = pluck_to_hash(race_columns.except('race_none'), node_clients(p_type))
-          races.each do |k, race|
-            counts[race] = if k == 'RaceNone'
+          # Get rid of the distinct from node_clients
+          scope = SystemPathways::Client.where(id: node_clients(p_type).select(:id))
+          race_data = pluck_to_hash(race_columns.except('race_none'), scope)
+          race_columns.each do |k, race|
+            counts[race] = if k == 'race_none'
               race_data.map(&:values).count { |m| m.all?(false) }
             else
-              race_data.select { |r| r[k.underscore] == true }.count
+              race_data.select { |r| r[k] == true }.count
             end
           end
           [
@@ -128,12 +149,14 @@ module SystemPathways
 
         label = 'Served by Homeless System'
         counts = race_columns.values.map { |m| [m, 0] }.to_h
-        race_data = pluck_to_hash(race_columns.except('race_none'), node_clients(label))
-        races.each do |k, race|
-          counts[race] = if k == 'RaceNone'
+        # Get rid of the distinct from node_clients
+        scope = SystemPathways::Client.where(id: node_clients(label).select(:id))
+        race_data = pluck_to_hash(race_columns.except('race_none'), scope)
+        race_columns.each do |k, race|
+          counts[race] = if k == 'race_none'
             race_data.map(&:values).count { |m| m.all?(false) }
           else
-            race_data.select { |r| r[k.underscore] == true }.count
+            race_data.select { |r| r[k] == true }.count
           end
         end
         r_counts[:return_counts] = counts
