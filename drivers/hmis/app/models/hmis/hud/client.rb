@@ -99,7 +99,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def warehouse_id
-    warehouse_client_source.destination_id
+    warehouse_client_source&.destination_id
   end
 
   def warehouse_url
