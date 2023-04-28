@@ -100,11 +100,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
-  def wip_enrollments
-    wip_enrollment_ids = Hmis::Wip.enrollments.where(client: self).pluck(:source_id)
-    enrollments.where(id: wip_enrollment_ids)
-  end
-
   # All Projects that this Client has Enrollments at, including WIP Enrollments
   def projects_including_wip
     wip_enrollment_projects = Hmis::Wip.enrollments.where(client: self).pluck(:project_id).compact
