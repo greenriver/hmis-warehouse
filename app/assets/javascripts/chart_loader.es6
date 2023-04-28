@@ -39,6 +39,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   }
 
   updateTable(data, event) {
+    console.log(data)
     let link_base = this.activeTarget(event).dataset['table-link'];
     let table = this.createTable(data.table, link_base, data.link_params)
     let table_target = document.getElementById(this.activeTarget(event).dataset['table-id'])
@@ -51,7 +52,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     // TODO: break table header out
     let tableBody = document.createElement('tbody');
     let row, cell, link, url;
-    console.log('here', data, link_params)
+    // console.log('here', data, link_params)
     data.forEach(function (data_row, i) {
       row = document.createElement('tr');
 

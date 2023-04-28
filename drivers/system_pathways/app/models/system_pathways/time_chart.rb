@@ -24,7 +24,7 @@ module SystemPathways
           table: as_table(ethnicity_table_data, ['Project Type'] + ethnicities.values),
           link_params: {
             columns: [[]] + ethnicities.keys.map { |k| ['filters[ethnicities][]', k] },
-            rows: [[]] + node_names.map { |k| ['node', k] },
+            rows: node_names.map { |k| ['node', k] },
           },
         }
       when 'race'
@@ -34,7 +34,7 @@ module SystemPathways
           table: as_table(race_table_data, ['Project Type'] + races.values),
           link_params: {
             columns: [[]] + races.keys.map { |k| ['filters[races][]', k] },
-            rows: [[]] + node_names.map { |k| ['node', k] },
+            rows: node_names.map { |k| ['node', k] },
           },
         }
       else
@@ -81,14 +81,14 @@ module SystemPathways
             data,
           ]
         end.to_h
-        e_counts[:ph_counts] = ph_projects.keys.map do |p_type|
+        e_counts[:ph_counts] = ph_projects.map do |p_type, p_label|
           data = {}
           ethnicities.each_key do |k|
             data[k] ||= 0
           end
           data.merge!(node_clients(p_type).group(:ethnicity).average(sp_e_t[:days_to_move_in]).transform_values(&:round))
           [
-            p_type,
+            p_label,
             data,
           ]
         end.to_h
@@ -112,8 +112,6 @@ module SystemPathways
           # Get rid of the distinct from node_clients
           stay_length_col = sp_e_t[:stay_length]
           scope = SystemPathways::Client.where(id: node_clients(label).select(:id)).joins(:enrollments).where(stay_length_col.not_eq(nil))
-          # FIXME: This needs to calculate average days, not counts, so we need to
-          # also bring back the average days, but not use it in the race calculations
           race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Stay Length'), scope)
           race_columns.each do |k, race|
             data = if k == 'race_none'
@@ -130,7 +128,7 @@ module SystemPathways
         end.to_h
         r_counts[:project_type_counts] = project_type_counts
 
-        ph_counts = ph_projects.map do |p_type|
+        ph_counts = ph_projects.map do |p_type, p_label|
           counts = race_columns.values.map { |m| [m, 0] }.to_h
           # Get rid of the distinct from node_clients
           stay_length_col = sp_e_t[:days_to_move_in]
@@ -147,7 +145,7 @@ module SystemPathways
           end
 
           [
-            p_type,
+            p_label,
             counts,
           ]
         end.to_h
@@ -197,8 +195,8 @@ module SystemPathways
             data['columns'] << row
           end
           # Time before move-in
-          ph_projects.each_key do |p_type|
-            count = ph_counts[p_type][k]
+          ph_projects.each_value do |p_label|
+            count = ph_counts[p_label][k]
             bg_color = config["breakdown_3_color_#{i}"]
             data['colors'][ethnicity] = bg_color
             data['labels']['colors'][ethnicity] = config.foreground_color(bg_color)
@@ -237,29 +235,42 @@ module SystemPathways
     # }
     private def race_data
       @race_data ||= {}.tap do |data|
-        races = HudLists.race_map
         data['x'] = 'x'
         data['type'] = 'bar'
         data['colors'] = {}
         data['labels'] = { 'colors' => {}, 'centered' => true }
         data['columns'] = [['x', *project_type_node_names]]
 
-        races.each.with_index do |(k, race), i|
-          row = [race]
-          project_type_node_names.each do |label|
-            counts = race_columns.values.map { |m| [m, 0] }.to_h
-            race_data = pluck_to_hash(race_columns.except('race_none'), node_clients(label))
+        project_type_counts = race_counts[:project_type_counts]
+        ph_counts = race_counts[:ph_counts]
+        return_counts = race_counts[:return_counts]
 
-            counts[race] = if k == 'RaceNone'
-              race_data.map(&:values).count { |m| m.all?(false) }
-            else
-              race_data.select { |r| r[k.underscore] == true }.count
-            end
-            row << (counts[race] || 0)
+        race_columns.each_value.with_index do |race, i|
+          row = [race]
+          # Time in project
+          project_type_node_names.each do |label|
+            count = project_type_counts[label][race]
+
+            bg_color = config["breakdown_3_color_#{i}"]
+            data['colors'][race] = bg_color
+            data['labels']['colors'][race] = config.foreground_color(bg_color)
+            row << count
+            data['columns'] << row
           end
-          bg_color = config["breakdown_1_color_#{i}"]
+          # Time before move-in
+          ph_projects.each_value do |p_label|
+            count = ph_counts[p_label][race]
+            bg_color = config["breakdown_3_color_#{i}"]
+            data['colors'][race] = bg_color
+            data['labels']['colors'][race] = config.foreground_color(bg_color)
+            row << count
+            data['columns'] << row
+          end
+          count = return_counts[race]
+          bg_color = config["breakdown_3_color_#{i}"]
           data['colors'][race] = bg_color
           data['labels']['colors'][race] = config.foreground_color(bg_color)
+          row << count
           data['columns'] << row
 
           [
