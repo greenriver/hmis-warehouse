@@ -45,7 +45,7 @@ module SystemPathways
 
           next combination unless source.nil?
 
-          report.destination_lookup.map do |destination_label, dest|
+          destination_lookup.map do |destination_label, dest|
             destination_count = transition_clients(target, dest).count
             next unless destination_count.positive?
 

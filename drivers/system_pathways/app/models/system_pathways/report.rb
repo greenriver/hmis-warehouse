@@ -186,39 +186,38 @@ module SystemPathways
       ]
     end
 
-    def sanitized_node(node)
-      return node if node.in?(['Returns to Homelessness', 'Served by Homeless System'])
-
-      available = available_project_types.map do |p_type|
-        HudUtility.project_type_brief(p_type)
-      end + destination_lookup.keys
-
-      available.detect { |m| m == node }
-    end
-
-    def available_project_types
+    def self.available_project_types
       [1, 2, 3, 4, 8, 9, 10, 13, 14]
     end
 
     def detail_headers
       {
-        'First Name' => ->(c) {
-          c.first_name
+        'First Name' => ->(en) {
+          en.client.first_name
         },
-        'Last Name' => ->(c) {
-          c.last_name
+        'Last Name' => ->(en) {
+          en.client.last_name
         },
-        'Ethnicity' => ->(c) {
-          HudUtility.ethnicity(c.ethnicity)
+        'Ethnicity' => ->(en) {
+          HudUtility.ethnicity(en.client.ethnicity)
         },
-        'Race' => ->(c) {
+        'Race' => ->(en) {
           races = []
           race_col_lookup.each_key do |k|
-            races << race_col_lookup[k] if c[k]
+            races << race_col_lookup[k] if en.client[k]
           end
           races.map do |r|
             HudUtility.race(r)
           end.join(',')
+        },
+        'Stay Length' => ->(en) {
+          en.stay_length
+        },
+        'Days Before Move-In' => ->(en) {
+          en.days_to_move_in
+        },
+        'Days to Return' => ->(en) {
+          en.client.days_to_return
         },
       }
     end
@@ -245,16 +244,6 @@ module SystemPathways
         'time' => SystemPathways::TimeChart,
       }
       models[slug] || models['pathways']
-    end
-
-    def destination_lookup
-      {
-        'Permanent Destinations' => 'destination_permanent',
-        'Homeless Destinations' => 'destination_homeless',
-        'Institutional Destinations' => 'destination_institutional',
-        'Temporary Destinations' => 'destination_temporary',
-        'Other Destinations' => 'destination_other',
-      }
     end
 
     def allowed_states
@@ -505,7 +494,7 @@ module SystemPathways
       filter.project_ids = filter.effective_project_ids
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
-        in_project_type(available_project_types).
+        in_project_type(self.class.available_project_types).
         preload(:project, enrollment: [:client, :project, :disabilities_at_entry], client: :source_clients).
         joins(:project).
         open_between(start_date: filter.start_date, end_date: filter.end_date)

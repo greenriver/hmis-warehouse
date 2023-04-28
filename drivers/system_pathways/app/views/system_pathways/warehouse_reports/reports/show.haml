@@ -13,14 +13,17 @@
     - opts[:default_project_type_codes] = @report.default_project_type_codes
     .ml-auto.nobr
       = render 'filters/view_filter_details', filter_hash: opts, selected_keys: @report.known_params
-.mb-4
+.mb-8.well
   = render 'live_filter'
 .sankey-chart{style: 'position: relative;'}
   - pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
   #sankey
-= render 'node_details', pathways: pathways_chart
-= render 'equity'
-= render 'time'
+.mb-8
+  = render 'node_details', pathways: pathways_chart
+.well.mb-8
+  = render 'equity'
+.well
+  = render 'time'
 - content_for :page_js do
   :javascript
     let data = #{pathways_chart.chart_data.to_json.html_safe};

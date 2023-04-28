@@ -88,13 +88,13 @@ module SystemPathways
       @race_counts ||= node_names.map do |label|
         counts = race_columns.values.map { |m| [m, 0] }.to_h
         # Get rid of the distinct from node_clients
-        scope = SystemPathways::Client.where(id: node_clients(label).select(:id))
-        race_data = pluck_to_hash(race_columns.except('race_none'), scope)
+        scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id))
+        race_data = pluck_to_hash(race_columns.except('race_none').map { |k, v| [sp_c_t[k], v] }.to_h, scope)
         race_columns.each do |k, race|
           counts[race] = if k == 'race_none'
             race_data.map(&:values).count { |m| m.all?(false) }
           else
-            race_data.select { |r| r[k] == true }.count
+            race_data.select { |r| r[sp_c_t[k]] == true }.count
           end
         end
         [

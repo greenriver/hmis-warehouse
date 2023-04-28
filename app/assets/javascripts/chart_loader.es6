@@ -39,7 +39,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   }
 
   updateTable(data, event) {
-    console.log(data)
+    //console.log(data)
     let link_base = this.activeTarget(event).dataset['table-link'];
     let table = this.createTable(data.table, link_base, data.link_params)
     let table_target = document.getElementById(this.activeTarget(event).dataset['table-id'])
@@ -54,9 +54,11 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     let row, cell, link, url;
     // console.log('here', data, link_params)
     data.forEach(function (data_row, i) {
+      // console.log(data_row)
       row = document.createElement('tr');
 
       data_row.forEach(function (data_cell, j) {
+        // console.log('cell:', data_cell, data_row, i, j, link_params)
         if(i > 0 && j > 0 && link_base) {
           url = new URL(link_base);
           // TODO: this is specific to the system pathways report
@@ -81,7 +83,6 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
 
       tableBody.appendChild(row);
     });
-
     table.appendChild(tableBody);
     return table;
   }

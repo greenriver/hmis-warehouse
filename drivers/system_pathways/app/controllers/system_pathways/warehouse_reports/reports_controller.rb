@@ -86,9 +86,10 @@ module SystemPathways::WarehouseReports
     end
 
     def details
-      @node = @report.sanitized_node(details_params[:node])
-      @source = @report.sanitized_node(details_params[:source])
-      @target = @report.sanitized_node(details_params[:target])
+      chart = @report.chart_model(details_params[:chart]).new(report: @report, filter: @filter)
+      @node = chart.sanitized_node(details_params[:node])
+      @source = chart.sanitized_node(details_params[:source])
+      @target = chart.sanitized_node(details_params[:target])
       @detail_options = {
         node: @node,
         source: @source,
@@ -96,14 +97,14 @@ module SystemPathways::WarehouseReports
       }
       @filter = @report.filter
       @filter.update(filter_params[:filters].merge(coc_codes: @filter.coc_codes))
-      chart = @report.chart_model(details_params[:chart]).new(report: @report, filter: @filter)
+
       if @node.present?
         @clients = chart.node_clients(@node).distinct
         @details_title = @node
-      elsif @target.in?(@report.destination_lookup.keys)
+      elsif @target.in?(chart.destination_lookup.keys)
         # Looking at Project Type -> Destination transition
         source_project_number = HudUtility.project_type_number(@source)
-        target_group = @report.destination_lookup[@target]
+        target_group = chart.destination_lookup[@target]
         @clients = chart.transition_clients(source_project_number, target_group).distinct
         @source_title = @source
         @details_title = "#{@source} → #{@target}"

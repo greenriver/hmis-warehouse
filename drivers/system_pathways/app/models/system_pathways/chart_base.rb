@@ -36,6 +36,35 @@ module SystemPathways::ChartBase
       'Clients'
     end
 
+    def sanitized_node(node)
+      return node if node.in?(['Returns to Homelessness', 'Served by Homeless System'])
+
+      available = report.class.available_project_types.map do |p_type|
+        HudUtility.project_type_brief(p_type)
+      end + destination_lookup.keys + ph_projects.values
+
+      available.detect { |m| m == node }
+    end
+
+    def destination_lookup
+      {
+        'Permanent Destinations' => 'destination_permanent',
+        'Homeless Destinations' => 'destination_homeless',
+        'Institutional Destinations' => 'destination_institutional',
+        'Temporary Destinations' => 'destination_temporary',
+        'Other Destinations' => 'destination_other',
+      }
+    end
+
+    private def ph_projects
+      [
+        'PH - PSH',
+        'PH - PH',
+        'PH - OPH',
+        'PH - RRH',
+      ].map { |m| [m, "#{m} Pre-Move in"] }.to_h
+    end
+
     def average(value, count)
       return 0 unless count.positive?
 
@@ -139,51 +168,124 @@ module SystemPathways::ChartBase
       label.to_s.in?(['PH - RRH', 'PH - PSH', 'PH - PH', 'PH - OPH'])
     end
 
+    # Inverted attempt
     def transition_clients(from, to)
-      if to.in?(report.destination_lookup.values)
+      if to.in?(destination_lookup.values)
         final_transition_clients(from, to)
       elsif to.nil? || to == 'Returns to Homelessness'
-        filtered_clients.where.not(returned_project_type: nil).
+        # join final enrollment because everyone should only have one
+        SystemPathways::Enrollment.where(final_enrollment: true).
+          joins(:client).
+          merge(filtered_clients.where.not(returned_project_type: nil)).
           distinct
       else
-        filtered_clients.joins(:enrollments).
-          merge(SystemPathways::Enrollment.where(from_project_type: from, project_type: to)).
+        SystemPathways::Enrollment.where(from_project_type: from, project_type: to).
+          joins(:client).
+          merge(filtered_clients.joins(:enrollments)).
           distinct
       end
     end
 
+    # Inverted attempt
     def final_transition_clients(exit_from, destination_category)
-      filtered_clients.where(destination_category => true).
-        joins(:enrollments).
-        merge(
-          SystemPathways::Enrollment.
-            where(project_type: exit_from, final_enrollment: true).
-            where(sp_e_t[:destination].eq(sp_c_t[:destination])),
-        ).
+      SystemPathways::Enrollment.
+        where(project_type: exit_from, final_enrollment: true).
+        where(sp_e_t[:destination].eq(sp_c_t[:destination])).
+        joins(:client).
+        merge(filtered_clients.where(destination_category => true)).
         distinct
     end
 
+    # def transition_clients(from, to)
+    #   if to.in?(destination_lookup.values)
+    #     final_transition_clients(from, to)
+    #   elsif to.nil? || to == 'Returns to Homelessness'
+    #     filtered_clients.where.not(returned_project_type: nil).
+    #       distinct
+    #   else
+    #     filtered_clients.joins(:enrollments).
+    #       merge(SystemPathways::Enrollment.where(from_project_type: from, project_type: to)).
+    #       distinct
+    #   end
+    # end
+
+    # def final_transition_clients(exit_from, destination_category)
+    #   filtered_clients.where(destination_category => true).
+    #     joins(:enrollments).
+    #     merge(
+    #       SystemPathways::Enrollment.
+    #         where(project_type: exit_from, final_enrollment: true).
+    #         where(sp_e_t[:destination].eq(sp_c_t[:destination])),
+    #     ).
+    #     distinct
+    # end
+
+    # Inverted attempt
     def node_clients(node)
       if node == 'Served by Homeless System'
-        filtered_clients.distinct
-      elsif node.in?(report.destination_lookup.keys)
-        destination_category = report.destination_lookup[node]
-        filtered_clients.where(destination_category => true).
-          joins(:enrollments).
-          merge(
-            SystemPathways::Enrollment.where(final_enrollment: true).
-              where(sp_e_t[:destination].eq(sp_c_t[:destination])),
-          ).distinct
+        # join final enrollment because everyone should only have one
+        SystemPathways::Enrollment.where(final_enrollment: true).
+          joins(:client).
+          merge(filtered_clients).
+          distinct
+      elsif node.in?(destination_lookup.keys)
+        destination_category = destination_lookup[node]
+        SystemPathways::Enrollment.where(final_enrollment: true).
+          where(sp_e_t[:destination].eq(sp_c_t[:destination])).
+          joins(:client).
+          merge(filtered_clients.where(destination_category => true)).
+          distinct
+      elsif node.in?(ph_projects.values)
+        to_project_type = HudUtility.project_type_number(ph_projects.invert[node])
+        SystemPathways::Enrollment.where(project_type: to_project_type).
+          where.not(days_to_move_in: nil).
+          joins(:client).
+          merge(filtered_clients).
+          distinct
       elsif node == 'Returns to Homelessness'
-        filtered_clients.where.not(returned_project_type: nil).
+        # join final enrollment because everyone should only have one
+        SystemPathways::Enrollment.where(final_enrollment: true).
+          joins(:client).
+          merge(filtered_clients.where.not(returned_project_type: nil)).
           distinct
       else
         to_project_type = HudUtility.project_type_number(node)
-        filtered_clients.joins(:enrollments).
-          merge(SystemPathways::Enrollment.where(project_type: to_project_type)).
+        SystemPathways::Enrollment.where(project_type: to_project_type).
+          joins(:client).
+          merge(filtered_clients).
           distinct
       end
     end
+
+    # def node_clients(node)
+    #   if node == 'Served by Homeless System'
+    #     filtered_clients.distinct
+    #   elsif node.in?(destination_lookup.keys)
+    #     destination_category = destination_lookup[node]
+    #     filtered_clients.where(destination_category => true).
+    #       joins(:enrollments).
+    #       merge(
+    #         SystemPathways::Enrollment.where(final_enrollment: true).
+    #           where(sp_e_t[:destination].eq(sp_c_t[:destination])),
+    #       ).distinct
+    #   elsif node.in?(ph_projects.values)
+    #     to_project_type = HudUtility.project_type_number(ph_projects.invert[node])
+    #     filtered_clients.joins(:enrollments).
+    #       merge(
+    #         SystemPathways::Enrollment.where(project_type: to_project_type).
+    #           where.not(days_to_move_in: nil),
+    #       ).
+    #       distinct
+    #   elsif node == 'Returns to Homelessness'
+    #     filtered_clients.where.not(returned_project_type: nil).
+    #       distinct
+    #   else
+    #     to_project_type = HudUtility.project_type_number(node)
+    #     filtered_clients.joins(:enrollments).
+    #       merge(SystemPathways::Enrollment.where(project_type: to_project_type)).
+    #       distinct
+    #   end
+    # end
 
     private def sp_c_t
       SystemPathways::Client.arel_table
@@ -259,6 +361,7 @@ module SystemPathways::ChartBase
           color: '#D1605E',
           weight: 0,
           column: 4,
+          project_type: 13,
         },
         'PH - PSH' => {
           color: '#E7CA60',

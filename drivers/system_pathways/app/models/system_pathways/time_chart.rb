@@ -24,7 +24,7 @@ module SystemPathways
           table: as_table(ethnicity_table_data, ['Project Type'] + ethnicities.values),
           link_params: {
             columns: [[]] + ethnicities.keys.map { |k| ['filters[ethnicities][]', k] },
-            rows: node_names.map { |k| ['node', k] },
+            rows: [[]] + detail_node_keys.map { |k| ['node', k] },
           },
         }
       when 'race'
@@ -34,7 +34,7 @@ module SystemPathways
           table: as_table(race_table_data, ['Project Type'] + races.values),
           link_params: {
             columns: [[]] + races.keys.map { |k| ['filters[races][]', k] },
-            rows: node_names.map { |k| ['node', k] },
+            rows: [[]] + detail_node_keys.map { |k| ['node', k] },
           },
         }
       else
@@ -44,13 +44,8 @@ module SystemPathways
       data
     end
 
-    private def ph_projects
-      [
-        'PH - PSH',
-        'PH - PH',
-        'PH - OPH',
-        'PH - RRH',
-      ].map { |m| [m, "#{m} Pre-Move in"] }.to_h
+    private def detail_node_keys
+      ethnicity_counts[:project_type_counts].keys + ethnicity_counts[:ph_counts].keys + ['Returned to Homelessness']
     end
 
     private def ethnicity_table_data
@@ -98,8 +93,8 @@ module SystemPathways
         end
         data.merge!(node_clients('Served by Homeless System').
           group(:ethnicity).
-          where.not(days_to_return: nil).
-          average(:days_to_return).transform_values(&:round))
+          where(sp_c_t[:days_to_return].not_eq(nil)).
+          average(sp_c_t[:days_to_return]).transform_values(&:round))
 
         e_counts[:return_counts] = data
       end
@@ -111,13 +106,16 @@ module SystemPathways
           counts = race_columns.values.map { |m| [m, 0] }.to_h
           # Get rid of the distinct from node_clients
           stay_length_col = sp_e_t[:stay_length]
-          scope = SystemPathways::Client.where(id: node_clients(label).select(:id)).joins(:enrollments).where(stay_length_col.not_eq(nil))
-          race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Stay Length'), scope)
+          # scope = SystemPathways::Client.where(id: node_clients(label).select(:id)).joins(:enrollments).where(stay_length_col.not_eq(nil))
+          # race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Stay Length'), scope)
+          scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id)).where(stay_length_col.not_eq(nil))
+          race_data = pluck_to_hash(race_columns.except('race_none').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Stay Length'), scope)
+
           race_columns.each do |k, race|
             data = if k == 'race_none'
               race_data.select { |row| row.except(stay_length_col).values.all?(false) }.map { |m| m[stay_length_col] }
             else
-              race_data.select { |r| r[k] == true }.map { |m| m[stay_length_col] }
+              race_data.select { |r| r[sp_c_t[k]] == true }.map { |m| m[stay_length_col] }
             end
             counts[race] = average(data.sum, data.count).round
           end
@@ -132,14 +130,15 @@ module SystemPathways
           counts = race_columns.values.map { |m| [m, 0] }.to_h
           # Get rid of the distinct from node_clients
           stay_length_col = sp_e_t[:days_to_move_in]
-          scope = SystemPathways::Client.where(id: node_clients(p_type).select(:id)).joins(:enrollments).where(stay_length_col.not_eq(nil))
-
-          race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Days to Move-In'), scope)
+          # scope = SystemPathways::Client.where(id: node_clients(p_type).select(:id)).joins(:enrollments).where(stay_length_col.not_eq(nil))
+          # race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Days to Move-In'), scope)
+          scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(p_type).select(:id)).where(stay_length_col.not_eq(nil))
+          race_data = pluck_to_hash(race_columns.except('race_none').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Move-In'), scope)
           race_columns.each do |k, race|
             data = if k == 'race_none'
               race_data.select { |row| row.except(stay_length_col).values.all?(false) }.map { |m| m[stay_length_col] }
             else
-              race_data.select { |r| r[k] == true }.map { |m| m[stay_length_col] }
+              race_data.select { |r| r[sp_c_t[k]] == true }.map { |m| m[stay_length_col] }
             end
             counts[race] = average(data.sum, data.count).round
           end
@@ -154,15 +153,16 @@ module SystemPathways
         label = 'Served by Homeless System'
         counts = race_columns.values.map { |m| [m, 0] }.to_h
         # Get rid of the distinct from node_clients
-        stay_length_col = :days_to_return
-        scope = SystemPathways::Client.where(id: node_clients(label).select(:id)).where.not(stay_length_col => nil)
-
-        race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Days to Return'), scope)
+        stay_length_col = sp_c_t[:days_to_return]
+        # scope = SystemPathways::Client.where(id: node_clients(label).select(:id)).where(stay_length_col.not_eq(nil))
+        # race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Days to Return'), scope)
+        scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id)).where(stay_length_col.not_eq(nil))
+        race_data = pluck_to_hash(race_columns.except('race_none').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
         race_columns.each do |k, race|
           data = if k == 'race_none'
             race_data.select { |row| row.except(stay_length_col).values.all?(false) }.map { |m| m[stay_length_col] }
           else
-            race_data.select { |r| r[k] == true }.map { |m| m[stay_length_col] }
+            race_data.select { |r| r[sp_c_t[k]] == true }.map { |m| m[stay_length_col] }
           end
           counts[race] = average(data.sum, data.count).round
         end
@@ -239,7 +239,7 @@ module SystemPathways
         data['type'] = 'bar'
         data['colors'] = {}
         data['labels'] = { 'colors' => {}, 'centered' => true }
-        data['columns'] = [['x', *project_type_node_names]]
+        data['columns'] = [['x', *time_groups]]
 
         project_type_counts = race_counts[:project_type_counts]
         ph_counts = race_counts[:ph_counts]

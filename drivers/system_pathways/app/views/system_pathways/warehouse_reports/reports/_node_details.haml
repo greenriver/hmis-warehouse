@@ -1,4 +1,4 @@
-%ul.nav.nav-tabs.nav-fill#node-details{role: :tablist}
+%ul.nav.nav-tabs.nav-fill#node-details.mb-0{role: :tablist}
   - pathways.project_type_node_names_with_data.each.with_index do |label, i|
     - bg_color = pathways.bg_color(label)
     - foreground_color = foreground_color(bg_color)
@@ -10,7 +10,7 @@
       - active = 'active'
     %li.nav-item{role: :presentation}
       = link_to label, target, class: ['nav-link', active], style: "border-bottom: 8px solid #{bg_color};", role: :tab, aria: { controls: target, selected: selected }, data: {toggle: :tab, target: target }
-.tab-content
+.tab-content.well.mt-0.bt-0
   - pathways.project_type_node_names_with_data.each.with_index do |label, i|
     - data = pathways.combinations_for(label)
     - target = "#{label.to_s.parameterize.underscore}-content"
@@ -18,24 +18,25 @@
     - if i.zero?
       - active = 'show active'
     .tab-pane{ class: active, id: target, role: :tabpanel, aria: { labelledby: label.to_s.parameterize.underscore}}
-      .d-flex
-        .household-count.d-flex.mr-auto
-          .label= pathways.client_word
-          .value= number_with_delimiter data.enrolled
+      .d-flex.font-size-md
+        .household-count.d-flex.mr-auto.justify-content-sm-between.mb-4
+          .item-label.mr-4= pathways.client_word
+          .value
+            = link_to number_with_delimiter(data.enrolled), details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(node: label))
         - if pathways.uses_move_in?(label)
           .days-pre-move-in.text-center.d-flex.ml-auto.mr-auto
-            .label Average Days Pre-Move-In
+            .item-label.mr-4 Average Days Pre-Move-In
             .value= number_with_delimiter data.days_before_move_in
-          .days-post-move-in.text-center.d-flex.ml-auto.mr-auto
-            .label Average Days Post-Move-In
+          .days-post-move-in.text-center.d-flex.ml-auto.ml-auto
+            .item-label.mr-4 Average Days Post-Move-In
             .value= number_with_delimiter data.days_after_move_in_to_exit
         - else
           .days-enrolled.text-center.d-flex.ml-auto
-            .label Average Days Enrolled
+            .item-label.mr-4 Average Days Enrolled
             .value= number_with_delimiter data.days_enrolled
       .d-flex
-        .incoming.mr-auto
-          %table.table.table-striped
+        .incoming.mr-4.table-responsive
+          %table.table.table-striped.w-100
             %thead
               %tr
                 %th Entering From
@@ -52,8 +53,8 @@
                       = number_with_delimiter row[:value]
                   %td #{percentage(row[:value]/data.enrolled.to_f * 100)}%
 
-        .outgoing.ml-auto
-          %table.table.table-striped
+        .outgoing.ml-4.table-responsive
+          %table.table.table-striped.w-100
             %thead
               %tr
                 %th Exiting To
