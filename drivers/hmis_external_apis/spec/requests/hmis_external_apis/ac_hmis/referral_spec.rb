@@ -94,6 +94,11 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       create(:hmis_hud_project)
     end
 
+    let(:headers) do
+      conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :referrals))
+      { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
+    end
+
     before(:each) do
       _ = mci_cred # create credential
       mper_cred
@@ -104,7 +109,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
     it 'receives referral for referral request' do
       params = referral_params(clients)
         .merge({ referral_request_id: referral_request.identifier })
-      post hmis_external_apis_referrals_path, params: params, as: :json
+      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
 
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
@@ -120,7 +125,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
 
     it 'receives referral assignment' do
       params = referral_params(clients)
-      post hmis_external_apis_referrals_path, params: params, as: :json
+      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
 
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
@@ -134,7 +139,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         [build(:hmis_hud_client_complete), new_client_id],
       ]
       params = referral_params(new_clients)
-      post hmis_external_apis_referrals_path, params: params, as: :json
+      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
 
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
