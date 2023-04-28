@@ -18,11 +18,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+  # Enrollments for this Client, including WIP Enrollments
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
-
-  # NOTE: this does not include project where the enrollment is WIP
+  # Projects that this Client is enrolled in, NOT inluding WIP enrollments
   has_many :projects, through: :enrollments
+  # WIP records representing enrollments for this Client
+  has_many :wip, class_name: 'Hmis::Wip', through: :enrollments
+
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
@@ -80,6 +83,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     rescue RangeError
       return none
     end
+  end
+
+  # Clients that have no Enrollments (WIP or otherwise)
+  scope :unenrolled, -> do
+    # Clients that have no projects, AND no wip enrollments
+    left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
   end
 
   # All CustomAssessments for this Client, including WIP Assessments and assessments at WIP Enrollments
