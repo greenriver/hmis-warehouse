@@ -1,0 +1,28 @@
+- sections = @report.control_sections
+.row.flex-wrap
+  - sections.each do |section|
+    .col
+      %h4.mt-0= section.title
+      - section.controls.each do |control|
+        - if control.id == 'comparison_period' && @report.include_comparison?
+          %dl
+            %td= control.label
+            %dd= @comparison_filter.date_range_words
+        - else
+          - value = control.value
+          - value = 'All' if value == '' # Comma separated values are blank if no selections
+          - if value
+            %dl
+              %dt= control.label
+              - if value.is_a? Array
+                - if value.length.zero?
+                  All
+                - else
+                  - value.each do |item|
+                    %dd= item
+              - elsif value.in? [true, false]
+                %dd= yes_no(value)
+              - elsif value == 'Yes'
+                %dd= yes_no(true)
+              - else
+                %dd= value
