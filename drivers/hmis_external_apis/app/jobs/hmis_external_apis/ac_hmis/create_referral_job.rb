@@ -127,10 +127,6 @@ module HmisExternalApis::AcHmis
       @system_user ||= ::Hmis::Hud::User.system_user(data_source_id: data_source.id)
     end
 
-    def mci_cred
-      @mci_cred ||= ::GrdaWarehouse::RemoteCredential.mci
-    end
-
     # map records from external_ids to local db ids
     # @param cred: GrdaWarehouse::RemoteCredential
     # @param external_ids [Array<String>]

@@ -21,7 +21,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     allow(HmisExternalApis::Mci).to receive(:new).and_return(stub_mci)
   end
 
-  let!(:mci_cred) { create(:remote_oauth_credential, slug: 'mci') }
+  let!(:mci_cred) {
+    create(:ac_hmis_mci_credential)
+  }
 
   let(:stub_clearance_results) do
     [

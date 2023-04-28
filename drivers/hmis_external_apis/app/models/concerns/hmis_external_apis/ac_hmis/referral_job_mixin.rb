@@ -23,7 +23,11 @@ module HmisExternalApis::AcHmis
     end
 
     def mper_cred
-      @mper_cred ||= ::GrdaWarehouse::RemoteCredential.mper
+      @mper_cred ||= ::HmisExternalApis::AcHmis::MperCredential.first!
+    end
+
+    def mci_cred
+      @mci_cred ||= ::HmisExternalApis::AcHmis::MciCredential.first!
     end
   end
 end

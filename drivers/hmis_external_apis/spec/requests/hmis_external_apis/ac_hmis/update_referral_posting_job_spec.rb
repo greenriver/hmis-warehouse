@@ -12,7 +12,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
     include_context 'hmis base setup'
 
     let(:mper_cred) do
-      create(:remote_token_credential, slug: 'mci')
+      create(:ac_hmis_mper_credential)
     end
 
     let(:endpoint) do
@@ -23,7 +23,6 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
       posting = create(:hmis_external_api_ac_hmis_referral_posting)
 
       # setup external ids
-      mper_cred = create(:remote_oauth_credential, slug: 'mper')
       [
         posting.project,
         posting.project.organization,

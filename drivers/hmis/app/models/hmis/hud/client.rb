@@ -107,13 +107,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def mci_id
-    external_ids_by_slug('mci').first&.value
+    external_ids
+      .joins(:remote_credential)
+      .where(remote_credential: { type: 'HmisExternalApis::AcHmis::MciCredential' })
   end
 
   def mci_url(user = nil)
     return if user && enrollments.viewable_by(user).empty?
 
-    link_base = GrdaWarehouse::RemoteCredentials::ExternalLink.where(slug: 'clientview').first&.link_base
+    link_base = Hmis::AcHmis::ClientViewCredential.first&.link_base
     return unless link_base&.present? && mci_id&.present?
 
     "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"

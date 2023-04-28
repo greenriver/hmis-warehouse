@@ -18,7 +18,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
     end
 
     let(:mci_cred) do
-      create(:remote_oauth_credential, slug: 'mci')
+      create(:ac_hmis_mci_credential)
     end
 
     let(:clients) do
@@ -87,7 +87,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
     end
 
     let :mper_cred do
-      create(:remote_oauth_credential, slug: 'mper')
+      create(:ac_hmis_mper_credential)
     end
 
     let :project do

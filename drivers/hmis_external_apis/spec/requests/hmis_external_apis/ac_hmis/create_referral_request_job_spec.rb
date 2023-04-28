@@ -12,7 +12,7 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
     include_context 'hmis base setup'
 
     let(:mper_cred) do
-      create(:remote_token_credential, slug: 'mci')
+      create(:ac_hmis_mper_credential)
     end
 
     let(:referral_request_id) do
@@ -30,7 +30,6 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
       )
 
       # setup external ids
-      mper_cred = create(:remote_oauth_credential, slug: 'mper')
       [
         referral_request.unit_type,
         referral_request.project,

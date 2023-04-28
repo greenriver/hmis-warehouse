@@ -21,10 +21,6 @@ module HmisExternalApis
             order(date_created: dir)
           end
         end
-
-        def external_ids_by_slug(slug)
-          external_ids.joins(:remote_credential).where(remote_credential: { slug: slug })
-        end
       end
     end
   end

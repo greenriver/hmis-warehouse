@@ -5,7 +5,10 @@
 ###
 
 module GrdaWarehouse
+  # STI base class
   class RemoteCredential < GrdaWarehouseBase
+    #self.abstract_class = true
+
     acts_as_paranoid
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
 
