@@ -167,6 +167,20 @@ class ApplicationController < ActionController::Base
   end
   helper_method :colorize
 
+  # the identity authenticated for the current session
+  # @example get the okta user id
+  #   current_user_identity&.uid
+  # @return [OauthIdentity, nil]
+  def current_user_identity
+    return nil unless current_user
+
+    provider = cookies.signed[:active_provider]
+    return nil unless provider
+
+    @current_user_identity ||= OauthIdentity.for_user(current_user).where(provider: provider).first
+  end
+  helper_method :current_user_identity
+
   protected
 
   def configure_permitted_parameters

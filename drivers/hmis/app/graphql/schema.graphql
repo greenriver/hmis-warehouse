@@ -399,7 +399,6 @@ type Client {
   ssnDataQuality: SSNDataQuality!
   user: User
   veteranStatus: NoYesReasonsForMissingData!
-  warehouseUrl: String!
 }
 
 type ClientAccess {
