@@ -27,6 +27,7 @@ module SystemPathways::ChartBase
       scope = filter_for_veteran_status(scope)
       scope = filter_for_ce_involvement(scope)
       scope = filter_for_head_of_household(scope)
+      scope = filter_for_chronic_at_entry(scope)
       scope
     end
 
@@ -69,6 +70,12 @@ module SystemPathways::ChartBase
       return 0 unless count.positive?
 
       value.to_f / count
+    end
+
+    private def filter_for_chronic_at_entry(scope)
+      return scope unless @filter.chronic_status
+
+      scope.merge(SystemPathways::Enrollment.where(chronic_at_entry: filter.chronic_status))
     end
 
     private def filter_for_race(scope)
@@ -131,7 +138,7 @@ module SystemPathways::ChartBase
     private def filter_for_head_of_household(scope)
       return scope unless filter.hoh_only
 
-      scope.merge(Enrollment.where(relationship_to_hoh: 1))
+      scope.merge(SystemPathways::Enrollment.where(relationship_to_hoh: 1))
     end
 
     def bg_color(label)
@@ -307,6 +314,14 @@ module SystemPathways::ChartBase
 
     private def ethnicities
       @ethnicities ||= HudLists.ethnicity_map
+    end
+
+    private def veteran_statuses
+      @veteran_statuses ||= HudLists.ad_hoc_yes_no_map
+    end
+
+    private def chronic_at_entries
+      @chronic_at_entries ||= { false => 'No', true => 'Yes' }
     end
 
     private def as_table(data, headers)

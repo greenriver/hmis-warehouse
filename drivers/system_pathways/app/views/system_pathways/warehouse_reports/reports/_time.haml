@@ -2,21 +2,23 @@
 .time.mt-4{ data: { controller: 'chart-loader', chart: 'document.time' }}
   - url = URI(@report.chart_data_path('time'))
   .d-flex
+    - chart_header = "Average Days by by "
     %h3
-      Average Days by
+      = chart_header
       %span{ data: { 'chart-loader-target' => 'chartHeader' }} Ethnicity
     .dropdown.ml-auto
       %button.btn.btn-sm.btn-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
         Demographic Breakdown
         %i.ml-2.icon-angle-down
       .dropdown-menu.options
-        - demo = [['Ethnicity', 'ethnicity'], ['Race', 'race']].each do |label, key|
+        - demo = time.known_categories.each do |label, key|
           - url.query = @filter.for_params.merge(demographic_breakdown: key).to_query
-          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-id' => 'time-table', 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(chart: 'time')) }
+          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-id' => 'time-table', 'table-name' => "Table - #{chart_header} #{label}", 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(chart: 'time')) }
           - classes = ['dropdown-item']
           = link_to(label, url.to_s, data: data, class: classes)
   #time-chart
   #time-table
+  -# rollup-container.c-card.c-card--flush.c-card--block
   = content_for :page_js do
     :javascript
       document.time = bb.generate({
@@ -34,16 +36,21 @@
             centered: true,
           }
         },
+        legend: {
+          position: "right"
+        },
         tooltip: {
+          order: '', // Enforce group order
           format: {
             value: (value, ratio, id, index) => d3.format(",")(value),
           },
         },
         bindto: '#time-chart',
         size: {
-          height: 400,
+          height: 100,
         },
         axis: {
+          rotated: true,
           x: {
             type: 'category'
           }

@@ -12,6 +12,8 @@ module SystemPathways
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include ApplicationHelper
+    include HudReports::Households
 
     belongs_to :user, optional: true
     has_many :clients
@@ -93,6 +95,7 @@ module SystemPathways
         :household_type,
         :hoh_only,
         :involves_ce,
+        :chronic_status,
       ]
     end
 
@@ -210,6 +213,9 @@ module SystemPathways
             HudUtility.race(r)
           end.join(',')
         },
+        'Veteran Status' => ->(en) {
+          HudUtility.veteran_status(en.client.veteran_status)
+        },
         'Stay Length' => ->(en) {
           en.stay_length
         },
@@ -218,6 +224,9 @@ module SystemPathways
         },
         'Days to Return' => ->(en) {
           en.client.days_to_return
+        },
+        'Household Chronic at Entry' => ->(en) {
+          yn(en.chronic_at_entry)
         },
       }
     end
@@ -361,6 +370,7 @@ module SystemPathways
             stay_length = (en.entry_date .. [en.exit_date, filter.end].compact.min).count
             household_id = get_hh_id(en)
             household_type = household_makeup(household_id, date)
+            chronic_member = household_chronic_status(household_id, client.id)
             days_to_move_in = 0
             days_to_exit_after_move_in = nil
             days_to_move_in = en.move_in_date - en.entry_date if en.move_in_date.present?
@@ -382,6 +392,7 @@ module SystemPathways
               stay_length: stay_length,
               disabling_condition: en.enrollment.disabling_condition,
               relationship_to_hoh: en.enrollment.relationship_to_hoh,
+              chronic_at_entry: chronic_member[:chronic_status].present?,
               household_id: household_id,
               household_type: household_type,
               final_enrollment: i == accepted_enrollments.count - 1,
@@ -465,16 +476,11 @@ module SystemPathways
       end
     end
 
-    private def get_hh_id(service_history_enrollment)
-      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
-    end
-
     private def clients_with_enrollments(batch)
       enrollment_scope.
         where(client_id: batch).
         order(first_date_in_program: :asc).
-        group_by(&:client_id).
-        reject { |_, enrollments| nbn_with_no_service?(enrollments.last) }
+        group_by(&:client_id)
     end
 
     private def nbn_with_no_service?(enrollment)

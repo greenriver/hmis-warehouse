@@ -25,7 +25,13 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     // we're bringing in rfdc in a weird way
     const clone = rfdc()
     let config = clone(this.initial_config);
-    config.data = data;
+    if (data.config) {
+      config = {
+        ...config,
+        ...data.config,
+      }
+    }
+    config.data = data.data;
     // data.labels.format is a function we can't send via json
     // so we need to grab it out of the initial config if it exists
     if (this.initial_config.data && this.initial_config.data.labels && this.initial_config.data.labels.format) config.data.labels.format = this.initial_config.data.labels.format
@@ -43,10 +49,18 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     let link_base = this.activeTarget(event).dataset['table-link'];
     let table = this.createTable(data.table, link_base, data.link_params)
     let table_target = document.getElementById(this.activeTarget(event).dataset['table-id'])
+    let table_name = this.activeTarget(event).dataset['table-name'];
+    if (table_name) {
+      let table_header_html = document.createElement('h3');
+      let table_header_text = document.createTextNode(table_name);
+      table_header_html.appendChild(table_header_text);
+      table.prepend(table_header_html);
+    }
     if (table_target) table_target.innerHTML = table.outerHTML;
   }
 
   createTable(data, link_base, link_params) {
+    console.log(data)
     let table = document.createElement('table');
     table.classList.add('table', 'table-striped')
     // TODO: break table header out
@@ -90,15 +104,14 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   loadChartData(event) {
     event.preventDefault();
     let url = this.activeTarget(event).href;
-
     fetch(url)
       .then(response => response.json())
       .then(json => {
-        this.updateChart(json.data)
+
+        'rollup-container', 'c-card', 'c-card--flush', 'c-card--block'
+        this.updateChart(json)
         // Update the header
-
         if (event.target) this.chartHeaderTarget.textContent = event.target.text;
-
         // Update the menu
         this.changerTargets.forEach(el => el.classList.remove('active'))
         let active_menu_item = this.changerTargets.find(el => el.dataset['menu-item'] == json.chart);

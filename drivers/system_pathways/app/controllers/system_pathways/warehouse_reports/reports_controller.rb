@@ -27,6 +27,7 @@ module SystemPathways::WarehouseReports
     def show
       @filter = @report.filter
       @filter.update(filter_params[:filters].merge(coc_codes: @filter.coc_codes))
+      @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter)
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -175,6 +176,7 @@ module SystemPathways::WarehouseReports
 
       filters = params.permit(filters: @filter.known_params)
       filters[:filters][:coc_codes] ||= site_coc_codes
+      filters[:filters][:chronic_status] = params[:filters][:chronic_at_entries].first if params[:filters].try(:[], :chronic_at_entries).present?
       filters
     end
     helper_method :filter_params

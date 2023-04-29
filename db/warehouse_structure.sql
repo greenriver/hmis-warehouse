@@ -20491,7 +20491,8 @@ CREATE TABLE public.system_pathways_enrollments (
     deleted_at timestamp without time zone,
     final_enrollment boolean DEFAULT false NOT NULL,
     move_in_date date,
-    days_to_move_in integer
+    days_to_move_in integer,
+    chronic_at_entry boolean
 );
 
 
@@ -52497,6 +52498,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230419190654'),
 ('20230420164514'),
 ('20230424194313'),
-('20230426175101');
+('20230426175101'),
+('20230429185311');
 
 
