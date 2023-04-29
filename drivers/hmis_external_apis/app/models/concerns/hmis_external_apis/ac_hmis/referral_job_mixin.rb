@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis
     end
 
     def mci
-      @mci ||= ::HmisExternalApis::Mci.new
+      @mci ||= ::HmisExternalApis::AcHmis::Mci.new
     end
 
     def mper

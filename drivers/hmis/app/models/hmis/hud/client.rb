@@ -136,7 +136,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       },
     }
 
-    if HmisExternalApis::Mci.enabled?
+    if HmisExternalApis::AcHmis::Mci.enabled?
       external_identifiers[:mci_id] = {
         id: mci_id,
         url: mci_url(user),

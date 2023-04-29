@@ -20,9 +20,9 @@
 #
 #  Then
 #
-#  mci = HmisExternalApis::Mci.new
+#  mci = HmisExternalApis::AcHmis::Mci.new
 
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   class Mci
     SYSTEM_ID= 'ac_hmis_mci'.freeze
     Error = StandardError.new
@@ -30,7 +30,7 @@ module HmisExternalApis
     # Perform "clearance" to find potential matches for a client in MCI
     #
     # @param client [Hmis::Hud::Client] client, which may or may not be persisted
-    # @return [Array{HmisExternalApis::MciClearanceResult}]
+    # @return [Array{HmisExternalApis::AcHmis::MciClearanceResult}]
     def clearance(client)
       payload = {
         **MciPayload.from_client(client).slice(

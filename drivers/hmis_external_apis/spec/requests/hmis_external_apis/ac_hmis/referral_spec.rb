@@ -19,7 +19,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
 
     let(:mci) do
       create(:ac_hmis_mci_credential)
-      ::HmisExternalApis::Mci.new
+      ::HmisExternalApis::AcHmis::Mci.new
     end
 
     let(:mper) do
@@ -111,7 +111,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       expect(referral.postings.map(&:project_id)).to(eq([referral_request.project_id]))
       expect(referral.household_members.size).to(eq(clients.size))
 
-      id_scope = HmisExternalApis::ExternalId.where(namespace: HmisExternalApis::Mci::SYSTEM_ID)
+      id_scope = HmisExternalApis::ExternalId.where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
       clients.each do |client, mci_id|
         found = referral.household_members.where(client_id: client.id).first!
         expect(id_scope.where(source: found.client, value: mci_id).count).to(eq(1))
