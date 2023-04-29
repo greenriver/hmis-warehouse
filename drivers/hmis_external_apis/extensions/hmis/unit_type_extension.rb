@@ -14,12 +14,6 @@ module HmisExternalApis
         has_many :external_referral_requests, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', dependent: :restrict_with_exception
         # has_many :external_referral_postings, class_name: ' HmisExternalApis::AcHmis::ReferralPosting', dependent: :restrict_with_exception
       end
-
-      class_methods do
-        def order_by_created_at(dir = :asc)
-          order(created_at: dir)
-        end
-      end
     end
   end
 end

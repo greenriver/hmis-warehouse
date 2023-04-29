@@ -11,8 +11,9 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
   describe 'create referral request' do
     include_context 'hmis base setup'
 
-    let(:mper_cred) do
-      create(:remote_token_credential, slug: 'mci')
+    let(:mper) do
+      create(:ac_hmis_mper_credential)
+      ::HmisExternalApis::AcHmis::Mper.new
     end
 
     let(:endpoint) do
@@ -23,12 +24,11 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
       posting = create(:hmis_external_api_ac_hmis_referral_posting)
 
       # setup external ids
-      mper_cred = create(:remote_oauth_credential, slug: 'mper')
       [
         posting.project,
         posting.project.organization,
       ].each do |record|
-        mper_cred.external_ids.create!(source: record, value: SecureRandom.uuid)
+        mper.create_external_id(source: record, value: SecureRandom.uuid)
       end
 
       accepted_status_code = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch(:accepted_status)

@@ -24,6 +24,7 @@
 
 module HmisExternalApis
   class Mci
+    SYSTEM_ID= 'ac_hmis_mci'.freeze
     Error = StandardError.new
 
     # Perform "clearance" to find potential matches for a client in MCI
@@ -144,10 +145,25 @@ module HmisExternalApis
     # end
 
     def self.enabled?
-      ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: 'mci').exists?
+      ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: SYSTEM_ID).exists?
+    end
+
+    def find_client_by_mci(mci_id)
+      # If multiple clients with this mci id, choose client with earliest creation date
+      client_scope
+        .order(DateCreated: :asc)
+        .first_by_external_id(namespace: SYSTEM_ID, id: mci_id)
+    end
+
+    def create_external_id(source:, value:)
+      external_ids.create!(source: source, value: value, remote_credential: creds)
     end
 
     private
+
+    def external_ids
+      HmisExternalApis::ExternalId.where(namespace: SYSTEM_ID)
+    end
 
     def save_log!(result, payload)
       ExternalRequestLog.create!(
@@ -164,16 +180,13 @@ module HmisExternalApis
     end
 
     def get_external_id(client)
-      ExternalId.where(source: client).where(remote_credential: creds).first_or_initialize
-    end
-
-    def find_client_by_mci(mci_id)
-      # If multiple clients with this mci id, choose client with earliest creation date
-      ExternalId.where(remote_credential: creds, value: mci_id).map(&:source).min_by(&:date_created)
+      external_ids.where(source: client).first_or_initialize do |record|
+        record.remote_credential = creds
+      end
     end
 
     def creds
-      @creds ||= ::GrdaWarehouse::RemoteCredentials::Oauth.active.find_by(slug: 'mci')
+      @creds ||= ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).first!
     end
 
     def conn
@@ -186,6 +199,14 @@ module HmisExternalApis
           headers: creds.additional_headers,
           scope: creds.oauth_scope,
         )
+    end
+
+    def client_scope
+      ::Hmis::Hud::Client.where(data_source: data_source)
+    end
+
+    def data_source
+      @data_source ||= HmisExternalApis::AcHmis.data_source
     end
   end
 end

@@ -3,7 +3,7 @@ class AddExternalIdNamespace < ActiveRecord::Migration[6.1]
   # https://www.pivotaltracker.com/story/show/185000178/comments/236605163
   def change
     add_column :external_ids, :namespace, :string, null: true
-    # The condition here allows two clients can share the same MCI ID
+    # The condition here allows two for two clients to share the same MCI ID
     # https://github.com/greenriver/hmis-warehouse/pull/2933/files#r1164091887
     add_index :external_ids,
               [:source_type, :namespace, :value],

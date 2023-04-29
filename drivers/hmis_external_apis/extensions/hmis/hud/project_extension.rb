@@ -16,12 +16,6 @@ module HmisExternalApis
           has_many :external_referral_requests, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', dependent: :destroy
           has_many :external_referral_postings, class_name: 'HmisExternalApis::AcHmis::ReferralPosting', dependent: :destroy
         end
-
-        class_methods do
-          def order_by_created_at(dir = :asc)
-            order(date_created: dir)
-          end
-        end
       end
     end
   end

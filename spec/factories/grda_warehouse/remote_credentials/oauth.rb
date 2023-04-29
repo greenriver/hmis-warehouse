@@ -1,7 +1,6 @@
 FactoryBot.define do
-  factory :remote_oauth_credential, class: 'GrdaWarehouse::RemoteCredentials::Oauth' do
-    sequence :slug
-
+  # STI base class
+  factory :grda_remote_oauth_credential, class: 'GrdaWarehouse::RemoteCredentials::Oauth' do
     # these are required by db schema
     active { true }
     sequence :username
