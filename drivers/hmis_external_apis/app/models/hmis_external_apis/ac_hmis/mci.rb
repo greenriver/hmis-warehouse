@@ -148,6 +148,9 @@ module HmisExternalApis::AcHmis
       ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: SYSTEM_ID).exists?
     end
 
+    # returns the first client that record matching this MCI Id
+    # @param mci_id [String]
+    # @return [Hmis::Hud::Client, nil]
     def find_client_by_mci(mci_id)
       # If multiple clients with this mci id, choose client with earliest creation date
       client_scope
@@ -155,6 +158,9 @@ module HmisExternalApis::AcHmis
         .first_by_external_id(namespace: SYSTEM_ID, id: mci_id)
     end
 
+    # @param source [ApplicationRecord]
+    # @param value [String]
+    # @return [HmisExternalApis::ExternalId]
     def create_external_id(source:, value:)
       external_ids.create!(source: source, value: value, remote_credential: creds)
     end

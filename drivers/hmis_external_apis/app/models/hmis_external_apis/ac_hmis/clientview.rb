@@ -8,6 +8,7 @@ module HmisExternalApis::AcHmis
   class Clientview
     SYSTEM_ID = 'ac_hmis_clientview'.freeze
 
+    # @return [String, nil]
     def self.link_base
       ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).first&.link_base
     end

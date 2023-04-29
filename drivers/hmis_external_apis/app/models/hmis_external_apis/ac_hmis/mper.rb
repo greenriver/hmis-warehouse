@@ -9,18 +9,27 @@ module HmisExternalApis::AcHmis
   class Mper
     SYSTEM_ID = 'ac_hmis_mper'.freeze
 
+    # @param mper_id [String]
+    # @return [Hmis::Hud::Project, nil]
     def find_project_by_mper(mper_id)
       project_scope.first_by_external_id(namespace: SYSTEM_ID, id: mper_id)
     end
 
+    # @param mper_id [String]
+    # @return [Hmis::UnitType, nil]
     def find_unit_type_by_mper(mper_id)
       ::Hmis::UnitType.first_by_external_id(namespace: SYSTEM_ID, id: mper_id)
     end
 
+    # @param source [ApplicationRecord]
+    # @return [String, nil]
     def identify_source(source)
       external_ids.where(source: source).first&.value
     end
 
+    # @param source [ApplicationRecord]
+    # @param value [String]
+    # @return [HmisExternalApis::ExternalId]
     def create_external_id(source:, value:)
       external_ids.create!(source: source, value: value, remote_credential: remote_credential)
     end
