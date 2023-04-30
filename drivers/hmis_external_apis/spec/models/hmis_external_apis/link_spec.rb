@@ -19,7 +19,7 @@ RSpec.describe 'LINK API', type: :model do
 
     let(:requested_by) { 'user1@example.com' }
     let(:now) { Time.now }
-    let(:program_id) { 867 }
+    let(:program_id) { 1072 }
     let(:unit_type_id) { 20 }
 
     def format_date(date)
@@ -51,7 +51,7 @@ RSpec.describe 'LINK API', type: :model do
 
       result = subject.post('Referral/ReferralRequest', payload)
       # {"message"=>"A server error occurred.", "detail"=>"ORA-00942: table or view does not exist", "errorReferenceId"=>"58e06257-3128-43d0-96fe-03cc6af4d8d6"}
-      # byebug unless result.http_status == 200
+      byebug unless result.http_status == 200
       expect(result.http_status).to eq(200)
     end
 
@@ -59,7 +59,8 @@ RSpec.describe 'LINK API', type: :model do
       payload = { 'isVoid' => true, 'requestedBy' => requested_by }
 
       result = subject.patch('Referral/ReferralRequest/60', payload)
-      # byebug unless result.http_status == 200
+      byebug unless result.http_status == 200
+      # {"message"=>"A server error occurred.", "detail"=>"ORA-28000: The account is locked.", "errorReferenceId"=>"6548f58f-0065-4013-911d-64db033c75bd"}
       expect(result.http_status).to eq(200)
     end
 
@@ -84,8 +85,9 @@ RSpec.describe 'LINK API', type: :model do
 
       # Note: PostingStatus/ID doesn't work
       # "{\"message\":\"Posting Status Id is not valid. \",\"detail\":\"Invalid Parameters.\"}"
+      # {"message"=>"A server error occurred.", "detail"=>"ORA-28000: The account is locked.", "errorReferenceId"=>"80a25c15-e8ee-4fb3-bf7a-f3381c03a8aa"}
       result = subject.patch('Referral/PostingStatus', payload)
-      # byebug unless result.http_status == 200
+      byebug unless result.http_status == 200
       expect(result.http_status).to eq(200)
     end
 
@@ -98,7 +100,7 @@ RSpec.describe 'LINK API', type: :model do
       }
 
       result = subject.patch('Unit/Capacity', payload)
-      # byebug unless result.http_status == 200
+      byebug unless result.http_status == 200
       # {"message"=>"A server error occurred.", "detail"=>"ORA-00942: table or view does not exist", "errorReferenceId"=>"6f30d636-d276-40dc-ab3a-3e654ec4f431"}
       expect(result.http_status).to eq(200)
     end
