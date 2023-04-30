@@ -188,7 +188,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
 
         # Update the assessment again (submit)
-        new_assessment_date = Date.today.strftime('%Y-%m-%d')
+        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = { assessment_id: assessment.id, **build_minimum_values(definition, assessment_date: new_assessment_date) }
         _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')

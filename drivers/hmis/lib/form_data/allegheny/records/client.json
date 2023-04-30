@@ -1,0 +1,37 @@
+{
+  "item": [
+    {
+      "type": "STRING",
+      "link_id": "client-id",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$clientId"
+        }
+      ]
+    },
+    {
+      "fragment": "#client_name"
+    },
+    {
+      "fragment": "#client_identification"
+    },
+    {
+      "fragment": "#client_demographics"
+    },
+    {
+      "fragment": "#client_mci"
+    },
+    {
+      "fragment": "#client_photo",
+      "enable_when": [
+        {
+          "question": "client-id",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ]
+    }
+  ]
+}

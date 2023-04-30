@@ -21,9 +21,10 @@ module Admin
       @conf = HmisExternalApis::InboundApiConfiguration.new(permitted_params)
 
       if @conf.save
-        flash[:alert] = "Your key is #{@conf.plain_text_api_key_with_fallback}. It will not be shown again"
+        flash[:alert] = "Your key is #{@conf.plain_text_api_key_with_fallback}. It will be shown below for a short period of time."
         redirect_to action: :index
       else
+        flash.now[:alert] = @conf.errors.full_messages
         render :new
       end
     end
@@ -40,7 +41,7 @@ module Admin
       params
         .require(:hmis_external_apis_inbound_api_configuration)
         .permit(
-          :internal_system_name,
+          :internal_system_id,
           :external_system_name,
         )
     end
