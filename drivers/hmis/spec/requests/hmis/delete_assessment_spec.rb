@@ -94,21 +94,50 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  # Don't allow deletion of submitted intake assessments
+  # Deleting non-wip intakes should require enrollment deletion permissions
+  wip_and_submitted.each do |key, name, action|
+    it "should handle deleting #{name} intake assessment based on whether user can delete enrollments" do
+      remove_permissions(hmis_user, :can_delete_enrollments)
+      action.call(a1)
+      fd1.update(role: 'INTAKE')
+
+      mutate(input: { id: a1.id }) do |assessment, errors|
+        a1.reload
+        e1.reload
+        if key == :wip
+          expect(assessment).to be_present
+          expect(errors).to be_empty
+          expect(a1.date_deleted).to be_present
+          expect(e1.date_deleted).to be_present
+        elsif key == :submitted
+          expect(assessment).to be_nil
+          expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+          expect(a1.date_deleted).to be_nil
+          expect(e1.date_deleted).to be_nil
+        end
+      end
+    end
+  end
+
+  # Deleting intakes should delete the enrollment
   wip_and_submitted.each do |key, name, action|
     it "should handle deleting a #{name} intake assessment" do
       action.call(a1)
       fd1.update(role: 'INTAKE')
 
       mutate(input: { id: a1.id }) do |assessment, errors|
+        a1.reload
+        e1.reload
         if key == :wip
           expect(assessment).to be_present
           expect(errors).to be_empty
-          expect(Hmis::Hud::CustomAssessment.all).not_to include(have_attributes(id: a1.id))
+          expect(a1.date_deleted).to be_present
+          expect(e1.date_deleted).to be_present
         elsif key == :submitted
-          expect(assessment).to be_nil
-          expect(errors).to contain_exactly(include('type' => 'not_allowed'))
-          expect(Hmis::Hud::CustomAssessment.all).to include(have_attributes(id: a1.id))
+          expect(assessment).to be_present
+          expect(errors).to be_empty
+          expect(a1.date_deleted).to be_present
+          expect(e1.date_deleted).to be_present
         end
       end
     end
