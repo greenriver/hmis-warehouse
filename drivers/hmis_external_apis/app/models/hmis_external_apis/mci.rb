@@ -52,6 +52,7 @@ module HmisExternalApis
       raise(Error, result.error) if result.error
 
       Rails.logger.info "Did clearance for client #{client.id}"
+      return [] if result.http_status == 204
 
       result.parsed_body.map do |clearance_result|
         mci_id = clearance_result['mciId'].to_s
@@ -147,6 +148,10 @@ module HmisExternalApis
       ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: 'mci').exists?
     end
 
+    def creds
+      @creds ||= ::GrdaWarehouse::RemoteCredentials::Oauth.active.find_by(slug: 'mci')
+    end
+
     private
 
     def save_log!(result, payload)
@@ -170,10 +175,6 @@ module HmisExternalApis
     def find_client_by_mci(mci_id)
       # If multiple clients with this mci id, choose client with earliest creation date
       ExternalId.where(remote_credential: creds, value: mci_id).map(&:source).min_by(&:date_created)
-    end
-
-    def creds
-      @creds ||= ::GrdaWarehouse::RemoteCredentials::Oauth.active.find_by(slug: 'mci')
     end
 
     def conn
