@@ -45,7 +45,6 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   }
 
   updateTable(data, event) {
-    //console.log(data)
     let link_base = this.activeTarget(event).dataset['table-link'];
     let table = this.createTable(data.table, link_base, data.link_params)
     let table_target = document.getElementById(this.activeTarget(event).dataset['table-id'])
@@ -60,19 +59,15 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   }
 
   createTable(data, link_base, link_params) {
-    console.log(data)
     let table = document.createElement('table');
     table.classList.add('table', 'table-striped')
     // TODO: break table header out
     let tableBody = document.createElement('tbody');
     let row, cell, link, url;
-    // console.log('here', data, link_params)
     data.forEach(function (data_row, i) {
-      // console.log(data_row)
       row = document.createElement('tr');
 
       data_row.forEach(function (data_cell, j) {
-        // console.log('cell:', data_cell, data_row, i, j, link_params)
         if(i > 0 && j > 0 && link_base) {
           url = new URL(link_base);
           // TODO: this is specific to the system pathways report
@@ -81,7 +76,6 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
           //url.searchParams.append('node', data[i][0]);
           url.searchParams.append(...link_params.columns[j]);
           url.searchParams.append(...link_params.rows[i]);
-          // console.log(link_params.columns[j], link_params.rows[i])
           cell = document.createElement('td');
           link = document.createElement('a')
           link.setAttribute('target', '_blank');
@@ -108,7 +102,8 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
       .then(response => response.json())
       .then(json => {
 
-        'rollup-container', 'c-card', 'c-card--flush', 'c-card--block'
+        // 'rollup-container', 'c-card', 'c-card--flush', 'c-card--block'
+        console.log(json)
         this.updateChart(json)
         // Update the header
         if (event.target) this.chartHeaderTarget.textContent = event.target.text;

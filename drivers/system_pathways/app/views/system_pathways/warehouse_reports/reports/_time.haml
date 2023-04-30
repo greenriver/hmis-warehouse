@@ -2,7 +2,7 @@
 .time.mt-4{ data: { controller: 'chart-loader', chart: 'document.time' }}
   - url = URI(@report.chart_data_path('time'))
   .d-flex
-    - chart_header = "Average Days by by "
+    - chart_header = "Average Days by "
     %h3
       = chart_header
       %span{ data: { 'chart-loader-target' => 'chartHeader' }} Ethnicity

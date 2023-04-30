@@ -28,6 +28,7 @@ module SystemPathways::ChartBase
       scope = filter_for_ce_involvement(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_chronic_at_entry(scope)
+      scope = filter_for_disabling_condition(scope)
       scope
     end
 
@@ -72,8 +73,14 @@ module SystemPathways::ChartBase
       value.to_f / count
     end
 
+    private def filter_for_disabling_condition(scope)
+      return scope if @filter.disabling_condition.nil?
+
+      scope.merge(SystemPathways::Enrollment.where(disabling_condition: filter.disabling_condition))
+    end
+
     private def filter_for_chronic_at_entry(scope)
-      return scope unless @filter.chronic_status
+      return scope if @filter.chronic_status.nil?
 
       scope.merge(SystemPathways::Enrollment.where(chronic_at_entry: filter.chronic_status))
     end
@@ -130,9 +137,9 @@ module SystemPathways::ChartBase
     end
 
     private def filter_for_ce_involvement(scope)
-      return scope unless filter.involves_ce
+      return scope if filter.involves_ce.nil?
 
-      scope.where(ce: true)
+      scope.where(involves_ce: filter.involves_ce)
     end
 
     private def filter_for_head_of_household(scope)
@@ -317,11 +324,19 @@ module SystemPathways::ChartBase
     end
 
     private def veteran_statuses
-      @veteran_statuses ||= HudLists.ad_hoc_yes_no_map
+      @veteran_statuses ||= HudLists.no_yes_reasons_for_missing_data_map
     end
 
     private def chronic_at_entries
       @chronic_at_entries ||= { false => 'No', true => 'Yes' }
+    end
+
+    private def involves_ces
+      @involves_ces ||= { false => 'No', true => 'Yes' }
+    end
+
+    private def disabling_conditions
+      @disabling_conditions ||= HudLists.no_yes_reasons_for_missing_data_map
     end
 
     private def as_table(data, headers)

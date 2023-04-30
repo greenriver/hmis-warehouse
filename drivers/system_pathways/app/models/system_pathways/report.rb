@@ -96,6 +96,7 @@ module SystemPathways
         :hoh_only,
         :involves_ce,
         :chronic_status,
+        :disabling_condition,
       ]
     end
 
@@ -213,6 +214,9 @@ module SystemPathways
             HudUtility.race(r)
           end.join(',')
         },
+        'Disabling Condition' => ->(en) {
+          HudUtility.no_yes_reasons_for_missing_data(en.disabling_condition)
+        },
         'Veteran Status' => ->(en) {
           HudUtility.veteran_status(en.client.veteran_status)
         },
@@ -227,6 +231,9 @@ module SystemPathways
         },
         'Household Chronic at Entry' => ->(en) {
           yn(en.chronic_at_entry)
+        },
+        'Participated in Coordinated Entry' => ->(en) {
+          yn(en.client.involves_ce)
         },
       }
     end
@@ -348,7 +355,7 @@ module SystemPathways
             questioning: client.questioning == 1,
             no_single_gender: client.no_single_gender == 1,
             veteran_status: client.veteran_status,
-            ce: served_by_ce,
+            involves_ce: served_by_ce,
             destination: final_enrollment.destination,
             destination_homeless: HudUtility.destination_type(final_enrollment.destination) == 'Homeless',
             destination_temporary: HudUtility.destination_type(final_enrollment.destination) == 'Temporary',

@@ -16,9 +16,9 @@ module SystemPathways
       incoming = combinations.select { |row| row[:target] == label }.sort_by { |m| node_weights[m[:source]] }.reverse
       outgoing = combinations.select { |row| row[:source] == label }.sort_by { |m| node_weights[m[:target]] }.reverse
       enrolled_count = incoming.map { |m| m[:value] }.sum # should be equivalent to node_clients(label).distinct.count but without the query
-      days_enrolled = node_clients(label).pluck(sp_e_t[:stay_length])
-      days_before_move_in = node_clients(label).pluck(sp_e_t[:days_to_move_in]).reject(&:blank?)
-      days_after_move_in_to_exit = node_clients(label).pluck(sp_e_t[:days_to_exit_after_move_in]).reject(&:blank?)
+      days_enrolled = SystemPathways::Enrollment.where(id: node_clients(label).select(:id)).pluck(sp_e_t[:stay_length])
+      days_before_move_in = SystemPathways::Enrollment.where(id: node_clients(label).select(:id)).pluck(sp_e_t[:days_to_move_in]).reject(&:blank?)
+      days_after_move_in_to_exit = SystemPathways::Enrollment.where(id: node_clients(label).select(:id)).pluck(sp_e_t[:days_to_exit_after_move_in]).reject(&:blank?)
       OpenStruct.new(
         label: label,
         enrolled: enrolled_count,

@@ -176,7 +176,7 @@ module SystemPathways::WarehouseReports
 
       filters = params.permit(filters: @filter.known_params)
       filters[:filters][:coc_codes] ||= site_coc_codes
-      filters[:filters][:chronic_status] = params[:filters][:chronic_at_entries].first if params[:filters].try(:[], :chronic_at_entries).present?
+      filters[:filters][:chronic_status] = params[:filters].try(:[], :chronic_at_entries)&.first
       filters
     end
     helper_method :filter_params
