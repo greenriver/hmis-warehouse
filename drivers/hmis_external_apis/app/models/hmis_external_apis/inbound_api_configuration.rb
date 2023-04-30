@@ -9,24 +9,20 @@ module HmisExternalApis
     KEY_LENGTH = 64
     MAX_KEYS_PER_COMBO = 2
 
-    VALID_INTERNAL_SYSTEMS = [
-      'referral',
-      'involvement',
-    ].freeze
-
     attr_accessor :plain_text_api_key
 
-    scope :well_ordered, -> { order(:internal_system_name, :external_system_name, :version) }
-    scope :versions, ->(e, i) { where(external_system_name: e, internal_system_name: i).order('version desc') }
+    belongs_to :internal_system
+
+    scope :well_ordered, -> { joins(:internal_system).order('internal_systems.name, version') }
+    scope :versions, ->(e, i) { where(external_system_name: e, internal_system_id: i).order('version desc') }
 
     before_validation :set_version, if: :new_record?
     before_create :generate_key
     after_save :keep_two_versions
 
-    validates :external_system_name, length: {  minimum: 2 }
-    validates :internal_system_name, length: {  minimum: 2 }
+    validates :external_system_name, length: { minimum: 2 }
     validates :hashed_api_key, uniqueness: true
-    validates :external_system_name, uniqueness: { scope: [:internal_system_name, :version], case_sensitive: false }
+    validates :external_system_name, uniqueness: { scope: [:internal_system_id, :version], case_sensitive: false }
 
     def generate_key
       return if hashed_api_key.present?
@@ -52,7 +48,7 @@ module HmisExternalApis
     private
 
     def cache_key
-      "inbound-api-configuration-#{internal_system_name}-#{external_system_name}-#{version}"
+      "inbound-api-configuration--internal-id-#{internal_system_id}--#{external_system_name}--#{version}"
     end
 
     def set_version
@@ -60,13 +56,13 @@ module HmisExternalApis
     end
 
     def next_version
-      v = InboundApiConfiguration.versions(external_system_name, internal_system_name).first
+      v = InboundApiConfiguration.versions(external_system_name, internal_system_id).first
 
       v.nil? ? 0 : v.version.to_i + 1
     end
 
     def keep_two_versions
-      InboundApiConfiguration.versions(external_system_name, internal_system_name).offset(MAX_KEYS_PER_COMBO).delete_all
+      InboundApiConfiguration.versions(external_system_name, internal_system_id).offset(MAX_KEYS_PER_COMBO).delete_all
     end
   end
 end
