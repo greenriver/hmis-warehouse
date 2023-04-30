@@ -22,12 +22,12 @@ class OmniauthUserProvisioner
 
     OauthIdentity.transaction do
       attrs = { provider: auth.provider, uid: auth.uid }
-      # create an orphan authorzation to lock before creating a user
+      # create an orphan authorization to lock before creating a user
       now = Time.current
       OauthIdentity.upsert(attrs.merge(created_at: now, updated_at: now), unique_by: attrs.keys)
       OauthIdentity.find_by(attrs).lock!
 
-      # load auth record after lock is aquired
+      # load auth record after lock is acquired
       identity = OauthIdentity.find_by(attrs)
 
       # load or create a user record

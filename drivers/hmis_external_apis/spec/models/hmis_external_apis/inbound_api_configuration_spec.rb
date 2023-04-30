@@ -7,15 +7,14 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::InboundApiConfiguration, type: :model do
-  include HmisExternalApis
-
   it 'Creates an api key' do
     create(:inbound_api_configuration)
     expect(HmisExternalApis::InboundApiConfiguration.count).to eq(1)
   end
 
   it 'Only creates at most two api keys' do
-    3.times { create(:inbound_api_configuration, external_system_name: 'E1', internal_system_name: 'I1') }
+    internal_system = create(:internal_system)
+    3.times { create(:inbound_api_configuration, external_system_name: 'E1', internal_system: internal_system) }
     expect(HmisExternalApis::InboundApiConfiguration.count).to eq(2)
     expect(HmisExternalApis::InboundApiConfiguration.pluck(:version).sort).to eq([1, 2])
   end

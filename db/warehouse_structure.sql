@@ -16326,13 +16326,13 @@ ALTER SEQUENCE public.import_logs_id_seq OWNED BY public.import_logs.id;
 
 CREATE TABLE public.inbound_api_configurations (
     id bigint NOT NULL,
-    internal_system_name character varying NOT NULL,
     external_system_name character varying NOT NULL,
     hashed_api_key character varying NOT NULL,
     plain_text_reminder character varying NOT NULL,
     version integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    internal_system_id bigint
 );
 
 
@@ -16590,6 +16590,37 @@ CREATE VIEW public.index_stats AS
      LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
      LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
   ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+
+
+--
+-- Name: internal_systems; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.internal_systems (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    auth_type character varying DEFAULT 'apikey'::character varying NOT NULL
+);
+
+
+--
+-- Name: internal_systems_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.internal_systems_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: internal_systems_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.internal_systems_id_seq OWNED BY public.internal_systems.id;
 
 
 --
@@ -23640,6 +23671,13 @@ ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: internal_systems id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.internal_systems ALTER COLUMN id SET DEFAULT nextval('public.internal_systems_id_seq'::regclass);
+
+
+--
 -- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26889,6 +26927,14 @@ ALTER TABLE ONLY public.income_benefits_report_incomes
 
 ALTER TABLE ONLY public.income_benefits_reports
     ADD CONSTRAINT income_benefits_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: internal_systems internal_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.internal_systems
+    ADD CONSTRAINT internal_systems_pkey PRIMARY KEY (id);
 
 
 --
@@ -40729,13 +40775,6 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
--- Name: idx_api_conf_on_name_and_external_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_api_conf_on_name_and_external_name ON public.inbound_api_configurations USING btree (internal_system_name, external_system_name, version);
-
-
---
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40922,6 +40961,13 @@ CREATE INDEX idx_hmis_external_referral_hms_on_referral_id ON public.hmis_extern
 --
 
 CREATE INDEX idx_hmis_external_referral_postings_on_request_id ON public.hmis_external_referral_postings USING btree (referral_request_id);
+
+
+--
+-- Name: idx_inbound_api_configurations_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_configurations USING btree (internal_system_id, external_system_name, version);
 
 
 --
@@ -44691,6 +44737,13 @@ CREATE UNIQUE INDEX index_inbound_api_configurations_on_hashed_api_key ON public
 
 
 --
+-- Name: index_inbound_api_configurations_on_internal_system_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_inbound_api_configurations_on_internal_system_id ON public.inbound_api_configurations USING btree (internal_system_id);
+
+
+--
 -- Name: index_inbound_api_configurations_on_plain_text_reminder; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44814,6 +44867,13 @@ CREATE INDEX index_income_benefits_reports_on_updated_at ON public.income_benefi
 --
 
 CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_reports USING btree (user_id);
+
+
+--
+-- Name: index_internal_systems_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_internal_systems_on_name ON public.internal_systems USING btree (name);
 
 
 --
@@ -51009,6 +51069,14 @@ ALTER TABLE ONLY public.hmis_external_referral_postings
 
 
 --
+-- Name: inbound_api_configurations fk_rails_441b0de9e4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inbound_api_configurations
+    ADD CONSTRAINT fk_rails_441b0de9e4 FOREIGN KEY (internal_system_id) REFERENCES public.internal_systems(id);
+
+
+--
 -- Name: service_history_services_2008 fk_rails_4726c968a2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -52495,6 +52563,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230419165219'),
 ('20230419190654'),
 ('20230420164514'),
-('20230424194313');
+('20230424194313'),
+('20230428141601'),
+('20230428145659'),
+('20230428155418');
 
 
