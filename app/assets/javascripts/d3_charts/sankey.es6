@@ -116,7 +116,8 @@ App.D3Chart.Sankey = class Sankey {
     // if (typeof format !== 'function') format = d3.format(format);
     const Tl = N;
     // const Tt = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
-    // const Lt = linkTitle == null ? null : d3.map(links, linkTitle);
+    let linkTitle = d => `${d.source.id} → ${d.target.id}\n${d3.format(d.value)}`;
+    const Lt = d3.map(links, linkTitle);
 
     // A unique identifier for clip paths (to avoid conflicts).
     const uid = `O-${Math.random().toString(16).slice(2)}`;
@@ -188,7 +189,7 @@ App.D3Chart.Sankey = class Sankey {
           : linkColor === 'target' ? ({ target: { index: i } }) => color(G[i])
             : linkColor)
       .attr('stroke-width', ({ width }) => Math.max(1, width))
-      // .call(Lt ? path => path.append('title').text(({ index: i }) => Lt[i]) : () => { });
+      .call(Lt ? path => path.append('title').text(({ index: i }) => Lt[i]) : () => { });
     link
       .on('mouseover', (d, i) => {
         this.over(d, i, 'link')
@@ -224,6 +225,28 @@ App.D3Chart.Sankey = class Sankey {
           return '';
         }
         return Tl[i]
+      });
+    if (Tl) svg.append('g')
+      .attr('font-family', 'sans-serif')
+      .attr('font-size', 14)
+      .selectAll('text')
+      .data(links)
+      .join('text')
+      // .attr('x', d => d.x0 < width / 2 ? d.x1 + nodeLabelPadding : d.x0 - nodeLabelPadding)
+      .attr('x', d => (d.source.x1 + d.target.x0) / 2)
+      .attr('y', d => (d.y1 + d.y0) / 2)
+      .attr('dy', '0.35em')
+      .attr('text-anchor', 'start')
+      .attr('style', 'font-weight:600;fill:black;stroke:white;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.5;')
+      .html(({ index: i }) => {
+        let link = links[i]
+        // hide items with no values
+        if (link.value == 0) {
+          return '';
+        }
+
+        let percent = link.value / link.source.value
+        return d3.format(".0%")(percent)
       });
     let color = this.color
     this.wrapper.node().appendChild(Object.assign(svg.node(), { scales: { color } }))
