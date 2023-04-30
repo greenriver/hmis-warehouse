@@ -20,6 +20,11 @@ module Types
     field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
+    access_field do
+      can :edit_enrollments
+      can :delete_enrollments
+      can :delete_assessments
+    end
 
     def in_progress
       object.in_progress?
