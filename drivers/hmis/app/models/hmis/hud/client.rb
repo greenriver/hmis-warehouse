@@ -37,6 +37,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ClientValidator
 
   attr_accessor :image_blob_id
+  attr_accessor :create_mci_id
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -50,6 +51,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       file.tag_list.add('Client Headshot')
       file.client_file.attach(current_image_blob)
       file.save!
+    end
+
+    # Post-save action to create a new MCI ID if specified by the ClientProcessor
+    if create_mci_id && HmisExternalApis::Mci.enabled?
+      self.create_mci_id = nil
+      HmisExternalApis::Mci.new.create_mci_id(self)
     end
   end
 
