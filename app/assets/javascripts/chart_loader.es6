@@ -4,7 +4,7 @@ window.App.StimulusApp = window.App.StimulusApp || {}
 // Provides a means of reloading a fragment when an input changes
 App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   static get targets() {
-    return ['element', 'changer', 'chartHeader']
+    return ['element', 'changer', 'header', 'chart', 'table', 'wrapper', 'loader']
   }
 
   connect() {
@@ -40,6 +40,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     let chart = this.chart();
     // completely remove the previous chart
     chart.destroy();
+    this.showChartAndTable();
     // regenerate
     chart = bb.generate(config);
   }
@@ -47,7 +48,6 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   updateTable(data, event) {
     let link_base = this.activeTarget(event).dataset['table-link'];
     let table = this.createTable(data.table, link_base, data.link_params)
-    let table_target = document.getElementById(this.activeTarget(event).dataset['table-id'])
     let table_name = this.activeTarget(event).dataset['table-name'];
     if (table_name) {
       let table_header_html = document.createElement('h3');
@@ -55,7 +55,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
       table_header_html.appendChild(table_header_text);
       table.prepend(table_header_html);
     }
-    if (table_target) table_target.innerHTML = table.outerHTML;
+    if (this.tableTarget) this.tableTarget.innerHTML = table.outerHTML;
   }
 
   createTable(data, link_base, link_params) {
@@ -95,15 +95,35 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     return table;
   }
 
+  enableLoader() {
+    let loader = document.createElement('div');
+    loader.classList.add('rollup-container', 'c-card', 'c-card--flush', 'c-card--block')
+    loader.dataset.chartLoaderTarget = 'loader';
+    this.wrapperTarget.appendChild(loader);
+  }
+
+  disableLoader() {
+    this.loaderTarget.remove();
+  }
+
+  hideChartAndTable() {
+    this.chartTarget.classList.add('hide');
+    this.tableTarget.classList.add('hide');
+  }
+
+  showChartAndTable() {
+    this.chartTarget.classList.remove('hide');
+    this.tableTarget.classList.remove('hide');
+  }
+
   loadChartData(event) {
     event.preventDefault();
+    this.enableLoader();
+    this.hideChartAndTable();
     let url = this.activeTarget(event).href;
     fetch(url)
       .then(response => response.json())
       .then(json => {
-
-        // 'rollup-container', 'c-card', 'c-card--flush', 'c-card--block'
-        // console.log(json)
         this.updateChart(json)
         // Update the header
         if (event.target) this.chartHeaderTarget.textContent = event.target.text;
@@ -111,7 +131,8 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
         this.changerTargets.forEach(el => el.classList.remove('active'))
         let active_menu_item = this.changerTargets.find(el => el.dataset['menu-item'] == json.chart);
         active_menu_item.classList.add('active');
-        this.updateTable(json, event)
+        this.updateTable(json, event);
+        this.disableLoader();
       })
   }
 

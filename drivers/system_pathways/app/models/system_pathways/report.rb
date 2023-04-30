@@ -308,7 +308,7 @@ module SystemPathways
         report_clients = {}
         report_enrollments = []
         enrollment_batch.group_by(&:client).each do |client, enrollments|
-          served_by_ce = enrollments.any?(:ce?)
+          served_by_ce = enrollments.any?(&:ce?)
           involved_enrollments = enrollments.
             reject(&:ce?). # remove CE, we only use it for filtering
             # move the most-recently exited or open enrollments to the end

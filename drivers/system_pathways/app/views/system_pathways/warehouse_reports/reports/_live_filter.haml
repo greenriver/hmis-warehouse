@@ -11,8 +11,8 @@
       = render 'filters/filter_controls/household_type/input', f: f, control: OpenStruct.new(label: 'Household Type')
     .col.pt-no-label
       = render 'filters/filter_controls/hoh_only/input', f: f, control: OpenStruct.new(label: 'Heads of Household Only')
-    .col.pt-no-label
-      = f.input :involves_ce, as: :boolean, label: 'CE Involved', required: false, hint: 'Limits universe to clients who were enrolled in CE'
+    .col
+      = f.input :involves_ce, as: :select_two, collection: [['Yes', true], ['No', false]], label: 'CE Involved', required: false, hint: 'Limits universe to clients who were enrolled in CE', include_blank: 'All'
   .d-flex
     .ml-auto
       = f.submit 'Update View'
