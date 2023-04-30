@@ -12,7 +12,7 @@ module SystemPathways::TimeChart::DisablingCondition
       chart: 'disabling_condition',
       config: {
         size: {
-          height: 2400,
+          height: 2000,
         },
       },
       data: disabling_condition_data,

@@ -32,7 +32,12 @@ module SystemPathways::Equity::InvolvesCe
       involves_ces.each_key do |k|
         data[k] ||= 0
       end
-      data.merge!(SystemPathways::Enrollment.where(id: node_clients(label).select(:id)).group(:involves_ce).count)
+      data.merge!(
+        SystemPathways::Enrollment.
+          joins(:client).
+          where(id: node_clients(label).select(:id)).
+          group(sp_c_t[:involves_ce]).count,
+      )
       [
         label,
         data,

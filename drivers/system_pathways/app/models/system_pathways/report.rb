@@ -67,6 +67,7 @@ module SystemPathways
       keys ||= [
         :project_type_codes,
         :project_ids,
+        :organization_ids,
         :project_group_ids,
         :data_source_ids,
       ]
@@ -82,6 +83,7 @@ module SystemPathways
         :project_ids,
         :project_group_ids,
         :data_source_ids,
+        :organization_ids,
         :funder_ids,
         :default_project_type_codes,
       ]
@@ -389,7 +391,7 @@ module SystemPathways
               project_id: en.project_id,
               enrollment_id: en.enrollment&.enrollment_id,
               project_type: en.computed_project_type,
-              destination: en.destination,
+              destination: en.destination || 99,
               project_name: en.project.name,
               entry_date: en.entry_date,
               exit_date: en.exit_date,

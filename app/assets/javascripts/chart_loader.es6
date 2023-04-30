@@ -103,7 +103,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
       .then(json => {
 
         // 'rollup-container', 'c-card', 'c-card--flush', 'c-card--block'
-        console.log(json)
+        // console.log(json)
         this.updateChart(json)
         // Update the header
         if (event.target) this.chartHeaderTarget.textContent = event.target.text;

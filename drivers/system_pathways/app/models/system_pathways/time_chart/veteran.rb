@@ -12,7 +12,7 @@ module SystemPathways::TimeChart::Veteran
       chart: 'veteran_status',
       config: {
         size: {
-          height: 2400,
+          height: 2000,
         },
       },
       data: veteran_status_data,
