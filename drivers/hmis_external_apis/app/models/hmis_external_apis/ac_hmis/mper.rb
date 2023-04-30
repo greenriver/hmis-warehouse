@@ -12,13 +12,13 @@ module HmisExternalApis::AcHmis
     # @param mper_id [String]
     # @return [Hmis::Hud::Project, nil]
     def find_project_by_mper(mper_id)
-      project_scope.first_by_external_id(namespace: SYSTEM_ID, id: mper_id)
+      project_scope.first_by_external_id(namespace: SYSTEM_ID, value: mper_id)
     end
 
     # @param mper_id [String]
     # @return [Hmis::UnitType, nil]
     def find_unit_type_by_mper(mper_id)
-      ::Hmis::UnitType.first_by_external_id(namespace: SYSTEM_ID, id: mper_id)
+      ::Hmis::UnitType.first_by_external_id(namespace: SYSTEM_ID, value: mper_id)
     end
 
     # @param source [ApplicationRecord]
@@ -30,8 +30,8 @@ module HmisExternalApis::AcHmis
     # @param source [ApplicationRecord]
     # @param value [String]
     # @return [HmisExternalApis::ExternalId]
-    def create_external_id(source:, value:)
-      external_ids.create!(source: source, value: value, remote_credential: remote_credential)
+    def create_external_id(source:, value:, **attrs)
+      external_ids.create!(source: source, value: value, remote_credential: remote_credential, **attrs)
     end
 
     protected

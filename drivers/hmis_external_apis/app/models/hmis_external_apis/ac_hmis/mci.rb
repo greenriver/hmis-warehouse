@@ -76,9 +76,9 @@ module HmisExternalApis::AcHmis
 
       external_id = get_external_id(client)
 
-      raise(Error, 'Client already has an MCI id') if external_id.persisted?
+      raise(Error, 'Client already has an MCI id') if external_id
 
-      payload = MciPayload.from_client(client, mci_id: external_id.value)
+      payload = MciPayload.from_client(client, mci_id: nil)
 
       endpoint = 'clients/v1/api/clients/newclient'
       result = conn.post(endpoint, payload)
@@ -90,9 +90,11 @@ module HmisExternalApis::AcHmis
       else
         # Store MCI ID for client
         # TODO: store MCI Unique ID as well
-        external_id.value = result.parsed_body
-        external_id.external_request_log = save_log!(result, payload)
-        external_id.save!
+        external_id = create_external_id(
+          source: client,
+          value: result.parsed_body,
+          external_request_log: save_log!(result, payload),
+        )
       end
 
       Rails.logger.info "Gave client #{client.id} an external ID with primary key of #{external_id.id}"
@@ -109,7 +111,7 @@ module HmisExternalApis::AcHmis
 
       external_id = get_external_id(client)
 
-      raise(Error, 'Client must already have an MCI id') if external_id.new_record?
+      raise(Error, 'Client must already have an MCI id') if external_id.nil?
 
       payload = MciPayload.from_client(client, mci_id: external_id.value)
 
@@ -148,21 +150,21 @@ module HmisExternalApis::AcHmis
       ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: SYSTEM_ID).exists?
     end
 
-    # returns the first client that record matching this MCI Id
+    # returns the first client record matching this MCI Id
     # @param mci_id [String]
     # @return [Hmis::Hud::Client, nil]
     def find_client_by_mci(mci_id)
       # If multiple clients with this mci id, choose client with earliest creation date
       client_scope
         .order(DateCreated: :asc)
-        .first_by_external_id(namespace: SYSTEM_ID, id: mci_id)
+        .first_by_external_id(namespace: SYSTEM_ID, value: mci_id)
     end
 
     # @param source [ApplicationRecord]
     # @param value [String]
     # @return [HmisExternalApis::ExternalId]
-    def create_external_id(source:, value:)
-      external_ids.create!(source: source, value: value, remote_credential: creds)
+    def create_external_id(source:, value:, **attrs)
+      external_ids.create!(source: source, value: value, remote_credential: creds, **attrs)
     end
 
     private
@@ -185,10 +187,8 @@ module HmisExternalApis::AcHmis
       )
     end
 
-    def get_external_id(client)
-      external_ids.where(source: client).first_or_initialize do |record|
-        record.remote_credential = creds
-      end
+    def get_external_id(source)
+      external_ids.where(source: source).first
     end
 
     def creds
