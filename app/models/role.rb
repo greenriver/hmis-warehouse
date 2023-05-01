@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -998,6 +998,13 @@ class Role < ApplicationRecord
 
         ],
       },
+      can_manage_inbound_api_configurations: {
+        description: 'Can manage configuration (e.g. API keys) for external systems connecting to ours',
+        administrative: false,
+        categories: [
+          'Administration',
+        ],
+      },
     }
   end
 
@@ -1070,6 +1077,11 @@ class Role < ApplicationRecord
       },
       can_approve_participation: {
         description: 'Ability to approve participation forms',
+        administrative: false,
+        categories: [],
+      },
+      can_approve_careplan: {
+        description: 'Ability to approve Care Plans',
         administrative: false,
         categories: [],
       },

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -14,6 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       household_id: enrollment.household_id,
       entry_date: Date.yesterday.strftime('%Y-%m-%d'),
+      confirmed: true,
       household_members: [
         {
           id: c2.id,

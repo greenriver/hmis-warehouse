@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,5 +23,6 @@ module Types
     value 'ALERT_ERROR', 'Display text as an error alert'
     value 'ALERT_SUCCESS', 'Display text as a success alert'
     value 'SSN', 'SSN input component'
+    value 'MCI', 'MCI linking component'
   end
 end

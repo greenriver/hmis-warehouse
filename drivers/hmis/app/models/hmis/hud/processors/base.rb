@@ -1,10 +1,11 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class Hmis::Hud::Processors::Base
+  # DO NOT CHANGE: Frontend code sends this value
   HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
 
   def initialize(processor)
@@ -27,7 +28,7 @@ class Hmis::Hud::Processors::Base
     field.underscore
   end
 
-  def hud_type(field)
+  def self.hud_type(field, schema)
     return nil unless schema.fields[field].present?
 
     type = schema.fields[field].type
@@ -35,6 +36,10 @@ class Hmis::Hud::Processors::Base
     return nil unless type.respond_to?(:value_for)
 
     type
+  end
+
+  def hud_type(field)
+    self.class.hud_type(field, schema)
   end
 
   def attribute_value_for_enum(enum_type, value)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,7 +26,7 @@ module Admin
       end
 
       @users = @users.
-        preload(:access_controls).
+        preload(:access_controls, :oauth_identities).
         order(sort_column => sort_direction)
 
       @pagy, @users = pagy(@users)
@@ -139,6 +139,7 @@ module Admin
         :first_name,
         :email,
         :phone,
+        :credentials,
         :agency_id,
         :exclude_from_directory,
         :exclude_phone_from_directory,

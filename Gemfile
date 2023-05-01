@@ -10,7 +10,7 @@ gem 'sdoc', group: :doc
 
 gem 'nokogiri', '>= 1.13.10' # >= 1.13.10 due to GHSA-qv4q-mr5r-qprj
 gem 'loofah', '>= 2.19.1' # >= 2.19.1 due to GHSA-228g-948r-83gx
-gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
+gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
@@ -59,7 +59,7 @@ gem 'carrierwave', '~> 1'
 gem 'carrierwave-i18n'
 
 # version 1.5 has the fix we need when we ever go to 1.5
-#gem 'carrierwave-aws', '~> 1.4'
+# gem 'carrierwave-aws', '~> 1.4'
 gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
 gem 'image_processing'
 
@@ -84,6 +84,7 @@ gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
 gem 'faraday', '~> 2.2.0'
+gem 'oauth2'
 
 gem 'pretender'
 gem 'rqrcode-rails3'
@@ -200,6 +201,7 @@ gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
 gem 'aws-sdk-ssm', '~> 1'
 gem 'json'
+gem 'json_schemer', require: false # external API validation
 gem 'oj'
 gem 'amazing_print'
 
@@ -212,7 +214,6 @@ gem 'gettext', '>=3.0.2'
 gem 'grosser-pomo'
 
 gem 'responders'
-gem 'ransack'
 
 gem 'rack-attack'
 
@@ -227,7 +228,7 @@ gem 'todo_or_die'
 gem 'reline'
 
 gem 'business_time', '~> 0.10.0'
-gem 'cable_ready', '~> 4.5'
+gem 'cable_ready', '>= 5.0.0.rc2'
 gem 'graphql', '~> 2.0'
 gem 'sentry-rails', '~> 5.5'
 gem 'warning'
@@ -237,7 +238,7 @@ group :development, :test do
   gem 'byebug'
   gem 'pry-rails'
   gem 'bundler-audit', require: false
-  gem 'brakeman', '~> 5.0.4', require: false
+  gem 'brakeman', require: false
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
   gem 'vcr'

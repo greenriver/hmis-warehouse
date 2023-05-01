@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -143,6 +143,15 @@ class Hmis::Role < ::ApplicationRecord
           'Client Access',
         ],
       },
+      can_delete_clients: {
+        description: 'Grants access to delete clients',
+        administrative: false,
+        access: [:editable],
+        global: true,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_full_ssn: {
         description: 'Allow the user to see client\'s full SSN.',
         administrative: false,
@@ -194,12 +203,52 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
-      can_manage_client_files: {
-        description: 'Grants the ability to manage client files',
+      can_delete_assessments: {
+        description: 'Ability to delete assessments that have been submitted',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Assessments',
+        ],
+      },
+      can_manage_any_client_files: {
+        description: 'Grants the ability to manage anyone\'s client files',
         administrative: false,
         access: [:editable],
         categories: [
           'Files',
+        ],
+      },
+      can_manage_own_client_files: {
+        description: 'Grants the ability to manage user\'s own client files',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Files',
+        ],
+      },
+      can_view_any_nonconfidential_client_files: {
+        description: 'Grants the ability to view non-confidential client files uploaded by anyone',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Files',
+        ],
+      },
+      can_view_any_confidential_client_files: {
+        description: 'Grants the ability to view confidential client files uploaded by anyone',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Files',
+        ],
+      },
+      can_audit_clients: {
+        description: 'Access to see who has changed a client record.',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Audit History',
         ],
       },
     }

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,7 +39,7 @@ module PerformanceMeasurement
     end
 
     def pit_count
-      @pit_count ||= PitCount.where(pit_date: report.filter.range).max_by(&:pit_date)
+      @pit_count ||= report.goal_config.pit_counts.where(pit_date: report.filter.range).max_by(&:pit_date)
     end
 
     def percentage?

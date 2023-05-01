@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,6 +58,7 @@ module UserConcern
     has_many :activity_logs
 
     has_many :two_factors_memorized_devices
+    has_many :oauth_identities, dependent: :destroy
 
     has_many :favorites
     has_many :favorite_reports, through: :favorites, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
@@ -65,7 +66,7 @@ module UserConcern
     belongs_to :agency, optional: true
 
     scope :diet, -> do
-      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes']).map { |c| arel_table[c].to_sql })
+      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes', 'deprecated_provider', 'deprecated_provider_raw_info'].map { |c| arel_table[c].to_sql }))
     end
 
     scope :receives_file_notifications, -> do
@@ -198,12 +199,27 @@ module UserConcern
       "#{name} <#{email}>"
     end
 
+    def name_with_credentials
+      return "#{name}, #{credentials}" if credentials.present?
+
+      name
+    end
+
     def agency_name
       agency&.name if agency.present?
     end
 
     def phone_for_directory
       phone unless exclude_phone_from_directory
+    end
+
+    def show_credentials?
+      # Show the credentials field if the user has at least one health role
+      roles.health.exists?
+    end
+
+    def credential_options
+      @credential_options ||= User.pluck(:credentials).compact.uniq.sort
     end
 
     def two_factor_label

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -120,6 +120,7 @@ module HudPit::Generators::Pit::Fy2023
             last_name: source_client.LastName,
             household_type: household_type,
             max_age: household_ages.compact&.max,
+            household_member_count: household_ages.count,
             hoh_age: hoh_age(hh_id, @generator.filter.on),
             hoh_veteran: hoh_veteran,
             head_of_household: enrollment.RelationshipToHoH == 1,

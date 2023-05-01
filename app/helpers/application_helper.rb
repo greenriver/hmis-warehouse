@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -388,5 +388,13 @@ module ApplicationHelper
 
   def hmis_admin_visible?
     HmisEnforcement.hmis_admin_visible?(current_user)
+  end
+
+  def omni_auth_providers
+    if ENV['OKTA_DOMAIN'].present?
+      [['Okta', '/users/auth/okta']]
+    else
+      []
+    end
   end
 end

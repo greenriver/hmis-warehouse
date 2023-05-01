@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -638,7 +638,7 @@ module Filters
     def cohort_columns_for_select
       initialized_columns = GrdaWarehouse::CohortColumnOption.distinct.pluck(:cohort_column)
       GrdaWarehouse::Cohort.available_columns.select do |column|
-        column.column.in?(initialized_columns)
+        column.column.in?(initialized_columns) && ! column.title.match?(/^User Select \d+$/)
       end.map do |column|
         [
           column.title,
@@ -649,7 +649,8 @@ module Filters
 
     def cohort_columns_for_dates
       GrdaWarehouse::Cohort.available_columns.select do |column|
-        column.class.ancestors.include?(CohortColumns::CohortDate)
+        # Ignore non-dates and untranslated custom dates
+        column.class.ancestors.include?(CohortColumns::CohortDate) && ! column.title.match?(/^User Date \d+$/)
       end.map do |column|
         [
           column.title,

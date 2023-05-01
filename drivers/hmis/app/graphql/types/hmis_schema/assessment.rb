@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,11 @@ module Types
     field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
+    access_field do
+      can :edit_enrollments
+      can :delete_enrollments
+      can :delete_assessments
+    end
 
     def in_progress
       object.in_progress?

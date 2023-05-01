@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -69,6 +69,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :data_source, inverse_of: :clients
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
+    # The "HUD user" that most recently updated the client record
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :clients, optional: true
 
     has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
@@ -684,21 +685,6 @@ module GrdaWarehouse::Hud
         meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
         cc.active? && cc.cohort&.active? && cc.cohort&.show_on_client_dashboard? && ! meta.inactive
       end.map(&:cohort).compact.uniq
-    end
-
-    def last_exit_destination
-      last_exit = source_exits.order(ExitDate: :desc).first
-      if last_exit # rubocop:disable Style/GuardClause
-        destination_code = last_exit.Destination || 99
-        if destination_code == 17
-          destination_string = last_exit.OtherDestination
-        else
-          destination_string = ::HudUtility.destination(destination_code)
-        end
-        return "#{destination_string} (#{last_exit.ExitDate})"
-      else
-        return 'None'
-      end
     end
 
     def demographic_calculation_logic_description(attribute)
@@ -1770,10 +1756,6 @@ module GrdaWarehouse::Hud
       ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown' # rubocop:disable Style/RescueModifier
     end
 
-    def self.ransackable_scopes(auth_object = nil) # rubocop:disable Lint/UnusedMethodArgument
-      [:full_text_search]
-    end
-
     def self.text_search(text, client_scope:)
       text_searcher(text) do |where|
         client_scope.
@@ -1887,19 +1869,6 @@ module GrdaWarehouse::Hud
         ],
         elsewise: arel_table[:GenderNone],
       )
-    end
-
-    # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
-    def gender_multi
-      @gender_multi ||= [].tap do |gm|
-        gm << 0 if self.Female == 1
-        gm << 1 if self.Male == 1
-        gm << 4 if self.NoSingleGender == 1
-        gm << 5 if self.Transgender == 1
-        gm << 6 if self.Questioning == 1
-        # Per the data standards, only look to GenderNone if we don't have a more specific response
-        gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
-      end
     end
 
     def self.age(date:, dob:)

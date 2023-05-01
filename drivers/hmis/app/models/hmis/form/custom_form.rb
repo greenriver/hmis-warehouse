@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,31 +20,40 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   end
 
   def assessment
-    owner if owner_type == 'Hmis::Hud::CustomAssessment'
+    owner if assessment?
+  end
+
+  def assessment?
+    owner_type == 'Hmis::Hud::CustomAssessment'
   end
 
   def intake?
-    data_collection_stage == 1
+    assessment&.data_collection_stage == 1
   end
 
   def exit?
-    data_collection_stage == 3
+    assessment&.data_collection_stage == 3
   end
 
   # Validate `values` purely based on FormDefinition validation requirements
   # @return [HmisError::Error] an array errors
-  def collect_form_validations(ignore_warnings: false)
-    validation_errors = definition.validate_form_values(values)
-    return validation_errors.reject(&:warning?) if ignore_warnings
-
-    validation_errors
+  def collect_form_validations
+    definition.validate_form_values(values)
   end
 
   # Validate related records using custom AR Validators
   # @return [HmisError::Error] an array errors
-  def collect_record_validations(ignore_warnings: false, user: nil)
+  def collect_record_validations(user: nil, household_members: nil)
     # Collect ActiveRecord validations (as HmisErrors)
-    errors = form_processor.collect_hmis_errors
+    errors = form_processor.collect_active_record_errors
+    # Collect validations on the Assessment Date (if this is an assessment form)
+    if assessment?
+      errors.push(*Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(
+        assessment,
+        # Need to pass household members so we can validate based on their unpersisted entry/exit dates
+        household_members: household_members,
+      ))
+    end
 
     # Collect errors from custom validator, in the context of this role
     role = definition.role
@@ -53,9 +62,18 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
       errors.push(*validator.hmis_validate(record, user: user, role: role)) if validator.present?
     end
 
-    return errors.drop_warnings! if ignore_warnings
-
     errors.errors
+  end
+
+  # Pull out the Assessment Date from the values hash
+  def find_assessment_date_from_values
+    item = definition&.assessment_date_item
+    return nil unless item.present? && values.present?
+
+    date_string = values[item.link_id]
+    return nil unless date_string.present?
+
+    HmisUtil::Dates.safe_parse_date(date_string: date_string)
   end
 
   private def initialize_form_processor

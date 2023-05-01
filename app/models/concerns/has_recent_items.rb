@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,15 @@ module HasRecentItems
     end
 
     def recent_items
-      sorted_recent_item_links.preload(:item).map(&:item).compact
+      viewable_recent_item_links.order(updated_at: :desc).preload(:item).map(&:item).compact
+    end
+
+    def viewable_recent_item_links
+      ids = recent_item_types.values.map do |item_class|
+        recent_item_links.where(item_type: item_class.name, item_id: item_class.viewable_by(self).pluck(:id)).pluck(:id)
+      end.flatten
+
+      recent_item_links.where(id: ids)
     end
 
     def add_recent_item(item)
@@ -26,10 +34,6 @@ module HasRecentItems
 
     def clear_recent_items
       recent_item_links.destroy_all
-    end
-
-    def sorted_recent_item_links
-      recent_item_links.order(updated_at: :desc)
     end
   end
 

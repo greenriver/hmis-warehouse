@@ -986,7 +986,13 @@ CREATE TABLE public.hmis_roles (
     can_view_dob boolean DEFAULT false NOT NULL,
     can_view_enrollment_details boolean DEFAULT false NOT NULL,
     can_edit_enrollments boolean DEFAULT false NOT NULL,
-    can_manage_client_files boolean DEFAULT false NOT NULL
+    can_manage_any_client_files boolean DEFAULT false NOT NULL,
+    can_manage_own_client_files boolean DEFAULT false NOT NULL,
+    can_view_any_nonconfidential_client_files boolean DEFAULT false NOT NULL,
+    can_view_any_confidential_client_files boolean DEFAULT false NOT NULL,
+    can_audit_clients boolean DEFAULT false NOT NULL,
+    can_delete_clients boolean DEFAULT false NOT NULL,
+    can_delete_assessments boolean DEFAULT false
 );
 
 
@@ -1505,6 +1511,40 @@ CREATE SEQUENCE public.notifications_id_seq
 
 
 --
+-- Name: oauth_identities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_identities (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    user_id bigint,
+    provider character varying NOT NULL,
+    raw_info json,
+    uid character varying NOT NULL
+);
+
+
+--
+-- Name: oauth_identities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_identities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_identities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_identities_id_seq OWNED BY public.oauth_identities.id;
+
+
+--
 -- Name: old_passwords; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1997,7 +2037,9 @@ CREATE TABLE public.roles (
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL
+    system boolean DEFAULT false NOT NULL,
+    can_approve_careplan boolean DEFAULT false,
+    can_manage_inbound_api_configurations boolean DEFAULT false
 );
 
 
@@ -2622,13 +2664,14 @@ CREATE TABLE public.users (
     training_completed boolean DEFAULT false,
     last_training_completed date,
     receive_account_request_notifications boolean DEFAULT false,
-    provider character varying,
-    uid character varying,
-    provider_raw_info json,
-    provider_set_at timestamp without time zone,
+    deprecated_provider character varying,
+    deprecated_uid character varying,
+    deprecated_provider_raw_info json,
+    deprecated_provider_set_at timestamp without time zone,
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
-    notify_on_new_account boolean DEFAULT false NOT NULL
+    notify_on_new_account boolean DEFAULT false NOT NULL,
+    credentials character varying
 );
 
 
@@ -2934,6 +2977,13 @@ ALTER TABLE ONLY public.messages ALTER COLUMN id SET DEFAULT nextval('public.mes
 --
 
 ALTER TABLE ONLY public.nicknames ALTER COLUMN id SET DEFAULT nextval('public.nicknames_id_seq'::regclass);
+
+
+--
+-- Name: oauth_identities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_identities ALTER COLUMN id SET DEFAULT nextval('public.oauth_identities_id_seq'::regclass);
 
 
 --
@@ -3278,6 +3328,14 @@ ALTER TABLE ONLY public.nicknames
 
 
 --
+-- Name: oauth_identities oauth_identities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_identities
+    ADD CONSTRAINT oauth_identities_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: old_passwords old_passwords_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3442,6 +3500,13 @@ ALTER TABLE ONLY public.warehouse_alerts
 --
 
 CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority, run_at);
+
+
+--
+-- Name: idx_oauth_on_provider_and_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
 
 
 --
@@ -3631,6 +3696,20 @@ CREATE INDEX index_login_activities_on_identity ON public.login_activities USING
 --
 
 CREATE INDEX index_login_activities_on_ip ON public.login_activities USING btree (ip);
+
+
+--
+-- Name: index_oauth_identities_on_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_identities_on_uid ON public.oauth_identities USING btree (uid);
+
+
+--
+-- Name: index_oauth_identities_on_user_id_and_provider; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_identities_on_user_id_and_provider ON public.oauth_identities USING btree (user_id, provider);
 
 
 --
@@ -3862,13 +3941,6 @@ CREATE INDEX index_users_on_invited_by_id ON public.users USING btree (invited_b
 --
 
 CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING btree (reset_password_token);
-
-
---
--- Name: index_users_on_uid_and_provider; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_users_on_uid_and_provider ON public.users USING btree (uid, provider);
 
 
 --
@@ -4210,8 +4282,16 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230223204644'),
 ('20230227221846'),
 ('20230313152950'),
+('20230321123918'),
+('20230322195141'),
+('20230322204908'),
+('20230328150855'),
 ('20230329102609'),
 ('20230329112926'),
-('20230329112954');
+('20230329112954'),
+('20230330161305'),
+('20230412142430'),
+('20230418170053'),
+('20230420195221');
 
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,13 @@ module  HudHic::Generators::Hic::Fy2022
 
     def self.short_name
       'HIC'
+    end
+
+    # Project Types (HIC):
+    #   ES, TH, SH, PH (PSH, RRH, Other PH (OPH) – consists of PH – Housing with Services (no disability required for entry) and PH – Housing Only)
+    #   OR numerically
+    def self.relevant_project_types
+      [1, 2, 3, 8, 9, 10, 13]
     end
 
     def self.file_prefix

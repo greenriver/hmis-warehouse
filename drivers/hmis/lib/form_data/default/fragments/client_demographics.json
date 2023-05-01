@@ -1,0 +1,63 @@
+{
+  "type": "GROUP",
+  "required": false,
+  "link_id": "demographics",
+  "text": "Demographics",
+  "item": [
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "race",
+      "text": "Race",
+      "repeats": true,
+      "field_name": "race",
+      "pick_list_reference": "Race"
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "ethnicity",
+      "text": "Ethnicity",
+      "repeats": false,
+      "field_name": "ethnicity",
+      "pick_list_reference": "Ethnicity"
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "gender",
+      "text": "Gender",
+      "repeats": true,
+      "field_name": "gender",
+      "pick_list_reference": "Gender"
+    },
+    {
+      "type": "OPEN_CHOICE",
+      "required": false,
+      "link_id": "pronouns",
+      "text": "Pronouns",
+      "repeats": true,
+      "field_name": "pronouns",
+      "pick_list_options": [
+        {
+          "code": "she/her"
+        },
+        {
+          "code": "he/him"
+        },
+        {
+          "code": "they/them"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "repeats": false,
+      "link_id": "veteran-status",
+      "text": "Veteran Status",
+      "field_name": "veteranStatus",
+      "pick_list_reference": "NoYesReasonsForMissingData"
+    }
+  ]
+}

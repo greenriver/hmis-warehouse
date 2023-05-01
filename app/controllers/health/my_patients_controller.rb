@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,10 +12,11 @@ module Health
     include ClientPathGenerator
     include HealthPatientDashboard
     include ArelHelper
+    include Search
 
     def index
-      @q = @patients.ransack(params[:q])
-      @patients = @q.result(distinct: true) if params[:q].present?
+      @search = search_setup(scope: :full_text_search)
+      @patients = @search.distinct if @search_string.present?
       if params[:filter].present?
         @active_filter = true if params[:filter][:population] != 'all'
         case params[:filter][:population]
@@ -77,6 +78,10 @@ module Health
       end
     end
 
+    private def search_scope
+      patient_scope
+    end
+
     def patient_scope
       population = if current_user.can_administer_health?
         patient_source # Can see all clients
@@ -91,11 +96,6 @@ module Health
           or(patient_source.where(nurse_care_manager_id: current_user.id))
       end
 
-      patient_ids_with_payable_qas_in_month = population.
-        joins(:qualifying_activities).
-        merge(Health::QualifyingActivity.payable.in_range(Date.current.beginning_of_month..Date.current.end_of_month)).
-        pluck(:id)
-
       population.
         # Assigned, and enrolled
         joins(:patient_referral).
@@ -108,12 +108,11 @@ module Health
             where(hpr_t[:pending_disenrollment_date].gteq(Date.current.beginning_of_month)),
         ).
         or(
-          # Have an un-confirmed rejection without a QA in the current month
+          # Have an un-confirmed rejection before the disenrollment date
           population.
             joins(:patient_referral).
             merge(Health::PatientReferral.rejected.not_confirmed_rejected).
-            where(hpr_t[:disenrollment_date].between(Date.current.beginning_of_month .. Date.current.end_of_month)).
-            where.not(id: patient_ids_with_payable_qas_in_month),
+            where(hpr_t[:disenrollment_date].lteq(Date.current)),
         )
     end
 

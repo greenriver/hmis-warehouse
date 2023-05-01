@@ -1,15 +1,21 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Types
   class BaseAccess < BaseObject
-    def self.create(node_class, class_name: nil, &block)
+    def self.build(node_class, class_name: nil, &block)
       Class.new(self) do
         graphql_name(class_name || "#{node_class.graphql_name}Access")
         instance_eval(&block) if block
+
+        field :id, ID, null: false
+
+        def id
+          [object.respond_to?(:id) ? object.id : nil, current_user&.id].compact.first
+        end
       end
     end
 

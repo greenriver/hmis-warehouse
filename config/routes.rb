@@ -15,7 +15,6 @@ Rails.application.routes.draw do
   devise_for :users, controllers: {
     invitations: 'users/invitations',
     sessions: 'users/sessions',
-    omniauth_callbacks: ('users/omniauth_callbacks' if ENV['OKTA_DOMAIN'].present?),
   }
 
   devise_scope :user do
@@ -23,6 +22,9 @@ Rails.application.routes.draw do
     match 'timeout' => 'users/sessions#timeout', via: :get
     match 'users/invitations/confirm', via: :post
     match 'logout_talentlms' => 'users/sessions#destroy', via: :get
+    if ENV['OKTA_DOMAIN'].present?
+      get "/users/auth/okta/callback" => "users/omniauth_callbacks#okta" if ENV['OKTA_CLIENT_ID']
+    end
   end
 
   namespace :users do
@@ -64,7 +66,7 @@ Rails.application.routes.draw do
       end
       resources :services, controller: '/health/services'
       resources :backup_plans, controller: '/health/backup_plans'
-      resources :qualifying_activities, only: [:index, :destroy], controller: '/health/qualifying_activities'
+      resources :qualifying_activities, controller: '/health/qualifying_activities'
       resources :patient_referrals, only: [:index], controller: '/health/patient_referrals'
       resources :durable_equipments, except: [:index], controller: '/health/durable_equipments'
       resources :files, only: [:index, :show], controller: '/health/files'
@@ -750,6 +752,9 @@ Rails.application.routes.draw do
         post :stop_impersonating
       end
     end
+
+    resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
+
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
     end

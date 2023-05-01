@@ -12,6 +12,18 @@ if ENV['ENABLE_HMIS_API'] == 'true' && hmis_hostname.present?
         headers: :any,
         methods: [:get, :post, :delete, :put, :patch, :options, :head],
         credentials: true
+
+      # Used for PDF preview
+      resource '/rails/active_storage/blob/*',
+        headers: :any,
+        methods: [:get, :options, :head],
+        credentials: true
+
+      # Used for logo and other assets
+      resource '/assets/*',
+        headers: :any,
+        methods: [:get, :options, :head],
+        credentials: true
     end
   end
 end

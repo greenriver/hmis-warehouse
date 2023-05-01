@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -212,7 +212,7 @@ module BostonProjectScorecard
         percent_ude_errors = percentage(total_ude_errors / total_served.to_f)
 
         # Include adults, leavers, and all HoHs in denominators
-        denominator = [3, 6, 15, 16].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
+        denominator = [3, 6, 15, 17].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
         total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
         percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
         assessment_answers.merge!(

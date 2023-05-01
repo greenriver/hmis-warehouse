@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -56,7 +56,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     return none unless search_term.present?
 
     search_term.strip!
-    query = "%#{search_term}%"
+    query = "%#{search_term.split(/\W+/).join('%')}%"
     where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)))
   end
 
@@ -89,4 +89,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     funders.where(end_date: nil).update_all(end_date: operating_end_date)
     inventories.where(inventory_end_date: nil).update_all(inventory_end_date: operating_end_date)
   end
+
+  include RailsDrivers::Extensions
 end

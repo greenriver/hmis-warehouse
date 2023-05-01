@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,9 +9,6 @@ module ClientFileBase
   include ArelHelper
 
   included do
-    acts_as_taggable
-
-    mount_uploader :file, FileUploader
     has_one_attached :client_file
 
     validates_presence_of :name
@@ -30,9 +27,13 @@ module ClientFileBase
       tagged_with('Client Headshot')
     end
 
+    def tags
+      GrdaWarehouse::AvailableFileTag.where(id: tag_list)
+    end
+
     def file_exists_and_not_too_large
-      errors.add :client_file, 'No uploaded file found' if (client_file.byte_size || 0) < 100
-      errors.add :client_file, 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
+      errors.add :client_file, full_message: 'No uploaded file found' if (client_file.byte_size || 0) < 100
+      errors.add :client_file, full_message: 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
     end
 
     def note_if_other
