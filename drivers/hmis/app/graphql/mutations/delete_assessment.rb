@@ -15,18 +15,26 @@ module Mutations
 
       record.transaction do
         role = record.custom_form.definition.role
+        is_wip = record.in_progress?
+
         default_delete_record(
           record: record,
           field_name: :assessment,
           authorize: ->(assessment, user) do
-            return false if !assessment.in_progress? && role == 'INTAKE'
-            return true if assessment.in_progress? && user.can_edit_enrollments_for?(assessment.client)
-            return true if !assessment.in_progress? && user.can_delete_assessments_for?(assessment.client)
+            # WIP assessments, including WIP Intakes, can be deleted by users that have "can_edit_enrollments"
+            return user.can_edit_enrollments_for?(assessment.enrollment) if is_wip
 
-            false
+            if role == 'INTAKE'
+              user.can_delete_enrollments_for?(assessment.enrollment)
+            else
+              user.can_delete_assessments_for?(assessment.enrollment)
+            end
           end,
           after_delete: -> do
+            # Deleting the Exit Assessment "un-exits" the client by deleting the Exit record
             record.enrollment&.exit&.destroy if role == 'EXIT'
+            # Deleting the Intake Assessment "un-enters" the client by deleting the Enrollment entirely
+            record.enrollment&.destroy if role == 'INTAKE'
           end,
         )
       end

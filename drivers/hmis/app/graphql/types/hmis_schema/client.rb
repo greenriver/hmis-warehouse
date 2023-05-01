@@ -25,7 +25,6 @@ module Types
 
     description 'HUD Client'
     field :id, ID, null: false
-    field :warehouse_url, String, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     hud_field :personal_id
     hud_field :first_name

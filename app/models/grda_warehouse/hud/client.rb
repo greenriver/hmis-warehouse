@@ -687,21 +687,6 @@ module GrdaWarehouse::Hud
       end.map(&:cohort).compact.uniq
     end
 
-    def last_exit_destination
-      last_exit = source_exits.order(ExitDate: :desc).first
-      if last_exit # rubocop:disable Style/GuardClause
-        destination_code = last_exit.Destination || 99
-        if destination_code == 17
-          destination_string = last_exit.OtherDestination
-        else
-          destination_string = ::HudUtility.destination(destination_code)
-        end
-        return "#{destination_string} (#{last_exit.ExitDate})"
-      else
-        return 'None'
-      end
-    end
-
     def demographic_calculation_logic_description(attribute)
       case attribute
       when :veteran_status

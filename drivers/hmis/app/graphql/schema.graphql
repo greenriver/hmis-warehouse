@@ -52,6 +52,7 @@ type ApplicationUser {
 Custom Assessment
 """
 type Assessment {
+  access: AssessmentAccess!
   assessmentDate: ISO8601Date!
   client: Client!
   customForm: CustomForm
@@ -63,6 +64,13 @@ type Assessment {
   id: ID!
   inProgress: Boolean!
   user: User
+}
+
+type AssessmentAccess {
+  canDeleteAssessments: Boolean!
+  canDeleteEnrollments: Boolean!
+  canEditEnrollments: Boolean!
+  id: ID!
 }
 
 input AssessmentInput {
@@ -399,7 +407,6 @@ type Client {
   ssnDataQuality: SSNDataQuality!
   user: User
   veteranStatus: NoYesReasonsForMissingData!
-  warehouseUrl: String!
 }
 
 type ClientAccess {
@@ -1375,6 +1382,7 @@ type EnableWhen {
 HUD Enrollment
 """
 type Enrollment {
+  access: EnrollmentAccess!
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   client: Client!
@@ -1404,6 +1412,12 @@ type Enrollment {
   status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   user: User
+}
+
+type EnrollmentAccess {
+  canDeleteEnrollments: Boolean!
+  canEditEnrollments: Boolean!
+  id: ID!
 }
 
 """
