@@ -26,4 +26,4 @@
       - @report.demographic_breakdowns.each do |label, data|
         %tr
           %th= label
-          %td= link_to data[:count], details_ma_reports_warehouse_reports_monthly_project_utilization_path(@report, key: data[:key].first, sub_key: data[:key].last)
+          %td= link_to_if can_access_some_version_of_clients?, data[:count], details_ma_reports_warehouse_reports_monthly_project_utilization_path(@report, key: data[:key].first, sub_key: data[:key].last)
