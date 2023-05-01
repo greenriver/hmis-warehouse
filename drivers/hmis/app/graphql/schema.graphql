@@ -52,6 +52,7 @@ type ApplicationUser {
 Custom Assessment
 """
 type Assessment {
+  access: AssessmentAccess!
   assessmentDate: ISO8601Date!
   client: Client!
   customForm: CustomForm
@@ -63,6 +64,13 @@ type Assessment {
   id: ID!
   inProgress: Boolean!
   user: User
+}
+
+type AssessmentAccess {
+  canDeleteAssessments: Boolean!
+  canDeleteEnrollments: Boolean!
+  canEditEnrollments: Boolean!
+  id: ID!
 }
 
 input AssessmentInput {
@@ -1371,6 +1379,7 @@ type EnableWhen {
 HUD Enrollment
 """
 type Enrollment {
+  access: EnrollmentAccess!
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   client: Client!
@@ -1400,6 +1409,12 @@ type Enrollment {
   status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   user: User
+}
+
+type EnrollmentAccess {
+  canDeleteEnrollments: Boolean!
+  canEditEnrollments: Boolean!
+  id: ID!
 }
 
 """
@@ -2020,6 +2035,7 @@ type Funder {
   otherFunder: String
   project: Project!
   startDate: ISO8601Date!
+  user: User
 }
 
 """
@@ -2730,6 +2746,7 @@ type Inventory {
   project: Project!
   unitInventory: Int!
   units(active: Boolean, limit: Int, offset: Int): UnitsPaginated!
+  user: User
   vetBedInventory: Int
   youthBedInventory: Int
   youthVetBedInventory: Int
@@ -3482,6 +3499,7 @@ type Organization {
   id: ID!
   organizationName: String!
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+  user: User
   victimServiceProvider: NoYesMissing!
 }
 
@@ -3629,6 +3647,7 @@ type Project {
   residentialAffiliation: NoYesMissing
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
+  user: User
 }
 
 type ProjectAccess {
@@ -3657,6 +3676,7 @@ type ProjectCoc {
   id: ID!
   project: Project!
   state: String
+  user: User
   zip: String
 }
 

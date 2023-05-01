@@ -5,6 +5,7 @@
 ###
 
 class Hmis::Hud::Processors::Base
+  # DO NOT CHANGE: Frontend code sends this value
   HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
 
   def initialize(processor)
