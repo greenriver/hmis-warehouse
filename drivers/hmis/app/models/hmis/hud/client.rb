@@ -18,11 +18,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+  # Enrollments for this Client, including WIP Enrollments
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
-
-  # NOTE: this does not include project where the enrollment is WIP
+  # Projects that this Client is enrolled in, NOT inluding WIP enrollments
   has_many :projects, through: :enrollments
+  # WIP records representing enrollments for this Client
+  has_many :wip, class_name: 'Hmis::Wip', through: :enrollments
+
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
@@ -89,12 +92,27 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  # Clients that have no Enrollments (WIP or otherwise)
+  scope :unenrolled, -> do
+    # Clients that have no projects, AND no wip enrollments
+    left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
+  end
+
+  # All CustomAssessments for this Client, including WIP Assessments and assessments at WIP Enrollments
   def custom_assessments_including_wip
     enrollment_ids = enrollments.pluck(:id, :enrollment_id)
     wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
 
     Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+  end
+
+  # All Projects that this Client has Enrollments at, including WIP Enrollments
+  def projects_including_wip
+    wip_enrollment_projects = Hmis::Wip.enrollments.where(client: self).pluck(:project_id).compact
+    non_wip_enrollment_projects = projects.pluck(:id)
+
+    Hmis::Hud::Project.where(id: wip_enrollment_projects + non_wip_enrollment_projects)
   end
 
   def self.source_for(destination_id:, user:)
