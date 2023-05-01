@@ -69,16 +69,16 @@ module SystemPathways::WarehouseReports
       @chart_data = @report.allowed_section(params[:chart])
       respond_to do |format|
         format.json do
-          data = case @chart_data
+          klass = case @chart_data
           when 'equity'
-            equity = SystemPathways::Equity.new(report: @report, filter: @filter)
-            equity.chart_data(params[:demographic_breakdown])
+            SystemPathways::Equity
           when 'time'
-            time = SystemPathways::TimeChart.new(report: @report, filter: @filter)
-            time.chart_data(params[:demographic_breakdown])
+            SystemPathways::TimeChart
           else
             raise 'unknown chart type'
           end
+          data = klass.new(report: @report, filter: @filter).
+            chart_data(params[:demographic_breakdown])
           # NOTE: data will include some metadata
           # actual chart data should be in data.data
           render json: data.to_json
@@ -120,29 +120,6 @@ module SystemPathways::WarehouseReports
         end
         @details_title = "#{@source_title} → #{@target}"
       end
-    end
-
-    def items
-      @key = @report.known_keys.detect do |k|
-        details_params[:key] == k.to_s
-      end
-
-      @result = @report.result_from_key(@key)
-      @items = @report.items_for(@key)
-      respond_to do |format|
-        format.html {}
-        format.xlsx do
-          title = "#{@result.category} #{@result.title}"
-          filename = "#{sanitized_name(title)}-#{Date.current.to_s(:db)}.xlsx"
-          headers['Content-Type'] = GrdaWarehouse::DocumentExport::EXCEL_MIME_TYPE
-          headers['Content-Disposition'] = "attachment; filename=#{filename}"
-        end
-      end
-    end
-
-    def sanitized_name(name)
-      # See https://www.keynotesupport.com/excel-basics/worksheet-names-characters-allowed-prohibited.shtml
-      name.gsub(/[',\*\/\\\?\[\]\:]/, '-').gsub(' - ', '-').gsub(' ', '-')
     end
 
     def details_params
