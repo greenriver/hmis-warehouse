@@ -69,8 +69,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     search_term.strip!
     # If there are Household ID matches, return those only
     household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == TRIMMED_HOUSEHOLD_ID_LENGTH
-    household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches.any?
-    return household_matches if household_matches.any?
+    household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.any?
+    return household_matches if household_matches&.any?
 
     # Search by client
     joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
