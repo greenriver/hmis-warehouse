@@ -49,7 +49,7 @@ module Health
             id: id,
             name: name,
             patient_referrals: patient_ids,
-            without_required_qa: patient_ids - with_required_qa,
+            without_required_qa: patient_ids - with_completed_intake - with_required_qa,
             without_required_f2f_visit: patient_ids - with_required_f2f_visit,
             with_discharge_followup_completed: with_discharge_followup_completed.select { |p_id| p_id.in?(patient_ids) },
             with_completed_intake: with_completed_intake.select { |p_id| p_id.in?(patient_ids) },
