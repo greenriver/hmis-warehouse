@@ -51,7 +51,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
 
-  SORT_OPTIONS = [:most_recent].freeze
+  SORT_OPTIONS = [:most_recent, :household_id].freeze
 
   # hide previous declaration of :viewable_by, we'll use this one
   # A user can see any enrollment associated with a project they can access
@@ -104,7 +104,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
         e_t[:ProjectID].eq(nil).desc, # work-in-progress enrollments
         ex_t[:ExitDate].eq(nil).desc, # active enrollments
         EntryDate: :desc,
+        date_created: :desc,
       )
+    when :household_id
+      order(household_id: :asc, date_created: :desc)
     else
       raise NotImplementedError
     end

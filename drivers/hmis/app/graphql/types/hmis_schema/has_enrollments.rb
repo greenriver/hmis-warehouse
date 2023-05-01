@@ -17,7 +17,8 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, HmisSchema::EnrollmentSortOption, required: false
-            argument :include_in_progress, GraphQL::Types::Boolean, required: false
+            argument :exclude_wip, GraphQL::Types::Boolean, required: false
+            argument :wip_only, GraphQL::Types::Boolean, required: false
             argument :open_on_date, GraphQL::Types::ISO8601Date, required: false
             argument :project_types, [Types::HmisSchema::Enums::ProjectType], required: false unless without_args.include? :project_types
             argument :search_term, String, required: false unless without_args.include? :search_term
@@ -36,9 +37,10 @@ module Types
 
       private
 
-      def scoped_enrollments(scope, sort_order: :most_recent, include_in_progress: false, open_on_date: nil, project_types: nil, search_term: nil)
+      def scoped_enrollments(scope, sort_order: :most_recent, exclude_wip: false, wip_only: false, open_on_date: nil, project_types: nil, search_term: nil)
         scope = scope.viewable_by(current_user)
-        scope = scope.where.not(project_id: nil) unless include_in_progress
+        scope = scope.where.not(project_id: nil) if exclude_wip
+        scope = scope.where(project_id: nil) if wip_only
         scope = scope.open_on_date(open_on_date) if open_on_date.present?
         scope = scope.with_project_type(project_types) if project_types.present?
         scope = scope.matching_search_term(search_term) if search_term.present?
