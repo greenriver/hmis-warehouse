@@ -398,9 +398,5 @@ class SeedMaker
     maintain_system_groups
     maintain_zip_code_shapes
     populate_internal_system_choices
-
-    # for the most recent 50 reports, re-calculate results (which will move the cache to the DB)
-    # Remove this if release-59 has been merged to production
-    # HmisDataQualityTool::Report.ordered.limit(50).find_each(&:results)
   end
 end
