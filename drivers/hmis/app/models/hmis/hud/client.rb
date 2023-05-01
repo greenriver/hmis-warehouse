@@ -64,12 +64,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :with_access, ->(user, *permissions, **kwargs) do
-    base_scope = left_outer_joins(:projects).joins(:data_source)
+    pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
+    base_scope = left_outer_joins(:projects, :wip, :data_source)
 
-    unenrolled_scope = user.permissions?(*permissions, **kwargs) ? base_scope.where(Project: { id: nil }).merge(GrdaWarehouse::DataSource.hmis(user)) : none
-    enrolled_scope = base_scope.merge(Hmis::Hud::Project.with_access(user, *permissions, **kwargs))
+    unenrolled_scope = user.permissions?(*permissions, **kwargs) ? unenrolled.left_outer_joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) : none
+    enrolled_scope = base_scope.where(p_t[:id].in(pids))
+    wip_scope = base_scope.where(wip_t[:project_id].in(pids))
 
-    unenrolled_scope.or(enrolled_scope)
+    unenrolled_scope.or(enrolled_scope).or(wip_scope)
   end
 
   scope :visible_to, ->(user) do
@@ -113,6 +115,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     non_wip_enrollment_projects = projects.pluck(:id)
 
     Hmis::Hud::Project.where(id: wip_enrollment_projects + non_wip_enrollment_projects)
+  end
+
+  def enrolled?
+    enrollments.any?
   end
 
   def self.source_for(destination_id:, user:)

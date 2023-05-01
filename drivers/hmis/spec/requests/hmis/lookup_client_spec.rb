@@ -57,7 +57,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           age
           access {
             id
-            canViewClient
             canEditClient
             canDeleteClient
             canViewDob
@@ -164,7 +163,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     def check_client_access_with_role(hash, role)
       expect(hash).to include(
-        'canViewClient' => role.can_view_clients,
         'canEditClient' => role.can_edit_clients,
         'canDeleteClient' => role.can_delete_clients,
         'canViewDob' => role.can_view_dob,

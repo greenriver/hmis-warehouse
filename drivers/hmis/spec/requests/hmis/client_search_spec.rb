@@ -59,6 +59,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(clients).to include({ 'id' => client3.id.to_s })
     end
 
+    it 'should only show clients with enrollments at projects the user has view access for' do
+      create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client1, user: u1)
+      create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3, user: u1)
+
+      expect(client1.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? })
+      expect(client3.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? })
+
+      # Shouldn't see client3 since it has enrollments elsewhere
+      _response, result = post_graphql(input: {}) { query }
+      expect(result.dig('data', 'clientSearch', 'nodes')).to contain_exactly(include('id' => client1.id.to_s))
+
+      create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client3, user: u1).save_in_progress
+      client3.reload
+
+      expect(client3.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? }, satisfy(&:in_progress?))
+
+      # Now we should see client3 since it has a WIP enrollment at our project
+      _response, result = post_graphql(input: {}) { query }
+      expect(result.dig('data', 'clientSearch', 'nodes')).to contain_exactly(include('id' => client1.id.to_s), include('id' => client3.id.to_s))
+    end
+
     it 'should exclude clients enrolled at a project without user view permission' do
       assign_viewable(view_access_group, p2, hmis_user)
       create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3, user: u1)
