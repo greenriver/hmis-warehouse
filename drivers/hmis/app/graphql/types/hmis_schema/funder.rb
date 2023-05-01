@@ -22,6 +22,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
   end
 end

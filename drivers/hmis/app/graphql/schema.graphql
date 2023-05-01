@@ -2035,6 +2035,7 @@ type Funder {
   otherFunder: String
   project: Project!
   startDate: ISO8601Date!
+  user: User
 }
 
 """
@@ -2745,6 +2746,7 @@ type Inventory {
   project: Project!
   unitInventory: Int!
   units(active: Boolean, limit: Int, offset: Int): UnitsPaginated!
+  user: User
   vetBedInventory: Int
   youthBedInventory: Int
   youthVetBedInventory: Int
@@ -3497,6 +3499,7 @@ type Organization {
   id: ID!
   organizationName: String!
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+  user: User
   victimServiceProvider: NoYesMissing!
 }
 
@@ -3644,6 +3647,7 @@ type Project {
   residentialAffiliation: NoYesMissing
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
+  user: User
 }
 
 type ProjectAccess {
@@ -3672,6 +3676,7 @@ type ProjectCoc {
   id: ID!
   project: Project!
   state: String
+  user: User
   zip: String
 }
 
