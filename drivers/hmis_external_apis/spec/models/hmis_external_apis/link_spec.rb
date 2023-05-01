@@ -60,7 +60,7 @@ RSpec.describe 'LINK API', type: :model do
 
       result = subject.patch('Referral/ReferralRequest/60', payload)
       byebug unless result.http_status == 200
-      # {"message"=>"A server error occurred.", "detail"=>"ORA-28000: The account is locked.", "errorReferenceId"=>"6548f58f-0065-4013-911d-64db033c75bd"}
+      # {"message"=>"A server error occurred.", "detail"=>"ORA-06550: line 1, column 7:\nPLS-00201: identifier 'HMIS.PC_GREEN_RIVER_API' must be declared\nORA-06550: line 1, column 7:\nPL/SQL: Statement ignored", "errorReferenceId"=>"6c7ac709-21a0-4e40-80f1-4adf400dcfe0"}
       expect(result.http_status).to eq(200)
     end
 
@@ -84,8 +84,7 @@ RSpec.describe 'LINK API', type: :model do
       }
 
       # Note: PostingStatus/ID doesn't work
-      # "{\"message\":\"Posting Status Id is not valid. \",\"detail\":\"Invalid Parameters.\"}"
-      # {"message"=>"A server error occurred.", "detail"=>"ORA-28000: The account is locked.", "errorReferenceId"=>"80a25c15-e8ee-4fb3-bf7a-f3381c03a8aa"}
+      # {"message"=>"Posting Id doesn't exist. Posting Status Id is not valid. ", "detail"=>"Invalid Parameters."}
       result = subject.patch('Referral/PostingStatus', payload)
       byebug unless result.http_status == 200
       expect(result.http_status).to eq(200)
