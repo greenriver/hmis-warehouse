@@ -113,7 +113,7 @@ module SystemPathways::ChartBase
       ].map do |col|
         "CASE WHEN #{a_t[col].to_sql} THEN 1 ELSE 0 END"
       end
-      scope.where(Arel.sql(columns.join(' + ')).between(2..98))
+      scope.where(Arel.sql(columns.join(' + ')).gt(1))
     end
 
     private def add_alternative(scope, alternative)
