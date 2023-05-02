@@ -1,4 +1,4 @@
-- seen_before = ( projects = @client.last_intentional_contacts( current_user, include_confidential_names: can_view_confidential_project_names?).select(&:present?) ).any?
+- seen_before = ( projects = @client.last_intentional_contacts( current_user, include_confidential_names: can_view_confidential_project_names?, include_dates: true).select(&:present?) ).any?
 
 - if @client.service_history_enrollments.empty?
   = "There is no service record for #{@client.name}"
@@ -8,14 +8,14 @@
 
   - if @client.date_of_last_service.present?
     %ul.client__summary-details.list-unstyled
-      - if @client.class.show_last_seen_info?
+      - if @client.class.show_last_seen_info? && seen_before
         %li
-          %h4 Last Seen
-          %span= "#{time_ago_in_words(@client.date_of_last_service)} ago"
-        - if seen_before
-          %li
-            %h4 Last Seen Location
-            %span=projects.to_sentence
+          %h4
+            Last Seen
+            %i.icon-info{ data: { toggle: :tooltip, title: 'Most-recent dates and locations for services, current living situations, or CE activity' }}
+          - projects.each do |proj|
+            .service= proj
+
       %li
         %h4 Days in Last 3 Years
         .client__days-homeless.mt-2
