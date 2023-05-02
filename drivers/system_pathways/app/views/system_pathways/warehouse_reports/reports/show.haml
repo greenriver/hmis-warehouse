@@ -23,6 +23,8 @@
   = render 'equity'
 .well
   = render 'time'
+- detail_path = nil
+- detail_path = details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params) if can_access_some_version_of_clients?
 - content_for :page_js do
   :javascript
     let data = #{@pathways_chart.chart_data.to_json.html_safe};
@@ -36,7 +38,7 @@
       nodeWeights: nodeWeights,
       width: 1200,
       height: 600,
-      detail_path: '#{details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params)}',
+      detail_path: '#{detail_path}',
       client_word: '#{@pathways_chart.client_word}',
     }
     let sankeyChart = new App.D3Chart.Sankey('#sankey', options);
