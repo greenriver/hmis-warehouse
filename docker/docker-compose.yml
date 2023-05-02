@@ -6,13 +6,13 @@ x-app: &app
     context: .
     args:
       RUBY_VERSION: 3.1.3
-      BUNDLER_VERSION: '2.4.6'
+      BUNDLER_VERSION: '2.4.10'
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
-    AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-    AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-    AWS_SECURITY_TOKEN: ${AWS_SECURITY_TOKEN}
-    AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
+    AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+    AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+    AWS_SECURITY_TOKEN: ${AWS_SECURITY_TOKEN:-}
+    AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
     NODE_ENV: ${NODE_ENV:-development}
     BOOTSNAP_CACHE_DIR: /bundle/bootsnap
     WEBPACKER_DEV_SERVER_HOST: webpacker
@@ -178,3 +178,4 @@ volumes:
 networks:
   default:
     name: nginx-proxy
+    external: true

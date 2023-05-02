@@ -44,5 +44,9 @@ module GrdaWarehouse::Hud
     scope :at_entry, -> do
       where(DataCollectionStage: 1)
     end
+
+    scope :at_annual_update, -> do
+      where(DataCollectionStage: 5)
+    end
   end
 end

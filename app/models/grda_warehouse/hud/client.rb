@@ -687,21 +687,6 @@ module GrdaWarehouse::Hud
       end.map(&:cohort).compact.uniq
     end
 
-    def last_exit_destination
-      last_exit = source_exits.order(ExitDate: :desc).first
-      if last_exit # rubocop:disable Style/GuardClause
-        destination_code = last_exit.Destination || 99
-        if destination_code == 17
-          destination_string = last_exit.OtherDestination
-        else
-          destination_string = ::HudUtility.destination(destination_code)
-        end
-        return "#{destination_string} (#{last_exit.ExitDate})"
-      else
-        return 'None'
-      end
-    end
-
     def demographic_calculation_logic_description(attribute)
       case attribute
       when :veteran_status
@@ -1884,19 +1869,6 @@ module GrdaWarehouse::Hud
         ],
         elsewise: arel_table[:GenderNone],
       )
-    end
-
-    # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
-    def gender_multi
-      @gender_multi ||= [].tap do |gm|
-        gm << 0 if self.Female == 1
-        gm << 1 if self.Male == 1
-        gm << 4 if self.NoSingleGender == 1
-        gm << 5 if self.Transgender == 1
-        gm << 6 if self.Questioning == 1
-        # Per the data standards, only look to GenderNone if we don't have a more specific response
-        gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
-      end
     end
 
     def self.age(date:, dob:)

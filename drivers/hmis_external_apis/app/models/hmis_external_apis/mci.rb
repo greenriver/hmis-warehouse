@@ -60,6 +60,7 @@ module HmisExternalApis
                                  mci_id: mci_id,
                                  score: score,
                                  client: MciPayload.build_client(clearance_result),
+                                 # TODO: if no exact match by MCI ID, look for match by MCI Unique ID
                                  existing_client_id: find_client_by_mci(mci_id)&.id,
                                })
       end
@@ -87,6 +88,7 @@ module HmisExternalApis
         raise(Error, result.error['detail']) if result.error
       else
         # Store MCI ID for client
+        # TODO: store MCI Unique ID as well
         external_id.value = result.parsed_body
         external_id.external_request_log = save_log!(result, payload)
         external_id.save!
@@ -141,6 +143,10 @@ module HmisExternalApis
     #   conn.get('clients/v1/api/Lookup/logicalTables')
     # end
 
+    def self.enabled?
+      ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: 'mci').exists?
+    end
+
     private
 
     def save_log!(result, payload)
@@ -167,7 +173,7 @@ module HmisExternalApis
     end
 
     def creds
-      @creds ||= ::GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: 'mci')
+      @creds ||= ::GrdaWarehouse::RemoteCredentials::Oauth.active.find_by(slug: 'mci')
     end
 
     def conn

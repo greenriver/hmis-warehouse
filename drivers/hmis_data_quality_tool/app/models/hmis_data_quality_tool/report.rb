@@ -213,6 +213,26 @@ module HmisDataQualityTool
       user.can_access_some_version_of_clients?
     end
 
+    def pivot_details
+      @pivot_details ||= OpenStruct.new.tap do |struct|
+        struct.groups = result_groups.except('Inventory')
+        struct.lookup = (
+          Client.sections(self).map { |k, v| [k, v[:title]] } +
+            Enrollment.sections(self).map { |k, v| [k, v[:title]] } +
+            CurrentLivingSituation.sections(self).map { |k, v| [k, v[:title]] }
+        ).to_h
+
+        struct.flags = {}.tap do |flags|
+          struct.groups.values.map(&:keys).flatten.each do |key|
+            question_name = "#{struct.lookup[key]}__invalid"
+            flags[struct.lookup[key]] = universe(question_name).members.pluck(:personal_id, :data_source_id)
+          end
+        end
+
+        struct.clients_with_flags = struct.flags.values.flatten(1).uniq
+      end
+    end
+
     private def populate_universe
       report_clients = clients.map { |c| [c.client_id, c] }.to_h
       Client.calculate(report_items: report_clients, report: self)
@@ -378,6 +398,7 @@ module HmisDataQualityTool
           exit_date_issues: Enrollment,
           enrollment_outside_project_operating_dates_issues: Enrollment,
           dv_at_entry: Enrollment,
+          annual_assessment_issues: Enrollment,
         },
         'Enrollment Length' => {
           lot_es_90_issues: Enrollment,
@@ -450,6 +471,7 @@ module HmisDataQualityTool
             next if slug == :exit_date_entry_issues && goal_config.exit_date_entered_length == -1
             next if slug.in?([:date_to_street_issues, :times_homeless_issues, :months_homeless_issues]) &&
               ! goal_config.expose_ch_calculations
+            next if slug == :annual_assessment_issues && ! goal_config.show_annual_assessments
 
             title = item_class.section_title(slug, self)
             denominator_cell = universe("#{title}__denominator")

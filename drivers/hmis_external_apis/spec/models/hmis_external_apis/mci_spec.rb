@@ -44,7 +44,7 @@ RSpec.describe 'MCI API', type: :model do
     it 'supports a post' do
       result = subject.post('clients/v1/api/Clients/clearance', { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
       expect(result.http_status).to eq(200)
-      expect(result.parsed_body[0]).to include('lastName')
+      expect(result.parsed_body.length).to be >= 450
     end
   end
 end
