@@ -5,9 +5,9 @@
 
 .d-flex.mb-2
   %h1= content_for :title
-= debug params
-= debug filter_params
-= debug @clients.to_sql
+-# = debug params
+-# = debug filter_params
+-# = debug @clients.to_sql
 
 .well.report-listing.warehouse-reports__completed
   .justify-content-between.d-flex
@@ -20,7 +20,7 @@
       %span.input-group-append
         %button.btn.btn-secondary Search
   .ml-auto
-    = link_to details_system_pathways_warehouse_reports_report_path(@filter.for_params.merge(@detail_options).merge(format: :xlsx)), class: ['btn', 'btn-secondary'] do
+    -# = link_to details_system_pathways_warehouse_reports_report_path(@filter.for_params.merge(@detail_options).merge(format: :xlsx)), class: ['btn', 'btn-secondary'] do
       %i.icon-file-excel
       Download Excel
 
@@ -39,9 +39,13 @@
           - @clients.each.with_index do |client, i|
             %tr
               %th= number_with_delimiter(i + 1)
-              - @report.detail_headers.each_value do |lamda|
+              - @report.detail_headers.each do |label, lamda|
                 %td{style: 'max-width: 600px;'}
-                  = lamda.(client)
+                  - value = lamda.(client)
+                  - if label == 'Warehouse ID'
+                    = link_to value, appropriate_client_path(id: value)
+                  - else
+                    = value
     = content_for :page_js do
       :javascript
         table = $('.datatable').DataTable({

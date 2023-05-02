@@ -126,11 +126,11 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
       .then(json => {
         this.updateChart(json)
         // Update the header
-        if (event.target) this.chartHeaderTarget.textContent = event.target.text;
+        if (event.target) this.headerTarget.textContent = event.target.text;
         // Update the menu
         this.changerTargets.forEach(el => el.classList.remove('active'))
         let active_menu_item = this.changerTargets.find(el => el.dataset['menu-item'] == json.chart);
-        active_menu_item.classList.add('active');
+        if (active_menu_item) active_menu_item.classList.add('active');
         this.updateTable(json, event);
         this.disableLoader();
       })
