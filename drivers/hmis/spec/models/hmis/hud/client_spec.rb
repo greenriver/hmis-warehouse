@@ -38,6 +38,22 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     end
   end
 
+  describe 'with multiple names' do
+    it 'should handle names correctly' do
+      n1 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'First', primary: true)
+      n2 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Second')
+      n3 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Third')
+
+      expect(c1.names).to contain_exactly(*[n1, n2, n3].map { |n| have_attributes(id: n.id) })
+      expect(c1.names.primary_names).to contain_exactly(have_attributes(id: n1.id))
+      expect(c1.names.primary).to have_attributes(id: n1.id)
+
+      expect do
+        create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Fourth', primary: true)
+      end.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+  end
+
   describe 'when destroying clients' do
     let!(:client) { create :hmis_hud_client }
     before(:each) do
