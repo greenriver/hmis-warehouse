@@ -67,15 +67,16 @@ module HmisExternalApis
     rescue OAuth2::Error => e
       OauthClientResult.new(
         body: result&.body || e.message,
-        content_type: result&.content_type,
+        content_type: result&.content_type || e.response&.headers&.dig('content-type'),
         error: try_parse_json(e.message) || e.message,
         error_type: e.class.name,
-        http_method: verb,
-        http_status: result&.status,
+        http_method: e.response.response.env.method,
+        http_status: result&.status || e.response&.status,
         ip: nil,
         parsed_body: try_parse_json(result&.body),
-        request_headers: merged_headers,
-        url: url,
+        request_headers: e.response.response.env.request_headers,
+        request_body: e.response.response.env.request_body,
+        url: e.response.response.env.url.to_s,
       )
     end
 

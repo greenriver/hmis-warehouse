@@ -17,9 +17,9 @@ RSpec.describe 'LINK API', type: :model do
     let(:oauth_scope) { 'GREEN_RIVER' }
     let(:ocp_apim_subscription_key) { ENV.fetch('LINK_OCP_APIM_SUBSCRIPTION_KEY') }
 
-    let(:requested_by) { 'user1@example.com' }
+    let(:requested_by) { 'test@greenriver.com' }
     let(:now) { Time.now }
-    let(:program_id) { 1072 }
+    let(:program_id) { 867 }
     let(:unit_type_id) { 20 }
 
     def format_date(date)
@@ -42,16 +42,15 @@ RSpec.describe 'LINK API', type: :model do
         'requestedDate' => format_date(now),
         'programID' => program_id,
         'unitTypeID' => unit_type_id,
-        'estimatedDate' => format_date(now + 1.day),
+        'estimatedDate' => format_date(now),
         'requestorName' => 'greenriver',
         'requestorPhoneNumber' => '8028675309',
         'requestorEmail' => 'test@greenriver.com',
         'requestedBy' => requested_by,
       }
-
       result = subject.post('Referral/ReferralRequest', payload)
-      # {"message"=>"A server error occurred.", "detail"=>"ORA-00942: table or view does not exist", "errorReferenceId"=>"58e06257-3128-43d0-96fe-03cc6af4d8d6"}
-      byebug unless result.http_status == 200
+      # log_request(name: 'update_referral_request', method: 'patch', result: result, payload: payload, url: subject.url_for(path))
+      log_request(name: 'create_referral_request', result: result)
       expect(result.http_status).to eq(200)
     end
 
@@ -59,34 +58,25 @@ RSpec.describe 'LINK API', type: :model do
       payload = { 'isVoid' => true, 'requestedBy' => requested_by }
 
       result = subject.patch('Referral/ReferralRequest/60', payload)
-      byebug unless result.http_status == 200
       # {"message"=>"A server error occurred.", "detail"=>"ORA-06550: line 1, column 7:\nPLS-00201: identifier 'HMIS.PC_GREEN_RIVER_API' must be declared\nORA-06550: line 1, column 7:\nPL/SQL: Statement ignored", "errorReferenceId"=>"6c7ac709-21a0-4e40-80f1-4adf400dcfe0"}
+      log_request(name: 'update_referral_request', result: result)
       expect(result.http_status).to eq(200)
     end
 
     it 'updates referral posting status' do
       payload = {
-        "postingId": 2176,
-        'postingStatusId' => 18,
+        'postingId' => 3777,
+        'postingStatusId' => 21,
         'deniedReasonId' => 1,
         'referralResultId' => 158,
         'statusNote' => 'test',
         'contactDate' => format_date(now),
         'requestedBy' => requested_by,
       }
-      payload = {
-        "postingStatusId": 18,
-        "deniedReasonId": 1,
-        "deniedReasonText": 'test',
-        "statusNote": 'test',
-        "contactDate": '2023-04-13T13:11:24.190Z',
-        "requestedBy": 'GreenRiver',
-      }
-
+      result = subject.patch('Referral/PostingStatus', payload)
       # Note: PostingStatus/ID doesn't work
       # {"message"=>"Posting Id doesn't exist. Posting Status Id is not valid. ", "detail"=>"Invalid Parameters."}
-      result = subject.patch('Referral/PostingStatus', payload)
-      byebug unless result.http_status == 200
+      log_request(name: 'update_referral_posting_status', result: result)
       expect(result.http_status).to eq(200)
     end
 
@@ -99,9 +89,29 @@ RSpec.describe 'LINK API', type: :model do
       }
 
       result = subject.patch('Unit/Capacity', payload)
-      byebug unless result.http_status == 200
       # {"message"=>"A server error occurred.", "detail"=>"ORA-00942: table or view does not exist", "errorReferenceId"=>"6f30d636-d276-40dc-ab3a-3e654ec4f431"}
+      log_request(name: 'update_unit_capacity', result: result)
       expect(result.http_status).to eq(200)
+    end
+
+    def log_request(name:, result:)
+      # byebug unless result.http_status == 200
+      msg = {
+        name: name,
+        request: {
+          url: result.url,
+          method: result.http_method,
+          body: result.request_body,
+          headers: result.request_headers,
+        },
+        response: {
+          status: result.http_status,
+          body: result.error,
+        },
+      }
+      msg[:request][:headers]['Authorization'] = 'redacted'
+      path = Rails.root.join("link_log/#{name}.json")
+      File.write(path, msg.to_json)
     end
 
   end
