@@ -1728,7 +1728,8 @@ File
 type File {
   confidential: Boolean
   contentType: String!
-  createdAt: ISO8601DateTime!
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
   effectiveDate: ISO8601Date
   enrollment: Enrollment
   enrollmentId: ID
@@ -1738,10 +1739,10 @@ type File {
   name: String!
   ownFile: Boolean!
   tags: [String!]!
-  updatedAt: ISO8601DateTime!
   updatedBy: ApplicationUser
   uploadedBy: ApplicationUser
   url: String!
+  user: User
 }
 
 """
