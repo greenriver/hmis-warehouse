@@ -18,13 +18,14 @@ module Health
       'warehouse_reports/health/agency_performance'
     end
 
+    QA_WINDOW = 60.days
     F2F_WINDOW = 60.days
     COMPLETION_WINDOW = 30.days
     RENEWAL_WINDOW = 365.days
     WELLCARE_WINDOW = 12.months
 
     DESCRIPTIONS = {
-      without_required_qa: 'Patients who have not completed intake and have not received a QA in the month.',
+      without_required_qa: "Patients who have not completed intake and have not received a QA in the last #{QA_WINDOW.inspect}.",
       without_required_f2f_visit: "Patients who have not received a face-to-face visit in the last #{F2F_WINDOW.inspect}.",
       with_discharge_followup_completed: 'Number of discharge follow-up QAs within the month.',
       with_completed_intake: 'Patients with completed initial intake (Consent, Comp Assessment, HRSN, and Care Plan).',
@@ -48,7 +49,7 @@ module Health
             id: nil,
             name: name,
             patient_referrals: patient_ids,
-            without_required_qa: patient_ids - with_required_qa,
+            without_required_qa: patient_ids - with_completed_intake - with_required_qa,
             without_required_f2f_visit: patient_ids - with_required_f2f_visit,
             with_discharge_followup_completed: with_discharge_followup_completed.select { |id| id.in?(patient_ids) },
             with_completed_intake: with_completed_intake.select { |id| id.in?(patient_ids) },
@@ -113,7 +114,7 @@ module Health
         payable.
         not_valid_unpayable.
         where(patient_id: patient_ids).
-        in_range(@range).
+        in_range(@range.last - QA_WINDOW .. @range.last).
         pluck(:patient_id).uniq
     end
 

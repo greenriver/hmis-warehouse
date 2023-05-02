@@ -20456,7 +20456,7 @@ CREATE TABLE public.system_pathways_clients (
     questioning boolean,
     no_single_gender boolean,
     veteran_status integer,
-    ce boolean,
+    involves_ce boolean,
     system boolean,
     destination integer,
     created_at timestamp(6) without time zone NOT NULL,
@@ -20472,7 +20472,8 @@ CREATE TABLE public.system_pathways_clients (
     returned_project_enrollment_id bigint,
     returned_project_project_id bigint,
     report_id bigint,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    days_to_return integer
 );
 
 
@@ -20513,7 +20514,6 @@ CREATE TABLE public.system_pathways_enrollments (
     stay_length integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    disabling_condition boolean,
     relationship_to_hoh integer,
     household_id character varying,
     household_type character varying,
@@ -20521,7 +20521,9 @@ CREATE TABLE public.system_pathways_enrollments (
     deleted_at timestamp without time zone,
     final_enrollment boolean DEFAULT false NOT NULL,
     move_in_date date,
-    days_to_move_in integer
+    days_to_move_in integer,
+    chronic_at_entry boolean,
+    disabling_condition integer
 );
 
 
@@ -52564,8 +52566,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230419190654'),
 ('20230420164514'),
 ('20230424194313'),
+('20230426175101'),
 ('20230428141601'),
 ('20230428145659'),
-('20230428155418');
+('20230428155418'),
+('20230429185311'),
+('20230429224702');
 
 

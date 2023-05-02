@@ -259,34 +259,16 @@ module HudUtility
   end
 
   def project_type_brief(id)
-    case id
-    when 1
-      'ES'
-    when 2
-      'TH'
-    when 3
-      'PH'
-    when 4
-      'SO'
-    when 6
-      'Services Only'
-    when 7
-      'Other'
-    when 8
-      'SH'
-    when 9
-      'PH'
-    when 10
-      'PH'
-    when 11
-      'Day Shelter'
-    when 12
-      'Homeless Prevention'
-    when 13
-      'PH-RRH'
-    when 14
-      'CE'
-    end
+    ::HudLists.project_type_brief_map[id]
+  end
+
+  def project_type_number(type)
+    # attempt to lookup full name
+    number = ::HudLists.project_type_map.invert[type]
+    return number if number.present?
+
+    # perform an acronym lookup
+    ::HudLists.project_type_brief_map.invert[type]
   end
 
   # 2.02.C

@@ -1,0 +1,44 @@
+= content_for :crumbs do
+  = link_to @report.index_path do
+    = "« #{@report.title} Reports"
+- content_for :title, @report.title
+
+.d-flex.mb-2
+  %h1= content_for :title
+
+.well.mb-4
+  .report-parameters
+    = @report.describe_filter_as_html(@report.known_params)
+    - opts = @report.filter.to_h
+    - opts[:default_project_type_codes] = @report.default_project_type_codes
+    .ml-auto.nobr
+      = render 'filters/view_filter_details', filter_hash: opts, selected_keys: @report.known_params
+.mb-8.well
+  = render 'live_filter'
+.sankey-chart{style: 'position: relative;'}
+  #sankey
+.mb-8
+  = render 'node_details', pathways: @pathways_chart
+.well.mb-8
+  = render 'equity'
+.well
+  = render 'time'
+- content_for :page_js do
+  :javascript
+    let data = #{@pathways_chart.chart_data.to_json.html_safe};
+    const targetColors = #{@pathways_chart.target_colors.to_json.html_safe};
+    const nodeWeights = #{@pathways_chart.node_weights.to_json.html_safe};
+    const nodeColumns = #{@pathways_chart.node_columns.to_json.html_safe};
+
+    let options = {
+      nodeGroup: d => d.id.split(/\W/)[0], // take first word for color
+      targetColors: targetColors,
+      nodeWeights: nodeWeights,
+      width: 1200,
+      height: 600,
+      detail_path: '#{details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params)}',
+      client_word: '#{@pathways_chart.client_word}',
+    }
+    let sankeyChart = new App.D3Chart.Sankey('#sankey', options);
+    sankeyChart.prepare();
+    sankeyChart.draw(data);
