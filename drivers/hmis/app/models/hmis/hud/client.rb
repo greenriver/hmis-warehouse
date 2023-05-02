@@ -65,13 +65,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :with_access, ->(user, *permissions, **kwargs) do
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
-    base_scope = left_outer_joins(:projects, :wip, :data_source)
 
-    unenrolled_scope = user.permissions?(*permissions, **kwargs) ? unenrolled.left_outer_joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) : none
-    enrolled_scope = base_scope.where(p_t[:id].in(pids))
-    wip_scope = base_scope.where(wip_t[:project_id].in(pids))
+    unenrolled_ids = user.permissions?(*permissions, **kwargs) ? unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)).pluck(:id) : []
+    enrolled_ids = joins(:projects).where(p_t[:id].in(pids)).pluck(:id)
+    wip_ids = joins(:wip).where(wip_t[:project_id].in(pids)).pluck(:id)
 
-    unenrolled_scope.or(enrolled_scope).or(wip_scope)
+    where(id: unenrolled_ids + enrolled_ids + wip_ids)
   end
 
   scope :visible_to, ->(user) do

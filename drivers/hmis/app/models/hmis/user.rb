@@ -61,6 +61,9 @@ class Hmis::User < ApplicationRecord
       # Just return false if we don't have this permission at all for anything
       return false unless send("#{permission}?")
 
+      # Return true if we should use global permissions for the entity, since we just did the global permission check
+      return true if use_global_permissions_for_entity?(entity)
+
       base_entities = permissions_base_for_entity(entity)
 
       # Raise if there's no permissions base for the entity we're checking permissions on
@@ -96,11 +99,7 @@ class Hmis::User < ApplicationRecord
   private def permissions_base_for_entity(entity)
     return unless entity.present?
 
-    if entity.is_a? Hmis::Hud::Client
-      return entity.projects_including_wip if entity.enrolled?
-
-      return Hmis::Hud::Project.viewable_by(self)
-    end
+    return entity.projects_including_wip if entity.is_a? Hmis::Hud::Client
     return entity if entity.is_a? Hmis::Hud::Organization
     return entity if entity.is_a? Hmis::Hud::Project
 
@@ -109,6 +108,13 @@ class Hmis::User < ApplicationRecord
     return entity.project if entity.respond_to? :project
 
     nil
+  end
+
+  private def use_global_permissions_for_entity?(entity)
+    return true if entity.is_a?(Hmis::Hud::Client) && !entity.enrolled?
+    return true if entity.is_a?(Hmis::File) && !entity.client.enrolled?
+
+    return false
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)
