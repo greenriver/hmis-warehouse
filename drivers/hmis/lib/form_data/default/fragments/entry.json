@@ -11,13 +11,7 @@
       "text": "Entry Date",
       "field_name": "entryDate",
       "required": true,
-      "assessment_date": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$entryDate"
-        }
-      ]
+      "assessment_date": true
     },
     {
       "data_collected_about": "HOH",

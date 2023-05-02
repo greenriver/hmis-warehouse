@@ -16,15 +16,17 @@ module Types
     field :effective_date, GraphQL::Types::ISO8601Date, null: true
     field :expiration_date, GraphQL::Types::ISO8601Date, null: true
     field :confidential, Boolean, null: true
-    field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
     field :updated_by, Types::Application::User, null: true
     field :uploaded_by, Types::Application::User, null: true
-    field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :url, String, null: false
     field :name, String, null: false
     field :tags, [String], null: false
     field :file_blob_id, ID, null: false
     field :own_file, Boolean, null: false
+
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    hud_field :user, HmisSchema::User, null: true
 
     # Object is a Hmis::File
 
@@ -48,6 +50,23 @@ module Types
       object.tags.map(&:id)
     end
 
+    def date_created
+      object.created_at
+    end
+
+    def date_updated
+      object.updated_at
+    end
+
+    # HUD User, to match convention on other records
+    def user
+      return unless object.user.present?
+
+      object.user.hmis_data_source_id = current_user.hmis_data_source_id
+      Hmis::Hud::User.from_user(object.user)
+    end
+
+    # Application user that uploaded the file
     def uploaded_by
       object.user
     end
