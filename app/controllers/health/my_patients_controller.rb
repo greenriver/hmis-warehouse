@@ -101,18 +101,10 @@ module Health
         joins(:patient_referral).
         merge(Health::PatientReferral.assigned.not_disenrolled).
         or(
-          # Have an un-confirmed MassHealth pending disenrollment in the current (or a future) month
+          # Have an un-confirmed MassHealth pending disenrollment
           population.
             joins(:patient_referral).
-            merge(Health::PatientReferral.pending_disenrollment.not_confirmed_rejected).
-            where(hpr_t[:pending_disenrollment_date].gteq(Date.current.beginning_of_month)),
-        ).
-        or(
-          # Have an un-confirmed rejection before the disenrollment date
-          population.
-            joins(:patient_referral).
-            merge(Health::PatientReferral.rejected.not_confirmed_rejected).
-            where(hpr_t[:disenrollment_date].lteq(Date.current)),
+            merge(Health::PatientReferral.pending_disenrollment.not_confirmed_rejected),
         )
     end
 
