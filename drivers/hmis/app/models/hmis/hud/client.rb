@@ -31,6 +31,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
+  # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
+  has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+
   validates_with Hmis::Hud::Validators::ClientValidator
 
   attr_accessor :image_blob_id
@@ -93,6 +96,55 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def ssn_serial
     self.SSN&.[](-4..-1)
+  end
+
+  def warehouse_id
+    warehouse_client_source.destination_id
+  end
+
+  def warehouse_url
+    "https://#{ENV['FQDN']}/clients/#{id}/from_source"
+  end
+
+  def mci_id
+    external_ids_by_slug('mci').first&.value
+  end
+
+  def mci_url(user = nil)
+    return if user && enrollments.viewable_by(user).empty?
+
+    link_base = GrdaWarehouse::RemoteCredentials::ExternalLink.where(slug: 'clientview').first&.link_base
+    return unless link_base&.present? && mci_id&.present?
+
+    "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
+  end
+
+  def external_identifiers(user = nil)
+    external_identifiers = {
+      client_id: {
+        id: id,
+        label: 'HMIS ID',
+      },
+      personal_id: {
+        id: personal_id,
+        label: 'Personal ID',
+      },
+      warehouse_id: {
+        id: warehouse_id,
+        url: warehouse_url,
+        label: 'Warehouse ID',
+      },
+    }
+
+    if HmisExternalApis::Mci.enabled?
+      external_identifiers[:mci_id] = {
+        id: mci_id,
+        url: mci_url(user),
+        label: 'MCI ID',
+      }
+    end
+
+    external_identifiers
   end
 
   SORT_OPTIONS = [
@@ -226,4 +278,11 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     client_files&.client_photos&.newest_first&.first&.destroy!
     @image = nil
   end
+
+  # Mirrors `clientBriefName` in frontend
+  def brief_name
+    preferred_name || [first_name, last_name].compact.join(' ')
+  end
+
+  include RailsDrivers::Extensions
 end

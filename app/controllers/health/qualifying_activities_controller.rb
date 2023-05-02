@@ -35,35 +35,55 @@ module Health
         ! k.in?(@qa.qa_version.class.versioned_attribute_names)
       end
 
+      # if we have an SDH Case Management Note, we need to set it for the view to work
+      @note = Health::SdhCaseManagementNote.find(unversioned_params[:source_id].to_i) if case_note_in_params?(unversioned_params)
       if @qa.update(unversioned_params)
         # Keep the QA tab consistent
         @qa.delay.maintain_cached_values
-        # if we have an SDH Case Management Note, we need to set it for the view to work
-        @note = Health::SdhCaseManagementNote.find(unversioned_params[:source_id].to_i) if case_note_in_params?(unversioned_params)
         respond_with(@qa) unless request.xhr?
-      else # If we throw an error, respond_with knows how to handle it
+      else
+        version_errors(@qa.errors)
         respond_with(@qa)
       end
     end
 
+    PASS_THROUGH_ATTRIBUTES = [
+      :date_of_activity,
+      :follow_up,
+    ].freeze
+    def version_errors(errors)
+      replacement_errors = [].tap do |new_errors|
+        errors.each do |error|
+          if error.attribute.in?(PASS_THROUGH_ATTRIBUTES)
+            new_errors << [error.attribute, error.type, error.message]
+          else
+            versioned_attr = error.attribute.to_s + @qa.qa_version.class::ATTRIBUTE_SUFFIX
+            new_errors << [versioned_attr, error.type, error.message] if versioned_attr.in?(@qa.qa_version.class.versioned_attribute_names)
+          end
+        end
+      end
+      errors.clear # Replace the errors with new_errors
+      replacement_errors.each { |error| errors.add(*error[0..1], message: error.last) }
+    end
+
     def update
       unversioned_params = qa_params.to_h
-      @qa = @patient.qualifying_activities.build(date_of_activity: unversioned_params[:date_of_activity], user: current_user, user_full_name: current_user.name)
       unversioned_params.delete_if do |k, _|
         ! k.in?(@qa.qa_version.class.versioned_attribute_names)
       end
 
+      # if we have an SDH Case Management Note, we need to set it for the view to work
+      @note = Health::SdhCaseManagementNote.find(unversioned_params[:source_id].to_i) if case_note_in_params?(unversioned_params)
       if @qa.update(unversioned_params)
         # Keep the QA tab consistent
         @qa.delay.maintain_cached_values
-        # if we have an SDH Case Management Note, we need to set it for the view to work
-        @note = Health::SdhCaseManagementNote.find(unversioned_params[:source_id].to_i) if case_note_in_params?(unversioned_params)
         if @note.present?
           respond_with(@qa, location: edit_client_health_sdh_case_management_note_path(@client, @note)) unless request.xhr?
         else
           respond_with(@qa)
         end
       else # If we throw an error, respond_with knows how to handle it
+        version_errors(@qa.errors)
         respond_with(@qa)
       end
     end

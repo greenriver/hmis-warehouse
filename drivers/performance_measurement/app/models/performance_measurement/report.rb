@@ -533,7 +533,13 @@ module PerformanceMeasurement
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.pluck(:client_id, p_t[:id], :first_date_in_program, :move_in_date).
                 each do |client_id, project_id, entry_date, move_in|
-                  days = (move_in - entry_date).to_i
+                  days = if move_in < entry_date
+                    # Catch anyone who entered the enrollment
+                    # after the HoH move-in (children born, other household members added later, etc.)
+                    0
+                  else
+                    (move_in - entry_date).to_i
+                  end
                   days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
                   days_by_client_id[client_id][:value] += days
                   days_by_client_id[client_id][:project_ids] << project_id

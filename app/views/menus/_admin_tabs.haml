@@ -50,3 +50,6 @@
     - if can_manage_sessions?
       %li.nav-item{role: 'presentation', class: ('active' if controller_name == "sessions")}
         = link_to 'Sessions', admin_sessions_path, class: 'nav-link'
+    - if can_manage_inbound_api_configurations?
+      %li.nav-item{role: 'presentation', class: ('active' if controller_name == 'inbound_api_configurations')}
+        = link_to 'Inbound APIs', admin_inbound_api_configurations_path, class: 'nav-link'

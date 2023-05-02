@@ -120,4 +120,19 @@ RSpec.configure do |config|
   Dir[Rails.root.join('drivers/*/spec')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/lib')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/app')].each { |x| config.project_source_dirs << x }
+
+  config.before(:each) do
+    # stub requests to pwned api
+    stub_request(:get, /https:\/\/api\.pwnedpasswords\.com\/.*/).
+      with(
+        headers: {
+          'User-Agent' => 'devise_pwned_password',
+        },
+      ).
+      to_return(status: 200, body: '', headers: {})
+  end
 end
+
+# allow real requests, needed for minio
+require 'webmock/rspec'
+WebMock.allow_net_connect!

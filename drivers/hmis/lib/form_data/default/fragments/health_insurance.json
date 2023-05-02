@@ -1,0 +1,197 @@
+{
+  "type": "GROUP",
+  "link_id": "health-insurance",
+  "text": "Health Insurance",
+  "data_collected_about": "ALL_CLIENTS",
+  "record_type": "INCOME_BENEFIT",
+  "prefill": true,
+  "item": [
+    {
+      "type": "CHOICE",
+      "component": "RADIO_BUTTONS",
+      "link_id": "4.04.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Covered by Health Insurance",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "field_name": "insuranceFromAnySource",
+      "autofill_values": [
+        {
+          "value_code": "YES",
+          "autofill_behavior": "ANY",
+          "autofill_when": [
+            {
+              "question": "4.04.3",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.4",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.5",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.6",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.7",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.8",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.9",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.10",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.11",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.04.12",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "health-insurance-group",
+      "component": "INPUT_GROUP",
+      "text": "Select Insurance Provider(s)",
+      "readonly_text": "Insurance Providers",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "4.04.2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        },
+        {
+          "question": "4.04.2",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ],
+      "item": [
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.3",
+          "text": "Medicaid",
+          "field_name": "medicaid"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.4",
+          "text": "Medicare",
+          "field_name": "medicare"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.5",
+          "text": "State Children's Health Insurance Program",
+          "field_name": "schip"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.6",
+          "text": "VA Medical Services",
+          "field_name": "vaMedicalServices"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.7",
+          "text": "Employer-Provided Health Insurance",
+          "field_name": "employerProvided"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.8",
+          "text": "Health Insurance obtained through COBRA",
+          "field_name": "cobra"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.9",
+          "text": "Private Pay Health Insurance",
+          "field_name": "privatePay"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.10",
+          "text": "State Health Insurance for Adults",
+          "field_name": "stateHealthIns"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.11",
+          "text": "Indian Health Services Program",
+          "field_name": "indianHealthServices"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "4.04.12",
+          "text": "Other",
+          "field_name": "otherInsurance"
+        },
+        {
+          "type": "STRING",
+          "link_id": "4.04.12A",
+          "text": "Specify other source",
+          "brief_text": "Other insurance",
+          "required": false,
+          "warn_if_empty": true,
+          "field_name": "otherInsuranceIdentify",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "4.04.12",
+              "answer_code": "YES",
+              "operator": "EQUAL"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -31,7 +31,12 @@ module GraphqlHelpers
 
     field_types = typ.respond_to?(:fields) ? typ.fields : typ.type&.of_type&.fields
     field_types.each do |name, field|
-      next if field.type.list? || field.type.respond_to?(:fields) || (field.type.respond_to?(:of_type) && field.type.of_type.respond_to?(:fields))
+      field_type = field.type
+      # Get the "base" field type, cutting through the NonNull and List wrappers
+      field_type = field_type.of_type while field_type.respond_to?(:of_type)
+
+      # If base type is an object, skip it
+      next if field_type.respond_to?(:fields)
 
       fields << name
     end
@@ -43,14 +48,20 @@ module GraphqlHelpers
       errors {
         id
         linkId
+        recordId
         attribute
         message
         fullMessage
         type
         severity
         readableAttribute
+        data
         __typename
       }
     ERRORS
+  end
+
+  def to_gql_input_object(values, klass)
+    klass.new(nil, context: nil, defaults_used: Set.new, ruby_kwargs: values)
   end
 end

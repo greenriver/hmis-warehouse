@@ -21,7 +21,7 @@
       #moved-in-cohort-by-voucher-type-chart
 :ruby
   matched_cohort_by_voucher_type = @report.matched_cohort_by_voucher_type
-  -# matched_cohort_by_voucher_type['columns'] = @report.invert_columns(matched_cohort_by_voucher_type['columns'])
+  matched_cohort_by_voucher_type['columns'] = @report.invert_columns(matched_cohort_by_voucher_type['columns'])
   matched_cohort_by_voucher_type_max_value = matched_cohort_by_voucher_type['columns'].drop(1).map { |values| values.drop(1).compact.sum }.max
   moved_in_cohort_by_voucher_type = @report.moved_in_cohort_by_voucher_type
   moved_in_cohort_by_voucher_type_max_value = moved_in_cohort_by_voucher_type['columns'].drop(1).map { |values| values.drop(1).compact.sum }.max
@@ -78,7 +78,6 @@
         show: false
       },
       bar: {
-        padding: 85,
         width: 26,
       },
       size: {

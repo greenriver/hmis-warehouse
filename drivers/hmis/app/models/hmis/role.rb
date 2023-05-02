@@ -143,6 +143,15 @@ class Hmis::Role < ::ApplicationRecord
           'Client Access',
         ],
       },
+      can_delete_clients: {
+        description: 'Grants access to delete clients',
+        administrative: false,
+        access: [:editable],
+        global: true,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_full_ssn: {
         description: 'Allow the user to see client\'s full SSN.',
         administrative: false,
@@ -192,6 +201,14 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         categories: [
           'Enrollments',
+        ],
+      },
+      can_delete_assessments: {
+        description: 'Ability to delete assessments that have been submitted',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Assessments',
         ],
       },
       can_manage_any_client_files: {

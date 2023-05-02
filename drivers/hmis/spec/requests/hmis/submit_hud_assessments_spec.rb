@@ -186,6 +186,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expected_exit_date: role == :EXIT ? new_assessment_date : nil,
         )
         expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
+
+        # Update the assessment again (submit)
+        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
+        input = { assessment_id: assessment.id, **build_minimum_values(definition, assessment_date: new_assessment_date) }
+        _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+        errors = result.dig('data', 'submitAssessment', 'errors')
+        expect(errors).to be_empty
+
+        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
+        expect_assessment_dates(
+          assessment,
+          expected_assessment_date: new_assessment_date,
+          expected_entry_date: role == :INTAKE ? new_assessment_date : e1.entry_date,
+          expected_exit_date: role == :EXIT ? new_assessment_date : nil,
+        )
+        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
       end
     end
   end
@@ -258,7 +274,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Submitting an Intake assessment in a WIP household' do
     let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01' }
     let!(:other_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
-    let(:assesment_date) { '2005-03-02' }
+    let(:assessment_date) { '2005-03-02' }
     let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
 
     before(:each) do
@@ -277,12 +293,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'succeeds if entering HoH' do
-      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, confirmed: true, **build_minimum_values(definition) }
+      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, confirmed: true, **build_minimum_values(definition, assessment_date: assessment_date) }
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
       errors = result.dig('data', 'submitAssessment', 'errors')
       expect(errors).to be_empty
       expect(assessment_id).to be_present
+      hoh_enrollment.reload
+      expect(hoh_enrollment.entry_date).to eq(Date.parse(assessment_date))
     end
 
     it 'fails if trying to create a second intake assessment' do

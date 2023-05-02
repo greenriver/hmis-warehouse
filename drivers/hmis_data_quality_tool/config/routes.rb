@@ -9,6 +9,7 @@ BostonHmis::Application.routes.draw do
     namespace :warehouse_reports do
       resources :reports, only: [:index, :create, :show, :destroy] do
         get :items, on: :member
+        get :by_client, on: :member
       end
       resources :goal_configs, except: [:show]
     end

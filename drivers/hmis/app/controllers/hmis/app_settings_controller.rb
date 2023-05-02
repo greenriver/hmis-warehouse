@@ -12,10 +12,8 @@ class Hmis::AppSettingsController < Hmis::BaseController
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
 
     logo = ENV['LOGO']
-    logo_path = if SerializedAsset.exists?(logo)
-      SerializedAsset.get_src(logo)
-    else
-      "theme/logo/#{logo}"
+    if logo.present?
+      logo_path = SerializedAsset.exists?(logo) ? SerializedAsset.get_src(logo) : "theme/logo/#{logo}"
     end
 
     hostname = ENV['FQDN']
@@ -25,10 +23,17 @@ class Hmis::AppSettingsController < Hmis::BaseController
       logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
       warehouseUrl: "https://#{hostname}",
       warehouseName: _('Boston DND Warehouse'),
+      appName: _('Open Path HMIS'),
       resetPasswordUrl: "https://#{hostname}/users/password/new",
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
       casUrl: GrdaWarehouse::Config.get(:cas_url),
+      globalFeatureFlags: {
+        # Whether to show MCI ID in client search results
+        mciId: HmisExternalApis::Mci.enabled?,
+        # Whether to show Referral and Denial screens
+        externalReferrals: GrdaWarehouse::RemoteCredential.active.where(slug: 'mper').exists?,
+      },
     }
   end
 end

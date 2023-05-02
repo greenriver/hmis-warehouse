@@ -1,0 +1,43 @@
+- content_for(:title, "Inbound APIs")
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+
+  .row.mb-4
+    .col-8
+      %p
+        These are configurations for inbound API calls. You can create at most
+        #{HmisExternalApis::InboundApiConfiguration::MAX_KEYS_PER_COMBO}
+        keys at a time for each combination. They are all valid.
+    .col-4.text-right
+      = link_to new_admin_inbound_api_configuration_path, class: 'btn btn-primary mb-2' do
+        %span.icon-plus
+        Add a configuration
+
+  - if @confs.length > 0
+    = render 'common/pagination_top', item_name: 'API configuration'
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            %th External System Name
+            %th Internal System Name
+            %th Key (redacts after a short window of time)
+            %th Version (provide the highest version to the recipient of the key)
+            %th
+        %tbody
+          - @confs.each do |conf|
+            %tr
+              %td= conf.external_system_name
+              %td= conf.internal_system_name
+              %td= conf.plain_text_api_key_with_fallback
+              %td= conf.version
+              %td
+                = link_to admin_inbound_api_configuration_path(conf), method: :delete, data: {confirm: "Would you really like to delete the key #{conf.plain_text_reminder}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                  %span.icon-cross
+                  Delete
+    = render 'common/pagination_bottom', item_name: 'link'
+  - else
+    .none-found No API configurations found.

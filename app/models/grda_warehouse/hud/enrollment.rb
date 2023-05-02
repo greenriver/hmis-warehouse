@@ -100,6 +100,9 @@ module GrdaWarehouse::Hud
     has_many :health_and_dvs_at_entry, -> do
       at_entry
     end, **hud_enrollment_belongs('HealthAndDv')
+    has_many :health_and_dvs_annual_update, -> do
+      at_annual_update
+    end, **hud_enrollment_belongs('HealthAndDv')
 
     # NOTE: you will want to limit this to a particular record_type
     has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
