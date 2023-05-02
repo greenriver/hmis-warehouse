@@ -398,8 +398,10 @@ type Client {
   middleName: String
   nameDataQuality: NameDataQuality!
   nameSuffix: String
+  names: [ClientName!]!
   personalId: String!
   preferredName: String
+  primaryName: ClientName
   pronouns: [String!]!
   race: [Race!]!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
@@ -454,6 +456,36 @@ type ClientImage {
   base64: Base64!
   contentType: String!
   id: ID!
+}
+
+"""
+Client Image
+"""
+type ClientName {
+  client: Client!
+  first: String
+  id: ID!
+  last: String
+  middle: String
+  nameDataQuality: NameDataQuality
+  notes: String
+  primary: Boolean
+  suffix: String
+  use: ClientNameUse
+  user: User
+}
+
+"""
+Allowed values for ClientName.use
+"""
+enum ClientNameUse {
+  anonymous
+  maiden
+  nickname
+  official
+  old
+  temp
+  usual
 }
 
 """

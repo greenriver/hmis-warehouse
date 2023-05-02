@@ -20,7 +20,6 @@ module Types
     field :primary, Boolean
     field :client, HmisSchema::Client, null: false
     field :user, HmisSchema::User, null: true
-    field :custom_client_name_id, ID, null: false
 
     # Object is a Hmis::Hud::CustomClientName
   end
