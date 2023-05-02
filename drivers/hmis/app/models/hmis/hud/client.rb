@@ -19,6 +19,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :names, **hmis_relation(:PersonalID, 'CustomClientName')
+  has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName')
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
 
@@ -290,6 +291,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Mirrors `clientBriefName` in frontend
   def brief_name
     preferred_name || [first_name, last_name].compact.join(' ')
+  end
+
+  def add_name(**attrs)
+    names.create!(data_source: data_source, user: user, **attrs)
   end
 
   include RailsDrivers::Extensions

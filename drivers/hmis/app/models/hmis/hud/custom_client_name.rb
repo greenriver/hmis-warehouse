@@ -8,10 +8,22 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   self.table_name = :CustomClientName
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  USE_VALUES = [
+    :usual,
+    :official,
+    :temp,
+    :nickname,
+    :anonymous,
+    :old,
+    :maiden,
+  ].freeze
+
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
+  alias_attribute :name_data_quality, :NameDataQuality
+  alias_attribute :custom_client_name_id, :CustomClientNameID
 
   scope :primary_names, -> { where(primary: true) }
 
@@ -30,5 +42,9 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
 
   def self.hud_key
     :CustomClientNameID
+  end
+
+  def self.use_values
+    USE_VALUES
   end
 end
