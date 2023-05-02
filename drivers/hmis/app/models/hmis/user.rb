@@ -112,7 +112,7 @@ class Hmis::User < ApplicationRecord
 
   private def use_global_permissions_for_entity?(entity)
     return true if entity.is_a?(Hmis::Hud::Client) && !entity.enrolled?
-    return true if entity.is_a?(Hmis::File) && !entity.client.enrolled?
+    return true if entity.is_a?(Hmis::File) && !entity.enrollment && !entity.client.enrolled?
 
     return false
   end
