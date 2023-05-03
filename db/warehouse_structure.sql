@@ -27911,6 +27911,20 @@ CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResul
 
 
 --
+-- Name: c_r_system_pathways_clients_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_clients_idx ON public.system_pathways_clients USING btree (client_id, report_id);
+
+
+--
+-- Name: c_r_system_pathways_enrollments_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_enrollments_idx ON public.system_pathways_enrollments USING btree (client_id, report_id);
+
+
+--
 -- Name: ch_enrollments_e_id_ch; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48967,27 +48981,6 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
--- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
-
-
---
--- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
-
-
---
 -- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48999,13 +48992,6 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -52571,6 +52557,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230428145659'),
 ('20230428155418'),
 ('20230429185311'),
-('20230429224702');
+('20230429224702'),
+('20230503161258');
 
 
