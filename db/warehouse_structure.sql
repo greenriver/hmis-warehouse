@@ -775,6 +775,51 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 
 
 --
+-- Name: CustomClientAddress; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientAddress" (
+    id bigint NOT NULL,
+    use character varying,
+    type character varying,
+    line1 character varying,
+    line2 character varying,
+    city character varying,
+    state character varying,
+    district character varying,
+    country character varying,
+    postal_code character varying,
+    notes character varying,
+    "AddressID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientAddress_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientAddress_id_seq" OWNED BY public."CustomClientAddress".id;
+
+
+--
 -- Name: CustomClientAssessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -808,6 +853,45 @@ CREATE SEQUENCE public."CustomClientAssessments_id_seq"
 --
 
 ALTER SEQUENCE public."CustomClientAssessments_id_seq" OWNED BY public."CustomClientAssessments".id;
+
+
+--
+-- Name: CustomClientContactPoint; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientContactPoint" (
+    id bigint NOT NULL,
+    use character varying,
+    system character varying,
+    value character varying,
+    notes character varying,
+    "ContactPointID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientContactPoint_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientContactPoint_id_seq" OWNED BY public."CustomClientContactPoint".id;
 
 
 --
@@ -21765,10 +21849,24 @@ ALTER TABLE ONLY public."CustomAssessments" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: CustomClientAddress id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAddress_id_seq"'::regclass);
+
+
+--
 -- Name: CustomClientAssessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."CustomClientAssessments" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAssessments_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientContactPoint id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientContactPoint" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientContactPoint_id_seq"'::regclass);
 
 
 --
@@ -24748,11 +24846,27 @@ ALTER TABLE ONLY public."CustomAssessments"
 
 
 --
+-- Name: CustomClientAddress CustomClientAddress_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress"
+    ADD CONSTRAINT "CustomClientAddress_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: CustomClientAssessments CustomClientAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."CustomClientAssessments"
     ADD CONSTRAINT "CustomClientAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientContactPoint CustomClientContactPoint_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientContactPoint"
+    ADD CONSTRAINT "CustomClientContactPoint_pkey" PRIMARY KEY (id);
 
 
 --
@@ -52506,6 +52620,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230428155418'),
 ('20230429185311'),
 ('20230429224702'),
-('20230502175218');
+('20230502175218'),
+('20230503155642');
 
 
