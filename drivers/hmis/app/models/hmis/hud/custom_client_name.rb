@@ -18,6 +18,10 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
     :maiden,
   ].freeze
 
+  after_save do
+    update_client_name if primary?
+  end
+
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -33,6 +37,20 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   # hide previous declaration of :viewable_by, we'll use this one
   replace_scope :viewable_by, ->(user) do
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
+  end
+
+  def primary?
+    !!primary
+  end
+
+  def update_client_name
+    client.update(
+      first_name: first,
+      last_name: last,
+      middle_name: middle,
+      name_suffix: suffix,
+      name_data_quality: name_data_quality,
+    )
   end
 
   def self.hud_key

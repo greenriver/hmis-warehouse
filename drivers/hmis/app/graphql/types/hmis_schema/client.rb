@@ -178,5 +178,25 @@ module Types
     def dob
       object.safe_dob(current_user)
     end
+
+    def names
+      if object.names.empty?
+        return [
+          object.names.new(
+            id: '0',
+            first: object.first_name,
+            last: object.last_name,
+            middle: object.middle_name,
+            suffix: object.name_suffix,
+            name_data_quality: object.name_data_quality,
+            primary: true,
+            user: object.user,
+            data_source: object.data_source,
+          ),
+        ]
+      end
+
+      object.names
+    end
   end
 end
