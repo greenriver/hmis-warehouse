@@ -293,9 +293,5 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     preferred_name || [first_name, last_name].compact.join(' ')
   end
 
-  def add_name(**attrs)
-    names.create!(data_source: data_source, user: user, **attrs)
-  end
-
   include RailsDrivers::Extensions
 end

@@ -22,8 +22,7 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
-  alias_attribute :name_data_quality, :NameDataQuality
-  alias_attribute :custom_client_name_id, :CustomClientNameID
+  alias_to_underscore [:NameDataQuality, :CustomClientNameID]
 
   scope :primary_names, -> { where(primary: true) }
 
@@ -34,10 +33,6 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   # hide previous declaration of :viewable_by, we'll use this one
   replace_scope :viewable_by, ->(user) do
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
-  end
-
-  def self.primary
-    primary_names.first
   end
 
   def self.hud_key

@@ -8,7 +8,6 @@
 
 module Types
   class HmisSchema::ClientName < Types::BaseObject
-    description 'Client Image'
     field :id, ID, null: false
     field :first, String
     field :middle, String
@@ -20,6 +19,9 @@ module Types
     field :primary, Boolean
     field :client, HmisSchema::Client, null: false
     field :user, HmisSchema::User, null: true
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     # Object is a Hmis::Hud::CustomClientName
   end
