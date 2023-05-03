@@ -2,7 +2,7 @@ class AddCustomClientAddressAndCustomClientContactPoint < ActiveRecord::Migratio
   def change
     create_table :CustomClientAddress do |t|
       t.string :use
-      t.string :type
+      t.string :address_type
       t.string :line1
       t.string :line2
       t.string :city

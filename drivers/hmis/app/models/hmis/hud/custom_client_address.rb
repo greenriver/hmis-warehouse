@@ -36,6 +36,10 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
   end
 
+  def type
+    address_type
+  end
+
   def self.hud_key
     :AddressID
   end

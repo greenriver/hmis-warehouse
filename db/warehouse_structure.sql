@@ -781,7 +781,7 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 CREATE TABLE public."CustomClientAddress" (
     id bigint NOT NULL,
     use character varying,
-    type character varying,
+    address_type character varying,
     line1 character varying,
     line2 character varying,
     city character varying,
