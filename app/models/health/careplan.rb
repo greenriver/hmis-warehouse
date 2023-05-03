@@ -234,9 +234,9 @@ module Health
 
     def renewed_for_cp2?
       # Only PCTPs from the 12 months before CP2 can be renewed
-      return false if pcp_signed_on < Health::PatientReferral::CP_2_REFERRAL_DATE - 12.months
+      return false if provider_signed_on.blank? || provider_signed_on < Health::PatientReferral::CP_2_REFERRAL_DATE - 12.months
 
-      pcp_signed_on < Health::PatientReferral::CP_2_REFERRAL_DATE && careplan_sent == true && careplan_sent_changed?
+      provider_signed_on < Health::PatientReferral::CP_2_REFERRAL_DATE && careplan_sent == true && careplan_sent_changed?
     end
 
     def set_lock
