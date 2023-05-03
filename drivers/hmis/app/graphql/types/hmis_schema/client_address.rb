@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::ClientAddress < Types::BaseObject
+    field :id, ID, null: false
     field :line1, String, null: true
     field :line2, String, null: true
     field :city, String, null: true

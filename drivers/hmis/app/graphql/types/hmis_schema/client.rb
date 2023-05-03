@@ -44,6 +44,8 @@ module Types
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, [String], null: false
     field :names, [HmisSchema::ClientName], null: false
+    field :addresses, [HmisSchema::ClientAddress], null: false
+    field :contact_points, [HmisSchema::ClientContactPoint], null: false
     enrollments_field without_args: [:search_term]
     income_benefits_field
     disabilities_field

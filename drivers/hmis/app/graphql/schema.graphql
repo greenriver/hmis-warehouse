@@ -374,9 +374,11 @@ HUD Client
 """
 type Client {
   access: ClientAccess!
+  addresses: [ClientAddress!]!
   age: Int
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
+  contactPoints: [ClientContactPoint!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -425,6 +427,45 @@ type ClientAccess {
   id: ID!
 }
 
+type ClientAddress {
+  city: String
+  client: Client!
+  country: String
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  district: String
+  id: ID!
+  line1: String
+  line2: String
+  notes: String
+  postalCode: String
+  state: String
+  type: ClientAddressType
+  use: ClientAddressUse
+  user: User
+}
+
+"""
+Allowed values for ClientAddress.type
+"""
+enum ClientAddressType {
+  both
+  physical
+  postal
+}
+
+"""
+Allowed values for ClientAddress.use
+"""
+enum ClientAddressUse {
+  home
+  mail
+  old
+  temp
+  work
+}
+
 type ClientAuditEvent {
   createdAt: ISO8601DateTime!
   event: AuditEventType!
@@ -446,6 +487,43 @@ type ClientAuditEventsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+type ClientContactPoint {
+  client: Client!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  id: ID!
+  notes: String
+  system: ClientContactPointSystem
+  use: ClientContactPointUse
+  user: User
+  value: String
+}
+
+"""
+Allowed values for ClientContactPoint.system
+"""
+enum ClientContactPointSystem {
+  email
+  fax
+  other
+  pager
+  phone
+  sms
+  url
+}
+
+"""
+Allowed values for ClientContactPoint.use
+"""
+enum ClientContactPointUse {
+  home
+  mobile
+  old
+  temp
+  work
 }
 
 """

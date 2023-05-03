@@ -48,7 +48,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
     USE_VALUES
   end
 
-  def self.syatem_values
+  def self.system_values
     SYSTEM_VALUES
   end
 end
