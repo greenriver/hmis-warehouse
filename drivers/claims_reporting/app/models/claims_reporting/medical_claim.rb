@@ -10,7 +10,13 @@ module ClaimsReporting
     include Memery
 
     ANNUAL_WELLCARE_PROCEDURE_CODES = [(99381...99387).to_a, (99391...99397).to_a, 99461, 'G0438', 'G0439', 'T1015'].flatten.map(&:to_s).freeze
-    ANNUAL_WELLCARE_DIAGNOSIS_CODE_PREFIXES = ['Z00', 'Z02', 'Z76'].freeze
+    ANNUAL_WELLCARE_DIAGNOSIS_CODE_PREFIXES = [
+      'Z00$',
+      'Z00(0|1)',
+      'Z00(5|8)$',
+      'Z02([0-6]|71|92)$',
+      'Z76(1|2)$',
+    ].freeze
 
     phi_patient :member_id
     belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
