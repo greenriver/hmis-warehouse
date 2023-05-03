@@ -411,7 +411,9 @@ type Client {
 
 type ClientAccess {
   canDeleteAssessments: Boolean!
+  canDeleteClient: Boolean!
   canDeleteEnrollments: Boolean!
+  canEditClient: Boolean!
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageOwnClientFiles: Boolean!
