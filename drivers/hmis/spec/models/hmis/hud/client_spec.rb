@@ -67,6 +67,14 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     end
   end
 
+  describe 'with addresses' do
+    it 'should handle addresses correctly' do
+      expect(c1.addresses).to be_empty
+      create(:hmis_hud_custom_client_address, user: u1, data_source: ds1, client: c1, line1: '999 Test Ave')
+      expect(c1.addresses).to contain_exactly(have_attributes(line1: '999 Test Ave'))
+    end
+  end
+
   describe 'when destroying clients' do
     let!(:client) { create :hmis_hud_client }
     before(:each) do

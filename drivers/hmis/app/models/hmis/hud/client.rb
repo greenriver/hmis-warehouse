@@ -19,6 +19,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :names, **hmis_relation(:PersonalID, 'CustomClientName')
+  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress')
+  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint')
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName')
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
