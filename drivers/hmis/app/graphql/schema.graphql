@@ -401,7 +401,6 @@ type Client {
   names: [ClientName!]!
   personalId: String!
   preferredName: String
-  primaryName: ClientName
   pronouns: [String!]!
   race: [Race!]!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
@@ -458,11 +457,11 @@ type ClientImage {
   id: ID!
 }
 
-"""
-Client Image
-"""
 type ClientName {
   client: Client!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
   first: String
   id: ID!
   last: String
