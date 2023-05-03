@@ -26,11 +26,14 @@ module Health
 
       begin
         @careplan.class.transaction do
-          # This needs to be done before the save so that the _changed tracking is triggered
-          care_planning_qa = setup_care_planning_qualifying_activity if @careplan.just_finished? && @create_qa
-          cha_approved_qa = setup_cha_approved_qualifying_activity if @careplan.ncm_just_approved? && @create_qa
-          sdoh_qa = setup_sdoh_qualifying_activity if @careplan.ncm_just_approved? && @create_qa
-          pctp_signed_qa = setup_pctp_signed_qualifying_activity if @careplan.rn_just_approved? && @create_qa
+          # Checking for QA generation needs to be done before the save so that the _changed tracking is triggered
+          # If a careplan was completed in the 12 months before CP2 and then renewed, send all the QAs
+          force_qas = @careplan.renewed_for_cp2? && @create_qa
+
+          care_planning_qa = setup_care_planning_qualifying_activity if force_qas || (@careplan.just_finished? && @create_qa)
+          cha_approved_qa = setup_cha_approved_qualifying_activity if force_qas || (@careplan.ncm_just_approved? && @create_qa)
+          sdoh_qa = setup_sdoh_qualifying_activity if force_qas || (@careplan.ncm_just_approved? && @create_qa)
+          pctp_signed_qa = setup_pctp_signed_qualifying_activity if force_qas || (@careplan.rn_just_approved? && @create_qa)
 
           # Validate the save so that no QAs are  created if the PCTP is invalid
           @careplan.save!

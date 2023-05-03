@@ -232,6 +232,13 @@ module Health
       ncm_approval? && rn_approved_on.present? && rn_approved_on_changed?
     end
 
+    def renewed_for_cp2?
+      # Only PCTPs from the 12 months before CP2 can be renewed
+      return false if pcp_signed_on < Health::PatientReferral::CP_2_REFERRAL_DATE - 12.months
+
+      pcp_signed_on < Health::PatientReferral::CP_2_REFERRAL_DATE && careplan_sent == true && careplan_sent_changed?
+    end
+
     def set_lock
       if patient_signed_on.present?
         self.locked = true
