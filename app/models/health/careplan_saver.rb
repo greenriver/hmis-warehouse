@@ -26,23 +26,26 @@ module Health
 
       begin
         @careplan.class.transaction do
-          # Checking for QA generation needs to be done before the save so that the _changed tracking is triggered
-          # If a careplan was completed in the 12 months before CP2 and then renewed, send all the QAs
-          force_qas = @careplan.renewed_for_cp2? && @create_qa
+          if @create_qa
+            # Checking for QA generation needs to be done before the save so that the _changed tracking is triggered
 
-          care_planning_qa = setup_care_planning_qualifying_activity if force_qas || (@careplan.just_finished? && @create_qa)
-          cha_approved_qa = setup_cha_approved_qualifying_activity if force_qas || (@careplan.ncm_just_approved? && @create_qa)
-          sdoh_qa = setup_sdoh_qualifying_activity if force_qas || (@careplan.ncm_just_approved? && @create_qa)
-          pctp_signed_qa = setup_pctp_signed_qualifying_activity if force_qas || (@careplan.rn_just_approved? && @create_qa)
+            care_planning_qa = setup_care_planning_qualifying_activity if careplan.renewed_for_cp2? || @careplan.just_finished?
+            cha_approved_qa = setup_cha_approved_qualifying_activity if @careplan.ncm_just_approved?
+            sdoh_qa = setup_sdoh_qualifying_activity if @careplan.ncm_just_approved?
+            pctp_signed_qa = setup_pctp_signed_qualifying_activity if @careplan.rn_just_approved?
 
-          # Validate the save so that no QAs are  created if the PCTP is invalid
-          @careplan.save!
+            # Validate the save so that no QAs are  created if the PCTP is invalid
+            @careplan.save!
 
-          # This is done after the save to guarantee the careplan has an id
-          complete_qa(care_planning_qa) if care_planning_qa.present?
-          save_qa(cha_approved_qa) if cha_approved_qa.present?
-          save_qa(sdoh_qa) if sdoh_qa.present?
-          complete_qa(pctp_signed_qa) if pctp_signed_qa.present?
+            # This is done after the save to guarantee the careplan has an id
+            complete_qa(care_planning_qa) if care_planning_qa.present?
+            save_qa(cha_approved_qa) if cha_approved_qa.present?
+            save_qa(sdoh_qa) if sdoh_qa.present?
+            complete_qa(pctp_signed_qa) if pctp_signed_qa.present?
+          else
+            # If no QAs, just save the careplan
+            @careplan.save!
+          end
 
           @careplan.set_lock
         end
