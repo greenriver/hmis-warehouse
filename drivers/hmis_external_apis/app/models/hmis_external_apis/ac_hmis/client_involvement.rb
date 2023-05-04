@@ -6,7 +6,9 @@
 
 module HmisExternalApis::AcHmis
   class ClientInvolvement
+    attr_accessor :client_ids
     attr_accessor :end_date
+    attr_accessor :mci_ids
     attr_accessor :start_date
     attr_accessor :status_message
 
@@ -24,26 +26,29 @@ module HmisExternalApis::AcHmis
       message << 'end_date not provided.' if end_date.blank?
 
       begin
-        self.start_date = Date.strptime(start_date, '%Y-%m-%d')
+        self.start_date = Date.strptime(start_date, '%Y-%m-%d') if start_date.present?
       rescue Date::Error
         message << 'start_date was not formatted correctly.'
       end
 
       begin
-        self.end_date = Date.strptime(end_date, '%Y-%m-%d')
+        self.end_date = Date.strptime(end_date, '%Y-%m-%d') if end_date.present?
       rescue Date::Error
         message << 'end_date was not formatted correctly.'
       end
 
-      self.external_ids = ExternalId
-      #  self.project = Hmis::Hud::Project.find_by(project_id: program_id)
-      #  message << 'program not found.' if project.blank?
+      # FIXME: Fetch the right way once it's settled
+      self.client_ids = HmisExternalApis::ExternalId.where(value: mci_ids).where(source_type: 'Hmis::Hud::Client').pluck(:source_id)
+      # self.client_ids = Hmis::Hud::Client.limit(10).pluck(:PersonalID)
 
-      #  if message.present?
-      #    self.status_message = message.join(' ')
-      #  else
-      #    self.status_message = 'success'
-      #  end
+      # Is this an error condition or not?
+      # message << 'no clients found' if client_ids.blank?
+
+      if message.present?
+        self.status_message = message.join(' ')
+      else
+        self.status_message = 'success'
+      end
     end
 
     def ok?
@@ -64,13 +69,19 @@ module HmisExternalApis::AcHmis
 
       return [] unless ok?
 
-      raise 'fixme'
+      # Pretty unsure about this
+      enrollments = Hmis::Hud::Enrollment
+        .includes(:client)
+        .where({ Client: { PersonalID: client_ids } })
+        .open_during_range(start_date..end_date)
+      # FIXME: Need to preload/join/include external id for MCI ID and add below
 
       enrollments.map do |en|
         {
           entry_date: en.entry_date,
           exit_date: en.exit_date,
-          mci_id: en.mci_id,
+          mci_id: -999,
+          # mci_id: en.client.external_id_for_mci_wip,
           personal_id: en.personal_id,
           program_id: en.program_id,
         }

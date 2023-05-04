@@ -26,13 +26,13 @@ module HmisExternalApis::AcHmis
       message << 'end_date not provided.' if end_date.blank?
 
       begin
-        self.start_date = Date.strptime(start_date, '%Y-%m-%d')
+        self.start_date = Date.strptime(start_date, '%Y-%m-%d') if start_date.present?
       rescue Date::Error
         message << 'start_date was not formatted correctly.'
       end
 
       begin
-        self.end_date = Date.strptime(end_date, '%Y-%m-%d')
+        self.end_date = Date.strptime(end_date, '%Y-%m-%d') if end_date.present?
       rescue Date::Error
         message << 'end_date was not formatted correctly.'
       end
@@ -66,6 +66,7 @@ module HmisExternalApis::AcHmis
       return [] unless ok?
 
       enrollments = Hmis::Hud::Enrollment.in_project([project.id]).open_during_range(start_date..end_date)
+      # FIXME: Need to preload/join/include external id for MCI ID and add below
 
       enrollments.map do |en|
         {
@@ -74,7 +75,8 @@ module HmisExternalApis::AcHmis
           first_name: en.client.first_name,
           household_id: en.household_id,
           last_name: en.client.last_name,
-          mci_id: raise("fixme"), #en.client.mci_id, # not really, find via ExternalId lookup
+          mci_id: -999,
+          # mci_id: en.client.external_id_for_mci_wip,
           personal_id: en.client.personal_id,
           relationship_to_hoh: en.relationship_to_hoh,
         }
