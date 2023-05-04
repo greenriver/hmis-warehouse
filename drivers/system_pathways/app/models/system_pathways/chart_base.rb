@@ -119,42 +119,23 @@ module SystemPathways::ChartBase
     end
 
     private def filter_for_race(scope)
-      race_scope = nil
-      filter.races.each do |column|
-        next if column == 'MultiRacial'
-
-        race_scope = add_alternative(race_scope, SystemPathways::Client.where(column.underscore.to_sym => true))
-      end
-      # Include anyone who has more than one race listed, anded with any previous alternatives
-      race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if filter.races.include?('MultiRacial')
-      scope = scope.merge(race_scope)
-
-      race_scope = nil
-      show_filter&.races&.each do |column|
-        next if column == 'MultiRacial'
-
-        race_scope = add_alternative(race_scope, SystemPathways::Client.where(column.underscore.to_sym => true))
-      end
-      # Include anyone who has more than one race listed, anded with any previous alternatives
-      race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if show_filter&.races&.include?('MultiRacial')
-      # And show filters with report filters since we're limiting the report clients
-      scope = scope.merge(race_scope) if race_scope
-
-      race_scope = nil
-      details_filter&.races&.each do |column|
-        next if column == 'MultiRacial'
-
-        race_scope = add_alternative(race_scope, SystemPathways::Client.where(column.underscore.to_sym => true))
-      end
-      # Include anyone who has more than one race listed, anded with any previous alternatives
-      race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if details_filter&.races&.include?('MultiRacial')
-      # And details filters with report filters since we're limiting the report clients
-      scope = scope.merge(race_scope) if race_scope
-
+      scope = filter_for_race_with_filter(scope, filter)
+      scope = filter_for_race_with_filter(scope, show_filter) if show_filter
+      scope = filter_for_race_with_filter(scope, details_filter) if details_filter
       scope
+    end
+
+    private def filter_for_race_with_filter(scope, race_filter)
+      race_scope = nil
+      race_filter.races.each do |column|
+        next if column == 'MultiRacial'
+
+        race_scope = add_alternative(race_scope, SystemPathways::Client.where(column.underscore.to_sym => true))
+      end
+      # Include anyone who has more than one race listed, anded with any previous alternatives
+      race_scope ||= scope
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if race_filter.races.include?('MultiRacial')
+      scope.merge(race_scope)
     end
 
     private def multi_racial_clients

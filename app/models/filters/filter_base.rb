@@ -1073,15 +1073,17 @@ module Filters
       when :cohort_column_matched_date
         cohort_column_matched_date
       when :chronic_status
-        if chronic_status
+        case chronic_status
+        when true
           'Yes'
-        elsif chronic_status == false
+        when false
           'No'
         end
       when :involves_ce
-        if involves_ce
+        case involves_ce
+        when true
           'Yes'
-        elsif involves_ce == false
+        when false
           'No'
         end
       else
