@@ -3820,14 +3820,40 @@ type PickListOption {
 
 enum PickListType {
   AVAILABLE_FILE_TYPES
+
+  """
+  Unoccupied units in the specified project
+  """
   AVAILABLE_UNITS
+
+  """
+  Unit types that have unoccupied units in the specified project
+  """
+  AVAILABLE_UNIT_TYPES
+
+  """
+  All Enrollments, including WIP and exited, for the client.
+  """
   CLIENT_ENROLLMENTS
   COC
   CURRENT_LIVING_SITUATION
   DESTINATION
+
+  """
+  Projects that the User can enroll Clients in
+  """
+  ENROLLABLE_PROJECTS
   GEOCODE
+
+  """
+  All Organizations that the User can see
+  """
   ORGANIZATION
   PRIOR_LIVING_SITUATION
+
+  """
+  All Projects that the User can see
+  """
   PROJECT
   REFERRAL_OUTCOME
   SERVICE_TYPE
@@ -3835,6 +3861,16 @@ enum PickListType {
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
   SUB_TYPE_PROVIDED_5
+
+  """
+  Units in the specified project
+  """
+  UNITS
+
+  """
+  Unit types. If project is specified, limited to unit types in the project.
+  """
+  UNIT_TYPES
 }
 
 """
