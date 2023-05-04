@@ -6,7 +6,9 @@
 
 module Hmis
   class UnitType < HmisBase
-    # https://docs.google.com/spreadsheets/d/1xuXIohyPguAw10KcqlqiF23qgbNzKvAR/edit#gid=844425140
+    has_many :units, class_name: 'Hmis::Unit'
+    alias_attribute :date_updated, :updated_at
+    alias_attribute :date_created, :created_at
 
     # HUD bed types specified on Inventory
     enum(

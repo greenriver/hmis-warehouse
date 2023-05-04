@@ -28,7 +28,7 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
   alias_to_underscore [:NameDataQuality, :AddressID]
 
-  scope :active, ->(date = Date.today) do
+  scope :active, ->(date = Date.current) do
     left_outer_joins(:active_range).where(ar_t[:end].eq(nil).or(ar_t[:end].gteq(date)))
   end
 
