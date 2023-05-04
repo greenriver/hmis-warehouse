@@ -39,10 +39,10 @@ module HmisExternalApis
       end
     end
 
-    # render a 400 with validation messages
+    # render a 400 with error messages
     def respond_with_errors(errors)
       json = {
-        message: 'JSON schema validation failure',
+        message: 'error',
         errors: errors,
       }
       render(status: :bad_request, json: json)

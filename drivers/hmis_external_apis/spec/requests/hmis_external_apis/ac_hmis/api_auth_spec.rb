@@ -31,7 +31,7 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
     expect(response.status).to eq 401
   end
 
-  it 'succeeds with valid api key' do
+  it 'does not have auth failure with valid api key' do
     conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :involvements))
 
     headers = { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
@@ -41,7 +41,7 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
     expect(response.status).to_not eq 401
   end
 
-  it 'succeeds with valid api key with some forgiveness' do
+  it 'does not have auth failure with valid api key with some forgiveness' do
     conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :involvements))
 
     headers = { 'Authorization' => " bearer  #{conf.plain_text_api_key.upcase} " }
