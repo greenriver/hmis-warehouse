@@ -23,7 +23,7 @@ class Hmis::UnitOccupancy < Hmis::HmisBase
 
   scope :active, ->(date = Date.today) do
     past_start_date = ar_t[:start_date].lteq(date)
-    future_end_date = ar_t[:end_date].eq(nil).or(ar_t[:end_date].gteq(date))
+    future_end_date = ar_t[:end_date].eq(nil).or(ar_t[:end_date].gt(date))
 
     joins(:enrollment, :occupancy_period).where(past_start_date.and(future_end_date))
   end

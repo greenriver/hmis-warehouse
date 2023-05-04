@@ -14,7 +14,7 @@ class Hmis::ActiveRange < Hmis::HmisBase
   end
 
   def active_on(date = Date.today)
-    self.end.nil? || self.end > date
+    end_date.nil? || end_date > date
   end
 
   def active?

@@ -27,10 +27,12 @@ class Hmis::Unit < Hmis::HmisBase
   alias occupants occupants_on
 
   def start_date
-    Hmis::ActiveRange.for_entity(self)&.start_date || inventory&.inventory_start_date
+    # The most recently updated ActiveRange is used
+    Hmis::ActiveRange.for_entity(self)&.start_date
   end
 
   def end_date
-    Hmis::ActiveRange.for_entity(self)&.end_date || inventory&.inventory_end_date
+    # The most recently updated ActiveRange is used
+    Hmis::ActiveRange.for_entity(self)&.end_date
   end
 end
