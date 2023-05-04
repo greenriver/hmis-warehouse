@@ -46,5 +46,4 @@ module OmniauthCallbackBehavior
       prompt_for_two_factor(user)
     end
   end
-
 end

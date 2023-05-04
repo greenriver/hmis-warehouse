@@ -22,6 +22,8 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   replace_scope :viewable_by, ->(user) do
     ids = user.viewable_organizations.pluck(:id)
     ids += user.viewable_data_sources.joins(:organizations).pluck(o_t[:id])
+    # If a user can see a project within the organization, they can see the organization
+    ids += user.viewable_projects.joins(:organization).pluck(o_t[:id])
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 

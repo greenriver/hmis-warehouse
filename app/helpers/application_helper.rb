@@ -397,4 +397,24 @@ module ApplicationHelper
       []
     end
   end
+
+  def foreground_color(bg_color)
+    color = bg_color.gsub('#', '')
+    rgb = if color.length == 6
+      color.chars.each_slice(2).map do |chars|
+        chars.join.hex
+      end
+    elsif color.length == 3
+      color.chars.each_slice(1).map do |chars|
+        char = chars.first
+        "#{char}#{char}".hex
+      end
+    else
+      # Unable to determine the background color, just send black
+      return '#000000'
+    end
+    return '#000000' if (255 * 3 / 2) < rgb.sum
+
+    '#ffffff'
+  end
 end
