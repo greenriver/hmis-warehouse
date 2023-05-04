@@ -38,6 +38,43 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     end
   end
 
+  describe 'with multiple names' do
+    it 'should handle names correctly' do
+      n1 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'First', primary: true)
+      n2 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Second')
+      n3 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Third')
+
+      expect(c1.names).to contain_exactly(*[n1, n2, n3].map { |n| have_attributes(id: n.id) })
+      expect(c1.names.primary_names).to contain_exactly(have_attributes(id: n1.id))
+      expect(c1.primary_name).to have_attributes(id: n1.id)
+
+      expect do
+        create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Fourth', primary: true)
+      end.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+
+    it 'should update name when primary name is updated' do
+      n1 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'First', primary: true)
+      n2 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Second')
+
+      expect(c1.first_name).to eq('First')
+
+      n2.update(first: 'New Second Value')
+      expect(c1.first_name).to eq('First')
+
+      n1.update(first: 'New First Value')
+      expect(c1.first_name).to eq('New First Value')
+    end
+  end
+
+  describe 'with addresses' do
+    it 'should handle addresses correctly' do
+      expect(c1.addresses).to be_empty
+      create(:hmis_hud_custom_client_address, user: u1, data_source: ds1, client: c1, line1: '999 Test Ave')
+      expect(c1.addresses).to contain_exactly(have_attributes(line1: '999 Test Ave'))
+    end
+  end
+
   describe 'when destroying clients' do
     let!(:client) { create :hmis_hud_client }
     before(:each) do

@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::Assessment < Types::BaseObject
+    include Types::HmisSchema::HasDisabilityGroups
+
     description 'Custom Assessment'
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
@@ -25,9 +27,51 @@ module Types
       can :delete_enrollments
       can :delete_assessments
     end
+    # Related records that were created by this Assessment, if applicable
+    field :income_benefit, Types::HmisSchema::IncomeBenefit, null: true
+    field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
+    field :exit, Types::HmisSchema::Exit, null: true
+    field :disability_group, Types::HmisSchema::DisabilityGroup, null: true
 
     def in_progress
       object.in_progress?
+    end
+
+    def income_benefit
+      object.custom_form&.form_processor&.income_benefit
+    end
+
+    def health_and_dv
+      object.custom_form&.form_processor&.health_and_dv
+    end
+
+    def exit
+      object.custom_form&.form_processor&.exit
+    end
+
+    def disability_group
+      form_processor = object.custom_form&.form_processor
+      return unless form_processor.present?
+
+      # Construct AR scope if Disability records to use for the group
+      disability_record_ids = []
+      disability_record_ids << form_processor.physical_disability&.id
+      disability_record_ids << form_processor.developmental_disability&.id
+      disability_record_ids << form_processor.chronic_health_condition&.id
+      disability_record_ids << form_processor.hiv_aids&.id
+      disability_record_ids << form_processor.mental_health_disorder&.id
+      disability_record_ids << form_processor.substance_use_disorder&.id
+      disability_record_ids.compact!
+      scope = Hmis::Hud::Disability.where(id: disability_record_ids)
+      return if scope.empty?
+
+      # Build DisabilityGroup from the scope
+      disability_groups = resolve_disability_groups(scope)
+
+      # Error if there is more than one group. Could happen if records have different Data Collection Stages or Information dates or Users, which they shouldn't.
+      raise 'Multiple disability groups constructed for one assessment' if disability_groups.size > 1
+
+      disability_groups.first
     end
 
     def enrollment

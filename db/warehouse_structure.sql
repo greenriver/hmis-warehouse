@@ -775,6 +775,51 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 
 
 --
+-- Name: CustomClientAddress; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientAddress" (
+    id bigint NOT NULL,
+    use character varying,
+    address_type character varying,
+    line1 character varying,
+    line2 character varying,
+    city character varying,
+    state character varying,
+    district character varying,
+    country character varying,
+    postal_code character varying,
+    notes character varying,
+    "AddressID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientAddress_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientAddress_id_seq" OWNED BY public."CustomClientAddress".id;
+
+
+--
 -- Name: CustomClientAssessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -808,6 +853,88 @@ CREATE SEQUENCE public."CustomClientAssessments_id_seq"
 --
 
 ALTER SEQUENCE public."CustomClientAssessments_id_seq" OWNED BY public."CustomClientAssessments".id;
+
+
+--
+-- Name: CustomClientContactPoint; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientContactPoint" (
+    id bigint NOT NULL,
+    use character varying,
+    system character varying,
+    value character varying,
+    notes character varying,
+    "ContactPointID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientContactPoint_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientContactPoint_id_seq" OWNED BY public."CustomClientContactPoint".id;
+
+
+--
+-- Name: CustomClientName; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientName" (
+    id bigint NOT NULL,
+    first character varying,
+    middle character varying,
+    last character varying,
+    suffix character varying,
+    use character varying,
+    notes text,
+    "primary" boolean,
+    "NameDataQuality" integer,
+    "CustomClientNameID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientName_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientName_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientName_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientName_id_seq" OWNED BY public."CustomClientName".id;
 
 
 --
@@ -21689,10 +21816,31 @@ ALTER TABLE ONLY public."CustomAssessments" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: CustomClientAddress id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAddress_id_seq"'::regclass);
+
+
+--
 -- Name: CustomClientAssessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."CustomClientAssessments" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAssessments_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientContactPoint id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientContactPoint" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientContactPoint_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientName id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientName" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientName_id_seq"'::regclass);
 
 
 --
@@ -24665,11 +24813,35 @@ ALTER TABLE ONLY public."CustomAssessments"
 
 
 --
+-- Name: CustomClientAddress CustomClientAddress_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress"
+    ADD CONSTRAINT "CustomClientAddress_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: CustomClientAssessments CustomClientAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."CustomClientAssessments"
     ADD CONSTRAINT "CustomClientAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientContactPoint CustomClientContactPoint_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientContactPoint"
+    ADD CONSTRAINT "CustomClientContactPoint_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientName CustomClientName_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientName"
+    ADD CONSTRAINT "CustomClientName_pkey" PRIMARY KEY (id);
 
 
 --
@@ -49538,6 +49710,13 @@ CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_
 
 
 --
+-- Name: unique_index_ensuring_one_primary_per_client; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."CustomClientName" USING btree ("PersonalID", data_source_id, "primary");
+
+
+--
 -- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52367,6 +52546,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230429185311'),
 ('20230429224702'),
 ('20230501183045'),
+('20230502175218'),
+('20230503155642'),
 ('20230504131726');
 
 

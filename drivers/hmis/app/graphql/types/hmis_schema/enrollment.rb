@@ -13,6 +13,10 @@ module Types
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCeAssessments
     include Types::HmisSchema::HasFiles
+    include Types::HmisSchema::HasIncomeBenefits
+    include Types::HmisSchema::HasDisabilities
+    include Types::HmisSchema::HasDisabilityGroups
+    include Types::HmisSchema::HasHealthAndDvs
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
@@ -29,6 +33,10 @@ module Types
     services_field
     files_field
     ce_assessments_field
+    income_benefits_field
+    disabilities_field
+    disability_groups_field
+    health_and_dvs_field
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
@@ -105,6 +113,22 @@ module Types
 
     def files(**args)
       resolve_files(**args)
+    end
+
+    def income_benefits(**args)
+      resolve_income_benefits(**args)
+    end
+
+    def disabilities(**args)
+      resolve_disabilities(**args)
+    end
+
+    def disability_groups(**args)
+      resolve_disability_groups(**args)
+    end
+
+    def health_and_dvs(**args)
+      resolve_health_and_dvs(**args)
     end
 
     def user
