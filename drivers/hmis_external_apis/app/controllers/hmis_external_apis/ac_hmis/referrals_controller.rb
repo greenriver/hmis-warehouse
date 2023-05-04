@@ -22,6 +22,8 @@ module HmisExternalApis::AcHmis
       return respond_with_errors(errors) if errors.any?
 
       render json: { message: 'Referral Created', id: referral.identifier }
+    rescue JSON::ParserError => e
+      return respond_with_errors(e.message)
     end
 
     protected
