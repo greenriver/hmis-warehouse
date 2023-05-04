@@ -15,7 +15,7 @@ module Mutations
       return { unit_ids: [], errors: [] } unless units.any?
 
       projects = units.pluck(:project_id).uniq
-      errors = HmisErrors::Error.new
+      errors = HmisErrors::Errors.new
       errors.add :base, :not_found if projects.empty?
       errors.add :base, :invalid, full_message: 'Cannot delete units across projects' if projects.size > 1
       return { errors: errors } if errors.any?
