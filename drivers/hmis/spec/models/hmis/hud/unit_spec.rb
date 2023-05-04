@@ -16,6 +16,7 @@ RSpec.describe Hmis::Unit, type: :model do
   end
 
   include_context 'hmis base setup'
+  include_context 'hmis service setup'
   let!(:project) { create :hmis_hud_project }
   let!(:unit_type) { create :hmis_unit_type }
   let!(:unit1) { create :hmis_unit, project: p1 }
