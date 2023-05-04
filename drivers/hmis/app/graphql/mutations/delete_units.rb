@@ -8,11 +8,11 @@ module Mutations
   class DeleteUnits < BaseMutation
     argument :unit_ids, [ID], required: true
 
-    field :ids, [ID], null: true
+    field :unit_ids, [ID], null: true
 
     def resolve(unit_ids:)
       units = Hmis::Unit.where(id: unit_ids)
-      return { ids: [], errors: [] } unless units.any?
+      return { unit_ids: [], errors: [] } unless units.any?
 
       projects = units.pluck(:project_id).uniq
       errors = HmisErrors::Error.new
@@ -27,7 +27,7 @@ module Mutations
 
       Hmis::Unit.where(id: unit_ids).destroy_all
 
-      { ids => unit_ids, errors: [] }
+      { unit_ids: unit_ids, errors: [] }
     end
   end
 end

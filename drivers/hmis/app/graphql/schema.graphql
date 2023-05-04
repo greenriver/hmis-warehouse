@@ -1134,7 +1134,7 @@ type DeleteUnitsPayload {
   """
   clientMutationId: String
   errors: [ValidationError!]!
-  ids: [ID!]
+  unitIds: [ID!]
 }
 
 """
