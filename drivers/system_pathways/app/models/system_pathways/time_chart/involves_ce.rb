@@ -18,7 +18,7 @@ module SystemPathways::TimeChart::InvolvesCe
       data: involves_ce_data,
       table: as_table(involves_ce_table_data, ['Project Type'] + involves_ces.values),
       link_params: {
-        columns: [[]] + involves_ces.keys.map { |k| ['filters[involves_ces][]', k] },
+        columns: [[]] + involves_ces.keys.map { |k| ['details[involves_ce]', k] },
         rows: [[]] + detail_node_keys.map { |k| ['node', k] },
       },
     }
@@ -108,11 +108,6 @@ module SystemPathways::TimeChart::InvolvesCe
         data['labels']['colors'][involves_ce] = config.foreground_color(bg_color)
         row << count
         data['columns'] << row
-
-        [
-          involves_ce,
-          data,
-        ]
       end
     end
   end

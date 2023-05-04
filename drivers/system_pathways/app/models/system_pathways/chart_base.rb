@@ -8,16 +8,46 @@ module SystemPathways::ChartBase
   extend ActiveSupport::Concern
 
   included do
-    attr_accessor :report, :filter, :config
-    def initialize(report:, filter:)
+    attr_accessor :report, :filter, :config, :show_filter, :details_filter
+    def initialize(report:, filter:, show_filter: nil, details_filter: nil)
       self.report = report
       self.filter = filter
+      self.show_filter = show_filter
+      self.details_filter = details_filter
       # TODO: this config should be moved to a more general Report config
       self.config = BostonReports::Config.first_or_create(&:default_colors)
     end
 
     def clients
       @report.clients.joins(:enrollments)
+    end
+
+    def describe_filter_as_html(keys = nil, inline: false, limited: true)
+      keys ||= known_params
+      filter.describe_filter_as_html(keys, inline: inline, limited: limited)
+    end
+
+    def describe_detail_filter_as_html(keys = nil, inline: false, limited: true)
+      keys ||= known_params
+      details_filter&.describe_filter_as_html(keys, inline: inline, limited: limited)
+    end
+
+    def self.known_params
+      [
+        :ethnicities,
+        :races,
+        :veteran_statuses,
+        :household_type,
+        :hoh_only,
+        :involves_ce,
+        :chronic_status,
+        :disabling_condition,
+        :chronic_status, # don't ask, but we use this in the details section
+      ]
+    end
+
+    def known_params
+      self.class.known_params
     end
 
     def filtered_clients
@@ -74,30 +104,37 @@ module SystemPathways::ChartBase
     end
 
     private def filter_for_disabling_condition(scope)
-      return scope if @filter.disabling_condition.nil?
-
-      scope.merge(SystemPathways::Enrollment.where(disabling_condition: filter.disabling_condition))
+      scope = scope.merge(SystemPathways::Enrollment.where(disabling_condition: filter.disabling_condition)) unless filter.disabling_condition.nil?
+      scope = scope.merge(SystemPathways::Enrollment.where(disabling_condition: show_filter.disabling_condition)) unless show_filter&.disabling_condition.nil?
+      scope = scope.merge(SystemPathways::Enrollment.where(disabling_condition: details_filter.disabling_condition)) unless details_filter&.disabling_condition.nil?
+      scope
     end
 
     private def filter_for_chronic_at_entry(scope)
-      return scope if @filter.chronic_status.nil?
+      scope = scope.merge(SystemPathways::Enrollment.where(chronic_at_entry: filter.chronic_status)) unless filter.chronic_status.nil?
+      scope = scope.merge(SystemPathways::Enrollment.where(chronic_at_entry: show_filter.chronic_status)) unless show_filter&.chronic_status.nil?
+      scope = scope.merge(SystemPathways::Enrollment.where(chronic_at_entry: details_filter.chronic_status)) unless details_filter&.chronic_status.nil?
 
-      scope.merge(SystemPathways::Enrollment.where(chronic_at_entry: filter.chronic_status))
+      scope
     end
 
     private def filter_for_race(scope)
-      return scope unless filter.races.present?
+      scope = filter_for_race_with_filter(scope, filter)
+      scope = filter_for_race_with_filter(scope, show_filter) if show_filter
+      scope = filter_for_race_with_filter(scope, details_filter) if details_filter
+      scope
+    end
 
+    private def filter_for_race_with_filter(scope, race_filter)
       race_scope = nil
-      filter.races.each do |column|
+      race_filter.races.each do |column|
         next if column == 'MultiRacial'
 
         race_scope = add_alternative(race_scope, SystemPathways::Client.where(column.underscore.to_sym => true))
       end
-
       # Include anyone who has more than one race listed, anded with any previous alternatives
       race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if filter.races.include?('MultiRacial')
+      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if race_filter.races.include?('MultiRacial')
       scope.merge(race_scope)
     end
 
@@ -125,27 +162,31 @@ module SystemPathways::ChartBase
     end
 
     private def filter_for_ethnicity(scope)
-      return scope unless filter.ethnicities.present?
-
-      scope.where(ethnicity: filter.ethnicities)
+      scope = scope.where(ethnicity: filter.ethnicities) if filter.ethnicities.present?
+      scope = scope.where(ethnicity: show_filter.ethnicities) if show_filter&.ethnicities.present?
+      scope = scope.where(ethnicity: details_filter.ethnicities) if details_filter&.ethnicities.present?
+      scope
     end
 
     private def filter_for_veteran_status(scope)
-      return scope unless filter.veteran_statuses.present?
-
-      scope.where(veteran_status: filter.veteran_statuses)
+      scope = scope.where(veteran_status: filter.veteran_statuses) if filter.veteran_statuses.present?
+      scope = scope.where(veteran_status: show_filter&.veteran_statuses) if show_filter&.veteran_statuses.present?
+      scope = scope.where(veteran_status: details_filter&.veteran_statuses) if details_filter&.veteran_statuses.present?
+      scope
     end
 
     private def filter_for_ce_involvement(scope)
-      return scope if filter.involves_ce.nil?
-
-      scope.where(involves_ce: filter.involves_ce)
+      scope = scope.where(involves_ce: filter.involves_ce) unless filter.involves_ce.nil?
+      scope = scope.where(involves_ce: show_filter&.involves_ce) unless show_filter&.involves_ce.nil?
+      scope = scope.where(involves_ce: details_filter&.involves_ce) unless details_filter&.involves_ce.nil?
+      scope
     end
 
     private def filter_for_head_of_household(scope)
-      return scope unless filter.hoh_only
-
-      scope.merge(SystemPathways::Enrollment.where(relationship_to_hoh: 1))
+      scope.merge(SystemPathways::Enrollment.where(relationship_to_hoh: 1)) if filter.hoh_only
+      scope.merge(SystemPathways::Enrollment.where(relationship_to_hoh: 1)) if show_filter&.hoh_only
+      scope.merge(SystemPathways::Enrollment.where(relationship_to_hoh: 1)) if details_filter&.hoh_only
+      scope
     end
 
     def bg_color(label)

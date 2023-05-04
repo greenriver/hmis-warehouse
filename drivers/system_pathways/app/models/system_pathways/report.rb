@@ -388,8 +388,8 @@ module SystemPathways
             chronic_member = household_chronic_status(household_id, client.id)
             days_to_move_in = 0
             days_to_exit_after_move_in = nil
-            days_to_move_in = en.move_in_date - en.entry_date if en.move_in_date.present?
-            days_to_exit_after_move_in = en.exit_date - en.move_in_date if en.move_in_date.present? && en.exit_date.present?
+            days_to_move_in = [en.move_in_date - en.entry_date, 0].max if en.move_in_date.present?
+            days_to_exit_after_move_in = [en.exit_date - en.move_in_date, 0].max if en.move_in_date.present? && en.exit_date.present?
             report_enrollments << Enrollment.new(
               client_id: client.id,
               report_id: id,

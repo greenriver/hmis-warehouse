@@ -191,7 +191,8 @@ App.D3Chart.Sankey = class Sankey {
           : linkColor === 'target' ? ({ target: { index: i } }) => color(G[i])
             : linkColor)
       .attr('stroke-width', ({ width }) => Math.max(1, width))
-      .call(Lt ? path => path.append('title').text(({ index: i }) => Lt[i]) : () => { });
+      // Temporarily hide all titles so we don't get overlapping tooltips
+      // .call(Lt ? path => path.append('title').text(({ index: i }) => Lt[i]) : () => { });
     link
       .on('mouseover', (d, i) => {
         this.over(d, i, 'link')

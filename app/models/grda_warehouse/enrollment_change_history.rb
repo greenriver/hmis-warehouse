@@ -15,7 +15,7 @@ module GrdaWarehouse
         joins(:source_enrollments).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
         pluck_in_batches(:id, batch_size: 20) do |batch|
-          ::Confidence::AddEnrollmentChangeHistoryJob.perform_later(client_ids: batch, date: date.to_s)
+          ::Confidence::AddEnrollmentChangeHistoryJob.set(priority: 12).perform_later(client_ids: batch, date: date.to_s)
         end
     end
 
