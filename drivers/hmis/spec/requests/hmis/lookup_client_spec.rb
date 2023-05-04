@@ -37,6 +37,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ssn
           dob
           age
+          names {
+            id
+            first
+            last
+          }
           files {
             nodes {
               id
@@ -112,6 +117,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(id: c1.id) { query }
     expect(response.status).to eq 200
     expect(result.dig('data', 'client')).to be_nil
+  end
+
+  it 'should return temp name if no custom client names' do
+    _response, result = post_graphql(id: c1.id) { query }
+    expect(result.dig('data', 'client', 'names')).to contain_exactly(include('first' => c1.first_name, 'last' => c1.last_name))
   end
 
   it 'should return null DOB if not allowed to see DOB' do
