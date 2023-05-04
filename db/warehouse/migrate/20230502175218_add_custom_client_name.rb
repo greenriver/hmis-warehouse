@@ -18,6 +18,6 @@ class AddCustomClientName < ActiveRecord::Migration[6.1]
       t.datetime :DateDeleted
     end
 
-    add_index :CustomClientName, [:primary, :PersonalID, :data_source_id], unique: true, name: 'unique_index_ensuring_one_primary_per_client'
+    add_index :CustomClientName, [:PersonalID, :data_source_id, :primary], unique: true, name: 'unique_index_ensuring_one_primary_per_client'
   end
 end
