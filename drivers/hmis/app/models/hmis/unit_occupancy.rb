@@ -14,10 +14,7 @@ class Hmis::UnitOccupancy < Hmis::HmisBase
   belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment'
   # Date range for which the client occupied the unit.
   has_one :occupancy_period, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
-  # HUD Service record that relates to this occupancy (BedNight)
-  # belongs_to :service, class_name: 'Hmis::Hud::Service', optional: true
-  # # CustomService record that relates to this occupancy (a BedNight-ish thing)
-  # belongs_to :custom_service, class_name: 'Hmis::Hud::CustomService', optional: true
+  # Service record that relates to this occupancy (likely a BedNight or BedNight-ish custom service)
   belongs_to :hmis_service, class_name: 'Hmis::Hud::HmisService', optional: true
 
   validates :occupancy_period, presence: true

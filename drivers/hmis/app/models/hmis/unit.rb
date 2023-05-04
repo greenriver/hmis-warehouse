@@ -19,28 +19,6 @@ class Hmis::Unit < Hmis::HmisBase
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
 
   scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
-  # has_one :most_recent_pathways_or_rrh_assessment, -> do
-  #   one_for_column(
-  #     :AssessmentDate,
-  #     source_arel_table: as_t,
-  #     group_on: [:PersonalID, :data_source_id],
-  #     scope: pathways_or_rrh,
-  #   )
-  # end, **hud_assoc(:PersonalID, 'Assessment')
-
-  # scope :active, ->(date = Date.today) do
-  #   active_unit = ar_t[:end].eq(nil).or(ar_t[:end].gteq(date))
-  #   active_inventory = i_t[:inventory_end_date].eq(nil).or(i_t[:inventory_end_date].gteq(date))
-
-  #   joins(:inventory).left_outer_joins(:active_ranges).where(active_unit.and(active_inventory))
-  # end
-
-  # scope :inactive, ->(date = Date.today) do
-  #   inactive_unit = ar_t[:end].not_eq(nil).and(ar_t[:end].lt(date))
-  #   inactive_inventory = i_t[:inventory_end_date].not_eq(nil).and(i_t[:inventory_end_date].lt(date))
-
-  #   joins(:inventory).left_outer_joins(:active_ranges).where(inactive_unit.or(inactive_inventory))
-  # end
 
   def occupants_on(date = Date.today)
     enrollment_ids = Hmis::UnitOccupancy.active_on(date).where(unit: self).pluck(:enrollment_id)
