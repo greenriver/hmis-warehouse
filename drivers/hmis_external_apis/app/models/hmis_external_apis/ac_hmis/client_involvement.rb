@@ -69,12 +69,8 @@ module HmisExternalApis::AcHmis
 
       return [] unless ok?
 
-      # Pretty unsure about this
-      enrollments = Hmis::Hud::Enrollment
-        .includes(:client)
-        .where({ Client: { PersonalID: client_ids } })
-        .open_during_range(start_date..end_date)
-      # FIXME: Need to preload/join/include external id for MCI ID and add below
+      clients = Hmis::Hud::Client.where(id: client_ids)
+      enrollments = Hmis::Hud::Enrollment.joins(:client).merge(clients).not_in_progress.open_during_range(start_date..end_date)
 
       enrollments.map do |en|
         {
