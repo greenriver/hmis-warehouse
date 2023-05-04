@@ -8,12 +8,12 @@ module HmisExternalApis::AcHmis
   class InvolvementsController < HmisExternalApis::BaseController
     def client
       # ClientInvolvement.new(client_params)
-      render json: { something: :happening }
+      render json: { not: :implemented_yet }
     end
 
     def program
       # ProgramInvolvement.new(program_params)
-      render json: { something: :happening }
+      render json: { not: :implemented_yet }
     end
 
     protected
