@@ -30,7 +30,19 @@ module Mutations
           **common,
         }
       end
-      units = Hmis::Unit.insert_all(unit_args)
+
+      units = []
+      Hmis::Unit.transaction do
+        unit_args.each do |args|
+          unit = Hmis::Unit.create!(**args)
+          unit.active_ranges << Hmis::ActiveRange.create!(
+            entity: unit,
+            start_date: Date.today,
+            user: current_user,
+          )
+          units << unit
+        end
+      end
 
       {
         units: units,
