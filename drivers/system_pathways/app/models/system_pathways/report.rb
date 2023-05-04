@@ -308,7 +308,7 @@ module SystemPathways
     private def create_universe
       clients.delete_all
       enrollments.delete_all
-      client_ids.each_slice(250) do |ids|
+      client_ids.each_slice(1_000) do |ids|
         enrollment_batch = enrollment_scope.where(client_id: ids)
 
         report_clients = {}
