@@ -38,7 +38,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   def active
     return true unless inventory_end_date.present?
 
-    inventory_end_date >= Date.today
+    inventory_end_date >= Date.current
   end
 
   def self.bed_types

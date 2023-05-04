@@ -79,7 +79,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def active
     return true unless operating_end_date.present?
 
-    operating_end_date >= Date.today
+    operating_end_date >= Date.current
   end
 
   def enrollments

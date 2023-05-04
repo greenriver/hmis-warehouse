@@ -189,7 +189,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
   end
 
-  def unit_occupied_on(date = Date.today)
+  def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
   end
 end

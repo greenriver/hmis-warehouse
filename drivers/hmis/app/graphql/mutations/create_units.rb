@@ -37,7 +37,7 @@ module Mutations
           unit = Hmis::Unit.create!(**args)
           unit.active_ranges << Hmis::ActiveRange.create!(
             entity: unit,
-            start_date: Date.today,
+            start_date: Date.current,
             user: current_user,
           )
           units << unit

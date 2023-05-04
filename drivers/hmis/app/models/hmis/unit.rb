@@ -24,24 +24,22 @@ class Hmis::Unit < Hmis::HmisBase
 
   scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
 
-  scope :occupied_on, ->(date = Date.today) do
+  scope :occupied_on, ->(date = Date.current) do
     unit_ids = joins(:unit_occupancies).merge(Hmis::UnitOccupancy.active_on(date)).pluck(:id)
     where(id: unit_ids)
   end
 
-  def occupants_on(date = Date.today)
+  def occupants_on(date = Date.current)
     enrollment_ids = Hmis::UnitOccupancy.active_on(date).where(unit: self).pluck(:enrollment_id)
     Hmis::Hud::Enrollment.where(id: enrollment_ids)
   end
   alias occupants occupants_on
 
   def start_date
-    # The most recently updated ActiveRange is used
-    Hmis::ActiveRange.for_entity(self)&.start_date
+    Hmis::ActiveRange.most_recent_for_entity(self)&.start_date
   end
 
   def end_date
-    # The most recently updated ActiveRange is used
-    Hmis::ActiveRange.for_entity(self)&.end_date
+    Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
   end
 end

@@ -6,14 +6,24 @@
 
 class Hmis::ActiveRange < Hmis::HmisBase
   self.table_name = :hmis_active_ranges
+  include ::Hmis::Concerns::HmisArelHelper
   belongs_to :entity, polymorphic: true, optional: true
   belongs_to :user, class_name: 'Hmis::User'
 
-  def self.for_entity(entity)
-    Hmis::ActiveRange.where(entity: entity).order(:updated_at).last
+  # Each UnitOccupancy can only have 1 ActiveRange
+  validates_uniqueness_of :entity_id, scope: :entity_type, conditions: -> { where(entity_type: Hmis::UnitOccupancy.name) }
+
+  def self.most_recent_for_entity(entity)
+    Hmis::ActiveRange.where(entity: entity).order(
+      # Prefer nil or later end dates
+      ar_t[:end_date].desc.nulls_first,
+      # Prefer later start dates
+      ar_t[:start_date].desc,
+      ar_t[:updated_at].desc,
+    ).first
   end
 
-  def active_on(date = Date.today)
+  def active_on(date = Date.current)
     end_date.nil? || end_date > date
   end
 

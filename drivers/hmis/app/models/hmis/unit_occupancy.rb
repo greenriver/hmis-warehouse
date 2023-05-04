@@ -17,11 +17,10 @@ class Hmis::UnitOccupancy < Hmis::HmisBase
   # Service record that relates to this occupancy (likely a BedNight or BedNight-ish custom service)
   belongs_to :hmis_service, class_name: 'Hmis::Hud::HmisService', optional: true
 
-  validates :occupancy_period, presence: true
   delegate :start_date, to: :occupancy_period
   delegate :end_date, to: :occupancy_period
 
-  scope :active, ->(date = Date.today) do
+  scope :active, ->(date = Date.current) do
     past_start_date = ar_t[:start_date].lteq(date)
     future_end_date = ar_t[:end_date].eq(nil).or(ar_t[:end_date].gt(date))
 

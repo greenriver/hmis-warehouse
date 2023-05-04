@@ -27,7 +27,7 @@ module Types
         scope = scope.order(created_at: :desc)
         scope = scope.active if active == true
         scope = scope.inactive if active == false
-        scope = scope.occupied_on(Date.today) if occupied
+        scope = scope.occupied_on(Date.current) if occupied
         scope
       end
     end
