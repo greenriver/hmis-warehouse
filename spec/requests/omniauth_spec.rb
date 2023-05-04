@@ -4,9 +4,9 @@ if ENV['OKTA_DOMAIN'].present?
   RSpec.describe Users::OmniauthCallbacksController, type: :request do
     describe 'GET /users/auth/:provider protects against CVE-2015-9284' do
       it do
-        expect {
+        expect do
           get '/users/auth/okta'
-        }.to raise_error(ActionController::RoutingError)
+        end.to raise_error(ActionController::RoutingError)
       end
     end
 
@@ -20,6 +20,5 @@ if ENV['OKTA_DOMAIN'].present?
         expect(redir).to eq('http://www.example.com/users/auth/okta/callback')
       end
     end
-
   end
 end

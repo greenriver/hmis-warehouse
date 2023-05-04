@@ -44,10 +44,7 @@ module HmisExternalApis::AcHmis
       HudUtility.races.keys.map(&:to_sym).each do |hud_race|
         mci_races.push(HUD_RACE_TO_MCI_RACE[hud_race]) if client.send(hud_race) == 1
       end
-      mci_races.compact!
-      return mci_races.first if mci_races.length == 1
-
-      mci_races.map { |s| "#{s}-" }.join(',')
+      mci_races.compact.map { |s| "#{s}-," }.join('')
     end
 
     def self.hud_races(mci_race_codes)

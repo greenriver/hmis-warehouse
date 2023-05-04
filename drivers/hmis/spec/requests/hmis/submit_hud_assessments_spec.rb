@@ -43,12 +43,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             #{scalar_fields(Types::HmisSchema::Assessment)}
             enrollment {
               id
+              #{scalar_fields(Types::HmisSchema::Enrollment)}
             }
             user {
               id
             }
             client {
               id
+            }
+            incomeBenefit {
+              #{scalar_fields(Types::HmisSchema::IncomeBenefit)}
+            }
+            healthAndDv {
+              #{scalar_fields(Types::HmisSchema::HealthAndDv)}
+            }
+            exit {
+              #{scalar_fields(Types::HmisSchema::Exit)}
+            }
+            disabilityGroup {
+              #{scalar_fields(Types::HmisSchema::DisabilityGroup)}
             }
             customForm {
               #{scalar_fields(Types::HmisSchema::CustomForm)}
@@ -227,6 +240,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expected_assessment_date: new_exit_date,
       expected_exit_date: new_exit_date,
     )
+    expect(result.dig('data', 'submitAssessment', 'assessment', 'exit', 'exitDate')).to eq(new_exit_date)
   end
 
   describe 'Submitting an Exit assessment in a household with several open enrollments:' do
@@ -301,6 +315,46 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment_id).to be_present
       hoh_enrollment.reload
       expect(hoh_enrollment.entry_date).to eq(Date.parse(assessment_date))
+    end
+
+    it 'resolves related records that are processed on the Intake assessment' do
+      definition = Hmis::Form::Definition.find_by(role: :INTAKE)
+      input = {
+        enrollment_id: hoh_enrollment.id,
+        form_definition_id: definition.id,
+        **build_minimum_values(
+          definition,
+          values: {},
+          hud_values: {
+            # enrollment
+            'Enrollment.livingSituation': 'FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME',
+            # disability
+            'DisabilityGroup.developmentalDisability': 'YES',
+            'DisabilityGroup.physicalDisability': 'NO',
+            'DisabilityGroup.disablingCondition': 'YES',
+            # income
+            'IncomeBenefit.incomeFromAnySource': 'NO',
+            'IncomeBenefit.insuranceFromAnySource': 'CLIENT_REFUSED',
+            # health & dv
+            'HealthAndDv.domesticViolenceVictim': 'NO',
+          },
+        ),
+        confirmed: true,
+      }
+      _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+      assessment = result.dig('data', 'submitAssessment', 'assessment')
+      errors = result.dig('data', 'submitAssessment', 'errors')
+      expect(errors).to be_empty
+      expect(assessment['id']).to be_present
+      # Check that related records were created and resolved
+      expect(assessment['enrollment']['livingSituation']).to eq('FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME')
+      expect(assessment['disabilityGroup']['developmentalDisability']).to eq('YES')
+      expect(assessment['disabilityGroup']['physicalDisability']).to eq('NO')
+      expect(assessment['disabilityGroup']['disablingCondition']).to eq('YES')
+      expect(assessment['enrollment']['disablingCondition']).to eq('YES')
+      expect(assessment['incomeBenefit']['incomeFromAnySource']).to eq('NO')
+      expect(assessment['incomeBenefit']['insuranceFromAnySource']).to eq('CLIENT_REFUSED')
+      expect(assessment['healthAndDv']['domesticViolenceVictim']).to eq('NO')
     end
 
     it 'fails if trying to create a second intake assessment' do

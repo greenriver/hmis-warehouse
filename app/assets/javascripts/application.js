@@ -34,6 +34,7 @@
 //= require d3/dist/d3.min
 //= require d3-interpolate/dist/d3-interpolate.min
 //= require d3-scale-chromatic/dist/d3-scale-chromatic.min
+//= require d3-sankey/dist/d3-sankey.min
 //= require topojson-client/dist/topojson-client.min
 //= require inputmask/dist/min/jquery.inputmask.bundle.min
 //= require inputmask/dist/min/inputmask/bindings/inputmask.binding.min
@@ -41,6 +42,7 @@
 //= require moment/moment
 //= require bootstrap-datetimepicker
 //= require stimulus/dist/stimulus.umd
+//= require vendor/rfdc/rfdc
 //= require promise-polyfill/dist/polyfill.min
 
 //////////////////////////
@@ -90,6 +92,7 @@
 //= require affix
 //= require list_search
 //= require stimulus_select
+//= require chart_loader
 //= require filter_projects
 //= require TableWithToggleRows
 //= require role_table

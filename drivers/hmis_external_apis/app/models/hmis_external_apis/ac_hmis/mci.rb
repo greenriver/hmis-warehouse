@@ -24,7 +24,7 @@
 
 module HmisExternalApis::AcHmis
   class Mci
-    SYSTEM_ID= 'ac_hmis_mci'.freeze
+    SYSTEM_ID = 'ac_hmis_mci'.freeze
     Error = StandardError.new
 
     # Perform "clearance" to find potential matches for a client in MCI
@@ -53,6 +53,7 @@ module HmisExternalApis::AcHmis
       raise(Error, result.error) if result.error
 
       Rails.logger.info "Did clearance for client #{client.id}"
+      return [] if result.http_status == 204
 
       result.parsed_body.map do |clearance_result|
         mci_id = clearance_result['mciId'].to_s
@@ -167,6 +168,10 @@ module HmisExternalApis::AcHmis
       external_ids.create!(source: source, value: value, remote_credential: creds, **attrs)
     end
 
+    def creds
+      @creds ||= ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).first!
+    end
+
     private
 
     def external_ids
@@ -189,10 +194,6 @@ module HmisExternalApis::AcHmis
 
     def get_external_id(source)
       external_ids.where(source: source).first
-    end
-
-    def creds
-      @creds ||= ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).first!
     end
 
     def conn

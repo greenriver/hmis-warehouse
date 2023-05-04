@@ -58,14 +58,19 @@ class Hmis::User < ApplicationRecord
     end
 
     define_method("#{permission}_for?") do |entity|
+      # Just return false if we don't have this permission at all for anything
       return false unless send("#{permission}?")
+
+      # Return true if we should use global permissions for the entity, since we just did the global permission check
+      return true if use_global_permissions_for_entity?(entity)
 
       base_entities = permissions_base_for_entity(entity)
 
-      # No entity was specified and this permission is allowed to be global (for example Client access)
-      return true if !base_entities.present? && ::Hmis::Role.global_permissions.include?(permission)
+      # Raise if there's no permissions base for the entity we're checking permissions on
+      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" if base_entities.nil?
 
-      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" unless base_entities.present?
+      # No permissions on this entity if there's nothing that would grant it permissions
+      return false unless base_entities.present?
 
       access_group_ids = Hmis::GroupViewableEntity.includes_entities(base_entities).pluck(:access_group_id)
       role_ids = roles.where(permission => true).pluck(:id)
@@ -84,20 +89,32 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
+  # A permissions base is an entity or entities that grant permissions on the given entity. This can be the entity
+  # itself in the case of projects, or can be another entity in the case of files, which are granted permissions through
+  # their client or their enrollment. A result of nil indicates that there is no permissions base for the given entity.
+  # If there is a permissions base, the result will be zero or more entities to use as a permissions base. If the result
+  # is no entities, it means that the entity has a permissions base, but no entities that act as that base are present.
+  # For example, if a client is granted permissions through enrollments but has no enrollments, it would return no
+  # entities.
   private def permissions_base_for_entity(entity)
-    return [entity.data_source, *entity.projects] if entity.is_a? Hmis::Hud::Client
+    return unless entity.present?
+
+    return entity.projects_including_wip if entity.is_a? Hmis::Hud::Client
     return entity if entity.is_a? Hmis::Hud::Organization
     return entity if entity.is_a? Hmis::Hud::Project
 
-    if entity.is_a? Hmis::File
-      return [entity.client.data_source, *entity.client.projects] unless entity.enrollment.present?
-
-      return entity.enrollment.project
-    end
+    return permissions_base_for_entity(entity.enrollment || entity.client) if entity.is_a? Hmis::File
 
     return entity.project if entity.respond_to? :project
 
     nil
+  end
+
+  private def use_global_permissions_for_entity?(entity)
+    return true if entity.is_a?(Hmis::Hud::Client) && !entity.enrolled?
+    return true if entity.is_a?(Hmis::File) && !entity.enrollment && !entity.client.enrolled?
+
+    return false
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)

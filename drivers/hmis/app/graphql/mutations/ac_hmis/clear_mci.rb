@@ -13,7 +13,7 @@ module Mutations
     field :matches, [Types::AcHmis::MciClearanceMatch], null: true
 
     # Use a lower threshold in development so we're more likely to get matches back
-    MATCH_THRESHOLD = Rails.env.development? ? 40 : 80
+    MATCH_THRESHOLD = Rails.env.development? ? 60 : 80
     AUTO_CLEAR_THRESHOLD = 97
 
     def resolve(input:)

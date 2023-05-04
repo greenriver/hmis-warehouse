@@ -33,15 +33,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     <<~GRAPHQL
       mutation DeleteAssessment($input: DeleteAssessmentInput!) {
         deleteAssessment(input: $input) {
-          assessment {
-            #{scalar_fields(Types::HmisSchema::Assessment)}
-            customForm {
-              #{scalar_fields(Types::HmisSchema::CustomForm)}
-              definition {
-                id
-              }
-            }
-          }
+          assessmentId
           #{error_fields}
         }
       }
@@ -53,9 +45,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
-      assessment = result.dig('data', 'deleteAssessment', 'assessment')
+      assessment_id = result.dig('data', 'deleteAssessment', 'assessmentId')
       errors = result.dig('data', 'deleteAssessment', 'errors')
-      yield assessment, errors
+      yield assessment_id, errors
     end
   end
 
@@ -70,8 +62,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       action.call(a1)
       expect(Hmis::Hud::CustomAssessment.all).to include(have_attributes(id: a1.id))
 
-      mutate(input: { id: a1.id }) do |assessment, errors|
-        expect(assessment).to be_present
+      mutate(input: { id: a1.id }) do |assessment_id, errors|
+        expect(assessment_id).to be_present
         expect(errors).to be_empty
       end
 
@@ -85,8 +77,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       remove_permissions(hmis_user, permission)
       action.call(a1)
 
-      mutate(input: { id: a1.id }) do |assessment, errors|
-        expect(assessment).to be_nil
+      mutate(input: { id: a1.id }) do |assessment_id, errors|
+        expect(assessment_id).to be_nil
         expect(errors).to contain_exactly(include('type' => 'not_allowed'))
       end
 
@@ -94,21 +86,50 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  # Don't allow deletion of submitted intake assessments
+  # Deleting non-wip intakes should require enrollment deletion permissions
+  wip_and_submitted.each do |key, name, action|
+    it "should handle deleting #{name} intake assessment based on whether user can delete enrollments" do
+      remove_permissions(hmis_user, :can_delete_enrollments)
+      action.call(a1)
+      fd1.update(role: 'INTAKE')
+
+      mutate(input: { id: a1.id }) do |assessment_id, errors|
+        a1.reload
+        e1.reload
+        if key == :wip
+          expect(assessment_id).to be_present
+          expect(errors).to be_empty
+          expect(a1.date_deleted).to be_present
+          expect(e1.date_deleted).to be_present
+        elsif key == :submitted
+          expect(assessment_id).to be_nil
+          expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+          expect(a1.date_deleted).to be_nil
+          expect(e1.date_deleted).to be_nil
+        end
+      end
+    end
+  end
+
+  # Deleting intakes should delete the enrollment
   wip_and_submitted.each do |key, name, action|
     it "should handle deleting a #{name} intake assessment" do
       action.call(a1)
       fd1.update(role: 'INTAKE')
 
-      mutate(input: { id: a1.id }) do |assessment, errors|
+      mutate(input: { id: a1.id }) do |assessment_id, errors|
+        a1.reload
+        e1.reload
         if key == :wip
-          expect(assessment).to be_present
+          expect(assessment_id).to be_present
           expect(errors).to be_empty
-          expect(Hmis::Hud::CustomAssessment.all).not_to include(have_attributes(id: a1.id))
+          expect(a1.date_deleted).to be_present
+          expect(e1.date_deleted).to be_present
         elsif key == :submitted
-          expect(assessment).to be_nil
-          expect(errors).to contain_exactly(include('type' => 'not_allowed'))
-          expect(Hmis::Hud::CustomAssessment.all).to include(have_attributes(id: a1.id))
+          expect(assessment_id).to be_present
+          expect(errors).to be_empty
+          expect(a1.date_deleted).to be_present
+          expect(e1.date_deleted).to be_present
         end
       end
     end
@@ -121,8 +142,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       fd1.update(role: 'EXIT')
       create(:hmis_hud_exit, enrollment: e1, client: c1, user: u1, data_source: ds1)
 
-      mutate(input: { id: a1.id }) do |assessment, errors|
-        expect(assessment).to be_present
+      mutate(input: { id: a1.id }) do |assessment_id, errors|
+        expect(assessment_id).to be_present
         expect(errors).to be_empty
         expect(Hmis::Hud::CustomAssessment.all).not_to include(have_attributes(id: a1.id))
         expect(e1.exit).to be_nil
