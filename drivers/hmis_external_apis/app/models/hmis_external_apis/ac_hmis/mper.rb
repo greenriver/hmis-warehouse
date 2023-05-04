@@ -12,7 +12,8 @@ module HmisExternalApis::AcHmis
     # @param mper_id [String]
     # @return [Hmis::Hud::Project, nil]
     def find_project_by_mper(mper_id)
-      project_scope.first_by_external_id(namespace: SYSTEM_ID, value: mper_id)
+      # The project ID is the MPER ID
+      project_scope.where(ProjectID: mper_id).first
     end
 
     # @param mper_id [String]
@@ -21,20 +22,38 @@ module HmisExternalApis::AcHmis
       ::Hmis::UnitType.first_by_external_id(namespace: SYSTEM_ID, value: mper_id)
     end
 
-    # @param source [ApplicationRecord]
+    # @param source [Hmis::Hud::Project, Hmis::UnitType]
     # @return [String, nil]
     def identify_source(source)
-      external_ids.where(source: source).first&.value
+      case source
+      when Hmis::Hud::Project
+        source.ProjectID
+      when Hmis::Hud::Organization
+        source.OrganizationID
+      when Hmis::UnitType
+        external_ids.where(source: source).first&.value
+      else
+        source_not_supported!(source)
+      end
     end
 
-    # @param source [ApplicationRecord]
+    # @param source [Hmis::UnitType]
     # @param value [String]
     # @return [HmisExternalApis::ExternalId]
     def create_external_id(source:, value:, **attrs)
-      external_ids.create!(source: source, value: value, remote_credential: remote_credential, **attrs)
+      case source
+      when Hmis::UnitType
+        external_ids.create!(source: source, value: value, remote_credential: remote_credential, **attrs)
+      else
+        source_not_supported!(source)
+      end
     end
 
     protected
+
+    def source_not_supported!(source)
+      raise "source not supported #{source.inspect}"
+    end
 
     def external_ids
       HmisExternalApis::ExternalId.where(namespace: SYSTEM_ID)

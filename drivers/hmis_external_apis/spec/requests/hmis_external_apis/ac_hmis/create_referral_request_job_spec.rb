@@ -31,13 +31,7 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
       )
 
       # setup external ids
-      [
-        referral_request.unit_type,
-        referral_request.project,
-        referral_request.project.organization,
-      ].each do |record|
-        mper.create_external_id(source: record, value: SecureRandom.uuid)
-      end
+      mper.create_external_id(source: referral_request.unit_type, value: SecureRandom.uuid)
 
       payload = { referral_request_id: referral_request_id }
       stub_request(:post, endpoint).

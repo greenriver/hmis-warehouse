@@ -88,7 +88,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
     end
 
     let :project_mper_id do
-      random_id
+      project.ProjectID
     end
 
     let :project do
@@ -97,7 +97,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
 
     before(:each) do
       _ = mci # side-effect of creating the credential
-      mper.create_external_id(value: project_mper_id, source: project)
+      _ = mper
     end
 
     it 'receives referral for referral request' do

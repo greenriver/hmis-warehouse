@@ -161,7 +161,7 @@ module HmisExternalApis::AcHmis
         .first_by_external_id(namespace: SYSTEM_ID, value: mci_id)
     end
 
-    # @param source [ApplicationRecord]
+    # @param source [Hmis::Hud::Client]
     # @param value [String]
     # @return [HmisExternalApis::ExternalId]
     def create_external_id(source:, value:, **attrs)

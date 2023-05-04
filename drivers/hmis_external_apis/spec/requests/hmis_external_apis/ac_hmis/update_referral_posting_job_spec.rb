@@ -23,14 +23,6 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
     it 'has no smoke' do
       posting = create(:hmis_external_api_ac_hmis_referral_posting)
 
-      # setup external ids
-      [
-        posting.project,
-        posting.project.organization,
-      ].each do |record|
-        mper.create_external_id(source: record, value: SecureRandom.uuid)
-      end
-
       accepted_status_code = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch(:accepted_status)
       payload = { postings: [
         posting_id: posting.identifier,
