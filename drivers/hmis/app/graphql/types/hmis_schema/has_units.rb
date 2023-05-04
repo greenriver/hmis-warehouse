@@ -17,20 +17,18 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :active, GraphQL::Types::Boolean, required: false
+            argument :occupied, GraphQL::Types::Boolean, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_units(scope = object.units, active: nil)
+      def resolve_units(scope = object.units, active: nil, occupied: nil)
         scope = scope.order(created_at: :desc)
-        if active == true
-          scope.active
-        elsif active == false
-          scope.inactive
-        else
-          scope
-        end
+        scope = scope.active if active == true
+        scope = scope.inactive if active == false
+        scope = scope.occupied_on(Date.today) if occupied
+        scope
       end
     end
   end

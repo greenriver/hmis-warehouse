@@ -21,6 +21,7 @@ FactoryBot.define do
     name { 'Unit A' }
     user { association :hmis_user }
     active_ranges { [association(:hmis_active_range)] }
+    project { association :hmis_hud_project }
   end
 
   factory :hmis_unit_occupancy, class: 'Hmis::UnitOccupancy' do

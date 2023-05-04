@@ -14850,7 +14850,8 @@ CREATE TABLE public.hmis_units (
     deleted_at timestamp without time zone,
     user_id character varying NOT NULL,
     unit_type_id integer,
-    unit_size integer
+    unit_size integer,
+    project_id integer NOT NULL
 );
 
 
@@ -52548,6 +52549,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230501183045'),
 ('20230502175218'),
 ('20230503155642'),
-('20230504131726');
+('20230504131726'),
+('20230504152750');
 
 

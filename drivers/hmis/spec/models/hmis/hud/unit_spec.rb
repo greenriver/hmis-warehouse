@@ -18,7 +18,7 @@ RSpec.describe Hmis::Unit, type: :model do
   include_context 'hmis base setup'
   let!(:project) { create :hmis_hud_project }
   let!(:unit_type) { create :hmis_unit_type }
-  let!(:unit1) { create :hmis_unit }
+  let!(:unit1) { create :hmis_unit, project: p1 }
 
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let(:c2) { create :hmis_hud_client, data_source: ds1 }
@@ -42,8 +42,15 @@ RSpec.describe Hmis::Unit, type: :model do
       expect(unit1.occupants_on(2.months.ago)).to be_empty
       expect(unit1.occupants_on(1.month.ago)).to contain_exactly(e1)
       expect(unit1.occupants_on(9.days.ago)).to contain_exactly(e1, e2)
-      expect(unit1.occupants_on(2.days.ago)).to contain_exactly(e2)
+      expect(unit1.occupants_on(3.days.ago)).to contain_exactly(e2)
+      expect(unit1.occupants_on(2.days.ago)).to be_empty # exclusive
       expect(unit1.occupants).to be_empty # defaults to today
+
+      expect(Hmis::Unit.occupied_on(2.months.ago)).to be_empty
+      expect(Hmis::Unit.occupied_on(1.months.ago)).to contain_exactly(unit1)
+      expect(Hmis::Unit.occupied_on(9.days.ago)).to contain_exactly(unit1)
+      expect(Hmis::Unit.occupied_on(3.days.ago)).to contain_exactly(unit1)
+      expect(Hmis::Unit.occupied_on(2.days.ago)).to be_empty
     end
   end
 
@@ -56,7 +63,7 @@ RSpec.describe Hmis::Unit, type: :model do
 
   describe 'with a specified Unit Type' do
     let!(:unit_type) { create :hmis_unit_type }
-    let!(:unit2) { create :hmis_unit, unit_type: unit_type }
+    let!(:unit2) { create :hmis_unit, unit_type: unit_type, project: p1 }
 
     it 'works' do
       expect(Hmis::Unit.of_type(unit_type)).to contain_exactly(unit2)

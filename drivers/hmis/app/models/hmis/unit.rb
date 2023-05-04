@@ -8,6 +8,7 @@ class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_units
 
+  belongs_to :project, class_name: 'Hmis::Hud::Project'
   # Type of this unit
   belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
   # Periods when this unit has been active
@@ -18,7 +19,15 @@ class Hmis::Unit < Hmis::HmisBase
   # All historical and current occupancies of this unit
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
 
+  alias_attribute :date_updated, :updated_at
+  alias_attribute :date_created, :created_at
+
   scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
+
+  scope :occupied_on, ->(date = Date.today) do
+    unit_ids = joins(:unit_occupancies).merge(Hmis::UnitOccupancy.active_on(date)).pluck(:id)
+    where(id: unit_ids)
+  end
 
   def occupants_on(date = Date.today)
     enrollment_ids = Hmis::UnitOccupancy.active_on(date).where(unit: self).pluck(:enrollment_id)

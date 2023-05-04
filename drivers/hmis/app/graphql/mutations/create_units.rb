@@ -8,34 +8,32 @@ module Mutations
   class CreateUnits < BaseMutation
     argument :input, Types::HmisSchema::UnitInput, required: true
 
-    field :inventory, Types::HmisSchema::Inventory, null: true
+    field :units, [Types::HmisSchema::Unit], null: true
 
     def resolve(input:)
-      inventory = Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: input.inventory_id)
+      project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
 
       errors = HmisErrors::Errors.new
-      errors.add :inventory_id, :not_found unless inventory.present?
-      errors.add :inventory_id, :not_allowed if inventory.present? && !current_user.permissions_for?(inventory, :can_edit_project_details)
+      errors.add :project_id, :not_found unless project.present?
+      errors.add :project_id, :not_allowed if project.present? && !current_user.permissions_for?(project, :can_edit_project_details)
       errors.add :count, :required unless input.count.present?
       errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
+      errors.add :count, :out_of_range, message: 'must be non-zero' if input.count&.zero?
       return { errors: errors.errors } if errors.any?
 
       # Create Units
       common = { user_id: hmis_user.user_id, created_at: Time.now, updated_at: Time.now }
       unit_args = (1..input.count).map do |i|
         {
-          inventory_id: inventory.id,
+          project_id: project.id,
           name: [input.prefix, i].compact.join(' '),
           **common,
         }
       end
-      units = Hmis::Unit.insert_all(unit_args) if unit_args.any?
-
-      # Update unit count on Inventory record
-      inventory.update(unit_inventory: inventory.unit_inventory + units.count)
+      units = Hmis::Unit.insert_all(unit_args)
 
       {
-        inventory: inventory,
+        units: units,
         errors: [],
       }
     end
