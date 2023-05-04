@@ -19,6 +19,10 @@ module Mutations
       errors.add :count, :required unless input.count.present?
       errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
       errors.add :count, :out_of_range, message: 'must be non-zero' if input.count&.zero?
+
+      unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
+      errors.add :unit_type_id, :invalid if input.unit_type_id.present? && !unit_type.present?
+
       return { errors: errors.errors } if errors.any?
 
       # Create Units
@@ -27,6 +31,7 @@ module Mutations
         {
           project_id: project.id,
           name: [input.prefix, i].compact.join(' '),
+          unit_type_id: unit_type&.id,
           **common,
         }
       end
