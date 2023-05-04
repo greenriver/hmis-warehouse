@@ -23,14 +23,21 @@ RSpec.describe HmisExternalApis::InboundApiConfiguration, type: :model do
     created = create(:inbound_api_configuration)
     expect(created.plain_text_api_key_with_fallback).to be_present
 
-    found = HmisExternalApis::InboundApiConfiguration.find_by_api_key(created.plain_text_api_key)
+    validity = HmisExternalApis::InboundApiConfiguration.validate(api_key: created.plain_text_api_key, internal_system: created.internal_system)
 
-    expect(found).to eq(created)
+    expect(validity).to be true
   end
 
-  it 'returns nil if api key cannot be found' do
-    not_found = HmisExternalApis::InboundApiConfiguration.find_by_api_key('badkey')
+  it 'returns false if api key cannot be found' do
+    validity = HmisExternalApis::InboundApiConfiguration.validate(api_key: 'badkey', internal_system: 'nothing')
 
-    expect(not_found).to be_nil
+    expect(validity).to be false
+  end
+
+  it 'returns false if api key internal system does not match' do
+    created = create(:inbound_api_configuration)
+    validity = HmisExternalApis::InboundApiConfiguration.validate(api_key: created.plain_text_api_key, internal_system: HmisExternalApis::InternalSystem.new)
+
+    expect(validity).to be false
   end
 end

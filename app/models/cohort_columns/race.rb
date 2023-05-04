@@ -11,7 +11,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def value(cohort_client)
-      cohort_client.client.source_clients.map(&:race_fields)&.flatten&.uniq&.sort
+      cohort_client.client.race_fields&.sort
     end
 
     def display_read_only(_user)

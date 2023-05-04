@@ -13,7 +13,7 @@ module HmisExternalApis
 
     NAMES = [
       'Referrals',
-      # 'Involvement',
+      'Involvements',
     ].freeze
 
     validates :active, inclusion: { in: [true, false], message: 'must be set' }
