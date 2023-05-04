@@ -3882,6 +3882,7 @@ type Project {
   residentialAffiliation: NoYesMissing
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
+  units(active: Boolean, limit: Int, occupied: Boolean, offset: Int): UnitsPaginated!
   user: User
 }
 
@@ -5430,6 +5431,16 @@ type UnitTypeObject {
   description: String
   id: ID!
   unitSize: Int
+}
+
+type UnitsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Unit!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
