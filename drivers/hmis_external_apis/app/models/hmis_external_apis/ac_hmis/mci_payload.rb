@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   class MciPayload
     def self.from_client(client, mci_id: nil)
       raise(Error, 'First name is required') unless client.first_name.present?
