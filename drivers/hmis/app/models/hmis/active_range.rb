@@ -10,8 +10,9 @@ class Hmis::ActiveRange < Hmis::HmisBase
   belongs_to :entity, polymorphic: true, optional: true
   belongs_to :user, class_name: 'Hmis::User'
 
-  # Each UnitOccupancy can only have 1 ActiveRange
-  validates_uniqueness_of :entity_id, scope: :entity_type, conditions: -> { where(entity_type: Hmis::UnitOccupancy.name) }
+  # Some entity types can only have 1 ActiveRange
+  UNIQUE_ENTITY_TYPES = [Hmis::UnitOccupancy.name].freeze
+  validates_uniqueness_of :entity_id, scope: :entity_type, conditions: -> { where(entity_type: UNIQUE_ENTITY_TYPES) }
 
   def self.most_recent_for_entity(entity)
     Hmis::ActiveRange.where(entity: entity).order(

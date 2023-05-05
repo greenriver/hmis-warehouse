@@ -23,6 +23,10 @@ module Hmis
       },
     )
 
+    def to_pick_list_option
+      { code: id, label: description }
+    end
+
     include RailsDrivers::Extensions
   end
 end
