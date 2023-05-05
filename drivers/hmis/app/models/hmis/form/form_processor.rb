@@ -19,6 +19,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :mental_health_disorder, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :substance_use_disorder, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :exit, class_name: 'Hmis::Hud::Exit', optional: true, autosave: true
+  has_many :custom_form_answers, class_name: 'Hmis::Form::CustomFormAnswer'
 
   validate :hmis_records_are_valid
 

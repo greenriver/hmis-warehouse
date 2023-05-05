@@ -90,6 +90,9 @@ module Mutations
           custom_form.owner = record # Set owner_id to the View id
           custom_form.save!
         else
+          # FIXME: stop saving these, we don't need to?
+          # One of these gets generated EVERY TIME someone submits a form.
+          # Make sure we can support submitting a form that updates multiple records though.
           custom_form.save!
           record.save!
           record.touch
