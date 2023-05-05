@@ -62,9 +62,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
 
     # Post-save action to create a new MCI ID if specified by the ClientProcessor
-    if create_mci_id && HmisExternalApis::Mci.enabled?
+    if create_mci_id && HmisExternalApis::AcHmis::Mci.enabled?
       self.create_mci_id = nil
-      HmisExternalApis::Mci.new.create_mci_id(self)
+      HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
     end
   end
 
