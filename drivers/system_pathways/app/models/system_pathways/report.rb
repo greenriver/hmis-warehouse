@@ -517,7 +517,7 @@ module SystemPathways
         entry.
         in_project_type(self.class.available_project_types).
         preload(:project, enrollment: [:client, :project, :disabilities_at_entry], client: :source_clients).
-        joins(:project).
+        joins(:project, :enrollment).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
       filter.apply(scope, except: [:filter_for_enrollment_cocs])
     end
