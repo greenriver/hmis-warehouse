@@ -5,13 +5,13 @@
 ###
 
 # To create a ClientView URL:
-# ::GrdaWarehouse::RemoteCredential.create!(
-# 	slug: 'ac_hmis_clientview',
+# GrdaWarehouse::RemoteCredentials::ExternalLink.create!(
+# 	slug: HmisExternalApis::AcHmis::Clientview::SYSTEM_ID,
 # 	endpoint: 'https://www.google.com', # URL base of ClientView
-# 	type: 'GrdaWarehouse::RemoteCredential',
 # 	username: '',
 # 	encrypted_password: '',
 # 	active: true,
+# )
 # )
 module HmisExternalApis::AcHmis
   class Clientview
