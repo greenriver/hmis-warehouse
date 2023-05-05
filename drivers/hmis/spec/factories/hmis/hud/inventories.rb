@@ -19,15 +19,4 @@ FactoryBot.define do
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
   end
-
-  factory :hmis_unit, class: 'Hmis::Unit' do
-    inventory { association :hmis_hud_inventory }
-    user { association :user }
-  end
-
-  factory :hmis_bed, class: 'Hmis::Bed' do
-    unit { association :hmis_unit }
-    user { association :user }
-    bed_type { :ch_bed_inventory }
-  end
 end

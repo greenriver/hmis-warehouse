@@ -12,6 +12,7 @@ module Types
     include Types::HmisSchema::HasProjectCocs
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
+    include Types::HmisSchema::HasUnits
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -24,6 +25,7 @@ module Types
     inventories_field
     project_cocs_field
     funders_field
+    units_field
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -66,6 +68,10 @@ module Types
 
     def inventories(**args)
       resolve_inventories(**args)
+    end
+
+    def units(**args)
+      resolve_units(**args)
     end
   end
 end

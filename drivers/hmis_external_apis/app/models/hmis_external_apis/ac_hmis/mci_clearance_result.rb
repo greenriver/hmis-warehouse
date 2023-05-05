@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   MciClearanceResult = Struct.new(
     :mci_id,
     :score, # Match score

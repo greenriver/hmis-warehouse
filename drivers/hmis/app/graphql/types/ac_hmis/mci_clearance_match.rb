@@ -26,7 +26,7 @@ module Types
     field :ssn, String, null: true
     gender_field client_association: :client
 
-    # object is a HmisExternalApis::MciClearanceResult
+    # object is a HmisExternalApis::AcHmis::MciClearanceResult
 
     # set an id for apollo
     def id

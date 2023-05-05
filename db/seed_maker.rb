@@ -327,7 +327,7 @@ class SeedMaker
 
   def setup_hmis_admin_access
     return unless ENV['HMIS_HOSTNAME'].present?
-    return if Rails.env.production?
+    return unless Rails.env.development?
 
     # Create HMIS Administrator role
     hmis_admin_role = Hmis::Role.where(can_administer_hmis: true).first_or_create! do |role|
@@ -336,8 +336,9 @@ class SeedMaker
 
     # Create HMIS Data Source
     hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: ENV['HMIS_HOSTNAME']).first_or_create! do |ds|
-      ds.name = 'HMIS Data Source'
+      ds.name = 'HMIS'
       ds.short_name = 'HMIS'
+      ds.authoritative = true
     end
 
     return if hmis_admin_role.users.any?

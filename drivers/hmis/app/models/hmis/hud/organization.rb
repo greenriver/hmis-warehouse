@@ -39,4 +39,11 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
       raise NotImplementedError
     end
   end
+
+  def to_pick_list_option
+    {
+      code: id,
+      label: organization_name,
+    }
+  end
 end
