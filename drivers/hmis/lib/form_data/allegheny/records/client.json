@@ -4,12 +4,7 @@
       "type": "STRING",
       "link_id": "client-id",
       "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$clientId"
-        }
-      ]
+      "field_name": "id"
     },
     {
       "fragment": "#client_name"

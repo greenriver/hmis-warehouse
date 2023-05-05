@@ -7,14 +7,9 @@
       "item": [
         {
           "type": "STRING",
-          "link_id": "fileId",
+          "link_id": "file-id",
           "hidden": true,
-          "initial": [
-            {
-              "initial_behavior": "OVERWRITE",
-              "value_local_constant": "$fileId"
-            }
-          ]
+          "field_name": "id"
         },
         {
           "type": "FILE",
@@ -25,7 +20,7 @@
           "enable_behavior": "ANY",
           "enable_when": [
             {
-              "question": "fileId",
+              "question": "file-id",
               "operator": "EXISTS",
               "answer_boolean": false
             }

@@ -94,6 +94,7 @@ module GrdaWarehouse::Hud
       so: [4],
       sh: [8],
       ca: [14],
+      ce: [14],
       rrh: [13],
       psh: [3],
       other: [7],

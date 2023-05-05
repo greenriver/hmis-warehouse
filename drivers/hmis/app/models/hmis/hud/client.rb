@@ -18,11 +18,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
+  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName')
+  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress')
+  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint')
+  has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName')
 
-  # NOTE: this does not include project where the enrollment is WIP
+  # Enrollments for this Client, including WIP Enrollments
+  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
+  # Projects that this Client is enrolled in, NOT inluding WIP enrollments
   has_many :projects, through: :enrollments
+  # WIP records representing enrollments for this Client
+  has_many :wip, class_name: 'Hmis::Wip', through: :enrollments
+
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
@@ -61,9 +69,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :with_access, ->(user, *permissions, **kwargs) do
-    return none unless user.permissions?(*permissions, **kwargs)
+    pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
-    joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
+    unenrolled_ids = user.permissions?(*permissions, **kwargs) ? unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)).pluck(:id) : []
+    enrolled_ids = joins(:projects).where(p_t[:id].in(pids)).pluck(:id)
+    wip_ids = joins(:wip).where(wip_t[:project_id].in(pids)).pluck(:id)
+
+    where(id: unenrolled_ids + enrolled_ids + wip_ids)
   end
 
   scope :visible_to, ->(user) do
@@ -86,12 +98,31 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  # Clients that have no Enrollments (WIP or otherwise)
+  scope :unenrolled, -> do
+    # Clients that have no projects, AND no wip enrollments
+    left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
+  end
+
+  # All CustomAssessments for this Client, including WIP Assessments and assessments at WIP Enrollments
   def custom_assessments_including_wip
     enrollment_ids = enrollments.pluck(:id, :enrollment_id)
     wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
 
     Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+  end
+
+  # All Projects that this Client has Enrollments at, including WIP Enrollments
+  def projects_including_wip
+    wip_enrollment_projects = Hmis::Wip.enrollments.where(client: self).pluck(:project_id).compact
+    non_wip_enrollment_projects = projects.pluck(:id)
+
+    Hmis::Hud::Project.where(id: wip_enrollment_projects + non_wip_enrollment_projects)
+  end
+
+  def enrolled?
+    enrollments.any?
   end
 
   def self.source_for(destination_id:, user:)
@@ -114,13 +145,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def mci_id
-    external_ids_by_slug('mci').first&.value
+    ac_hmis_mci_id&.value
   end
 
   def mci_url(user = nil)
     return if user && enrollments.viewable_by(user).empty?
 
-    link_base = GrdaWarehouse::RemoteCredentials::ExternalLink.where(slug: 'clientview').first&.link_base
+    link_base = HmisExternalApis::AcHmis.link_base
     return unless link_base&.present? && mci_id&.present?
 
     "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
@@ -143,7 +174,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       },
     }
 
-    if HmisExternalApis::Mci.enabled?
+    if HmisExternalApis::AcHmis::Mci.enabled?
       external_identifiers[:mci_id] = {
         id: mci_id,
         url: mci_url(user),

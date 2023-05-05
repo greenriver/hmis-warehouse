@@ -8,6 +8,9 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include RailsDrivers::Extensions
   include ArelHelper
 
+  alias_attribute :entry_date, :first_date_in_program
+  alias_attribute :exit_date, :last_date_in_program
+
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :service_history_enrollments, autosave: false, optional: true
   belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false, optional: true
   belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false, optional: true
@@ -421,7 +424,15 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   def so?
-    self[self.class.project_type_column] == 4
+    self[self.class.project_type_column] == HudUtility.project_type_number('SO')
+  end
+
+  def ce?
+    self[self.class.project_type_column] == HudUtility.project_type_number('CE')
+  end
+
+  def homeless?
+    self[self.class.project_type_column].in?(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)
   end
 
   def nbn?
