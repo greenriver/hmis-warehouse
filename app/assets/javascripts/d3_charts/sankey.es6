@@ -136,7 +136,8 @@ App.D3Chart.Sankey = class Sankey {
         return d.y0
       })
       .attr('height', d => d.y1 - d.y0)
-      .attr('width', d => d.x1 - d.x0);
+      .attr('width', d => d.x1 - d.x0)
+      .style('cursor', 'pointer');
 
     if (G) node.attr('fill', ({ index: i }) => this.color_for_target(G[i], nodes[i]))
     //if (Tt) node.append('title').text(({ index: i }) => Tt[i]);
@@ -169,7 +170,8 @@ App.D3Chart.Sankey = class Sankey {
       .selectAll('g')
       .data(links)
       .join('g')
-      .style('mix-blend-mode', linkMixBlendMode);
+      .style('mix-blend-mode', linkMixBlendMode)
+      .style('cursor', 'pointer');
     if (linkColor === 'source-target') link.append('linearGradient')
       .attr('id', d => `${uid}-link-${d.index}`)
       .attr('gradientUnits', 'userSpaceOnUse')
@@ -251,6 +253,7 @@ App.D3Chart.Sankey = class Sankey {
         }
 
         let percent = link.value / link.source.value
+        if(percent < 0.04) return '';
         return d3.format(".0%")(percent)
       });
     let color = this.color
@@ -288,7 +291,6 @@ App.D3Chart.Sankey = class Sankey {
   }
 
   over(event, node, type) {
-    // console.log('over', node)
     // Reset container
     this.Tooltip.html('');
     // Append tooltip contents

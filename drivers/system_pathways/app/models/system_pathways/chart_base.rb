@@ -50,6 +50,11 @@ module SystemPathways::ChartBase
       self.class.known_params
     end
 
+    def long_project_type(project_type_brief)
+      number = HudUtility.project_type_number(project_type_brief)
+      HudUtility.project_type(number)
+    end
+
     def filtered_clients
       scope = clients
       scope = filter_for_race(scope)
