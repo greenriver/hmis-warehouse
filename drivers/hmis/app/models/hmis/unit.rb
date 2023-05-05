@@ -29,6 +29,11 @@ class Hmis::Unit < Hmis::HmisBase
     where(id: unit_ids)
   end
 
+  scope :unoccupied, ->(date = Date.current) do
+    occupied_unit_ids = joins(:unit_occupancies).merge(Hmis::UnitOccupancy.active_on(date)).pluck(:id)
+    where.not(id: occupied_unit_ids)
+  end
+
   def occupants_on(date = Date.current)
     enrollment_ids = Hmis::UnitOccupancy.active_on(date).where(unit: self).pluck(:enrollment_id)
     Hmis::Hud::Enrollment.where(id: enrollment_ids)
@@ -41,5 +46,9 @@ class Hmis::Unit < Hmis::HmisBase
 
   def end_date
     Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
+  end
+
+  def to_pick_list_option
+    { code: id, label: name, secondary_label: unit_type&.description }
   end
 end
