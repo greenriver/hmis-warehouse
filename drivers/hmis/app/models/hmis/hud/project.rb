@@ -91,5 +91,15 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     inventories.where(inventory_end_date: nil).update_all(inventory_end_date: operating_end_date)
   end
 
+  def to_pick_list_option
+    {
+      code: id,
+      label: project_name,
+      secondary_label: HudUtility.project_type_brief(project_type),
+      group_label: organization.organization_name,
+      group_code: organization.id,
+    }
+  end
+
   include RailsDrivers::Extensions
 end
