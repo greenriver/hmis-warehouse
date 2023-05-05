@@ -7016,7 +7016,8 @@ CREATE TABLE public.external_ids (
     remote_credential_id bigint,
     external_request_log_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    namespace character varying
 );
 
 
@@ -42886,13 +42887,6 @@ CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids U
 
 
 --
--- Name: index_external_ids_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_external_ids_on_source ON public.external_ids USING btree (source_type, source_id);
-
-
---
 -- Name: index_external_ids_on_source_id_and_source_type_and_value; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45438,6 +45432,13 @@ CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_secret_iv ON pu
 --
 
 CREATE INDEX index_remote_configs_on_remote_credential_id ON public.remote_configs USING btree (remote_credential_id);
+
+
+--
+-- Name: index_remote_credentials_on_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_remote_credentials_on_slug ON public.remote_credentials USING btree (slug);
 
 
 --
@@ -49662,6 +49663,13 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 
 
 --
+-- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
+
+
+--
 -- Name: uidx_hmis_external_referral_hms_1; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52544,7 +52552,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230428141601'),
 ('20230428145659'),
 ('20230428155418'),
+('20230428203604'),
+('20230428203806'),
+('20230428210859'),
 ('20230429185311'),
+('20230429212740'),
 ('20230429224702'),
 ('20230501183045'),
 ('20230502175218'),
