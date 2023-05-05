@@ -111,7 +111,7 @@ module Types
     end
 
     def external_ids
-      object.external_identifiers(current_user).
+      object.external_identifiers.
         map do |key, vals|
           {
             id: [key, object.id].join(':'),

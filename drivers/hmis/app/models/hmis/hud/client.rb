@@ -148,16 +148,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     ac_hmis_mci_id&.value
   end
 
-  def mci_url(user = nil)
-    return if user && enrollments.viewable_by(user).empty?
-
-    link_base = HmisExternalApis::AcHmis.link_base
+  private def clientview_url
+    link_base = HmisExternalApis::AcHmis::Clientview.link_base
     return unless link_base&.present? && mci_id&.present?
 
     "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
   end
 
-  def external_identifiers(user = nil)
+  def external_identifiers
     external_identifiers = {
       client_id: {
         id: id,
@@ -177,7 +175,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     if HmisExternalApis::AcHmis::Mci.enabled?
       external_identifiers[:mci_id] = {
         id: mci_id,
-        url: mci_url(user),
+        url: clientview_url,
         label: 'MCI ID',
       }
     end
