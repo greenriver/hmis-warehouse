@@ -13,6 +13,7 @@ module Types
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasReferralRequest
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
