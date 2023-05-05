@@ -6,21 +6,28 @@
 
 module Mutations
   class DeleteUnits < BaseMutation
-    argument :inventory_id, ID, required: true
     argument :unit_ids, [ID], required: true
 
-    field :inventory, Types::HmisSchema::Inventory, null: true
+    field :unit_ids, [ID], null: true
 
-    def resolve(inventory_id:, unit_ids:)
-      inventory = Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: inventory_id)
-      return { errors: [HmisErrors::Error.new(:inventory_id, :not_found)] } unless inventory.present?
-      return { errors: [HmisErrors::Error.new(:inventory_id, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_edit_project_details)
+    def resolve(unit_ids:)
+      units = Hmis::Unit.where(id: unit_ids)
+      return { unit_ids: [], errors: [] } unless units.any?
 
-      return { inventory => inventory, errors: [] } unless unit_ids.any?
+      projects = units.pluck(:project_id).uniq
+      errors = HmisErrors::Errors.new
+      errors.add :base, :not_found if projects.empty?
+      errors.add :base, :invalid, full_message: 'Cannot delete units across projects' if projects.size > 1
+      return { errors: errors } if errors.any?
 
-      inventory.units.where(id: unit_ids).destroy_all
+      project = Hmis::Hud::Project.find_by(id: projects&.first)
+      errors.add :base, :not_found unless project.present?
+      errors.add :base, :not_allowed unless current_user.permissions_for?(project, :can_edit_project_details)
+      return { errors: errors } if errors.any?
 
-      { inventory => inventory, errors: [] }
+      Hmis::Unit.where(id: unit_ids).destroy_all
+
+      { unit_ids: unit_ids, errors: [] }
     end
   end
 end

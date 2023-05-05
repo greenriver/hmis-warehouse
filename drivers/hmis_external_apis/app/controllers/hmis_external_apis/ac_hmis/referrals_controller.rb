@@ -6,10 +6,6 @@
 
 module HmisExternalApis::AcHmis
   class ReferralsController < HmisExternalApis::BaseController
-    before_action :authorize_request
-    skip_before_action :authenticate_user!
-    prepend_before_action :skip_timeout
-
     MAX_SIZE = 1_024_000
     def create
       # Unfortunately the referral isn't contained in top-level object
@@ -26,28 +22,20 @@ module HmisExternalApis::AcHmis
       return respond_with_errors(errors) if errors.any?
 
       render json: { message: 'Referral Created', id: referral.identifier }
+    rescue JSON::ParserError => e
+      return respond_with_errors(e.message)
     end
 
     protected
 
-    def authorize_request
-      # FIXME: token auth or oauth?
-      raise unless Rails.env.development? || Rails.env.test?
+    def internal_system
+      @internal_system ||= HmisExternalApis::InternalSystem.where(name: 'Referrals').first
     end
 
     def validate_request(data)
       schema_path = Rails.root
         .join('drivers/hmis_external_apis/public/schemas/referral.json')
       HmisExternalApis::JsonValidator.perform(data, schema_path)
-    end
-
-    # render a 400 with validation messages
-    def respond_with_errors(errors)
-      json = {
-        message: 'JSON schema validation failure',
-        errors: errors,
-      }
-      render(status: :bad_request, json: json)
     end
   end
 end

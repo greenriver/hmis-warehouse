@@ -4,5 +4,11 @@ FactoryBot.define do
       len = HmisExternalApis::InternalSystem::NAMES.length
       HmisExternalApis::InternalSystem::NAMES[n % len]
     end
+
+    HmisExternalApis::InternalSystem::NAMES.each do |the_name|
+      trait the_name.downcase.to_sym do
+        name { the_name }
+      end
+    end
   end
 end
