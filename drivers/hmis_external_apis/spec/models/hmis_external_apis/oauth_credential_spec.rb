@@ -55,7 +55,7 @@ RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
       .to_return(status: 404, body: nil, headers: {})
 
     result = subject.get(path)
-    expect(result.http_status).to be_nil
+    expect(result.http_status).to eq(404)
     expect(result.body).to be_blank
     expect(result.parsed_body).to be_blank
     expect(result.error_type).to eq('OAuth2::Error')
