@@ -151,9 +151,11 @@ App.D3Chart.Sankey = class Sankey {
         this.move(d, i, 'node')
       })
       .on('click', (e, d) => {
-        let url = new URL(this.detail_path);
-        url.searchParams.append('node', d.id);
-        window.open(url.toString(), '_blank')
+        if (this.detail_path) {
+          let url = new URL(this.detail_path);
+          url.searchParams.append('node', d.id);
+          window.open(url.toString(), '_blank')
+        }
       })
 
     let return_link = links.find(link => link.target.id == 'Returns to Homelessness')
@@ -201,10 +203,12 @@ App.D3Chart.Sankey = class Sankey {
         this.move(d, i, 'link')
       })
       .on('click', (e, d) => {
-        let url = new URL(this.detail_path);
-        url.searchParams.append('source', d.source.id);
-        url.searchParams.append('target', d.target.id);
-        window.open(url, '_blank')
+        if (this.detail_path) {
+          let url = new URL(this.detail_path);
+          url.searchParams.append('source', d.source.id);
+          url.searchParams.append('target', d.target.id);
+          window.open(url, '_blank')
+        }
       })
     // Text
     if (Tl) svg.append('g')

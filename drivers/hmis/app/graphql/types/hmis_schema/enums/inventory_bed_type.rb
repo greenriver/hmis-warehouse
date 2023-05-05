@@ -10,6 +10,6 @@ module Types
   class HmisSchema::Enums::InventoryBedType < Types::BaseEnum
     graphql_name 'InventoryBedType'
 
-    with_enum_map Hmis::Bed.bed_types_enum_map, prefix_description_with_key: false
+    with_enum_map Hmis::Hud::Inventory.bed_types_enum_map, prefix_description_with_key: false
   end
 end

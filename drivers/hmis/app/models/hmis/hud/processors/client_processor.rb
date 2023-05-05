@@ -112,7 +112,7 @@ module Hmis::Hud::Processors
 
     # Custom handler for MCI field
     private def process_mci(value)
-      return unless HmisExternalApis::Mci.enabled?
+      return unless HmisExternalApis::AcHmis::Mci.enabled?
       return if value.nil? # Shouldn't happen, but let the form validate it
 
       client = @processor.send(factory_name)
@@ -139,7 +139,7 @@ module Hmis::Hud::Processors
       # Initialize an ExternalID with this MCI ID
       client.external_ids << HmisExternalApis::ExternalId.new(
         value: value,
-        remote_credential: HmisExternalApis::Mci.new.creds,
+        remote_credential: HmisExternalApis::AcHmis::Mci.new.creds,
       )
     end
   end

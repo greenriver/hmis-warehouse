@@ -37,8 +37,8 @@ module HmisExternalApis
       self.plain_text_reminder = plain_text_api_key[0, 10] + '*' * (KEY_LENGTH - 10)
     end
 
-    def self.find_by_api_key(api_key)
-      find_by(hashed_api_key: Digest::SHA512.hexdigest(api_key.downcase.strip))
+    def self.validate(api_key:, internal_system:)
+      !!find_by(hashed_api_key: Digest::SHA512.hexdigest(api_key.downcase.strip), internal_system: internal_system)
     end
 
     def plain_text_api_key_with_fallback

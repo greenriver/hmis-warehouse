@@ -45,7 +45,7 @@ module Types
     def client_omni_search(text_search:, **args)
       client_order = Hmis::Hud::Client.searchable_to(current_user).matching_search_term(text_search).
         joins(:enrollments).
-        merge(Hmis::Hud::Enrollment.open_during_range((Date.today - 1.month)..Date.today)).
+        merge(Hmis::Hud::Enrollment.open_during_range((Date.current - 1.month)..Date.current)).
         order(e_t[:date_updated].desc).
         pluck(:id, e_t[:date_updated]).
         map(&:first).

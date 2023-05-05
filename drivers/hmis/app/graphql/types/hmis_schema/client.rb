@@ -43,6 +43,9 @@ module Types
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, [String], null: false
+    field :names, [HmisSchema::ClientName], null: false
+    field :addresses, [HmisSchema::ClientAddress], null: false
+    field :contact_points, [HmisSchema::ClientContactPoint], null: false
     enrollments_field without_args: [:search_term]
     income_benefits_field
     disabilities_field
@@ -99,6 +102,8 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
       can :delete_assessments
+      can :delete_clients, field_name: :can_delete_client
+      can :edit_clients, field_name: :can_edit_client
       can :manage_any_client_files
       can :manage_own_client_files
       can :view_any_nonconfidential_client_files
@@ -106,7 +111,7 @@ module Types
     end
 
     def external_ids
-      object.external_identifiers(current_user).
+      object.external_identifiers.
         map do |key, vals|
           {
             id: [key, object.id].join(':'),
@@ -176,6 +181,26 @@ module Types
 
     def dob
       object.safe_dob(current_user)
+    end
+
+    def names
+      if object.names.empty?
+        return [
+          object.names.new(
+            id: '0',
+            first: object.first_name,
+            last: object.last_name,
+            middle: object.middle_name,
+            suffix: object.name_suffix,
+            name_data_quality: object.name_data_quality,
+            primary: true,
+            user: object.user,
+            data_source: object.data_source,
+          ),
+        ]
+      end
+
+      object.names
     end
   end
 end

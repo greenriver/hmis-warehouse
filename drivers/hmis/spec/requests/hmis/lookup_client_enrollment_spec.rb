@@ -114,6 +114,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               #{scalar_fields(Types::HmisSchema::Service)}
             }
           }
+          incomeBenefits {
+            nodesCount
+            nodes {
+              #{scalar_fields(Types::HmisSchema::IncomeBenefit)}
+            }
+          }
+          healthAndDvs {
+            nodesCount
+            nodes {
+              #{scalar_fields(Types::HmisSchema::HealthAndDv)}
+            }
+          }
+          disabilities {
+            nodesCount
+            nodes {
+              #{scalar_fields(Types::HmisSchema::Disability)}
+            }
+          }
+          disabilityGroups {
+            #{scalar_fields(Types::HmisSchema::DisabilityGroup)}
+          }
         }
       }
     GRAPHQL
@@ -169,6 +190,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(enrollment['services']['nodesCount']).to eq(2)
       expect(enrollment['events']['nodesCount']).to eq(1)
       expect(enrollment['assessments']['nodesCount']).to eq(1)
+      expect(enrollment['incomeBenefits']['nodesCount']).to eq(1)
+      expect(enrollment['disabilities']['nodesCount']).to eq(1)
+      expect(enrollment['healthAndDvs']['nodesCount']).to eq(1)
+      expect(enrollment['disabilityGroups'].size).to eq(1)
     end
   end
 end

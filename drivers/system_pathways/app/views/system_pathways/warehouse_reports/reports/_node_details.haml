@@ -22,7 +22,7 @@
         .household-count.d-flex.mr-auto.justify-content-sm-between.mb-4
           .item-label.mr-4= pathways.client_word
           .value
-            = link_to number_with_delimiter(data.enrolled), details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(node: label))
+            = link_to_if can_access_some_version_of_clients?, number_with_delimiter(data.enrolled), details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(node: label))
         - if pathways.uses_move_in?(label)
           .days-pre-move-in.text-center.d-flex.ml-auto.mr-auto
             .item-label.mr-4 Average Days Pre-Move-In
@@ -49,8 +49,7 @@
                 %tr
                   %td= row[:source]
                   %td
-                    = link_to details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(source: row[:source], target: row[:target])) do
-                      = number_with_delimiter row[:value]
+                    = link_to_if can_access_some_version_of_clients?, number_with_delimiter(row[:value]), details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(source: row[:source], target: row[:target]))
                   %td #{percentage(row[:value]/data.enrolled.to_f * 100)}%
 
         .outgoing.ml-4.table-responsive
@@ -67,6 +66,5 @@
                 %tr
                   %td= row[:target]
                   %td
-                    = link_to details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(source: row[:source], target: row[:target])) do
-                      = number_with_delimiter row[:value]
+                    = link_to_if can_access_some_version_of_clients?, number_with_delimiter(row[:value]), details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(source: row[:source], target: row[:target]))
                   %td #{percentage(row[:value]/data.enrolled.to_f * 100)}%

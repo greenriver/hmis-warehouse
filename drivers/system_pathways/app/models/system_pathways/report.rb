@@ -198,6 +198,12 @@ module SystemPathways
 
     def detail_headers
       {
+        'Warehouse ID' => ->(en) {
+          en.client.client_id
+        },
+        'Personal IDs' => ->(en) {
+          en.client.personal_ids
+        },
         'First Name' => ->(en) {
           en.client.first_name
         },

@@ -24,30 +24,6 @@
       ]
     },
     {
-      "type": "INTEGER",
-      "link_id": "bed-inv",
-      "hidden": true,
-      "field_name": "bedInventory",
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$bedInventory"
-        }
-      ]
-    },
-    {
-      "type": "INTEGER",
-      "link_id": "unit-inv",
-      "hidden": true,
-      "field_name": "unitInventory",
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$unitInventory"
-        }
-      ]
-    },
-    {
       "type": "GROUP",
       "text": "Inventory Details",
       "link_id": "inventory-detail",
@@ -129,6 +105,99 @@
             {
               "type": "MIN",
               "question": "2.07.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "text": "Beds and Units",
+      "link_id": "beds-and-units",
+      "item": [
+        {
+          "type": "INTEGER",
+          "link_id": "unit",
+          "text": "Unit Inventory",
+          "field_name": "unitInventory",
+          "required": true
+        },
+        {
+          "type": "GROUP",
+          "link_id": "beds-group",
+          "component": "INPUT_GROUP",
+          "text": "Bed Inventory",
+          "item": [
+            {
+              "type": "INTEGER",
+              "link_id": "ch-beds",
+              "text": "Chronic",
+              "field_name": "chBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "vet-beds",
+              "text": "Veteran",
+              "field_name": "vetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "ch-vet-beds",
+              "text": "Chronic Veteran",
+              "field_name": "chVetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "youth-beds",
+              "text": "Youth",
+              "field_name": "youthBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "youth-vet-beds",
+              "text": "Youth Veteran",
+              "field_name": "youthVetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "ch-youth-beds",
+              "text": "Chronic Youth",
+              "field_name": "chYouthBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "other-beds",
+              "text": "Other",
+              "field_name": "otherBedInventory"
+            },
+            {
+              "type": "DISPLAY",
+              "link_id": "sum",
+              "text": "Total Bed Count",
+              "field_name": "bedInventory",
+              "required": true,
+              "initial": [
+                {
+                  "initial_behavior": "IF_EMPTY",
+                  "value_number": 0
+                }
+              ],
+              "autofill_values": [
+                {
+                  "autofill_readonly": true,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [],
+                  "sum_questions": [
+                    "ch-beds",
+                    "vet-beds",
+                    "ch-vet-beds",
+                    "youth-beds",
+                    "youth-vet-beds",
+                    "ch-youth-beds",
+                    "other-beds"
+                  ]
+                }
+              ]
             }
           ]
         }

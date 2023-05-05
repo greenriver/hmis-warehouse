@@ -50,7 +50,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   # Load project for WIP enrollment
   def project
-    super || enrollment.project
+    super || enrollment&.project
   end
 
   def enrollment
