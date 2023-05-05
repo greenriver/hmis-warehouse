@@ -6,7 +6,7 @@
 
 module HmisExternalApis::AcHmis
   class ClientInvolvement
-    attr_accessor :client_ids
+    attr_accessor :mci_lookup
     attr_accessor :end_date
     attr_accessor :mci_ids
     attr_accessor :start_date
@@ -37,12 +37,15 @@ module HmisExternalApis::AcHmis
         message << 'end_date was not formatted correctly.'
       end
 
-      # FIXME: Fetch the right way once it's settled
-      self.client_ids = HmisExternalApis::ExternalId.where(value: mci_ids).where(source_type: 'Hmis::Hud::Client').pluck(:source_id)
-      # self.client_ids = Hmis::Hud::Client.limit(10).pluck(:PersonalID)
+      self.mci_lookup = HmisExternalApis::ExternalId
+        .where(value: mci_ids)
+        .where(source_type: 'Hmis::Hud::Client')
+        .where(namespace: 'ac_hmis_mci')
+        .pluck(:source_id, :value) # i.e. client ID and mci ID
+        .to_h
 
       # Is this an error condition or not?
-      # message << 'no clients found' if client_ids.blank?
+      # message << 'no clients found' if mci_lookup.blank?
 
       if message.present?
         self.status_message = message.join(' ')
@@ -69,17 +72,22 @@ module HmisExternalApis::AcHmis
 
       return [] unless ok?
 
-      clients = Hmis::Hud::Client.where(id: client_ids)
-      enrollments = Hmis::Hud::Enrollment.joins(:client).merge(clients).not_in_progress.open_during_range(start_date..end_date)
+      clients = Hmis::Hud::Client.where(id: mci_lookup.keys)
+
+      enrollments = Hmis::Hud::Enrollment
+        .includes(:client)
+        .joins(:client)
+        .merge(clients)
+        .not_in_progress
+        .open_during_range(start_date..end_date)
 
       enrollments.map do |en|
         {
           entry_date: en.entry_date,
           exit_date: en.exit_date,
-          mci_id: -999,
-          # mci_id: en.client.external_id_for_mci_wip,
+          mci_id: mci_lookup[en.client.id],
           personal_id: en.personal_id,
-          program_id: en.program_id,
+          program_id: en.project_id,
         }
       end
     end
