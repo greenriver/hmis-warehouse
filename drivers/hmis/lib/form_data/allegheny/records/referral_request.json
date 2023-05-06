@@ -1,0 +1,46 @@
+{
+  "item": [
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "requestedDate",
+      "text": "Requested Date",
+      "field_name": "requestedDate"
+    },
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "unitType",
+      "text": "Unit Type",
+      "field_name": "unitType"
+    },
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "estimatedDateNeeded",
+      "text": "Estimated Date Needed",
+      "field_name": "estimatedDateNeeded"
+    },
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "requestorName",
+      "text": "Requestor Name",
+      "field_name": "requestorName"
+    },
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "requestorPhone",
+      "text": "Requestor Phone",
+      "field_name": "requestorPhone"
+    },
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "requestorEmail",
+      "text": "Requestor Email",
+      "field_name": "requestorEmail"
+    }
+  ]
+}

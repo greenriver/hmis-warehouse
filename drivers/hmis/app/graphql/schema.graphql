@@ -2268,6 +2268,11 @@ enum FormRole {
   PROJECT_COC
 
   """
+  (REFERRAL_REQUEST) Referral Request
+  """
+  REFERRAL_REQUEST
+
+  """
   (SERVICE) Service
   """
   SERVICE
@@ -4339,6 +4344,7 @@ enum RecordType {
 type ReferralRequest {
   estimatedDateNeeded: String!
   id: ID!
+  requestedDate: String!
   requestorEmailAddress: String!
   requestorName: String!
   requestorPhone: String!

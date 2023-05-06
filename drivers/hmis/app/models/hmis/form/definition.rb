@@ -30,6 +30,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     INVENTORY: 'Inventory',
     PROJECT_COC: 'Project CoC',
     FILE: 'File',
+    REFERRAL_REQUEST: 'Referral Request',
   }.freeze
 
   FORM_ROLE_CONFIG = {
@@ -45,6 +46,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
       resolve_as: 'Types::HmisSchema::File',
+    },
+    REFERRAL_REQUEST: {
+      class_name: 'HmisExternalApis::AcHmis::ReferralRequest',
+      permission: :can_edit_clients, # FIXME: need granular permission for referrals?
+      resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
   }.freeze
 

@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::ReferralRequest < Types::BaseObject
     field :id, ID, null: false
+    field :requested_date, String, null: false, method: :requested_on
     field :unit_type, ID, null: false
     field :estimated_date_needed, String, null: false, method: :needed_by
     field :requestor_name, String, null: false
