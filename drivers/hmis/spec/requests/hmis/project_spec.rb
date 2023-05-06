@@ -60,6 +60,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             access {
               #{scalar_fields(Types::HmisSchema::Project.fields['access'])}
             }
+            referralRequests {
+              nodes  {
+                #{scalar_fields(Types::HmisSchema::ReferralRequest)}
+              }
+            }
           }
         }
       GRAPHQL
