@@ -4,15 +4,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'addressable/uri'
+
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
   OauthClientConnection = Struct.new(:client_id, :client_secret, :token_url, :headers, :scope, :base_url, keyword_init: true) do
     def get(path)
-      request(:get, base_url + path)
+      request(:get, url_for(path))
     end
 
     def post(path, payload)
-      request(:post, base_url + path, payload)
+      request(:post, url_for(path), payload)
+    end
+
+    def patch(path, payload)
+      request(:patch, url_for(path), payload)
     end
 
     def self.access(client_id)
@@ -27,17 +33,21 @@ module HmisExternalApis
 
     private
 
+    # normalize leading/trailing slashes
+    def url_for(path)
+      uri = Addressable::URI.parse(base_url)
+      uri + path.strip.gsub(/\A\//, '')
+    end
+
     def request(verb, url, payload = nil)
       result =
         case verb
         when :get
           access.get(url, headers: headers)
         when :post
-          merged_headers = {
-            'Content-Type' => 'application/json',
-          }.merge(headers || {})
-
           access.post(url, headers: merged_headers, body: payload.to_json)
+        when :patch
+          access.patch(url, headers: merged_headers, body: payload.to_json)
         else
           raise "invalid verb #{verb}"
         end
@@ -57,16 +67,21 @@ module HmisExternalApis
     rescue OAuth2::Error => e
       OauthClientResult.new(
         body: result&.body || e.message,
-        content_type: result&.content_type,
+        content_type: result&.content_type || e.response&.headers&.dig('content-type'),
         error: try_parse_json(e.message) || e.message,
         error_type: e.class.name,
-        http_method: verb,
-        http_status: result&.status,
+        http_method: e.response.response.env.method,
+        http_status: result&.status || e.response&.status,
         ip: nil,
         parsed_body: try_parse_json(result&.body),
-        request_headers: merged_headers,
-        url: url,
+        request_headers: e.response.response.env.request_headers,
+        request_body: e.response.response.env.request_body,
+        url: e.response.response.env.url.to_s,
       )
+    end
+
+    def merged_headers
+      { 'Content-Type' => 'application/json' }.merge(headers || {})
     end
 
     def try_parse_json(str)
