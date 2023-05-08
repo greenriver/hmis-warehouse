@@ -67,12 +67,16 @@ module HmisExternalApis::AcHmis
 
     private
 
+    def data_source
+      @data_source ||= HmisExternalApis::AcHmis.data_source
+    end
+
     def involvements
       raise 'check validity first' if status_message.nil?
 
       return [] unless ok?
 
-      clients = Hmis::Hud::Client.where(id: mci_lookup.keys)
+      clients = Hmis::Hud::Client.where(id: mci_lookup.keys, data_source_id: data_source.id)
 
       enrollments = Hmis::Hud::Enrollment
         .includes(:client)

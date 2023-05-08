@@ -24,7 +24,11 @@ RSpec.describe HmisExternalApis::AcHmis::ClientInvolvement, type: :model do
   describe 'request' do
     let(:enrollment) { create(:hmis_hud_enrollment) }
 
-    let(:client) { enrollment.client }
+    let(:client) do
+      enrollment.client.tap do |c|
+        c.update_attribute(:data_source, HmisExternalApis::AcHmis.data_source)
+      end
+    end
 
     let(:mci_id) do
       external_id = create(:mci_external_id, source: client)

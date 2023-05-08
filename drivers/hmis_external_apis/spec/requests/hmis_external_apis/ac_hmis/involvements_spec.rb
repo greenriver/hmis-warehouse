@@ -25,6 +25,7 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
 
   describe 'client involvement' do
     it 'works minimally' do
+      create(:hmis_data_source)
       api_get(:client, { start_date: '2000-01-01', end_date: '2000-01-10', mci_ids: [12345] })
 
       expect(response.status).to eq 200
