@@ -8,16 +8,17 @@ module Mutations
   class DeleteAssessment < BaseMutation
     argument :id, ID, required: true
 
-    field :assessment, Types::HmisSchema::Assessment, null: true
+    field :assessment_id, ID, null: true
 
     def resolve(id:)
       record = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
+      return { errors: [HmisErrors::Error.new(:assessment, :not_found)] } unless record.present?
 
       record.transaction do
         role = record.custom_form.definition.role
         is_wip = record.in_progress?
 
-        default_delete_record(
+        result = default_delete_record(
           record: record,
           field_name: :assessment,
           authorize: ->(assessment, user) do
@@ -37,6 +38,9 @@ module Mutations
             record.enrollment&.destroy if role == 'INTAKE'
           end,
         )
+
+        # Only resolve the ID, because there are issues resolving the assessment after the enrollment got deleted
+        { assessment_id: result[:assessment]&.id, errors: result[:errors] }
       end
     end
   end

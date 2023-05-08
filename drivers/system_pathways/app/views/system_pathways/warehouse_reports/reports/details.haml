@@ -1,0 +1,67 @@
+= content_for :crumbs do
+  = link_to @report.show_path do
+    = "« #{@report.title}"
+- content_for :title, "#{@report.title} details: #{@details_title}"
+
+.d-flex.mb-2
+  %h1= content_for :title
+-# = debug params
+-# = debug filter_params
+-# = debug @clients.to_sql
+%h3 Report Options
+.well.report-listing.warehouse-reports__completed
+  .justify-content-between.d-flex
+    = @report.describe_filter_as_html(@report.known_detail_params)
+- if filtering_show?
+  %h3 Further Limited to
+  .well.report-listing.warehouse-reports__completed
+    .justify-content-between.d-flex
+      = @chart.describe_filter_as_html
+- if filtering_details?
+  %h3 Further Limited to
+  .well.report-listing.warehouse-reports__completed
+    .justify-content-between.d-flex
+      = @chart.describe_detail_filter_as_html
+- if @clients.blank?
+  .none-found No records found.
+- else
+  .d-flex.mb-4
+    .mr-4
+      .input-group
+        %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+        %span.input-group-append
+          %button.btn.btn-secondary Search
+    -# .ml-auto
+    -# = link_to details_system_pathways_warehouse_reports_report_path(@filter.for_params.merge(@detail_options).merge(format: :xlsx)), class: ['btn', 'btn-secondary'] do
+      %i.icon-file-excel
+      Download Excel
+    %p.ml-auto
+      %strong= pluralize(number_with_delimiter(@clients.count), 'client')
+  .card
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
+        %thead.thead-dark
+          %tr
+            %th
+            - @report.detail_headers.each_key do |header|
+              %th= header
+        %tbody.thead-dark
+          - @clients.find_each.with_index do |enrollment, i|
+            %tr
+              %th= number_with_delimiter(i + 1)
+              - @report.detail_headers.each do |label, lamda|
+                %td{style: 'max-width: 600px;'}
+                  - value = lamda.(enrollment)
+                  - if label == 'Warehouse ID'
+                    = link_to value, appropriate_client_path(id: value)
+                  - else
+                    = value
+    = content_for :page_js do
+      :javascript
+        table = $('.datatable').DataTable({
+          paging: false,
+          "dom": 'lrtip'
+        });
+        $('#table_search').keyup(function(){
+          table.search($(this).val()).draw() ;
+        })
