@@ -7,13 +7,19 @@
 module HmisExternalApis::AcHmis
   class InvolvementsController < HmisExternalApis::BaseController
     def client
-      # ClientInvolvement.new(client_params)
-      render json: { not: :implemented_yet }
+      involvement = ClientInvolvement.new(client_params)
+
+      involvement.validate_request!
+
+      render json: involvement.to_json, status: (involvement.ok? ? :ok : :bad_request)
     end
 
     def program
-      # ProgramInvolvement.new(program_params)
-      render json: { not: :implemented_yet }
+      involvement = ProgramInvolvement.new(program_params)
+
+      involvement.validate_request!
+
+      render json: involvement.to_json, status: (involvement.ok? ? :ok : :bad_request)
     end
 
     protected
