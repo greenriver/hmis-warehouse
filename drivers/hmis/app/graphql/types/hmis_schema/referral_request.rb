@@ -16,5 +16,9 @@ module Types
     field :requestor_name, String, null: false
     field :requestor_phone, String, null: false
     field :requestor_email, String, null: false
+
+    def unit_type
+      object.unit_type.description
+    end
   end
 end
