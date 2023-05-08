@@ -163,7 +163,9 @@ module Mutations
         record.user = current_user
         record.updated_by = current_user
       when HmisExternalApis::AcHmis::ReferralRequest
-        record.requested_by = current_hud_user
+        # FIXME
+        record.identifier = SecureRandom.uuid
+        record.requested_by = current_user
       else
         record.user = current_hud_user
         record.data_source_id = current_hud_user.data_source_id

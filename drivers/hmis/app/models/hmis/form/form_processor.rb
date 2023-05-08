@@ -44,7 +44,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       begin
         container_processor(container)&.process(field, value)
       rescue StandardError => e
-        raise e.class, "Error processing field '#{field}': #{e.message}"
+        raise $!, "Error processing field '#{field}': #{e.message}", $!.backtrace
       end
     end
 
@@ -205,6 +205,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
+      ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
     }.freeze
   end
 

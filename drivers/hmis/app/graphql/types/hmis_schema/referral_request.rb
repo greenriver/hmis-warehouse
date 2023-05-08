@@ -9,11 +9,12 @@
 module Types
   class HmisSchema::ReferralRequest < Types::BaseObject
     field :id, ID, null: false
-    field :requested_date, String, null: false, method: :requested_on
+    field :requested_on, String, null: false
     field :unit_type, ID, null: false
-    field :estimated_date_needed, String, null: false, method: :needed_by
+    #field :living_situation, HmisSchema::Enums::Hud::LivingSituation
+    field :needed_by, String, null: false
     field :requestor_name, String, null: false
     field :requestor_phone, String, null: false
-    field :requestor_email_address, String, null: false, method: :requestor_email
+    field :requestor_email, String, null: false
   end
 end

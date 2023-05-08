@@ -3,23 +3,24 @@
     {
       "type": "DATE",
       "required": true,
-      "link_id": "requestedDate",
+      "link_id": "requestedOn",
       "text": "Requested Date",
-      "field_name": "requestedDate"
+      "field_name": "requestedOn"
     },
     {
-      "type": "STRING",
+      "type": "CHOICE",
       "required": true,
       "link_id": "unitType",
       "text": "Unit Type",
+      "pick_list_reference": "UNIT_TYPES",
       "field_name": "unitType"
     },
     {
       "type": "DATE",
       "required": true,
-      "link_id": "estimatedDateNeeded",
+      "link_id": "neededBy",
       "text": "Estimated Date Needed",
-      "field_name": "estimatedDateNeeded"
+      "field_name": "neededBy"
     },
     {
       "type": "STRING",

@@ -4342,10 +4342,10 @@ enum RecordType {
 }
 
 type ReferralRequest {
-  estimatedDateNeeded: String!
   id: ID!
-  requestedDate: String!
-  requestorEmailAddress: String!
+  neededBy: String!
+  requestedOn: String!
+  requestorEmail: String!
   requestorName: String!
   requestorPhone: String!
   unitType: ID!
