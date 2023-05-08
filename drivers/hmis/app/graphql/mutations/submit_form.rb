@@ -35,12 +35,7 @@ module Mutations
           record&.assign_attributes(user: hud_user)
         end
       else
-        record = klass.new(
-          user: klass == Hmis::File ? current_user : hud_user,
-          data_source_id: hud_user.data_source_id,
-          **related_id_attributes(klass.name, input),
-        )
-        record.updated_by = current_user if klass == Hmis::File
+        record = build_new_record(klass, input)
       end
 
       errors.add :record, :not_found unless record.present?
@@ -140,6 +135,10 @@ module Mutations
         {
           project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.ProjectID,
         }
+      when 'HmisExternalApis::AcHmis::ReferralRequest'
+        {
+          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.id,
+        }
       when 'Hmis::Hud::HmisService'
         enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)
         {
@@ -154,6 +153,26 @@ module Mutations
       else
         {}
       end
+    end
+
+    def build_new_record(klass, input)
+      record = klass.new
+      record.attributes = related_id_attributes(klass.name, input)
+      case record
+      when Hmis::File
+        record.user = current_user
+        record.updated_by = current_user
+      when HmisExternalApis::AcHmis::ReferralRequest
+        record.requested_by = current_hud_user
+      else
+        record.user = current_hud_user
+        record.data_source_id = current_hud_user.data_source_id
+      end
+      record
+    end
+
+    def current_hud_user
+      Hmis::Hud::User.from_user(current_user)
     end
   end
 end

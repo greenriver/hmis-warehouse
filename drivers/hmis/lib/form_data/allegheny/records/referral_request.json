@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "type": "STRING",
+      "type": "DATE",
       "required": true,
       "link_id": "requestedDate",
       "text": "Requested Date",
@@ -15,7 +15,7 @@
       "field_name": "unitType"
     },
     {
-      "type": "STRING",
+      "type": "DATE",
       "required": true,
       "link_id": "estimatedDateNeeded",
       "text": "Estimated Date Needed",
