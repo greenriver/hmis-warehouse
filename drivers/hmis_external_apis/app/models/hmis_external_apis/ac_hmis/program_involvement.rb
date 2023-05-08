@@ -6,6 +6,8 @@
 
 module HmisExternalApis::AcHmis
   class ProgramInvolvement
+    include ArelHelper
+
     attr_accessor :end_date
     attr_accessor :program_id
     attr_accessor :project
@@ -73,10 +75,9 @@ module HmisExternalApis::AcHmis
       personal_ids = enrollments.map(&:personal_id)
 
       mci_lookup = HmisExternalApis::ExternalId
-        .joins('join "Client" ON source_id = "Client".id')
-        .where('"Client"."PersonalID" in (?)', personal_ids)
-        .where(source_type: 'Hmis::Hud::Client')
+        .joins(:client)
         .where(namespace: 'ac_hmis_mci')
+        .where(c_t[:PersonalID].in(personal_ids))
         .pluck(:source_id, :value) # i.e. client ID and mci ID
         .to_h
 

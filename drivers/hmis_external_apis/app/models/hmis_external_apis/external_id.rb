@@ -13,6 +13,7 @@ module HmisExternalApis
     belongs_to :external_request_log, optional: true
     belongs_to :remote_credential, class_name: 'GrdaWarehouse::RemoteCredential'
     belongs_to :source, polymorphic: true
+    belongs_to :client, -> { where(external_ids: { source_type: 'Hmis::Hud::Client' }) }, foreign_key: 'source_id', class_name: 'Hmis::Hud::Client', optional: true
 
     validates :value, presence: true
   end
