@@ -25,6 +25,8 @@ module HmisExternalApis::AcHmis
       message << 'start_date not provided.' if start_date.blank?
       message << 'end_date not provided.' if end_date.blank?
 
+      message << 'must only provide a single program_id.' if program_id.is_a?(Array)
+
       begin
         self.start_date = Date.strptime(start_date, '%Y-%m-%d') if start_date.present?
       rescue Date::Error
@@ -65,8 +67,18 @@ module HmisExternalApis::AcHmis
 
       return [] unless ok?
 
-      enrollments = Hmis::Hud::Enrollment.in_project([project.id]).open_during_range(start_date..end_date)
-      # FIXME: Need to preload/join/include external id for MCI ID and add below
+      enrollments = Hmis::Hud::Enrollment.in_project(project.id)
+        .open_during_range(start_date..end_date)
+
+      personal_ids = enrollments.map(&:personal_id)
+
+      mci_lookup = HmisExternalApis::ExternalId
+        .joins('join "Client" ON source_id = "Client".id')
+        .where('"Client"."PersonalID" in (?)', personal_ids)
+        .where(source_type: 'Hmis::Hud::Client')
+        .where(namespace: 'ac_hmis_mci')
+        .pluck(:source_id, :value) # i.e. client ID and mci ID
+        .to_h
 
       enrollments.map do |en|
         {
@@ -75,8 +87,7 @@ module HmisExternalApis::AcHmis
           first_name: en.client.first_name,
           household_id: en.household_id,
           last_name: en.client.last_name,
-          mci_id: -999,
-          # mci_id: en.client.external_id_for_mci_wip,
+          mci_id: mci_lookup[en.client.id],
           personal_id: en.client.personal_id,
           relationship_to_hoh: en.relationship_to_hoh,
         }

@@ -46,6 +46,7 @@ RSpec.describe HmisExternalApis::AcHmis::ClientInvolvement, type: :model do
     it 'works' do
       involvements = JSON.parse(involvement.to_json)['involvements']
 
+      expect(involvement).to be_ok
       expect(involvements.length).to eq(1)
       expect(involvements[0]['mci_id']).to eq(mci_id)
     end
