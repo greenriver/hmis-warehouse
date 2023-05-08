@@ -64,6 +64,10 @@ module HmisExternalApis::AcHmis
 
     private
 
+    def data_source
+      @data_source ||= HmisExternalApis::AcHmis.data_source
+    end
+
     def involvements
       raise 'check validity first' if status_message.nil?
 
@@ -76,6 +80,7 @@ module HmisExternalApis::AcHmis
 
       mci_lookup = HmisExternalApis::ExternalId
         .joins(:client)
+        .where(c_t[:data_source_id].eq(data_source.id))
         .where(namespace: 'ac_hmis_mci')
         .where(c_t[:PersonalID].in(personal_ids))
         .pluck(:source_id, :value) # i.e. client ID and mci ID
