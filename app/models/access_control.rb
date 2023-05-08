@@ -10,8 +10,8 @@ class AccessControl < ApplicationRecord
 
   belongs_to :access_group
   belongs_to :role
-  has_many :user_access_controls, inverse_of: :access_control
-  has_many :users, through: :user_access_controls
+  belongs_to :user_group, inverse_of: :access_controls
+  has_many :users, through: :user_group
 
   delegate :health?, to: :role
 
@@ -48,18 +48,8 @@ class AccessControl < ApplicationRecord
       order(Role.arel_table[:name].asc, AccessGroup.arel_table[:name].asc)
   end
 
-  def add(users)
-    Array.wrap(users).uniq.each do |user|
-      user_access_controls.where(user_id: user.id).first_or_create!
-    end
-  end
-
-  def remove(users)
-    user_access_controls.where(user_id: users.pluck(:id)).destroy_all
-  end
-
   def name
-    "#{role.name} x #{access_group.name}"
+    "#{role.name} x #{access_group.name} x #{user_group.name}"
   end
 
   def self.options_for_select(include_health: true, include_homeless: true)

@@ -56,6 +56,7 @@ CREATE TABLE public.access_controls (
     id bigint NOT NULL,
     access_group_id bigint,
     role_id bigint,
+    user_group_id bigint,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -990,7 +991,6 @@ CREATE TABLE public.hmis_roles (
     can_manage_own_client_files boolean DEFAULT false NOT NULL,
     can_view_any_nonconfidential_client_files boolean DEFAULT false NOT NULL,
     can_view_any_confidential_client_files boolean DEFAULT false NOT NULL,
-    can_manage_client_files boolean DEFAULT false NOT NULL,
     can_audit_clients boolean DEFAULT false NOT NULL,
     can_delete_clients boolean DEFAULT false NOT NULL,
     can_delete_assessments boolean DEFAULT false
@@ -2541,12 +2541,12 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
--- Name: user_access_controls; Type: TABLE; Schema: public; Owner: -
+-- Name: user_group_members; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.user_access_controls (
+CREATE TABLE public.user_group_members (
     id bigint NOT NULL,
-    access_control_id bigint,
+    user_group_id bigint,
     user_id bigint,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
@@ -2555,10 +2555,10 @@ CREATE TABLE public.user_access_controls (
 
 
 --
--- Name: user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: user_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.user_access_controls_id_seq
+CREATE SEQUENCE public.user_group_members_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2567,10 +2567,42 @@ CREATE SEQUENCE public.user_access_controls_id_seq
 
 
 --
--- Name: user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: user_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.user_access_controls_id_seq OWNED BY public.user_access_controls.id;
+ALTER SEQUENCE public.user_group_members_id_seq OWNED BY public.user_group_members.id;
+
+
+--
+-- Name: user_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_groups (
+    id bigint NOT NULL,
+    name character varying,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_groups_id_seq OWNED BY public.user_groups.id;
 
 
 --
@@ -3086,10 +3118,17 @@ ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uplo
 
 
 --
--- Name: user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: user_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.user_access_controls_id_seq'::regclass);
+ALTER TABLE ONLY public.user_group_members ALTER COLUMN id SET DEFAULT nextval('public.user_group_members_id_seq'::regclass);
+
+
+--
+-- Name: user_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_groups ALTER COLUMN id SET DEFAULT nextval('public.user_groups_id_seq'::regclass);
 
 
 --
@@ -3457,11 +3496,19 @@ ALTER TABLE ONLY public.uploads
 
 
 --
--- Name: user_access_controls user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: user_group_members user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_access_controls
-    ADD CONSTRAINT user_access_controls_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.user_group_members
+    ADD CONSTRAINT user_group_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_groups user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_groups
+    ADD CONSTRAINT user_groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -3522,6 +3569,13 @@ CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls 
 --
 
 CREATE INDEX index_access_controls_on_role_id ON public.access_controls USING btree (role_id);
+
+
+--
+-- Name: index_access_controls_on_user_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_access_controls_on_user_group_id ON public.access_controls USING btree (user_group_id);
 
 
 --
@@ -3868,17 +3922,17 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
--- Name: index_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_access_controls_on_access_control_id ON public.user_access_controls USING btree (access_control_id);
+CREATE INDEX index_user_group_members_on_user_group_id ON public.user_group_members USING btree (user_group_id);
 
 
 --
--- Name: index_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_user_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_access_controls_on_user_id ON public.user_access_controls USING btree (user_id);
+CREATE INDEX index_user_group_members_on_user_id ON public.user_group_members USING btree (user_id);
 
 
 --
@@ -4291,7 +4345,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230329112926'),
 ('20230329112954'),
 ('20230330161305'),
-('20230330182609'),
 ('20230412142430'),
 ('20230418170053'),
 ('20230420195221');

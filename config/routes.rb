@@ -762,14 +762,11 @@ Rails.application.routes.draw do
       post :confirm
     end
 
-    resources :roles do
-      resources :users, only: [:create, :destroy], controller: 'roles/users'
-    end
-    resources :groups do
-      resources :users, only: [:create, :destroy], controller: 'groups/users'
-    end
-    resources :access_controls do
-      resources :users, only: [:create, :destroy], controller: 'access_controls/users'
+    resources :roles
+    resources :access_groups
+    resources :access_controls
+    resources :user_groups do
+      resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end
     resources :agencies
     resources :glacier, only: [:index]

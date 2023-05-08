@@ -8,11 +8,14 @@
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_roles_path))}
         = link_to 'Roles', admin_roles_path, class: 'nav-link'
     - if can_edit_access_groups?
-      %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_groups_path))}
-        = link_to 'Groups', admin_groups_path, class: 'nav-link'
+      %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_access_groups_path))}
+        = link_to 'Entity Groups', admin_access_groups_path, class: 'nav-link'
+    - if can_edit_users?
+      %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_user_groups_path))}
+        = link_to 'User Groups', admin_user_groups_path, class: 'nav-link'
     - if can_edit_users?
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_access_controls_path))}
-        = link_to 'Access Control Lists', admin_access_controls_path, class: 'nav-link'
+        = link_to 'Access Controls', admin_access_controls_path, class: 'nav-link'
     - if can_edit_users?
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_agencies_path))}
         = link_to 'Agencies', admin_agencies_path, class: 'nav-link'

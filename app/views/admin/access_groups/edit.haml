@@ -1,0 +1,21 @@
+- title = "Edit Entity Group #{@group.name}"
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to admin_access_groups_path do
+    &laquo; Manage Entity Groups
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+
+= simple_form_for @group, url: admin_access_group_path do |f|
+  = f.error_notification
+  .form-inputs
+    = render 'form', f: f
+  - unless @group.entities_locked?
+    .form_actions.mt-4
+      = f.button :submit, value: 'Update Group'
+
+.mt-4
+  = render 'users/user_members_table', item: @group, path_to_add_users: nil, path_to_delete_item: admin_access_group_path(@group), delete_user_lambda: nil

@@ -10,8 +10,8 @@ class Role < ApplicationRecord
   validates :name, presence: true
 
   has_many :access_controls, inverse_of: :role
-  has_many :user_access_controls, through: :access_controls
-  has_many :users, through: :user_access_controls
+  has_many :users, through: :access_controls
+  # Keep for health roles
   has_many :user_roles
   has_many :health_users, through: :user_roles
 

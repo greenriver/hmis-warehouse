@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class UserAccessControl < ApplicationRecord
+class UserGroupMember < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
 
-  belongs_to :access_control
-  belongs_to :user
+  belongs_to :user_group, inverse_of: :user_group_members
+  belongs_to :user, inverse_of: :user_group_members
 end

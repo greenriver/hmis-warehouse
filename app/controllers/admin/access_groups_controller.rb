@@ -5,7 +5,7 @@
 ###
 
 module Admin
-  class GroupsController < ApplicationController
+  class AccessGroupsController < ApplicationController
     before_action :require_can_edit_access_groups!
     before_action :set_group, only: [:edit, :update, :destroy]
     before_action :set_entities, only: [:new, :edit, :create, :update]
