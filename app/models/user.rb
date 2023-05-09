@@ -114,6 +114,6 @@ class User < ApplicationRecord
 
   # list any reports the user has some level of access to
   def reports
-    GrdaWarehouse::DataSource.where(id: access_groups.flat_map(&:report_ids))
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(id: access_groups.flat_map(&:report_ids))
   end
 end

@@ -2582,7 +2582,8 @@ CREATE TABLE public.user_groups (
     name character varying,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    system boolean DEFAULT false NOT NULL
 );
 
 
@@ -4347,6 +4348,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230330161305'),
 ('20230412142430'),
 ('20230418170053'),
-('20230420195221');
+('20230420195221'),
+('20230509131056');
 
 

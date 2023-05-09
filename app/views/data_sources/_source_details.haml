@@ -55,5 +55,5 @@
         %td= yes_no(@data_source.service_scannable)
     %tr
       %th.pl-2 Viewable by the following users, regardless of visibility in window
-      %td= @data_source.users.active.joins(:roles).where(roles: {can_view_clients: true}).diet.distinct.map(&:name).join(', ')
+      %td= @data_source.users.active.joins(:roles).where(roles: {can_view_clients: true}).diet.map(&:name).uniq.join(', ')
   .text-right.m-2.mb-4

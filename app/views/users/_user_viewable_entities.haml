@@ -1,12 +1,6 @@
 - base ||= 'user'
 
 %h3 User Access
-%p The following section allows you to assign access to data within the warehouse and to specify permissions for that data.  Assignments and access are granted through Access Control Lists.  Access Control Lists or ACLs are simply a combination of a Role and a Group.  Roles specify available permissions, groups specify the data on which to apply those permissions.
-.alert.alert-info.align-items-start
-  %i.icon-warning.mr-2.mt-2
-  .alert__content
-    Clients with records in specified data sources will be visible in the window to this user, regardless of data source visibility settings if they belong to a role with the
-    %strong "Can see clients in window for assigned data sources"
-    permission
+%p Access to data in the warehouse is granted through Access Controls.  Access Controls are a combination of a Role that grants permissions, an Entity Group that specifies where the permissions should be applied, and a User Group containing the members who should be granted the permission to the associated entities.  You can assign the user to specific groups below.  Any Access Controls they have will be listed at the bottom of the page.
 
-= f.association :access_controls, as: :grouped_select_two, group_method: :last, collection: AccessControl.options_for_select(include_health: false), label: 'Access Control Lists', input_html: { multiple: true }
+= f.association :user_groups, as: :select_two, collection: UserGroup.options_for_select, label: 'User Groups', input_html: { multiple: true }

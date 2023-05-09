@@ -648,6 +648,7 @@ Rails.application.routes.draw do
   resources :source_data, only: [:index, :show]
 
   resources :weather, only: [:index]
+  resources :access_controls, only: [:show]
 
   resources :notifications, only: [:show] do
     resources :projects, only: [:show] do

@@ -1,0 +1,25 @@
+- access_controls = user.access_controls.preload(:role, :access_group, :user_group)
+- if access_controls.empty?
+  %p.none-found
+    #{user.name} has not been granted any access.
+- else
+  %h3.mt-6 Currently Assigned Access Controls
+  .card
+    %table.table.table-striped
+      %thead
+        %tr
+          %th User Group
+          %th Role
+          %th Entity Group
+          %th Details
+      %tbody
+        - access_controls.each do |access_control|
+          %tr
+            %td= link_to_if(can_edit_users?, access_control.user_group.name, admin_user_group_path(access_control.access_group), target: :_blank)
+            %td= link_to_if(can_edit_roles?, access_control.role.name, admin_roles_path, target: :_blank)
+            %td= link_to_if(can_edit_access_groups?, access_control.access_group.name, admin_access_group_path(access_control.access_group), target: :_blank)
+
+            %td
+              = link_to access_control_path(access_control), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
+                %i.icon-eye
+                View Details

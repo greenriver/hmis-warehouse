@@ -131,6 +131,10 @@ class Role < ApplicationRecord
     permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
   end
 
+  def enabled_permissions
+    self.class.permissions_with_descriptions.select { |k, _| send(k) }
+  end
+
   def self.permissions_with_descriptions
     {
       # Deprecated, this is now covered by visible_to

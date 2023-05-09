@@ -72,7 +72,7 @@ module Admin
         User.transaction do
           @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
-          @user.user_access_controls.where.not(access_control_id: assigned_acl_ids).destroy_all
+          @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update!(user_params)
         end
@@ -81,7 +81,7 @@ module Admin
         render :edit
         return
       end
-      redirect_to({ action: :index }, notice: 'User updated')
+      respond_with(@user, location: edit_admin_user_path(@user))
     end
 
     def destroy
@@ -108,8 +108,8 @@ module Admin
 
         # If we don't already have a role granting an admin permission, and we're assinging some
         # ACLs (with associated roles)
-        if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_acl_ids.present?
-          assigned_roles = AccessControl.where(id: assigned_acl_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
+        if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_user_group_ids.present?
+          assigned_roles = AccessControl.where(user_group_id: assigned_user_group_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
           added_role_ids = assigned_roles - existing_roles.pluck(:id)
           Role.where(id: added_role_ids.reject(&:blank?)).find_each do |role|
             # If any role we're adding is administrative, make note, and present the confirmation page
@@ -124,8 +124,8 @@ module Admin
       end
     end
 
-    private def assigned_acl_ids
-      user_params[:access_control_ids]&.reject(&:blank?)&.map(&:to_i) || []
+    private def assigned_user_group_ids
+      user_params[:user_group_ids]&.reject(&:blank?)&.map(&:to_i) || []
     end
 
     private def user_scope
@@ -152,7 +152,7 @@ module Admin
         :otp_required_for_login,
         :expired_at,
         :training_completed,
-        access_control_ids: [],
+        user_group_ids: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
       )
     end

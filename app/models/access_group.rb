@@ -96,7 +96,7 @@ class AccessGroup < ApplicationRecord
     maintain_system_groups(group: group)
   end
 
-  def self.system_groups
+  def self.system_access_groups
     {
       hmis_reports: AccessGroup.where(name: 'All HMIS Reports', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
       health_reports: AccessGroup.where(name: 'All Health Reports', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
@@ -107,8 +107,8 @@ class AccessGroup < ApplicationRecord
     }
   end
 
-  def self.system_group(group)
-    selected_group = system_groups[group]
+  def self.system_access_group(group)
+    selected_group = system_access_groups[group]
     raise ArgumentError, "Unknown group: #{group}" unless selected_group
 
     selected_group
@@ -117,54 +117,53 @@ class AccessGroup < ApplicationRecord
   def self.maintain_system_groups(group: nil)
     # First or Create the following:
     # setup system role
-    # setup system hidden group (with all items currently in system groups below)
-    # setup system user
+    # setup system access group (with all items currently in system groups below)
+    # setup system user group
     # setup system ACL with system role, system groups, system user
     # Then add all ids for each category with set_viewables
     system_user_role = Role.system_user_role
-    system_user_group = system_group(:system_user)
-    system_user = User.system_user
-    system_user_acl = AccessControl.where(role_id: system_user_role.id, access_group_id: system_user_group.id).first_or_create
-    system_user_acl.add(system_user)
+    system_user_access_group = system_access_group(:system_user)
+    system_user_group = UserGroup.system_user
+    AccessControl.where(role_id: system_user_role.id, access_group_id: system_user_access_group.id, user_group_id: system_user_group.id).first_or_create
 
     if group.blank? || group == :reports
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
       all_report_ids = []
-      all_hmis_reports = system_group(:hmis_reports)
+      all_hmis_reports = system_access_group(:hmis_reports)
       ids = all_reports.where(health: false).pluck(:id)
       all_hmis_reports.set_viewables({ reports: ids })
       all_report_ids += ids
 
-      all_health_reports = system_group(:health_reports)
+      all_health_reports = system_access_group(:health_reports)
       ids = all_reports.where(health: true).pluck(:id)
       all_health_reports.set_viewables({ reports: ids })
       all_report_ids += ids
-      system_user_group.set_viewables({ reports: all_report_ids })
+      system_user_access_group.set_viewables({ reports: all_report_ids })
     end
 
     if group.blank? || group == :cohorts
       # Cohorts
-      all_cohorts = system_group(:cohorts)
+      all_cohorts = system_access_group(:cohorts)
       ids = GrdaWarehouse::Cohort.pluck(:id)
       all_cohorts.set_viewables({ cohorts: ids })
-      system_user_group.set_viewables({ cohorts: ids })
+      system_user_access_group.set_viewables({ cohorts: ids })
     end
 
     if group.blank? || group == :project_groups
       # Project Groups
-      all_project_groups = system_group(:project_groups)
+      all_project_groups = system_access_group(:project_groups)
       ids = GrdaWarehouse::ProjectGroup.pluck(:id)
       all_project_groups.set_viewables({ project_groups: ids })
-      system_user_group.set_viewables({ project_groups: ids })
+      system_user_access_group.set_viewables({ project_groups: ids })
     end
 
     if group.blank? || group == :data_sources # rubocop:disable Style/GuardClause
       # Data Sources
-      all_data_sources = system_group(:data_sources)
+      all_data_sources = system_access_group(:data_sources)
       ids = GrdaWarehouse::DataSource.pluck(:id)
       all_data_sources.set_viewables({ data_sources: ids })
-      system_user_group.set_viewables({ data_sources: ids })
+      system_user_access_group.set_viewables({ data_sources: ids })
     end
   end
 
@@ -256,6 +255,23 @@ class AccessGroup < ApplicationRecord
         []
       end
     end
+  end
+
+  def all_associated_entities
+    {
+      'CoC Codes' => coc_codes.map do |code|
+        [
+          code,
+          GrdaWarehouse::Hud::Project.project_names_for_coc(code),
+        ]
+      end,
+      'Project Groups' => project_access_groups.preload(:projects).map(&:name),
+      'Data Sources' => data_sources.map(&:name),
+      'Organizations' => organizations.map(&:OrganizationName),
+      'Projects' => projects.map(&:ProjectName),
+      'Cohorts' => cohorts.map(&:name),
+      'Reports' => reports.map(&:name),
+    }
   end
 
   def associated_entity_set

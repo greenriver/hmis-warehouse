@@ -1,0 +1,4 @@
+.row
+  .col-8
+    = f.input :name
+    = f.input :user_ids, as: :select_two, label_method: :name, collection: User.active.not_system, input_html: { multiple: true }

@@ -5,6 +5,7 @@
 ###
 
 class AccessControl < ApplicationRecord
+  include ActionView::Helpers::TagHelper
   acts_as_paranoid
   has_paper_trail
 
@@ -14,6 +15,7 @@ class AccessControl < ApplicationRecord
   has_many :users, through: :user_group
 
   delegate :health?, to: :role
+  validates_presence_of :access_group_id, :role_id, :user_group_id
 
   # These should not show up anywhere, (there should only be one)
   # The system access control list is joined to the hidden system group that includes
@@ -24,7 +26,8 @@ class AccessControl < ApplicationRecord
   end
 
   scope :not_system, -> do
-    joins(:access_group).merge(AccessGroup.not_system)
+    joins(:access_group).
+      merge(AccessGroup.not_system)
   end
 
   scope :selectable, -> do
@@ -44,12 +47,31 @@ class AccessControl < ApplicationRecord
   end
 
   scope :ordered, -> do
-    joins(:role, :access_group).
-      order(Role.arel_table[:name].asc, AccessGroup.arel_table[:name].asc)
+    joins(:role, :access_group, :user_group).
+      order(UserGroup.arel_table[:name].asc, Role.arel_table[:name].asc, AccessGroup.arel_table[:name].asc)
+  end
+
+  # If all entities are system entities, this is a system Access Control
+  def system?
+    [user_group.system?, role.system?, access_group.system?].all?
   end
 
   def name
     "#{role.name} x #{access_group.name} x #{user_group.name}"
+  end
+
+  def name_as_html
+    name_parts = [
+      content_tag(:span, role.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, access_group.name, class: 'badge badge-info font-weight-normal'),
+      content_tag(:span, user_group.name, class: 'badge badge-info font-weight-normal'),
+    ]
+
+    content_tag(
+      :div,
+      name_parts.join(' ').html_safe,
+      class: 'font-size-md',
+    ).html_safe
   end
 
   def self.options_for_select(include_health: true, include_homeless: true)

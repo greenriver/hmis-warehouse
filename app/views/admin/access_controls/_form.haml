@@ -1,4 +1,6 @@
+%p Access Controls grant a set of permissions for a set of data to a set of users.  Permissions are attached to Roles, data access is granted through Entity Groups and users are assigned via User Groups.
 .row
-  .col-8
+  .col-6
     = f.input :role_id, as: :select_two, label_method: :name, collection: Role.editable
-    = f.input :access_group_id, as: :select_two, label_method: :name, collection: AccessGroup.general
+    = f.input :access_group_id, as: :select_two, label_method: :name, collection: AccessGroup.general, label: 'Entity group'
+    = f.input :user_group_id, as: :select_two, label_method: :name, collection: UserGroup.not_system

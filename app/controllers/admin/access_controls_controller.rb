@@ -34,22 +34,23 @@ class Admin::AccessControlsController < ApplicationController
     @acl.update(access_control_params)
     @acl.save
 
-    redirect_to({ action: :index }, notice: 'Access Control List updated.')
+    respond_with(@acl, location: admin_access_control_path)
   end
 
   def destroy
     @acl.destroy
-    redirect_to({ action: :index }, notice: 'Access Control List removed.')
+    respond_with(@acl, location: admin_access_controls_path)
   end
 
   private def access_control_scope
-    AccessControl.selectable
+    AccessControl.all
   end
 
   private def access_control_params
     params.require(:access_control).permit(
       :role_id,
       :access_group_id,
+      :user_group_id,
     )
   end
 

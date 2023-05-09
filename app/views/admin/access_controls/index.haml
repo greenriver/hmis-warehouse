@@ -4,36 +4,40 @@
 
 .alert.alert-info
   %i.icon-warning.mr-4
-  %p Access Control Lists are used to grant users access to data and permissions. Each Access Control List consists of one Group and one Role. Each user in the Access Control List inherits data access from the Group, and inherits permissions from the Role.
+  %p Access Controls are used to grant users access to data and permissions. Each Access Control consists of one Entity Group, one Role, and one User Group. Access is governed by the intersection of permission from teh role, entities from the entity group, and users from the user group.
 .text-right
   = link_to new_admin_access_control_path, class: 'btn btn-primary mb-2' do
     %span.icon-plus
     Create a new Access Control List
 - if @pagy.count.positive?
-  = render 'common/pagination_top', item_name: 'access control list'
+  = render 'common/pagination_top', item_name: 'access control'
   .table-responsive
     %table.table.table-striped
       %thead
         %tr
+          %th User Group
           %th Role
-          %th Access Group
-          %th.text-center Assigned Users
+          %th Entity Group
           %th
       %tbody
         - @access_controls.each do |acl|
           %tr
-            %td= acl.role.name
-            %td= link_to acl.access_group.name, edit_admin_group_path(acl.access_group)
-            %td.text-center= acl.users.count
+            %td= link_to_if can_edit_users? && !acl.user_group.system?, acl.user_group.name, edit_admin_user_group_path(acl.user_group), target: :_blank
+            %td= link_to_if can_edit_roles? && !acl.role.system?, acl.role.name, edit_admin_role_path(acl.role), target: :_blank
+            %td= link_to_if can_edit_access_groups? && !acl.access_group.system?, acl.access_group.name, edit_admin_access_group_path(acl.access_group), target: :_blank
+
             %td
-              .float-right
-                = link_to edit_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
-                  %span.icon-pencil
-                  Edit Access Control List
-                - unless acl.users.count.positive?
-                  = link_to admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control list for group '#{acl.access_group.name}' and role '#{acl.role.name}'?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
-                    %span.icon-cross
-                    Delete
-  = render 'common/pagination_bottom', item_name: 'access control list'
+              -# Don't let use delete or edit a fully system Access Control
+              -# In the future, we may just want to hide this row
+              - unless acl.system?
+                .float-right
+                  = link_to edit_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
+                    %span.icon-pencil
+                    Edit Access Control List
+                  - unless acl.users.count.positive?
+                    = link_to admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control for entity group '#{acl.access_group.name}', role '#{acl.role.name}', and user group #{acl.user_group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
+                      %span.icon-cross
+                      Delete
+  = render 'common/pagination_bottom', item_name: 'access control'
 - else
-  .none-found No access control lists.
+  .none-found No access controls.

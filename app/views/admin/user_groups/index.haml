@@ -1,0 +1,34 @@
+- content_for :title, 'Manage User Groups'
+%h1= content_for :title
+= render 'menus/admin_tabs'
+
+.alert.alert-info
+  %i.icon-warning.mr-4
+  %p User Groups should be used to logically group users who need similar access.  User Groups are combined with Roles and Entity Groups via Access Controls.  The intersection of Role, Entity Group, and User Group determines what each person can do and see within the warehouse.
+.text-right
+  = link_to new_admin_user_group_path, class: 'btn btn-primary mb-2' do
+    %span.icon-plus
+    Add User Group
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'user_group'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th User Group
+          %th Users
+          %th
+      %tbody
+        - @groups.each do |group|
+          %tr
+            %td= link_to group.name, edit_admin_user_group_path(group)
+            %td= group.users.count
+            %td
+              - unless group.users.count.positive?
+                .float-right
+                  = link_to admin_user_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
+                    %span.icon-cross
+                    Delete
+  = render 'common/pagination_bottom', item_name: 'user_group'
+- else
+  .none-found No user groups.

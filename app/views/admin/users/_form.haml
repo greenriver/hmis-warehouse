@@ -4,6 +4,8 @@
   .form-actions.mt-4
     = f.button :submit, class: 'btn btn-primary'
 
+= render '/users/access_control_table', user: @user
+
 -# When we've connected contacts to user accounts, this would be a good roll-up place to show the contact relationships
 -# - unless @user.new_record?
 -#   = render 'contact_relationships'
