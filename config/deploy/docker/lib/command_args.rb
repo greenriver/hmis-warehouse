@@ -5,6 +5,7 @@ require 'dotenv'
 
 class CommandArgs
   attr_accessor :deployments
+  attr_accessor :log_configuration
 
   def initialize
     Dotenv.load('.env', '.env.local')
@@ -60,6 +61,15 @@ class CommandArgs
     self.deployments = config[ARGV[0]]
 
     raise "Set a valid group: #{ARGV[0]} must be in #{config.keys.join(', ')}" if deployments.nil?
+
+    if ARGV[1] == '--journald'
+      puts 'Using the journald log driver for debugging. Subsequent deployments without this argument will revert back to standard logging'
+      self.log_configuration = {
+        log_driver: 'journald',
+      }
+    else
+      self.log_configuration = :default
+    end
 
     # Merge in defaults
     deployments.each_index do |i|
