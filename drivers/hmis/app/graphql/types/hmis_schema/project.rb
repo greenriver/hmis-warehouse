@@ -76,9 +76,8 @@ module Types
       resolve_units(**args)
     end
 
-    def referral_requests(...)
-      # load_ar_association(object, :external_referral_requests)
-      resolve_referral_requests(object.external_referral_requests, ...)
+    def referral_requests(**args)
+      resolve_referral_requests_with_loader(:external_referral_requests, **args)
     end
   end
 end

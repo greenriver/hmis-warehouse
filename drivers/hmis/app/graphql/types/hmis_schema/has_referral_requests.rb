@@ -12,7 +12,7 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def referral_requests_field(name = :referral_requests, description = nil, type: Types::HmisSchema::ReferralRequest.page_type, **override_options, &block)
+        def referral_requests_field(name, description = nil, type: Types::HmisSchema::ReferralRequest.page_type, **override_options, &block)
           default_field_options = { type: type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
@@ -21,8 +21,15 @@ module Types
         end
       end
 
-      def resolve_referral_requests(scope)
-        # FIXME: probably needs args or a data loader
+      def resolve_referral_requests_with_loader(association_name, **args)
+        scope = scoped_referral_requests(HmisExternalApis::AcHmis::ReferralRequest.all, **args)
+        load_ar_association(object, association_name, scope: scope)
+      end
+
+      def scoped_referral_requests(scope, sort_order: nil)
+        # not sure what permissions are relevant
+        # scope = scope.viewable_by(current_user)
+        scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end
     end

@@ -163,7 +163,7 @@ module Mutations
         record.user = current_user
         record.updated_by = current_user
       when HmisExternalApis::AcHmis::ReferralRequest
-        # FIXME
+        # FIXME we should be calling an external endpoint
         record.identifier = SecureRandom.uuid
         record.requested_by = current_user
       else

@@ -12,7 +12,7 @@
       "required": true,
       "link_id": "unitType",
       "text": "Unit Type",
-      "pick_list_reference": "UNIT_TYPES",
+      "pick_list_reference": "AVAILABLE_UNIT_TYPES",
       "field_name": "unitType"
     },
     {

@@ -22,7 +22,7 @@ module Hmis::Hud::Processors
       'unitType' => 'unit_type_id',
     }.freeze
     def hud_name(field)
-      MAP.fetch(field, field).underscore
+      MAP.fetch(field, field.underscore)
     end
   end
 end

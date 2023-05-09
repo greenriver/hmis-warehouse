@@ -73,7 +73,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
-    it 'resolves funders, project cocs, and inventories' do
+    it 'resolves funders, project cocs, referral requests, and inventories' do
       response, result = post_graphql(id: p1.id) { query }
 
       aggregate_failures 'checking response' do
@@ -88,7 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.dig('funders', 'nodesCount').to_i).to eq(2)
         expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
         expect(record.dig('organization', 'id').to_i).to eq(o1.id)
-        expect(record.dig('referralRequests', 'nodes', 0, 'id')).to eq(referral_request.id)
+        expect(record.dig('referralRequests', 'nodes', 0, 'id')).to eq(referral_request.id&.to_s)
       end
     end
 
