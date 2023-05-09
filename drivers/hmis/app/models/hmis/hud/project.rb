@@ -88,7 +88,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def enrollments_including_wip
-    Hmis::Hud::Enrollment.where(data_source_id: data_source_id).in_project_including_wip(id, project_id)
+    enrollment_ids = enrollments.pluck(:id)
+    wip_ids = wip_enrollments.pluck(:id)
+    Hmis::Hud::Enrollment.where(id: enrollment_ids + wip_ids)
   end
 
   def close_related_funders_and_inventory!

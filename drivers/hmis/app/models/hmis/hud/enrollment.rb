@@ -76,13 +76,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
   end
 
-  scope :in_project_including_wip, ->(ids, project_ids) do
-    wip_enrollments = wip_t[:project_id].in(Array.wrap(ids))
-    actual_enrollments = e_t[:ProjectID].in(Array.wrap(project_ids))
-
-    left_outer_joins(:wip).where(wip_enrollments.or(actual_enrollments))
-  end
-
   scope :heads_of_households, -> do
     where(RelationshipToHoH: 1)
   end
