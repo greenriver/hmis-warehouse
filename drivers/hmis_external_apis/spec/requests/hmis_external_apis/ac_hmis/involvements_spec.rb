@@ -23,7 +23,9 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
     end
   end
 
-  before { create(:hmis_data_source) }
+  let!(:ds) { create(:hmis_data_source) }
+  let!(:org) { create(:hmis_hud_organization, data_source: ds) }
+  let!(:project) { create(:hmis_hud_project, data_source: ds, organization: org) }
 
   describe 'client involvement' do
     it 'works minimally' do
@@ -35,12 +37,6 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
   end
 
   describe 'program involvement' do
-    let(:project) do
-      ds = create(:source_data_source, id: 1)
-      org = create(:hud_organization, data_source_id: ds.id)
-      create(:hud_project, data_source_id: ds.id, OrganizationID: org.OrganizationID)
-    end
-
     it 'works minimally' do
       api_get(:program, { start_date: '2000-01-01', end_date: '2000-01-10', program_id: project.project_id })
 
