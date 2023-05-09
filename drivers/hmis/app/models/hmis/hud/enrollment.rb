@@ -47,6 +47,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
+  belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator

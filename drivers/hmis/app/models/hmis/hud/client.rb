@@ -34,6 +34,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
+  has_many :households, through: :enrollments
   has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
