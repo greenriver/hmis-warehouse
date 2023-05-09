@@ -65,7 +65,6 @@ module Types
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
 
       # Apply the enrollment limit before we pass it in, to avoid doing an unnecessary join to the WIP table
-      puts args
       scope = if args[:enrollment_limit] == 'NON_WIP_ONLY'
         object.enrollments
       elsif args[:enrollment_limit] == 'WIP_ONLY'
