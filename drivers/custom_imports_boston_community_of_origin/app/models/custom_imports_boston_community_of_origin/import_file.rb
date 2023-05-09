@@ -5,7 +5,7 @@
 ###
 
 module CustomImportsBostonCommunityOfOrigin
-  class ImportFile < GrdaWarehouse::CustomImports::ImportFile
+  class ImportFile < ::GrdaWarehouse::CustomImports::ImportFile
     has_many :rows
 
     def self.description
@@ -37,9 +37,11 @@ module CustomImportsBostonCommunityOfOrigin
       file.drop(1).each_slice(batch_size) do |lines|
         loaded_rows += lines.count
         cleaned_headers = headers.reject { |h| h == 'do_not_import' }
+        cleaned_rows = clean_rows(headers, lines)
+        cleaned_rows = cleaned_rows.map { |row| ["#{row[0]}_#{row[2]}", row[1..]].flatten }
         rows.klass.import!(
           cleaned_headers,
-          clean_rows(headers, lines),
+          cleaned_rows,
           on_duplicate_key_update: {
             conflict_target: [:unique_id],
             columns: cleaned_headers,
@@ -73,12 +75,9 @@ module CustomImportsBostonCommunityOfOrigin
         'State' => 'state',
         'Zip Code' => 'zip_code',
         'How long has it been since you stayed in that community?' => 'length_of_time',
-        'Zip Code 2' => 'do_not_import', # TODO Adjust to reflect value in file after duplicate header is removed
-        'How long has it been since you stayed there?' => 'do_not_import',
         'Reporting Period Start Date' => 'do_not_import',
         'Reporting Period End Date' => 'do_not_import',
         'Client geolocation Location' => 'geolocation_location',
-        # '' => 'collected_on', # TODO we need a data collection date to anchor length_of_time
       }
     end
 
@@ -115,7 +114,7 @@ module CustomImportsBostonCommunityOfOrigin
     end
 
     def delayed_enrollment_location_histories
-      GrdaWarehouse::Hud::Enrollment.delay.maintain_location_histories
+      ::GrdaWarehouse::Hud::Enrollment.delay.maintain_location_histories
       Delayed::Worker.new.work_off if Rails.env.test?
     end
 
@@ -123,7 +122,7 @@ module CustomImportsBostonCommunityOfOrigin
       # We know that they were somewhere else before the enrollment, so use that date?
       row.enrollment.EntryDate
 
-      # If we need better data, we can do something like:
+      # If we need better data, collected_on is the enrollment approximate date homeless (DateToStreetESSH)
       # return nil unless row.collected_on.present?
       #
       # case row.length_of_time
