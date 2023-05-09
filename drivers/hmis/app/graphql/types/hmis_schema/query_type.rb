@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -45,7 +45,7 @@ module Types
     def client_omni_search(text_search:, **args)
       client_order = Hmis::Hud::Client.searchable_to(current_user).matching_search_term(text_search).
         joins(:enrollments).
-        merge(Hmis::Hud::Enrollment.open_during_range((Date.today - 1.month)..Date.today)).
+        merge(Hmis::Hud::Enrollment.open_during_range((Date.current - 1.month)..Date.current)).
         order(e_t[:date_updated].desc).
         pluck(:id, e_t[:date_updated]).
         map(&:first).
@@ -130,6 +130,14 @@ module Types
       argument :role, Types::Forms::Enums::FormRole, required: true
       argument :enrollment_id, ID, required: false
       argument :project_id, ID, required: false
+    end
+
+    field :file, Types::HmisSchema::File, null: true do
+      argument :id, ID, required: true
+    end
+
+    def file(id:)
+      Hmis::File.viewable_by(current_user).find_by(id: id)
     end
 
     def get_form_definition(role:, enrollment_id: nil, project_id: nil)

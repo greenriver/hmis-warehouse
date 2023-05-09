@@ -1,0 +1,12 @@
+.row
+  .col-sm-8
+    - url = admin_inbound_api_configurations_path
+    = simple_form_for [:admin, @conf], url: url do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :external_system_name
+        - choices = HmisExternalApis::InternalSystem.active
+        = f.input :internal_system_id, collection: choices, as: :select_two
+
+      .form_actions
+      = f.button :submit, 'Create Configuration'

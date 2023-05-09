@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -71,17 +71,17 @@ module Health
 
     def careplan_status
       careplan = @patient.careplans.sorted.first
-      return [:no_signed_form, 'PCTP Signed', new_client_health_careplan_path(@client), false, nil] if careplan.blank?
-      return [:valid, 'PCTP Signed', client_health_careplan_path(@client, careplan), false, nil] if careplan.active?
+      return [:no_signed_form, 'PCTP Approved', new_client_health_careplan_path(@client), false, nil] if careplan.blank?
+      return [:valid, 'PCTP Approved', client_health_careplan_path(@client, careplan), false, nil] if careplan.active?
 
       if careplan.editable?
-        return [:being_updated, 'PCTP Signed', client_health_careplan_path(@client, careplan), false, "Started on #{careplan.created_at.to_date}"] if @patient.careplans.expired.exists?
+        return [:being_updated, 'PCTP Approved', client_health_careplan_path(@client, careplan), false, "Started on #{careplan.created_at.to_date}"] if @patient.careplans.expired.exists?
 
-        [:in_progress, 'PCTP Signed', client_health_careplan_path(@client, careplan), false, "Started on #{careplan.created_at.to_date}"]
+        [:in_progress, 'PCTP Approved', client_health_careplan_path(@client, careplan), false, "Started on #{careplan.created_at.to_date}"]
       elsif careplan.completed?
-        [:expired, 'PCTP Signed', new_client_health_careplan_path(@client), false, "Last completed on #{careplan.completed_on}"]
+        [:expired, 'PCTP Approved', new_client_health_careplan_path(@client), false, "Last completed on #{careplan.completed_on}"]
       else
-        [:expired, 'PCTP Signed', new_client_health_careplan_path(@client), false, "Incomplete, last updated on #{careplan.updated_at.to_date}"]
+        [:expired, 'PCTP Approved', new_client_health_careplan_path(@client), false, "Incomplete, last updated on #{careplan.updated_at.to_date}"]
       end
     end
   end

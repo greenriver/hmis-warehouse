@@ -1,0 +1,278 @@
+{
+  "type": "GROUP",
+  "link_id": "prior-living-situation",
+  "text": "Prior Living Situation",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "record_type": "ENROLLMENT",
+  "prefill": true,
+  "item": [
+    {
+      "type": "DISPLAY",
+      "link_id": "3.917.instruction",
+      "text": "Where did the client spend last night? Select the category that most closely matches the client's response.",
+      "readonly_text": "Where the client spent the last night."
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "3.917.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Prior Living Situation",
+      "pick_list_reference": "PRIOR_LIVING_SITUATION",
+      "field_name": "livingSituation"
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "3.917.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Length of stay in prior living situation",
+      "brief_text": "Length of Stay",
+      "pick_list_reference": "ResidencePriorLengthOfStay",
+      "field_name": "lengthOfStay"
+    },
+    {
+      "type": "GROUP",
+      "component": "INFO_GROUP",
+      "link_id": "break-group",
+      "item": [
+        {
+          "type": "DISPLAY",
+          "link_id": "3.917.A",
+          "read_only": true,
+          "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917.1",
+              "operator": "EQUAL",
+              "answer_group_code": "INSTITUTIONAL"
+            },
+            {
+              "question": "3.917.2",
+              "operator": "IN",
+              "answer_codes": [
+                "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                "ONE_YEAR_OR_LONGER"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "DISPLAY",
+          "link_id": "3.917.B",
+          "text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "enable_behavior": "ALL",
+          "_required_when": "TODO",
+          "enable_when": [
+            {
+              "question": "3.917.1",
+              "operator": "EQUAL",
+              "answer_group_code": "TEMPORARY_PERMANENT_OTHER"
+            },
+            {
+              "question": "3.917.2",
+              "operator": "IN",
+              "answer_codes": [
+                "ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
+                "ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS",
+                "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                "ONE_YEAR_OR_LONGER"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "hidden": true,
+      "link_id": "los-threshold",
+      "field_name": "losUnderThreshold",
+      "pick_list_reference": "NoYesMissing",
+      "autofill_values": [
+        {
+          "_comment": "LOS is above the threshold if either of the 'break' display notices are shown",
+          "value_code": "NO",
+          "autofill_behavior": "ANY",
+          "autofill_when": [
+            {
+              "question": "3.917.A",
+              "operator": "ENABLED"
+            },
+            {
+              "question": "3.917.B",
+              "operator": "ENABLED"
+            }
+          ]
+        },
+        {
+          "_comment": "LOS is under the threshold if neither 'break' display notices are shown, AND Living Situation and LOS have both been filled in",
+          "value_code": "YES",
+          "autofill_behavior": "ALL",
+          "autofill_when": [
+            {
+              "question": "3.917.2",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "3.917.1",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ]
+        },
+        {
+          "_comment": "LOS is null otherwise",
+          "value_code": "DATA_NOT_COLLECTED",
+          "autofill_behavior": "ALL",
+          "autofill_when": []
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "3.917.C",
+      "required": false,
+      "warn_if_empty": true,
+      "pick_list_reference": "NoYesMissing",
+      "field_name": "previousStreetEssh",
+      "text": "On the night before, did the client stay on the streets, ES or SH?",
+      "brief_text": "Homeless on previous night",
+      "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "3.917.A",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        },
+        {
+          "question": "3.917.B",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        }
+      ]
+    },
+    {
+      "type": "DISPLAY",
+      "link_id": "3.917.C.message",
+      "text": "Client does not meet the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
+      "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "3.917.C",
+          "operator": "EQUAL",
+          "_comment": "not homeless on the night before",
+          "answer_code": "NO"
+        },
+        {
+          "question": "3.917.1",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        },
+        {
+          "question": "3.917.2",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        },
+        {
+          "question": "3.917.A",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        },
+        {
+          "question": "3.917.B",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "3.917.3",
+      "required": false,
+      "warn_if_empty": true,
+      "field_name": "dateToStreetEssh",
+      "text": "Date homelessness started",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "3.917.A",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        },
+        {
+          "question": "3.917.B",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        },
+        {
+          "question": "3.917.C.message",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "3.917.4",
+      "required": false,
+      "warn_if_empty": true,
+      "field_name": "timesHomelessPastThreeYears",
+      "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
+      "brief_text": "Times Homeless",
+      "pick_list_reference": "TimesHomelessPastThreeYears",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "3.917.A",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        },
+        {
+          "question": "3.917.B",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        },
+        {
+          "question": "3.917.C.message",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "3.917.5",
+      "required": false,
+      "warn_if_empty": true,
+      "field_name": "monthsHomelessPastThreeYears",
+      "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
+      "brief_text": "Months Homeless",
+      "pick_list_reference": "MonthsHomelessPastThreeYears",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "3.917.A",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        },
+        {
+          "question": "3.917.B",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        },
+        {
+          "question": "3.917.C.message",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        }
+      ]
+    }
+  ]
+}

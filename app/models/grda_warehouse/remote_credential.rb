@@ -1,10 +1,11 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse
+  # STI base class
   class RemoteCredential < GrdaWarehouseBase
     acts_as_paranoid
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
@@ -12,5 +13,7 @@ module GrdaWarehouse
     scope :active, -> do
       where(active: true)
     end
+
+    include RailsDrivers::Extensions
   end
 end

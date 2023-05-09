@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +12,7 @@ module Types
     include Types::HmisSchema::HasProjectCocs
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
+    include Types::HmisSchema::HasUnits
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -24,6 +25,7 @@ module Types
     inventories_field
     project_cocs_field
     funders_field
+    units_field
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -38,6 +40,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     enrollments_field without_args: [:project_types]
 
@@ -50,6 +53,7 @@ module Types
       can :view_enrollment_details
       can :edit_enrollments
       can :delete_enrollments
+      can :delete_assessments
     end
 
     def enrollments(**args)
@@ -64,6 +68,10 @@ module Types
 
     def inventories(**args)
       resolve_inventories(**args)
+    end
+
+    def units(**args)
+      resolve_units(**args)
     end
   end
 end

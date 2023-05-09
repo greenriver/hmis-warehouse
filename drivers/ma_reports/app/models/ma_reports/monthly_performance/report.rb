@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -350,9 +350,9 @@ module MaReports::MonthlyPerformance
 
         enrollments.where(ethnicity: sub_key.to_i)
       when 'Gender'
-        return enrollments.none unless HudUtility.genders.key?(sub_key)
+        return enrollments.none unless HudUtility.gender_id_to_field_name.value?(sub_key)
 
-        enrollments.where(sub_key.underscore => true)
+        enrollments.where(sub_key.to_s.underscore => true)
       when 'DisablingCondition'
         enrollments.where(disabling_condition: true)
       when 'Age'

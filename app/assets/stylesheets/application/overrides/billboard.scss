@@ -1,7 +1,8 @@
 @import '../helpers';
 
 .bb-legend-item,
-.bb-chart-arc text {
+.bb-chart-arc text,
+.bb-chart-texts text {
   font-family: $font-family-sans-serif;
 }
 
@@ -9,7 +10,8 @@
   font-size: 16px;
 }
 
-.bb-chart-arc text {
+.bb-chart-arc text,
+.bb-chart-texts text {
   font-size: 16px;
   font-weight: bold;
 }

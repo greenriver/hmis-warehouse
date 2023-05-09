@@ -153,7 +153,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}/${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_MARCH_2023 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}/${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_4_2023 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/merged/source/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -164,7 +164,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_MARCH_2023 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_4_2023 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/results/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -180,7 +180,7 @@ jobs:
           LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
-          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
+          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
       - name: Run logging tests
         env:
           LOG_LEVEL: INFO

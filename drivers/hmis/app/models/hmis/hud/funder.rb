@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -46,6 +46,6 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   def active
     return true unless end_date.present?
 
-    end_date >= Date.today
+    end_date >= Date.current
   end
 end

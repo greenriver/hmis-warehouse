@@ -1,0 +1,32 @@
+{
+  "item": [
+    {
+      "type": "STRING",
+      "link_id": "client-id",
+      "hidden": true,
+      "field_name": "id"
+    },
+    {
+      "fragment": "#client_name"
+    },
+    {
+      "fragment": "#client_identification"
+    },
+    {
+      "fragment": "#client_demographics"
+    },
+    {
+      "fragment": "#client_mci"
+    },
+    {
+      "fragment": "#client_photo",
+      "enable_when": [
+        {
+          "question": "client-id",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ]
+    }
+  ]
+}

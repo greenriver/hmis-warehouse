@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,10 @@ module Types
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCeAssessments
     include Types::HmisSchema::HasFiles
+    include Types::HmisSchema::HasIncomeBenefits
+    include Types::HmisSchema::HasDisabilities
+    include Types::HmisSchema::HasDisabilityGroups
+    include Types::HmisSchema::HasHealthAndDvs
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
@@ -23,11 +27,16 @@ module Types
     field :project, Types::HmisSchema::Project, null: false
     hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
+    field :status, HmisSchema::Enums::EnrollmentStatus, null: false
     assessments_field
     events_field
     services_field
     files_field
     ce_assessments_field
+    income_benefits_field
+    disabilities_field
+    disability_groups_field
+    health_and_dvs_field
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
@@ -47,6 +56,10 @@ module Types
     field :user, HmisSchema::User, null: true
     field :intake_assessment, HmisSchema::Assessment, null: true
     field :exit_assessment, HmisSchema::Assessment, null: true
+    access_field do
+      can :edit_enrollments
+      can :delete_enrollments
+    end
 
     def project
       load_ar_association(object.in_progress? ? object.wip : object, :project)
@@ -58,6 +71,10 @@ module Types
 
     def exit
       load_ar_association(object, :exit)
+    end
+
+    def status
+      Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(object)
     end
 
     def household
@@ -96,6 +113,22 @@ module Types
 
     def files(**args)
       resolve_files(**args)
+    end
+
+    def income_benefits(**args)
+      resolve_income_benefits(**args)
+    end
+
+    def disabilities(**args)
+      resolve_disabilities(**args)
+    end
+
+    def disability_groups(**args)
+      resolve_disability_groups(**args)
+    end
+
+    def health_and_dvs(**args)
+      resolve_health_and_dvs(**args)
     end
 
     def user

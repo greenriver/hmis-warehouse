@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -131,12 +131,10 @@ module GrdaWarehouse
       original = parsed.dup
       errors = []
       unless check_header!(parsed)
-        errors << 'Incorrect headers'
-        return errors
-      end
-
-      if parsed.empty?
-        errors << 'No projects found'
+        errors << {
+          file: 'Incorrect file format',
+          message: 'The file must contain at least one project, and the header row of the uploaded file must match the description below.',
+        }
         return errors
       end
 

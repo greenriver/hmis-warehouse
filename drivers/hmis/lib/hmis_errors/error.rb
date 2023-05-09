@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -31,6 +31,7 @@ module HmisErrors
         record_id: nil,
         link_id: nil,
         section: nil,
+        data: nil,
         **kwargs,
       }.each do |key, value|
         define_singleton_method(key) { value }
@@ -52,7 +53,6 @@ module HmisErrors
         full_message: full_message,
         readable_attribute: readable_attribute,
         severity: :error,
-        record_id: error.object_id,
       )
     end
 
@@ -78,6 +78,8 @@ module HmisErrors
         'operation not allowed'
       when :server_error
         'failed to validate due to a server error'
+      when :information
+        'has additional information'
       else
         I18n.t("errors.messages.#{err_type}", default: 'is invalid')
       end

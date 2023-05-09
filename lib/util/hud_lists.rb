@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -126,6 +126,24 @@ module HudLists
       12 => 'Homelessness Prevention',
       13 => 'PH - Rapid Re-Housing',
       14 => 'Coordinated Entry',
+    }.freeze
+  end
+
+  def project_type_brief_map
+    {
+      1 => 'ES',
+      2 => 'TH',
+      3 => 'PH - PSH',
+      4 => 'SO',
+      6 => 'SSO',
+      7 => 'Other',
+      8 => 'SH',
+      9 => 'PH - PH',
+      10 => 'PH - OPH',
+      11 => 'Day Shelter',
+      12 => 'HP',
+      13 => 'PH - RRH',
+      14 => 'CE',
     }.freeze
   end
 

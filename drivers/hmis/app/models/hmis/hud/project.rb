@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
+  has_many :units, dependent: :destroy
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -56,7 +57,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     return none unless search_term.present?
 
     search_term.strip!
-    query = "%#{search_term}%"
+    query = "%#{search_term.split(/\W+/).join('%')}%"
     where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)))
   end
 
@@ -78,7 +79,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def active
     return true unless operating_end_date.present?
 
-    operating_end_date >= Date.today
+    operating_end_date >= Date.current
   end
 
   def enrollments
@@ -89,4 +90,16 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     funders.where(end_date: nil).update_all(end_date: operating_end_date)
     inventories.where(inventory_end_date: nil).update_all(inventory_end_date: operating_end_date)
   end
+
+  def to_pick_list_option
+    {
+      code: id,
+      label: project_name,
+      secondary_label: HudUtility.project_type_brief(project_type),
+      group_label: organization.organization_name,
+      group_code: organization.id,
+    }
+  end
+
+  include RailsDrivers::Extensions
 end

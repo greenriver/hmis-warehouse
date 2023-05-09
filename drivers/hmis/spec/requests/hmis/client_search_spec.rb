@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -14,10 +20,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # let!(:ds1) { create :hmis_data_source }
   # let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let!(:ds2) { create :hmis_data_source, hmis: nil }
+  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
+    assign_viewable(edit_access_group, p1, hmis_user)
   end
 
   let(:query) do
@@ -38,16 +45,52 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'User access tests' do
-    it 'should only show clients from HMIS data source' do
-      client1 = create :hmis_hud_client, data_source: ds1
-      client2 = create :hmis_hud_client, data_source: ds2
+    let!(:client1) { create :hmis_hud_client, data_source: ds1 }
+    let!(:client2) { create :hmis_hud_client, data_source: ds2 }
+    let!(:client3) { create :hmis_hud_client, data_source: ds1 }
 
+    it 'should only show clients from HMIS data source' do
       response, result = post_graphql(input: {}) { query }
 
       expect(response.status).to eq 200
       clients = result.dig('data', 'clientSearch', 'nodes')
       expect(clients).to include({ 'id' => client1.id.to_s })
       expect(clients).not_to include({ 'id' => client2.id.to_s })
+      expect(clients).to include({ 'id' => client3.id.to_s })
+    end
+
+    it 'should only show clients with enrollments at projects the user has view access for' do
+      create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client1, user: u1)
+      create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3, user: u1)
+
+      expect(client1.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? })
+      expect(client3.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? })
+
+      # Shouldn't see client3 since it has enrollments elsewhere
+      _response, result = post_graphql(input: {}) { query }
+      expect(result.dig('data', 'clientSearch', 'nodes')).to contain_exactly(include('id' => client1.id.to_s))
+
+      create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client3, user: u1).save_in_progress
+      client3.reload
+
+      expect(client3.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? }, satisfy(&:in_progress?))
+
+      # Now we should see client3 since it has a WIP enrollment at our project
+      _response, result = post_graphql(input: {}) { query }
+      expect(result.dig('data', 'clientSearch', 'nodes')).to contain_exactly(include('id' => client1.id.to_s), include('id' => client3.id.to_s))
+    end
+
+    it 'should exclude clients enrolled at a project without user view permission' do
+      assign_viewable(view_access_group, p2, hmis_user)
+      create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3, user: u1)
+      view_access_group.roles.first.update(can_view_clients: false)
+
+      response, result = post_graphql(input: {}) { query }
+      expect(response.status).to eq 200
+      clients = result.dig('data', 'clientSearch', 'nodes')
+      expect(clients).to include({ 'id' => client1.id.to_s })
+      expect(clients).not_to include({ 'id' => client2.id.to_s })
+      expect(clients).not_to include({ 'id' => client3.id.to_s })
     end
 
     it 'should return no clients if user does not have permission to view clients' do

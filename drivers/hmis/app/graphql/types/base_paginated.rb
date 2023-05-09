@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Types
   class BasePaginated < BaseObject
-    def self.create(node_class)
+    def self.build(node_class)
       Class.new(self) do
         graphql_name("#{node_class.graphql_name.pluralize}Paginated")
         field :nodes, [node_class], null: false

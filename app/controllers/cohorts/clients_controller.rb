@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ module Cohorts
     include CohortAuthorization
     include CohortClients
     include ActionView::Helpers::TextHelper
+    include Search
 
     before_action :require_can_access_cohort!
     before_action :require_can_add_cohort_clients!, only: [:new, :create, :destroy, :bulk_destroy, :bulk_restore]
@@ -114,7 +115,6 @@ module Cohorts
       @ad_hoc = ad_hoc_params
       @client_ids = params.dig(:batch, :client_ids)
 
-      @q = client_scope.none.ransack(params[:q])
       if params[:filter].present?
         @hoh_only = _debool(params[:filter][:hoh])
         load_filter
@@ -135,12 +135,13 @@ module Cohorts
       elsif @client_ids.present?
         @client_ids = @client_ids.strip.split(/\s+/).map { |m| m[/\d+/].to_i }
         @clients = client_scope.where(id: @client_ids)
-      elsif params.dig(:q, :full_text_search).present?
-        @q = client_source.ransack(params[:q])
+      elsif params.dig(:search_form, :q).present?
+        @search = search_setup(scope: :full_text_search)
+        search_client_ids = @search.distinct.select(:id) if @search_string.present?
         # Calling merge on a scope where both sides access the same attribute
         # results in throwing out the left-hand of the equation
         # use a sub-query instead
-        @clients = client_scope.where(id: @q.result(distinct: true).select(:id))
+        @clients = client_scope.where(id: search_client_ids)
       elsif @touchpoints
         @clients = clients_from_touch_points
       end
@@ -160,6 +161,10 @@ module Cohorts
       @client_notes = cohort_client_notes(@clients)
       @removal_reasons = removal_reasons(@clients)
       Rails.logger.info "CLIENTS: #{@clients.count}"
+    end
+
+    private def search_scope
+      client_source
     end
 
     def cohort_client_notes(clients)

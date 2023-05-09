@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,8 @@ module HmisStructure::Enrollment
     self.conflict_target = [:data_source_id, connection.quote_column_name(:EnrollmentID), connection.quote_column_name(:PersonalID)]
     self.additional_upsert_columns = [:processed_as]
     acts_as_paranoid(column: :DateDeleted)
+
+    alias_attribute :relationship_to_hoh, :RelationshipToHoH
   end
 
   module ClassMethods

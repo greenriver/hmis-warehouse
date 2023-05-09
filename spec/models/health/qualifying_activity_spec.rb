@@ -315,7 +315,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
 
       expect(qa.naturally_payable).to be true
       expect(qa.procedure_valid?).to be true
-      expect(qa.procedure_code).to eq 'T2024>U4'
+      expect(qa.procedure_with_modifiers).to eq 'T2024>U1>U4'
     end
   end
 
@@ -333,13 +333,11 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     end
 
     it 'marks phone_calls as in person' do
-      TodoOrDie('Remove MH COVID flexibility', by: '2023-03-31')
       phone_qa.maintain_cached_values
 
       expect(phone_qa.naturally_payable).to be true
       expect(phone_qa.procedure_valid?).to be true
       expect(phone_qa.modifiers).to contain_exactly('U1', 'U2')
-      # expect(phone_qa.modifiers).to contain_exactly('U1', 'U3')
     end
   end
 
@@ -352,18 +350,15 @@ RSpec.describe Health::QualifyingActivity, type: :model do
 
       expect(qa.naturally_payable).to be true
       expect(qa.procedure_valid?).to be true
-      expect(qa.procedure_code).to eq 'G9007>U5'
-      expect(qa.modifiers).to contain_exactly('U1')
+      expect(qa.procedure_with_modifiers).to eq 'G9007>U1>U5'
     end
 
     it 'marks phone_calls as in person' do
-      TodoOrDie('Remove MH COVID flexibility', by: '2023-03-31')
       phone_qa.maintain_cached_values
 
       expect(phone_qa.naturally_payable).to be true
       expect(phone_qa.procedure_valid?).to be true
-      expect(phone_qa.modifiers).to contain_exactly('U1', 'U2')
-      # expect(phone_qa.modifiers).to contain_exactly('U1', U3')
+      expect(phone_qa.modifiers).to contain_exactly('U1', 'U2', 'U5')
     end
   end
 end

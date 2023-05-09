@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -74,6 +74,7 @@ class Hmis::AccessGroup < ApplicationRecord
 
     Hmis::GroupViewableEntity.transaction do
       list = [
+        :data_sources,
         :organizations,
         :projects,
       ]
@@ -142,8 +143,20 @@ class Hmis::AccessGroup < ApplicationRecord
     end
   end
 
+  def summary_descriptions
+    data_sources = self.data_sources&.count || 0
+    organizations = self.organizations&.count || 0
+    projects = self.projects&.count || 0
+    descriptions = []
+    descriptions << "#{data_sources} #{'Data Source'.pluralize(data_sources)}" unless data_sources.zero?
+    descriptions << "#{organizations} #{'Organization'.pluralize(organizations)}" unless organizations.zero?
+    descriptions << "#{projects} #{'Project'.pluralize(projects)}" unless projects.zero?
+    descriptions
+  end
+
   private def viewable_types
     @viewable_types ||= {
+      data_sources: 'GrdaWarehouse::DataSource',
       organizations: 'Hmis::Hud::Organization',
       projects: 'Hmis::Hud::Project',
     }.freeze

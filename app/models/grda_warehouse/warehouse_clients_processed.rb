@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -725,21 +725,23 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       @last_exit_destination ||= {}.tap do |destinations|
         GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: @client_ids).
           distinct.
-          exit_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.current).
+          exit_within_date_range(start_date: 3.months.ago.to_date, end_date: Date.current).
           joins(enrollment: :exit).
           order(last_date_in_program: :desc).
-          pluck(:client_id, :destination, ex_t[:OtherDestination], :last_date_in_program).
-          each do |id, destination, other_destination, last_date_in_program|
+          pluck(:client_id, :destination, ex_t[:OtherDestination], :last_date_in_program, :computed_project_type).
+          each do |id, destination, other_destination, last_date_in_program, project_type|
             destination_code = destination || 99
             destination_string = if destination_code == 17
               other_destination
             else
               ::HudUtility.destination(destination_code)
             end
-            destinations[id] ||= "#{destination_string} (#{last_date_in_program})"
+
+            destinations[id] ||= []
+            destinations[id] << "#{last_date_in_program} - Destination: #{destination_string}, from: #{::HudUtility.project_type_brief(project_type)}"
           end
       end
-      @last_exit_destination[client_id] || 'None'
+      @last_exit_destination[client_id]&.join('; ') || 'No exits in past 3 months'
     end
 
     # Fetch most recent VI-SPDAT from the warehouse,

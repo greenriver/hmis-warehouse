@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -60,7 +60,7 @@ module Filters
     attribute :indefinite_disabilities, Array, default: []
     attribute :dv_status, Array, default: []
     attribute :currently_fleeing, Array, default: []
-    attribute :chronic_status, Boolean, default: false
+    attribute :chronic_status, Boolean, default: nil
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
     attribute :ce_cls_as_homeless, Boolean, default: false
     attribute :limit_to_vispdat, Symbol, default: :all_clients
@@ -73,6 +73,8 @@ module Filters
     attribute :report_version, Symbol
     attribute :inactivity_days, Integer, default: 365 * 2
     attribute :lsa_scope, Integer, default: nil
+    attribute :involves_ce, Boolean, default: nil
+    attribute :disabling_condition, Boolean, default: nil
 
     validates_presence_of :start, :end
 
@@ -138,10 +140,12 @@ module Filters
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map(&:to_i).presence || dv_status
       self.currently_fleeing = filters.dig(:currently_fleeing)&.reject(&:blank?)&.map(&:to_i).presence || currently_fleeing
-      self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true]) unless filters.dig(:chronic_status).nil?
+      self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true]) unless filters.dig(:chronic_status).nil? || filters.dig(:chronic_status) == ''
       self.rrh_move_in = filters.dig(:rrh_move_in).in?(['1', 'true', true]) unless filters.dig(:rrh_move_in).nil?
       self.psh_move_in = filters.dig(:psh_move_in).in?(['1', 'true', true]) unless filters.dig(:psh_move_in).nil?
       self.first_time_homeless = filters.dig(:first_time_homeless).in?(['1', 'true', true]) unless filters.dig(:first_time_homeless).nil?
+      self.involves_ce = filters.dig(:involves_ce).in?(['1', 'true', true]) unless filters.dig(:involves_ce).nil? || filters.dig(:involves_ce) == ''
+      self.disabling_condition = filters.dig(:disabling_condition).in?(['1', 'true', true]) unless filters.dig(:disabling_condition).nil? || filters.dig(:disabling_condition) == ''
       self.returned_to_homelessness_from_permanent_destination = filters.dig(:returned_to_homelessness_from_permanent_destination).in?(['1', 'true', true]) unless filters.dig(:returned_to_homelessness_from_permanent_destination).nil?
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true]) unless filters.dig(:coordinated_assessment_living_situation_homeless).nil?
       self.ce_cls_as_homeless = filters.dig(:ce_cls_as_homeless).in?(['1', 'true', true]) unless filters.dig(:ce_cls_as_homeless).nil?
@@ -200,6 +204,8 @@ module Filters
           rrh_move_in: rrh_move_in,
           psh_move_in: psh_move_in,
           first_time_homeless: first_time_homeless,
+          involves_ce: involves_ce,
+          disabling_condition: disabling_condition,
           returned_to_homelessness_from_permanent_destination: returned_to_homelessness_from_permanent_destination,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
           ce_cls_as_homeless: ce_cls_as_homeless,
@@ -234,6 +240,8 @@ module Filters
         :rrh_move_in,
         :psh_move_in,
         :first_time_homeless,
+        :involves_ce,
+        :disabling_condition,
         :returned_to_homelessness_from_permanent_destination,
         :coordinated_assessment_living_situation_homeless,
         :ce_cls_as_homeless,
@@ -319,6 +327,8 @@ module Filters
         opts['With RRH Move-in'] = 'Yes' if rrh_move_in
         opts['With PSH Move-in'] = 'Yes' if psh_move_in
         opts['First Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
+        opts['Involves CE'] = 'Yes' if involves_ce
+        opts['Disabling Condition'] = 'Yes' if disabling_condition
         opts['Returned to Homelessness from Permanent Destination'] = 'Yes' if returned_to_homelessness_from_permanent_destination
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
@@ -638,7 +648,7 @@ module Filters
     def cohort_columns_for_select
       initialized_columns = GrdaWarehouse::CohortColumnOption.distinct.pluck(:cohort_column)
       GrdaWarehouse::Cohort.available_columns.select do |column|
-        column.column.in?(initialized_columns)
+        column.column.in?(initialized_columns) && ! column.title.match?(/^User Select \d+$/)
       end.map do |column|
         [
           column.title,
@@ -649,7 +659,8 @@ module Filters
 
     def cohort_columns_for_dates
       GrdaWarehouse::Cohort.available_columns.select do |column|
-        column.class.ancestors.include?(CohortColumns::CohortDate)
+        # Ignore non-dates and untranslated custom dates
+        column.class.ancestors.include?(CohortColumns::CohortDate) && ! column.title.match?(/^User Date \d+$/)
       end.map do |column|
         [
           column.title,

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,6 +43,10 @@ module GrdaWarehouse::Hud
 
     scope :at_entry, -> do
       where(DataCollectionStage: 1)
+    end
+
+    scope :at_annual_update, -> do
+      where(DataCollectionStage: 5)
     end
   end
 end

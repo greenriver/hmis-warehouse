@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -95,6 +95,8 @@ module HmisDataQualityTool
         insurance_as_expected_at_annual: { title: 'Insurance as expected at annual assessment' },
         insurance_as_expected_at_exit: { title: 'Insurance as expected at exit' },
         ch_at_entry: { title: 'Chronically Homeless at Entry' },
+        enrollment_anniversary_date: { title: 'Enrollment anniversary' },
+        annual_assessment_status: { title: 'Missing assessments', translator: ->(v) { v.map(&:humanize).join(', ') } },
       }.freeze
     end
 
@@ -332,6 +334,10 @@ module HmisDataQualityTool
         exit_income_assessment,
       )
 
+      report_item.annual_expected = annual_expected
+      report_item.enrollment_anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date) if annual_expected
+      report_item.annual_assessment_status = annual_assessment_complete(enrollment, hoh.first_date_in_program) if annual_expected
+
       # NOTE: we exclude HIV/AIDS from this calculation as it may not be asked everywhere
       report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3, 8, 9]) } || false
 
@@ -362,6 +368,20 @@ module HmisDataQualityTool
       # count the days between the end of the earlier of the reporting end date or exit date and the most-recent service or the entry date
       report_item.days_since_last_service = (end_date - max_service).to_i
       report_item
+    end
+
+    private def annual_assessment_complete(enrollment, hoh_first_date_in_program)
+      # IncomeBenefits is always required
+      [].tap do |missing|
+        missing << :income_benefits unless annual_assessment(enrollment, hoh_first_date_in_program, assessment_relation: :income_benefits_annual_update)
+
+        # CoC PSH projects require HealthAndDV
+        if enrollment.project.continuum_project && enrollment.project.project_type_to_use == 3 # PSH
+          missing << :health_and_dvs unless annual_assessment(enrollment, hoh_first_date_in_program, assessment_relation: :health_and_dvs_annual_update)
+        end
+
+        # TODO: HOPWA requires a disabilities type 8
+      end
     end
 
     private def enrollment_cocs(report)
@@ -1269,6 +1289,17 @@ module HmisDataQualityTool
 
             item.days_to_enter_exit_date.present? && item.days_to_enter_exit_date > item.exit_threshold
           },
+        },
+        annual_assessment_issues: {
+          title: 'Incomplete Annual Assessments',
+          description: 'The head of household is missing one or more required annual assessment',
+          required_for: 'HoH',
+          detail_columns: default_detail_columns + [
+            :enrollment_anniversary_date,
+            :annual_assessment_status,
+          ],
+          denominator: ->(item) { hoh?(item) && item.annual_expected? },
+          limiter: ->(item) { hoh?(item) && item.annual_expected? && item.annual_assessment_status.present? },
         },
       }.freeze
     end

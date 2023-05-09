@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,7 +23,7 @@ module CohortColumns
     end
 
     def value(cohort_client, user) # OK
-      contacts = cohort_client.client.last_intentional_contacts(user, skip_confidential_projects: true, include_dates: true)
+      contacts = cohort_client.client.last_intentional_contacts(user, include_dates: true)
       return unless contacts.present?
 
       contacts.join('; ')

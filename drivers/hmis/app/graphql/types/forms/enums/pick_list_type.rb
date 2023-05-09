@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,19 +11,24 @@ module Types
     graphql_name 'PickListType'
 
     value 'COC'
-    value 'PROJECT'
-    value 'ORGANIZATION'
+    value 'PROJECT', 'All Projects that the User can see'
+    value 'ENROLLABLE_PROJECTS', 'Projects that the User can enroll Clients in'
+    value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'GEOCODE'
     value 'STATE'
     value 'PRIOR_LIVING_SITUATION'
     value 'CURRENT_LIVING_SITUATION'
     value 'DESTINATION'
-    value 'AVAILABLE_UNITS'
+    value 'UNIT_TYPES', 'Unit types. If project is specified, limited to unit types in the project.'
+    value 'AVAILABLE_UNIT_TYPES', 'Unit types that have unoccupied units in the specified project'
+    value 'UNITS', 'Units in the specified project'
+    value 'AVAILABLE_UNITS', 'Unoccupied units in the specified project'
     value 'SERVICE_TYPE'
     value 'SUB_TYPE_PROVIDED_3'
     value 'SUB_TYPE_PROVIDED_4'
     value 'SUB_TYPE_PROVIDED_5'
     value 'REFERRAL_OUTCOME'
     value 'AVAILABLE_FILE_TYPES'
+    value 'CLIENT_ENROLLMENTS', 'All Enrollments, including WIP and exited, for the client.'
   end
 end

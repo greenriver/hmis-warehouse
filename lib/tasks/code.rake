@@ -1,4 +1,6 @@
 namespace :code do
+  # NOTE, you can check a PR for this with
+  # git diff -U0 --minimal HEAD~1 | grep -v '^+#.*2023' | grep -v '^+#.*LICENSE.md' | grep -v '^+###$' | grep -v '^+#$' | grep -v '^diff --git' | grep -v '^index' | grep '^--- a' | grep '^+++ b' | more
   desc 'Ensure the copyright is included in all ruby files'
   task :maintain_copyright, [] => [:environment, 'log:info_to_stdout'] do
     puts 'Adding license text in all .rb files that don\'t already have it'

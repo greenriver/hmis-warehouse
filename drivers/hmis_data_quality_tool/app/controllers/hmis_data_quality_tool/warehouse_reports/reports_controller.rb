@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ module HmisDataQualityTool::WarehouseReports
     include BaseFilters
 
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
-    before_action :set_report, only: [:show, :destroy, :details, :items]
+    before_action :set_report, only: [:show, :by_client, :destroy, :details, :items]
     # before_action :set_pdf_export, only: [:show]
 
     def index
@@ -34,6 +34,12 @@ module HmisDataQualityTool::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def by_client
+      @clients = @report.clients.order(:last_name, :first_name)
+      @pivot_details = @report.pivot_details
+      @pagy, @clients = pagy(@clients)
     end
 
     def create

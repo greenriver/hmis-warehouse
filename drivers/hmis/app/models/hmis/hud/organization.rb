@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,6 +22,8 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   replace_scope :viewable_by, ->(user) do
     ids = user.viewable_organizations.pluck(:id)
     ids += user.viewable_data_sources.joins(:organizations).pluck(o_t[:id])
+    # If a user can see a project within the organization, they can see the organization
+    ids += user.viewable_projects.joins(:organization).pluck(o_t[:id])
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
@@ -36,5 +38,12 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def to_pick_list_option
+    {
+      code: id,
+      label: organization_name,
+    }
   end
 end

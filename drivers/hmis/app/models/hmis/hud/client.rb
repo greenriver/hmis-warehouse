@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,11 +18,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
+  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName')
+  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress')
+  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint')
+  has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName')
 
-  # NOTE: this does not include project where the enrollment is WIP
+  # Enrollments for this Client, including WIP Enrollments
+  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
+  # Projects that this Client is enrolled in, NOT inluding WIP enrollments
   has_many :projects, through: :enrollments
+  # WIP records representing enrollments for this Client
+  has_many :wip, class_name: 'Hmis::Wip', through: :enrollments
+
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
@@ -31,9 +39,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
+  # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
+  has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+
   validates_with Hmis::Hud::Validators::ClientValidator
 
   attr_accessor :image_blob_id
+  attr_accessor :create_mci_id
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -48,12 +60,26 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       file.client_file.attach(current_image_blob)
       file.save!
     end
+
+    # Post-save action to create a new MCI ID if specified by the ClientProcessor
+    if create_mci_id && HmisExternalApis::AcHmis::Mci.enabled?
+      self.create_mci_id = nil
+      HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
+    end
+  end
+
+  scope :with_access, ->(user, *permissions, **kwargs) do
+    pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
+
+    unenrolled_ids = user.permissions?(*permissions, **kwargs) ? unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)).pluck(:id) : []
+    enrolled_ids = joins(:projects).where(p_t[:id].in(pids)).pluck(:id)
+    wip_ids = joins(:wip).where(wip_t[:project_id].in(pids)).pluck(:id)
+
+    where(id: unenrolled_ids + enrolled_ids + wip_ids)
   end
 
   scope :visible_to, ->(user) do
-    return none unless user.can_view_clients?
-
-    joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
+    with_access(user, :can_view_clients)
   end
 
   class << self
@@ -72,12 +98,31 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  # Clients that have no Enrollments (WIP or otherwise)
+  scope :unenrolled, -> do
+    # Clients that have no projects, AND no wip enrollments
+    left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
+  end
+
+  # All CustomAssessments for this Client, including WIP Assessments and assessments at WIP Enrollments
   def custom_assessments_including_wip
     enrollment_ids = enrollments.pluck(:id, :enrollment_id)
     wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
 
     Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+  end
+
+  # All Projects that this Client has Enrollments at, including WIP Enrollments
+  def projects_including_wip
+    wip_enrollment_projects = Hmis::Wip.enrollments.where(client: self).pluck(:project_id).compact
+    non_wip_enrollment_projects = projects.pluck(:id)
+
+    Hmis::Hud::Project.where(id: wip_enrollment_projects + non_wip_enrollment_projects)
+  end
+
+  def enrolled?
+    enrollments.any?
   end
 
   def self.source_for(destination_id:, user:)
@@ -89,6 +134,53 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def ssn_serial
     self.SSN&.[](-4..-1)
+  end
+
+  def warehouse_id
+    warehouse_client_source&.destination_id
+  end
+
+  def warehouse_url
+    "https://#{ENV['FQDN']}/clients/#{id}/from_source"
+  end
+
+  def mci_id
+    ac_hmis_mci_id&.value
+  end
+
+  private def clientview_url
+    link_base = HmisExternalApis::AcHmis::Clientview.link_base
+    return unless link_base&.present? && mci_id&.present?
+
+    "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
+  end
+
+  def external_identifiers
+    external_identifiers = {
+      client_id: {
+        id: id,
+        label: 'HMIS ID',
+      },
+      personal_id: {
+        id: personal_id,
+        label: 'Personal ID',
+      },
+      warehouse_id: {
+        id: warehouse_id,
+        url: warehouse_url,
+        label: 'Warehouse ID',
+      },
+    }
+
+    if HmisExternalApis::AcHmis::Mci.enabled?
+      external_identifiers[:mci_id] = {
+        id: mci_id,
+        url: clientview_url,
+        label: 'MCI ID',
+      }
+    end
+
+    external_identifiers
   end
 
   SORT_OPTIONS = [
@@ -222,4 +314,11 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     client_files&.client_photos&.newest_first&.first&.destroy!
     @image = nil
   end
+
+  # Mirrors `clientBriefName` in frontend
+  def brief_name
+    preferred_name || [first_name, last_name].compact.join(' ')
+  end
+
+  include RailsDrivers::Extensions
 end

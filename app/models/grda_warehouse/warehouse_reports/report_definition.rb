@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -1282,6 +1282,16 @@ module GrdaWarehouse::WarehouseReports
         }
       end
 
+      if RailsDrivers.loaded.include?(:system_pathways)
+        r_list['Performance'] << {
+          url: 'system_pathways/warehouse_reports/reports',
+          name: 'System Pathways',
+          description: 'A tool to look at client pathways through the continuum including some equity analysis.',
+          limitable: true,
+          health: false,
+        }
+      end
+
       r_list
     end
 
@@ -1360,6 +1370,7 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'hmis_data_quality_tool/warehouse_reports/goal_configs'
       end
       cleanup << 'ma_reports/warehouse_reports/monthly_project_utilizations' unless RailsDrivers.loaded.include?(:ma_reports)
+      cleanup << 'system_pathways/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:system_pathways)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all

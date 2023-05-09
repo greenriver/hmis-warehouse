@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -62,6 +62,13 @@ module Types
       raise "Unrecognized key '#{key}' for enum #{name}" unless values.key?(key)
 
       values[key].value
+    end
+
+    def self.key_for(value)
+      member = enum_member_for_value(value)
+      raise "Unrecognized value '#{value}' for enum #{name}" unless member.present?
+
+      member.first
     end
 
     def self.data_not_collected_value

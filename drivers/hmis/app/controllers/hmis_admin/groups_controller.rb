@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -69,7 +69,7 @@ class HmisAdmin::GroupsController < ApplicationController
   private def set_entities
     @data_sources = {
       selected: @group&.data_sources&.map(&:id) || [],
-      label: 'Data Sources',
+      label: 'HMIS Data Sources',
       collection: GrdaWarehouse::DataSource.hmis.order(:name),
       placeholder: 'Data Source',
       multiple: true,
@@ -115,18 +115,19 @@ class HmisAdmin::GroupsController < ApplicationController
       },
     }
 
-    @project_access_groups = {
-      selected: @group&.project_access_groups&.map(&:id) || [],
-      collection: GrdaWarehouse::ProjectAccessGroup.
-        order(:name).
-        pluck(:name, :id),
-      id: :project_access_groups,
-      placeholder: 'Project Group',
-      multiple: true,
-      input_html: {
-        class: 'jUserViewable jProjectAccessGroups',
-        name: 'access_group[project_access_groups][]',
-      },
-    }
+    # Add back once we have support for HMIS Project Groups.
+    # @project_access_groups = {
+    #   selected: @group&.project_access_groups&.map(&:id) || [],
+    #   collection: GrdaWarehouse::ProjectAccessGroup.
+    #     order(:name).
+    #     pluck(:name, :id),
+    #   id: :project_access_groups,
+    #   placeholder: 'Project Group',
+    #   multiple: true,
+    #   input_html: {
+    #     class: 'jUserViewable jProjectAccessGroups',
+    #     name: 'access_group[project_access_groups][]',
+    #   },
+    # }
   end
 end

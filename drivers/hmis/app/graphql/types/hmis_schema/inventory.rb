@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,9 +8,6 @@
 
 module Types
   class HmisSchema::Inventory < Types::BaseObject
-    include Types::HmisSchema::HasUnits
-    include Types::HmisSchema::HasBeds
-
     def self.configuration
       Hmis::Hud::Inventory.hmis_configuration(version: '2022')
     end
@@ -35,16 +32,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
-    units_field
-    beds_field
-
-    def units(**args)
-      resolve_units(**args)
-    end
-
-    def beds(**args)
-      resolve_beds(**args)
-    end
   end
 end

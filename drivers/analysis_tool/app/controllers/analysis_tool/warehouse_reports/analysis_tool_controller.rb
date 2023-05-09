@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,13 +14,13 @@ module AnalysisTool::WarehouseReports
 
     before_action :require_can_view_clients, only: [:detail]
     before_action :set_report
-    # before_action :set_pdf_export
 
-    background_render_action(:render_section, ::BackgroundRender::DisabilitySummaryJob) do
+    background_render_action(:render_section, ::BackgroundRender::AnalysisToolJob) do
       {
-        partial: params.require(:partial).underscore,
         filters: @filter.for_params[:filters].to_json,
         user_id: current_user.id,
+        row_breakdown: breakdowns[:row],
+        col_breakdown: breakdowns[:col],
       }
     end
 
@@ -68,12 +68,8 @@ module AnalysisTool::WarehouseReports
     end
 
     def section
-      @section = @report.class.available_section_types.detect do |m|
-        m == params.require(:partial).underscore
-      end
-      @section = 'overall' if @section.blank? && params.require(:partial) == 'overall'
-
-      raise 'Rollup not in allowlist' unless @section.present?
+      @report.breakdowns = breakdowns
+      @section = 'table'
 
       if @report.section_ready?(@section)
         @section = @report.section_subpath + @section

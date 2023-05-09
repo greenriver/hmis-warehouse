@@ -763,6 +763,51 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 
 
 --
+-- Name: CustomClientAddress; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientAddress" (
+    id bigint NOT NULL,
+    use character varying,
+    address_type character varying,
+    line1 character varying,
+    line2 character varying,
+    city character varying,
+    state character varying,
+    district character varying,
+    country character varying,
+    postal_code character varying,
+    notes character varying,
+    "AddressID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientAddress_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientAddress_id_seq" OWNED BY public."CustomClientAddress".id;
+
+
+--
 -- Name: CustomClientAssessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -796,6 +841,88 @@ CREATE SEQUENCE public."CustomClientAssessments_id_seq"
 --
 
 ALTER SEQUENCE public."CustomClientAssessments_id_seq" OWNED BY public."CustomClientAssessments".id;
+
+
+--
+-- Name: CustomClientContactPoint; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientContactPoint" (
+    id bigint NOT NULL,
+    use character varying,
+    system character varying,
+    value character varying,
+    notes character varying,
+    "ContactPointID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientContactPoint_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientContactPoint_id_seq" OWNED BY public."CustomClientContactPoint".id;
+
+
+--
+-- Name: CustomClientName; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientName" (
+    id bigint NOT NULL,
+    first character varying,
+    middle character varying,
+    last character varying,
+    suffix character varying,
+    use character varying,
+    notes text,
+    "primary" boolean,
+    "NameDataQuality" integer,
+    "CustomClientNameID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientName_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientName_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientName_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientName_id_seq" OWNED BY public."CustomClientName".id;
 
 
 --
@@ -5551,6 +5678,84 @@ ALTER SEQUENCE public.exports_id_seq OWNED BY public.exports.id;
 
 
 --
+-- Name: external_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_ids (
+    id bigint NOT NULL,
+    value character varying NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    remote_credential_id bigint,
+    external_request_log_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    namespace character varying
+);
+
+
+--
+-- Name: external_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_ids_id_seq OWNED BY public.external_ids.id;
+
+
+--
+-- Name: external_request_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_request_logs (
+    id bigint NOT NULL,
+    initiator_type character varying,
+    initiator_id bigint,
+    identifier character varying,
+    content_type character varying,
+    url character varying NOT NULL,
+    http_method character varying DEFAULT 'GET'::character varying NOT NULL,
+    ip inet,
+    request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
+    request text NOT NULL,
+    response text NOT NULL,
+    http_status integer,
+    requested_at timestamp without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: external_request_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_request_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_request_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_request_logs_id_seq OWNED BY public.external_request_logs.id;
+
+
+--
 -- Name: fake_data; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5736,7 +5941,8 @@ CREATE TABLE public.files (
     consent_revoked_at timestamp without time zone,
     coc_codes jsonb DEFAULT '[]'::jsonb,
     enrollment_id bigint,
-    confidential boolean
+    confidential boolean,
+    updated_by_id bigint
 );
 
 
@@ -9225,8 +9431,8 @@ CREATE TABLE public.hmis_active_ranges (
     id bigint NOT NULL,
     entity_type character varying,
     entity_id bigint,
-    start date NOT NULL,
-    "end" date,
+    start_date date NOT NULL,
+    end_date date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
@@ -9549,42 +9755,6 @@ CREATE SEQUENCE public.hmis_assessments_id_seq
 --
 
 ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.id;
-
-
---
--- Name: hmis_beds; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_beds (
-    id bigint NOT NULL,
-    unit_id bigint NOT NULL,
-    bed_type character varying NOT NULL,
-    name character varying,
-    gender character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    user_id character varying NOT NULL
-);
-
-
---
--- Name: hmis_beds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_beds_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_beds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_beds_id_seq OWNED BY public.hmis_beds.id;
 
 
 --
@@ -12559,7 +12729,10 @@ CREATE TABLE public.hmis_dqt_enrollments (
     days_to_enter_exit_date integer,
     days_before_entry integer,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    annual_expected boolean,
+    enrollment_anniversary_date date,
+    annual_assessment_status json
 );
 
 
@@ -12681,7 +12854,8 @@ CREATE TABLE public.hmis_dqt_goals (
     deleted_at timestamp without time zone,
     entry_date_entered_length integer DEFAULT 6,
     exit_date_entered_length integer DEFAULT 6,
-    expose_ch_calculations boolean DEFAULT true NOT NULL
+    expose_ch_calculations boolean DEFAULT true NOT NULL,
+    show_annual_assessments boolean DEFAULT true
 );
 
 
@@ -12753,6 +12927,149 @@ CREATE SEQUENCE public.hmis_dqt_inventories_id_seq
 --
 
 ALTER SEQUENCE public.hmis_dqt_inventories_id_seq OWNED BY public.hmis_dqt_inventories.id;
+
+
+--
+-- Name: hmis_external_referral_household_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_referral_household_members (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    relationship_to_hoh integer NOT NULL,
+    referral_id bigint NOT NULL,
+    client_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_external_referral_household_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_referral_household_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_referral_household_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_referral_household_members_id_seq OWNED BY public.hmis_external_referral_household_members.id;
+
+
+--
+-- Name: hmis_external_referral_postings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_referral_postings (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    identifier character varying NOT NULL,
+    status integer NOT NULL,
+    referral_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    referral_request_id bigint,
+    unit_type_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_external_referral_postings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_referral_postings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_referral_postings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_referral_postings_id_seq OWNED BY public.hmis_external_referral_postings.id;
+
+
+--
+-- Name: hmis_external_referral_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_referral_requests (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    identifier character varying NOT NULL,
+    project_id bigint NOT NULL,
+    unit_type_id bigint NOT NULL,
+    requested_on date NOT NULL,
+    needed_by date NOT NULL,
+    requested_by_id bigint,
+    requestor_name character varying NOT NULL,
+    requestor_phone character varying NOT NULL,
+    requestor_email character varying NOT NULL,
+    voided_at timestamp without time zone,
+    voided_by_id bigint
+);
+
+
+--
+-- Name: hmis_external_referral_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_referral_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_referral_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_referral_requests_id_seq OWNED BY public.hmis_external_referral_requests.id;
+
+
+--
+-- Name: hmis_external_referrals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_referrals (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    identifier character varying NOT NULL,
+    referral_date date NOT NULL,
+    service_coordinator character varying NOT NULL
+);
+
+
+--
+-- Name: hmis_external_referrals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_referrals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_referrals_id_seq OWNED BY public.hmis_external_referrals.id;
 
 
 --
@@ -13144,17 +13461,83 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: hmis_unit_occupancy; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_unit_occupancy (
+    id bigint NOT NULL,
+    unit_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    hmis_service_id bigint
+);
+
+
+--
+-- Name: hmis_unit_occupancy_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_unit_occupancy_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_unit_occupancy_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_unit_occupancy_id_seq OWNED BY public.hmis_unit_occupancy.id;
+
+
+--
+-- Name: hmis_unit_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_unit_types (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    description character varying,
+    bed_type integer,
+    unit_size integer
+);
+
+
+--
+-- Name: hmis_unit_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_unit_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_unit_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_unit_types_id_seq OWNED BY public.hmis_unit_types.id;
+
+
+--
 -- Name: hmis_units; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.hmis_units (
     id bigint NOT NULL,
-    inventory_id bigint NOT NULL,
     name character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    user_id character varying NOT NULL
+    user_id character varying NOT NULL,
+    unit_type_id integer,
+    unit_size integer,
+    project_id integer NOT NULL
 );
 
 
@@ -14516,7 +14899,8 @@ CREATE TABLE public.hud_report_pit_clients (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     personal_id character varying,
-    hoh_age integer
+    hoh_age integer,
+    household_member_count integer
 );
 
 
@@ -14743,6 +15127,41 @@ CREATE SEQUENCE public.import_logs_id_seq
 --
 
 ALTER SEQUENCE public.import_logs_id_seq OWNED BY public.import_logs.id;
+
+
+--
+-- Name: inbound_api_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.inbound_api_configurations (
+    id bigint NOT NULL,
+    external_system_name character varying NOT NULL,
+    hashed_api_key character varying NOT NULL,
+    plain_text_reminder character varying NOT NULL,
+    version integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    internal_system_id bigint
+);
+
+
+--
+-- Name: inbound_api_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.inbound_api_configurations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: inbound_api_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.inbound_api_configurations_id_seq OWNED BY public.inbound_api_configurations.id;
 
 
 --
@@ -14980,6 +15399,37 @@ CREATE VIEW public.index_stats AS
      LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
      LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
   ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+
+
+--
+-- Name: internal_systems; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.internal_systems (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    auth_type character varying DEFAULT 'apikey'::character varying NOT NULL
+);
+
+
+--
+-- Name: internal_systems_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.internal_systems_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: internal_systems_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.internal_systems_id_seq OWNED BY public.internal_systems.id;
 
 
 --
@@ -15573,6 +16023,36 @@ CREATE SEQUENCE public.ma_yya_report_clients_id_seq
 --
 
 ALTER SEQUENCE public.ma_yya_report_clients_id_seq OWNED BY public.ma_yya_report_clients.id;
+
+
+--
+-- Name: mhx_submission_external_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mhx_submission_external_ids (
+    id bigint NOT NULL,
+    submission_id bigint,
+    external_id_id bigint
+);
+
+
+--
+-- Name: mhx_submission_external_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mhx_submission_external_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mhx_submission_external_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mhx_submission_external_ids_id_seq OWNED BY public.mhx_submission_external_ids.id;
 
 
 --
@@ -17090,7 +17570,9 @@ CREATE TABLE public.remote_credentials (
     endpoint character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    additional_headers jsonb DEFAULT '{}'::jsonb,
+    slug character varying
 );
 
 
@@ -19064,6 +19546,136 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    personal_ids character varying,
+    dob date,
+    age integer,
+    am_ind_ak_native boolean,
+    asian boolean,
+    black_af_american boolean,
+    native_hi_pacific boolean,
+    white boolean,
+    ethnicity integer,
+    male boolean,
+    female boolean,
+    gender_other boolean,
+    transgender boolean,
+    questioning boolean,
+    no_single_gender boolean,
+    veteran_status integer,
+    involves_ce boolean,
+    system boolean,
+    destination integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    destination_homeless boolean DEFAULT false,
+    destination_temporary boolean DEFAULT false,
+    destination_institutional boolean DEFAULT false,
+    destination_other boolean DEFAULT false,
+    destination_permanent boolean DEFAULT false,
+    returned_project_type integer,
+    returned_project_name character varying,
+    returned_project_entry_date date,
+    returned_project_enrollment_id bigint,
+    returned_project_project_id bigint,
+    report_id bigint,
+    deleted_at timestamp without time zone,
+    days_to_return integer
+);
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_clients_id_seq OWNED BY public.system_pathways_clients.id;
+
+
+--
+-- Name: system_pathways_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_enrollments (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    from_project_type integer,
+    project_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    project_type integer NOT NULL,
+    destination integer,
+    project_name character varying,
+    entry_date date,
+    exit_date date,
+    stay_length integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    relationship_to_hoh integer,
+    household_id character varying,
+    household_type character varying,
+    report_id bigint,
+    deleted_at timestamp without time zone,
+    final_enrollment boolean DEFAULT false NOT NULL,
+    move_in_date date,
+    days_to_move_in integer,
+    days_to_exit_after_move_in integer,
+    chronic_at_entry boolean,
+    disabling_condition integer
+);
+
+
+--
+-- Name: COLUMN system_pathways_enrollments.from_project_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.system_pathways_enrollments.from_project_type IS 'null for System';
+
+
+--
+-- Name: COLUMN system_pathways_enrollments.destination; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.system_pathways_enrollments.destination IS 'Only stored for final enrollment';
+
+
+--
+-- Name: system_pathways_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_enrollments_id_seq OWNED BY public.system_pathways_enrollments.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20515,10 +21127,31 @@ ALTER TABLE ONLY public."CustomAssessments" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: CustomClientAddress id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAddress_id_seq"'::regclass);
+
+
+--
 -- Name: CustomClientAssessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."CustomClientAssessments" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAssessments_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientContactPoint id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientContactPoint" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientContactPoint_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientName id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientName" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientName_id_seq"'::regclass);
 
 
 --
@@ -21201,6 +21834,20 @@ ALTER TABLE ONLY public.exports_ad_hocs ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: external_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids ALTER COLUMN id SET DEFAULT nextval('public.external_ids_id_seq'::regclass);
+
+
+--
+-- Name: external_request_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_request_logs ALTER COLUMN id SET DEFAULT nextval('public.external_request_logs_id_seq'::regclass);
+
+
+--
 -- Name: fake_data id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21691,13 +22338,6 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 
 
 --
--- Name: hmis_beds id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_beds ALTER COLUMN id SET DEFAULT nextval('public.hmis_beds_id_seq'::regclass);
-
-
---
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22125,6 +22765,34 @@ ALTER TABLE ONLY public.hmis_dqt_inventories ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_external_referral_household_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referral_household_members_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_referral_postings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referral_postings_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_referral_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_requests ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referral_requests_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_referrals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referrals ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referrals_id_seq'::regclass);
+
+
+--
 -- Name: hmis_form_definitions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22171,6 +22839,20 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_x_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_unit_occupancy id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_occupancy ALTER COLUMN id SET DEFAULT nextval('public.hmis_unit_occupancy_id_seq'::regclass);
+
+
+--
+-- Name: hmis_unit_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_types ALTER COLUMN id SET DEFAULT nextval('public.hmis_unit_types_id_seq'::regclass);
 
 
 --
@@ -22363,6 +23045,13 @@ ALTER TABLE ONLY public.import_logs ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: inbound_api_configurations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inbound_api_configurations ALTER COLUMN id SET DEFAULT nextval('public.inbound_api_configurations_id_seq'::regclass);
+
+
+--
 -- Name: income_benefits_report_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22381,6 +23070,13 @@ ALTER TABLE ONLY public.income_benefits_report_incomes ALTER COLUMN id SET DEFAU
 --
 
 ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT nextval('public.income_benefits_reports_id_seq'::regclass);
+
+
+--
+-- Name: internal_systems id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.internal_systems ALTER COLUMN id SET DEFAULT nextval('public.internal_systems_id_seq'::regclass);
 
 
 --
@@ -22493,6 +23189,13 @@ ALTER TABLE ONLY public.ma_monthly_performance_projects ALTER COLUMN id SET DEFA
 --
 
 ALTER TABLE ONLY public.ma_yya_report_clients ALTER COLUMN id SET DEFAULT nextval('public.ma_yya_report_clients_id_seq'::regclass);
+
+
+--
+-- Name: mhx_submission_external_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_submission_external_ids ALTER COLUMN id SET DEFAULT nextval('public.mhx_submission_external_ids_id_seq'::regclass);
 
 
 --
@@ -23161,6 +23864,20 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_clients_id_seq'::regclass);
+
+
+--
+-- Name: system_pathways_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_enrollments ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_enrollments_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23407,11 +24124,35 @@ ALTER TABLE ONLY public."CustomAssessments"
 
 
 --
+-- Name: CustomClientAddress CustomClientAddress_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress"
+    ADD CONSTRAINT "CustomClientAddress_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: CustomClientAssessments CustomClientAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."CustomClientAssessments"
     ADD CONSTRAINT "CustomClientAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientContactPoint CustomClientContactPoint_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientContactPoint"
+    ADD CONSTRAINT "CustomClientContactPoint_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientName CustomClientName_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientName"
+    ADD CONSTRAINT "CustomClientName_pkey" PRIMARY KEY (id);
 
 
 --
@@ -24199,6 +24940,22 @@ ALTER TABLE ONLY public.exports
 
 
 --
+-- Name: external_ids external_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT external_ids_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_request_logs external_request_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_request_logs
+    ADD CONSTRAINT external_request_logs_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: fake_data fake_data_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -24759,14 +25516,6 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 
 --
--- Name: hmis_beds hmis_beds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_beds
-    ADD CONSTRAINT hmis_beds_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_case_notes hmis_case_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25255,6 +26004,38 @@ ALTER TABLE ONLY public.hmis_dqt_inventories
 
 
 --
+-- Name: hmis_external_referral_household_members hmis_external_referral_household_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT hmis_external_referral_household_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_referral_postings hmis_external_referral_postings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT hmis_external_referral_postings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_referral_requests hmis_external_referral_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_requests
+    ADD CONSTRAINT hmis_external_referral_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_referrals hmis_external_referrals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referrals
+    ADD CONSTRAINT hmis_external_referrals_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_form_definitions hmis_form_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25308,6 +26089,22 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_unit_occupancy hmis_unit_occupancy_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_occupancy
+    ADD CONSTRAINT hmis_unit_occupancy_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_unit_types hmis_unit_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_types
+    ADD CONSTRAINT hmis_unit_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -25527,6 +26324,14 @@ ALTER TABLE ONLY public.import_logs
 
 
 --
+-- Name: inbound_api_configurations inbound_api_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inbound_api_configurations
+    ADD CONSTRAINT inbound_api_configurations_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: income_benefits_report_clients income_benefits_report_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25548,6 +26353,14 @@ ALTER TABLE ONLY public.income_benefits_report_incomes
 
 ALTER TABLE ONLY public.income_benefits_reports
     ADD CONSTRAINT income_benefits_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: internal_systems internal_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.internal_systems
+    ADD CONSTRAINT internal_systems_pkey PRIMARY KEY (id);
 
 
 --
@@ -25676,6 +26489,14 @@ ALTER TABLE ONLY public.ma_monthly_performance_projects
 
 ALTER TABLE ONLY public.ma_yya_report_clients
     ADD CONSTRAINT ma_yya_report_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mhx_submission_external_ids mhx_submission_external_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_submission_external_ids
+    ADD CONSTRAINT mhx_submission_external_ids_pkey PRIMARY KEY (id);
 
 
 --
@@ -26028,6 +26849,22 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_clients system_pathways_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients
+    ADD CONSTRAINT system_pathways_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_enrollments system_pathways_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_enrollments
+    ADD CONSTRAINT system_pathways_enrollments_pkey PRIMARY KEY (id);
 
 
 --
@@ -26719,6 +27556,13 @@ CREATE INDEX exit_p_id_ds_id ON public."Exit" USING btree ("PersonalID", data_so
 --
 
 CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
+
+
+--
+-- Name: external_ids_uniq_source_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX external_ids_uniq_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id);
 
 
 --
@@ -41450,6 +42294,27 @@ CREATE INDEX idx_hmis_2020_users_imid_du ON public.hmis_2020_users USING btree (
 
 
 --
+-- Name: idx_hmis_external_referral_hms_on_referral_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_external_referral_hms_on_referral_id ON public.hmis_external_referral_household_members USING btree (referral_id);
+
+
+--
+-- Name: idx_hmis_external_referral_postings_on_request_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_external_referral_postings_on_request_id ON public.hmis_external_referral_postings USING btree (referral_request_id);
+
+
+--
+-- Name: idx_inbound_api_configurations_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_configurations USING btree (internal_system_id, external_system_name, version);
+
+
+--
 -- Name: idx_tpc_uniqueness; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43396,6 +44261,55 @@ CREATE INDEX index_exports_on_export_id ON public.exports USING btree (export_id
 
 
 --
+-- Name: index_external_ids_on_external_request_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_external_request_log_id ON public.external_ids USING btree (external_request_log_id);
+
+
+--
+-- Name: index_external_ids_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids USING btree (remote_credential_id);
+
+
+--
+-- Name: index_external_ids_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_value ON public.external_ids USING btree (value);
+
+
+--
+-- Name: index_external_request_logs_on_initiator; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_initiator ON public.external_request_logs USING btree (initiator_type, initiator_id);
+
+
+--
+-- Name: index_external_request_logs_on_initiator_id_and_initiator_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_initiator_id_and_initiator_type ON public.external_request_logs USING btree (initiator_id, initiator_type);
+
+
+--
+-- Name: index_external_request_logs_on_ip; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_ip ON public.external_request_logs USING btree (ip);
+
+
+--
+-- Name: index_external_request_logs_on_requested_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_requested_at ON public.external_request_logs USING btree (requested_at);
+
+
+--
 -- Name: index_favorites_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43435,6 +44349,13 @@ CREATE INDEX index_files_on_enrollment_id ON public.files USING btree (enrollmen
 --
 
 CREATE INDEX index_files_on_type ON public.files USING btree (type);
+
+
+--
+-- Name: index_files_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_updated_by_id ON public.files USING btree (updated_by_id);
 
 
 --
@@ -43967,13 +44888,6 @@ CREATE INDEX index_hmis_assessment_details_on_definition_id ON public.hmis_asses
 --
 
 CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btree (name);
-
-
---
--- Name: index_hmis_beds_on_unit_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_beds_on_unit_id ON public.hmis_beds USING btree (unit_id);
 
 
 --
@@ -44607,6 +45521,48 @@ CREATE INDEX index_hmis_dqt_inventories_on_report_id ON public.hmis_dqt_inventor
 
 
 --
+-- Name: index_hmis_external_referral_postings_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_postings_on_project_id ON public.hmis_external_referral_postings USING btree (project_id);
+
+
+--
+-- Name: index_hmis_external_referral_postings_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_postings_on_unit_type_id ON public.hmis_external_referral_postings USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_external_referral_requests_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_requests_on_project_id ON public.hmis_external_referral_requests USING btree (project_id);
+
+
+--
+-- Name: index_hmis_external_referral_requests_on_requested_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_requests_on_requested_by_id ON public.hmis_external_referral_requests USING btree (requested_by_id);
+
+
+--
+-- Name: index_hmis_external_referral_requests_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_requests_on_unit_type_id ON public.hmis_external_referral_requests USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_external_referral_requests_on_voided_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referral_requests_on_voided_by_id ON public.hmis_external_referral_requests USING btree (voided_by_id);
+
+
+--
 -- Name: index_hmis_form_instances_on_entity; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44719,10 +45675,24 @@ CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_c
 
 
 --
--- Name: index_hmis_units_on_inventory_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_units_on_inventory_id ON public.hmis_units USING btree (inventory_id);
+CREATE INDEX index_hmis_unit_occupancy_on_enrollment_id ON public.hmis_unit_occupancy USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_unit_occupancy_on_hmis_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_occupancy_on_hmis_service_id ON public.hmis_unit_occupancy USING btree (hmis_service_id);
+
+
+--
+-- Name: index_hmis_unit_occupancy_on_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_occupancy_on_unit_id ON public.hmis_unit_occupancy USING btree (unit_id);
 
 
 --
@@ -45104,6 +46074,27 @@ CREATE INDEX index_import_logs_on_updated_at ON public.import_logs USING btree (
 
 
 --
+-- Name: index_inbound_api_configurations_on_hashed_api_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_inbound_api_configurations_on_hashed_api_key ON public.inbound_api_configurations USING btree (hashed_api_key);
+
+
+--
+-- Name: index_inbound_api_configurations_on_internal_system_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_inbound_api_configurations_on_internal_system_id ON public.inbound_api_configurations USING btree (internal_system_id);
+
+
+--
+-- Name: index_inbound_api_configurations_on_plain_text_reminder; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_inbound_api_configurations_on_plain_text_reminder ON public.inbound_api_configurations USING btree (plain_text_reminder);
+
+
+--
 -- Name: index_income_benefits_report_clients_earlier; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45220,6 +46211,13 @@ CREATE INDEX index_income_benefits_reports_on_updated_at ON public.income_benefi
 --
 
 CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_reports USING btree (user_id);
+
+
+--
+-- Name: index_internal_systems_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_internal_systems_on_name ON public.internal_systems USING btree (name);
 
 
 --
@@ -45402,6 +46400,20 @@ CREATE INDEX index_ma_yya_report_clients_on_client_id ON public.ma_yya_report_cl
 --
 
 CREATE INDEX index_ma_yya_report_clients_on_service_history_enrollment_id ON public.ma_yya_report_clients USING btree (service_history_enrollment_id);
+
+
+--
+-- Name: index_mhx_submission_external_ids_on_external_id_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_submission_external_ids_on_external_id_id ON public.mhx_submission_external_ids USING btree (external_id_id);
+
+
+--
+-- Name: index_mhx_submission_external_ids_on_submission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_submission_external_ids_on_submission_id ON public.mhx_submission_external_ids USING btree (submission_id);
 
 
 --
@@ -45787,6 +46799,13 @@ CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_secret_iv ON pu
 --
 
 CREATE INDEX index_remote_configs_on_remote_credential_id ON public.remote_configs USING btree (remote_credential_id);
+
+
+--
+-- Name: index_remote_credentials_on_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_remote_credentials_on_slug ON public.remote_credentials USING btree (slug);
 
 
 --
@@ -49304,6 +50323,48 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system_pathways_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49955,6 +51016,48 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 
 
 --
+-- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
+
+
+--
+-- Name: uidx_hmis_external_referral_hms_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referral_hms_1 ON public.hmis_external_referral_household_members USING btree (client_id, referral_id);
+
+
+--
+-- Name: uidx_hmis_external_referral_posting_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referral_posting_identifier ON public.hmis_external_referral_postings USING btree (identifier);
+
+
+--
+-- Name: uidx_hmis_external_referral_postings_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referral_postings_1 ON public.hmis_external_referral_postings USING btree (referral_id, referral_request_id);
+
+
+--
+-- Name: uidx_hmis_external_referral_requests_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referral_requests_identifier ON public.hmis_external_referral_requests USING btree (identifier);
+
+
+--
+-- Name: uidx_hmis_external_referrals_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_external_referrals USING btree (identifier);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49966,6 +51069,13 @@ CREATE UNIQUE INDEX uniq_hud_report_universe_members ON public.hud_report_univer
 --
 
 CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_universe_members USING btree (report_cell_id, universe_membership_id, universe_membership_type) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: unique_index_ensuring_one_primary_per_client; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."CustomClientName" USING btree ("PersonalID", data_source_id, "primary");
 
 
 --
@@ -51104,6 +52214,14 @@ ALTER TABLE ONLY public.service_history_services_2036
 
 
 --
+-- Name: external_ids fk_rails_01fbc7ded3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT fk_rails_01fbc7ded3 FOREIGN KEY (remote_credential_id) REFERENCES public.remote_credentials(id);
+
+
+--
 -- Name: service_history_services_2023 fk_rails_0702601703; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -51256,6 +52374,14 @@ ALTER TABLE ONLY public.service_history_services_2045
 
 
 --
+-- Name: hmis_external_referral_postings fk_rails_376e889c6f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_376e889c6f FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: service_history_services_2006 fk_rails_3ab91d734b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -51269,6 +52395,22 @@ ALTER TABLE ONLY public.service_history_services_2006
 
 ALTER TABLE ONLY public.service_history_services_2030
     ADD CONSTRAINT fk_rails_3c74c16802 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_referral_postings fk_rails_41274b755e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_41274b755e FOREIGN KEY (referral_request_id) REFERENCES public.hmis_external_referral_requests(id);
+
+
+--
+-- Name: inbound_api_configurations fk_rails_441b0de9e4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inbound_api_configurations
+    ADD CONSTRAINT fk_rails_441b0de9e4 FOREIGN KEY (internal_system_id) REFERENCES public.internal_systems(id);
 
 
 --
@@ -51320,6 +52462,14 @@ ALTER TABLE ONLY public.service_history_services_2040
 
 
 --
+-- Name: hmis_external_referral_requests fk_rails_5ee7846c8b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_requests
+    ADD CONSTRAINT fk_rails_5ee7846c8b FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: warehouse_clients fk_rails_5f845fa144; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -51336,11 +52486,27 @@ ALTER TABLE ONLY public.service_history_services_2017
 
 
 --
+-- Name: hmis_external_referral_postings fk_rails_669165b0ae; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_669165b0ae FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
+
+
+--
 -- Name: service_history_services_2039 fk_rails_6c0d4085ac; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.service_history_services_2039
     ADD CONSTRAINT fk_rails_6c0d4085ac FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: external_ids fk_rails_6c5b5c909b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT fk_rails_6c5b5c909b FOREIGN KEY (external_request_log_id) REFERENCES public.external_request_logs(id);
 
 
 --
@@ -51357,6 +52523,14 @@ ALTER TABLE ONLY public.service_history_services_2047
 
 ALTER TABLE ONLY public.service_history_services_2024
     ADD CONSTRAINT fk_rails_7119cac661 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_referral_postings fk_rails_71a339e69d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_postings
+    ADD CONSTRAINT fk_rails_71a339e69d FOREIGN KEY (project_id) REFERENCES public."Project"(id);
 
 
 --
@@ -51485,6 +52659,14 @@ ALTER TABLE ONLY public."Disabilities"
 
 ALTER TABLE ONLY public.service_history_services_2049
     ADD CONSTRAINT fk_rails_9783c16a4a FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_referral_household_members fk_rails_993d7f8d95; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT fk_rails_993d7f8d95 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
 
 
 --
@@ -51664,6 +52846,14 @@ ALTER TABLE ONLY public."IncomeBenefits"
 
 
 --
+-- Name: hmis_external_referral_requests fk_rails_e4f6c14f81; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_requests
+    ADD CONSTRAINT fk_rails_e4f6c14f81 FOREIGN KEY (project_id) REFERENCES public."Project"(id);
+
+
+--
 -- Name: service_history_services_2043 fk_rails_e5a92ecf01; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -51701,6 +52891,14 @@ ALTER TABLE ONLY public.service_history_services
 
 ALTER TABLE ONLY public."Funder"
     ADD CONSTRAINT fk_rails_ee7363191f FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
 
 
 --
@@ -52684,10 +53882,43 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230313122300'),
 ('20230313152950'),
 ('20230319133739'),
+('20230320131930'),
 ('20230322183901'),
 ('20230322220754'),
 ('20230327202808'),
 ('20230328171436'),
-('20230410202101');
+('20230403144801'),
+('20230406154235'),
+('20230406183420'),
+('20230407164611'),
+('20230410202101'),
+('20230411193836'),
+('20230412163545'),
+('20230412191455'),
+('20230414130229'),
+('20230414152958'),
+('20230417122614'),
+('20230418163934'),
+('20230419162140'),
+('20230419165219'),
+('20230419190654'),
+('20230420164514'),
+('20230424194313'),
+('20230426175101'),
+('20230428141601'),
+('20230428145659'),
+('20230428155418'),
+('20230428203604'),
+('20230428203806'),
+('20230428210859'),
+('20230429185311'),
+('20230429212740'),
+('20230429224702'),
+('20230501183045'),
+('20230502175218'),
+('20230503155642'),
+('20230504131726'),
+('20230504152750'),
+('20230504201305');
 
 

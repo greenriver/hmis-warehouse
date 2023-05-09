@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module BostonReports::WarehouseReports
   class StreetToHomesController < ApplicationController
     include WarehouseReportAuthorization
@@ -72,6 +78,8 @@ module BostonReports::WarehouseReports
     end
 
     def filter_params
+      return report_class.default_filter_options unless params[:filters].present?
+
       params.permit(filters: @filter.known_params)
     end
     helper_method :filter_params

@@ -1,0 +1,61 @@
+- time = SystemPathways::TimeChart.new(report: @report, filter: @filter)
+.time.mt-4{ data: { controller: 'chart-loader', chart: 'document.time' }}
+  - url = URI(@report.chart_data_path('time'))
+  .d-flex
+    - chart_header = "Average Days by "
+    %h3
+      = chart_header
+      %span{ data: { 'chart-loader-target' => 'header' }} Ethnicity
+    .dropdown.ml-auto
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
+        Demographic Breakdown
+        %i.ml-2.icon-angle-down
+      .dropdown-menu.options
+        - demo = time.known_categories.each do |label, key|
+          - url.query = @filter.for_params.merge(demographic_breakdown: key).to_query
+          - table_link = {}
+          - table_link = { 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(chart: 'time')) } if can_access_some_version_of_clients?
+          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}" }.merge(table_link)
+          - classes = ['dropdown-item']
+          = link_to(label, url.to_s, data: data, class: classes)
+  #time-chart-wrapper{ data: { 'chart-loader-target' => 'wrapper' }}
+    #time-chart.mb-6{ data: { 'chart-loader-target' => 'chart' }}
+    #time-table{ data: { 'chart-loader-target' => 'table' }}
+  -# rollup-container.c-card.c-card--flush.c-card--block
+  = content_for :page_js do
+    :javascript
+      document.time = bb.generate({
+        data: {
+          columns: [],
+          type: 'bar',
+          x: 'x',
+          labels: {
+            format: function(v, id, i, j) {
+              if (v == 0) return '';
+              if (! id) return v;
+              if (v < 5) return '';
+              return d3.format(",")(v);
+            },
+            centered: true,
+          }
+        },
+        legend: {
+          position: "right"
+        },
+        tooltip: {
+          order: '', // Enforce group order
+          format: {
+            value: (value, ratio, id, index) => d3.format(",")(value),
+          },
+        },
+        bindto: '#time-chart',
+        size: {
+          height: 100,
+        },
+        axis: {
+          rotated: true,
+          x: {
+            type: 'category'
+          }
+        },
+      });

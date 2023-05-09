@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -76,5 +76,9 @@ module HudPit::PitConcern
       new_hud_reports_pit_path
     end
     helper_method :path_for_new
+
+    def relevant_project_types
+      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    end
   end
 end

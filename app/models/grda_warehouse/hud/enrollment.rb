@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -99,6 +99,9 @@ module GrdaWarehouse::Hud
     end, **hud_enrollment_belongs('Disability')
     has_many :health_and_dvs_at_entry, -> do
       at_entry
+    end, **hud_enrollment_belongs('HealthAndDv')
+    has_many :health_and_dvs_annual_update, -> do
+      at_annual_update
     end, **hud_enrollment_belongs('HealthAndDv')
 
     # NOTE: you will want to limit this to a particular record_type

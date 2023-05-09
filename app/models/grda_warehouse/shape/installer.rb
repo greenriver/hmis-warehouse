@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,7 @@ module GrdaWarehouse
   module Shape
     class Installer
       def self.any_needed?
-        State.none? || ZipCode.none? || County.none? || CoC.none? || BlockGroup.none? || Place.none? || Town.none?
+        State.none? || ZipCode.none? || County.none? || Coc.none? || BlockGroup.none? || Place.none? || Town.none?
       end
 
       def run!
@@ -48,7 +48,7 @@ module GrdaWarehouse
           # easier to just pass it along for all
           system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}")
 
-          if File.exist?("shape_files/#{conf.dir}/inserts.sql") # rubocop:disable Lint/DeprecatedClassMethods
+          if ::File.exist?("shape_files/#{conf.dir}/inserts.sql")
             Rails.logger.info "Inserting #{conf.klass} into the database, conserving RAM"
           elsif conf.klass == GrdaWarehouse::Shape::Town
             Rails.logger.warn 'Shape-loading logic relies on precense of records, so adding a fake town record'
@@ -61,7 +61,7 @@ module GrdaWarehouse
           conf.klass.delete_all
 
           ActiveRecord::Base.logger.silence do
-            File.open("shape_files/#{conf.dir}/inserts.sql", 'r') do |fin|
+            ::File.open("shape_files/#{conf.dir}/inserts.sql", 'r') do |fin|
               fin.each_line.with_index do |line, i|
                 begin
                   GrdaWarehouseBase.connection.exec_query(line)
@@ -88,12 +88,12 @@ module GrdaWarehouse
           shapes_processed << conf.klass
         end
 
-        remove_all_water! if shapes_processed.intersect?([CoC, County].to_set)
+        remove_all_water! if shapes_processed.intersect?([Coc, County].to_set)
 
         Rails.logger.info 'Done with shape importing'
       end
 
-      def prune!(klasses = [ZipCode, CoC, County, State])
+      def prune!(klasses = [ZipCode, Coc, County, State])
         return unless State.any?
 
         if Rails.env.development?
@@ -128,7 +128,7 @@ module GrdaWarehouse
 
         Rails.logger.info 'Clipping geometries to land only using block groups. Be patient'
 
-        [CoC, County].each do |klass|
+        [Coc, County].each do |klass|
           Rails.logger.warn "Handling no-land (all water) parts of #{klass}"
 
           klass.connection.exec_query(<<~SQL)

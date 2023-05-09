@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,6 +11,8 @@ module Filters
 
     # Force people to choose project types because they are additive with projects
     attribute :default_project_type_codes, Array, default: []
+    # Provide a mechanism to limit relevant project types
+    attribute :relevant_project_types, Array, default: []
 
     def params_for_display
       params = known_params.flat_map do |k|
@@ -47,6 +49,9 @@ module Filters
           distinct.
           pluck(p_t[:id])
       end
+
+      # filter any projects for acceptable types if set
+      @effective_project_ids &= relevant_project_ids if relevant_project_types.any?
 
       # Add an invalid id if there are none
       @effective_project_ids = [0] if @effective_project_ids.empty?
@@ -86,6 +91,10 @@ module Filters
 
     private def funder_scope
       GrdaWarehouse::Hud::Funder
+    end
+
+    private def relevant_project_ids
+      GrdaWarehouse::Hud::Project.with_hud_project_type(relevant_project_types).pluck(:id)
     end
   end
 end

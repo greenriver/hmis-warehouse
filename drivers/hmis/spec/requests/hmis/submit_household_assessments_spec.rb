@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -59,8 +65,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:save_input) do
     {
       form_definition_id: fd1.id,
-      values: { 'linkid-date' => '2023-02-01' },
-      hud_values: { 'informationDate' => '2023-02-01' },
+      values: { 'linkid-date' => 2.weeks.ago.strftime('%Y-%m-%d') },
+      hud_values: { 'informationDate' => 2.weeks.ago.strftime('%Y-%m-%d') },
     }
   end
   let(:incomplete_values) { { **save_input[:values], 'linkid-choice' => nil } }
@@ -191,8 +197,125 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'Household intake submission' do
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_ho_h: 1 }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 8 }
+    let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 8 }
+    let!(:a1) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e1, data_collection_stage: 1 }
+    let!(:a2) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e2, data_collection_stage: 1 }
+    let!(:a3) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e3, data_collection_stage: 1 }
+    let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
+    let(:input) do
+      {
+        assessment_ids: [a1.id, a2.id, a3.id],
+        confirmed: true,
+      }
+    end
+
+    before(:each) do
+      [a1, a2, a3].each do |assessment|
+        assessment.update(assessment_date: 1.week.ago)
+        assessment.custom_form.update(
+          definition: definition,
+          **build_minimum_values(definition, assessment_date: 1.week.ago.strftime('%Y-%m-%d')),
+        )
+      end
+    end
+
+    it 'should succeed if all members have the same entry date' do
+      response, result = post_graphql(input: input) { mutation }
+      assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
+      errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(assessments).to be_present
+        expect(errors).to be_empty
+      end
+    end
+
+    it 'should warn if HoH entry date is later than other members' do
+      a1.update(assessment_date: 2.days.ago)
+      a1.custom_form.update(**build_minimum_values(definition, assessment_date: 2.days.ago.strftime('%Y-%m-%d')))
+
+      response, result = post_graphql(input: input.merge(confirmed: false)) { mutation }
+      assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
+      errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
+      expected_message = Hmis::Hud::Validators::EnrollmentValidator.before_hoh_entry_message(a1.assessment_date)
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(assessments).to be_nil
+        expect(errors.size).to eq(2)
+        expect(errors).to match([
+                                  a_hash_including('severity' => 'warning', 'message' => expected_message, 'recordId' => a2.id.to_s),
+                                  a_hash_including('severity' => 'warning', 'message' => expected_message, 'recordId' => a3.id.to_s),
+                                ])
+      end
+    end
+  end
+
+  describe 'Household exit submission' do
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_ho_h: 1 }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 8 }
+    let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 8 }
+    let!(:a1) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e1, data_collection_stage: 3 }
+    let!(:a2) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e2, data_collection_stage: 3 }
+    let!(:a3) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e3, data_collection_stage: 3 }
+    let(:definition) { Hmis::Form::Definition.find_by(role: :EXIT) }
+    let(:input) do
+      {
+        assessment_ids: [a1.id, a2.id, a3.id],
+        confirmed: true,
+      }
+    end
+
+    before(:each) do
+      [a1, a2, a3].each do |assessment|
+        assessment.update(assessment_date: 2.days.ago)
+        assessment.custom_form.update(
+          definition: definition,
+          **build_minimum_values(definition, assessment_date: 2.days.ago.strftime('%Y-%m-%d')),
+        )
+      end
+    end
+
+    it 'should succeed if all members have the same entry date' do
+      response, result = post_graphql(input: input) { mutation }
+      assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
+      errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(assessments).to be_present
+        expect(errors).to be_empty
+      end
+    end
+
+    it 'should warn if HoH exit date is earlier than other members' do
+      a1.update(assessment_date: 1.week.ago)
+      a1.custom_form.update(**build_minimum_values(definition, assessment_date: 1.week.ago.strftime('%Y-%m-%d')))
+
+      response, result = post_graphql(input: input.merge(confirmed: false)) { mutation }
+      assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
+      errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
+
+      expected_hoh_message = Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others
+      expected_member_message = Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(a1.assessment_date)
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(assessments).to be_nil
+        expect(errors.size).to eq(3)
+        expect(errors).to match([
+                                  a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a2.id.to_s),
+                                  a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a3.id.to_s),
+                                  a_hash_including('severity' => 'warning', 'message' => expected_hoh_message, 'recordId' => a1.id.to_s),
+                                ])
+      end
+    end
+  end
 end
 
 RSpec.configure do |c|
   c.include GraphqlHelpers
+  c.include FormHelpers
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,7 @@ module Types
     field :component, Types::Forms::Enums::Component, 'Component to use for display/input of this item', null: true
     field :text, String, 'Primary text for the item', null: true
     field :brief_text, String, 'Label to use for placeholder and population table', null: true
+    field :readonly_text, String, 'Text to use for the item when displayed in read-only view', null: true
     field :prefix, String, 'Prefix for the item label', null: true
     field :helper_text, String, 'Helper text for the item', null: true
     field :hidden, Boolean, 'Whether the item should always be hidden', null: true
