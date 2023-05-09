@@ -1,6 +1,6 @@
 class RenewedCp1Careplans < ActiveRecord::Migration[6.1]
   def up
-    cp2_date = (Health::PatientReferral::CP_2_REFERRAL_DATE ..)
+    cp2_date = Health::PatientReferral::CP_2_REFERRAL_DATE
 
     # Only careplans touched after the CP2 date can have been renewed...
     careplans = Health::Careplan.where(updated_at: cp2_date ..).
