@@ -13,6 +13,7 @@ module Types
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasHouseholds
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -26,6 +27,7 @@ module Types
     project_cocs_field
     funders_field
     units_field
+    households_field
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -72,6 +74,10 @@ module Types
 
     def units(**args)
       resolve_units(**args)
+    end
+
+    def households(**args)
+      resolve_households(**args)
     end
   end
 end

@@ -12,7 +12,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   has_many :clients, through: :enrollments
 
   scope :client_matches_search_term, ->(text_search) do
-    joins(:clients).merge(Hmis::Hud::Client.matching_search_term(text_search))
+    joins(:clients).merge(Hmis::Hud::Client.matching_search_term(text_search.to_s))
   end
 
   scope :viewable_by, ->(user) do
@@ -26,6 +26,18 @@ class Hmis::Hud::Household < Hmis::Hud::Base
 
   scope :active, -> do
     where(latest_exit: nil)
+  end
+
+  scope :in_progress, -> do
+    where(any_wip: true)
+  end
+
+  scope :not_in_progress, -> do
+    where(any_wip: false)
+  end
+
+  def household_size
+    enrollments.count
   end
 
   SORT_OPTIONS = [:most_recent].freeze

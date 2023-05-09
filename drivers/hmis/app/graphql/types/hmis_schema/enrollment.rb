@@ -77,18 +77,19 @@ module Types
       Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(object)
     end
 
-    def household
-      return nil unless object.household_id.present?
+    # def household
+    #   return nil unless object.household_id.present?
 
-      # Use viewable_by to filter by data source
-      Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: object.household_id).preload(:client)
-    end
+    #   # Use viewable_by to filter by data source
+    #   Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: object.household_id).preload(:client)
+    # end
 
     def household_size
-      return 1 unless object.household_id.present?
+      object.household.household_size
+      # return 1 unless object.household_id.present?
 
-      # Use viewable_by to filter by data source
-      Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: object.household_id).count
+      # # Use viewable_by to filter by data source
+      # Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: object.household_id).count
     end
 
     def in_progress

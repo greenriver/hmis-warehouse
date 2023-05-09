@@ -12,19 +12,16 @@ module Types
     field :id, ID, null: false
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
+    field :household_size, Int, null: false
 
-    # object is a scope on Hmis::Hud::Enrollment
-
-    def id
-      object.first.household_id
-    end
+    # object is a Hmis::Hud::Household
 
     def short_id
-      object.first.short_household_id.upcase
+      object.enrollments.first.short_household_id.upcase
     end
 
     def household_clients
-      object.map do |enrollment|
+      object.enrollments.map do |enrollment|
         {
           relationship_to_ho_h: enrollment.relationship_to_ho_h,
           client: enrollment.client,
