@@ -49,9 +49,8 @@ class Deployer
   attr_accessor :fqdn
 
   attr_accessor :cluster
-  attr_accessor :log_configuration
 
-  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:, log_configuration: :default)
+  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:)
     self.cluster           = _cluster_name
     self.target_group_name = target_group_name
     self.assume_ci_build   = assume_ci_build
@@ -66,7 +65,6 @@ class Deployer
     self.repo_name         = repo_name
     self.variant           = 'web'
     self.version           = `git rev-parse --short=9 HEAD`.chomp
-    self.log_configuration = log_configuration
 
     Dir.chdir(_root)
   end
@@ -133,7 +131,6 @@ class Deployer
         task_role: task_role,
         web_options: web_options,
         capacity_providers: _capacity_providers,
-        log_configuration: log_configuration,
       )
   end
 

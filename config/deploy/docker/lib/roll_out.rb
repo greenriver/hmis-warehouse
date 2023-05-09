@@ -34,7 +34,6 @@ class RollOut
   attr_accessor :task_arn
   attr_accessor :web_options
   attr_accessor :only_check_ram
-  attr_accessor :log_configuration
 
   include SharedLogic
   include AwsSdkHelpers::Helpers
@@ -52,7 +51,7 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
-  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:, log_configuration: :default)
+  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:)
     self.cluster             = _cluster_name
     self.image_base          = image_base
     self.secrets_arn         = secrets_arn
@@ -64,7 +63,6 @@ class RollOut
     self.web_options         = web_options
     self.status_uri          = URI("https://#{fqdn}/system_status/details")
     self.only_check_ram      = false
-    self.log_configuration = log_configuration
     @capacity_providers      = capacity_providers
 
     if task_role.nil? || task_role.match(/^\s*$/)
@@ -371,18 +369,14 @@ class RollOut
 
     return if self.only_check_ram
 
-    if self.log_configuration == :default || name.match?(/-deploy-tasks/)
-      puts '[WARN] Not honoring custom log configuration for the deploy tasks. Logging to AWS' if name.match?(/-deploy-tasks/) && log_configuration == :default
-
-      log_configuration = {
-        log_driver: 'awslogs',
-        options: {
-          'awslogs-group' => target_group_name,
-          'awslogs-region' => 'us-east-1',
-          'awslogs-stream-prefix' => log_prefix,
-        },
-      }
-    end
+    log_configuration = {
+      log_driver: 'awslogs',
+      options: {
+        'awslogs-group' => target_group_name,
+        'awslogs-region' => 'us-east-1',
+        'awslogs-stream-prefix' => log_prefix,
+      },
+    }
 
     container_definition = {
       name: name,

@@ -7,7 +7,7 @@ args = CommandArgs.new
 
 args.deployments.each do |deployment|
   puts "Deploying #{deployment[:target_group_name]}..."
-  Deployer.new(**deployment, log_configuration: args.log_configuration).run!
+  Deployer.new(**deployment).run!
 
   # poll between deployments to prevent scaling out too much while we have
   # double the web containers.
