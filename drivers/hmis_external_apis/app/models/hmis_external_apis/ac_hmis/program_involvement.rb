@@ -41,7 +41,7 @@ module HmisExternalApis::AcHmis
         message << 'end_date was not formatted correctly.'
       end
 
-      self.project = Hmis::Hud::Project.find_by(project_id: program_id)
+      self.project = Hmis::Hud::Project.find_by(project_id: program_id, data_source_id: data_source.id)
       message << 'program not found.' if project.blank?
 
       if message.present?

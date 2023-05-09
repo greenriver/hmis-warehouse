@@ -8,6 +8,7 @@ require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::ProgramInvolvement, type: :model do
   describe 'basics' do
+    let!(:ds) { create(:hmis_data_source) }
     let(:involvement) { HmisExternalApis::AcHmis::ProgramInvolvement.new({}) }
 
     before { involvement.validate_request! }
