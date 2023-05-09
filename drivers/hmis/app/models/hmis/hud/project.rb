@@ -63,7 +63,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
     search_term.strip!
     query = "%#{search_term.split(/\W+/).join('%')}%"
-    where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)))
+    where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)).or(p_t[:project_id].eq(search_term)))
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
