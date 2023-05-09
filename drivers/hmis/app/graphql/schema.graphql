@@ -4348,7 +4348,7 @@ type ReferralRequest {
   requestorEmail: String!
   requestorName: String!
   requestorPhone: String!
-  unitType: ID!
+  unitType: UnitTypeObject!
 }
 
 type ReferralRequestsPaginated {
