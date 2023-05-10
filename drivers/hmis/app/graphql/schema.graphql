@@ -3736,6 +3736,7 @@ type Organization {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
+  hudId: ID!
   id: ID!
   organizationName: String!
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
@@ -3912,6 +3913,7 @@ type Project {
   enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
+  hudId: ID!
   id: ID!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
   operatingEndDate: ISO8601Date

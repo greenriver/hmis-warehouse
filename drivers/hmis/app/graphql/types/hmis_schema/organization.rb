@@ -15,6 +15,7 @@ module Types
     end
 
     hud_field :id, ID, null: false
+    field :hud_id, ID, null: false
     hud_field :organization_name
     projects_field :projects
     hud_field :victim_service_provider, HmisSchema::Enums::Hud::NoYesMissing
@@ -27,6 +28,10 @@ module Types
     access_field do
       can :delete_organization
       can :edit_organization
+    end
+
+    def hud_id
+      object.organization_id
     end
 
     def projects(**args)
