@@ -71,7 +71,7 @@ RSpec.describe model, type: :model do
           setup_access_control(user, admin_role, AccessGroup.where(name: 'All Data Sources').first)
         end
         after do
-          user.user_access_controls.destroy_all
+          user.user_group_members.destroy_all
         end
         it 'sees all 8' do
           expect(u[user]).to eq p[p1, p2, p3, p4, p5, p6, p7, p8]
@@ -114,7 +114,7 @@ RSpec.describe model, type: :model do
           setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         after do
-          user.user_access_controls.destroy_all
+          user.user_group_members.destroy_all
         end
         it 'sees p1, p2, p4, p5' do
           expect(u[user]).to eq p[p1, p2, p4, p5]
@@ -127,7 +127,7 @@ RSpec.describe model, type: :model do
           setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         after do
-          user.user_access_controls.destroy_all
+          user.user_group_members.destroy_all
         end
         it 'sees p7 and p8' do
           expect(u[user]).to eq p[p7, p8]
@@ -140,7 +140,7 @@ RSpec.describe model, type: :model do
           setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         after do
-          user.user_access_controls.destroy_all
+          user.user_group_members.destroy_all
         end
         it 'sees p1 but not p2' do
           expect(u[user]).to eq p[p1]
@@ -231,7 +231,7 @@ RSpec.describe model, type: :model do
             setup_access_control(user, no_permission_role, no_data_source_access_group)
           end
           after do
-            user.user_access_controls.destroy_all
+            user.user_group_members.destroy_all
           end
           it 'sees p1 and p4 confidentialized' do
             expect(u[user]).to include(p1.id, p4.id)
@@ -243,7 +243,7 @@ RSpec.describe model, type: :model do
 
       describe 'user with permission to view confidential project names' do
         after do
-          user.user_access_controls.destroy_all
+          user.user_group_members.destroy_all
         end
 
         describe 'assigned to confidential project' do
@@ -267,7 +267,7 @@ RSpec.describe model, type: :model do
             setup_access_control(user, can_report_on_confidential_projects, no_data_source_access_group)
           end
           after do
-            user.user_access_controls.destroy_all
+            user.user_group_members.destroy_all
           end
           it 'does include p1 in viewable_by' do
             expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to include p1.id
@@ -292,7 +292,7 @@ RSpec.describe model, type: :model do
             setup_access_control(user, can_view_confidential_projects, no_data_source_access_group)
           end
           after do
-            user.user_access_controls.destroy_all
+            user.user_group_members.destroy_all
           end
           it 'sees p1 and p4 project names' do
             expect(u[user]).to include(p1.id, p4.id)

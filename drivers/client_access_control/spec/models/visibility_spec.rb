@@ -63,7 +63,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'and the user has permission to see clients in wrong CoC, but not any data assignments' do
       before do
-        user.user_access_controls.destroy_all
+        user.user_group_members.destroy_all
         coc_code_viewable.update(coc_codes: ['MA-501'])
         setup_access_control(user, no_permission_role, coc_code_viewable)
         destination_client.update(
@@ -108,7 +108,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'and the user has permission to see clients in wrong CoC, but not any data assignments' do
       before do
-        user.user_access_controls.destroy_all
+        user.user_group_members.destroy_all
         coc_code_viewable.update(coc_codes: ['MA-501'])
         setup_access_control(user, no_permission_role, coc_code_viewable)
         destination_client.update(

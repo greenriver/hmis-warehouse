@@ -572,7 +572,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       end
       describe 'and the user is assigned a CoC' do
         before do
-          user.user_access_controls.destroy_all
+          user.user_group_members.destroy_all
           coc_code_viewable.update(coc_codes: ['ZZ-999'])
           setup_access_control(user, can_view_clients, coc_code_viewable)
         end

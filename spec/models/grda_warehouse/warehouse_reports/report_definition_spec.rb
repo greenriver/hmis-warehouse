@@ -34,7 +34,7 @@ RSpec.describe model, type: :model do
           setup_access_control(user, admin_role, AccessGroup.where(name: 'All HMIS Reports').first)
         end
         after do
-          user.user_access_controls.destroy_all
+          user.user_group_members.destroy_all
         end
         it 'sees both' do
           expect(user_ids[user]).to eq ids[r1, r2]
