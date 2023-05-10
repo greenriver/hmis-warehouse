@@ -21,6 +21,11 @@ class UserGroup < ApplicationRecord
     where(system: true)
   end
 
+  scope :with_user_id, ->(user_id) do
+    joins(:user_group_members).
+      merge(UserGroupMember.where(user_id: user_id))
+  end
+
   def self.system_user
     group = find_by(name: 'System User Group', system: true)
     return group if group.present?

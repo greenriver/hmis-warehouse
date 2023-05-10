@@ -12,7 +12,10 @@ class Admin::AccessControlsController < ApplicationController
   before_action :set_access_control, only: [:edit, :update, :destroy]
 
   def index
-    @access_controls = access_control_scope.joins(:role, :access_group).order(r_t[:name].asc, ag_t[:name].asc)
+    @access_controls = access_control_scope.
+      joins(:role, :access_group).
+      order(r_t[:name].asc, ag_t[:name].asc).
+      filtered(params[:filter])
     @pagy, @access_controls = pagy(@access_controls)
   end
 
@@ -40,6 +43,12 @@ class Admin::AccessControlsController < ApplicationController
   def destroy
     @access_control.destroy
     respond_with(@access_control, location: admin_access_controls_path)
+  end
+
+  def assign
+    # TODO: this isn't built
+    flash[:notice] = "TODO #{user.name} was added to selected Access Controls"
+    redirect_to action: :index
   end
 
   private def access_control_scope

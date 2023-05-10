@@ -51,6 +51,29 @@ class AccessControl < ApplicationRecord
       order(UserGroup.arel_table[:name].asc, Role.arel_table[:name].asc, AccessGroup.arel_table[:name].asc)
   end
 
+  # filter for access controls that somehow interact with the following
+  # User, UserGroup, Role, EntityGroup
+  scope :filtered, ->(filter_params) do
+    return current_scope unless filter_params
+
+    user_scope = current_scope
+    user_group_scope = current_scope
+    role_scope = current_scope
+    entity_group_scope = current_scope
+
+    user_scope = UserGroup.with_user_id(filter_params[:user_id].to_i) if filter_params[:user_id].present?
+    user_group_scope = where(user_group_id: filter_params[:user_group_id].to_i) if filter_params[:user_group_id].present?
+    role_scope = where(role_id: filter_params[:role_id].to_i) if filter_params[:role_id].present?
+    entity_group_scope = where(access_group_id: filter_params[:access_group_id].to_i) if filter_params[:access_group_id].present?
+
+    ids = joins(:user_group).
+      merge(user_scope).
+      merge(user_group_scope).
+      merge(role_scope).
+      merge(entity_group_scope).pluck(:id)
+    where(id: ids)
+  end
+
   # If all entities are system entities, this is a system Access Control
   def system?
     [user_group.system?, role.system?, access_group.system?].all?

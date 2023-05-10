@@ -1,0 +1,16 @@
+%h3 Filter Access Controls
+.well
+  = simple_form_for :filter, method: :get do |f|
+    .row
+      .col
+        = f.input :user_id, as: :select_two, collection: User.active.not_system.order(:first_name, :last_name), selected: params.dig(:filter, :user_id).to_i, required: false, include_blank: 'Any user'
+      .col
+        = f.input :user_group_id, as: :select_two, collection: UserGroup.all.order(:name), selected: params.dig(:filter, :user_group_id).to_i, required: false, include_blank: 'Any user group'
+      .col
+        = f.input :access_group_id, as: :select_two, collection: AccessGroup.all.order(:name), selected: params.dig(:filter, :access_group_id).to_i, required: false, include_blank: 'Any entity group', label: 'Entity group'
+      .col
+        = f.input :role_id, as: :select_two, collection: Role.homeless.order(:name), selected: params.dig(:filter, :role_id).to_i, required: false, include_blank: 'Any role'
+    .d-flex
+      = link_to 'Reset Filter', admin_access_controls_path, class: 'btn btn-secondary mr-auto'
+      .ml-auto
+        = f.button :submit, value: 'Update Filter'
