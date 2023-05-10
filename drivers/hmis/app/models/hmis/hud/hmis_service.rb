@@ -18,8 +18,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   belongs_to :owner, polymorphic: true # Service or CustomService
   belongs_to :custom_service_type
   has_many :custom_service_categories, through: :custom_service_type
-  # TODO test if this works
-  # has_many :custom_data_elements, through: :owner
+  has_many :custom_data_elements, through: :owner
 
   validate :service_is_valid
 
