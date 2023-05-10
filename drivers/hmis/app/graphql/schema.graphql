@@ -55,6 +55,7 @@ type Assessment {
   access: AssessmentAccess!
   assessmentDate: ISO8601Date!
   client: Client!
+  customDataElements: [CustomDataElement!]!
   customForm: CustomForm
   dataCollectionStage: DataCollectionStage
   dateCreated: ISO8601DateTime!
@@ -764,18 +765,19 @@ type CreateUnitsPayload {
 }
 
 type CustomDataElement {
-  dateCreated: ISO8601DateTime!
-  dateUpdated: ISO8601DateTime!
   id: ID!
   key: String
   label: String
-  user: User
+  repeats: Boolean!
   value: CustomDataElementValue
   values: [CustomDataElementValue!]
 }
 
 type CustomDataElementValue {
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
   id: ID!
+  user: User
   valueBoolean: Boolean
   valueDate: ISO8601Date
   valueFloat: Float
@@ -2303,6 +2305,7 @@ enum FormRole {
 
 type Funder {
   active: Boolean!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -3011,6 +3014,7 @@ type Inventory {
   chVetBedInventory: Int
   chYouthBedInventory: Int
   cocCode: String!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -3755,6 +3759,7 @@ union OmnisearchResult = Client | Project
 type Organization {
   access: OrganizationAccess!
   contactInformation: String
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -4601,6 +4606,7 @@ HUD or Custom Service rendered
 type Service {
   FAAmount: Float
   client: Client!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateProvided: ISO8601Date!

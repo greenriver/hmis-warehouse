@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::Funder < Types::BaseObject
+    include Types::HmisSchema::HasCustomDataElements
     def self.configuration
       Hmis::Hud::Funder.hmis_configuration(version: '2022')
     end
@@ -24,5 +25,6 @@ module Types
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
+    custom_data_elements_field
   end
 end

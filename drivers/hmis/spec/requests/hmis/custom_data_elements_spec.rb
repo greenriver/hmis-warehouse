@@ -254,6 +254,64 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'Assessments query' do
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+    let!(:a1) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e1 }
+    # define a custom field and set 2 values for it
+    let!(:cded) { create :hmis_custom_data_element_definition, label: 'Special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, repeats: true }
+    let!(:cde1) { create :hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 1' }
+    let!(:cde2) { create :hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 2' }
+
+    # this definition has no values
+    let!(:cded2) { create :hmis_custom_data_element_definition, label: 'Another special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment' }
+
+    before(:each) do
+      a1.save_not_in_progress
+    end
+
+    let(:query) do
+      <<~GRAPHQL
+        query Assessment($id: ID!) {
+          assessment(id: $id) {
+            id
+            customDataElements {
+              #{scalar_fields(Types::HmisSchema::CustomDataElement)}
+              value {
+                #{scalar_fields(Types::HmisSchema::CustomDataElementValue)}
+              }
+              values {
+                #{scalar_fields(Types::HmisSchema::CustomDataElementValue)}
+              }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    it 'resolves custom data elements' do
+      response, result = post_graphql(id: a1.id) { query }
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        elements = result.dig('data', 'assessment', 'customDataElements')
+        expect(elements).to match_array([
+                                          a_hash_including(
+                                            'key' => cded.key,
+                                            'label' => cded.label,
+                                            'values' => [
+                                              a_hash_including('valueString' => 'value 2'),
+                                              a_hash_including('valueString' => 'value 1'),
+                                            ],
+                                          ),
+                                          a_hash_including(
+                                            'key' => cded2.key,
+                                            'label' => cded2.label,
+                                            'value' => nil,
+                                          ),
+                                        ])
+      end
+    end
+  end
 end
 
 RSpec.configure do |c|
