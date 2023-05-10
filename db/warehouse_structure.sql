@@ -50944,6 +50944,22 @@ CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless
 
 
 --
+-- Name: hmis_households attempt_hmis_households_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_households_del AS
+    ON DELETE TO public.hmis_households DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_households attempt_hmis_households_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_households_up AS
+    ON UPDATE TO public.hmis_households DO INSTEAD NOTHING;
+
+
+--
 -- Name: service_history_services service_history_service_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 

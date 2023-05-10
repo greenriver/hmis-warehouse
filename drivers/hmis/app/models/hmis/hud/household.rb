@@ -6,6 +6,7 @@
 
 class Hmis::Hud::Household < Hmis::Hud::Base
   self.table_name = :hmis_households
+  self.primary_key = 'id'
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   has_many :enrollments, **hmis_relation(:HouseholdID, 'Enrollment')

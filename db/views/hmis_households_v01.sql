@@ -21,4 +21,7 @@ FROM
 	"Enrollment"
 	LEFT OUTER JOIN "Exit" ON "Exit"."EnrollmentID" = "Enrollment"."EnrollmentID"
 WHERE "Enrollment"."HouseholdID" is not NULL
-GROUP BY "Enrollment"."HouseholdID"
+GROUP BY "Enrollment"."HouseholdID";
+
+CREATE RULE attempt_hmis_households_del AS ON DELETE TO hmis_households DO INSTEAD NOTHING;
+CREATE RULE attempt_hmis_households_up AS ON UPDATE TO hmis_households DO INSTEAD NOTHING;
