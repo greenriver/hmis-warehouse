@@ -1,6 +1,6 @@
 class AddCustomDataElements < ActiveRecord::Migration[6.1]
   def up
-    # drop_table :CustomFormAnswers
+    drop_table :CustomFormAnswers
 
     create_table :CustomDataElements do |t|
       t.references :data_element_definition, null: false, comment: 'Definition for this data element'
