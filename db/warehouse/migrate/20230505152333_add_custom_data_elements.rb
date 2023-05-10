@@ -3,8 +3,8 @@ class AddCustomDataElements < ActiveRecord::Migration[6.1]
     drop_table :CustomFormAnswers
 
     create_table :CustomDataElements do |t|
-      t.references :data_element_definition, null: false, comment: 'Definition for this data element'
-      t.references :owner, null: false, polymorphic: true, comment: 'Record that this data element belongs to (Client, Project, CustomAssessment, etc)'
+      t.references :data_element_definition, null: false, index: true, comment: 'Definition for this data element'
+      t.references :owner, null: false, polymorphic: true, index: true, comment: 'Record that this data element belongs to (Client, Project, CustomAssessment, etc)'
       t.float :value_float
       t.integer :value_integer
       t.boolean :value_boolean

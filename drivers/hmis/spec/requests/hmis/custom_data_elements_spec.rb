@@ -31,6 +31,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:cded3) { create :hmis_custom_data_element_definition, label: 'One json', data_source: ds1, owner_type: 'Hmis::Hud::Client', field_type: :json }
   let!(:cde3) { create :hmis_custom_data_element, data_element_definition: cded3, owner: c1, data_source: ds1, value_json: { foo: 'bar' }.to_json }
 
+  # Custom Integer field on Client (with no values, but should still be resolved)
+  let!(:cded4) { create :hmis_custom_data_element_definition, label: 'A number', data_source: ds1, owner_type: 'Hmis::Hud::Client', field_type: :integer }
+
   before(:each) do
     hmis_login(user)
     assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
@@ -111,6 +114,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                                         'key' => cded3.key,
                                         'label' => cded3.label,
                                         'value' => a_hash_including('valueJson' => cde3.value_json),
+                                      ),
+                                      a_hash_including(
+                                        'key' => cded4.key,
+                                        'label' => cded4.label,
+                                        'value' => nil,
                                       ),
                                     ])
         end

@@ -26,6 +26,4 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   ].freeze
 
   use_enum_with_same_key :form_role_enum_map, FIELD_TYPES.map { |f| [f, f.to_s.humanize] }.to_h
-
-  # Hmis::Hud::CustomDataElementDefinition.create!(owner_type: 'Hmis::Hud::Project', field_type: 'boolean', key: 'walkIn', label: 'Direct Entry', repeats: false, user: Hmis::Hud::User.last, date_created: Date.current, date_updated: Date.current, data_source: GrdaWarehouse::DataSource.hmis.first)
 end

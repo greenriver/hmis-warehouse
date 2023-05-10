@@ -16,5 +16,13 @@ module Types
     field :value_text, String, null: true
     field :value_date, GraphQL::Types::ISO8601Date, null: true
     field :value_json, GraphQL::Types::JSON, null: true
+
+    field :user, HmisSchema::User, null: true
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
+
+    def user
+      load_ar_association(object, :user)
+    end
   end
 end

@@ -15,7 +15,6 @@ module Types
         def custom_data_elements_field(
           name = :custom_data_elements,
           description = nil,
-          association_name: :custom_data_elements,
           **override_options,
           &block
         )
@@ -34,23 +33,23 @@ module Types
           end
 
           define_method(:resolve_custom_data_elements) do
-            custom_data_elements = load_ar_association(object, association_name)
+            # Always resolve all _available_ custom element types for this record type,
+            # even if they have no value, so that they can be shown as empty if missing.
+            definitions = Hmis::Hud::CustomDataElementDefinition.where(owner_type: object.class.name)
+            return unless definitions.exists?
 
+            custom_values = Hmis::Hud::CustomDataElement.where(owner: object).group_by(&:data_element_definition_id)
             # Group together elements of the same type so they can be resolved as an array
-            custom_data_elements.preload(:data_element_definition).
-              group_by(&:data_element_definition_id).
-              values.
-              map do |values|
-                definition = values.first.data_element_definition
-                # This will be resolved as a HmisSchema::CustomDataElement
-                OpenStruct.new(
-                  id: definition.id,
-                  key: definition.key,
-                  label: definition.label,
-                  repeats: definition.repeats,
-                  values: values,
-                )
-              end
+            definitions.map do |definition|
+              # This will be resolved as a HmisSchema::CustomDataElement
+              OpenStruct.new(
+                id: definition.id,
+                key: definition.key,
+                label: definition.label,
+                repeats: definition.repeats,
+                values: custom_values[definition.id],
+              )
+            end
           end
         end
       end
