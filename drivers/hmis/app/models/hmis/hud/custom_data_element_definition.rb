@@ -4,9 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# When loading form definition...
-# Validate that custom field keys exist
-# Validate that custom field types match (maybe)
 class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   include Hmis::Hud::Concerns::HasEnums
   self.table_name = :CustomDataElementDefinitions
