@@ -15,6 +15,7 @@ module Mutations
     def resolve(input:)
       errors = HmisErrors::Errors.new
 
+      ## question: if we can't fnd the form definition or record_class, shouldn't we just raise an exception?
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       errors.add :form_definition, :required unless definition.present?

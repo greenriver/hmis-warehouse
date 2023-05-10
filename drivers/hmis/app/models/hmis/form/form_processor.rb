@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Process form data (custom_form)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
 
