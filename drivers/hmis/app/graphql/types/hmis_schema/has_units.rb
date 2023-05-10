@@ -24,7 +24,7 @@ module Types
       end
 
       def resolve_units(scope = object.units, active: nil, occupied: nil)
-        scope = scope.order(created_at: :desc)
+        scope = scope.order(created_at: :desc, name: :asc)
         scope = scope.active if active == true
         scope = scope.inactive if active == false
         scope = scope.occupied_on(Date.current) if occupied

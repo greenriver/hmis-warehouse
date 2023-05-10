@@ -17,7 +17,8 @@
     .c-columns
       = render 'entity_column', entity: @data_sources, f: f
       = render 'entity_column', entity: @organizations, f: f
-      = render 'entity_column', entity: @project_access_groups, f: f
+      -# Add back once we have support for Hmis Project Groups.
+      -# = render 'entity_column', entity: @project_access_groups, f: f
       = render 'entity_column', entity: @projects, associations: [:data_source, :organization, :project_access_group], f: f
 
 - content_for :page_js do

@@ -3731,6 +3731,7 @@ type Organization {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
+  hudId: ID!
   id: ID!
   organizationName: String!
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
@@ -3820,14 +3821,40 @@ type PickListOption {
 
 enum PickListType {
   AVAILABLE_FILE_TYPES
+
+  """
+  Unoccupied units in the specified project
+  """
   AVAILABLE_UNITS
+
+  """
+  Unit types that have unoccupied units in the specified project
+  """
+  AVAILABLE_UNIT_TYPES
+
+  """
+  All Enrollments, including WIP and exited, for the client.
+  """
   CLIENT_ENROLLMENTS
   COC
   CURRENT_LIVING_SITUATION
   DESTINATION
+
+  """
+  Projects that the User can enroll Clients in
+  """
+  ENROLLABLE_PROJECTS
   GEOCODE
+
+  """
+  All Organizations that the User can see
+  """
   ORGANIZATION
   PRIOR_LIVING_SITUATION
+
+  """
+  All Projects that the User can see
+  """
   PROJECT
   REFERRAL_OUTCOME
   SERVICE_TYPE
@@ -3835,6 +3862,16 @@ enum PickListType {
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
   SUB_TYPE_PROVIDED_5
+
+  """
+  Units in the specified project
+  """
+  UNITS
+
+  """
+  Unit types. If project is specified, limited to unit types in the project.
+  """
+  UNIT_TYPES
 }
 
 """
@@ -3871,6 +3908,7 @@ type Project {
   enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
+  hudId: ID!
   id: ID!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
   operatingEndDate: ISO8601Date
@@ -5422,6 +5460,7 @@ input UnitInput {
   """
   prefix: String
   projectId: ID!
+  unitTypeId: ID
 }
 
 type UnitTypeObject {

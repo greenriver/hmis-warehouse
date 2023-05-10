@@ -15,13 +15,15 @@
     %table.table.table-striped
       %thead
         %tr
-          %th Name
+          %th Group Name
+          %th Group Access
           %th.text-center Assigned Users
           %th
       %tbody
         - @groups.each do |group|
           %tr
             %td= link_to group.name, edit_hmis_admin_group_path(group)
+            %td= group.summary_descriptions.join(', ')
             %td.text-center= group.users.count
             %td
               - unless group.users.count.positive?

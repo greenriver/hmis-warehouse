@@ -19,6 +19,7 @@ module Types
     end
 
     hud_field :id, ID, null: false
+    field :hud_id, ID, null: false
     hud_field :project_name
     hud_field :project_type, Types::HmisSchema::Enums::ProjectType
     hud_field :organization, Types::HmisSchema::Organization, null: false
@@ -56,10 +57,23 @@ module Types
       can :delete_assessments
     end
 
+    def hud_id
+      object.project_id
+    end
+
     def enrollments(**args)
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
 
-      resolve_enrollments(**args)
+      # Apply the enrollment limit before we pass it in, to avoid doing an unnecessary join to the WIP table
+      scope = if args[:enrollment_limit] == 'NON_WIP_ONLY'
+        object.enrollments
+      elsif args[:enrollment_limit] == 'WIP_ONLY'
+        object.wip_enrollments
+      else
+        object.enrollments_including_wip
+      end
+
+      resolve_enrollments(scope, **args)
     end
 
     def organization

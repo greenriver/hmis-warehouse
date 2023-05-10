@@ -18,122 +18,71 @@ module Types
     CODE_PATTERN = /^\(([0-9]*)\) /
 
     def self.options_for_type(pick_list_type, user:, relation_id: nil)
-      relevant_state = ENV['RELEVANT_COC_STATE']
+      # NOTE: relation_id is not necessarily a project id, that depends on the pick list type
+      project = Hmis::Hud::Project.find_by(id: relation_id) if relation_id.present?
 
       case pick_list_type
       when 'COC'
-        selected_project = Hmis::Hud::Project.viewable_by(user).find_by(id: relation_id) if relation_id.present?
-        available_codes = if selected_project.present?
-          selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility.cocs[code] || code] }
-        else
-          ::HudUtility.cocs_in_state(relevant_state)
-        end
-
-        available_codes.sort.map do |code, name|
-          { code: code, label: "#{code} - #{name}", initial_selected: available_codes.length == 1 }
-        end
-
+        coc_picklist(project)
       when 'STATE'
-        state_options.map do |obj|
-          {
-            code: obj['abbreviation'],
-            # label: "#{obj['abbreviation']} - #{obj['name']}",
-            initial_selected: obj['abbreviation'] == relevant_state,
-          }
-        end
-
+        state_picklist
       when 'GEOCODE'
-        geocodes_in_state(relevant_state).map do |obj|
-          {
-            code: obj['geocode'],
-            label: "#{obj['geocode']} - #{obj['name']}",
-          }
-        end
-
+        geocodes_picklist
       when 'PRIOR_LIVING_SITUATION'
-        living_situation_options(as: :prior)
-
+        living_situation_picklist(as: :prior)
       when 'SERVICE_TYPE'
-        Types::HmisSchema::Enums::ServiceTypeProvided.values.map do |key, enum|
-          next if enum.value.is_a?(Integer) && enum.value.negative?
-
-          record_type = enum.value.split(':').first
-          record_type_key, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
-
-          label = enum.description.gsub(CODE_PATTERN, '')
-          sort_key = "#{record_type}:#{label}"
-
-          [
-            sort_key,
-            {
-              code: key,
-              label: label,
-              group_code: record_type_key,
-              group_label: record_type_enum&.description&.gsub(CODE_PATTERN, ''),
-            },
-          ]
-        end.
-          compact.
-          sort_by { |sort_key, _v| sort_key }.
-          map(&:second)
+        service_type_picklist
       when 'SUB_TYPE_PROVIDED_3'
-        sub_type_provided_options(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
-
+        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
-        sub_type_provided_options(Types::HmisSchema::Enums::Hud::SSVFSubType4, '144:4')
-
+        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType4, '144:4')
       when 'SUB_TYPE_PROVIDED_5'
-        sub_type_provided_options(Types::HmisSchema::Enums::Hud::SSVFSubType5, '144:5')
-
+        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType5, '144:5')
       when 'REFERRAL_OUTCOME'
         options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::PATHReferralOutcome)
-
       when 'CURRENT_LIVING_SITUATION'
-        living_situation_options(as: :current)
-
+        living_situation_picklist(as: :current)
       when 'DESTINATION'
-        living_situation_options(as: :destination)
-
+        living_situation_picklist(as: :destination)
       when 'PROJECT'
         Hmis::Hud::Project.viewable_by(user).
           joins(:organization).
           sort_by_option(:organization_and_name).
-          map do |project|
-          {
-            code: project.id,
-            label: project.project_name,
-            secondary_label: HudUtility.project_type_brief(project.project_type),
-            group_label: project.organization.organization_name,
-            group_code: project.organization.id,
-          }
-        end
-
+          map(&:to_pick_list_option)
+      when 'ENROLLABLE_PROJECTS'
+        # FIXME(#185009209) add specific permission for enrolling
+        Hmis::Hud::Project.with_access(user, :can_edit_enrollments).
+          joins(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).
           sort_by_option(:name).
-          map do |organization|
-          {
-            code: organization.id,
-            label: organization.organization_name,
-          }
-        end
-      when 'AVAILABLE_UNITS'
-        inventory = Hmis::Hud::Inventory.find_by(id: relation_id) if relation_id.present?
-        return [] unless inventory.present?
+          map(&:to_pick_list_option)
 
-        inventory.units.map { |unit| { code: unit.id, label: unit.name } }
+      when 'UNIT_TYPES'
+        # If no project was specified, return all unit types
+        all_unit_types = Hmis::UnitType.order(:description, :id)
+        return all_unit_types.map(&:to_pick_list_option) unless relation_id.present?
+        return [] unless project.present? # relation id specified but project not found
+
+        project_unit_type_ids = project.units.pluck(:unit_type_id).uniq
+        all_unit_types.where(id: project_unit_type_ids).map(&:to_pick_list_option)
+      when 'AVAILABLE_UNIT_TYPES'
+        return [] unless project.present?
+
+        project_unit_type_ids = project.units.unoccupied.pluck(:unit_type_id).uniq
+        Hmis::UnitType.order(:description, :id).where(id: project_unit_type_ids).map(&:to_pick_list_option)
+      when 'UNITS'
+        return [] unless project.present?
+
+        project.units.order(:name, :id).map(&:to_pick_list_option)
+      when 'AVAILABLE_UNITS'
+        return [] unless project.present?
+
+        project.units.unoccupied.order(:name, :id).map(&:to_pick_list_option)
       when 'AVAILABLE_FILE_TYPES'
-        Hmis::File.all_available_tags.map do |tag|
-          {
-            code: tag.id,
-            label: tag.name,
-            group_code: tag.group,
-            group_label: tag.group,
-            secondary_label: tag.included_info&.strip&.present? ? "(includes: #{tag.included_info})" : nil,
-          }
-        end.
-          compact.
-          sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+        file_tag_picklist
       when 'CLIENT_ENROLLMENTS'
         client = Hmis::Hud::Client.viewable_by(user).find_by(id: relation_id)
         return [] unless client.present?
@@ -147,19 +96,68 @@ module Types
       end
     end
 
-    def self.geocodes_in_state(state)
+    def self.coc_picklist(selected_project)
+      available_codes = if selected_project.present?
+        selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility.cocs[code] || code] }
+      else
+        ::HudUtility.cocs_in_state(ENV['RELEVANT_COC_STATE'])
+      end
+
+      available_codes.sort.map do |code, name|
+        { code: code, label: "#{code} - #{name}", initial_selected: available_codes.length == 1 }
+      end
+    end
+
+    def self.geocodes_picklist
+      state = ENV['RELEVANT_COC_STATE']
       Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
         JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
+      end.map do |obj|
+        {
+          code: obj['geocode'],
+          label: "#{obj['geocode']} - #{obj['name']}",
+        }
       end
     end
 
-    def self.state_options
+    def self.state_picklist
       Rails.cache.fetch('STATE_OPTION_LIST', expires_in: 1.days) do
         JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
+      end.map do |obj|
+        {
+          code: obj['abbreviation'],
+          # label: "#{obj['abbreviation']} - #{obj['name']}",
+          initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
+        }
       end
     end
 
-    def self.sub_type_provided_options(enum_type, type_provided_value)
+    def self.service_type_picklist
+      Types::HmisSchema::Enums::ServiceTypeProvided.values.map do |key, enum|
+        next if enum.value.is_a?(Integer) && enum.value.negative?
+
+        record_type = enum.value.split(':').first
+        record_type_key, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
+
+        label = enum.description.gsub(CODE_PATTERN, '')
+        sort_key = "#{record_type}:#{label}"
+
+        [
+          sort_key,
+          {
+            code: key,
+            label: label,
+            group_code: record_type_key,
+            group_label: record_type_enum&.description&.gsub(CODE_PATTERN, ''),
+          },
+        ]
+      end.
+        compact.
+        sort_by { |sort_key, _v| sort_key }.
+        map(&:second)
+    end
+
+    def self.sub_type_provided_picklist(enum_type, type_provided_value)
       options_without_invalid_for_enum(enum_type).
         map do |item|
           parent_key, = Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value(type_provided_value)
@@ -176,7 +174,7 @@ module Types
       end
     end
 
-    def self.living_situation_options(as:)
+    def self.living_situation_picklist(as:)
       enum_value_definitions = Types::HmisSchema::Enums::Hud::LivingSituation.all_enum_value_definitions
       to_option = ->(group_code, group_label) {
         proc do |id|
@@ -195,6 +193,20 @@ module Types
       missing_reasons = ::HudUtility.other_situations(as: as).excluding(99).map(&to_option.call('MISSING', 'Other'))
 
       homeless + institutional + temporary + missing_reasons
+    end
+
+    def self.file_tag_picklist
+      Hmis::File.all_available_tags.map do |tag|
+        {
+          code: tag.id,
+          label: tag.name,
+          group_code: tag.group,
+          group_label: tag.group,
+          secondary_label: tag.included_info&.strip&.present? ? "(includes: #{tag.included_info})" : nil,
+        }
+      end.
+        compact.
+        sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
     end
   end
 end
