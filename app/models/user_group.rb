@@ -40,7 +40,7 @@ class UserGroup < ApplicationRecord
   def remove(users)
     # Force individual queries for paper_trail
     Array.wrap(users).uniq.each do |user|
-      user_group_members.where(user_id: user.id).destroy
+      user_group_members.find_by(user_id: user.id)&.destroy
     end
   end
 

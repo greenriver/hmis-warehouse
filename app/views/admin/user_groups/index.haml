@@ -1,14 +1,15 @@
 - content_for :title, 'Manage User Groups'
-%h1= content_for :title
+.d-flex
+  %h1= content_for :title
+  = link_to new_admin_user_group_path, class: 'btn btn-primary ml-auto' do
+    %span.icon-plus
+    Add User Group
 = render 'menus/admin_tabs'
 
 .alert.alert-info
   %i.icon-warning.mr-4
   %p User Groups should be used to logically group users who need similar access.  User Groups are combined with Roles and Entity Groups via Access Controls.  The intersection of Role, Entity Group, and User Group determines what each person can do and see within the warehouse.
-.text-right
-  = link_to new_admin_user_group_path, class: 'btn btn-primary mb-2' do
-    %span.icon-plus
-    Add User Group
+
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'user_group'
   .table-responsive

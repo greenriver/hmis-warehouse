@@ -1,4 +1,8 @@
 - content_for(:title, t('.title'))
-%h1= t '.title'
+.d-flex
+  %h1= t '.title'
+  = link_to new_admin_role_path, class: 'btn btn-primary ml-auto' do
+    %span.icon-plus
+    Add a role
 = render partial: 'menus/admin_tabs'
 = render 'table_form', path_for_new: new_admin_role_path, path_for_patch: admin_roles_path, role_class: Role

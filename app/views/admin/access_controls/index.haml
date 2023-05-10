@@ -1,14 +1,15 @@
 - content_for :title, 'Access Control Administration'
-%h1= content_for :title
+.d-flex
+  %h1= content_for :title
+  = link_to new_admin_access_control_path, class: 'btn btn-primary ml-auto' do
+    %span.icon-plus
+    Create a new Access Control List
 = render 'menus/admin_tabs'
 
 .alert.alert-info
   %i.icon-warning.mr-4
   %p Access Controls are used to grant users access to data and permissions. Each Access Control consists of one Entity Group, one Role, and one User Group. Access is governed by the intersection of permission from teh role, entities from the entity group, and users from the user group.
-.text-right
-  = link_to new_admin_access_control_path, class: 'btn btn-primary mb-2' do
-    %span.icon-plus
-    Create a new Access Control List
+
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'access control'
   .table-responsive

@@ -1,10 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe UserGroup, type: :model do
-  let(:user_group) { create :user_group }
-  let(:user_one) { create :user }
-  let(:user_two) { create :user }
-  let(:user_three) { create :user }
+  let!(:user_group) { create :user_group }
+  let!(:user_one) { create :user }
+  let!(:user_two) { create :user }
+  let!(:user_three) { create :user }
 
   describe 'A Group' do
     it 'provides methods to manage membership' do
