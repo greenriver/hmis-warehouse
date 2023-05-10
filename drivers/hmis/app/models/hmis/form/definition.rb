@@ -51,7 +51,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     REFERRAL_REQUEST: {
       class_name: 'HmisExternalApis::AcHmis::ReferralRequest',
-      permission: :can_edit_clients, # FIXME: need granular permission for referrals?
+      permission: :can_edit_clients, # FIXME: This should be can_manage_incoming_referrals, pending 185126373
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
   }.freeze

@@ -1,47 +1,54 @@
 {
+  "name": "referral-request",
   "item": [
     {
-      "type": "DATE",
-      "required": true,
-      "link_id": "requestedOn",
-      "text": "Requested Date",
-      "field_name": "requestedOn"
-    },
-    {
-      "type": "CHOICE",
-      "required": true,
-      "link_id": "unitType",
-      "text": "Unit Type",
-      "pick_list_reference": "AVAILABLE_UNIT_TYPES",
-      "field_name": "unitType"
-    },
-    {
-      "type": "DATE",
-      "required": true,
-      "link_id": "neededBy",
-      "text": "Estimated Date Needed",
-      "field_name": "neededBy"
-    },
-    {
-      "type": "STRING",
-      "required": true,
-      "link_id": "requestorName",
-      "text": "Requestor Name",
-      "field_name": "requestorName"
-    },
-    {
-      "type": "STRING",
-      "required": true,
-      "link_id": "requestorPhone",
-      "text": "Requestor Phone",
-      "field_name": "requestorPhone"
-    },
-    {
-      "type": "STRING",
-      "required": true,
-      "link_id": "requestorEmail",
-      "text": "Requestor Email",
-      "field_name": "requestorEmail"
+      "type": "GROUP",
+      "link_id": "1",
+      "item": [
+        {
+          "type": "DATE",
+          "required": true,
+          "link_id": "requestedOn",
+          "text": "Requested Date",
+          "field_name": "requestedOn"
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "unitType",
+          "text": "Unit Type",
+          "pick_list_reference": "AVAILABLE_UNIT_TYPES",
+          "field_name": "unitType"
+        },
+        {
+          "type": "DATE",
+          "required": true,
+          "link_id": "neededBy",
+          "text": "Estimated Date Needed",
+          "field_name": "neededBy"
+        },
+        {
+          "type": "STRING",
+          "required": true,
+          "link_id": "requestorName",
+          "text": "Requestor Name",
+          "field_name": "requestorName"
+        },
+        {
+          "type": "STRING",
+          "required": true,
+          "link_id": "requestorPhone",
+          "text": "Requestor Phone",
+          "field_name": "requestorPhone"
+        },
+        {
+          "type": "STRING",
+          "required": true,
+          "link_id": "requestorEmail",
+          "text": "Requestor Email",
+          "field_name": "requestorEmail"
+        }
+      ]
     }
   ]
 }

@@ -49,7 +49,7 @@ module Mutations
       errors.add :record, :not_allowed unless allowed
       return { errors: errors } if errors.any?
 
-      # Create CustomForm
+      # Build CustomForm
       custom_form = Hmis::Form::CustomForm.new(
         owner: record,
         definition: definition,

@@ -8,6 +8,8 @@ module HmisExternalApis::AcHmis
   # An advertisement of housing vacancy
   class ReferralRequest < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_referral_requests'
+    include ::Hmis::Hud::Concerns::ProjectRelated
+
     belongs_to :project, class_name: 'Hmis::Hud::Project'
     belongs_to :unit_type, class_name: 'Hmis::UnitType'
     belongs_to :requested_by, class_name: 'Hmis::User'
