@@ -150,9 +150,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
               record = definition.record_class_name.constantize.find_by(id: record_id)
               expect(record).to be_present
-              expect(Hmis::Form::CustomForm.where(owner: record).count).to eq(1)
-              custom_form = Hmis::Form::CustomForm.find_by(owner: record)
-              expect(custom_form.owner_id).to eq(record_id.to_i)
+              expect(Hmis::Form::CustomForm.all.count).to eq(0)
+              expect(Hmis::Form::FormProcessor.all.count).to eq(0)
 
               # Expect that all of the fields that were submitted exist on the record
               expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys
