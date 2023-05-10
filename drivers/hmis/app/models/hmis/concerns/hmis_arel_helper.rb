@@ -37,16 +37,16 @@ module Hmis::Concerns::HmisArelHelper
       Hmis::Hud::CustomServiceCategory.arel_table
     end
 
-    def cfa_t
-      Hmis::Form::CustomFormAnswer.arel_table
+    def cde_t
+      Hmis::Hud::CustomDataElement.arel_table
     end
 
     def cded_t
-      Hmis::Form::CustomDataElementDefinition.arel_table
+      Hmis::Hud::CustomDataElementDefinition.arel_table
     end
   end
 
   included do
-    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cfa_t, :cded_t, to: 'self.class'
+    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, to: 'self.class'
   end
 end

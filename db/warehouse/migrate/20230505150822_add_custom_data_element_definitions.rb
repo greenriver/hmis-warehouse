@@ -6,8 +6,13 @@ class AddCustomDataElementDefinitions < ActiveRecord::Migration[6.1]
       t.string :key, comment: 'Machine-readable key for this type of data element. Will be used by the FormDefinition that collects/displays it.'
       t.string :label, comment: 'Human-readable label to use when displaying this type of data element.'
       t.boolean :repeats, null: false, default: false, comment: 'Whether multiple values are allowed per record.'
-      t.datetime :deleted_at
-      t.timestamps
+
+      # HUD fields
+      t.integer :data_source_id
+      t.string :UserID, limit: 32, null: false
+      t.datetime :DateCreated, null: false
+      t.datetime :DateUpdated, null: false
+      t.datetime :DateDeleted
     end
   end
 

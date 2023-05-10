@@ -948,9 +948,11 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     key character varying,
     label character varying,
     repeats boolean DEFAULT false NOT NULL,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    data_source_id integer,
+    "UserID" character varying(32) NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -1009,13 +1011,73 @@ ALTER SEQUENCE public."CustomDataElementDefinitions_id_seq" OWNED BY public."Cus
 
 
 --
+-- Name: CustomDataElements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomDataElements" (
+    id bigint NOT NULL,
+    data_element_definition_id bigint NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    value_float double precision,
+    value_integer integer,
+    value_boolean boolean,
+    value_string character varying,
+    value_text text,
+    value_date date,
+    value_json jsonb,
+    data_source_id integer,
+    "UserID" character varying(32) NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomDataElements".data_element_definition_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElements".data_element_definition_id IS 'Definition for this data element';
+
+
+--
+-- Name: COLUMN "CustomDataElements".owner_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElements".owner_id IS 'Record that this data element belongs to (Client, Project, CustomAssessment, etc)';
+
+
+--
+-- Name: CustomDataElements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomDataElements_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomDataElements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomDataElements_id_seq" OWNED BY public."CustomDataElements".id;
+
+
+--
 -- Name: CustomFormAnswers; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public."CustomFormAnswers" (
     id bigint NOT NULL,
+    custom_form_id bigint NOT NULL,
     owner_type character varying NOT NULL,
     owner_id bigint NOT NULL,
+    link_id character varying,
+    key character varying,
     value_float double precision,
     value_integer integer,
     value_boolean boolean,
@@ -1024,9 +1086,7 @@ CREATE TABLE public."CustomFormAnswers" (
     value_json jsonb,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    custom_data_element_definition_id integer NOT NULL,
-    form_processor_id integer NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -1038,10 +1098,17 @@ COMMENT ON COLUMN public."CustomFormAnswers".owner_id IS 'Record that this data 
 
 
 --
--- Name: COLUMN "CustomFormAnswers".custom_data_element_definition_id; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN "CustomFormAnswers".link_id; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public."CustomFormAnswers".custom_data_element_definition_id IS 'Definition for this data element';
+COMMENT ON COLUMN public."CustomFormAnswers".link_id IS 'Link ID of the item in the definition that this answer corresponds to';
+
+
+--
+-- Name: COLUMN "CustomFormAnswers".key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomFormAnswers".key IS 'Human-readable key for this data element';
 
 
 --
@@ -21916,6 +21983,13 @@ ALTER TABLE ONLY public."CustomDataElementDefinitions" ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: CustomDataElements id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomDataElements" ALTER COLUMN id SET DEFAULT nextval('public."CustomDataElements_id_seq"'::regclass);
+
+
+--
 -- Name: CustomFormAnswers id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24922,6 +24996,14 @@ ALTER TABLE ONLY public."CustomClientName"
 
 ALTER TABLE ONLY public."CustomDataElementDefinitions"
     ADD CONSTRAINT "CustomDataElementDefinitions_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomDataElements CustomDataElements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomDataElements"
+    ADD CONSTRAINT "CustomDataElements_pkey" PRIMARY KEY (id);
 
 
 --
@@ -41240,6 +41322,27 @@ CREATE INDEX "index_Client_on_pending_date_deleted" ON public."Client" USING btr
 --
 
 CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."CurrentLivingSituation" USING btree (pending_date_deleted);
+
+
+--
+-- Name: index_CustomDataElements_on_data_element_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomDataElements_on_data_element_definition_id" ON public."CustomDataElements" USING btree (data_element_definition_id);
+
+
+--
+-- Name: index_CustomDataElements_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomDataElements_on_owner" ON public."CustomDataElements" USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_CustomFormAnswers_on_custom_form_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomFormAnswers_on_custom_form_id" ON public."CustomFormAnswers" USING btree (custom_form_id);
 
 
 --
