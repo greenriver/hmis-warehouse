@@ -109,7 +109,7 @@ class ProjectGroupsController < ApplicationController
   end
 
   def set_access
-    @editor_ids = @project_group.editable_acl.user_ids
+    @editor_ids = @project_group.editable_access_control.user_ids
   end
 
   def project_group_source

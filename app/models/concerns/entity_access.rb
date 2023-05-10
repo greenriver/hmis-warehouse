@@ -17,29 +17,45 @@ module EntityAccess
   # NOTE: this will remove any existing who are not included
   def replace_access(users, scope:)
     users = Array.wrap(users)
-    acl = case scope
+    access_control = case scope
     when :editor
-      editable_acl
+      editable_access_control
     when :viewer
-      viewable_acl
+      viewable_access_control
     else
       raise 'Unknown access type'
     end
-    to_remove = acl.users - users
-    acl.remove(to_remove) if to_remove.present?
-    acl.add(users) if users.present?
+    to_remove = access_control.users - users
+    access_control.remove(to_remove) if to_remove.present?
+    access_control.add(users) if users.present?
   end
 
-  def viewable_acl
-    @viewable_acl ||= AccessControl.where(access_group: system_group, role: viewable_role).first_or_create
+  def viewable_access_control
+    @viewable_access_control ||= AccessControl.where(
+      access_group: system_entity_group,
+      role: viewable_role,
+      user_group: system_viewable_user_group,
+    ).first_or_create
   end
 
-  def editable_acl
-    @editable_acl ||= AccessControl.where(access_group: system_group, role: editable_role).first_or_create
+  def editable_access_control
+    @editable_access_control ||= AccessControl.where(
+      access_group: system_entity_group,
+      role: editable_role,
+      user_group: system_editable_user_group,
+    ).first_or_create
   end
 
-  def system_group
-    @system_group ||= AccessGroup.where(system: ['Entities'], name: name).first_or_create
+  def system_entity_group
+    @system_entity_group ||= AccessGroup.where(system: ['Entities'], name: name).first_or_create
+  end
+
+  def system_viewable_user_group
+    @system_viewable_user_group ||= UserGroup.where(system: true, name: "#{name} [viewable]").first_or_create
+  end
+
+  def system_editable_user_group
+    @system_editable_user_group ||= UserGroup.where(system: true, name: "#{name} [editable]").first_or_create
   end
 
   def viewable_role
@@ -66,9 +82,9 @@ module EntityAccess
     ors = permissions.map do |perm|
       r_t[perm].eq(true).to_sql
     end
-    User.diet.distinct.
+    User.diet.
       joins(:roles, :access_groups).
       where(Arel.sql(ors.join(' or '))).
-      merge(AccessGroup.where(id: access_group_ids)).to_a
+      merge(AccessGroup.where(id: access_group_ids)).to_a.uniq
   end
 end

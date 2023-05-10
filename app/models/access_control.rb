@@ -56,6 +56,15 @@ class AccessControl < ApplicationRecord
     [user_group.system?, role.system?, access_group.system?].all?
   end
 
+  # Delegate add and remove to the user group
+  def add(users)
+    user_group.add(users)
+  end
+
+  def remove(users)
+    user_group.remove(users)
+  end
+
   def name
     "#{role.name} x #{access_group.name} x #{user_group.name}"
   end
