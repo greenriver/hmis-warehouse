@@ -66,13 +66,11 @@ module Types
         return all_unit_types.map(&:to_pick_list_option) unless relation_id.present?
         return [] unless project.present? # relation id specified but project not found
 
-        project_unit_type_ids = project.units.pluck(:unit_type_id).uniq
-        all_unit_types.where(id: project_unit_type_ids).map(&:to_pick_list_option)
+        unit_types_for_project(project, available_only: false)
       when 'AVAILABLE_UNIT_TYPES'
         return [] unless project.present?
 
-        project_unit_type_ids = project.units.unoccupied.pluck(:unit_type_id).uniq
-        Hmis::UnitType.order(:description, :id).where(id: project_unit_type_ids).map(&:to_pick_list_option)
+        unit_types_for_project(project, available_only: true)
       when 'UNITS'
         return [] unless project.present?
 
@@ -94,6 +92,24 @@ module Types
           }
         end
       end
+    end
+
+    def self.unit_types_for_project(project, available_only: false)
+      units = project.units
+      units = units.unoccupied if available_only
+
+      # Hash { unit type id => num unoccupied }
+      unit_type_to_availability = units.group(:unit_type_id).
+        pluck('unit_type_id, count(unit_type_id)').to_h
+
+      Hmis::UnitType.order(:description, :id).
+        where(id: unit_type_to_availability.keys).
+        map(&:to_pick_list_option).
+        map do |option|
+          num_left = unit_type_to_availability[option[:code].to_i]
+          option[:secondary_label] = "#{num_left} available"
+          option
+        end
     end
 
     def self.coc_picklist(selected_project)
