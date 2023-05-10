@@ -16,22 +16,22 @@ module Admin::AccessControls
       users = User.where(id: user_ids)
       return unless users.any?
 
-      @acl.add(users)
+      @access_control.add(users)
       flash[:notice] = "#{pluralize(users.count, 'user')} added"
-      redirect_to edit_admin_access_control_path(@acl)
+      redirect_to edit_admin_access_control_path(@access_control)
     end
 
     def destroy
       users = User.where(id: params[:id].to_i)
       return unless users.any?
 
-      @acl.remove(users)
+      @access_control.remove(users)
       flash[:notice] = "#{users.first.name} removed"
-      redirect_to edit_admin_access_control_path(@acl)
+      redirect_to edit_admin_access_control_path(@access_control)
     end
 
     private def set_access_control_list
-      @acl = AccessControl.find(params[:access_control_id].to_i)
+      @access_control = AccessControl.find(params[:access_control_id].to_i)
     end
 
     private def clean_params

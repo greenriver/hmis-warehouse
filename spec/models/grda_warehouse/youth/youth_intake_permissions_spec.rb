@@ -12,9 +12,9 @@ RSpec.describe GrdaWarehouse::YouthIntake::Base, type: :model do
   let!(:empty_access_group) { create :access_group }
 
   before do
-    setup_acl(owner_user, owner_role, empty_access_group)
-    setup_acl(agency_user, owner_role, empty_access_group)
-    setup_acl(non_agency_user, owner_role, empty_access_group)
+    setup_access_control(owner_user, owner_role, empty_access_group)
+    setup_access_control(agency_user, owner_role, empty_access_group)
+    setup_access_control(non_agency_user, owner_role, empty_access_group)
   end
 
   it 'grants access to owner' do

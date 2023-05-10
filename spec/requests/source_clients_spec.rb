@@ -61,7 +61,7 @@ RSpec.describe SourceClientsController, type: :request do
     let!(:empty_access_group) { create :access_group }
 
     before do
-      setup_acl(user, role, empty_access_group)
+      setup_access_control(user, role, empty_access_group)
     end
 
     it 'allows edit' do

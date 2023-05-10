@@ -31,7 +31,7 @@ RSpec.describe model, type: :model do
 
       describe 'admin user' do
         before do
-          setup_acl(user, admin_role, AccessGroup.where(name: 'All HMIS Reports').first)
+          setup_access_control(user, admin_role, AccessGroup.where(name: 'All HMIS Reports').first)
         end
         after do
           user.user_access_controls.destroy_all
@@ -44,7 +44,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned a report without a role granting access' do
         before :each do
           no_reports_access_group.set_viewables({ reports: [r1.id] })
-          setup_acl(user, no_permission_role, no_reports_access_group)
+          setup_access_control(user, no_permission_role, no_reports_access_group)
         end
         it 'still sees nothing without role' do
           expect(model.viewable_by(user).exists?).to be false
@@ -54,7 +54,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned a report with a role granting access' do
         before :each do
           no_reports_access_group.set_viewables({ reports: [r1.id] })
-          setup_acl(user, assigned_report_viewer, no_reports_access_group)
+          setup_access_control(user, assigned_report_viewer, no_reports_access_group)
         end
         it 'sees r1 with proper role' do
           expect(user_ids[user]).to eq ids[r1]

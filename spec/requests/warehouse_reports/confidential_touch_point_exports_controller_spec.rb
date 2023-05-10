@@ -28,7 +28,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     describe 'should be able to access the index path if they can also see the report' do
       it 'returns http success' do
         report_group.set_viewables({ reports: [report.id] })
-        setup_acl(user, other_report_viewer, report_group)
+        setup_access_control(user, other_report_viewer, report_group)
         get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:success)
       end
@@ -67,7 +67,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     before(:each) do
       add_random_user_with_report_access
 
-      setup_acl(user, role, no_data_source_access_group)
+      setup_access_control(user, role, no_data_source_access_group)
       sign_in(user)
     end
 
@@ -89,7 +89,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
 
     before(:each) do
       add_random_user_with_report_access
-      setup_acl(user, role, no_data_source_access_group)
+      setup_access_control(user, role, no_data_source_access_group)
       sign_in(user)
     end
 
@@ -103,7 +103,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     describe 'should not be able to access the index path even if the report has been assigned' do
       it 'and should receive a redirect' do
         report_group.set_viewables({ reports: [report.id] })
-        setup_acl(user, other_report_viewer, report_group)
+        setup_access_control(user, other_report_viewer, report_group)
         get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:redirect)
       end
@@ -115,6 +115,6 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     # to this report or the test passes, but doesn't actually
     # check access correctly
     report_group.set_viewables({ reports: [report.id] })
-    setup_acl(other_user, other_report_viewer, report_group)
+    setup_access_control(other_user, other_report_viewer, report_group)
   end
 end

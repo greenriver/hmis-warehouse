@@ -8,7 +8,7 @@
     %h1= content_for :title
 .row
   .col-sm-12
-    = simple_form_for @acl, as: :access_control, url: hmis_admin_access_controls_path do |f|
+    = simple_form_for @access_control, as: :access_control, url: hmis_admin_access_controls_path do |f|
       = f.error_notification
       .form-inputs
         = render 'form', f: f

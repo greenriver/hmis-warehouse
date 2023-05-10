@@ -160,7 +160,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     let!(:user) { create :user }
 
     before do
-      setup_acl(user, role, empty_access_group)
+      setup_access_control(user, role, empty_access_group)
     end
 
     it 'allows index' do
@@ -247,8 +247,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     let(:user) { create :user }
 
     before do
-      setup_acl(user, role, empty_access_group)
-      setup_acl(user, role_search, empty_access_group)
+      setup_access_control(user, role, empty_access_group)
+      setup_access_control(user, role_search, empty_access_group)
     end
 
     it 'allows index' do
@@ -335,9 +335,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     let(:user) { create :user }
 
     before do
-      setup_acl(user, role, empty_access_group)
-      setup_acl(user, role2, empty_access_group)
-      setup_acl(user, role_search, empty_access_group)
+      setup_access_control(user, role, empty_access_group)
+      setup_access_control(user, role2, empty_access_group)
+      setup_access_control(user, role_search, empty_access_group)
     end
 
     it 'allows index' do
@@ -420,7 +420,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     let(:user) { create :user }
 
     before do
-      setup_acl(user, role, empty_access_group)
+      setup_access_control(user, role, empty_access_group)
     end
 
     it 'allows index' do

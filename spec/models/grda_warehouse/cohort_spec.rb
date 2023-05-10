@@ -23,8 +23,8 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
 
   before(:each) do
     cohort_access_group.set_viewables({ cohorts: [cohort.id] })
-    setup_acl(user, no_permission_role, cohort_access_group)
-    setup_acl(admin, cohort_manager, cohort_access_group)
+    setup_access_control(user, no_permission_role, cohort_access_group)
+    setup_access_control(admin, cohort_manager, cohort_access_group)
   end
 
   describe 'when a user with no roles accesses a cohort column' do
@@ -50,22 +50,22 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     end
     it 'display_as_editable? should return true if cohorts have been assigned' do
       cohort_access_group.set_viewables({ cohorts: [cohort.id] })
-      setup_acl(editor, cohort_editor, cohort_access_group)
+      setup_access_control(editor, cohort_editor, cohort_access_group)
       expect(adjusted_days_homeless.display_as_editable?(editor, cohort_client)).to be true
     end
     it 'display_as_editable? should return false if cohorts have been assigned, but the column is in another cohort' do
       cohort_access_group.set_viewables({ cohorts: [cohort_2.id] })
-      setup_acl(editor, cohort_editor, cohort_access_group)
+      setup_access_control(editor, cohort_editor, cohort_access_group)
       expect(adjusted_days_homeless.display_as_editable?(editor, cohort_client)).to be_falsey
     end
     it 'user should have access to assigned cohorts' do
       cohort_access_group.set_viewables({ cohorts: [cohort.id] })
-      setup_acl(editor, cohort_editor, cohort_access_group)
+      setup_access_control(editor, cohort_editor, cohort_access_group)
       expect(GrdaWarehouse::Cohort.viewable_by(editor).where(id: cohort.id).exists?).to be true
     end
     it 'user should not have access to other cohorts' do
       cohort_access_group.set_viewables({ cohorts: [cohort_2.id] })
-      setup_acl(editor, cohort_editor, cohort_access_group)
+      setup_access_control(editor, cohort_editor, cohort_access_group)
       expect(GrdaWarehouse::Cohort.viewable_by(editor).where(id: cohort.id).exists?).to be_falsey
     end
   end
@@ -76,22 +76,22 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     end
     it 'display_as_editable? should always return false, even if a cohort is assigned' do
       cohort_access_group.set_viewables({ cohorts: [cohort.id] })
-      setup_acl(viewer, cohort_viewer, cohort_access_group)
+      setup_access_control(viewer, cohort_viewer, cohort_access_group)
       expect(adjusted_days_homeless.display_as_editable?(viewer, cohort_client)).to be_falsey
     end
     it 'display_as_editable? should always return false, even if another cohort is assigned' do
       cohort_access_group.set_viewables({ cohorts: [cohort_2.id] })
-      setup_acl(viewer, cohort_viewer, cohort_access_group)
+      setup_access_control(viewer, cohort_viewer, cohort_access_group)
       expect(adjusted_days_homeless.display_as_editable?(viewer, cohort_client)).to be_falsey
     end
     it 'user should have access to assigned cohorts' do
       cohort_access_group.set_viewables({ cohorts: [cohort.id] })
-      setup_acl(viewer, cohort_viewer, cohort_access_group)
+      setup_access_control(viewer, cohort_viewer, cohort_access_group)
       expect(GrdaWarehouse::Cohort.viewable_by(viewer).where(id: cohort.id).exists?).to be true
     end
     it 'user should not have access to other cohorts' do
       cohort_access_group.set_viewables({ cohorts: [cohort_2.id] })
-      setup_acl(viewer, cohort_viewer, cohort_access_group)
+      setup_access_control(viewer, cohort_viewer, cohort_access_group)
       expect(GrdaWarehouse::Cohort.viewable_by(viewer).where(id: cohort.id).exists?).to be_falsey
     end
   end

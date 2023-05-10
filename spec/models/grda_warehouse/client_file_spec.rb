@@ -182,7 +182,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
 
     describe 'when user has can_manage_client_files' do
       before :each do
-        setup_acl(user, can_manage_client_files, no_data_source_access_group)
+        setup_access_control(user, can_manage_client_files, no_data_source_access_group)
       end
       it 'can see all files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
@@ -191,7 +191,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     end
     describe 'when user has can_manage_window_client_files' do
       before :each do
-        setup_acl(user, can_manage_window_client_files, no_data_source_access_group)
+        setup_access_control(user, can_manage_window_client_files, no_data_source_access_group)
       end
 
       it 'can see own files' do
@@ -268,7 +268,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         describe 'and client has consent in user\'s coc' do
           before :each do
             coc_code_viewable.update(coc_codes: ['ZZ-999'])
-            setup_acl(user, no_permission_role, coc_code_viewable)
+            setup_access_control(user, no_permission_role, coc_code_viewable)
             history_file.client.update(
               housing_release_status: history_file.client.class.full_release_string,
               consent_form_signed_on: 5.days.ago,
@@ -287,7 +287,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         describe 'and client has consent in different coc' do
           before :each do
             coc_code_viewable.update(coc_codes: ['BB-000'])
-            setup_acl(user, no_permission_role, coc_code_viewable)
+            setup_access_control(user, no_permission_role, coc_code_viewable)
             history_file.client.update(
               housing_release_status: history_file.client.class.full_release_string,
               consent_form_signed_on: 5.days.ago,
@@ -345,7 +345,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       end
       let(:config) { create :config }
       before :each do
-        setup_acl(user, can_see_own_file_uploads, no_data_source_access_group)
+        setup_access_control(user, can_see_own_file_uploads, no_data_source_access_group)
       end
       it 'can see own files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
@@ -373,7 +373,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       end
       let(:config) { create :config }
       before :each do
-        setup_acl(user, can_generate_homeless_verification_pdfs, no_data_source_access_group)
+        setup_access_control(user, can_generate_homeless_verification_pdfs, no_data_source_access_group)
       end
       it 'can see own history files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)

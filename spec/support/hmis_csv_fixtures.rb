@@ -62,7 +62,7 @@ module HmisCsvFixtures
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
     AccessGroup.maintain_system_groups
     empty_role = Role.create(name: 'Empty')
-    setup_acl(user, empty_role, AccessGroup.where(name: 'All Data Sources').first)
+    setup_access_control(user, empty_role, AccessGroup.where(name: 'All Data Sources').first)
     Delayed::Worker.new.work_off
   end
 

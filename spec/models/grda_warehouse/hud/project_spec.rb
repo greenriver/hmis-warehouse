@@ -68,7 +68,7 @@ RSpec.describe model, type: :model do
       describe 'admin user' do
         before do
           AccessGroup.maintain_system_groups
-          setup_acl(user, admin_role, AccessGroup.where(name: 'All Data Sources').first)
+          setup_access_control(user, admin_role, AccessGroup.where(name: 'All Data Sources').first)
         end
         after do
           user.user_access_controls.destroy_all
@@ -81,7 +81,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to project' do
         before do
           no_data_source_access_group.set_viewables({ projects: [p1.id] })
-          setup_acl(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         it 'sees p1' do
           expect(u[user]).to eq p[p1]
@@ -91,7 +91,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to organization' do
         before do
           no_data_source_access_group.set_viewables({ organizations: [o1.id] })
-          setup_acl(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         it 'sees p1 and p2' do
           expect(u[user]).to eq p[p1, p2]
@@ -101,7 +101,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to data source' do
         before do
           no_data_source_access_group.set_viewables({ data_sources: [ds1.id] })
-          setup_acl(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         it 'sees p1 - p4' do
           expect(u[user]).to eq p[p1, p2, p3, p4]
@@ -111,7 +111,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to coc foo' do
         before do
           no_data_source_access_group.update(coc_codes: ['foo'])
-          setup_acl(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         after do
           user.user_access_controls.destroy_all
@@ -124,7 +124,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to coc bar' do
         before do
           no_data_source_access_group.update(coc_codes: ['bar'])
-          setup_acl(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         after do
           user.user_access_controls.destroy_all
@@ -137,7 +137,7 @@ RSpec.describe model, type: :model do
       describe 'user given project access group' do
         before do
           no_data_source_access_group.set_viewables({ project_groups: [pg1.id] })
-          setup_acl(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, no_permission_role, no_data_source_access_group)
         end
         after do
           user.user_access_controls.destroy_all
@@ -181,7 +181,7 @@ RSpec.describe model, type: :model do
             # p1 # confidential project
             # p2 # non-confidential project
             no_data_source_access_group.set_viewables({ projects: [p1.id, p2.id] })
-            setup_acl(user, no_permission_role, no_data_source_access_group)
+            setup_access_control(user, no_permission_role, no_data_source_access_group)
           end
           it 'sees p1 confidentialized' do
             expect(u[user]).to eq p[p1, p2]
@@ -204,7 +204,7 @@ RSpec.describe model, type: :model do
             # o2 # confidential organization
             # p2 # non-confidential project
             no_data_source_access_group.set_viewables({ projects: [p2.id], organizations: [o2.id] })
-            setup_acl(user, no_permission_role, no_data_source_access_group)
+            setup_access_control(user, no_permission_role, no_data_source_access_group)
           end
           it 'sees p3 and p4 confidentialized' do
             expect(u[user]).to eq p[p2, p3, p4]
@@ -228,7 +228,7 @@ RSpec.describe model, type: :model do
         describe 'assigned to coc foo' do
           before do
             no_data_source_access_group.update(coc_codes: ['foo'])
-            setup_acl(user, no_permission_role, no_data_source_access_group)
+            setup_access_control(user, no_permission_role, no_data_source_access_group)
           end
           after do
             user.user_access_controls.destroy_all
@@ -249,7 +249,7 @@ RSpec.describe model, type: :model do
         describe 'assigned to confidential project' do
           before do
             no_data_source_access_group.set_viewables({ projects: [p1.id] })
-            setup_acl(user, can_view_confidential_projects, no_data_source_access_group)
+            setup_access_control(user, can_view_confidential_projects, no_data_source_access_group)
           end
           it 'sees p1 project name' do
             expect(u[user]).to eq p[p1]
@@ -264,7 +264,7 @@ RSpec.describe model, type: :model do
         describe 'when given permission to report on confidential projects' do
           before do
             no_data_source_access_group.set_viewables({ projects: [p1.id] })
-            setup_acl(user, can_report_on_confidential_projects, no_data_source_access_group)
+            setup_access_control(user, can_report_on_confidential_projects, no_data_source_access_group)
           end
           after do
             user.user_access_controls.destroy_all
@@ -277,7 +277,7 @@ RSpec.describe model, type: :model do
         describe 'assigned to confidential organization' do
           before do
             no_data_source_access_group.set_viewables({ organizations: [o2.id] })
-            setup_acl(user, can_view_confidential_projects, no_data_source_access_group)
+            setup_access_control(user, can_view_confidential_projects, no_data_source_access_group)
           end
           it 'sees p3 and p4 project names' do
             expect(u[user]).to eq p[p3, p4]
@@ -289,7 +289,7 @@ RSpec.describe model, type: :model do
         describe 'assigned to coc foo' do
           before do
             no_data_source_access_group.update(coc_codes: ['foo'])
-            setup_acl(user, can_view_confidential_projects, no_data_source_access_group)
+            setup_access_control(user, can_view_confidential_projects, no_data_source_access_group)
           end
           after do
             user.user_access_controls.destroy_all

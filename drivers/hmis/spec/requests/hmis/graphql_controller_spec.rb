@@ -38,7 +38,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     empty_access_group.set_viewables({ data_sources: [ds1.id] })
-    setup_acl(user, no_permission_role, empty_access_group)
+    setup_access_control(user, no_permission_role, empty_access_group)
     hmis_login(user)
     assign_viewable(edit_access_group, ds1, hmis_user)
   end

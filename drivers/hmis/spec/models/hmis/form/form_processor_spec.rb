@@ -35,7 +35,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   before do
     empty_access_group.set_viewables({ data_sources: [ds.id] })
-    setup_acl(user, no_permission_role, empty_access_group)
+    setup_access_control(user, no_permission_role, empty_access_group)
   end
 
   it 'ingests EnrollmentCoC into the hud tables' do

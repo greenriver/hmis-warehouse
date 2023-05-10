@@ -5,7 +5,7 @@
 
 %h1= content_for :title
 .well
-  = simple_form_for @acl, as: :access_control, url: admin_access_controls_path do |f|
+  = simple_form_for @access_control, as: :access_control, url: admin_access_controls_path do |f|
     = f.error_notification
     .form-inputs
       = render 'form', f: f

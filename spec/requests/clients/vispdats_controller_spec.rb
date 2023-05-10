@@ -20,7 +20,7 @@ RSpec.describe Clients::VispdatsController, type: :request do
   let(:vispdat_editor) { create :vispdat_editor }
 
   before(:each) do
-    setup_acl(user, vispdat_editor, no_data_source_access_group)
+    setup_access_control(user, vispdat_editor, no_data_source_access_group)
     sign_in user
   end
 

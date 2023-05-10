@@ -11,7 +11,7 @@ RSpec.describe Filters::FilterBase, type: :model do
 
   before :each do
     empty_access_group.set_viewables({ data_sources: [data_source.id] })
-    setup_acl(user, no_permission_role, empty_access_group)
+    setup_access_control(user, no_permission_role, empty_access_group)
   end
 
   describe 'FilterBase' do

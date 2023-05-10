@@ -64,7 +64,7 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
-  config.include AclSetup
+  config.include AccessControlSetup
 
   config.before(:suite) do
     Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|

@@ -15,11 +15,11 @@ RSpec.describe GrdaWarehouse::SecureFile, type: :model do
 
   describe 'secure files have appropriate permissions' do
     before do
-      setup_acl(sender, empty_role, empty_access_group)
-      setup_acl(sender2, empty_role, empty_access_group)
-      setup_acl(recipient, secure_file_recipient, empty_access_group)
-      setup_acl(recipient2, secure_file_recipient, empty_access_group)
-      setup_acl(admin, secure_file_admin, empty_access_group)
+      setup_access_control(sender, empty_role, empty_access_group)
+      setup_access_control(sender2, empty_role, empty_access_group)
+      setup_access_control(recipient, secure_file_recipient, empty_access_group)
+      setup_access_control(recipient2, secure_file_recipient, empty_access_group)
+      setup_access_control(admin, secure_file_admin, empty_access_group)
     end
 
     it 'senders with no roles can\'t see the file after upload' do

@@ -17,29 +17,29 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   def new
-    @acl = access_control_scope.new
+    @access_control = access_control_scope.new
   end
 
   def create
-    @acl = access_control_scope.new
-    @acl.update(access_control_params)
-    @acl.save
-    respond_with(@acl, location: admin_access_controls_path)
+    @access_control = access_control_scope.new
+    @access_control.update(access_control_params)
+    @access_control.save
+    respond_with(@access_control, location: admin_access_controls_path)
   end
 
   def edit
   end
 
   def update
-    @acl.update(access_control_params)
-    @acl.save
+    @access_control.update(access_control_params)
+    @access_control.save
 
-    respond_with(@acl, location: admin_access_control_path)
+    respond_with(@access_control, location: admin_access_control_path)
   end
 
   def destroy
-    @acl.destroy
-    respond_with(@acl, location: admin_access_controls_path)
+    @access_control.destroy
+    respond_with(@access_control, location: admin_access_controls_path)
   end
 
   private def access_control_scope
@@ -55,6 +55,6 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   private def set_access_control
-    @acl = access_control_scope.find(params[:id].to_i)
+    @access_control = access_control_scope.find(params[:id].to_i)
   end
 end

@@ -26,7 +26,7 @@ RSpec.describe model, type: :model do
       describe 'admin user' do
         before do
           AccessGroup.maintain_system_groups
-          setup_acl(user, admin_role, AccessGroup.where(name: 'All Data Sources').first)
+          setup_access_control(user, admin_role, AccessGroup.where(name: 'All Data Sources').first)
         end
         after do
           user.user_access_controls.destroy_all
@@ -39,7 +39,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to coc foo' do
         before do
           coc_code_viewable.update(coc_codes: ['foo'])
-          setup_acl(user, no_permission_role, coc_code_viewable)
+          setup_access_control(user, no_permission_role, coc_code_viewable)
         end
         it 'sees pc1' do
           expect(user_ids[user]).to eq ids[pc1]

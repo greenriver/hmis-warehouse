@@ -1,8 +1,8 @@
 = render 'breadcrumbs'
 
-%h1 Edit Access Control #{@acl.name}
+%h1 Edit Access Control #{@access_control.name}
 .well
-  = simple_form_for @acl, as: :access_control, url: admin_access_control_path do |f|
+  = simple_form_for @access_control, as: :access_control, url: admin_access_control_path do |f|
     = f.error_notification
     .form-inputs.mt-4
       = render 'form', f: f

@@ -48,7 +48,7 @@ RSpec.describe model, type: :model do
       describe 'admin user' do
         before do
           AccessGroup.maintain_system_groups
-          setup_acl(user, admin_role, AccessGroup.where(name: 'All Data Sources').first)
+          setup_access_control(user, admin_role, AccessGroup.where(name: 'All Data Sources').first)
         end
         after do
           user.user_access_controls.destroy_all
@@ -61,12 +61,12 @@ RSpec.describe model, type: :model do
       describe 'user assigned to project' do
         it 'sees ds1' do
           empty_access_group.set_viewables({ projects: [p1.id] })
-          setup_acl(user, no_permission_role, empty_access_group)
+          setup_access_control(user, no_permission_role, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
           empty_access_group.set_viewables({ projects: [p1.id, p5.id] })
-          setup_acl(user, no_permission_role, empty_access_group)
+          setup_access_control(user, no_permission_role, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
@@ -74,12 +74,12 @@ RSpec.describe model, type: :model do
       describe 'user assigned to organization' do
         it 'sees ds1' do
           empty_access_group.set_viewables({ organizations: [o1.id] })
-          setup_acl(user, no_permission_role, empty_access_group)
+          setup_access_control(user, no_permission_role, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
           empty_access_group.set_viewables({ organizations: [o1.id, o3.id] })
-          setup_acl(user, no_permission_role, empty_access_group)
+          setup_access_control(user, no_permission_role, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
@@ -87,12 +87,12 @@ RSpec.describe model, type: :model do
       describe 'user assigned to data source' do
         it 'sees ds1' do
           empty_access_group.set_viewables({ data_sources: [ds1.id] })
-          setup_acl(user, no_permission_role, empty_access_group)
+          setup_access_control(user, no_permission_role, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
           empty_access_group.set_viewables({ data_sources: [ds1.id, ds2.id] })
-          setup_acl(user, no_permission_role, empty_access_group)
+          setup_access_control(user, no_permission_role, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
