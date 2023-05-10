@@ -347,6 +347,7 @@ type Client {
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -760,6 +761,28 @@ type CreateUnitsPayload {
   clientMutationId: String
   errors: [ValidationError!]!
   units: [Unit!]
+}
+
+type CustomDataElement {
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  id: ID!
+  key: String
+  label: String
+  user: User
+  value: CustomDataElementValue
+  values: [CustomDataElementValue!]
+}
+
+type CustomDataElementValue {
+  id: ID!
+  valueBoolean: Boolean
+  valueDate: ISO8601Date
+  valueFloat: Float
+  valueInteger: Int
+  valueJson: JSON
+  valueString: String
+  valueText: String
 }
 
 """
@@ -3065,6 +3088,11 @@ enum ItemType {
 }
 
 """
+Represents untyped JSON
+"""
+scalar JSON
+
+"""
 Arbitrary JSON Type
 """
 scalar JsonObject
@@ -3901,6 +3929,7 @@ type Project {
   active: Boolean!
   contactInformation: String
   continuumProject: NoYesMissing
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
