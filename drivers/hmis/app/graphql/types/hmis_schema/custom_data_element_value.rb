@@ -15,7 +15,7 @@ module Types
     field :value_string, String, null: true
     field :value_text, String, null: true
     field :value_date, GraphQL::Types::ISO8601Date, null: true
-    field :value_json, GraphQL::Types::JSON, null: true
+    field :value_json, Types::JsonObject, null: true
 
     field :user, HmisSchema::User, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false

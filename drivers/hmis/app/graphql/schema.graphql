@@ -782,7 +782,7 @@ type CustomDataElementValue {
   valueDate: ISO8601Date
   valueFloat: Float
   valueInteger: Int
-  valueJson: JSON
+  valueJson: JsonObject
   valueString: String
   valueText: String
 }
@@ -3090,11 +3090,6 @@ enum ItemType {
   STRING
   TEXT
 }
-
-"""
-Represents untyped JSON
-"""
-scalar JSON
 
 """
 Arbitrary JSON Type
