@@ -15,10 +15,10 @@
         {
           "type": "CHOICE",
           "required": true,
-          "link_id": "unitType",
+          "link_id": "unitTypeId",
           "text": "Unit Type",
           "pick_list_reference": "AVAILABLE_UNIT_TYPES",
-          "field_name": "unitType"
+          "field_name": "unitTypeId"
         },
         {
           "type": "DATE",

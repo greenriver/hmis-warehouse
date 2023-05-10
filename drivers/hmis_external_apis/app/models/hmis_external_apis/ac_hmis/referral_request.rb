@@ -8,6 +8,7 @@ module HmisExternalApis::AcHmis
   # An advertisement of housing vacancy
   class ReferralRequest < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_referral_requests'
+    scope :viewable_by, ->(_user) { self } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated
     include ::Hmis::Hud::Concerns::ProjectRelated
 
     belongs_to :project, class_name: 'Hmis::Hud::Project'
