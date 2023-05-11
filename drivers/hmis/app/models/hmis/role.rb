@@ -221,6 +221,14 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
+      can_enroll_clients: {
+        description: 'Grants access to enroll clients in the project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Enrollments',
+        ],
+      },
       can_delete_enrollments: {
         description: 'Grants the ability to delete enrollments',
         administrative: false,
