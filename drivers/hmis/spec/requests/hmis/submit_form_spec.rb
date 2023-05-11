@@ -217,7 +217,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           record_id = result.dig('data', 'submitForm', 'record', 'id')
           record = definition.record_class_name.constantize.find_by(id: record_id)
 
-          # byebug
           if role == :FILE
             expect(record.user).to eq(hmis_user)
             expect(record.updated_by).to eq(hmis_user)

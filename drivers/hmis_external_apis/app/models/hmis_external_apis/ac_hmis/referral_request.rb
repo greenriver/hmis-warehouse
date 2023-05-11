@@ -17,7 +17,7 @@ module HmisExternalApis::AcHmis
     belongs_to :voided_by, class_name: 'Hmis::User', optional: true
     has_many :external_referrals, class_name: 'HmisExternalApis::AcHmis::Referral', dependent: :restrict_with_exception
 
-    # active postings are ones that have not yet been fulfilled (not referenced by a referral)
+    # active requests are ones that have not yet been fulfilled (not referenced by a referral)
     scope :active, -> {
       where.not(id: HmisExternalApis::AcHmis::ReferralPosting.select(:referral_request_id))
     }

@@ -16,13 +16,5 @@ module Hmis::Hud::Processors
 
     def information_date(_)
     end
-
-    # FIXME: there's probably a better way
-    # MAP = {
-    #   'unitType' => 'unit_type_id',
-    # }.freeze
-    # def hud_name(field)
-    #   MAP.fetch(field, field.underscore)
-    # end
   end
 end
