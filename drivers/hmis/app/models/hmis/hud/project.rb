@@ -15,8 +15,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
-
+  # Enrollments in this Project, NOT including WIP Enrollments
   has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
+  # WIP records representing Enrollments for this Project
+  has_many :enrollment_wips, -> { where(source_type: 'Hmis::Hud::Enrollment') }, class_name: 'Hmis::Wip'
+  # WIP Enrollments for this Project
+  has_many :wip_enrollments, class_name: 'Hmis::Hud::Enrollment', through: :enrollment_wips, source: :source, source_type: 'Hmis::Hud::Enrollment'
+
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
@@ -60,7 +65,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
     search_term.strip!
     query = "%#{search_term.split(/\W+/).join('%')}%"
-    where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)))
+    where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)).or(p_t[:project_id].eq(search_term)))
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
@@ -84,8 +89,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     operating_end_date >= Date.current
   end
 
-  def enrollments
-    Hmis::Hud::Enrollment.in_project_including_wip(id, project_id)
+  def enrollments_including_wip
+    enrollment_ids = enrollments.pluck(:id)
+    wip_ids = wip_enrollments.pluck(:id)
+    Hmis::Hud::Enrollment.where(id: enrollment_ids + wip_ids)
   end
 
   def close_related_funders_and_inventory!

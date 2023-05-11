@@ -369,6 +369,15 @@ class RollOut
 
     return if self.only_check_ram
 
+    log_configuration = {
+      log_driver: 'awslogs',
+      options: {
+        'awslogs-group' => target_group_name,
+        'awslogs-region' => 'us-east-1',
+        'awslogs-stream-prefix' => log_prefix,
+      },
+    }
+
     container_definition = {
       name: name,
       image: image,
@@ -391,14 +400,7 @@ class RollOut
       secrets: [
         # { name: "SOME_PASSWORD", value_from: some_passowrd_secrets_arn, },
       ],
-      log_configuration: {
-        log_driver: 'awslogs',
-        options: {
-          'awslogs-group' => target_group_name,
-          'awslogs-region' => 'us-east-1',
-          'awslogs-stream-prefix' => log_prefix,
-        },
-      },
+      log_configuration: log_configuration,
     }
 
     puts "[INFO] hard RAM limit: #{container_definition[:memory]} #{target_group_name}"

@@ -19,6 +19,7 @@ module HmisExternalApis::AcHmis
       # transact assumes we are only mutating records in the warehouse db
       HmisExternalApis::AcHmis::Referral.transaction do
         referral = create_referral
+        raise ActiveRecord::Rollback unless referral
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
 
         raise ActiveRecord::Rollback unless create_referral_household_members(referral)
@@ -32,6 +33,8 @@ module HmisExternalApis::AcHmis
 
     def create_referral
       params => {referral_id:, referral_date:, service_coordinator:}
+      return error_out('Referral ID already exists') if HmisExternalApis::AcHmis::Referral.where(identifier: referral_id).exists?
+
       referral = HmisExternalApis::AcHmis::Referral.new
       referral.identifier = referral_id
       referral.referral_date = referral_date
@@ -43,6 +46,8 @@ module HmisExternalApis::AcHmis
     def create_referral_posting(referral)
       (posting_id, program_id, unit_type_id, referral_request_id) = params.values_at(:posting_id, :program_id, :unit_type_id, :referral_request_id)
       raise unless posting_id && program_id && unit_type_id # required fields, should be caught in validation
+
+      return error_out('Posting ID already exists') if HmisExternalApis::AcHmis::ReferralPosting.where(identifier: posting_id).exists?
 
       posting = referral.postings.new(identifier: posting_id)
       posting.project = mper.find_project_by_mper(program_id)
