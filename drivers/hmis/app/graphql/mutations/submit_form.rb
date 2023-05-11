@@ -15,6 +15,7 @@ module Mutations
     def resolve(input:)
       errors = HmisErrors::Errors.new
 
+      ## question: if we can't fnd the form definition or record_class, shouldn't we just raise an exception?
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       errors.add :form_definition, :required unless definition.present?
@@ -34,6 +35,12 @@ module Mutations
         else
           record&.assign_attributes(user: hud_user)
         end
+      elsif klass == HmisExternalApis::AcHmis::ReferralRequest
+        record = klass.new(
+          requested_by: current_user,
+          identifier: SecureRandom.uuid, # FIXME we should be calling an external endpoint
+          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.id,
+        )
       else
         record = klass.new(
           user: klass == Hmis::File ? current_user : hud_user,
@@ -53,7 +60,7 @@ module Mutations
       errors.add :record, :not_allowed unless allowed
       return { errors: errors } if errors.any?
 
-      # Create CustomForm
+      # Build CustomForm
       # It wont be persisted, but it handles validation and initializes a form processor to process values
       custom_form = Hmis::Form::CustomForm.new(
         owner: record,
