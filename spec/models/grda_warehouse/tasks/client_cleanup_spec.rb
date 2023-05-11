@@ -240,6 +240,17 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.SSN).to eq(@ssn2)
     end
 
+    it 'handles SSNs that are all Xs' do
+      ssn1 = '987654321'
+      ssn2 = 'XXXXXXXXX'
+      source_1.update(SSN: ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(SSN: ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+
+      @cleanup.update_client_demographics_based_on_sources
+      destination_client.reload
+      expect(destination_client.SSN).to eq(ssn1)
+    end
+
     it 'overwrites nil veteran status if something is non-blank' do
       source_1.update(VeteranStatus: nil, DateUpdated: 3.days.ago)
       source_2.update(VeteranStatus: 99, DateUpdated: 2.days.ago)
