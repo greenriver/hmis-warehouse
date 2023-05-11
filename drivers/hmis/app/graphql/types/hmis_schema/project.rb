@@ -13,6 +13,7 @@ module Types
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasReferralRequests
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
@@ -46,6 +47,7 @@ module Types
     field :active, Boolean, null: false
     enrollments_field without_args: [:project_types]
     custom_data_elements_field
+    referral_requests_field :referral_requests
     access_field do
       can :delete_project
       can :edit_project_details
@@ -87,6 +89,10 @@ module Types
 
     def units(**args)
       resolve_units(**args)
+    end
+
+    def referral_requests(**args)
+      resolve_referral_requests_with_loader(:external_referral_requests, **args)
     end
   end
 end
