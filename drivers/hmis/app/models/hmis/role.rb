@@ -222,7 +222,7 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
       can_enroll_clients: {
-        description: 'Grants access to edit enrollments',
+        description: 'Grants access to enroll clients in the project',
         administrative: false,
         access: [:editable],
         categories: [
