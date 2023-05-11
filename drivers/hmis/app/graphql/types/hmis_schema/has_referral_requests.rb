@@ -27,9 +27,8 @@ module Types
       end
 
       def scoped_referral_requests(scope, sort_order: nil)
-        scope = scope.viewable_by(current_user)
-        scope = scope.sort_by_option(sort_order) if sort_order.present?
-        scope
+        scope = scope.active.viewable_by(current_user)
+        sort_order.present? ? scope.sort_by_option(sort_order) : scope
       end
     end
   end
