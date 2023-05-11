@@ -245,6 +245,38 @@ class Hmis::Role < ::ApplicationRecord
           'Audit History',
         ],
       },
+      can_manage_inventory: {
+        description: 'Can manage inventory',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Inventory',
+        ],
+      },
+      can_manage_incoming_referrals: {
+        description: 'Can manage incoming referrals',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Referrals',
+        ],
+      },
+      can_manage_outgoing_referrals: {
+        description: 'Can manage outgoing referrals',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Referrals',
+        ],
+      },
+      can_manage_denied_referrals: {
+        description: 'Can manage denied referrals',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Referrals',
+        ],
+      },
     }
   end
 end

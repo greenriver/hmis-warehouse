@@ -55,6 +55,10 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
       can :delete_assessments
+      can :manage_inventory
+      can :manage_incoming_referrals
+      can :manage_outgoing_referrals
+      can :manage_denied_referrals
     end
 
     def hud_id
