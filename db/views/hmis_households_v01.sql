@@ -21,7 +21,7 @@ FROM
 	"Enrollment"
 	LEFT OUTER JOIN "Exit" ON "Exit"."EnrollmentID" = "Enrollment"."EnrollmentID"
 	AND "Exit"."data_source_id" = "Enrollment"."data_source_id"
-WHERE "Enrollment"."HouseholdID" is not NULL
+WHERE "Enrollment"."HouseholdID" is not NULL AND "Enrollment"."DateDeleted" IS NULL
 GROUP BY "Enrollment"."HouseholdID";
 
 CREATE RULE attempt_hmis_households_del AS ON DELETE TO hmis_households DO INSTEAD NOTHING;
