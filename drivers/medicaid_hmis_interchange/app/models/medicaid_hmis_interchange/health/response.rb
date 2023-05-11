@@ -17,14 +17,21 @@ module MedicaidHmisInterchange::Health
       :field,
     ].freeze
     def process_response
-      errors.each do |error|
+      problems.each do |error|
         # If the medicaid ID was flagged by MH, mark it as invalid
-        ExternalId.find_by(identifier: error[:medicaid_id])&.update(valid_id: false) if error[:error_code] == '3' && error[:field] == '1'
+        next unless error[:error_code] == '3' && error[:field] == '1'
+
+        external_id = ExternalId.find_by(identifier: error[:medicaid_id])
+        if external_id.present?
+          external_id.update(valid_id: false)
+          external_ids << external_id
+        end
       end
+      save!
     end
 
-    def errors
-      @errors ||= [].tap do |list|
+    def problems
+      @problems ||= [].tap do |list|
         error_report.each_line do |line|
           list << COLUMNS.zip(
             line.split('|').
