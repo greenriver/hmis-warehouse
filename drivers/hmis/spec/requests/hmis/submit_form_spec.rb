@@ -213,6 +213,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should update user correctly' do
           _response, result = post_graphql(input: { input: test_input }) { mutation }
+          expect(result.dig('data', 'submitForm', 'errors')).to be_blank
           record_id = result.dig('data', 'submitForm', 'record', 'id')
           record = definition.record_class_name.constantize.find_by(id: record_id)
 

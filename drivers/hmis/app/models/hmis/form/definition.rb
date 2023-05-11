@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# The definition for form fields. The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
+# rails driver:hmis:seed_definitions
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
@@ -30,6 +32,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     INVENTORY: 'Inventory',
     PROJECT_COC: 'Project CoC',
     FILE: 'File',
+    REFERRAL_REQUEST: 'Referral Request',
   }.freeze
 
   FORM_ROLE_CONFIG = {
@@ -45,6 +48,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
       resolve_as: 'Types::HmisSchema::File',
+    },
+    REFERRAL_REQUEST: {
+      class_name: 'HmisExternalApis::AcHmis::ReferralRequest',
+      permission: :can_edit_clients, # FIXME: This should be can_manage_incoming_referrals, pending 185126373
+      resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
   }.freeze
 
