@@ -32,7 +32,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
         # Whether to show MCI ID in client search results
         mciId: HmisExternalApis::AcHmis::Mci.enabled?,
         # Whether to show Referral and Denial screens
-        externalReferrals: GrdaWarehouse::RemoteCredential.active.where(slug: 'mper').exists?,
+        externalReferrals: HmisExternalApis::AcHmis::Mper.enabled?,
       },
     }
   end

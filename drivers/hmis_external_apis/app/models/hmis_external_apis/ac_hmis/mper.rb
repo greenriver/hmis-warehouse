@@ -16,6 +16,10 @@ module HmisExternalApis::AcHmis
       project_scope.where(ProjectID: mper_id).first
     end
 
+    def self.enabled?
+      ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).any?
+    end
+
     # @param mper_id [String]
     # @return [Hmis::UnitType, nil]
     def find_unit_type_by_mper(mper_id)
