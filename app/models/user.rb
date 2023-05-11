@@ -4,10 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 require 'memery'
 class User < ApplicationRecord
   include UserConcern
   include RailsDrivers::Extensions
+  USER_PERMISSION_PREFIX = 'user_permissions'
+  USER_PROJECT_ID_PREFIX = "#{USER_PERMISSION_PREFIX}_project_ids".freeze
 
   has_many :user_group_members, dependent: :destroy, inverse_of: :user
   has_many :user_groups, through: :user_group_members
@@ -77,6 +81,47 @@ class User < ApplicationRecord
     end
   end
 
+  def user_permission_prefix
+    "#{USER_PERMISSION_PREFIX}_user_#{id}"
+  end
+
+  def entity_groups_for_permission(permission)
+    Rails.cache.fetch("#{user_permission_prefix}_entity_groups_#{permission}", expires_in: 5.minutes) do
+      access_groups.joins(access_controls: :role).merge(Role.where(permission => true)).pluck(:id)
+    end
+  end
+
+  def user_project_id_prefix
+    "#{USER_PROJECT_ID_PREFIX}_user_#{id}"
+  end
+
+  def viewable_project_ids
+    Rails.cache.fetch("#{user_project_id_prefix}_viewable", expires_in: 5.minutes) do
+      GrdaWarehouse::Hud::Project.project_ids_viewable_by(self)
+    end
+  end
+
+  def editable_project_ids
+    Rails.cache.fetch("#{user_project_id_prefix}_editable", expires_in: 5.minutes) do
+      GrdaWarehouse::Hud::Project.project_ids_editable_by(self)
+    end
+  end
+
+  def self.clear_cached_permissions
+    Rails.cache.delete_matched("#{USER_PERMISSION_PREFIX}*")
+  end
+
+  def clear_cached_permissions
+    Rails.cache.delete_matched("#{user_permission_prefix}*")
+  end
+
+  def self.clear_cached_project_ids
+    Rails.cache.delete_matched("#{USER_PROJECT_ID_PREFIX}*")
+  end
+
+  def clear_cached_project_ids
+    Rails.cache.delete_matched("#{user_project_id_prefix}*")
+  end
   # To fetch the list of AccessGroups that grant a user access to a particular set of projects
   # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_projects')
   # To fetch the list of AccessGroups that grant a user access to clients enrolled at as set of projects

@@ -5,6 +5,9 @@
 ###
 
 class Role < ApplicationRecord
+  include UserPermissionCache
+
+  after_save :invalidate_user_permission_cache
   # has_many :user_roles, dependent: :destroy, inverse_of: :role
   # has_many :users, through: :user_roles
   validates :name, presence: true

@@ -361,26 +361,47 @@ module GrdaWarehouse::Hud
     end
 
     scope :viewable_by_entity, ->(user) do
-      quoted_column = ->(s) { connection.quote_column_name s }
-      quoted_string = ->(s) { connection.quote s }
+      return none unless user&.can_view_projects?
 
-      where(
-        [
-          access_to_project_through_viewable_entities(user, quoted_string, quoted_column),
-          access_to_project_through_organization(user, quoted_string, quoted_column),
-          access_to_project_through_data_source(user, quoted_string, quoted_column),
-          access_to_project_through_coc_codes(user, quoted_string, quoted_column),
-          access_to_project_through_project_access_groups(user, quoted_string, quoted_column),
-        ].join(' OR '),
-      )
+      ids = user.viewable_project_ids
+      # If have a set (not a nil) and it's empty, this user can't access any projects
+      return none if ids.is_a?(Set) && ids.empty?
+
+      where(id: ids)
+    end
+
+    def self.project_ids_viewable_by(user)
+      return Set.new unless user&.can_view_projects?
+
+      ids = Set.new
+      ids += project_ids_from_viewable_entities(user, :can_view_projects)
+      ids += project_ids_from_organizations(user, :can_view_projects)
+      ids += project_ids_from_data_sources(user, :can_view_projects)
+      ids += project_ids_from_coc_codes(user, :can_view_projects)
+      ids += project_ids_from_project_groups(user, :can_view_projects)
+      ids
     end
 
     scope :editable_by, ->(user) do
-      if user&.can_edit_projects?
-        viewable_by(user)
-      else
-        none
-      end
+      return none unless user&.can_edit_projects?
+
+      ids = user.editable_project_ids
+      # If have a set (not a nil) and it's empty, this user can't access any projects
+      return none if ids.is_a?(Set) && ids.empty?
+
+      where(id: ids)
+    end
+
+    def self.project_ids_editable_by(user)
+      return Set.new unless user&.can_edit_projects?
+
+      ids = Set.new
+      ids += project_ids_from_viewable_entities(user, :can_edit_projects)
+      ids += project_ids_from_organizations(user, :can_edit_projects)
+      ids += project_ids_from_data_sources(user, :can_edit_projects)
+      ids += project_ids_from_coc_codes(user, :can_edit_projects)
+      ids += project_ids_from_project_groups(user, :can_edit_projects)
+      ids
     end
 
     scope :overridden, -> do
@@ -410,171 +431,55 @@ module GrdaWarehouse::Hud
       visible_count.positive? && visible_count == all.count
     end
 
-    def self.access_to_project_through_viewable_entities(user, quoted_string, quoted_column)
-      return '(1=0)' unless user.present?
+    def self.project_ids_from_viewable_entities(user, permission)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
 
-      viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
-      project_table     = quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
-        user.access_groups.pluck(:id)
-      end
-      group_id_query = if group_ids.empty?
-        '0=1'
-      else
-        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
-      end
+      group_ids = user.entity_groups_for_permission(permission)
+      return [] if group_ids.empty?
 
-      <<-SQL.squish
-
-        EXISTS (
-          SELECT 1 FROM
-            #{viewability_table}
-            WHERE
-              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{project_table}.#{quoted_column.call('id')}
-              AND
-              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(sti_name)}
-              AND
-              #{group_id_query}
-              AND
-              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
-              AND
-              #{project_table}.#{quoted_column.call(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
-        )
-
-      SQL
+      GrdaWarehouse::GroupViewableEntity.where(
+        access_group_id: group_ids,
+        entity_type: 'GrdaWarehouse::Hud::Project',
+      ).pluck(:entity_id)
     end
 
-    def self.access_to_project_through_organization(user, quoted_string, quoted_column)
-      return '(1=0)' unless user.present?
+    def self.project_ids_from_coc_codes(user, permission)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
 
-      viewability_table   = GrdaWarehouse::GroupViewableEntity.quoted_table_name
-      project_table       = quoted_table_name
-      organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
-        user.access_groups.pluck(:id) || []
-      end
-      group_id_query = if group_ids.empty?
-        '0=1'
-      else
-        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
-      end
+      group_ids = user.entity_groups_for_permission(permission)
+      return [] if group_ids.empty?
 
-      <<-SQL.squish
-
-        EXISTS (
-          SELECT 1 FROM
-            #{viewability_table}
-            INNER JOIN
-            #{organization_table}
-            ON
-              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{organization_table}.#{quoted_column.call('id')}
-              AND
-              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(GrdaWarehouse::Hud::Organization.sti_name)}
-              AND
-              #{group_id_query}
-              AND
-              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
-            WHERE
-              #{organization_table}.#{quoted_column.call('data_source_id')} = #{project_table}.#{quoted_column.call('data_source_id')}
-              AND
-              #{organization_table}.#{quoted_column.call('OrganizationID')} = #{project_table}.#{quoted_column.call('OrganizationID')}
-              AND
-              #{organization_table}.#{quoted_column.call(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
-        )
-
-      SQL
+      coc_codes = AccessGroup.where(id: group_ids).pluck(:coc_codes).flatten
+      GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).joins(:project).pluck(p_t[:id])
     end
 
-    def self.access_to_project_through_data_source(user, quoted_string, quoted_column)
-      return '(1=0)' unless user.present?
+    def self.project_ids_from_entity_type(user, permission, entity_klass)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
 
-      data_source_table = GrdaWarehouse::DataSource.quoted_table_name
-      viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
-      project_table     = quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-      group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
-        user.access_groups.pluck(:id)
-      end
-      group_id_query = if group_ids.empty?
-        '0=1'
-      else
-        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
-      end
+      group_ids = user.entity_groups_for_permission(permission)
+      return [] if group_ids.empty?
 
-      <<-SQL.squish
-
-        EXISTS (
-          SELECT 1 FROM
-            #{viewability_table}
-            INNER JOIN
-            #{data_source_table}
-            ON
-              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{data_source_table}.#{quoted_column.call('id')}
-              AND
-              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(GrdaWarehouse::DataSource.sti_name)}
-              AND
-              #{group_id_query}
-              AND
-              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
-              AND
-              #{data_source_table}.#{quoted_column.call(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
-            WHERE
-              #{project_table}.#{quoted_column.call('data_source_id')} = #{data_source_table}.#{quoted_column.call('id')}
-        )
-
-      SQL
+      entity_klass.where(
+        id: GrdaWarehouse::GroupViewableEntity.where(
+          access_group_id: group_ids,
+          entity_type: entity_klass.sti_name,
+        ).select(:entity_id),
+      ).joins(:projects).pluck(p_t[:id])
     end
 
-    def self.access_to_project_through_coc_codes(user, quoted_string, quoted_column)
-      return '(1=0)' unless user.present? && user.coc_codes.any?
-
-      project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name
-      project_table     = quoted_table_name
-
-      <<-SQL.squish
-
-        EXISTS (
-          SELECT 1 FROM
-            #{project_coc_table}
-            INNER JOIN
-            #{project_table} AS pt
-            ON
-              #{project_coc_table}.#{quoted_column[:ProjectID]}      = pt.#{quoted_column[:ProjectID]}
-              AND
-              #{project_coc_table}.#{quoted_column[:data_source_id]} = pt.#{quoted_column[:data_source_id]}
-              AND
-              #{project_coc_table}.#{quoted_column.call(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
-            WHERE
-              (
-                (
-                  #{project_coc_table}.#{quoted_column[:CoCCode]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
-                  AND
-                  (
-                    #{project_coc_table}.#{quoted_column[:hud_coc_code]} IS NULL
-                    OR
-                    #{project_coc_table}.#{quoted_column[:hud_coc_code]} = ''
-                  )
-                )
-                OR
-                #{project_coc_table}.#{quoted_column[:hud_coc_code]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
-              )
-              AND
-              #{project_table}.#{quoted_column[:id]} = pt.#{quoted_column[:id]}
-
-        )
-
-      SQL
+    def self.project_ids_from_organizations(user, permission)
+      project_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Organization)
     end
 
-    def self.access_to_project_through_project_access_groups(user, _, _)
-      return '(1=0)' unless user.present? && user.project_groups.any?
+    def self.project_ids_from_data_sources(user, permission)
+      project_ids_from_entity_type(user, permission, GrdaWarehouse::DataSource)
+    end
 
-      project_ids = Rails.cache.fetch([user, 'project_access_group_project_ids'], expires_in: 1.minutes) do
-        user.project_groups.flat_map(&:projects).map(&:id)
-      end
-      p_t[:id].in(project_ids).to_sql
+    def self.project_ids_from_project_groups(user, permission)
+      project_ids_from_entity_type(user, permission, GrdaWarehouse::ProjectAccessGroup)
     end
 
     # make a scope for every project type and a type? method for instances

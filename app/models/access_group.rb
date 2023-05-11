@@ -5,8 +5,12 @@
 ###
 
 class AccessGroup < ApplicationRecord
+  include UserPermissionCache
+
   acts_as_paranoid
   has_paper_trail
+
+  after_save :invalidate_user_permission_cache
 
   has_many :access_controls
   has_many :users, through: :access_controls
@@ -121,6 +125,7 @@ class AccessGroup < ApplicationRecord
     # setup system user group
     # setup system ACL with system role, system groups, system user
     # Then add all ids for each category with set_viewables
+    User.clear_cached_permissions
     system_user_role = Role.system_user_role
     system_user_access_group = system_access_group(:system_user)
     system_user_group = UserGroup.system_user

@@ -7,10 +7,13 @@
 class UserGroup < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
+  include UserPermissionCache
 
   has_many :access_controls, inverse_of: :user_group
   has_many :user_group_members, inverse_of: :user_group
   has_many :users, through: :user_group_members
+
+  after_save :invalidate_user_permission_cache
 
   scope :not_system, -> do
     where(system: false)

@@ -6,8 +6,12 @@
 
 class AccessControl < ApplicationRecord
   include ActionView::Helpers::TagHelper
+  include UserPermissionCache
+
   acts_as_paranoid
   has_paper_trail
+
+  after_save :invalidate_user_permission_cache
 
   belongs_to :access_group
   belongs_to :role
