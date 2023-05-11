@@ -6,7 +6,6 @@
 
 class Hmis::Hud::Household < Hmis::Hud::Base
   include ::Hmis::Concerns::HmisArelHelper
-  include ::Hmis::Hud::Concerns::EnrollmentRelated
 
   self.table_name = :hmis_households
   self.primary_key = 'id'
@@ -14,6 +13,10 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   has_many :enrollments, **hmis_relation(:HouseholdID, 'Enrollment')
   has_many :clients, through: :enrollments
+
+  replace_scope :viewable_by, ->(user) do
+    joins(:enrollments).merge(Hmis::Hud::Enrollment.viewable_by(user))
+  end
 
   scope :client_matches_search_term, ->(text_search) do
     joins(:clients).merge(Hmis::Hud::Client.matching_search_term(text_search.to_s))
