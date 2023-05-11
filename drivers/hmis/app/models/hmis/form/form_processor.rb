@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Process form data (custom_form)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
 
@@ -44,7 +45,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       begin
         container_processor(container)&.process(field, value)
       rescue StandardError => e
-        raise e.class, "Error processing field '#{field}': #{e.message}"
+        raise $ERROR_INFO, "Error processing field '#{field}': #{e.message}", $ERROR_INFO.backtrace
       end
     end
 
@@ -205,6 +206,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
+      ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
     }.freeze
   end
 

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# The definition for form fields. The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
+# rails driver:hmis:seed_definitions
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
@@ -30,6 +32,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     INVENTORY: 'Inventory',
     PROJECT_COC: 'Project CoC',
     FILE: 'File',
+    REFERRAL_REQUEST: 'Referral Request',
   }.freeze
 
   FORM_ROLE_CONFIG = {
@@ -38,13 +41,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     ORGANIZATION: { class_name: 'Hmis::Hud::Organization', permission: :can_edit_organization, resolve_as: 'Types::HmisSchema::Organization' },
     CLIENT: { class_name: 'Hmis::Hud::Client', permission: :can_edit_clients, resolve_as: 'Types::HmisSchema::Client' },
     FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
-    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
+    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_manage_inventory, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
     FILE: {
       class_name: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
       resolve_as: 'Types::HmisSchema::File',
+    },
+    REFERRAL_REQUEST: {
+      class_name: 'HmisExternalApis::AcHmis::ReferralRequest',
+      permission: :can_manage_incoming_referrals,
+      resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
   }.freeze
 
