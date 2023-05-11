@@ -70,6 +70,7 @@ module HmisDataQualityTool
       keys ||= [
         :project_type_codes,
         :project_ids,
+        :organization_ids,
         :project_group_ids,
         :data_source_ids,
       ]
@@ -83,6 +84,7 @@ module HmisDataQualityTool
         :coc_codes,
         :project_type_codes,
         :project_ids,
+        :organization_ids,
         :project_group_ids,
         :data_source_ids,
         :funder_ids,

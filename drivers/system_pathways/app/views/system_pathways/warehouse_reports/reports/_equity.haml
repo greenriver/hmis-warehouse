@@ -1,0 +1,72 @@
+- equity = SystemPathways::Equity.new(report: @report, filter: @filter, show_filter: show_filter)
+.equity.mt-4{ data: { controller: 'chart-loader', chart: 'document.equity' }}
+  - url = URI(@report.chart_data_path('equity'))
+  .d-flex.mb-6
+    - chart_header = "#{@pathways_chart.client_word} by "
+    %h3
+      = chart_header
+      %span{ data: { 'chart-loader-target' => 'header' }} Ethnicity
+    .dropdown.ml-auto
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: false }}
+        Demographic Breakdown
+        %i.ml-2.icon-angle-down
+      .dropdown-menu.options
+        - demo = equity.known_categories.each do |label, key|
+          - url.query = show_filter.for_params.merge(demographic_breakdown: key).to_query
+          - table_link = {}
+          - table_link = { 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **show_filter.for_params.merge(chart: 'equity')) } if can_access_some_version_of_clients?
+          - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}" }.merge(table_link)
+          - classes = ['dropdown-item']
+          = link_to(label, url.to_s, data: data, class: classes)
+  #equity-chart-wrapper{ data: { 'chart-loader-target' => 'wrapper' }}
+    #equity-chart.mb-6{ data: { 'chart-loader-target' => 'chart' }}
+    #equity-table{ data: { 'chart-loader-target' => 'table' }}
+
+  = content_for :page_js do
+    :javascript
+      document.equity = bb.generate({
+        data: {
+          columns: [],
+          type: 'bar',
+          x: 'x',
+          groups: [],
+          labels: {
+            format: function(v, id, i, j) {
+              if (v == 0) return '';
+              if (! id) return v;
+
+              let numbers = d3.map(this.data(), d => d.values[i].value);
+              let total = numbers.reduce((partialSum, a) => partialSum + a, 0);
+              let percentage = v/total;
+              //console.log(i,j, d3.map(j, el => el.getBBox().width)[i])
+              if (percentage < 0.15) {
+                return '';
+              }
+              return d3.format('.0%')(percentage);
+            },
+            centered: true,
+          }
+        },
+        legend: {
+          position: "right"
+        },
+        tooltip: {
+          order: '', // Enforce group order
+          format: {
+            value: (value, ratio, id, index) => d3.format(",")(value),
+          },
+        },
+        bindto: '#equity-chart',
+        size: {
+          height: 100,
+        },
+        bar: {
+          padding: 20,
+        },
+        axis: {
+          rotated: true,
+          x: {
+            type: 'category'
+          }
+        },
+      });

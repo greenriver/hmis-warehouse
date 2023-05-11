@@ -1,0 +1,18 @@
+= simple_form_for @filter, as: :filters, url: @report.show_path, method: :get do |f|
+  .row
+    .col
+      = render 'filters/filter_controls/races/input', f: f, control: OpenStruct.new(label: 'Race')
+    .col
+      = render 'filters/filter_controls/ethnicities/input', f: f, control: OpenStruct.new(label: 'Ethnicity')
+    .col
+      = render 'filters/filter_controls/veteran_statuses/input', f: f, control: OpenStruct.new(label: 'Veteran Status')
+  .row
+    .col
+      = render 'filters/filter_controls/household_type/input', f: f, control: OpenStruct.new(label: 'Household Type')
+    .col.pt-no-label
+      = render 'filters/filter_controls/hoh_only/input', f: f, control: OpenStruct.new(label: 'Heads of Household Only')
+    .col
+      = f.input :involves_ce, as: :select_two, collection: [['Yes', true], ['No', false]], label: 'CE Involved', required: false, hint: 'Limits universe to clients who were enrolled in CE', include_blank: 'All'
+  .d-flex
+    .ml-auto
+      = f.submit 'Update View'

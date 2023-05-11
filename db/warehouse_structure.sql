@@ -775,6 +775,51 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 
 
 --
+-- Name: CustomClientAddress; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientAddress" (
+    id bigint NOT NULL,
+    use character varying,
+    address_type character varying,
+    line1 character varying,
+    line2 character varying,
+    city character varying,
+    state character varying,
+    district character varying,
+    country character varying,
+    postal_code character varying,
+    notes character varying,
+    "AddressID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientAddress_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientAddress_id_seq" OWNED BY public."CustomClientAddress".id;
+
+
+--
 -- Name: CustomClientAssessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -808,6 +853,88 @@ CREATE SEQUENCE public."CustomClientAssessments_id_seq"
 --
 
 ALTER SEQUENCE public."CustomClientAssessments_id_seq" OWNED BY public."CustomClientAssessments".id;
+
+
+--
+-- Name: CustomClientContactPoint; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientContactPoint" (
+    id bigint NOT NULL,
+    use character varying,
+    system character varying,
+    value character varying,
+    notes character varying,
+    "ContactPointID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientContactPoint_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientContactPoint_id_seq" OWNED BY public."CustomClientContactPoint".id;
+
+
+--
+-- Name: CustomClientName; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientName" (
+    id bigint NOT NULL,
+    first character varying,
+    middle character varying,
+    last character varying,
+    suffix character varying,
+    use character varying,
+    notes text,
+    "primary" boolean,
+    "NameDataQuality" integer,
+    "CustomClientNameID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientName_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientName_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientName_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientName_id_seq" OWNED BY public."CustomClientName".id;
 
 
 --
@@ -16326,13 +16453,13 @@ ALTER SEQUENCE public.import_logs_id_seq OWNED BY public.import_logs.id;
 
 CREATE TABLE public.inbound_api_configurations (
     id bigint NOT NULL,
-    internal_system_name character varying NOT NULL,
     external_system_name character varying NOT NULL,
     hashed_api_key character varying NOT NULL,
     plain_text_reminder character varying NOT NULL,
     version integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    internal_system_id bigint
 );
 
 
@@ -16590,6 +16717,37 @@ CREATE VIEW public.index_stats AS
      LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
      LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
   ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+
+
+--
+-- Name: internal_systems; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.internal_systems (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    auth_type character varying DEFAULT 'apikey'::character varying NOT NULL
+);
+
+
+--
+-- Name: internal_systems_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.internal_systems_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: internal_systems_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.internal_systems_id_seq OWNED BY public.internal_systems.id;
 
 
 --
@@ -20425,7 +20583,7 @@ CREATE TABLE public.system_pathways_clients (
     questioning boolean,
     no_single_gender boolean,
     veteran_status integer,
-    ce boolean,
+    involves_ce boolean,
     system boolean,
     destination integer,
     created_at timestamp(6) without time zone NOT NULL,
@@ -20441,7 +20599,8 @@ CREATE TABLE public.system_pathways_clients (
     returned_project_enrollment_id bigint,
     returned_project_project_id bigint,
     report_id bigint,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    days_to_return integer
 );
 
 
@@ -20482,7 +20641,6 @@ CREATE TABLE public.system_pathways_enrollments (
     stay_length integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    disabling_condition boolean,
     relationship_to_hoh integer,
     household_id character varying,
     household_type character varying,
@@ -20490,7 +20648,9 @@ CREATE TABLE public.system_pathways_enrollments (
     deleted_at timestamp without time zone,
     final_enrollment boolean DEFAULT false NOT NULL,
     move_in_date date,
-    days_to_move_in integer
+    days_to_move_in integer,
+    chronic_at_entry boolean,
+    disabling_condition integer
 );
 
 
@@ -21715,10 +21875,31 @@ ALTER TABLE ONLY public."CustomAssessments" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: CustomClientAddress id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAddress_id_seq"'::regclass);
+
+
+--
 -- Name: CustomClientAssessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."CustomClientAssessments" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAssessments_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientContactPoint id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientContactPoint" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientContactPoint_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientName id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientName" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientName_id_seq"'::regclass);
 
 
 --
@@ -23640,6 +23821,13 @@ ALTER TABLE ONLY public.income_benefits_reports ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: internal_systems id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.internal_systems ALTER COLUMN id SET DEFAULT nextval('public.internal_systems_id_seq'::regclass);
+
+
+--
 -- Name: involved_in_imports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24684,11 +24872,35 @@ ALTER TABLE ONLY public."CustomAssessments"
 
 
 --
+-- Name: CustomClientAddress CustomClientAddress_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress"
+    ADD CONSTRAINT "CustomClientAddress_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: CustomClientAssessments CustomClientAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."CustomClientAssessments"
     ADD CONSTRAINT "CustomClientAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientContactPoint CustomClientContactPoint_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientContactPoint"
+    ADD CONSTRAINT "CustomClientContactPoint_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientName CustomClientName_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientName"
+    ADD CONSTRAINT "CustomClientName_pkey" PRIMARY KEY (id);
 
 
 --
@@ -26892,6 +27104,14 @@ ALTER TABLE ONLY public.income_benefits_reports
 
 
 --
+-- Name: internal_systems internal_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.internal_systems
+    ADD CONSTRAINT internal_systems_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: involved_in_imports involved_in_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -27860,6 +28080,20 @@ CREATE INDEX assessment_q_a_id_ds_id_p_id_en_id_aq_id ON public."AssessmentQuest
 --
 
 CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResults" USING btree ("AssessmentID", data_source_id, "PersonalID", "EnrollmentID", "AssessmentResultID");
+
+
+--
+-- Name: c_r_system_pathways_clients_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_clients_idx ON public.system_pathways_clients USING btree (client_id, report_id);
+
+
+--
+-- Name: c_r_system_pathways_enrollments_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_enrollments_idx ON public.system_pathways_enrollments USING btree (client_id, report_id);
 
 
 --
@@ -40729,13 +40963,6 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
--- Name: idx_api_conf_on_name_and_external_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_api_conf_on_name_and_external_name ON public.inbound_api_configurations USING btree (internal_system_name, external_system_name, version);
-
-
---
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40922,6 +41149,13 @@ CREATE INDEX idx_hmis_external_referral_hms_on_referral_id ON public.hmis_extern
 --
 
 CREATE INDEX idx_hmis_external_referral_postings_on_request_id ON public.hmis_external_referral_postings USING btree (referral_request_id);
+
+
+--
+-- Name: idx_inbound_api_configurations_uniq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_configurations USING btree (internal_system_id, external_system_name, version);
 
 
 --
@@ -44691,6 +44925,13 @@ CREATE UNIQUE INDEX index_inbound_api_configurations_on_hashed_api_key ON public
 
 
 --
+-- Name: index_inbound_api_configurations_on_internal_system_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_inbound_api_configurations_on_internal_system_id ON public.inbound_api_configurations USING btree (internal_system_id);
+
+
+--
 -- Name: index_inbound_api_configurations_on_plain_text_reminder; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44814,6 +45055,13 @@ CREATE INDEX index_income_benefits_reports_on_updated_at ON public.income_benefi
 --
 
 CREATE INDEX index_income_benefits_reports_on_user_id ON public.income_benefits_reports USING btree (user_id);
+
+
+--
+-- Name: index_internal_systems_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_internal_systems_on_name ON public.internal_systems USING btree (name);
 
 
 --
@@ -48905,27 +49153,6 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
--- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
-
-
---
--- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
-
-
---
 -- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48937,13 +49164,6 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -49679,6 +49899,13 @@ CREATE UNIQUE INDEX uniq_hud_report_universe_members ON public.hud_report_univer
 --
 
 CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_universe_members USING btree (report_cell_id, universe_membership_id, universe_membership_type) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: unique_index_ensuring_one_primary_per_client; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."CustomClientName" USING btree ("PersonalID", data_source_id, "primary");
 
 
 --
@@ -51006,6 +51233,14 @@ ALTER TABLE ONLY public.service_history_services_2030
 
 ALTER TABLE ONLY public.hmis_external_referral_postings
     ADD CONSTRAINT fk_rails_41274b755e FOREIGN KEY (referral_request_id) REFERENCES public.hmis_external_referral_requests(id);
+
+
+--
+-- Name: inbound_api_configurations fk_rails_441b0de9e4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inbound_api_configurations
+    ADD CONSTRAINT fk_rails_441b0de9e4 FOREIGN KEY (internal_system_id) REFERENCES public.internal_systems(id);
 
 
 --
@@ -52495,6 +52730,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230419165219'),
 ('20230419190654'),
 ('20230420164514'),
-('20230424194313');
+('20230424194313'),
+('20230426175101'),
+('20230428141601'),
+('20230428145659'),
+('20230428155418'),
+('20230429185311'),
+('20230429224702'),
+('20230502175218'),
+('20230503155642'),
+('20230503161258');
 
 

@@ -6,6 +6,12 @@
 
 module Hmis::Hud::Processors
   class ClientProcessor < Base
+    # DO NOT CHANGE: Frontend code sends these values
+    # Indicates that a new MCI ID should be created.
+    MCI_CREATE_MCI_ID_VALUE = '_CREATE_MCI_ID'.freeze
+    # Indicates that no MCI ID should be created. Use this instead of null, because the user should be required to make a selection
+    MCI_CREATE_UNCLEARED_CLIENT_VALUE = '_CREATE_UNCLEARED_CLIENT'.freeze
+
     def process(field, value)
       attribute_name = hud_name(field)
       attribute_value = attribute_value_for_enum(hud_type(field), value)
@@ -30,6 +36,9 @@ module Hmis::Hud::Processors
         # If hidden due to permissions, set to old value or 99
         attribute_value = @processor.send(factory_name).dob_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
         { attribute_name => attribute_value }
+      when 'mci_id'
+        process_mci(value)
+        {}
       else
         { attribute_name => attribute_value }
       end
@@ -99,6 +108,39 @@ module Hmis::Hud::Processors
       end
 
       result
+    end
+
+    # Custom handler for MCI field
+    private def process_mci(value)
+      return unless HmisExternalApis::Mci.enabled?
+      return if value.nil? # Shouldn't happen, but let the form validate it
+
+      client = @processor.send(factory_name)
+      return unless client.is_a? Hmis::Hud::Client
+
+      # If field is hidden, that means that there was not enough information to clear MCI.
+      # Do nothing, which will create an "uncleared" client.
+      return if value == Base::HIDDEN_FIELD_VALUE
+
+      # If value is MCI_CREATE_MCI_ID_VALUE, that means the use explicitly chose NOT to link or create an MCI ID.
+      # Do nothing, which will create an "uncleared" client.
+      return if value == MCI_CREATE_UNCLEARED_CLIENT_VALUE
+
+      # If value indicates that a new MCI ID should be created, do that.
+      # Actual MCI ID creation happens in an after_save hook on Client.
+      if value == MCI_CREATE_MCI_ID_VALUE
+        client.create_mci_id = true
+        return
+      end
+
+      # Value should be an MCI ID
+      return unless Float(value)
+
+      # Initialize an ExternalID with this MCI ID
+      client.external_ids << HmisExternalApis::ExternalId.new(
+        value: value,
+        remote_credential: HmisExternalApis::Mci.new.creds,
+      )
     end
   end
 end
