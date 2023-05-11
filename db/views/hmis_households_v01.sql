@@ -20,6 +20,7 @@ SELECT
 FROM
 	"Enrollment"
 	LEFT OUTER JOIN "Exit" ON "Exit"."EnrollmentID" = "Enrollment"."EnrollmentID"
+	AND "Exit"."data_source_id" = "Enrollment"."data_source_id"
 WHERE "Enrollment"."HouseholdID" is not NULL
 GROUP BY "Enrollment"."HouseholdID";
 
