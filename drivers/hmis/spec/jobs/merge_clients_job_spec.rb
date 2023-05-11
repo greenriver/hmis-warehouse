@@ -7,8 +7,36 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::MergeClientsJob, type: :model do
+  let(:user) { create(:hmis_hud_user) }
   let(:client1) { create(:hmis_hud_client, pronouns: nil, date_created: Time.now - 1.day) }
+  let!(:client1_name) { create(:hmis_hud_custom_client_name, client: client1, first: client1.first_name, last: client1.last_name, middle: client1.last_name, suffix: client1.name_suffix) }
+  let!(:client1_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client1) }
+  let!(:client1_address) { create(:hmis_hud_custom_client_address, client: client1) }
+
   let(:client2) { create(:hmis_hud_client, pronouns: 'she') }
+  let!(:client2_name) { create(:hmis_hud_custom_client_name, client: client2) }
+  let!(:client2_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client2) }
+  let!(:client2_address) { create(:hmis_hud_custom_client_address, client: client2) }
+
+  # These are the ones that should get pruned
+  let!(:client2_name_dup) do
+    d = client1_name.dup
+    d.save!
+    d
+  end
+
+  let!(:client2_contact_point_dup) do
+    d = client1_contact_point.dup
+    d.save!
+    d
+  end
+
+  let!(:client2_address_dup) do
+    d = client1_address.dup
+    d.save!
+    d
+  end
+
   let(:clients) { [client1, client2] }
   let(:client_ids) { clients.map(&:id) }
   let(:actor) { create(:user) }
@@ -30,16 +58,67 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     raise 'wip'
   end
 
-  it 'deduplicates names' do
-    # Deduplicate the names across all the clients, and ensure that CustomClientNames #185042652 has ALL the names that got merged (including alternate names wipr any of the merged records). The one marked 'primary' should be the name selected by choose_attributes_from_sources.
-    # Same wipr CustomClientAddresses and CustomCLientContactPoints - all of them should be updated to point to the winning record
-    raise 'wip'
+  it 'merges names' do
+    make_set = ->(list) do
+      list.map do |n|
+        [n.first, n.last].join(' ')
+      end.to_set
+    end
+
+    found_names = make_set.call(client1.reload.names)
+    expected_names = make_set.call([client1_name, client2_name])
+    expect(found_names).to eq(expected_names)
   end
 
-  it 'deduplicates addresses' do
-    # Deduplicate the names across all the clients, and ensure that CustomClientNames #185042652 has ALL the names that got merged (including alternate names wipr any of the merged records). The one marked 'primary' should be the name selected by choose_attributes_from_sources.
-    # Same wipr CustomClientAddresses and CustomCLientContactPoints - all of them should be updated to point to the winning record
-    raise 'wip'
+  it 'has correct primary name' do
+    client1.reload
+    expected = [client1.first_name, client1.middle_name, client1.last_name, client1.name_suffix].join(' ')
+
+    result = client1.names.where(primary: true)
+
+    expect(result.length).to eq(1)
+
+    actual = [result.first.first, result.first.middle, result.first.last, result.first.suffix].join(' ')
+
+    expect(expected).to eq(actual)
+  end
+
+  it 'dedups names' do
+    expect(client2_name_dup.reload).to be_deleted
+  end
+
+  it 'merges addresses' do
+    make_set = ->(list) do
+      list.map do |n|
+        [n.address_type, n.line1, n.line2, n.city, n.state, n.district, n.country, n.postal_code].join(' ')
+      end.to_set
+    end
+
+    found_addresses = make_set.call(client1.reload.addresses)
+    expected_addresses = make_set.call([client1_address, client2_address])
+
+    expect(found_addresses).to eq(expected_addresses)
+  end
+
+  it 'dedups addresses' do
+    expect(client2_address_dup.reload).to be_deleted
+  end
+
+  it 'merges contact points' do
+    make_set = ->(list) do
+      list.map do |n|
+        [n.use, n.system, n.value].join(' ')
+      end.to_set
+    end
+
+    found_contact_points = make_set.call(client1.reload.contact_points)
+    expected_contact_points = make_set.call([client1_contact_point, client2_contact_point])
+
+    expect(found_contact_points).to eq(expected_contact_points)
+  end
+
+  it 'dedups contact points' do
+    expect(client2_contact_point_dup.reload).to be_deleted
   end
 
   it 'soft-deletes the merged clients' do
