@@ -22,7 +22,7 @@ module Mutations
 
       project = Hmis::Hud::Project.find_by(id: projects&.first)
       errors.add :base, :not_found unless project.present?
-      errors.add :base, :not_allowed unless current_user.permissions_for?(project, :can_edit_project_details)
+      errors.add :base, :not_allowed unless current_user.permissions_for?(project, :can_manage_inventory)
       return { errors: errors } if errors.any?
 
       Hmis::Unit.where(id: unit_ids).destroy_all
