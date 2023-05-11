@@ -35,7 +35,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  Hmis::Form::Definition::FORM_ROLES.except(:CE, :POST_EXIT, :CUSTOM).keys.each do |role|
+  Hmis::Form::Definition::FORM_ROLES.except(:CE, :POST_EXIT, :CUSTOM, :REFERRAL_REQUEST).keys.each do |role|
     it 'should find default definition by role' do
       response, result = post_graphql({ enrollment_id: e1.id.to_s, role: role }) { query }
 

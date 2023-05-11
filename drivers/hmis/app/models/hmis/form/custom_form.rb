@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# The primary use-case is to save assessment form data before submission (processing)
 class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   include Hmis::Hud::Concerns::HasEnums
   self.table_name = :CustomForms
