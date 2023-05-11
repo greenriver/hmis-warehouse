@@ -13,6 +13,7 @@ module Types
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasReferralRequests
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -44,6 +45,7 @@ module Types
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     enrollments_field without_args: [:project_types]
+    referral_requests_field :referral_requests
 
     access_field do
       can :delete_project
@@ -91,6 +93,10 @@ module Types
 
     def units(**args)
       resolve_units(**args)
+    end
+
+    def referral_requests(**args)
+      resolve_referral_requests_with_loader(:external_referral_requests, **args)
     end
   end
 end

@@ -70,6 +70,28 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         program_id: project_mper_id, # project == program
         household_members: household_member_params(clients),
         unit_type_id: unit_type_id,
+        score: 8,
+        needs_wheelchair_accessible_unit: false,
+        referral_notes: 'referral note',
+        resource_coordinator_notes: 'resource coord note',
+        chronic: false,
+        addresses: [
+          {
+            line1: '123 Main st',
+            line2: '',
+            city: 'Brattleboro',
+            state: 'VT',
+            county: '',
+            zip: '05301',
+            use: 'work',
+          },
+        ],
+        phone_numbers: [
+          number: '1234567890',
+          notes: 'phone note',
+          type: 'mobile',
+        ],
+        email_address: ['test@example.com'],
       }
     end
 
