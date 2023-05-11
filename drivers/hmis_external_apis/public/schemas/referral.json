@@ -5,9 +5,58 @@
   "title": "Referral",
   "description": "Notify HMIS that a client and household members are eligible for a posting",
   "type": "object",
-  "required": ["referral_id", "referral_date", "service_coordinator", "posting_id", "program_id", "unit_type_id"],
+  "required": [
+    "referral_id",
+    "referral_date",
+    "service_coordinator",
+    "posting_id",
+    "program_id",
+    "unit_type_id"
+  ],
   "properties": {
     "referral_id": { "type": ["integer", "string"] },
+    "score": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "needs_wheelchair_accessible_unit": { "type": "boolean" },
+    "referral_notes": { "type": "string" },
+    "resource_coordinator_notes": { "type": "string" },
+    "chronic": { "type": "boolean" },
+    "addresses": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "line1": { "type": "string" },
+          "line2": { "type": "string" },
+          "city": { "type": "string" },
+          "state": { "type": "string" },
+          "zip": { "type": "string" },
+          "county": { "type": "string" },
+          "use": { "enum": ["home", "work", "mail"] }
+        }
+      }
+    },
+    "phone_numbers": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "number": { "type": "string", "pattern": "^[0-9]{10}$" },
+          "notes": { "type": "string" },
+          "type": { "enum": ["home", "mobile", "work"] }
+        }
+      }
+    },
+    "email_address": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "email"
+      }
+    },
     "referral_date": { "type": "string", "format": "date" },
     "service_coordinator": { "type": "string" },
     "posting_id": { "type": ["integer", "string"] },
