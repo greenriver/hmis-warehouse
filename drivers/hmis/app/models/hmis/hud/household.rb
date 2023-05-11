@@ -42,7 +42,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
 
   TRIMMED_HOUSEHOLD_ID_LENGTH = 6
   def short_id
-    household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
+    id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
   end
 
   SORT_OPTIONS = [:most_recent].freeze
