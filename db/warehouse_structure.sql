@@ -14624,21 +14624,18 @@ CREATE VIEW public.hmis_households AS
     "Enrollment"."HouseholdID",
     max(("Enrollment"."ProjectID")::text) AS "ProjectID",
     max("Enrollment".data_source_id) AS data_source_id,
-    min("Enrollment"."EntryDate") AS earliest_open,
+    min("Enrollment"."EntryDate") AS earliest_entry,
         CASE
             WHEN bool_or(("Exit"."ExitDate" IS NULL)) THEN NULL::date
             ELSE max("Exit"."ExitDate")
         END AS latest_exit,
     bool_or(("Enrollment"."ProjectID" IS NULL)) AS any_wip,
-        CASE
-            WHEN bool_or(("Enrollment"."DateDeleted" IS NULL)) THEN NULL::timestamp without time zone
-            ELSE max("Enrollment"."DateDeleted")
-        END AS "DateDeleted",
+    NULL::text AS "DateDeleted",
     max("Enrollment"."DateUpdated") AS "DateUpdated",
     min("Enrollment"."DateCreated") AS "DateCreated"
    FROM (public."Enrollment"
-     LEFT JOIN public."Exit" ON ((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text)))
-  WHERE ("Enrollment"."HouseholdID" IS NOT NULL)
+     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id))))
+  WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
   GROUP BY "Enrollment"."HouseholdID";
 
 

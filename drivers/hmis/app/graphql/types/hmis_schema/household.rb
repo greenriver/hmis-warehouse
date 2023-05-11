@@ -16,10 +16,6 @@ module Types
 
     # object is a Hmis::Hud::Household
 
-    def short_id
-      object.enrollments.first.short_household_id.upcase
-    end
-
     def household_clients
       object.enrollments.map do |enrollment|
         {

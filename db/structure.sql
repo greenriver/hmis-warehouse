@@ -663,7 +663,12 @@ CREATE TABLE public.hmis_roles (
     can_audit_clients boolean DEFAULT false NOT NULL,
     can_delete_clients boolean DEFAULT false NOT NULL,
     can_delete_assessments boolean DEFAULT false NOT NULL,
-    can_view_unenrolled_clients boolean DEFAULT false
+    can_view_unenrolled_clients boolean DEFAULT false,
+    can_manage_inventory boolean DEFAULT false,
+    can_manage_incoming_referrals boolean DEFAULT false,
+    can_manage_outgoing_referrals boolean DEFAULT false,
+    can_manage_denied_referrals boolean DEFAULT false,
+    can_enroll_clients boolean DEFAULT false
 );
 
 
@@ -3288,6 +3293,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230412142430'),
 ('20230418170053'),
 ('20230420195221'),
-('20230426170051');
+('20230426170051'),
+('20230511132156'),
+('20230511152438');
 
 

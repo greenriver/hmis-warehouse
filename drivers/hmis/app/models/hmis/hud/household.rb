@@ -5,6 +5,9 @@
 ###
 
 class Hmis::Hud::Household < Hmis::Hud::Base
+  include ::Hmis::Concerns::HmisArelHelper
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
+
   self.table_name = :hmis_households
   self.primary_key = 'id'
 
@@ -16,13 +19,9 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     joins(:clients).merge(Hmis::Hud::Client.matching_search_term(text_search.to_s))
   end
 
-  scope :viewable_by, ->(user) do
-    joins(:enrollments).merge(Hmis::Hud::Enrollment.viewable_by(user))
-  end
-
   scope :open_on_date, ->(date) do
     # TODO: AREL THIS!
-    where('earliest_open <= ?', date).where('latest_exit is NULL or latest_exit >= ?', date)
+    where(hh_t[:earliest_entry].lteq(date)).where(hh_t[:latest_exit].eq(nil).or(hh_t[:latest_exit].gteq(date)))
   end
 
   scope :active, -> do
@@ -41,6 +40,11 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     enrollments.count
   end
 
+  TRIMMED_HOUSEHOLD_ID_LENGTH = 6
+  def short_id
+    household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
+  end
+
   SORT_OPTIONS = [:most_recent].freeze
 
   def self.sort_by_option(option)
@@ -49,9 +53,9 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     case option
     when :most_recent
       order(
-        any_wip: :desc,
-        earliest_open: :desc,
-        DateCreated: :desc,
+        hh_t[:any_wip].eq(true).desc,
+        hh_t[:latest_exit].eq(nil).desc,
+        earliest_entry: :desc,
       )
     else
       raise NotImplementedError
