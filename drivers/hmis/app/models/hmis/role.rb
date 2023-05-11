@@ -109,6 +109,38 @@ class Hmis::Role < ::ApplicationRecord
           'Projects',
         ],
       },
+      can_manage_inventory: {
+        description: 'Ability to manage Inventory and Unit records in the project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_manage_incoming_referrals: {
+        description: 'Ability to accept/deny incoming referrals in the Project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_manage_outgoing_referrals: {
+        description: 'Ability to "refer out" from the Project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_manage_denied_referrals: {
+        description: 'Ability to manage denied referrals in the Project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
       can_edit_organization: {
         description: 'Grants access to edit organizations',
         administrative: false,
@@ -243,38 +275,6 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         categories: [
           'Audit History',
-        ],
-      },
-      can_manage_inventory: {
-        description: 'Can manage inventory',
-        administrative: false,
-        access: [:editable],
-        categories: [
-          'Inventory',
-        ],
-      },
-      can_manage_incoming_referrals: {
-        description: 'Can manage incoming referrals',
-        administrative: false,
-        access: [:editable],
-        categories: [
-          'Referrals',
-        ],
-      },
-      can_manage_outgoing_referrals: {
-        description: 'Can manage outgoing referrals',
-        administrative: false,
-        access: [:editable],
-        categories: [
-          'Referrals',
-        ],
-      },
-      can_manage_denied_referrals: {
-        description: 'Can manage denied referrals',
-        administrative: false,
-        access: [:editable],
-        categories: [
-          'Referrals',
         ],
       },
     }
