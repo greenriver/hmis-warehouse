@@ -20,8 +20,8 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   end
 
   scope :open_on_date, ->(date) do
-    # TODO: AREL THIS!
-    where(hh_t[:earliest_entry].lteq(date)).where(hh_t[:latest_exit].eq(nil).or(hh_t[:latest_exit].gteq(date)))
+    where(hh_t[:earliest_entry].lteq(date)).
+      where(hh_t[:latest_exit].eq(nil).or(hh_t[:latest_exit].gteq(date)))
   end
 
   scope :active, -> do
