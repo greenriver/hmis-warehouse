@@ -182,6 +182,9 @@ gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
 gem 'redis-actionpack'
 
+gem 'ed25519'
+gem 'bcrypt_pbkdf'
+
 # AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'
 gem 'aws-sdk-autoscaling', '~> 1'
