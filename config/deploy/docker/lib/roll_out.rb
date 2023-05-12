@@ -34,6 +34,7 @@ class RollOut
   attr_accessor :task_arn
   attr_accessor :web_options
   attr_accessor :only_check_ram
+  attr_accessor :web_service_registry_arn
 
   include SharedLogic
   include AwsSdkHelpers::Helpers
@@ -51,19 +52,25 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
-  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:)
-    self.cluster             = _cluster_name
-    self.image_base          = image_base
-    self.secrets_arn         = secrets_arn
-    self.target_group_arn    = target_group_arn
-    self.target_group_name   = target_group_name
-    self.execution_role      = execution_role
-    self.task_role           = task_role
-    self.dj_options          = dj_options
-    self.web_options         = web_options
-    self.status_uri          = URI("https://#{fqdn}/system_status/details")
-    self.only_check_ram      = false
-    @capacity_providers      = capacity_providers
+  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:, web_service_registry_arn:)
+    self.cluster                  = _cluster_name
+    self.image_base               = image_base
+    self.secrets_arn              = secrets_arn
+    self.target_group_arn         = target_group_arn
+    self.target_group_name        = target_group_name
+    self.execution_role           = execution_role
+    self.task_role                = task_role
+    self.dj_options               = dj_options
+    self.web_options              = web_options
+    self.status_uri               = URI("https://#{fqdn}/system_status/details")
+    self.only_check_ram           = false
+    self.web_service_registry_arn = web_service_registry_arn
+    @capacity_providers           = capacity_providers
+
+    if web_service_registry_arn.nil?
+      puts '[ERROR] You must specify a web_service_registry_arn value for service discovery (Cloud Map)'
+      exit
+    end
 
     if task_role.nil? || task_role.match(/^\s*$/)
       puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
@@ -259,7 +266,9 @@ class RollOut
 
     service_registries = [
       {
-        registry_arn: ENV.fetch('SERVICE_REGISTRY_ARN'),
+        container_name: name,
+        container_port: 3000,
+        registry_arn: web_service_registry_arn,
       },
     ]
 

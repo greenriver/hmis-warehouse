@@ -65,6 +65,13 @@ class CommandArgs
     deployments.each_index do |i|
       deployments[i] = defaults.merge(deployments[i])
     end
+
+    if ENV.fetch('SERVICE_REGISTRY_ARN')
+      puts "[WARN] Using a single service registry arn for all services (for testing)"
+      deployments.each do |d|
+        d[:web_service_registry_arn] = ENV.fetch('SERVICE_REGISTRY_ARN')
+      end
+    end
   end
 
   def self.cluster
