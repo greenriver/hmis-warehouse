@@ -29,8 +29,20 @@ module MedicaidHmisInterchange::Health
       zip_path
     end
 
-    def generate_filename(extension: 'txt', prefix: nil, part: nil, suffix: nil)
-      "#{prefix}rdc_homeless_#{part}#{timestamp || @timestamp}#{suffix}.#{extension}"
+    def submission_filename
+      "rdc_homeless_#{timestamp || generate_timestamp}.txt"
+    end
+
+    def metadata_filename
+      "metadata.#{timestamp || generate_timestamp}.txt"
+    end
+
+    def zip_filename
+      "rdc_homeless_#{timestamp || generate_timestamp}.zip"
+    end
+
+    def response_filename
+      "err_rdc_homeless_#{timestamp || generate_timestamp}_details.txt"
     end
 
     private def generate_timestamp
@@ -38,7 +50,7 @@ module MedicaidHmisInterchange::Health
     end
 
     private def generate_submission
-      file_path = File.join(@file_path, generate_filename)
+      file_path = File.join(@file_path, submission_filename)
       count = 0
 
       GrdaWarehouse::Hud::Client.homeless_on_date.pluck_in_batches(:id) do |batch|
@@ -95,10 +107,10 @@ module MedicaidHmisInterchange::Health
     end
 
     private def generate_metadata(record_count)
-      file_path = File.join(@file_path, generate_filename(part: 'metadata.'))
+      file_path = File.join(@file_path, metadata_filename)
       File.open(file_path, 'w') do |file|
         file << "Date Created = \"#{@timestamp.strftime('%Y%m%d')}\"\n"
-        file << "RDC_Homeless File Name = \"#{generate_filename}\"\n"
+        file << "RDC_Homeless File Name = \"#{submission_filename}\"\n"
         file << "Total_Records = \"#{record_count}\"\n"
         file << "Return_To = \"#{@contact_email}\"\n"
       end
@@ -108,7 +120,7 @@ module MedicaidHmisInterchange::Health
     private def create_zip_file(paths)
       return unless paths.all? { |path| File.exist?(path) }
 
-      zip_path = File.join(@file_path, generate_filename(extension: 'zip'))
+      zip_path = File.join(@file_path, zip_filename)
       Zip::File.open(zip_path, Zip::File::CREATE) do |zip_file|
         Array.wrap(paths).each do |file_name|
           zip_file.add(

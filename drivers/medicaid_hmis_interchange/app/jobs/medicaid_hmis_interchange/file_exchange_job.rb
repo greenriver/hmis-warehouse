@@ -40,7 +40,7 @@ module MedicaidHmisInterchange
 
     private def find_response(file_list)
       most_recent_upload = MedicaidHmisInterchange::Health::Submission.last
-      response_path = File.join(sftp_credentials[:path], most_recent_upload.generate_filename(prefix: 'err_', suffix: '_details'))
+      response_path = File.join(sftp_credentials[:path], most_recent_upload.response_filename)
       return nil unless file_list.detect { |name| name == response_path }
 
       Tempfile.create(File.basename(response_path)) do |tmpfile|
@@ -58,7 +58,7 @@ module MedicaidHmisInterchange
       submission = MedicaidHmisInterchange::Health::Submission.new
       zip_path = submission.run_and_save!(sftp_credentials[:data_source_name])
       using_sftp do |sftp|
-        sftp.upload!(zip_path, File.join(sftp_credentials[:path], submission.generate_filename(extension: 'zip')))
+        sftp.upload!(zip_path, File.join(sftp_credentials[:path], submission.zip_filename))
       end
     ensure
       submission.remove_export_directory
@@ -76,13 +76,31 @@ module MedicaidHmisInterchange
 
     private def using_sftp
       credentials = sftp_credentials
+
+      opts = {
+        keepalive: true,
+        keepalive_interval: 60,
+      }
+      if Rails.env.production? || Rails.env.staging?
+        opts.merge!(
+          {
+            keys: credentials['password'] || credentials.password,
+            keys_only: true,
+          },
+        )
+      else
+        opts.merge!(
+          {
+            password: credentials['password'] || credentials.password,
+            auth_methods: ['publickey', 'password'],
+          },
+        )
+      end
+
       Net::SFTP.start(
         credentials['host'],
         credentials['username'],
-        password: credentials['password'] || credentials.password,
-        auth_methods: ['publickey', 'password'],
-        keepalive: true,
-        keepalive_interval: 60,
+        **opts,
       ) do |connection|
         yield connection
       end
