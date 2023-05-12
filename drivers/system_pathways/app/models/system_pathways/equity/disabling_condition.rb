@@ -20,7 +20,7 @@ module SystemPathways::Equity::DisablingCondition
       # array for rows and array for columns to indicate which link params
       # should be attached for each
       link_params: {
-        columns: [[]] + disabling_conditions.keys.map { |k| ['filters[disabling_conditions][]', k] },
+        columns: [[]] + disabling_conditions.keys.map { |k| ['details[disabling_conditions][]', k] },
         rows: [[]] + node_names.map { |k| ['node', k] },
       },
     }
@@ -44,12 +44,8 @@ module SystemPathways::Equity::DisablingCondition
           data['colors'][disabling_condition] = bg_color
           data['labels']['colors'][disabling_condition] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
-        [
-          disabling_condition,
-          data,
-        ]
+        data['columns'] << row
       end
     end
   end
