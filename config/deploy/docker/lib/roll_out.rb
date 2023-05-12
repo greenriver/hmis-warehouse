@@ -604,6 +604,11 @@ class RollOut
             rollback: true,
           },
         },
+        service_registries: [
+          {
+            registry_arn: 
+          }
+        ],
       }
 
       payload[:health_check_grace_period_seconds] = five_minutes if load_balancers.length.positive?
