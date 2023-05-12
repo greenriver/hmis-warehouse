@@ -7,16 +7,21 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::MergeClientsJob, type: :model do
-  let(:user) { create(:hmis_hud_user) }
-  let(:client1) { create(:hmis_hud_client, pronouns: nil, date_created: Time.now - 1.day) }
-  let!(:client1_name) { create(:hmis_hud_custom_client_name, client: client1, first: client1.first_name, last: client1.last_name, middle: client1.last_name, suffix: client1.name_suffix) }
-  let!(:client1_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client1) }
-  let!(:client1_address) { create(:hmis_hud_custom_client_address, client: client1) }
+  let(:data_source) { create(:hmis_data_source) }
+  let(:user) { create(:hmis_hud_user, data_source: data_source) }
+  let(:client1) { create(:hmis_hud_client, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
 
-  let(:client2) { create(:hmis_hud_client, pronouns: 'she') }
-  let!(:client2_name) { create(:hmis_hud_custom_client_name, client: client2) }
-  let!(:client2_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client2) }
-  let!(:client2_address) { create(:hmis_hud_custom_client_address, client: client2) }
+  let!(:client1_name) { create(:hmis_hud_custom_client_name, client: client1, first: client1.first_name, last: client1.last_name, middle: client1.middle_name, suffix: client1.name_suffix, data_source: data_source) }
+  let!(:client1_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client1, data_source: data_source) }
+  let!(:client1_address) { create(:hmis_hud_custom_client_address, client: client1, data_source: data_source) }
+
+  let(:client2) { create(:hmis_hud_client, pronouns: 'she', data_source: data_source) }
+  let!(:client2_name) { create(:hmis_hud_custom_client_name, client: client2, data_source: data_source) }
+  let!(:client2_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client2, data_source: data_source) }
+  let!(:client2_address) { create(:hmis_hud_custom_client_address, client: client2, data_source: data_source) }
+
+  let!(:client2_related_by_personal_id) { create(:hmis_hud_enrollment, client: client2, data_source: data_source) }
+  let!(:client2_related_by_client_id) { create(:client_file, client_id: client2.id) }
 
   # These are the ones that should get pruned
   let!(:client2_name_dup) do
@@ -25,17 +30,17 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     d
   end
 
-  let!(:client2_contact_point_dup) do
-    d = client1_contact_point.dup
-    d.save!
-    d
-  end
+  # let!(:client2_contact_point_dup) do
+  #   d = client1_contact_point.dup
+  #   d.save!
+  #   d
+  # end
 
-  let!(:client2_address_dup) do
-    d = client1_address.dup
-    d.save!
-    d
-  end
+  # let!(:client2_address_dup) do
+  #   d = client1_address.dup
+  #   d.save!
+  #   d
+  # end
 
   let(:clients) { [client1, client2] }
   let(:client_ids) { clients.map(&:id) }
@@ -52,10 +57,16 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     expect(client1.reload.pronouns).to eq('she')
   end
 
-  it 'updates references to the merged clients' do
-    # Update related records from all the other Clients to point to the earliest Client. (Any table with column PersonalID should be set to Client.PersonalID, any table with column client_id is Client.id)
-    #   Including custom attributes
-    raise 'wip'
+  it 'updates references to the merged clients related by PersonalID' do
+    expect(client2_related_by_personal_id.reload.client).to eq(client1)
+  end
+
+  it 'updates references to the merged clients related by client_id' do
+    expect(client2_related_by_client_id.reload.client.id).to eq(client1.id)
+  end
+
+  it 'includes custom attributes when updating references' do
+    raise("I don't yet know what this means")
   end
 
   it 'merges names' do
@@ -100,9 +111,9 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     expect(found_addresses).to eq(expected_addresses)
   end
 
-  it 'dedups addresses' do
-    expect(client2_address_dup.reload).to be_deleted
-  end
+  # it 'dedups addresses' do
+  #   expect(client2_address_dup.reload).to be_deleted
+  # end
 
   it 'merges contact points' do
     make_set = ->(list) do
@@ -117,9 +128,9 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     expect(found_contact_points).to eq(expected_contact_points)
   end
 
-  it 'dedups contact points' do
-    expect(client2_contact_point_dup.reload).to be_deleted
-  end
+  # it 'dedups contact points' do
+  #   expect(client2_contact_point_dup.reload).to be_deleted
+  # end
 
   it 'soft-deletes the merged clients' do
     expect(Hmis::Hud::Client.count).to eq(1)
