@@ -3544,7 +3544,8 @@ CREATE TABLE public.mhx_submissions (
     total_records integer,
     zip_file bytea,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    "timestamp" character varying
 );
 
 
@@ -7956,6 +7957,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322172802'),
 ('20230504194752'),
 ('20230504203640'),
-('20230508135940');
+('20230508135940'),
+('20230512151350');
 
 

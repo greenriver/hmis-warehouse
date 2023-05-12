@@ -21,6 +21,7 @@ module MedicaidHmisInterchange::Health
       metadata_file_path = generate_metadata(record_count)
       zip_path = create_zip_file([submission_file_path, metadata_file_path])
 
+      self.timestamp = generate_timestamp
       self.total_records = record_count
       self.zip_file = File.open(zip_path, 'rb', &:read)
       save!
@@ -28,8 +29,12 @@ module MedicaidHmisInterchange::Health
       zip_path
     end
 
-    private def generate_filename(extension = 'txt', part = nil)
-      "rdc_homeless_#{part}#{@timestamp.strftime('%Y%m%d%H%M%S')}.#{extension}"
+    def generate_filename(extension: 'txt', prefix: nil, part: nil, suffix: nil)
+      "#{prefix}rdc_homeless_#{part}#{timestamp || @timestamp}#{suffix}.#{extension}"
+    end
+
+    private def generate_timestamp
+      @timestamp.strftime('%Y%m%d%H%M%S')
     end
 
     private def generate_submission
@@ -90,7 +95,7 @@ module MedicaidHmisInterchange::Health
     end
 
     private def generate_metadata(record_count)
-      file_path = File.join(@file_path, generate_filename('txt', 'metadata.'))
+      file_path = File.join(@file_path, generate_filename(part: 'metadata.'))
       File.open(file_path, 'w') do |file|
         file << "Date Created = \"#{@timestamp.strftime('%Y%m%d')}\"\n"
         file << "RDC_Homeless File Name = \"#{generate_filename}\"\n"
@@ -103,7 +108,7 @@ module MedicaidHmisInterchange::Health
     private def create_zip_file(paths)
       return unless paths.all? { |path| File.exist?(path) }
 
-      zip_path = File.join(@file_path, generate_filename('zip'))
+      zip_path = File.join(@file_path, generate_filename(extension: 'zip'))
       Zip::File.open(zip_path, Zip::File::CREATE) do |zip_file|
         Array.wrap(paths).each do |file_name|
           zip_file.add(
