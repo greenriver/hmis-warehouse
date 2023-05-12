@@ -257,6 +257,12 @@ class RollOut
 
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
+    service_registries = [
+      {
+        registry_arn: ENV.fetch('SERVICE_REGISTRY_ARN'),
+      },
+    ]
+
     # Keep production web containers on long-term providers
     _start_service!(
       capacity_provider: _long_term_capacity_provider_name,
@@ -265,6 +271,7 @@ class RollOut
       desired_count: web_options['container_count'] || 1,
       minimum_healthy_percent: minimum,
       maximum_percent: maximum,
+      service_registries: service_registries,
     )
   end
 
@@ -568,7 +575,7 @@ class RollOut
     end
   end
 
-  def _start_service!(capacity_provider:, load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0)
+  def _start_service!(capacity_provider:, load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0, service_registries: [])
     services = ecs.list_services({ cluster: cluster })
 
     # services result is paginated. The first any iterates over each page
@@ -604,11 +611,7 @@ class RollOut
             rollback: true,
           },
         },
-        service_registries: [
-          {
-            registry_arn: ENV.fetch('SERVICE_REGISTRY_ARN'),
-          },
-        ],
+        service_registries: service_registries,
       }
 
       payload[:health_check_grace_period_seconds] = five_minutes if load_balancers.length.positive?
@@ -632,6 +635,7 @@ class RollOut
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
         },
+        service_registries: service_registries,
         placement_strategy: _placement_strategy,
         load_balancers: load_balancers,
       }
