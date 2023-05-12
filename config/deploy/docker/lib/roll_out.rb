@@ -606,8 +606,8 @@ class RollOut
         },
         service_registries: [
           {
-            registry_arn: 
-          }
+            registry_arn: ENV.fetch('SERVICE_REGISTRY_ARN'),
+          },
         ],
       }
 
