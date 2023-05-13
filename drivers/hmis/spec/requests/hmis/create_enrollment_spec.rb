@@ -123,7 +123,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should throw error if unauthorized' do
-      remove_permissions(hmis_user, :can_edit_enrollments)
+      remove_permissions(hmis_user, :can_enroll_clients)
       response, result = post_graphql(input: test_input) { mutation }
 
       aggregate_failures 'checking response' do
