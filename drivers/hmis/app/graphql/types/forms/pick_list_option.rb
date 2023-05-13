@@ -98,8 +98,7 @@ module Types
       units = units.unoccupied if available_only
 
       # Hash { unit type id => num unoccupied }
-      unit_type_to_availability = units.group(:unit_type_id).
-        pluck('unit_type_id, count(unit_type_id)').to_h
+      unit_type_to_availability = units.group(:unit_type_id).count
 
       Hmis::UnitType.order(:description, :id).
         where(id: unit_type_to_availability.keys).
