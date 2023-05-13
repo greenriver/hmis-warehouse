@@ -50,8 +50,7 @@ module Types
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
       when 'ENROLLABLE_PROJECTS'
-        # FIXME(#185009209) add specific permission for enrolling
-        Hmis::Hud::Project.with_access(user, :can_edit_enrollments).
+        Hmis::Hud::Project.viewable_by(user).with_access(user, :can_enroll_clients).
           joins(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)

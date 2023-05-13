@@ -54,9 +54,14 @@ module Types
       can :view_full_ssn
       can :view_dob
       can :view_enrollment_details
+      can :enroll_clients
       can :edit_enrollments
       can :delete_enrollments
       can :delete_assessments
+      can :manage_inventory
+      can :manage_incoming_referrals
+      can :manage_outgoing_referrals
+      can :manage_denied_referrals
     end
 
     def hud_id
