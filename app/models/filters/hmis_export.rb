@@ -201,9 +201,9 @@ module Filters
     end
 
     def viewable_project_scope
-      return GrdaWarehouse::Hud::Project.non_confidential.viewable_by(user) unless user.can_view_confidential_project_names?
+      return GrdaWarehouse::Hud::Project.non_confidential.viewable_by(user, permission: :can_view_projects) unless user.can_view_confidential_project_names?
 
-      GrdaWarehouse::Hud::Project.viewable_by(user)
+      GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_projects)
     end
 
     def all_project_ids

@@ -50,7 +50,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   end
 
   def project_name
-    GrdaWarehouse::Hud::Project.viewable_by(@filter.user).find_by(id: @filter.project_id)&.ProjectName
+    GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports).find_by(id: @filter.project_id)&.ProjectName
   end
 
   def order

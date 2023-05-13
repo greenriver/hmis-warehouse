@@ -16,7 +16,7 @@ module Reporting
 
     scope :viewable_by, ->(user) do
       # need to pluck project ids from the warehouse database
-      where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id))
+      where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).pluck(:id))
     end
 
     scope :rrh, -> do

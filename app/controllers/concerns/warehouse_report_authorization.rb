@@ -20,7 +20,7 @@ module WarehouseReportAuthorization
     # Eventually, this should reference a method on the report model
     # Must respond to `viewable_by`
     def related_report
-      url = url_for(action: :index, only_path: true).sub(%r{^/}, '')
+      url = url_for(action: :index, only_path: true).sub(%r{^/}, '') # rubocop:disable Style/RegexpLiteral
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
     helper_method :related_report
@@ -29,7 +29,7 @@ module WarehouseReportAuthorization
     # because of a user's access level
     def set_limited
       all_project_ids = GrdaWarehouse::Hud::Project.order(id: :asc).pluck(:id)
-      @visible_projects = GrdaWarehouse::Hud::Project.viewable_by(current_user).order(id: :asc).pluck(:id, :ProjectName).to_h
+      @visible_projects = GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).order(id: :asc).pluck(:id, :ProjectName).to_h
       @limited = all_project_ids != @visible_projects.keys
     end
   end

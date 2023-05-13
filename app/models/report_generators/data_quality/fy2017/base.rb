@@ -19,7 +19,7 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_filters scope:
       # Limit to only those projects the user who queued the report can see
-      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user))
+      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user, permission: :can_view_assigned_reports))
 
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
@@ -49,7 +49,7 @@ module ReportGenerators::DataQuality::Fy2017
       @report_end ||= @report.options['report_end'].to_date
       client_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(@user)).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(@user, permission: :can_view_assigned_reports)).
         open_between(start_date: @report_start,
           end_date: @report_end).
         joins(:client)

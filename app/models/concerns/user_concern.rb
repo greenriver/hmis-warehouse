@@ -374,7 +374,7 @@ module UserConcern
     # Within the context of a client enrollment, what projects can this user see
     # Note this differs from Project.viewable_by because they may not have access to the actual project
     def visible_project_ids_enrollment_context
-      @visible_project_ids_enrollment_context ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id) |
+      @visible_project_ids_enrollment_context ||= GrdaWarehouse::Hud::Project.viewable_by(self, permission: :can_view_clients).pluck(:id) |
         GrdaWarehouse::DataSource.visible_in_window_for_cohorts_to(self).joins(:projects).pluck(p_t[:id])
     end
 
@@ -384,14 +384,14 @@ module UserConcern
 
     # inverse of GrdaWarehouse::Hud::Project.viewable_by(user)
     def viewable_project_ids
-      @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
+      @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self, permission: :can_view_projects).pluck(:id)
     end
 
     private def cached_viewable_project_ids(force_calculation: false)
       key = [self.class.name, __method__, id]
       Rails.cache.delete(key) if force_calculation
       Rails.cache.fetch(key, expires_in: 1.minutes) do
-        GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all).pluck(:id).to_set
+        GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all, permission: :can_view_projects).pluck(:id).to_set
       end
     end
 

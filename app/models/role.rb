@@ -708,7 +708,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_all_reports: {
-        description: 'Access to all reports, regardless of assignment to the user',
+        description: 'Access to all reports, regardless the user who ran the report',
         administrative: true,
         categories: [
           'Reporting',
@@ -723,7 +723,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_assigned_reports: {
-        description: 'Required for access to reports assigned to a user',
+        description: 'Required for access to reports assigned to a user and to indicate which projects a user can report on',
         administrative: false,
         categories: [
           'Reporting',

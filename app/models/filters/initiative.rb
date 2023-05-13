@@ -75,7 +75,7 @@ module Filters
     end
 
     def effective_project_ids_from_projects
-      visible_project_ids = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+      visible_project_ids = GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).pluck(:id)
       project_ids.reject(&:blank?).map(&:to_i).select { |id| visible_project_ids.include?(id) }
     end
 

@@ -95,9 +95,9 @@ class User < ApplicationRecord
     "#{USER_PROJECT_ID_PREFIX}_user_#{id}"
   end
 
-  def viewable_project_ids
-    Rails.cache.fetch("#{user_project_id_prefix}_viewable", expires_in: 5.minutes) do
-      GrdaWarehouse::Hud::Project.project_ids_viewable_by(self)
+  def viewable_project_ids(context)
+    Rails.cache.fetch("#{user_project_id_prefix}_#{context}", expires_in: 5.minutes) do
+      GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context)
     end
   end
 

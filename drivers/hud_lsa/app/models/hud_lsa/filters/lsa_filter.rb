@@ -32,14 +32,14 @@ module HudLsa::Filters
 
       # limit the project IDs to those that are relevant to the LSA
       if @effective_project_ids.any?
-        @effective_project_ids &= GrdaWarehouse::Hud::Project.viewable_by(user).
+        @effective_project_ids &= GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).
           in_coc(coc_code: coc_code).
           with_hud_project_type(relevant_project_types).
           coc_funded.
           pluck(:id)
       else
         # For system-wide just limit by project type and coc_funded
-        GrdaWarehouse::Hud::Project.viewable_by(user).
+        GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).
           in_coc(coc_code: coc_code).
           with_hud_project_type(relevant_project_types).
           coc_funded.

@@ -347,12 +347,13 @@ module GrdaWarehouse::Hud
     # A single scope to determine if a user can access a project within a particular context
     #
     # @param user [User] user viewing the project
-    # @param project_scope [Symbol] a symbolized scope name that is merged into the vieable projects
-    #   within the context of reporting project_scope is almost always non_confidential
-    #   within the client dashboard context, project_scope is :all, which includes confidential projects
+    # @param confidential_scope_limiter [Symbol] a symbolized scope name that is merged into the vieable projects
+    #   within the context of reporting confidential_scope_limiter is almost always non_confidential
+    #   within the client dashboard context, confidential_scope_limiter is :all, which includes confidential projects
     #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
-    scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential) do
-      query = viewable_by_entity(user)
+    # @param permission [Symbol] a permission to determine the scope for which the projects are viewable
+    scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential, permission: :can_view_projects) do
+      query = viewable_by_entity(user, permission: permission)
       # If a user can't report on confidential projects, exclude them entirely
       # return query if user.can_report_on_confidential_projects?
       return query if user.can_report_on_confidential_projects?
@@ -360,25 +361,25 @@ module GrdaWarehouse::Hud
       query.send(confidential_scope_limiter)
     end
 
-    scope :viewable_by_entity, ->(user) do
-      return none unless user&.can_view_projects?
+    scope :viewable_by_entity, ->(user, permission: :can_view_projects) do
+      return none unless user&.send("#{permission}?")
 
-      ids = user.viewable_project_ids
+      ids = user.viewable_project_ids(permission)
       # If have a set (not a nil) and it's empty, this user can't access any projects
       return none if ids.is_a?(Set) && ids.empty?
 
       where(id: ids)
     end
 
-    def self.project_ids_viewable_by(user)
-      return Set.new unless user&.can_view_projects?
+    def self.project_ids_viewable_by(user, permission: :can_view_projects)
+      return Set.new unless user&.send("#{permission}?")
 
       ids = Set.new
-      ids += project_ids_from_viewable_entities(user, :can_view_projects)
-      ids += project_ids_from_organizations(user, :can_view_projects)
-      ids += project_ids_from_data_sources(user, :can_view_projects)
-      ids += project_ids_from_coc_codes(user, :can_view_projects)
-      ids += project_ids_from_project_groups(user, :can_view_projects)
+      ids += project_ids_from_viewable_entities(user, permission)
+      ids += project_ids_from_organizations(user, permission)
+      ids += project_ids_from_data_sources(user, permission)
+      ids += project_ids_from_coc_codes(user, permission)
+      ids += project_ids_from_project_groups(user, permission)
       ids
     end
 
@@ -455,17 +456,17 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).joins(:project).pluck(p_t[:id])
     end
 
-    def self.project_ids_from_entity_type(user, permission, entity_klass)
+    def self.project_ids_from_entity_type(user, permission, entity_class)
       return [] unless user.present?
       return [] unless user.send("#{permission}?")
 
       group_ids = user.entity_groups_for_permission(permission)
       return [] if group_ids.empty?
 
-      entity_klass.where(
+      entity_class.where(
         id: GrdaWarehouse::GroupViewableEntity.where(
           access_group_id: group_ids,
-          entity_type: entity_klass.sti_name,
+          entity_type: entity_class.sti_name,
         ).select(:entity_id),
       ).joins(:projects).pluck(p_t[:id])
     end

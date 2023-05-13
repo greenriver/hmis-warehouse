@@ -1129,7 +1129,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   def project_source
-    GrdaWarehouse::Hud::Project.viewable_by(@filter.user)
+    GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports)
   end
 
   def client_source

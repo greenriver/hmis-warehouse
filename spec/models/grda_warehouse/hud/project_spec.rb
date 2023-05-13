@@ -44,12 +44,12 @@ RSpec.describe model, type: :model do
 
   let!(:pg1) { create :project_access_group, projects: [p1] }
 
-  let!(:no_permission_role) { create :role }
+  let!(:can_view_projects_role) { create :role, can_view_projects: true }
   let!(:no_data_source_access_group) { create :access_group }
 
   u = ->(user) do
     if model == GrdaWarehouse::Hud::Project
-      model.viewable_by(user, confidential_scope_limiter: :all).pluck(:id).sort
+      model.viewable_by(user, confidential_scope_limiter: :all, permission: :can_view_projects).pluck(:id).sort
     else
       model.viewable_by(user).pluck(:id).sort
     end
@@ -81,7 +81,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to project' do
         before do
           no_data_source_access_group.set_viewables({ projects: [p1.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects_role, no_data_source_access_group)
         end
         it 'sees p1' do
           expect(u[user]).to eq p[p1]
@@ -91,7 +91,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to organization' do
         before do
           no_data_source_access_group.set_viewables({ organizations: [o1.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects_role, no_data_source_access_group)
         end
         it 'sees p1 and p2' do
           expect(u[user]).to eq p[p1, p2]
@@ -101,7 +101,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to data source' do
         before do
           no_data_source_access_group.set_viewables({ data_sources: [ds1.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects_role, no_data_source_access_group)
         end
         it 'sees p1 - p4' do
           expect(u[user]).to eq p[p1, p2, p3, p4]
@@ -111,7 +111,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to coc foo' do
         before do
           no_data_source_access_group.update(coc_codes: ['foo'])
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects_role, no_data_source_access_group)
         end
         after do
           user.user_group_members.destroy_all
@@ -124,7 +124,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to coc bar' do
         before do
           no_data_source_access_group.update(coc_codes: ['bar'])
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects_role, no_data_source_access_group)
         end
         after do
           user.user_group_members.destroy_all
@@ -136,8 +136,8 @@ RSpec.describe model, type: :model do
 
       describe 'user given project access group' do
         before do
-          no_data_source_access_group.set_viewables({ project_groups: [pg1.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          no_data_source_access_group.set_viewables({ project_access_groups: [pg1.id] })
+          setup_access_control(user, can_view_projects_role, no_data_source_access_group)
         end
         after do
           user.user_group_members.destroy_all
@@ -181,7 +181,7 @@ RSpec.describe model, type: :model do
             # p1 # confidential project
             # p2 # non-confidential project
             no_data_source_access_group.set_viewables({ projects: [p1.id, p2.id] })
-            setup_access_control(user, no_permission_role, no_data_source_access_group)
+            setup_access_control(user, can_view_projects_role, no_data_source_access_group)
           end
           it 'sees p1 confidentialized' do
             expect(u[user]).to eq p[p1, p2]
@@ -195,7 +195,7 @@ RSpec.describe model, type: :model do
           end
 
           it 'does not include p1 in viewable_by' do
-            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p1.id
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_projects).pluck(:id)).to_not include p1.id
           end
         end
 
@@ -204,7 +204,7 @@ RSpec.describe model, type: :model do
             # o2 # confidential organization
             # p2 # non-confidential project
             no_data_source_access_group.set_viewables({ projects: [p2.id], organizations: [o2.id] })
-            setup_access_control(user, no_permission_role, no_data_source_access_group)
+            setup_access_control(user, can_view_projects_role, no_data_source_access_group)
           end
           it 'sees p3 and p4 confidentialized' do
             expect(u[user]).to eq p[p2, p3, p4]
@@ -220,15 +220,15 @@ RSpec.describe model, type: :model do
           end
 
           it 'does not include p3 or p4 in viewable_by' do
-            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p3.id
-            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p4.id
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_projects).pluck(:id)).to_not include p3.id
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_projects).pluck(:id)).to_not include p4.id
           end
         end
 
         describe 'assigned to coc foo' do
           before do
             no_data_source_access_group.update(coc_codes: ['foo'])
-            setup_access_control(user, no_permission_role, no_data_source_access_group)
+            setup_access_control(user, can_view_projects_role, no_data_source_access_group)
           end
           after do
             user.user_group_members.destroy_all
@@ -257,7 +257,7 @@ RSpec.describe model, type: :model do
           end
 
           it 'does not include p1 in viewable_by' do
-            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p1.id
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_projects).pluck(:id)).to_not include p1.id
           end
         end
 
@@ -269,8 +269,9 @@ RSpec.describe model, type: :model do
           after do
             user.user_group_members.destroy_all
           end
-          it 'does include p1 in viewable_by' do
-            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to include p1.id
+          it 'does include p1 in viewable_by in report context, but no viewing' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_report_on_confidential_projects).pluck(:id)).to include p1.id
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_projects).pluck(:id)).to_not include p1.id
           end
         end
 

@@ -19,7 +19,7 @@ module WarehouseReports
       report.parameters[:visible_projects] = if GrdaWarehouse::DataSource.can_see_all_data_sources?(@user)
         [:all, 'All']
       else
-        GrdaWarehouse::Hud::Project.viewable_by(@user).pluck(:id, :ProjectName)
+        GrdaWarehouse::Hud::Project.viewable_by(@user, permission: :can_view_assigned_reports).pluck(:id, :ProjectName)
       end
 
       filter_params = params[:filter]
@@ -45,7 +45,7 @@ module WarehouseReports
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
           merge(GrdaWarehouse::Hud::Disability.where(DisabilityType: filter_params[:disabilities].reject(&:blank?), DisabilityResponse: [1, 2, 3])).
           merge(GrdaWarehouse::Hud::Project.with_project_type(filter_params[:project_types].reject(&:blank?))).
-          merge(GrdaWarehouse::Hud::Project.viewable_by(@user)).
+          merge(GrdaWarehouse::Hud::Project.viewable_by(@user, permission: :can_view_assigned_reports)).
           merge(enrollment_scope).
           distinct.
           includes(source_disabilities: :project, source_enrollments: :service_history_enrollment).
@@ -74,7 +74,7 @@ module WarehouseReports
     end
 
     def project_source
-      GrdaWarehouse::Hud::Project.viewable_by(@user)
+      GrdaWarehouse::Hud::Project.viewable_by(@user, permission: :can_view_assigned_reports)
     end
 
     def service_history_enrollment_source

@@ -106,7 +106,7 @@ class ReportResultsController < ApplicationController
       project_group_ids = @result.options.try(:[], 'project_group_ids')&.reject(&:blank?)&.map(&:to_i) || []
       project_ids += GrdaWarehouse::ProjectGroup.
         joins(:projects).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).
         where(id: project_group_ids).pluck(p_t[:id])
       options[:pit_date] = pit_date
       options[:chronic_date] = chronic_date

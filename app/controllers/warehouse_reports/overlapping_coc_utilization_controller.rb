@@ -35,7 +35,7 @@ module WarehouseReports
     end
 
     private def project_coc_scope
-      GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user)
+      GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user, permission: :can_view_assigned_reports)
     end
 
     private def overlap_by_coc_code

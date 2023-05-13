@@ -10,7 +10,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
     included do
       scope :visible_to, ->(user, confidential_scope_limiter: :non_confidential) do
-        viewable_by(user, confidential_scope_limiter: confidential_scope_limiter)
+        viewable_by(user, confidential_scope_limiter: confidential_scope_limiter, permission: :can_view_clients)
       end
     end
   end

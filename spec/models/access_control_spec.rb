@@ -30,19 +30,19 @@ RSpec.describe AccessControl, type: :model do
     end
     describe 'Viewing a project' do
       it 'view user can view the viewable project' do
-        expect(GrdaWarehouse::Hud::Project.viewable_by(view_user)).to include viewable_project
+        expect(GrdaWarehouse::Hud::Project.viewable_by(view_user, permission: :can_view_projects)).to include viewable_project
       end
       it 'view and edit user can view the viewable project' do
-        expect(GrdaWarehouse::Hud::Project.viewable_by(view_one_edit_one_user)).to include viewable_project
+        expect(GrdaWarehouse::Hud::Project.viewable_by(view_one_edit_one_user, permission: :can_view_projects)).to include viewable_project
       end
       it 'view and edit user cannot view the editable project' do
-        expect(GrdaWarehouse::Hud::Project.viewable_by(view_one_edit_one_user)).to_not include editable_project
+        expect(GrdaWarehouse::Hud::Project.viewable_by(view_one_edit_one_user, permission: :can_view_projects)).to_not include editable_project
       end
       it 'edit user cannot view the viewable project (only granted edit access)' do
-        expect(GrdaWarehouse::Hud::Project.viewable_by(edit_user)).to_not include editable_project
+        expect(GrdaWarehouse::Hud::Project.viewable_by(edit_user, permission: :can_view_projects)).to_not include editable_project
       end
       it 'user with no access cannot view the viewable project' do
-        expect(GrdaWarehouse::Hud::Project.viewable_by(no_access_user)).not_to include viewable_project
+        expect(GrdaWarehouse::Hud::Project.viewable_by(no_access_user, permission: :can_view_projects)).not_to include viewable_project
       end
     end
     describe 'Editing a project' do

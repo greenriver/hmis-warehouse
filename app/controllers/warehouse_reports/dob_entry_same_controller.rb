@@ -12,7 +12,7 @@ module WarehouseReports
       et = GrdaWarehouse::Hud::Enrollment.arel_table
       @clients = client_source.distinct.
         joins(source_enrollments: :project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).
         preload(source_enrollments: :project).
         where(client_source.arel_table[:DOB].eq et[:EntryDate]). # 'Client.DOB = EntryDate')
         where.not(DOB: nil).

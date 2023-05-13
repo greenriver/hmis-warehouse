@@ -15,7 +15,7 @@ module ReportGenerators::SystemPerformance::Fy2019
     # Scope coming in is based on GrdaWarehouse::ServiceHistoryEnrollment
     def add_filters(scope:)
       # Limit to only those projects the user who queued the report can see
-      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user))
+      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user, permission: :can_view_assigned_reports))
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
         project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
