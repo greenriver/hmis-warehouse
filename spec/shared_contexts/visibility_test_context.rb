@@ -55,6 +55,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
       data_source_id: non_window_visible_data_source.id,
       DOB: 51.years.ago,
       SSN: nil,
+      LastName: 'Moss',
     )
   end
   let!(:non_window_enrollment) do
@@ -135,6 +136,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
       data_source_id: window_visible_data_source.id,
       DOB: 50.years.ago,
       SSN: nil,
+      LastName: 'Foss',
     )
   end
   let!(:window_enrollment_2) do
@@ -169,7 +171,6 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
 
   # roles
   let!(:can_view_clients) { create :role, can_view_clients: true }
-  let!(:can_search_window) { create :role, can_search_window: true }
   let!(:can_use_strict_search) { create :role, can_use_strict_search: true }
   let!(:can_use_separated_consent) { create :role, can_use_separated_consent: true }
   let!(:can_view_all_reports) { create :role, can_view_all_reports: true }

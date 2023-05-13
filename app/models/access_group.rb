@@ -108,6 +108,7 @@ class AccessGroup < ApplicationRecord
       project_groups: AccessGroup.where(name: 'All Project Groups', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
       data_sources: AccessGroup.where(name: 'All Data Sources', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
       system_user: AccessGroup.where(name: 'Hidden System Group', must_exist: true).first_or_create { |g| g.system = ['Entities', 'Hidden'] },
+      window_data_sources: AccessGroup.where(name: 'Window Data Sources', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
     }
   end
 
@@ -163,12 +164,19 @@ class AccessGroup < ApplicationRecord
       system_user_access_group.set_viewables({ project_groups: ids })
     end
 
-    if group.blank? || group == :data_sources # rubocop:disable Style/GuardClause
+    if group.blank? || group == :data_sources
       # Data Sources
       all_data_sources = system_access_group(:data_sources)
       ids = GrdaWarehouse::DataSource.pluck(:id)
       all_data_sources.set_viewables({ data_sources: ids })
       system_user_access_group.set_viewables({ data_sources: ids })
+    end
+
+    if group.blank? || group == :window_data_sources # rubocop:disable Style/GuardClause
+      # Window Data Sources
+      window_data_sources = system_access_group(:data_sources)
+      ids = GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
+      window_data_sources.set_viewables({ data_sources: ids })
     end
   end
 

@@ -2,7 +2,7 @@
   - if current_user.health_agencies.any? && @client&.patient&.present?
     = link_to health_my_patients_path do
       &laquo; My Patients
-  - if GrdaWarehouse::Config.client_search_available? && can_access_some_client_search?
+  - if GrdaWarehouse::Config.client_search_available? && can_search_own_clients?
     = link_to clients_path do
       &laquo;
       = _('Client Search')

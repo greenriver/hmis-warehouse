@@ -18,9 +18,8 @@ module UserPermissions
         :can_see_raw_hmis_data,
         :can_receive_secure_files,
         :can_assign_or_view_users_to_clients,
-        :can_view_or_search_clients_or_window,
+        :can_view_or_search_clients,
         :can_view_enrollment_details_tab,
-        :can_access_some_client_search,
         :window_file_access,
         :can_access_vspdat_list,
         :can_create_or_modify_vspdat,
@@ -45,7 +44,6 @@ module UserPermissions
         :can_access_some_cohorts,
         :can_edit_some_cohorts,
         :can_update_some_cohort_data,
-        :can_access_window_search,
         :can_delete_projects_or_data_sources,
         :can_manage_some_ad_hoc_ds,
         :can_view_some_vprs,
@@ -74,20 +72,12 @@ module UserPermissions
       can_assign_users_to_clients? || can_view_client_user_assignments?
     end
 
-    def can_view_or_search_clients_or_window
-      can_view_clients? || can_search_window?
+    def can_view_or_search_clients
+      can_view_clients? || can_search_own_clients?
     end
 
     def can_view_enrollment_details_tab
       can_view_clients? && can_view_enrollment_details?
-    end
-
-    def can_access_window_search
-      can_search_window? && ! (can_use_strict_search? || can_search_own_clients?)
-    end
-
-    def can_access_some_client_search
-      can_search_window? || can_use_strict_search? || can_search_own_clients?
     end
 
     def window_file_access

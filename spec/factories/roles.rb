@@ -34,7 +34,6 @@ FactoryBot.define do
     can_manage_config { true }
     can_manage_client_files { true }
     can_manage_window_client_files { true }
-    can_edit_dq_grades { true }
     can_view_vspdat { true }
     can_edit_vspdat { true }
     can_edit_client_notes { true }
@@ -56,7 +55,7 @@ FactoryBot.define do
   factory :vispdat_viewer, class: 'Role' do
     name { 'vispdat viewer' }
     can_view_vspdat { true }
-    can_search_window { true }
+    can_search_own_clients { true }
   end
 
   factory :vispdat_editor, class: 'Role' do
@@ -64,7 +63,7 @@ FactoryBot.define do
     can_view_vspdat { true }
     can_edit_vspdat { true }
     can_view_clients { true }
-    can_search_window { true }
+    can_search_own_clients { true }
   end
 
   factory :cohort_manager, class: 'Role' do
@@ -93,11 +92,6 @@ FactoryBot.define do
     can_view_assigned_reports { true }
   end
 
-  factory :assigned_ds_viewer, class: 'Role' do
-    name { 'ds viewer' }
-    can_see_clients_in_window_for_assigned_data_sources { true }
-  end
-
   factory :secure_file_recipient, class: 'Role' do
     name { 'secure file recipient' }
     can_view_assigned_secure_uploads { true }
@@ -116,31 +110,31 @@ FactoryBot.define do
   factory :can_view_youth_intake, class: 'Role' do
     name { 'can view youth intake' }
     can_view_youth_intake { true }
-    can_search_window { true }
+    can_search_own_clients { true }
   end
 
   factory :can_view_own_agency_youth_intake, class: 'Role' do
     name { 'can view own agency youth intake' }
     can_view_own_agency_youth_intake { true }
-    can_search_window { true }
+    can_search_own_clients { true }
   end
 
   factory :can_edit_own_agency_youth_intake, class: 'Role' do
     name { 'can edit own agency youth intake' }
     can_edit_own_agency_youth_intake { true }
-    can_search_window { true }
+    can_search_own_clients { true }
     can_view_clients { true }
   end
 
   factory :can_create_clients, class: 'Role' do
     name { 'can create clients' }
     can_create_clients { true }
-    can_search_window { true }
+    can_search_own_clients { true }
   end
 
-  factory :can_search_window, class: 'Role' do
+  factory :can_search_own_clients, class: 'Role' do
     name { 'can search window' }
-    can_search_window { true }
+    can_search_own_clients { true }
   end
 
   factory :can_edit_clients, class: 'Role' do

@@ -33,11 +33,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
       # hide previous declaration of :searchable_to, we'll use this one
       # can search even if no ROI
       replace_scope :searchable_to, ->(user, client_ids: nil) do
-        limited_scope = if user.can_search_all_clients? || user.system_user?
-          current_scope || all
-        else
-          arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
-        end
+        limited_scope = arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
         limited_scope = limited_scope.where(id: client_ids) if client_ids.present?
         merge(limited_scope)
       end
@@ -115,7 +111,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
       end
 
       private def visible_because_of_relationship?(user)
-        user_clients.pluck(:user_id).include?(user.id) && consent_form_valid? && user.can_search_window?
+        user_clients.pluck(:user_id).include?(user.id) && consent_form_valid? && user.can_search_own_clients?
       end
 
       def enrollments_for_rollup(user:, en_scope: scope, include_confidential_names: false, only_ongoing: false)

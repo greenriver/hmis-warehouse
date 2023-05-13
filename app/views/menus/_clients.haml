@@ -1,4 +1,4 @@
-- if can_manage_all_agencies? || can_manage_agency? || GrdaWarehouse::Config.client_search_available? && can_access_some_client_search? || can_access_some_cohorts?
+- if can_manage_all_agencies? || can_manage_agency? || GrdaWarehouse::Config.client_search_available? && can_search_own_clients? || can_access_some_cohorts?
   %ul.o-menu__group.list-unstyled
     - if can_manage_all_agencies?
       %li.o-menu__item
@@ -11,7 +11,7 @@
             = _('My Agency\'s HMIS Clients')
           - else
             = _('My Agency\'s Clients')
-    - if GrdaWarehouse::Config.client_search_available? && can_access_some_client_search?
+    - if GrdaWarehouse::Config.client_search_available? && can_search_own_clients?
       - if current_user.user_clients.exists?
         %li.o-menu__item
           = link_to assigned_clients_path, class: 'o-menu__link' do
@@ -19,13 +19,9 @@
               = _('My HMIS Clients')
             - else
               = _('My Clients')
-      - if can_access_some_client_search?
-        %li.o-menu__item
-          = link_to clients_path, class: 'o-menu__link' do
-            - if can_use_strict_search? || can_search_own_clients?
-              = _('Client Search')
-            - else
-              = _('Window into the Warehouse')
+      %li.o-menu__item
+        = link_to clients_path, class: 'o-menu__link' do
+          = _('Client Search')
 
     - if can_access_some_cohorts?
       %li.o-menu__item

@@ -90,7 +90,6 @@ class Role < ApplicationRecord
     [
       :can_edit_roles,
       :can_edit_users,
-      :can_edit_anything_super_user, # deprecated
       :can_manage_config,
       :can_manage_sessions,
       :can_edit_access_groups,
@@ -140,16 +139,6 @@ class Role < ApplicationRecord
 
   def self.permissions_with_descriptions
     {
-      # Deprecated, this is now covered by visible_to
-      can_edit_anything_super_user: {
-        description: '[DEPRECATED] This permission grants access to all data sources, organizations and projects, regardless of assignment. This should only be given to administrator level users.',
-        administrative: true,
-        categories: [
-          'Administration',
-          'Client Access',
-          'Data Sources & Inventory',
-        ],
-      },
       can_view_clients: {
         description: 'Allows access to view client details based on client data source and enrollments via user\'s access.',
         administrative: false,
@@ -190,13 +179,6 @@ class Role < ApplicationRecord
         administrative: true,
         categories: [
           'Client Access',
-        ],
-      },
-      can_view_census_details: {
-        description: '[DEPRECATED] Ability to "drill down" on census reports and see who was where on a given day',
-        administrative: true,
-        categories: [
-          'Reporting',
         ],
       },
       can_edit_users: {
@@ -339,29 +321,16 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
-      can_search_all_clients: {
-        description: 'Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data',
-        administrative: false,
-        categories: [
-          'Client Access',
-        ],
-      },
+
       can_use_strict_search: {
-        description: 'Access to the client search screen that requires more exact matching. Assigning "Can Search Window" or "Can View Clients" will take precedence and grant additional access',
-        administrative: false,
-        categories: [
-          'Client Access',
-        ],
-      },
-      can_search_window: {
-        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access',
+        description: 'Access to the client search screen that requires more exact matching.  To search at all, user must also have "Can search own clients".',
         administrative: false,
         categories: [
           'Client Access',
         ],
       },
       can_search_own_clients: {
-        description: 'Ability to use the client search where results are limited to clients assigned to the user. Must be used in conjunction with "Can View Clients" for access to client dashboards',
+        description: 'Ability to use some version of the client search.  If no additional search permissions are chosen, the user can use the free-form search.  You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards',
         administrative: false,
         categories: [
           'Client Access',
@@ -370,14 +339,6 @@ class Role < ApplicationRecord
       can_view_cached_client_enrollments: {
         description: 'Ability to see all enrollments for a client as cached in the history log of client enrollments.  There is no limit imposed on these cached views.',
         administrative: true,
-        categories: [
-          'Client Access',
-        ],
-      },
-      # Deprecated, this is replaced by can view clients
-      can_view_client_window: {
-        description: '[DEPRECATED] Ability to drill into the client data',
-        administrative: false,
         categories: [
           'Client Access',
         ],
@@ -447,14 +408,6 @@ class Role < ApplicationRecord
       },
       can_manage_sessions: {
         description: 'If granted, the user can see a list of active sessions and can cancel any session',
-        administrative: true,
-        categories: [
-          'Administration',
-        ],
-      },
-      # Deprecated TODO: remove references, then remove permission
-      can_edit_dq_grades: {
-        description: '[DEPRECATED] Management interface for setup of data quality grading scheme',
         administrative: true,
         categories: [
           'Administration',
@@ -767,14 +720,6 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
-      # Deprecated, this is now covered by visible_to
-      can_see_clients_in_window_for_assigned_data_sources: {
-        description: '[DEPRECATED] This allows a user to see clients in the window where the data source may not be visible in the window.  It is an override that should only be given to users who work at the assigned data source, organization, project.  It must be used in conjunction with assignments on the user edit page.',
-        administrative: false,
-        categories: [
-          'Client Access',
-        ],
-      },
       can_upload_deidentified_hud_hmis_files: {
         description: 'When combined with the ability to upload HUD HMIS files, shows an option to replace PII on ingestion',
         administrative: false,
@@ -829,14 +774,6 @@ class Role < ApplicationRecord
         administrative: true,
         categories: [
           'Administration',
-        ],
-      },
-      # Deprecated, this is now covered by visible_to
-      can_view_clients_with_roi_in_own_coc: {
-        description: '[DEPRECATED] This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
-        administrative: false,
-        categories: [
-          'Client Access',
         ],
       },
       can_edit_help: {
@@ -1010,6 +947,22 @@ class Role < ApplicationRecord
         administrative: false,
         categories: [
           'Administration',
+        ],
+      },
+      # DEPRECATED, superseeded by can_search_own_clients in combination with access controls
+      can_search_all_clients: {
+        description: '[DEPRECATED] Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
+      # DEPRECATED, superseeded by can_search_own_clients in combination with access controls
+      can_search_window: {
+        description: '[DEPRECATED] Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access',
+        administrative: false,
+        categories: [
+          'Client Access',
         ],
       },
     }

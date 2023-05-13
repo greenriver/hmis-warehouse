@@ -32,7 +32,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view clients' do
       before do
         setup_access_control(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
-        setup_access_control(user, can_search_window, AccessGroup.where(name: 'All Data Sources').first)
+        setup_access_control(user, can_search_own_clients, AccessGroup.where(name: 'All Data Sources').first)
         sign_in user
       end
       it 'user can see all clients' do
@@ -45,7 +45,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view window clients' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -65,7 +65,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -86,7 +86,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting visibility by data source' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -117,11 +117,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       end
       describe 'and the user is assigned a data source' do
         before do
-          setup_access_control(user, no_permission_role, non_window_data_source_viewable)
+          setup_access_control(user, can_search_own_clients, non_window_data_source_viewable)
         end
         it 'user can see one client in expected data source and any window clients' do
           get clients_path(q: 'bob')
           doc = Nokogiri::HTML(response.body)
+          # Should show window_destination_client (Bob Ross)
+          # Should show non_window_destination_client (Bob Moss)
+          # Should show both_destination_client (Bob Foss) # not showing
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
@@ -152,7 +155,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view clients' do
       before do
         setup_access_control(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
-        setup_access_control(user, can_search_window, AccessGroup.where(name: 'All Data Sources').first)
+        setup_access_control(user, can_search_own_clients, AccessGroup.where(name: 'All Data Sources').first)
         sign_in user
       end
       it 'user can see all clients' do
@@ -165,7 +168,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view window clients' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can search only window clients' do
@@ -210,7 +213,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -227,7 +230,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting visibility by data source' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -279,7 +282,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view clients' do
       before do
         setup_access_control(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
-        setup_access_control(user, can_search_window, AccessGroup.where(name: 'All Data Sources').first)
+        setup_access_control(user, can_search_own_clients, AccessGroup.where(name: 'All Data Sources').first)
         sign_in user
       end
       it 'user can see all clients' do
@@ -292,7 +295,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view window clients' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -312,7 +315,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -329,7 +332,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting visibility by data source' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -371,7 +374,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view clients' do
       before do
         setup_access_control(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
-        setup_access_control(user, can_search_window, AccessGroup.where(name: 'All Data Sources').first)
+        setup_access_control(user, can_search_own_clients, AccessGroup.where(name: 'All Data Sources').first)
         sign_in user
       end
       it 'user can see all clients' do
@@ -384,7 +387,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view window clients' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -404,7 +407,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -421,7 +424,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting visibility by data source' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -465,7 +468,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view clients' do
       before do
         setup_access_control(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
-        setup_access_control(user, can_search_window, AccessGroup.where(name: 'All Data Sources').first)
+        setup_access_control(user, can_search_own_clients, AccessGroup.where(name: 'All Data Sources').first)
         sign_in user
       end
       it 'user can see all clients' do
@@ -478,7 +481,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting can view window clients' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -509,7 +512,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -526,7 +529,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting visibility by data source' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -561,7 +564,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting visibility by coc release' do
       before do
         setup_access_control(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
-        setup_access_control(user, can_search_window, AccessGroup.where(name: 'All Data Sources').first)
+        setup_access_control(user, can_search_own_clients, AccessGroup.where(name: 'All Data Sources').first)
         sign_in user
       end
       it 'user can search for all clients' do
@@ -733,7 +736,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see only window clients' do
@@ -750,7 +753,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user has a role granting visibility by data source' do
       before do
         setup_access_control(user, can_view_clients, no_data_source_access_group)
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
         sign_in user
       end
       it 'user can see window clients in search results' do

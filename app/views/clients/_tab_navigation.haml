@@ -22,7 +22,7 @@
     hmis.merge!({
       polymorphic_path(['client_he', health_emergency], client_id: @client) => {
         title: 'Health Emergency',
-        permission: can_view_or_search_clients_or_window?,
+        permission: can_view_or_search_clients?,
         item_class: 'health-emergency',
       },
     }) if health_emergency?

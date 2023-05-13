@@ -46,7 +46,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_to(user).count).to eq(2)
@@ -64,7 +64,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            setup_access_control(user, can_search_window, no_data_source_access_group)
+            setup_access_control(user, can_search_own_clients, no_data_source_access_group)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.searchable_to(user).count).to eq(4)
@@ -123,7 +123,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
       end
       it 'user can only search, not see, window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
@@ -155,7 +155,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            setup_access_control(user, can_search_window, no_data_source_access_group)
+            setup_access_control(user, can_search_own_clients, no_data_source_access_group)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
@@ -199,7 +199,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
@@ -225,7 +225,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            setup_access_control(user, can_search_window, no_data_source_access_group)
+            setup_access_control(user, can_search_own_clients, no_data_source_access_group)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -269,7 +269,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        setup_access_control(user, can_search_window, no_data_source_access_group)
+        setup_access_control(user, can_search_own_clients, no_data_source_access_group)
       end
       it 'user can search only window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
@@ -295,7 +295,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            setup_access_control(user, can_search_window, no_data_source_access_group)
+            setup_access_control(user, can_search_own_clients, no_data_source_access_group)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)

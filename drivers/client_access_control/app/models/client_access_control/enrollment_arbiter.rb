@@ -40,6 +40,7 @@ module ClientAccessControl
     private def visible_client_scope(user, data_source_ids, client_ids: nil)
       client_scope = unscoped_clients.source
       client_scope = client_scope.where(id: client_ids) if client_ids.present?
+
       coc_codes = user.coc_codes
 
       # NOTE: you need to merge in Enrollment to get the where DateDeleted is null
