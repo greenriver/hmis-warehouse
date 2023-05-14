@@ -35,7 +35,7 @@ module HmisExternalApis
 
     # normalize leading/trailing slashes
     def url_for(path)
-      uri = Addressable::URI.parse(base_url)
+      uri = Addressable::URI.parse(base_url + '/.')
       uri + path.strip.gsub(/\A\//, '')
     end
 
