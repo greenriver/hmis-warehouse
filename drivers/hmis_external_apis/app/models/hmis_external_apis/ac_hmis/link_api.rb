@@ -20,16 +20,21 @@
 
 module HmisExternalApis::AcHmis
   class LinkApi
-    LINK_ID = 'ac_hmis_link'.freeze
-    Error = StandardError.new
+    SYSTEM_ID = 'ac_hmis_link'.freeze
 
-    def creds
-      @creds ||= ::GrdaWarehouse::RemoteCredential.active.where(slug: LINK_ID).first!
+    def self.enabled?
+      ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).exists?
     end
 
     def create_referral_request(payload)
       conn.post('Referral/ReferralRequest', payload)
         .then { |r| JSON.parse(r.body) }
+    end
+
+    protected
+
+    def creds
+      @creds ||= ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).first!
     end
 
     def conn
