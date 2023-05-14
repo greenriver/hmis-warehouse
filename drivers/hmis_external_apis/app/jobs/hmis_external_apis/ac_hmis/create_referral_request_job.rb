@@ -10,11 +10,11 @@ module HmisExternalApis::AcHmis
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
     # @param referral_request [HmisExternalApis::AcHmis::ReferralRequest]
-    def perform(referral_request:, url:)
+    def perform(referral_request)
       # if it's persisted, the assumption is that it's already been sent
       raise if referral_request.persisted?
 
-      response = post_referral_request(url, payload(referral_request))
+      response = link.create_referral_request(payload(referral_request))
       referral_request.identifier = response.fetch('referral_request_id')
       referral_request.save!
       referral_request
