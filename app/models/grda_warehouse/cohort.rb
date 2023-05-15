@@ -63,28 +63,38 @@ module GrdaWarehouse
 
     scope :viewable_by, ->(user) do
       return none unless user.present?
+      return none unless viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
 
-      if user.can_access_some_cohorts
-        if current_scope.present?
-          current_scope.merge(user.cohorts)
-        else
-          user.cohorts
-        end
-      else
-        none
-      end
+      ids = viewable_permissions.flat_map do |perm|
+        group_ids = user.entity_groups_for_permission(perm)
+        next [] if group_ids.empty?
+
+        GrdaWarehouse::GroupViewableEntity.where(
+          access_group_id: group_ids,
+          entity_type: 'GrdaWarehouse::Cohort',
+        ).pluck(:entity_id)
+      end.compact
+      return none if ids.empty?
+
+      where(id: ids)
     end
 
     scope :editable_by, ->(user) do
-      if user.can_edit_some_cohorts
-        if current_scope.present?
-          current_scope.merge(user.cohorts)
-        else
-          user.cohorts
-        end
-      else
-        none
-      end
+      return none unless user.present?
+      return none unless editable_permissions.map { |perm| user.send("#{perm}?") }.any?
+
+      ids = editable_permissions.flat_map do |perm|
+        group_ids = user.entity_groups_for_permission(perm)
+        next [] if group_ids.empty?
+
+        GrdaWarehouse::GroupViewableEntity.where(
+          access_group_id: group_ids,
+          entity_type: 'GrdaWarehouse::Cohort',
+        ).pluck(:entity_id)
+      end.compact
+      return none if ids.empty?
+
+      where(id: ids)
     end
 
     def search_clients(page: nil, per: nil, population: :active, user:)

@@ -28,6 +28,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :clients, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :data_source
   has_many :organizations, class_name: 'GrdaWarehouse::Hud::Organization', inverse_of: :data_source
   has_many :projects, class_name: 'GrdaWarehouse::Hud::Project', inverse_of: :data_source
+  accepts_nested_attributes_for :projects
   has_many :exports, class_name: 'GrdaWarehouse::Hud::Export', inverse_of: :data_source
   has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::DataSource') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
@@ -67,28 +68,34 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(obey_consent: true)
   end
 
-  scope :viewable_by, ->(user) do
-    qc = ->(s) { connection.quote_column_name s }
-    q  = ->(s) { connection.quote s }
+  scope :viewable_by, ->(user, permission: :can_view_projects) do
+    return none unless user&.send("#{permission}?")
 
-    where(
-      [
-        has_access_to_data_source_through_viewable_entities(user, q, qc),
-        has_access_to_data_source_through_organizations(user, q, qc),
-        has_access_to_data_source_through_projects(user, q, qc),
-      ].join(' OR '),
-    )
+    ids = data_source_ids_viewable_by(user, permission: permission)
+    # If have a set (not a nil) and it's empty, this user can't access any projects
+    return none if ids.is_a?(Set) && ids.empty?
+
+    where(id: ids)
   end
 
   scope :editable_by, ->(user) do
-    directly_viewable_by(user)
+    return none unless user.can_edit_data_sources?
+
+    ids = data_source_ids_from_viewable_entities(user, :can_edit_data_sources)
+    # If have a set (not a nil) and it's empty, this user can't access any projects
+    return none if ids.is_a?(Set) && ids.empty?
+
+    where(id: ids)
   end
 
   scope :directly_viewable_by, ->(user) do
-    qc = ->(s) { connection.quote_column_name s }
-    q  = ->(s) { connection.quote s }
+    return none unless user.can_view_projects?
 
-    where has_access_to_data_source_through_viewable_entities(user, q, qc)
+    ids = data_source_ids_from_viewable_entities(user, :can_view_projects)
+    # If have a set (not a nil) and it's empty, this user can't access any projects
+    return none if ids.is_a?(Set) && ids.empty?
+
+    where(id: ids)
   end
 
   scope :authoritative, -> do
@@ -109,16 +116,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(visible_in_window: true)
   end
 
-  scope :visible_in_window_for_cohorts_to, ->(user) do
-    return none unless user&.can_view_clients?
-
-    ds_ids = user.data_sources.pluck(:id)
-    scope = where('0=1')
-    scope = scope.or(where(visible_in_window: true))
-    scope = scope.or(where(id: ds_ids)) if ds_ids.any?
-    scope
-  end
-
   scope :youth, -> do
     where(authoritative_type: 'youth')
   end
@@ -133,6 +130,52 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :coordinated_assessment, -> do
     where(authoritative_type: 'coordinated_assessment')
+  end
+
+  def self.data_source_ids_viewable_by(user, permission: :can_view_projects)
+    return Set.new unless user&.send("#{permission}?")
+
+    ids = Set.new
+    ids += data_source_ids_from_viewable_entities(user, permission)
+    ids += data_source_ids_from_organizations(user, permission)
+    ids += data_source_ids_from_projects(user, permission)
+    ids
+  end
+
+  def self.data_source_ids_from_viewable_entities(user, permission)
+    return [] unless user.present?
+    return [] unless user.send("#{permission}?")
+
+    group_ids = user.entity_groups_for_permission(permission)
+    return [] if group_ids.empty?
+
+    GrdaWarehouse::GroupViewableEntity.where(
+      access_group_id: group_ids,
+      entity_type: 'GrdaWarehouse::DataSource',
+    ).pluck(:entity_id)
+  end
+
+  def self.data_source_ids_from_entity_type(user, permission, entity_class)
+    return [] unless user.present?
+    return [] unless user.send("#{permission}?")
+
+    group_ids = user.entity_groups_for_permission(permission)
+    return [] if group_ids.empty?
+
+    entity_class.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        access_group_id: group_ids,
+        entity_type: entity_class.sti_name,
+      ).select(:entity_id),
+    ).joins(:data_source).pluck(ds_t[:id])
+  end
+
+  def self.data_source_ids_from_projects(user, permission)
+    data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Project)
+  end
+
+  def self.data_source_ids_from_organizations(user, permission)
+    data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Organization)
   end
 
   def self.source_data_source_ids
@@ -186,111 +229,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       'Synthetic' => :synthetic,
     }
   end
-
-  def self.has_access_to_data_source_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
-    data_source_table = quoted_table_name
-    viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
-    group_id_query = if group_ids.empty?
-      '0=1'
-    else
-      "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
-    end
-
-    <<-SQL.squish
-
-      EXISTS (
-        SELECT 1 FROM
-          #{viewability_table}
-          WHERE
-            #{viewability_table}.#{qc.call('entity_id')}   = #{data_source_table}.#{qc.call('id')}
-            AND
-            #{viewability_table}.#{qc.call('entity_type')} = #{q.call(sti_name)}
-            AND
-            #{group_id_query}
-            AND
-            #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
-            AND
-            #{data_source_table}.#{qc.call(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
-      )
-
-    SQL
-  end
-
-  def self.has_access_to_data_source_through_organizations(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
-    data_source_table  = quoted_table_name
-    viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
-    organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
-    group_id_query = if group_ids.empty?
-      '0=1'
-    else
-      "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
-    end
-
-    <<-SQL.squish
-
-      EXISTS (
-        SELECT 1 FROM
-          #{viewability_table}
-          INNER JOIN
-          #{organization_table}
-          ON
-            #{viewability_table}.#{qc.call('entity_id')}   = #{organization_table}.#{qc.call('id')}
-            AND
-            #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::Hud::Organization.sti_name)}
-            AND
-            #{group_id_query}
-            AND
-            #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
-          WHERE
-            #{organization_table}.#{qc.call('data_source_id')} = #{data_source_table}.#{qc.call('id')}
-            AND
-            #{organization_table}.#{qc.call(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
-      )
-
-    SQL
-  end
-
-  def self.has_access_to_data_source_through_projects(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
-    data_source_table = quoted_table_name
-    viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
-    project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
-    group_ids = user.access_groups.pluck(:id)
-    group_id_query = if group_ids.empty?
-      '0=1'
-    else
-      "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
-    end
-
-    <<-SQL.squish
-
-      EXISTS (
-        SELECT 1 FROM
-          #{viewability_table}
-          INNER JOIN
-          #{project_table}
-          ON
-            #{viewability_table}.#{qc.call('entity_id')}   = #{project_table}.#{qc.call('id')}
-            AND
-            #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::Hud::Project.sti_name)}
-            AND
-            #{group_id_query}
-            AND
-            #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
-          WHERE
-            #{project_table}.#{qc.call('data_source_id')} = #{data_source_table}.#{qc.call('id')}
-            AND
-            #{project_table}.#{qc.call(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
-      )
-
-    SQL
-  end
-
-  accepts_nested_attributes_for :projects
 
   def self.names
     importable.select(:id, :short_name).distinct.pluck(:short_name, :id)

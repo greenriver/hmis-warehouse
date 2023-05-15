@@ -77,6 +77,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
         return false if GrdaWarehouse::Config.get(:window_access_requires_release)
         return false unless user.can_view_clients?
 
+        # FIXME: this probably needs to be upgraded for AccessControl
         (source_clients.distinct.pluck(:data_source_id) & GrdaWarehouse::DataSource.visible_in_window.pluck(:id)).any?
       end
 

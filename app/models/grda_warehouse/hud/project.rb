@@ -371,18 +371,6 @@ module GrdaWarehouse::Hud
       where(id: ids)
     end
 
-    def self.project_ids_viewable_by(user, permission: :can_view_projects)
-      return Set.new unless user&.send("#{permission}?")
-
-      ids = Set.new
-      ids += project_ids_from_viewable_entities(user, permission)
-      ids += project_ids_from_organizations(user, permission)
-      ids += project_ids_from_data_sources(user, permission)
-      ids += project_ids_from_coc_codes(user, permission)
-      ids += project_ids_from_project_groups(user, permission)
-      ids
-    end
-
     scope :editable_by, ->(user) do
       return none unless user&.can_edit_projects?
 
@@ -391,18 +379,6 @@ module GrdaWarehouse::Hud
       return none if ids.is_a?(Set) && ids.empty?
 
       where(id: ids)
-    end
-
-    def self.project_ids_editable_by(user)
-      return Set.new unless user&.can_edit_projects?
-
-      ids = Set.new
-      ids += project_ids_from_viewable_entities(user, :can_edit_projects)
-      ids += project_ids_from_organizations(user, :can_edit_projects)
-      ids += project_ids_from_data_sources(user, :can_edit_projects)
-      ids += project_ids_from_coc_codes(user, :can_edit_projects)
-      ids += project_ids_from_project_groups(user, :can_edit_projects)
-      ids
     end
 
     scope :overridden, -> do
@@ -430,6 +406,30 @@ module GrdaWarehouse::Hud
     def self.can_see_all_projects?(user)
       visible_count = viewable_by(user).distinct.count
       visible_count.positive? && visible_count == all.count
+    end
+
+    def self.project_ids_viewable_by(user, permission: :can_view_projects)
+      return Set.new unless user&.send("#{permission}?")
+
+      ids = Set.new
+      ids += project_ids_from_viewable_entities(user, permission)
+      ids += project_ids_from_organizations(user, permission)
+      ids += project_ids_from_data_sources(user, permission)
+      ids += project_ids_from_coc_codes(user, permission)
+      ids += project_ids_from_project_groups(user, permission)
+      ids
+    end
+
+    def self.project_ids_editable_by(user)
+      return Set.new unless user&.can_edit_projects?
+
+      ids = Set.new
+      ids += project_ids_from_viewable_entities(user, :can_edit_projects)
+      ids += project_ids_from_organizations(user, :can_edit_projects)
+      ids += project_ids_from_data_sources(user, :can_edit_projects)
+      ids += project_ids_from_coc_codes(user, :can_edit_projects)
+      ids += project_ids_from_project_groups(user, :can_edit_projects)
+      ids
     end
 
     def self.project_ids_from_viewable_entities(user, permission)

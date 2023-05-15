@@ -35,26 +35,25 @@ module GrdaWarehouse
     has_many :organization_contacts, through: :projects
 
     scope :viewable_by, ->(user) do
-      if user.can_edit_project_groups?
-        current_scope
-      elsif current_scope.present?
-        current_scope.merge(user.project_groups)
-      else
-        user.project_groups
-      end
+      editable_by(user)
     end
+
     scope :editable_by, ->(user) do
-      if user.can_edit_project_groups?
-        current_scope
-      elsif user.can_edit_assigned_project_groups?
-        if current_scope.present?
-          current_scope.merge(user.project_groups)
-        else
-          user.project_groups
-        end
-      else
-        none
-      end
+      return none unless user.present?
+      return none unless editable_permissions.map { |perm| user.send("#{perm}?") }.any?
+
+      ids = editable_permissions.flat_map do |perm|
+        group_ids = user.entity_groups_for_permission(perm)
+        next [] if group_ids.empty?
+
+        GrdaWarehouse::GroupViewableEntity.where(
+          access_group_id: group_ids,
+          entity_type: 'GrdaWarehouse::ProjectGroup',
+        ).pluck(:entity_id)
+      end.compact
+      return none if ids.empty?
+
+      where(id: ids)
     end
 
     scope :text_search, ->(text) do

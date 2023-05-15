@@ -67,7 +67,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
         before do
           [
             can_view_clients,
-            can_search_window,
+            can_search_own_clients,
             can_view_all_reports,
             can_edit_users,
             can_manage_config,

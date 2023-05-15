@@ -17,16 +17,19 @@ module GrdaWarehouse::WarehouseReports
     end
 
     scope :viewable_by, ->(user) do
-      return none unless user
+      return none unless user.present?
+      return none unless user.can_view_assigned_reports?
 
-      if user.can_view_all_reports?
-        current_scope
-      elsif user.can_view_assigned_reports?
-        joins(:group_viewable_entities).
-          merge(GrdaWarehouse::GroupViewableEntity.viewable_by(user))
-      else
-        none
-      end
+      group_ids = user.entity_groups_for_permission(:can_view_assigned_reports)
+      return none if group_ids.empty?
+
+      joins(:group_viewable_entities).
+        merge(
+          GrdaWarehouse::GroupViewableEntity.where(
+            access_group_id: group_ids,
+            entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
+          ),
+        )
     end
 
     scope :assignable_by, ->(user) do

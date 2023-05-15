@@ -373,9 +373,9 @@ module UserConcern
 
     # Within the context of a client enrollment, what projects can this user see
     # Note this differs from Project.viewable_by because they may not have access to the actual project
+    # NOTE: this no longer differs, since you can ask for whichever permission you want
     def visible_project_ids_enrollment_context
-      @visible_project_ids_enrollment_context ||= GrdaWarehouse::Hud::Project.viewable_by(self, permission: :can_view_clients).pluck(:id) |
-        GrdaWarehouse::DataSource.visible_in_window_for_cohorts_to(self).joins(:projects).pluck(p_t[:id])
+      @visible_project_ids_enrollment_context ||= GrdaWarehouse::Hud::Project.viewable_by(self, permission: :can_view_clients).pluck(:id)
     end
 
     def visible_projects_by_id

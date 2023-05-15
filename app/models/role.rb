@@ -153,6 +153,13 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
+      can_view_client_enrollments_with_roi: {
+        description: 'When combined with an Entity Group through an Access Control, exposes enrollments at projects in the entity group for clients with an active ROI in a CoC assigned to the user.',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_chronic_tab: {
         description: 'Provides the ability to view the chronic tab for a client.',
         administrative: false,
@@ -321,7 +328,13 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
-
+      can_search_own_clients: {
+        description: 'Ability to use some version of the client search.  If no additional search permissions are chosen, the user can use the free-form search.  You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_use_strict_search: {
         description: 'Access to the client search screen that requires more exact matching.  To search at all, user must also have "Can search own clients".',
         administrative: false,
@@ -329,8 +342,8 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
-      can_search_own_clients: {
-        description: 'Ability to use some version of the client search.  If no additional search permissions are chosen, the user can use the free-form search.  You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards',
+      can_search_clients_with_roi: {
+        description: 'When combined with an Entity Group through an Access Control, exposes clients with an active ROI in a CoC assigned to the user in search results',
         administrative: false,
         categories: [
           'Client Access',
@@ -939,7 +952,6 @@ class Role < ApplicationRecord
         administrative: true,
         categories: [
           'Administration',
-
         ],
       },
       can_manage_inbound_api_configurations: {

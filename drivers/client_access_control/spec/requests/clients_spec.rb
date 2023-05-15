@@ -156,7 +156,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   end
 
   describe 'logged in, and can search window' do
-    let!(:role) { create :can_search_window }
+    let!(:role) { create :can_search_own_clients }
     let!(:user) { create :user }
 
     before do
@@ -243,7 +243,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   describe 'logged in, and can view client window' do
     # implies 'can_see_this_client_demographics!'
     let(:role) { create :vt_can_view_clients }
-    let(:role_search) { create :can_search_window }
+    let(:role_search) { create :can_search_own_clients }
     let(:user) { create :user }
 
     before do
@@ -331,7 +331,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   describe 'logged in, and can edit clients' do
     let(:role) { create :can_edit_clients }
     let(:role2) { create :vt_can_view_clients }
-    let(:role_search) { create :can_search_window }
+    let(:role_search) { create :can_search_own_clients }
     let(:user) { create :user }
 
     before do

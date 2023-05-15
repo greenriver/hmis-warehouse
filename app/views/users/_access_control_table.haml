@@ -15,9 +15,9 @@
       %tbody
         - access_controls.each do |access_control|
           %tr
-            %td= link_to_if(can_edit_users?, access_control.user_group.name, admin_user_group_path(access_control.access_group), target: :_blank)
+            %td= link_to_if(can_edit_users?, access_control.user_group.name, edit_admin_user_group_path(access_control.access_group), target: :_blank)
             %td= link_to_if(can_edit_roles?, access_control.role.name, admin_roles_path, target: :_blank)
-            %td= link_to_if(can_edit_access_groups?, access_control.access_group.name, admin_access_group_path(access_control.access_group), target: :_blank)
+            %td= link_to_if(can_edit_access_groups?, access_control.access_group.name, edit_admin_access_group_path(access_control.access_group), target: :_blank)
 
             %td
               = link_to access_control_path(access_control), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
