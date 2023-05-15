@@ -1,7 +1,7 @@
 -- To update, run rails generate scenic:view hmis_households --replace
 
 SELECT
-  "Enrollment"."HouseholdID" AS id,
+  CONCAT("Enrollment"."HouseholdID", MAX("Enrollment"."ProjectID"), MAX("Enrollment"."data_source_id")) AS id,
   "Enrollment"."HouseholdID" AS "HouseholdID",
   MAX("Enrollment"."ProjectID") AS "ProjectID",
   MAX("Enrollment"."data_source_id") AS data_source_id,

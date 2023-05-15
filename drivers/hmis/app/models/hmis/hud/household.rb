@@ -50,6 +50,10 @@ class Hmis::Hud::Household < Hmis::Hud::Base
 
   SORT_OPTIONS = [:most_recent].freeze
 
+  def readonly?
+    true
+  end
+
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 

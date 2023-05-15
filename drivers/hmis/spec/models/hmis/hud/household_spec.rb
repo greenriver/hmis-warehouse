@@ -33,7 +33,7 @@ RSpec.describe Hmis::Hud::Household, type: :model do
     let!(:e2) { create :hmis_hud_enrollment, project: p1, client: c2, user: u1, data_source: ds1, household_id: '456', entry_date: Date.yesterday }
 
     it 'should handle text search correctly' do
-      expect(Hmis::Hud::Household.client_matches_search_term('user')).to contain_exactly(Hmis::Hud::Household.find_by(id: '456'))
+      expect(Hmis::Hud::Household.client_matches_search_term('user')).to contain_exactly(Hmis::Hud::Household.find_by(HouseholdID: e2.household_id))
     end
 
     it 'should handle open on correctly' do
@@ -57,7 +57,7 @@ RSpec.describe Hmis::Hud::Household, type: :model do
     hh = Hmis::Hud::Household.first
 
     # Should be a no-op
-    hh.destroy!
+    expect { hh.destroy! }.to raise_error(ActiveRecord::ReadOnlyRecord)
 
     expect(e1.persisted?)
     expect(c1.persisted?)

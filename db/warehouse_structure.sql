@@ -14620,7 +14620,7 @@ ALTER SEQUENCE public.hmis_forms_id_seq OWNED BY public.hmis_forms.id;
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT "Enrollment"."HouseholdID" AS id,
+ SELECT concat("Enrollment"."HouseholdID", max(("Enrollment"."ProjectID")::text), max("Enrollment".data_source_id)) AS id,
     "Enrollment"."HouseholdID",
     max(("Enrollment"."ProjectID")::text) AS "ProjectID",
     max("Enrollment".data_source_id) AS data_source_id,
@@ -14634,7 +14634,7 @@ CREATE VIEW public.hmis_households AS
     max("Enrollment"."DateUpdated") AS "DateUpdated",
     min("Enrollment"."DateCreated") AS "DateCreated"
    FROM (public."Enrollment"
-     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id))))
+     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
   WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
   GROUP BY "Enrollment"."HouseholdID";
 
