@@ -20,7 +20,7 @@ RSpec.describe 'MedicaidHmisInterchange::Health::Submission', type: :model do
   end
 
   before(:each) do
-    client.build_external_health_id(identifier: 'TEST_ID', valid_id: true)
+    client.build_external_health_id(identifier: 'TEST_ID')
     client.save!
   end
 
@@ -32,4 +32,6 @@ RSpec.describe 'MedicaidHmisInterchange::Health::Submission', type: :model do
     expect(submission.zip_file).to_not be_empty
     expect(submission.total_records).to eq(1)
   end
+
+  # TODO: Tests for the homelessness flag calculations
 end

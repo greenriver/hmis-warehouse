@@ -3416,9 +3416,9 @@ ALTER SEQUENCE public.member_status_reports_id_seq OWNED BY public.member_status
 
 CREATE TABLE public.mhx_external_ids (
     id bigint NOT NULL,
-    client_id bigint,
-    identifier character varying,
-    valid_id boolean,
+    client_id bigint NOT NULL,
+    identifier character varying NOT NULL,
+    invalidated_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -7149,6 +7149,13 @@ CREATE INDEX index_member_status_reports_on_deleted_at ON public.member_status_r
 --
 
 CREATE INDEX index_mhx_external_ids_on_client_id ON public.mhx_external_ids USING btree (client_id);
+
+
+--
+-- Name: index_mhx_external_ids_on_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_external_ids_on_identifier ON public.mhx_external_ids USING btree (identifier);
 
 
 --

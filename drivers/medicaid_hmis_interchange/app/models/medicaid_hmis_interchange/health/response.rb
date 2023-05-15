@@ -23,7 +23,7 @@ module MedicaidHmisInterchange::Health
 
         external_id = ExternalId.find_by(identifier: error[:medicaid_id])
         if external_id.present?
-          external_id.update(valid_id: false)
+          external_id.update(invalidated_at: DateTime.current)
           external_ids << external_id
         end
       end

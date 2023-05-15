@@ -3,6 +3,7 @@ class CreateMhxSubmissions < ActiveRecord::Migration[6.1]
     create_table :mhx_submissions do |t|
       t.integer :total_records
       t.binary :zip_file
+
       t.timestamps
     end
 

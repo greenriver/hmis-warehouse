@@ -35,7 +35,7 @@ RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
     end
 
     before(:each) do
-      client.build_external_health_id(identifier: 'TEST_ID', valid_id: true)
+      client.build_external_health_id(identifier: 'TEST_ID')
       client.save!
     end
 

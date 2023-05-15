@@ -27,7 +27,7 @@ RSpec.describe 'MedicaidHmisInterchange::Health::Response', type: :model do
       response.process_response
 
       expect(MedicaidHmisInterchange::Health::ExternalId.count).to eq(1)
-      expect(id3.reload.valid_id).to eq(true)
+      expect(id3.reload.invalidated_at).to be_nil
       expect(response.reload.external_ids.count).to eq(0)
     end
   end
@@ -44,9 +44,9 @@ RSpec.describe 'MedicaidHmisInterchange::Health::Response', type: :model do
       response.process_response
 
       expect(MedicaidHmisInterchange::Health::ExternalId.count).to eq(3)
-      expect(id1.reload.valid_id).to eq(true)
-      expect(id2.reload.valid_id).to eq(false)
-      expect(id3.reload.valid_id).to eq(true)
+      expect(id1.reload.invalidated_at).to be_nil
+      expect(id2.reload.invalidated_at).to_not be_nil
+      expect(id3.reload.invalidated_at).to be_nil
 
       expect(response.reload.external_ids.count).to eq(1)
     end
