@@ -61,6 +61,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Build CustomForm
+      # It wont be persisted, but it handles validation and initializes a form processor to process values
       custom_form = Hmis::Form::CustomForm.new(
         owner: record,
         definition: definition,

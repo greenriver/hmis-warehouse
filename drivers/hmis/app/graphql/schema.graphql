@@ -3965,6 +3965,11 @@ type ProjectAccess {
   canDeleteProject: Boolean!
   canEditEnrollments: Boolean!
   canEditProjectDetails: Boolean!
+  canEnrollClients: Boolean!
+  canManageDeniedReferrals: Boolean!
+  canManageIncomingReferrals: Boolean!
+  canManageInventory: Boolean!
+  canManageOutgoingReferrals: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -4187,7 +4192,12 @@ type QueryAccess {
   canEditEnrollments: Boolean!
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
+  canEnrollClients: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageDeniedReferrals: Boolean!
+  canManageIncomingReferrals: Boolean!
+  canManageInventory: Boolean!
+  canManageOutgoingReferrals: Boolean!
   canManageOwnClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!

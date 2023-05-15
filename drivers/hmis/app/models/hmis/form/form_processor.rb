@@ -46,7 +46,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       begin
         container_processor(container)&.process(field, value)
       rescue StandardError => e
-        raise $!, "Error processing field '#{field}': #{e.message}", $!.backtrace
+        raise $ERROR_INFO, "Error processing field '#{field}': #{e.message}", $ERROR_INFO.backtrace
       end
     end
 
