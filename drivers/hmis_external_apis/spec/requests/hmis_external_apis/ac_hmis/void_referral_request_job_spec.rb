@@ -11,8 +11,13 @@ RSpec.describe HmisExternalApis::AcHmis::VoidReferralRequestJob do
   describe 'create referral request' do
     include_context 'hmis base setup'
 
-    let(:endpoint) do
-      'http://example.com/'
+    let!(:link_creds) do
+      create(:ac_hmis_link_credential)
+    end
+
+    before(:each) do
+      payload = { success: true }.stringify_keys
+      allow_any_instance_of(HmisExternalApis::AcHmis::LinkApi).to receive(:void_referral_request).and_return(payload)
     end
 
     it 'has no smoke' do
@@ -20,14 +25,7 @@ RSpec.describe HmisExternalApis::AcHmis::VoidReferralRequestJob do
         :hmis_external_api_ac_hmis_referral_request,
         requested_by: hmis_user,
       )
-
-      # not sure what the response to expect
-      payload = {}
-      stub_request(:post, endpoint).
-        to_return(status: 200, body: payload.to_json)
-
       HmisExternalApis::AcHmis::VoidReferralRequestJob.perform_now(
-        url: endpoint,
         referral_request: referral_request,
         voided_by: hmis_user,
       )

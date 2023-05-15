@@ -31,6 +31,11 @@ module HmisExternalApis::AcHmis
         .then { |r| JSON.parse(r.body) }
     end
 
+    def void_referral_request(id:, **payload)
+      conn.patch("Referral/ReferralRequest/#{id}", payload)
+        .then { |r| JSON.parse(r.body) }
+    end
+
     protected
 
     def creds
