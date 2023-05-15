@@ -40,7 +40,7 @@ module Mutations
       errors.add :project_id, :not_found unless project.present?
       return { errors: errors } if errors.any?
 
-      errors.add :project_id, :not_allowed unless current_user.permissions_for?(project, :can_edit_enrollments)
+      errors.add :project_id, :not_allowed unless current_user.permissions_for?(project, :can_enroll_clients)
       return { errors: errors } if errors.any?
 
       enrollments = to_enrollments_params(project: project, entry_date: entry_date, household_members: household_members).map do |attrs|
