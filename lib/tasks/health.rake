@@ -230,6 +230,11 @@ namespace :health do
     end
   end
 
+  desc "Upload Medicaid homelessness information"
+  task medicaid_hmis_transfer: [:environment, 'log:info_to_stdout'] do
+    MedicaidHmisInterchange::FileExchangeJob.perform_later
+  end
+
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
     namespace :schema do

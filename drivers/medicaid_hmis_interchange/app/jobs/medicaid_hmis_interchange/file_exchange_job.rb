@@ -9,6 +9,9 @@ require 'net/sftp'
 module MedicaidHmisInterchange
   class FileExchangeJob < ::BaseJob
     def perform
+      # Don't run, if not configured.
+      return unless sftp_credentials
+
       file_list = fetch_file_list
       if file_list.empty?
         deliver_submission
@@ -70,8 +73,12 @@ module MedicaidHmisInterchange
       end
     end
 
+    def self.sftp_credentials
+      ::Health::ImportConfig.find_by(kind: :medicaid_hmis_exchange)
+    end
+
     private def sftp_credentials
-      @sftp_credentials ||= ::Health::ImportConfig.find_by(kind: :medicaid_hmis_exchange) || {}
+      @sftp_credentials ||= self.class.sftp_credentials
     end
 
     private def using_sftp
