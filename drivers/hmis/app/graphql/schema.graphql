@@ -2790,6 +2790,7 @@ HUD Household
 """
 type Household {
   householdClients: [HouseholdClient!]!
+  householdSize: Int!
   id: ID!
   shortId: ID!
 }
@@ -2827,6 +2828,16 @@ enum HouseholdType {
   Invalid Value
   """
   INVALID
+}
+
+type HouseholdsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Household!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -3941,6 +3952,7 @@ type Project {
   description: String
   enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
+  households(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!
   id: ID!

@@ -37,6 +37,10 @@ module Hmis::Concerns::HmisArelHelper
       Hmis::Hud::CustomServiceCategory.arel_table
     end
 
+    def hh_t
+      Hmis::Hud::Household.arel_table
+    end
+
     def cde_t
       Hmis::Hud::CustomDataElement.arel_table
     end
@@ -47,6 +51,6 @@ module Hmis::Concerns::HmisArelHelper
   end
 
   included do
-    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, to: 'self.class'
+    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, :hh_t, to: 'self.class'
   end
 end

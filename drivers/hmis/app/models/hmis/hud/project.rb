@@ -28,6 +28,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :units, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 
+  has_many :households, through: :enrollments
+
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
                           join_table: :project_project_groups
