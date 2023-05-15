@@ -22,13 +22,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       mci = HmisExternalApis::AcHmis::Mci.new
-
-      begin
-        response = mci.clearance(input.to_client)
-      rescue StandardError => e
-        errors.add :base, :server_error, full_message: e.message
-        return { errors: errors }
-      end
+      response = mci.clearance(input.to_client)
 
       # Sort by match score, and drop any matches below 80
       mci_matches = response.

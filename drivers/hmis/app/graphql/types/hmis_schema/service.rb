@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::Service < Types::BaseObject
+    include Types::HmisSchema::HasCustomDataElements
     description 'HUD or Custom Service rendered'
 
     def self.configuration
@@ -29,6 +30,7 @@ module Types
     hud_field :date_created
     hud_field :date_deleted
     hud_field :user, HmisSchema::User, null: true
+    custom_data_elements_field
 
     def user
       load_ar_association(object, :user)
@@ -42,6 +44,16 @@ module Types
       return nil unless object.sub_type_provided.present?
 
       [type_provided, object.sub_type_provided].join(':')
+    end
+
+    # Custom data elements are linked to the underlying record (Hmis::Hud::Service or Hmis::Hud::CustomService)
+    # So we pass the record to the resolver.
+    def custom_data_elements
+      definition_scope = Hmis::Hud::CustomDataElementDefinition.
+        for_type(object.owner.class.name).
+        for_service_type(object.custom_service_type_id)
+
+      resolve_custom_data_elements(object.owner, definition_scope: definition_scope)
     end
   end
 end

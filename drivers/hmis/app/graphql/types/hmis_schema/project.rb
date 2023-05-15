@@ -14,6 +14,7 @@ module Types
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasUnits
     include Types::HmisSchema::HasReferralRequests
+    include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -45,8 +46,8 @@ module Types
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     enrollments_field without_args: [:project_types]
+    custom_data_elements_field
     referral_requests_field :referral_requests
-
     access_field do
       can :delete_project
       can :edit_project_details
