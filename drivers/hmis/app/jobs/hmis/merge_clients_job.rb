@@ -29,10 +29,12 @@ module Hmis
       Hmis::Hud::Client.transaction do
         save_audit_trail
         update_oldest_client_with_merged_attributes
-        dedup_and_merge_names
-        merge_addresses_and_contact_points
+        merge_and_find_primary_name
         update_client_id_foreign_keys
+        delete_warehouse_clients
         update_personal_id_foreign_keys
+        # dedup_names
+        # dedup_addresses_and_contact_points
         destroy_merged_clients
       end
     end
@@ -61,8 +63,7 @@ module Hmis
     end
 
     # FIXME: If this is too n+1, I can refactor into database updates
-    # FIXME: This doesn't dedup anything yet.
-    def dedup_and_merge_names
+    def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
       name_ids = clients.flat_map(&:names).map(&:id)
@@ -82,33 +83,15 @@ module Hmis
       end
     end
 
-    def merge_addresses_and_contact_points
-      Rails.logger.info 'Merging addresses'
-      clients.flat_map(&:addresses).each do |address|
-        address.update_attribute(:client, client_to_retain)
-      end
-
-      Rails.logger.info 'Merging contact points'
-      clients.flat_map(&:contact_points).each do |contact_point|
-        contact_point.update_attribute(:client, client_to_retain)
-      end
+    def dedup_addresses_and_contact_points
     end
 
     def update_client_id_foreign_keys
-      # FIXME: is limiting to hmis_ tables correct?
-      candidates = GrdaWarehouseBase.connection.exec_query(<<~SQL)
-        SELECT
-          t.table_schema,
-          t.table_name
-        FROM
-          information_schema.tables t
-          INNER JOIN information_schema.columns c on (c.table_name = t.table_name and c.table_schema = t.table_schema)
-        WHERE
-          c.column_name IN ( 'client_id' )
-          AND t.table_schema not in ('information_schema', 'pg_catalog')
-          AND t.table_type = 'BASE TABLE'
-          -- AND t.table_name like 'hmis%'
-      SQL
+      candidates = [
+        GrdaWarehouse::ClientFile,
+        Hmis::File,
+        Hmis::Wip,
+      ].map(&:table_name)
 
       Rails.logger.info "Updating #{candidates.length} foreign keys to merged clients (client_id)"
 
@@ -116,27 +99,42 @@ module Hmis
         client_ids = clients_needing_reference_updates.map(&:id).join(',')
 
         GrdaWarehouseBase.connection.exec_query(<<~SQL)
-          UPDATE "#{candidate['table_schema']}"."#{candidate['table_name']}"
+          UPDATE "#{candidate}"
           SET client_id = #{client_to_retain.id}
           WHERE client_id::bigint IN (#{client_ids})
         SQL
       end
     end
 
+    def delete_warehouse_clients
+      Rails.logger.info 'Deleting warehouse clients of merged clients'
+
+      # Very unsure I caught the desired behavior correctly here:
+      GrdaWarehouse::WarehouseClient
+        .where(source_id: clients_needing_reference_updates.map(&:id))
+        .destroy_all
+    end
+
     def update_personal_id_foreign_keys
-      candidates = GrdaWarehouseBase.connection.exec_query(<<~SQL)
-        SELECT
-          t.table_schema,
-          t.table_name
-        FROM
-          information_schema.tables t
-          INNER JOIN information_schema.columns c on (c.table_name = t.table_name and c.table_schema = t.table_schema)
-        WHERE
-          c.column_name IN ( 'PersonalID' )
-          AND t.table_schema not in ('information_schema', 'pg_catalog')
-          AND t.table_type = 'BASE TABLE'
-          -- NOTE, ALL TABLES. not limited to hmis_
-      SQL
+      candidates = [
+        Hmis::Hud::Assessment,
+        Hmis::Hud::AssessmentQuestion,
+        Hmis::Hud::AssessmentResult,
+        Hmis::Hud::CurrentLivingSituation,
+        Hmis::Hud::CustomClientAddress,
+        Hmis::Hud::CustomClientContactPoint,
+        # Hmis::Hud::CustomClientName,      # Handled in separate method
+        Hmis::Hud::Disability,
+        Hmis::Hud::EmploymentEducation,
+        Hmis::Hud::Enrollment,
+        Hmis::Hud::EnrollmentCoc,
+        Hmis::Hud::Event,
+        Hmis::Hud::Exit,
+        Hmis::Hud::HealthAndDv,
+        Hmis::Hud::IncomeBenefit,
+        Hmis::Hud::Service,
+        Hmis::Hud::YouthEducationStatus,
+      ].map(&:table_name)
 
       Rails.logger.info "Updating #{candidates.length} foreign keys to merged clients (PersonalID and data source)"
 
@@ -144,7 +142,7 @@ module Hmis
         personal_ids = clients_needing_reference_updates.map(&:personal_id).join("','")
 
         GrdaWarehouseBase.connection.exec_query(<<~SQL)
-          UPDATE "#{candidate['table_schema']}"."#{candidate['table_name']}"
+          UPDATE "#{candidate}"
           SET "PersonalID" = #{client_to_retain.personal_id}
           WHERE
             "PersonalID" IN ('#{personal_ids}')
