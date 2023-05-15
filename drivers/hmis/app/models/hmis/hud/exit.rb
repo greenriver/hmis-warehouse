@@ -15,6 +15,7 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  has_many :custom_data_elements, as: :owner
 
   validates_with Hmis::Hud::Validators::ExitValidator
 end

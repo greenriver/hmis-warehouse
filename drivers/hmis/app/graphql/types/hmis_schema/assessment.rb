@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::Assessment < Types::BaseObject
     include Types::HmisSchema::HasDisabilityGroups
+    include Types::HmisSchema::HasCustomDataElements
 
     description 'Custom Assessment'
     field :id, ID, null: false
@@ -32,6 +33,7 @@ module Types
     field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
     field :exit, Types::HmisSchema::Exit, null: true
     field :disability_group, Types::HmisSchema::DisabilityGroup, null: true
+    custom_data_elements_field
 
     def in_progress
       object.in_progress?

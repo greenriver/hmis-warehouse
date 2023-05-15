@@ -22,6 +22,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_one :project, through: :enrollment
+  has_many :custom_data_elements, as: :owner
 
   # Alias fields that are not part of the Assessment schema
   alias_to_underscore [:DataCollectionStage]
