@@ -174,7 +174,7 @@ class AccessGroup < ApplicationRecord
 
     if group.blank? || group == :window_data_sources # rubocop:disable Style/GuardClause
       # Window Data Sources
-      window_data_sources = system_access_group(:data_sources)
+      window_data_sources = system_access_group(:window_data_sources)
       ids = GrdaWarehouse::DataSource.visible_in_window.pluck(:id)
       window_data_sources.set_viewables({ data_sources: ids })
     end

@@ -178,6 +178,8 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:can_manage_config) { create :role, can_manage_config: true }
   let!(:can_edit_data_sources) { create :role, can_edit_data_sources: true, can_view_projects: true }
   let!(:can_search_own_clients) { create :role, can_search_own_clients: true }
+  let!(:can_search_clients_with_roi) { create :role, can_search_clients_with_roi: true }
+  let!(:can_view_client_enrollments_with_roi) { create :role, can_view_client_enrollments_with_roi: true }
   let!(:no_permission_role) { create :role }
 
   # groups

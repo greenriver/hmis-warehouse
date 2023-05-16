@@ -61,34 +61,21 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
       # Instance Methods
       def show_demographics_to?(user)
-        return false unless user.can_view_clients?
+        return false unless user.can_view_clients? || user.can_view_client_enrollments_with_roi?
 
         visible_because_of_permission?(user) || visible_because_of_relationship?(user)
       end
 
       private def visible_because_of_permission?(user)
-        visible_because_of_window?(user) ||
         visible_because_of_release?(user) ||
         visible_because_of_data_assignment?(user)
-      end
-
-      private def visible_because_of_window?(user)
-        # defer this to release if required
-        return false if GrdaWarehouse::Config.get(:window_access_requires_release)
-        return false unless user.can_view_clients?
-
-        # FIXME: this probably needs to be upgraded for AccessControl
-        (source_clients.distinct.pluck(:data_source_id) & GrdaWarehouse::DataSource.visible_in_window.pluck(:id)).any?
       end
 
       # Check all project ids visible to the user
       private def visible_because_of_data_assignment?(user)
         return false unless user.can_view_clients?
 
-        visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all, permission: :can_view_clients).pluck(:id)).present?
-        visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
-
-        visible_because_of_enrollments || visible_because_of_data_sources
+        (source_enrollments.joins(:project).pluck(p_t[:id]) & user.viewable_project_ids(:can_view_clients).to_a).present?
       end
 
       def active_confirmed_consent_in_cocs?(coc_codes)
@@ -103,10 +90,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
       end
 
       private def visible_because_of_release?(user)
-        return false unless user.can_view_clients?
-        # access isn't governed by release if a client can only search their assigned clients
-        return false if user.can_search_own_clients?
-        return unless consent_form_valid?
+        return false unless user.can_view_client_enrollments_with_roi?
+        return false unless consent_form_valid?
 
         valid_in_coc(user.coc_codes)
       end

@@ -35,13 +35,12 @@ module ClientAccessControl
     def clients_destination_visible_to(user, source_client_ids: nil)
       return ::GrdaWarehouse::Hud::Client.none unless user
 
+      source_client_id_query = clients_source_visible_to(
+        user,
+        client_ids: source_client_ids,
+      ).select(:id).to_sql
       unscoped_clients.joins(:warehouse_client_destination).
-        where(
-          wc_t[:source_id].in(clients_source_visible_to(
-            user,
-            client_ids: source_client_ids,
-          ).select(:id)),
-        )
+        where(wc_t[:source_id].in(Arel.sql(source_client_id_query)))
     end
 
     # Given a user, which source clients should be exposed in detail?
@@ -68,11 +67,18 @@ module ClientAccessControl
       client_scope = unscoped_clients.source
       client_scope = client_scope.where(id: client_ids) if client_ids.present?
 
-      client_scope.where(
-        c_t[:id].in(viewable_enrollments_from_access_controls(user).joins(:client).select(c_t[:id])).
-        or(c_t[:id].in(viewable_enrollments_from_rois(user).joins(:client).select(c_t[:id]))).
-        or(c_t[:data_source_id].in(authoritative_viewable_ds_ids(user))),
-      )
+      # Active Record is doing some odd things with some of these, and sometimes
+      # "none" is returning as "" which blows things up terribly.
+      from_assigned_projects_query = viewable_enrollments_from_access_controls(user).joins(:client).select(c_t[:id]).to_sql
+      from_rois_query = viewable_enrollments_from_rois(user).joins(:client).select(c_t[:id]).to_sql
+      from_authoritative_ds = authoritative_viewable_ds_ids(user)
+
+      where_clause = c_t[:id].in([]) # generates 1=0
+      where_clause = where_clause.or(c_t[:id].in(Arel.sql(from_assigned_projects_query))) if from_assigned_projects_query.present?
+      where_clause = where_clause.or(c_t[:id].in(Arel.sql(from_rois_query))) if from_rois_query.present?
+      where_clause = where_clause.or(c_t[:data_source_id].in(from_authoritative_ds)) if from_authoritative_ds.any?
+
+      client_scope.where(where_clause)
     end
 
     # Access to client in search results via:
@@ -83,9 +89,18 @@ module ClientAccessControl
       client_scope = unscoped_clients.source
       client_scope = client_scope.where(id: client_ids) if client_ids.present?
 
-      client_scope.joins(:enrollments).merge(searchable_enrollments_from_access_controls(user)).
-        or(client_scope.joins(:enrollments).merge(searchable_enrollments_from_rois(user))).
-        or(client_scope.where(data_source_id: authoritative_viewable_ds_ids(user)))
+      # Active Record is doing some odd things with some of these, and sometimes
+      # "none" is returning as "" which blows things up terribly.
+      from_assigned_projects_query = searchable_enrollments_from_access_controls(user).joins(:client).select(c_t[:id]).to_sql
+      from_rois_query = searchable_enrollments_from_rois(user).joins(:client).select(c_t[:id]).to_sql
+      from_authoritative_ds = authoritative_viewable_ds_ids(user)
+
+      where_clause = c_t[:id].in([]) # generates 1=0
+      where_clause = where_clause.or(c_t[:id].in(Arel.sql(from_assigned_projects_query))) if from_assigned_projects_query.present?
+      where_clause = where_clause.or(c_t[:id].in(Arel.sql(from_rois_query))) if from_rois_query.present?
+      where_clause = where_clause.or(c_t[:data_source_id].in(from_authoritative_ds)) if from_authoritative_ds.any?
+
+      client_scope.where(where_clause)
     end
 
     # Given a user, access controls, and consent status of clients
@@ -120,11 +135,19 @@ module ClientAccessControl
     # the user has access directly, or because of an ROI instead of clients
     # NOTE: authoritative clients won't have enrollments, so they are not included
     def enrollments_visible_to(user, client_ids: nil)
-      scope = GrdaWarehouse::Hud::Enrollment.joins(:client)
-      scope = scope.merge(GrdaWarehouse::Hud::Client.where(id: client_ids)) if client_ids
+      scope = ::GrdaWarehouse::Hud::Enrollment.joins(:client)
+      scope = scope.merge(::GrdaWarehouse::Hud::Client.where(id: client_ids)) if client_ids
 
-      scope.where(viewable_enrollments_from_access_controls(user)).
-        or(scope.where(viewable_enrollments_from_rois(user)))
+      # Active Record is doing some odd things with some of these, and sometimes
+      # "none" is returning as "" which blows things up terribly.
+      from_assigned_projects_query = viewable_enrollments_from_access_controls(user).select(e_t[:id]).to_sql
+      from_rois_query = viewable_enrollments_from_rois(user).select(e_t[:id]).to_sql
+
+      where_clause = e_t[:id].in([]) # generates 1=0
+      where_clause = where_clause.or(e_t[:id].in(Arel.sql(from_assigned_projects_query))) if from_assigned_projects_query.present?
+      where_clause = where_clause.or(e_t[:id].in(Arel.sql(from_rois_query))) if from_rois_query.present?
+
+      scope.where(where_clause)
     end
 
     # Given a user, access controls, and consent status of clients

@@ -991,7 +991,6 @@ CREATE TABLE public.hmis_roles (
     can_manage_own_client_files boolean DEFAULT false NOT NULL,
     can_view_any_nonconfidential_client_files boolean DEFAULT false NOT NULL,
     can_view_any_confidential_client_files boolean DEFAULT false NOT NULL,
-    can_manage_client_files boolean DEFAULT false NOT NULL,
     can_audit_clients boolean DEFAULT false NOT NULL,
     can_delete_clients boolean DEFAULT false NOT NULL,
     can_delete_assessments boolean DEFAULT false
@@ -4349,13 +4348,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230329112926'),
 ('20230329112954'),
 ('20230330161305'),
-('20230330182609'),
 ('20230412142430'),
 ('20230418170053'),
 ('20230420195221'),
 ('20230509131056'),
 ('20230512175436'),
 ('20230513203001'),
-('20230514123118');
+('20230514123118'),
+('20230516131951');
 
 
