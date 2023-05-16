@@ -99,7 +99,8 @@ module Mutations
           begin
             HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
           rescue HmisErrors::ApiError => e
-            return error_response(e.message)
+            errors.add :base, :server_error, full_message: e.message
+            return { errors: errors }
           end
         else
           record.save!

@@ -7,16 +7,16 @@
 # To connect to the API, you need a remote credential for this endpoint. Replace
 # the empty strings below with values from the documentation.
 #
-#  creds = GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'ac_hmis_link').first_or_initialize
-#
-#  creds.client_id = ''
-#  creds.client_secret = ''
-#  creds.oauth_scope = 'API_TEST'
-#  creds.token_url = ''
-#  creds.base_url = ''
-#  creds.additional_headers = {
-#    'Ocp-Apim-Subscription-Key' => ''
-#  }
+# creds = GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'ac_hmis_link').first_or_initialize
+# creds.attributes = {
+#   "active"=>true,
+#   "client_id" => "00001111222223334445",
+#   "client_secret" => "0000000000000000000000000000000000000000",
+#   "oauth_scope"=>"API_TEST",
+#   "token_url"=>"http://ac_hmis_stub:9292/oauth2/token",
+#   "base_url"=>"http://ac_hmis_stub:9292/api",
+#   "additional_headers"=>{'Ocp-Apim-Subscription-Key': 'abcdeTest'},
+# }
 
 module HmisExternalApis::AcHmis
   class LinkApi
