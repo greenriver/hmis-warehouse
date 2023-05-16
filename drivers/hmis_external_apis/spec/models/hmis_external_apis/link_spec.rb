@@ -63,22 +63,24 @@ RSpec.describe 'LINK API', type: :model do
       expect(result.http_status).to eq(200)
     end
 
-    it 'updates referral posting status' do
-      payload = {
-        'postingId' => 3777,
-        'postingStatusId' => 21,
-        'deniedReasonId' => 1,
-        'referralResultId' => 158,
-        'statusNote' => 'test',
-        'contactDate' => format_date(now),
-        'requestedBy' => requested_by,
-      }
-      result = subject.patch('Referral/PostingStatus', payload)
-      # Note: PostingStatus/ID doesn't work
-      # {"status":400,"body":{"message":"Posting Status Id is not valid. ","detail":"Invalid Parameters."}
-      log_request(name: 'update_referral_posting_status', result: result)
-      expect(result.http_status).to eq(200)
-    end
+    # this test is not repeatable - statuses can only be used once for each posting
+    # it 'updates referral posting status' do
+    #   payload = {
+    #     'postingId' => 786930,
+    #     'postingStatusId' => 18,
+    #     'deniedReasonId' => nil,
+    #     'referralResultId' => nil,
+    #     'statusNote' => 'test',
+    #     'contactDate' => format_date(now),
+    #     'requestedBy' => 'test@greenriver.com',
+    #   }
+
+    #   result = subject.patch('Referral/PostingStatus', payload)
+    #   # Note: PostingStatus/ID doesn't work
+    #   # {"status":400,"body":{"message":"Posting Status Id is not valid. ","detail":"Invalid Parameters."}
+    #   log_request(name: 'update_referral_posting_status', result: result)
+    #   expect(result.http_status).to eq(200)
+    # end
 
     it 'updates unit capacity' do
       payload = {
