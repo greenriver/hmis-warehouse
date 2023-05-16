@@ -8,7 +8,7 @@ require 'rails_helper'
 
 # CAUTION: This is not part of the normal test suite. It runs against a live remote endpoint
 # We need many secrets to test this. Essentially, this runs locally or on staging
-# The intention is to check if the remote site is behaving as we expect, rather than to test
+# The intention is to check if the remote side is behaving as we expect, rather than to test
 # our own implementation
 RSpec.describe 'LINK API', type: :model do
   if ENV['OAUTH_CREDENTIAL_TEST'] == 'true'

@@ -1,7 +1,7 @@
 
 require 'json'
 
-# stan-alone rack app to stub out external apis. To run:
+# stand-alone rack app to stub out external apis. To run:
 # gem install rackup
 # run in docker-compose:
 #  ac_hmis_stub:
