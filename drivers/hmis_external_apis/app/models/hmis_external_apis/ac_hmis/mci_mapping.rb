@@ -68,8 +68,8 @@ module HmisExternalApis::AcHmis
       # Female only
       elsif client.gender_multi == [0]
         2
-      # Any other gender(s)
-      elsif client.gender_multi.excluding(8, 9, 99).any?
+      # Missing or any other gender(s)
+      else
         4
       end
     end
