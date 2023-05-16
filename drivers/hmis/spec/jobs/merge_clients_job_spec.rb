@@ -23,12 +23,20 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
   let!(:client2_related_by_personal_id) { create(:hmis_hud_enrollment, client: client2, data_source: data_source) }
   let!(:client2_related_by_client_id) { create(:client_file, client_id: client2.id) }
 
+  let(:repeatable_data_element_definition) { create(:hmis_custom_data_element_definition_for_primary_language) }
+  let!(:client1_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'English', data_element_definition: repeatable_data_element_definition) }
+  let!(:client2_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Russian', data_element_definition: repeatable_data_element_definition) }
+
+  let(:non_repeatable_data_element_definition) { create(:hmis_custom_data_element_definition_for_color) }
+  let!(:client1_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'Blue', data_element_definition: non_repeatable_data_element_definition) }
+  let!(:client2_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Red', data_element_definition:  non_repeatable_data_element_definition) }
+
   let(:clients) { [client1, client2] }
   let(:client_ids) { clients.map(&:id) }
   let(:actor) { create(:user) }
 
   # Probably other specs aren't cleaning up:
-  before(:all) { Hmis::Hud::Client.destroy_all }
+  before(:all) { Hmis::Hud::Client.with_deleted.destroy_all }
   before(:all) { GrdaWarehouse::DataSource.destroy_all }
 
   before { Hmis::MergeClientsJob.new.perform(client_ids: client_ids, actor_id: actor.id) }
@@ -50,8 +58,21 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     expect(client2_related_by_client_id.reload.client.id).to eq(client1.id)
   end
 
-  it 'includes custom attributes when updating references' do
-    raise("I don't yet know what this means")
+  it 'merges repeating custom data elements' do
+    client1.reload
+    scope = client1.custom_data_elements.where(value_string: ['English', 'Russian'])
+
+    expect(scope.map(&:value_string).to_set.length).to eq(2)
+    expect(scope.all?(&:valid?)).to be_truthy
+  end
+
+  it 'merges non-repeating custom data elements, choosing newest' do
+    client1.reload
+
+    scope = client1.custom_data_elements.where(value_string: ['Red', 'Blue'])
+
+    expect(scope.map(&:value_string).to_set.length).to eq(1)
+    expect(scope.first.value_string).to eq('Red') # Created later than Blue
   end
 
   it 'merges names' do

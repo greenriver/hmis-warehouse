@@ -30,6 +30,7 @@ module Hmis
         save_audit_trail
         update_oldest_client_with_merged_attributes
         merge_and_find_primary_name
+        merge_custom_data_elements
         update_client_id_foreign_keys
         delete_warehouse_clients
         update_personal_id_foreign_keys
@@ -83,7 +84,25 @@ module Hmis
       end
     end
 
-    def dedup_addresses_and_contact_points
+    def merge_custom_data_elements
+      Rails.logger.info 'Merging custom data elements'
+
+      element_ids = clients.flat_map(&:custom_data_elements).map(&:id)
+
+      Hmis::Hud::CustomDataElement.where(id: element_ids).update_all(owner_id: client_to_retain.id)
+
+      Rails.logger.info 'dedup/uniqify custom data elements for each definition'
+
+      working_set = Hmis::Hud::CustomDataElement.where(id: element_ids).preload(:data_element_definition).to_a.group_by(&:data_element_definition)
+
+      working_set.each do |definition, elements|
+        next if definition.repeats
+        next if elements.length == 1
+
+        values = elements.sort_by(&:DateUpdated)
+
+        values[0..-2].each(&:destroy)
+      end
     end
 
     def update_client_id_foreign_keys
