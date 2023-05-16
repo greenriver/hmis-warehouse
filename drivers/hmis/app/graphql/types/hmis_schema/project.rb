@@ -13,6 +13,7 @@ module Types
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasHouseholds
     include Types::HmisSchema::HasReferralRequests
     include Types::HmisSchema::HasCustomDataElements
 
@@ -29,6 +30,7 @@ module Types
     project_cocs_field
     funders_field
     units_field
+    households_field
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -94,6 +96,10 @@ module Types
 
     def units(**args)
       resolve_units(**args)
+    end
+
+    def households(**args)
+      resolve_households(object.households_including_wip, **args)
     end
 
     def referral_requests(**args)
