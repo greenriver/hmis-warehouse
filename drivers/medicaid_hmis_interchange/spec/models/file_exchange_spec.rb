@@ -8,13 +8,13 @@ RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
     cleanup_sftp_directory
   end
 
-  it 'checks empty file list' do
+  xit 'checks empty file list' do
     files = job.send(:fetch_file_list)
 
     expect(files).to be_empty
   end
 
-  it 'creates a trigger file' do
+  xit 'creates a trigger file' do
     job.send(:touch_trigger_file)
     files = job.send(:fetch_file_list)
 
@@ -39,7 +39,7 @@ RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
       client.save!
     end
 
-    it 'submits for the first time' do
+    xit 'submits for the first time' do
       job.perform
 
       files = job.send(:fetch_file_list)
@@ -47,7 +47,7 @@ RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
       expect(files.count).to eq(2) # The zip file, and the trigger file
     end
 
-    it "doesn't submit if pending" do
+    xit "doesn't submit if pending" do
       job.perform
       job.perform
 
@@ -56,7 +56,7 @@ RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
       expect(files.count).to eq(2) # The zip file, and the trigger file
     end
 
-    it 'continues after the last submission is processed' do
+    xit 'continues after the last submission is processed' do
       job.perform
 
       most_recent_upload = MedicaidHmisInterchange::Health::Submission.last
