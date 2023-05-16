@@ -39,6 +39,14 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
   end
 
+  def ==(other)
+    columns = [:first, :last, :middle, :suffix, :use]
+
+    columns.all? do |col|
+      send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
+    end
+  end
+
   def primary?
     !!primary
   end

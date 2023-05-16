@@ -37,4 +37,25 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
     values = [value_boolean, value_date, value_float, value_integer, value_json, value_text, value_string].compact
     errors.add(:base, :invalid, full_message: 'Exactly one value must be provided') if values.empty? || values.size > 1
   end
+
+  def ==(other)
+    columns = [
+      :data_element_definition_id,
+      :value_boolean,
+      :value_date,
+      :value_float,
+      :value_integer,
+      :value_json,
+      :value_string,
+      :value_text,
+    ]
+
+    columns.all? do |col|
+      if [:value_string, :value_text].include?(col)
+        send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
+      else
+        send(col) == other.send(col)
+      end
+    end
+  end
 end

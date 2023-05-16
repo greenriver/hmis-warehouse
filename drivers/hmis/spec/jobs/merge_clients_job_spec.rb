@@ -39,127 +39,143 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
   before(:all) { Hmis::Hud::Client.with_deleted.destroy_all }
   before(:all) { GrdaWarehouse::DataSource.destroy_all }
 
-  before { Hmis::MergeClientsJob.new.perform(client_ids: client_ids, actor_id: actor.id) }
+  context 'main behaviors' do
+    before { Hmis::MergeClientsJob.new.perform(client_ids: client_ids, actor_id: actor.id) }
 
-  it 'saves an audit trail' do
-    expect(Hmis::ClientMergeAudit.count).to eq(1)
-  end
-
-  it 'minimally seems to merge correctly' do
-    expect(client1.date_created).to be < client2.date_created
-    expect(client1.reload.pronouns).to eq('she')
-  end
-
-  it 'updates references to the merged clients related by PersonalID' do
-    expect(client2_related_by_personal_id.reload.client).to eq(client1)
-  end
-
-  it 'updates references to the merged clients related by client_id' do
-    expect(client2_related_by_client_id.reload.client.id).to eq(client1.id)
-  end
-
-  it 'merges repeating custom data elements' do
-    client1.reload
-    scope = client1.custom_data_elements.where(value_string: ['English', 'Russian'])
-
-    expect(scope.map(&:value_string).to_set.length).to eq(2)
-    expect(scope.all?(&:valid?)).to be_truthy
-  end
-
-  it 'merges non-repeating custom data elements, choosing newest' do
-    client1.reload
-
-    scope = client1.custom_data_elements.where(value_string: ['Red', 'Blue'])
-
-    expect(scope.map(&:value_string).to_set.length).to eq(1)
-    expect(scope.first.value_string).to eq('Red') # Created later than Blue
-  end
-
-  it 'merges names' do
-    make_set = ->(list) do
-      list.map do |n|
-        [n.first, n.last].join(' ')
-      end.to_set
+    it 'saves an audit trail' do
+      expect(Hmis::ClientMergeAudit.count).to eq(1)
     end
 
-    found_names = make_set.call(client1.reload.names)
-    expected_names = make_set.call([client1_name, client2_name])
-    expect(found_names).to eq(expected_names)
-  end
-
-  it 'has correct primary name' do
-    client1.reload
-    expected = [client1.first_name, client1.middle_name, client1.last_name, client1.name_suffix].join(' ')
-
-    result = client1.names.where(primary: true)
-
-    expect(result.length).to eq(1)
-
-    actual = [result.first.first, result.first.middle, result.first.last, result.first.suffix].join(' ')
-
-    expect(expected).to eq(actual)
-  end
-
-  it 'merges addresses' do
-    make_set = ->(list) do
-      list.map do |n|
-        [n.address_type, n.line1, n.line2, n.city, n.state, n.district, n.country, n.postal_code].join(' ')
-      end.to_set
+    it 'minimally seems to merge correctly' do
+      expect(client1.date_created).to be < client2.date_created
+      expect(client1.reload.pronouns).to eq('she')
     end
 
-    found_addresses = make_set.call(client1.reload.addresses)
-    expected_addresses = make_set.call([client1_address, client2_address])
-
-    expect(found_addresses).to eq(expected_addresses)
-  end
-
-  it 'merges contact points' do
-    make_set = ->(list) do
-      list.map do |n|
-        [n.use, n.system, n.value].join(' ')
-      end.to_set
+    it 'updates references to the merged clients related by PersonalID' do
+      expect(client2_related_by_personal_id.reload.client).to eq(client1)
     end
 
-    found_contact_points = make_set.call(client1.reload.contact_points)
-    expected_contact_points = make_set.call([client1_contact_point, client2_contact_point])
+    it 'updates references to the merged clients related by client_id' do
+      expect(client2_related_by_client_id.reload.client.id).to eq(client1.id)
+    end
 
-    expect(found_contact_points).to eq(expected_contact_points)
-  end
+    it 'merges repeating custom data elements' do
+      client1.reload
+      scope = client1.custom_data_elements.where(value_string: ['English', 'Russian'])
 
-  it 'soft-deletes the merged clients' do
-    expect(Hmis::Hud::Client.count).to eq(1)
-    expect(Hmis::Hud::Client.with_deleted.count).to eq(2)
-    expect(client2.reload.deleted?).to be_truthy
+      expect(scope.map(&:value_string).to_set.length).to eq(2)
+      expect(scope.all?(&:valid?)).to be_truthy
+    end
+
+    it 'merges non-repeating custom data elements, choosing newest' do
+      client1.reload
+
+      scope = client1.custom_data_elements.where(value_string: ['Red', 'Blue'])
+
+      expect(scope.map(&:value_string).to_set.length).to eq(1)
+      expect(scope.first.value_string).to eq('Red') # Created later than Blue
+    end
+
+    it 'merges names' do
+      make_set = ->(list) do
+        list.map do |n|
+          [n.first, n.last].join(' ')
+        end.to_set
+      end
+
+      found_names = make_set.call(client1.reload.names)
+      expected_names = make_set.call([client1_name, client2_name])
+      expect(found_names).to eq(expected_names)
+    end
+
+    it 'has correct primary name' do
+      client1.reload
+      expected = [client1.first_name, client1.middle_name, client1.last_name, client1.name_suffix].join(' ')
+
+      result = client1.names.where(primary: true)
+
+      expect(result.length).to eq(1)
+
+      actual = [result.first.first, result.first.middle, result.first.last, result.first.suffix].join(' ')
+
+      expect(expected).to eq(actual)
+    end
+
+    it 'merges addresses' do
+      make_set = ->(list) do
+        list.map do |n|
+          [n.address_type, n.line1, n.line2, n.city, n.state, n.district, n.country, n.postal_code].join(' ')
+        end.to_set
+      end
+
+      found_addresses = make_set.call(client1.reload.addresses)
+      expected_addresses = make_set.call([client1_address, client2_address])
+
+      expect(found_addresses).to eq(expected_addresses)
+    end
+
+    it 'merges contact points' do
+      make_set = ->(list) do
+        list.map do |n|
+          [n.use, n.system, n.value].join(' ')
+        end.to_set
+      end
+
+      found_contact_points = make_set.call(client1.reload.contact_points)
+      expected_contact_points = make_set.call([client1_contact_point, client2_contact_point])
+
+      expect(found_contact_points).to eq(expected_contact_points)
+    end
+
+    it 'soft-deletes the merged clients' do
+      expect(Hmis::Hud::Client.count).to eq(1)
+      expect(Hmis::Hud::Client.with_deleted.count).to eq(2)
+      expect(client2.reload.deleted?).to be_truthy
+    end
   end
 
   context 'deduplication' do
-    # let!(:client2_name_dup) do
-    #   d = client1_name.dup
-    #   d.save!
-    #   d
-    # end
+    let!(:client2_name_dup) do
+      d = client1_name.dup
+      d.save!
+      d
+    end
 
-    # let!(:client2_contact_point_dup) do
-    #   d = client1_contact_point.dup
-    #   d.save!
-    #   d
-    # end
+    let!(:client2_contact_point_dup) do
+      d = client1_contact_point.dup
+      d.save!
+      d
+    end
 
-    # let!(:client2_address_dup) do
-    #   d = client1_address.dup
-    #   d.save!
-    #   d
-    # end
-    # it 'dedups names' do
-    #   expect(client2_name_dup.reload).to be_deleted
-    # end
+    let!(:client2_address_dup) do
+      d = client1_address.dup
+      d.save!
+      d
+    end
 
-    # it 'dedups addresses' do
-    #   expect(client2_address_dup.reload).to be_deleted
-    # end
+    let!(:client2_data_element_dup) do
+      d = client1_custom_data_element.dup
+      d.owner_id = client2.id
+      d.save!
+      d
+    end
 
-    # it 'dedups contact points' do
-    #   expect(client2_contact_point_dup.reload).to be_deleted
-    # end
+    before { Hmis::MergeClientsJob.new.perform(client_ids: client_ids, actor_id: actor.id) }
+
+    it 'dedups names' do
+      expect(client2_name_dup.reload).to be_deleted
+    end
+
+    it 'dedups addresses' do
+      expect(client2_address_dup.reload).to be_deleted
+    end
+
+    it 'dedups contact points' do
+      expect(client2_contact_point_dup.reload).to be_deleted
+    end
+
+    it 'dedups custom data elements' do
+      expect(client2_data_element_dup.reload).to be_deleted
+    end
   end
 end

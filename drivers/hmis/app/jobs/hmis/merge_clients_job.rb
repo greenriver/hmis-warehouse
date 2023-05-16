@@ -34,8 +34,12 @@ module Hmis
         update_client_id_foreign_keys
         delete_warehouse_clients
         update_personal_id_foreign_keys
-        # dedup_names
-        # dedup_addresses_and_contact_points
+
+        client_to_retain.reload
+        dedup(:names)
+        dedup(:contact_points)
+        dedup(:addresses)
+        dedup(:custom_data_elements)
         destroy_merged_clients
       end
     end
@@ -93,7 +97,11 @@ module Hmis
 
       Rails.logger.info 'uniqify custom data elements for each definition'
 
-      working_set = Hmis::Hud::CustomDataElement.where(id: element_ids).preload(:data_element_definition).to_a.group_by(&:data_element_definition)
+      working_set = Hmis::Hud::CustomDataElement
+        .where(id: element_ids)
+        .preload(:data_element_definition)
+        .to_a
+        .group_by(&:data_element_definition)
 
       working_set.each do |definition, elements|
         next if definition.repeats
@@ -102,6 +110,22 @@ module Hmis
         values = elements.sort_by(&:DateUpdated)
 
         values[0..-2].each(&:destroy)
+      end
+    end
+
+    def dedup(relation)
+      pairs = client_to_retain.send(relation).to_a.combination(2)
+
+      pairs.each do |pair|
+        next unless pair[0] == pair[1]
+
+        # FIXME: don't remove primary name
+
+        Rails.logger.info "Removing #{pair[1]} which is a duplicate"
+        pair[1].destroy
+        client_to_retain.reload
+        dedup(relation)
+        break
       end
     end
 
