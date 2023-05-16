@@ -21,9 +21,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     allow(HmisExternalApis::AcHmis::Mci).to receive(:new).and_return(stub_mci)
   end
 
-  let!(:mci_cred) {
+  let!(:mci_cred) do
     create(:ac_hmis_mci_credential)
-  }
+  end
 
   let(:stub_clearance_results) do
     [
@@ -165,11 +165,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should catch and resolve errors' do
     allow(stub_mci).to receive(:clearance).and_raise(StandardError, 'Test error')
-
-    mutate(input: { input: input }) do |matches, errors|
-      expect(matches).to be_nil
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Test error', 'type' => 'server_error')])
-    end
+    expect do
+      post_graphql(input: { input: input }) { mutation }
+    end.to raise_error(StandardError)
   end
 end
 

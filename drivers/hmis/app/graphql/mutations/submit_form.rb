@@ -61,6 +61,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Build CustomForm
+      # It wont be persisted, but it handles validation and initializes a form processor to process values
       custom_form = Hmis::Form::CustomForm.new(
         owner: record,
         definition: definition,
@@ -94,12 +95,9 @@ module Mutations
         if record.is_a? Hmis::Hud::HmisService
           record.owner.save! # Save the actual service record
           record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
-          custom_form.owner = record # Set owner_id to the View id
-          custom_form.save!
         elsif record.is_a? HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         else
-          custom_form.save!
           record.save!
           record.touch
         end

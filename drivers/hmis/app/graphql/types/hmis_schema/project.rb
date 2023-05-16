@@ -13,7 +13,9 @@ module Types
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasHouseholds
     include Types::HmisSchema::HasReferralRequests
+    include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -28,6 +30,7 @@ module Types
     project_cocs_field
     funders_field
     units_field
+    households_field
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -45,8 +48,8 @@ module Types
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     enrollments_field without_args: [:project_types]
+    custom_data_elements_field
     referral_requests_field :referral_requests
-
     access_field do
       can :delete_project
       can :edit_project_details
@@ -93,6 +96,10 @@ module Types
 
     def units(**args)
       resolve_units(**args)
+    end
+
+    def households(**args)
+      resolve_households(**args)
     end
 
     def referral_requests(**args)
