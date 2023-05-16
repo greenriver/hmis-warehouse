@@ -73,7 +73,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
             can_manage_config,
             can_edit_data_sources,
           ].each do |role|
-            setup_access_control(user, role, AccessGroup.where(name: 'All Data Sources').first)
+            setup_access_control(user, role, AccessGroup.system_access_group(:data_sources))
+            setup_access_control(user, role, AccessGroup.system_access_group(:hmis_reports))
           end
           sign_in user
         end

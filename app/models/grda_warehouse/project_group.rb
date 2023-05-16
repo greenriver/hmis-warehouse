@@ -246,11 +246,11 @@ module GrdaWarehouse
       'System Role - Can Edit Project Groups'
     end
 
-    private def editable_permission
+    def self.editable_permission
       :can_edit_project_groups
     end
 
-    private def editable_permissions
+    def self.editable_permissions
       [
         :can_edit_assigned_project_groups,
         editable_permission,

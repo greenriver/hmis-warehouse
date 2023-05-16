@@ -755,21 +755,21 @@ module GrdaWarehouse
       'System Role - Can View Cohorts'
     end
 
-    private def editable_permission
+    def self.editable_permission
       :can_participate_in_cohorts
     end
 
-    private def viewable_permission
+    def self.viewable_permission
       :can_view_cohorts
     end
 
-    private def viewable_permissions
+    def self.viewable_permissions
       [
         viewable_permission,
       ]
     end
 
-    private def editable_permissions
+    def self.editable_permissions
       [
         :can_manage_cohort_data,
         :can_view_cohorts,

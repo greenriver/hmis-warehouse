@@ -66,6 +66,22 @@ module EntityAccess
     @editable_role ||= Role.system.where(name: editable_role_name, editable_permission => true).first_or_create
   end
 
+  private def editable_permissions
+    self.class.editable_permissions
+  end
+
+  private def viewable_permissions
+    self.class.viewable_permissions
+  end
+
+  private def editable_permission
+    self.class.editable_permission
+  end
+
+  private def viewable_permission
+    self.class.viewable_permission
+  end
+
   def users_with_access(access_type:)
     access_group_ids = group_viewable_entities.pluck(:access_group_id)
     return [] unless access_group_ids
