@@ -152,6 +152,12 @@ tasks = [
     interruptable: true,
   },
   {
+    task: 'health:medicaid_id_query',
+    frequency: 1.day,
+    at: '4:02am',
+    interruptable: true,
+  },
+  {
     task: 'dba:dry_run',
     frequency: 1.day,
     at: '11:00am',
