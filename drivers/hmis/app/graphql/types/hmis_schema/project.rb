@@ -99,7 +99,7 @@ module Types
     end
 
     def households(**args)
-      resolve_households(**args)
+      resolve_households(object.households_including_wip, **args)
     end
 
     def referral_requests(**args)
