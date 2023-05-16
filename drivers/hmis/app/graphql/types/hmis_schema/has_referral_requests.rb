@@ -21,6 +21,7 @@ module Types
         end
       end
 
+      # FIXME: combining the extra scope isn't working here- perhaps rails 6 bug
       # def resolve_referral_requests_with_loader(association_name, **args)
       #   scope = scoped_referral_requests(HmisExternalApis::AcHmis::ReferralRequest.all, **args)
       #   load_ar_association(object, association_name, scope: scope)
