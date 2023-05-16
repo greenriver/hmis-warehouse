@@ -267,7 +267,7 @@ class RollOut
     service_registries = [
       {
         container_name: name,
-        container_port: 3000,
+        container_port: 9394,
         registry_arn: web_service_registry_arn,
       },
     ]
