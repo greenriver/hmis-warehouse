@@ -49,7 +49,7 @@ module Health
 
     def modifiers
       # Attach modifiers from activity
-      modlist = activities[@qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1..)
+      modlist = activities[@qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1..) || []
 
       # Attach modifiers from contact, if present
       modlist << modes_of_contact[@qa.mode_of_contact&.to_sym].try(:[], :code)

@@ -18,7 +18,7 @@ module SystemPathways::TimeChart::Veteran
       data: veteran_status_data,
       table: as_table(veteran_status_table_data, ['Project Type'] + veteran_statuses.values),
       link_params: {
-        columns: [[]] + veteran_statuses.keys.map { |k| ['filters[veteran_statuses][]', k] },
+        columns: [[]] + veteran_statuses.keys.map { |k| ['details[veteran_statuses][]', k] },
         rows: [[]] + detail_node_keys.map { |k| ['node', k] },
       },
     }
@@ -108,11 +108,6 @@ module SystemPathways::TimeChart::Veteran
         data['labels']['colors'][veteran_status] = config.foreground_color(bg_color)
         row << count
         data['columns'] << row
-
-        [
-          veteran_status,
-          data,
-        ]
       end
     end
   end

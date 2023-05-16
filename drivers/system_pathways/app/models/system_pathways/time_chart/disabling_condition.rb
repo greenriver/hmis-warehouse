@@ -18,7 +18,7 @@ module SystemPathways::TimeChart::DisablingCondition
       data: disabling_condition_data,
       table: as_table(disabling_condition_table_data, ['Project Type'] + disabling_conditions.values),
       link_params: {
-        columns: [[]] + disabling_conditions.keys.map { |k| ['filters[disabling_conditions][]', k] },
+        columns: [[]] + disabling_conditions.keys.map { |k| ['details[disabling_conditions][]', k] },
         rows: [[]] + detail_node_keys.map { |k| ['node', k] },
       },
     }
@@ -108,11 +108,6 @@ module SystemPathways::TimeChart::DisablingCondition
         data['labels']['colors'][disabling_condition] = config.foreground_color(bg_color)
         row << count
         data['columns'] << row
-
-        [
-          disabling_condition,
-          data,
-        ]
       end
     end
   end

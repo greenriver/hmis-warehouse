@@ -12,18 +12,22 @@ module Types
     include Types::HmisSchema::HasProjectCocs
     include Types::HmisSchema::HasFunders
     include Types::HmisSchema::HasEnrollments
+    include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasReferralRequests
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
     end
 
     hud_field :id, ID, null: false
+    field :hud_id, ID, null: false
     hud_field :project_name
     hud_field :project_type, Types::HmisSchema::Enums::ProjectType
     hud_field :organization, Types::HmisSchema::Organization, null: false
     inventories_field
     project_cocs_field
     funders_field
+    units_field
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -41,6 +45,7 @@ module Types
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     enrollments_field without_args: [:project_types]
+    referral_requests_field :referral_requests
 
     access_field do
       can :delete_project
@@ -54,10 +59,23 @@ module Types
       can :delete_assessments
     end
 
+    def hud_id
+      object.project_id
+    end
+
     def enrollments(**args)
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
 
-      resolve_enrollments(**args)
+      # Apply the enrollment limit before we pass it in, to avoid doing an unnecessary join to the WIP table
+      scope = if args[:enrollment_limit] == 'NON_WIP_ONLY'
+        object.enrollments
+      elsif args[:enrollment_limit] == 'WIP_ONLY'
+        object.wip_enrollments
+      else
+        object.enrollments_including_wip
+      end
+
+      resolve_enrollments(scope, **args)
     end
 
     def organization
@@ -66,6 +84,14 @@ module Types
 
     def inventories(**args)
       resolve_inventories(**args)
+    end
+
+    def units(**args)
+      resolve_units(**args)
+    end
+
+    def referral_requests(**args)
+      resolve_referral_requests_with_loader(:external_referral_requests, **args)
     end
   end
 end

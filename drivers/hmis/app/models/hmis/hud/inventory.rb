@@ -14,8 +14,6 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
-  has_many :units, dependent: :destroy
-  has_many :beds, through: :units
   belongs_to :user, **hmis_relation(:UserID, 'User')
 
   SORT_OPTIONS = [:start_date].freeze
@@ -40,6 +38,19 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   def active
     return true unless inventory_end_date.present?
 
-    inventory_end_date >= Date.today
+    inventory_end_date >= Date.current
   end
+
+  def self.bed_types
+    {
+      'ch_vet_bed_inventory' => 'Chronic Veteran',
+      'youth_vet_bed_inventory' => 'Youth Veteran',
+      'vet_bed_inventory' => 'Veteran',
+      'ch_youth_bed_inventory' => 'Chronic Youth',
+      'youth_bed_inventory' => 'Youth',
+      'ch_bed_inventory' => 'Chronic',
+      'other_bed_inventory' => 'Other',
+    }
+  end
+  use_enum :bed_types_enum_map, bed_types
 end

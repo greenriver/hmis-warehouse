@@ -180,6 +180,7 @@ gem 'dotenv-rails'
 gem 'net-sftp', require: false
 gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
+gem 'addressable' # normalize uris
 gem 'redis-actionpack'
 
 gem 'ed25519'

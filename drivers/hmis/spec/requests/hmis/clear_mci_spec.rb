@@ -18,26 +18,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
 
     # Stub MCI clearance method
-    allow(HmisExternalApis::Mci).to receive(:new).and_return(stub_mci)
+    allow(HmisExternalApis::AcHmis::Mci).to receive(:new).and_return(stub_mci)
   end
 
-  let!(:mci_cred) { create(:remote_oauth_credential, slug: 'mci') }
+  let!(:mci_cred) {
+    create(:ac_hmis_mci_credential)
+  }
 
   let(:stub_clearance_results) do
     [
-      HmisExternalApis::MciClearanceResult.new(
+      HmisExternalApis::AcHmis::MciClearanceResult.new(
         mci_id: 10,
         score: 80,
         client: create(:hmis_hud_client, first_name: 'rita', female: 1),
         existing_client_id: 100,
       ),
-      HmisExternalApis::MciClearanceResult.new(
+      HmisExternalApis::AcHmis::MciClearanceResult.new(
         mci_id: 50,
         score: 90,
         client: create(:hmis_hud_client, first_name: 'reet', female: 1, male: 1),
         existing_client_id: nil,
       ),
-      HmisExternalApis::MciClearanceResult.new(
+      HmisExternalApis::AcHmis::MciClearanceResult.new(
         mci_id: 80,
         score: 50, # below threshold
         client: create(:hmis_hud_client),
