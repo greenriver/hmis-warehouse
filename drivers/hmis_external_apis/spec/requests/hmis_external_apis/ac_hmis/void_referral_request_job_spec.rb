@@ -16,8 +16,10 @@ RSpec.describe HmisExternalApis::AcHmis::VoidReferralRequestJob do
     end
 
     before(:each) do
-      payload = { success: true }.stringify_keys
-      allow_any_instance_of(HmisExternalApis::AcHmis::LinkApi).to receive(:void_referral_request).and_return(payload)
+      result = HmisExternalApis::OauthClientResult.new(
+        parsed_body: { success: true }.stringify_keys,
+      )
+      allow_any_instance_of(HmisExternalApis::AcHmis::LinkApi).to receive(:void_referral_request).and_return(result)
     end
 
     it 'has no smoke' do

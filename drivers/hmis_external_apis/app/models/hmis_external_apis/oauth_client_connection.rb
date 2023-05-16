@@ -68,7 +68,7 @@ module HmisExternalApis
       OauthClientResult.new(
         body: result&.body || e.message,
         content_type: result&.content_type || e.response&.headers&.dig('content-type'),
-        error: try_parse_json(e.message) || e.message,
+        error: try_parse_json(e.message) || e.message.presence || 'Unknown Error',
         error_type: e.class.name,
         http_method: e.response.response.env.method,
         http_status: result&.status || e.response&.status,

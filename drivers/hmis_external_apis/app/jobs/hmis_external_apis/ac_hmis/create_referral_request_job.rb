@@ -15,7 +15,7 @@ module HmisExternalApis::AcHmis
       raise if referral_request.persisted?
 
       response = link.create_referral_request(payload(referral_request))
-      referral_request.identifier = response.fetch('referral_request_id')
+      referral_request.identifier = response.parsed_body.fetch('referral_request_id')
       referral_request.save!
       referral_request
     end

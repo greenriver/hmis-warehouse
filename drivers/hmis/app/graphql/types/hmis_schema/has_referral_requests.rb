@@ -21,10 +21,10 @@ module Types
         end
       end
 
-      def resolve_referral_requests_with_loader(association_name, **args)
-        scope = scoped_referral_requests(HmisExternalApis::AcHmis::ReferralRequest.all, **args)
-        load_ar_association(object, association_name, scope: scope)
-      end
+      # def resolve_referral_requests_with_loader(association_name, **args)
+      #   scope = scoped_referral_requests(HmisExternalApis::AcHmis::ReferralRequest.all, **args)
+      #   load_ar_association(object, association_name, scope: scope)
+      # end
 
       def scoped_referral_requests(scope, sort_order: nil)
         scope = scope.active.viewable_by(current_user)

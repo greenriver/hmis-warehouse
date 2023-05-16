@@ -28,15 +28,21 @@ module HmisExternalApis::AcHmis
 
     def create_referral_request(payload)
       conn.post('Referral/ReferralRequest', payload)
-        .then { |r| JSON.parse(r.body) }
+        .then { |r| handle_error(r) }
     end
 
     def void_referral_request(id:, **payload)
       conn.patch("Referral/ReferralRequest/#{id}", payload)
-        .then { |r| JSON.parse(r.body) }
+        .then { |r| handle_error(r) }
     end
 
     protected
+
+    def handle_error(result)
+      raise HmisErrors::ApiError, result.error if result.error
+
+      result
+    end
 
     def creds
       @creds ||= ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).first!
@@ -44,13 +50,13 @@ module HmisExternalApis::AcHmis
 
     def conn
       @conn ||= HmisExternalApis::OauthClientConnection.new(
-          client_id: creds.client_id,
-          client_secret: creds.client_secret,
-          token_url: creds.token_url,
-          base_url: creds.base_url,
-          headers: creds.additional_headers,
-          scope: creds.oauth_scope,
-        )
+        client_id: creds.client_id,
+        client_secret: creds.client_secret,
+        token_url: creds.token_url,
+        base_url: creds.base_url,
+        headers: creds.additional_headers,
+        scope: creds.oauth_scope,
+      )
     end
   end
 end

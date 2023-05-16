@@ -27,6 +27,11 @@ class AcHmisStubApplication
       when '/api/Referral/ReferralRequest'
         return create_referral_request
       end
+    when 'PATCH'
+      case path
+      when %r{/api/Referral/ReferralRequest/[-a-z0-9]+}
+        return update_referral_request
+      end
     when 'GET'
       case path
       when '/testing'
@@ -45,6 +50,10 @@ class AcHmisStubApplication
       "scope": 'API_TEST',
     }
     [200, json_headers, [body.to_json]]
+  end
+
+  def update_referral_request
+    [201, json_headers, [{ success: true}.to_json]]
   end
 
   def create_referral_request
