@@ -19,6 +19,7 @@ module UserPermissions
         :can_receive_secure_files,
         :can_assign_or_view_users_to_clients,
         :can_view_or_search_clients,
+        :can_access_some_client_search,
         :can_view_enrollment_details_tab,
         :window_file_access,
         :can_access_vspdat_list,
@@ -73,11 +74,15 @@ module UserPermissions
     end
 
     def can_view_or_search_clients
-      can_view_clients? || can_search_own_clients?
+      can_access_some_version_of_clients? || can_access_some_client_search?
     end
 
     def can_view_enrollment_details_tab
       can_view_clients? && can_view_enrollment_details?
+    end
+
+    def can_access_some_client_search
+      can_search_own_clients? || can_search_clients_with_roi?
     end
 
     def window_file_access
@@ -157,7 +162,7 @@ module UserPermissions
     end
 
     def can_access_some_version_of_clients
-      can_view_clients? || can_edit_clients?
+      can_view_clients? || can_edit_clients? || can_view_client_enrollments_with_roi?
     end
 
     def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicateName

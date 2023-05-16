@@ -120,8 +120,15 @@ module ClientAccessControl
     end
 
     private def viewable_enrollments_from_rois(user)
+      # Consent is always stored on the destination record
+      consented_destination_clients = unscoped_clients.active_confirmed_consent_in_cocs(user.coc_codes).select(c_t[:id]).to_sql
+      consent_query = ::GrdaWarehouse::WarehouseClient.
+        where(wc_t[:destination_id].in(Arel.sql(consented_destination_clients))).
+        select(wc_t[:source_id]).to_sql
+      return ::GrdaWarehouse::Hud::Enrollment.none unless consent_query
+
       ::GrdaWarehouse::Hud::Enrollment.joins(:project, :client).
-        merge(unscoped_clients.active_confirmed_consent_in_cocs(user.coc_codes)).
+        where(c_t[:id].in(Arel.sql(consent_query))).
         merge(
           ::GrdaWarehouse::Hud::Project.viewable_by(
             user,
@@ -167,8 +174,15 @@ module ClientAccessControl
     end
 
     private def searchable_enrollments_from_rois(user)
+      # Consent is always stored on the destination record
+      consented_destination_clients = unscoped_clients.active_confirmed_consent_in_cocs(user.coc_codes).select(c_t[:id]).to_sql
+      consent_query = ::GrdaWarehouse::WarehouseClient.
+        where(wc_t[:destination_id].in(Arel.sql(consented_destination_clients))).
+        select(wc_t[:source_id]).to_sql
+      return ::GrdaWarehouse::Hud::Enrollment.none unless consent_query
+
       ::GrdaWarehouse::Hud::Enrollment.joins(:project, :client).
-        merge(unscoped_clients.active_confirmed_consent_in_cocs(user.coc_codes)).
+        where(c_t[:id].in(Arel.sql(consent_query))).
         merge(
           ::GrdaWarehouse::Hud::Project.viewable_by(
             user,
