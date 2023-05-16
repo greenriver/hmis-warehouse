@@ -91,7 +91,7 @@ module Hmis
 
       Hmis::Hud::CustomDataElement.where(id: element_ids).update_all(owner_id: client_to_retain.id)
 
-      Rails.logger.info 'dedup/uniqify custom data elements for each definition'
+      Rails.logger.info 'uniqify custom data elements for each definition'
 
       working_set = Hmis::Hud::CustomDataElement.where(id: element_ids).preload(:data_element_definition).to_a.group_by(&:data_element_definition)
 
@@ -110,18 +110,14 @@ module Hmis
         GrdaWarehouse::ClientFile,
         Hmis::File,
         Hmis::Wip,
-      ].map(&:table_name)
+      ]
 
-      Rails.logger.info "Updating #{candidates.length} foreign keys to merged clients (client_id)"
+      Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"
 
       candidates.each do |candidate|
-        client_ids = clients_needing_reference_updates.map(&:id).join(',')
+        client_ids = clients_needing_reference_updates.map(&:id)
 
-        GrdaWarehouseBase.connection.exec_query(<<~SQL)
-          UPDATE "#{candidate}"
-          SET client_id = #{client_to_retain.id}
-          WHERE client_id::bigint IN (#{client_ids})
-        SQL
+        candidate.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
       end
     end
 
@@ -153,20 +149,19 @@ module Hmis
         Hmis::Hud::IncomeBenefit,
         Hmis::Hud::Service,
         Hmis::Hud::YouthEducationStatus,
-      ].map(&:table_name)
+      ]
 
-      Rails.logger.info "Updating #{candidates.length} foreign keys to merged clients (PersonalID and data source)"
+      Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (PersonalID and data source)"
 
       candidates.each do |candidate|
-        personal_ids = clients_needing_reference_updates.map(&:personal_id).join("','")
+        personal_ids = clients_needing_reference_updates.map(&:personal_id)
 
-        GrdaWarehouseBase.connection.exec_query(<<~SQL)
-          UPDATE "#{candidate}"
-          SET "PersonalID" = #{client_to_retain.personal_id}
-          WHERE
-            "PersonalID" IN ('#{personal_ids}')
-            AND data_source_id = '#{data_source_id}'
-        SQL
+        t = candidate.arel_table
+
+        candidate
+          .where(t['PersonalID'].in(personal_ids))
+          .where(t['data_source_id'].eq(data_source_id))
+          .update_all(PersonalID: client_to_retain.personal_id)
       end
     end
 

@@ -5,5 +5,4 @@
 ###
 
 class Hmis::ClientMergeAudit < Hmis::HmisBase
-  # self.table_name = :hmis_merge_audits
 end
