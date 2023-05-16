@@ -53,40 +53,7 @@
           %br
           <= 79%
       %td.text-center= @report.utilization_score
-    %tr
-      %th Percentage of chronically homeless households served
-      %th
-        = simple_format(_('Indicates community success in ending chronic homelessness by measuring the number of chronically homeless participants served in the project during the measured year.'))
-        %br
-        = link_to_apr('APR Q26a', 'Question 26')
-      %td.p-0
-        %table.table.mb-0
-          %tbody
-            %tr
-              %th Total Chronically Homeless Households served
-              %td.text-center= f.input :chronic_households_served, label: false, as: :read_only
-            %tr
-              %th Total Households served
-              %td.text-center= f.input :total_households_served, label: false, as: :read_only
-      %td.text-center= @report.chronic_service_percentage
-      %th.text-nowrap
-        .mb-4
-          Points: 10
-          %br
-          PSH: >=75%
-        .mb-4
-          Points: 5
-          %br
-          PSH: 65% - 74%
-        .mb-4
-          Points: 0
-          %br
-          PSH: <= 64%
-      %td.text-center
-        - if @report.key_project.psh? || @report.key_project.sh?
-          = @report.chronic_service_score
-        - else
-          N/A (PSH only)
+
     %tr
       %th
         Percentage of participants who remained in PSH or exited to permanent housing

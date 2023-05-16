@@ -11,7 +11,6 @@ module ProjectScorecard
       def project_performance_score
         [
           utilization_score,
-          chronic_service_score,
           exit_to_ph_score,
           leavers_los_score,
           increased_employment_income_score,
@@ -22,9 +21,9 @@ module ProjectScorecard
 
       def project_performance_max
         if returns_to_homelessness_score.blank?
-          50
+          40
         else
-          60
+          50
         end
       end
 
@@ -51,12 +50,12 @@ module ProjectScorecard
       def ce_score
         [
           lease_up_score,
-          # accepted_referrals_score,
+          accepted_referrals_score,
         ].compact.sum
       end
 
       def ce_max
-        10 # accepted_referrals_score is not yet included
+        20
       end
 
       def ce_percentage
