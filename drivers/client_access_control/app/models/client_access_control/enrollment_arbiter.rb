@@ -39,6 +39,8 @@ module ClientAccessControl
         user,
         client_ids: source_client_ids,
       ).select(:id).to_sql
+      return ::GrdaWarehouse::Hud::Client.none unless source_client_id_query.present?
+
       unscoped_clients.joins(:warehouse_client_destination).
         where(wc_t[:source_id].in(Arel.sql(source_client_id_query)))
     end
