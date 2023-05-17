@@ -36,6 +36,7 @@ module MedicaidHmisInterchange
             client = ::GrdaWarehouse::Hud::Client.find(reply.TRN(subscriber))
             client = client.destination_client if client.source?
             client.build_external_health_id(identifier: reply.medicaid_id(subscriber))
+            client.save!
           end
         end
       rescue StandardError => e
