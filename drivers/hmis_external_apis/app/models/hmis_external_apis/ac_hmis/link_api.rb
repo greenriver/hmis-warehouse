@@ -31,7 +31,8 @@ module HmisExternalApis::AcHmis
         .then { |r| handle_error(r) }
     end
 
-    def void_referral_request(id:, **payload)
+    def void_referral_request(id:, voided_by:)
+      payload = { isVoid: true, requestedBy: voided_by.email }
       conn.patch("Referral/ReferralRequest/#{id}", payload)
         .then { |r| handle_error(r) }
     end

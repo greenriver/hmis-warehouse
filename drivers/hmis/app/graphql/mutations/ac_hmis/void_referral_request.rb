@@ -23,7 +23,7 @@ module Mutations
       project = Hmis::Hud::Project.viewable_by(current_user).find(request.project_id)
       return error_response('project record not found') unless project
 
-      allowed = current_user.permissions_for?(project, [:can_manage_incoming_referrals])
+      allowed = current_user.can_manage_incoming_referrals_for?(project)
       return error_response('access denied') unless allowed
 
       begin
