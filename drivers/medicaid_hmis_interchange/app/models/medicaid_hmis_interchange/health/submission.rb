@@ -66,7 +66,7 @@ module MedicaidHmisInterchange::Health
           external_ids << medicaid_ids.values
           GrdaWarehouse::Hud::Client.where(id: medicaid_ids.keys). # X-DB join
             joins(service_history_enrollments: :enrollment).
-            preload(service_history_enrollments: [:enrollment, :service_history_services, :current_living_situations]).
+            preload(service_history_enrollments: [:service_history_services, enrollment: :current_living_situations]).
             merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)).
             find_each do |client|
             # If a client has more than one enrollment, use the longest duration
