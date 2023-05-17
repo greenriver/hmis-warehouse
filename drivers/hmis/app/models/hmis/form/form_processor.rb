@@ -47,14 +47,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         field = key
       end
 
+      # If this key can be identified as a CustomDataElement, set it and continue
+      next if container_processor(container)&.process_custom_field(field, value)
+
       begin
         container_processor(container)&.process(field, value)
       rescue StandardError => e
         raise $ERROR_INFO, "Error processing field '#{field}': #{e.message}", $ERROR_INFO.backtrace
       end
-
-      container_processor(container)&.assign_metadata
     end
+
+    container_processor(container)&.assign_metadata
 
     valid_containers.values.each do |processor|
       processor.new(self).information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?

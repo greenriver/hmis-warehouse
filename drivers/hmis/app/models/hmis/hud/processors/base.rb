@@ -14,8 +14,6 @@ class Hmis::Hud::Processors::Base
   end
 
   def process(field, value)
-    return if process_custom_field(field, value)
-
     attribute_name = hud_name(field)
     attribute_value = attribute_value_for_enum(hud_type(field), value)
 
@@ -27,13 +25,6 @@ class Hmis::Hud::Processors::Base
       user: @processor.hud_user,
       data_source_id: @processor.hud_user.data_source_id,
     )
-  end
-
-  def process_hud_field(field, value)
-    attribute_name = hud_name(field)
-    attribute_value = attribute_value_for_enum(hud_type(field), value)
-
-    @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
 
   def information_date(date)
