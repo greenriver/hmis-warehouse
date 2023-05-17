@@ -16,6 +16,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   has_many :custom_data_elements, as: :owner
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   SORT_OPTIONS = [:start_date].freeze
 

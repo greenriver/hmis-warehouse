@@ -1045,6 +1045,116 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
     end
 
+    describe 'with custom data elements' do
+      it 'creates a CustomDataElement' do
+        existing_record = i1
+        new_record = Hmis::Hud::Inventory.new(data_source: ds, user: hmis_hud_user, project: p1)
+
+        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory')
+
+        [existing_record, new_record].each do |record|
+          custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+          custom_form.hud_values = complete_hud_values.merge(
+            cded.key => 'some value',
+          )
+          custom_form.form_processor.run!(owner: custom_form.owner, hud_user: cded.user)
+          custom_form.owner.save!
+          record.reload
+
+          expect(record.custom_data_elements.size).to eq(1)
+          expect(record.custom_data_elements.first.value_string).to eq('some value')
+          expect(record.custom_data_elements.first.data_element_definition).to eq(cded)
+        end
+      end
+
+      it 'updates a CustomDataElement (repeats: false)' do
+        record = i1
+        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', key: 'myCustomKey')
+        cde = create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
+        expect(record.custom_data_elements.first!.value_string).to eq(cde.value_string)
+
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          cded.key => 'new value',
+        )
+        custom_form.form_processor.run!(owner: custom_form.owner, hud_user: cded.user)
+        custom_form.owner.save!
+        record.reload
+
+        expect(record.custom_data_elements.size).to eq(1)
+        updated_cde = record.custom_data_elements.first
+        expect(updated_cde.value_string).to eq('new value')
+        expect(updated_cde.user).not_to eq(cde.user)
+        expect(updated_cde.date_updated).not_to eq(cde.date_updated)
+        expect(updated_cde.data_element_definition).to eq(cded)
+      end
+
+      [nil, HIDDEN, []].each do |value|
+        it "doesnt error when receiving custom data element value #{value} (new record / existing record with no value)" do
+          existing_record = i1
+          new_record = Hmis::Hud::Inventory.new(data_source: ds, user: hmis_hud_user, project: p1)
+          cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory')
+          [existing_record, new_record].each do |record|
+            custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+            custom_form.hud_values = complete_hud_values.merge(cded.key => value)
+            custom_form.form_processor.run!(owner: custom_form.owner, hud_user: cded.user)
+            custom_form.owner.save!
+          end
+        end
+      end
+
+      it 'updates a CustomDataElement (repeats: true)' do
+        record = i1
+        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', key: 'repeatingString', repeats: true)
+        create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
+        create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
+        create(:hmis_custom_data_element, owner: record, value_string: 'old value 3', data_element_definition: cded)
+        expect(record.custom_data_elements.size).to eq(3)
+
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          cded.key => ['new value 1', 'new value 2'],
+        )
+        custom_form.form_processor.run!(owner: custom_form.owner, hud_user: cded.user)
+        custom_form.owner.save!
+        record.reload
+
+        expect(record.custom_data_elements.size).to eq(2)
+        expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('new value 1', 'new value 2')
+      end
+
+      [nil, HIDDEN].each do |value|
+        it "clears custom data element when set to #{value} (has 1 value)" do
+          cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory')
+          record = i1
+          create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
+          expect(record.custom_data_elements.size).to eq(1)
+          custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+          custom_form.hud_values = complete_hud_values.merge(cded.key => value)
+          custom_form.form_processor.run!(owner: custom_form.owner, hud_user: cded.user)
+          custom_form.owner.save!
+          record.reload
+          expect(record.custom_data_elements).to be_empty
+        end
+      end
+
+      [nil, HIDDEN, []].each do |value|
+        it "clears custom data element when set to #{value} (has 2 values)" do
+          cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', key: 'repeatingString', repeats: true)
+          record = i1
+          create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
+          create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
+          expect(record.custom_data_elements.size).to eq(2)
+          custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+          custom_form.hud_values = complete_hud_values.merge(cded.key => value)
+          custom_form.form_processor.run!(owner: custom_form.owner, hud_user: cded.user)
+          custom_form.owner.save!
+          record.reload
+          expect(record.custom_data_elements).to be_empty
+        end
+      end
+    end
+
     [
       [
         'fails if CoC code is null',

@@ -107,6 +107,13 @@
               "question": "2.07.1"
             }
           ]
+        },
+        {
+          "type": "TEXT",
+          "required": false,
+          "link_id": "description",
+          "text": "Description",
+          "custom_field_key": "description"
         }
       ]
     },

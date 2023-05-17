@@ -2098,6 +2098,11 @@ type FormItem {
   component: Component
 
   """
+  Key of CustomDataElement to save record as. Use record_type to specify type.
+  """
+  customFieldKey: String
+
+  """
   Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout

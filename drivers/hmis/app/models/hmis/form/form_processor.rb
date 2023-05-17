@@ -24,11 +24,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   validate :hmis_records_are_valid
 
-  attr_accessor :owner
+  attr_accessor :owner, :hud_user
 
-  def run!(owner:)
+  def run!(owner:, hud_user: nil)
     # Set the owner reference so we are updating the correct record. Unpersisted changes can't be validated correctly if you go through custom_form.owner.
     self.owner = owner
+    # Set the HUD User so processors can store it on related records
+    self.hud_user = hud_user
+
     return unless custom_form.hud_values.present?
 
     custom_form.hud_values.each do |key, value|
