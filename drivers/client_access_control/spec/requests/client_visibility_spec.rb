@@ -573,7 +573,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user has a role granting visibility by coc release' do
       before do
-        setup_access_control(user, can_view_clients, AccessGroup.system_access_group(:window_data_sources))
+        setup_access_control(user, can_view_client_enrollments_with_roi, AccessGroup.system_access_group(:window_data_sources))
+        setup_access_control(user, can_search_clients_with_roi, AccessGroup.system_access_group(:window_data_sources))
         setup_access_control(user, can_search_own_clients, AccessGroup.system_access_group(:data_sources))
         sign_in user
       end
@@ -587,8 +588,11 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         before do
           user.user_group_members.destroy_all
           coc_code_viewable.update(coc_codes: ['ZZ-999'])
+          # Add back the ability to see clients with an ROI
+          setup_access_control(user, can_view_client_enrollments_with_roi, AccessGroup.system_access_group(:window_data_sources))
+          setup_access_control(user, can_search_clients_with_roi, AccessGroup.system_access_group(:window_data_sources))
+          # Add in a CoC code so user.coc_codes works correctly
           setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable)
-          # binding.pry # FIXME: this isn't getting applied correctly
         end
         it 'user cannot see client details' do
           get client_path(non_window_destination_client)
@@ -617,7 +621,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         describe 'when the client has a valid consent in the user\'s coc' do
           before do
             coc_code_viewable.update(coc_codes: ['ZZ-999'])
-            setup_access_control(user, can_view_clients, coc_code_viewable)
+            setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable)
             past_date = 5.days.ago
             future_date = Date.current + 1.years
             non_window_destination_client.update(
@@ -639,7 +643,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         describe 'when the client has a valid consent in the user\'s coc and another coc' do
           before do
             coc_code_viewable.update(coc_codes: ['ZZ-999'])
-            setup_access_control(user, can_view_clients, coc_code_viewable)
+            setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable)
             past_date = 5.days.ago
             future_date = Date.current + 1.years
             non_window_destination_client.update(
@@ -661,7 +665,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         describe 'when the client has a valid consent in another coc' do
           before do
             coc_code_viewable.update(coc_codes: ['ZZ-999'])
-            setup_access_control(user, no_permission_role, coc_code_viewable)
+            setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable)
             past_date = 5.days.ago
             future_date = Date.current + 1.years
             non_window_destination_client.update(
@@ -719,7 +723,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        setup_access_control(user, can_view_clients, AccessGroup.system_access_group(:window_data_sources))
+        setup_access_control(user, can_view_client_enrollments_with_roi, AccessGroup.system_access_group(:window_data_sources))
         sign_in user
       end
       it 'user can not search for clients' do
@@ -764,7 +768,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        setup_access_control(user, can_view_clients, AccessGroup.system_access_group(:window_data_sources))
+        setup_access_control(user, can_view_client_enrollments_with_roi, AccessGroup.system_access_group(:window_data_sources))
         setup_access_control(user, can_search_own_clients, AccessGroup.system_access_group(:window_data_sources))
         sign_in user
       end
@@ -776,7 +780,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       end
       describe 'and the user is assigned a data source' do
         before do
-          setup_access_control(user, no_permission_role, non_window_data_source_viewable)
+          setup_access_control(user, can_search_own_clients, non_window_data_source_viewable)
+          setup_access_control(user, can_view_clients, non_window_data_source_viewable)
         end
         it 'user can see one client in expected data source and any window clients' do
           get clients_path(q: 'bob')
@@ -799,7 +804,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user has a role granting visibility by coc release' do
       before do
-        setup_access_control(user, can_view_clients, AccessGroup.system_access_group(:window_data_sources))
+        setup_access_control(user, can_view_client_enrollments_with_roi, AccessGroup.system_access_group(:data_sources))
         sign_in user
       end
       it 'user can not search for all clients' do
@@ -813,7 +818,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       describe 'and the user is assigned a CoC' do
         before do
           coc_code_viewable.update(coc_codes: ['ZZ-999'])
-          setup_access_control(user, no_permission_role, coc_code_viewable)
+          setup_access_control(user, can_view_client_enrollments_with_roi, coc_code_viewable)
         end
         it 'user cannot see client details' do
           get client_path(non_window_destination_client)
