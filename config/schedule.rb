@@ -145,14 +145,14 @@ tasks = [
     interruptable: true,
   },
   {
-    task: 'health:medicaid_hmis_transfer',
+    task: 'mhx:medicaid_hmis_transfer',
     frequency: :sunday,
     at: '5:01am',
     # trigger: MedicaidHmisInterchange::FileExchangeJob.sftp_credentials.present? # This isn't Rails, so this won't work
     interruptable: true,
   },
   {
-    task: 'health:medicaid_id_query',
+    task: 'mhx:medicaid_id_query',
     frequency: 1.day,
     at: '4:02am',
     interruptable: true,
