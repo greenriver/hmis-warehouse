@@ -25,14 +25,14 @@ module MedicaidHmisInterchange
         result = soap.realtime_eligibility_inquiry_request(edi_doc: edi_doc)
 
         if result.success?
-          MedicaidHmisInterchange::Health::MedicaidIdResponse.create(
+          reply = MedicaidHmisInterchange::Health::MedicaidIdResponse.create(
             medicaid_id_inquiry: inquiry,
             response: result.response,
           )
-          result.subscribers.each do |subscriber|
-            client = ::GrdaWarehouse::Hud::Client.find(result.TRN(subscriber))
+          reply.subscribers.each do |subscriber|
+            client = ::GrdaWarehouse::Hud::Client.find(reply.TRN(subscriber))
             client = client.destination_client if client.source?
-            client.build_external_health_id(identifier: result.medicaid_id(subscriber))
+            client.build_external_health_id(identifier: reply.medicaid_id(subscriber))
           end
         end
       rescue StandardError => e
