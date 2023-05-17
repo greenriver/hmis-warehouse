@@ -7,6 +7,10 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::MergeClientsJob, type: :model do
+  # Probably other specs aren't cleaning up:
+  before(:all) { Hmis::Hud::Client.with_deleted.destroy_all }
+  before(:all) { GrdaWarehouse::DataSource.with_deleted.destroy_all }
+
   let(:data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_hud_user, data_source: data_source) }
   let(:client1) { create(:hmis_hud_client, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
@@ -34,10 +38,6 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
   let(:clients) { [client1, client2] }
   let(:client_ids) { clients.map(&:id) }
   let(:actor) { create(:user) }
-
-  # Probably other specs aren't cleaning up:
-  before(:all) { Hmis::Hud::Client.with_deleted.destroy_all }
-  before(:all) { GrdaWarehouse::DataSource.with_deleted.destroy_all }
 
   context 'main behaviors' do
     before { Hmis::MergeClientsJob.new.perform(client_ids: client_ids, actor_id: actor.id) }
@@ -129,6 +129,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'soft-deletes the merged clients' do
       expect(Hmis::Hud::Client.count).to eq(1)
+      puts "SEARCHFORME: #{ap Hmis::Hud::Client.with_deleted}" if Hmis::Hud::Client.with_deleted.count != 2
       expect(Hmis::Hud::Client.with_deleted.count).to eq(2)
       expect(client2.reload.deleted?).to be_truthy
     end
