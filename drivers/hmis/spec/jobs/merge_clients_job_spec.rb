@@ -8,13 +8,7 @@ require 'rails_helper'
 
 RSpec.describe Hmis::MergeClientsJob, type: :model do
   # Probably other specs aren't cleaning up:
-  # before(:all) { Hmis::Hud::Client.with_deleted.destroy_all }
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
+  before(:all) { cleanup_test_environment }
 
   let(:data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_hud_user, data_source: data_source) }
