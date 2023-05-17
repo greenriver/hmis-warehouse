@@ -9,7 +9,7 @@ module ProjectScorecard
     extend ActiveSupport::Concern
     included do
       def lease_up_score
-        score(days_to_lease_up, 0..30, 31..45)
+        score(days_to_lease_up, 0..60, 61..75)
       end
 
       def accepted_referrals_percentage
@@ -20,7 +20,8 @@ module ProjectScorecard
       end
 
       def accepted_referrals_score
-        score(accepted_referrals_percentage, 90..Float::INFINITY)
+        # Everyone gets 10 points (per 2023 spec)
+        score(accepted_referrals_percentage, 0..Float::INFINITY)
       end
     end
   end
