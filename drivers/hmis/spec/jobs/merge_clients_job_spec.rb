@@ -37,7 +37,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
   # Probably other specs aren't cleaning up:
   before(:all) { Hmis::Hud::Client.with_deleted.destroy_all }
-  before(:all) { GrdaWarehouse::DataSource.destroy_all }
+  before(:all) { GrdaWarehouse::DataSource.with_deleted.destroy_all }
 
   context 'main behaviors' do
     before { Hmis::MergeClientsJob.new.perform(client_ids: client_ids, actor_id: actor.id) }
