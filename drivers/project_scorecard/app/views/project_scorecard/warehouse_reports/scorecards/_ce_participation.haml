@@ -23,15 +23,15 @@
           .mb-4
             Points: 10
             %br
-            <=30 Days
+            <=60 Days
           .mb-4
             Points: 5
             %br
-            31 - 45 Days
+            61 - 75 Days
           .mb-4
             Points: 0
             %br
-            >=46 Days
+            >=76 Days
         %td.text-center= @report.lease_up_score
       %tr
         %th Accepted Referrals
@@ -51,9 +51,5 @@
           .mb-4
             Points: 10
             %br
-            >=90%
-          .mb-4
-            Points: 0
-            %br
-            <=89%
+            >=0%
         %td.text-center= @report.accepted_referrals_score

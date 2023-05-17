@@ -187,17 +187,18 @@ module ProjectScorecard
     def run_and_save!
       update(started_at: Time.current)
 
-      previous = if project_id.present?
-        self.class.where(project_id: project_id).
-          where.not(id: id).
-          order(id: :desc).
-          first
-      else
-        self.class.where(project_group_id: project_group_id).
-          where.not(id: id).
-          order(id: :desc).
-          first
-      end
+      # Removed for 2023, leaving here for future re-addition
+      # previous = if project_id.present?
+      #   self.class.where(project_id: project_id).
+      #     where.not(id: id).
+      #     order(id: :desc).
+      #     first
+      # else
+      #   self.class.where(project_group_id: project_group_id).
+      #     where.not(id: id).
+      #     order(id: :desc).
+      #     first
+      # end
       assessment_answers = {}
 
       if RailsDrivers.loaded.include?(:hud_apr)
@@ -301,9 +302,10 @@ module ProjectScorecard
 
       assessment_answers.merge!(
         {
-          amount_awarded: previous&.amount_awarded,
-          budget_plus_match: previous&.budget_plus_match,
-          prior_amount_awarded: previous&.prior_amount_awarded,
+          # Removed for 2023
+          # amount_awarded: previous&.amount_awarded,
+          # budget_plus_match: previous&.budget_plus_match,
+          # prior_amount_awarded: previous&.prior_amount_awarded,
           status: 'pre-filled',
         },
       )
