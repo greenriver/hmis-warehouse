@@ -83,18 +83,23 @@ module MedicaidHmisInterchange
 
     private def using_sftp
       credentials = sftp_credentials
-
+      file = Tempfile.new('mhx_private_key')
       opts = {
         keepalive: true,
         keepalive_interval: 60,
       }
       if Rails.env.production? || Rails.env.staging?
+        key = credentials['password'] || credentials.password
+        file.write(key)
+        file.rewind
+        file.close
         opts.merge!(
           {
-            keys: credentials['password'] || credentials.password,
+            keys: [file.path],
             keys_only: true,
           },
         )
+
       else
         opts.merge!(
           {
@@ -111,6 +116,7 @@ module MedicaidHmisInterchange
       ) do |connection|
         yield connection
       end
+      file.unlink
     end
   end
 end
