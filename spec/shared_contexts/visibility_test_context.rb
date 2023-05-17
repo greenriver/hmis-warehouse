@@ -171,6 +171,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
 
   # roles
   let!(:can_view_clients) { create :role, can_view_clients: true }
+  let!(:can_create_clients) { create :role, can_create_clients: true }
   let!(:can_use_strict_search) { create :role, can_use_strict_search: true }
   let!(:can_use_separated_consent) { create :role, can_use_separated_consent: true }
   let!(:can_view_all_reports) { create :role, can_view_all_reports: true, can_view_assigned_reports: true }
@@ -180,6 +181,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:can_search_own_clients) { create :role, can_search_own_clients: true }
   let!(:can_search_clients_with_roi) { create :role, can_search_clients_with_roi: true }
   let!(:can_view_client_enrollments_with_roi) { create :role, can_view_client_enrollments_with_roi: true }
+  let!(:can_edit_clients) { create :can_edit_clients }
   let!(:no_permission_role) { create :role }
 
   # groups
