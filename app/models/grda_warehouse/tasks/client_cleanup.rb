@@ -398,14 +398,13 @@ module GrdaWarehouse::Tasks
     def choose_best_ssn dest_attr, source_clients
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
-      non_placeholder_ssn = non_blank_ssn.reject { |sc| sc[:SSN].match?(/x/i) }
-      if non_placeholder_ssn.any?
+      if non_blank_ssn.any?
         best = nil
         [1, 2, 8, 9, 99].each do |dq_value|
-          best = non_placeholder_ssn.select { |sc| sc[:SSNDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
+          best = non_blank_ssn.select { |sc| sc[:SSNDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
           break if best.present?
         end
-        best = non_placeholder_ssn.min_by { |sc| sc[:DateCreated] } if best.blank?
+        best = non_blank_ssn.min_by { |sc| sc[:DateCreated] } if best.blank?
 
         dest_attr[:SSN] = best[:SSN]
         dest_attr[:SSNDataQuality] = best[:SSNDataQuality]
