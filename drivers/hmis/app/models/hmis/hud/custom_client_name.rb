@@ -22,6 +22,13 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
     update_client_name if primary?
   end
 
+  class CannotDestroyPrimaryNameException < StandardError
+  end
+
+  before_destroy do
+    raise(CannotDestroyPrimaryNameException) if primary
+  end
+
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

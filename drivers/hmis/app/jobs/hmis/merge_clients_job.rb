@@ -36,7 +36,7 @@ module Hmis
         update_personal_id_foreign_keys
 
         client_to_retain.reload
-        dedup(:names)
+        dedup(:names, keepers: client_to_retain.names.where(primary: true))
         dedup(:contact_points)
         dedup(:addresses)
         dedup(:custom_data_elements)
@@ -67,7 +67,6 @@ module Hmis
       client_to_retain.save!(validate: false)
     end
 
-    # FIXME: If this is too n+1, I can refactor into database updates
     def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
@@ -113,13 +112,12 @@ module Hmis
       end
     end
 
-    def dedup(relation)
+    def dedup(relation, keepers: [])
       pairs = client_to_retain.send(relation).to_a.combination(2)
 
       pairs.each do |pair|
         next unless pair[0] == pair[1]
-
-        # FIXME: don't remove primary name
+        next if pair[1].in?(keepers)
 
         Rails.logger.info "Removing #{pair[1]} which is a duplicate"
         pair[1].destroy
