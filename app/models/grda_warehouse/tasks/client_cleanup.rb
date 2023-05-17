@@ -386,9 +386,7 @@ module GrdaWarehouse::Tasks
     def choose_best_pronouns dest_attr, source_clients
       non_blank = source_clients.select { |sc| sc[:pronouns].present? }
       if non_blank.any?
-        # Copying the min_by, but I'd put more weight on the more recent
-        # record. Is min_by correct?
-        best = non_blank.min_by { |sc| sc[:DateCreated] }
+        best = non_blank.max_by { |sc| sc[:DateUpdated] }
         dest_attr[:pronouns] = best[:pronouns]
       else
         dest_attr[:pronouns] = nil
