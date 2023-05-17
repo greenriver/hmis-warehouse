@@ -28,7 +28,11 @@ RSpec.shared_context 'report context', shared_context: :metadata do
   end
 
   def run!(filter)
-    HomelessSummaryReport::Report.new(user_id: User.setup_system_user.id, filter: filter).run_and_save!
+    user = User.system_user
+    role = Role.system_user_role
+    AccessGroup.maintain_system_groups
+    setup_access_control(user, role, AccessGroup.system_access_group(:data_sources))
+    HomelessSummaryReport::Report.new(user_id: user.id, filter: filter).run_and_save!
   end
 
   def report_result
