@@ -33,9 +33,12 @@ module MedicaidHmisInterchange
             response: result.response,
           )
           reply.subscribers.each do |subscriber|
+            identifier = reply.medicaid_id(subscriber)
+            next unless identifier.present?
+
             client = ::GrdaWarehouse::Hud::Client.find(reply.TRN(subscriber))
             client = client.destination_client if client.source?
-            client.build_external_health_id(identifier: reply.medicaid_id(subscriber))
+            client.build_external_health_id(identifier: identifier)
             client.save!
           end
         end

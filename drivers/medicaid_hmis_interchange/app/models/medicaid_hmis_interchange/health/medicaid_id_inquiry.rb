@@ -56,7 +56,7 @@ module MedicaidHmisInterchange::Health
         # Use the client's rails id as the trace record number
         b.TRN '1', client.id, sender.trace_id
         b.NM1 'IL', '1', client.last_name, client.first_name, client.middle_name
-        b.REF 'SY', client.ssn
+        b.REF 'SY', client.ssn if client.ssn.present?
         b.DMG 'D8', client.dob&.strftime('%Y%m%d'), edi_gender(client)
         b.DTP '291', 'D8', service_date.strftime('%Y%m%d')
         b.EQ(b.repeated('30'))
