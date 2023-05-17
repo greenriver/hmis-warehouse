@@ -10,9 +10,12 @@ module MedicaidHmisInterchange
   class MedicaidIdLookupJob < ::BaseJob
     include NotifierConfig
 
-    def perform(client_ids, test: false)
+    def perform(client_ids, test: false, force: false)
       soap = ::Health::Soap::MassHealth.new(test: test)
       return unless soap.configured?
+
+      sftp_credentials = ::Health::ImportConfig.find_by(kind: :medicaid_hmis_exchange)
+      return unless sftp_credentials || force
 
       setup_notifier('MedicaidIdLookup')
 
