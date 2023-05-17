@@ -13,52 +13,30 @@ module Mutations
     field :record, Types::HmisSchema::SubmitFormResult, null: true
 
     def resolve(input:)
-      errors = HmisErrors::Errors.new
-
-      ## question: if we can't fnd the form definition or record_class, shouldn't we just raise an exception?
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
-      errors.add :form_definition, :required unless definition.present?
-      return { errors: errors } if errors.any?
+      raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
 
       # Determine record class
       klass = definition.record_class_name&.constantize
-      errors.add :form_definition, :invalid unless klass.present?
-      return { errors: errors } if errors.any?
+      raise HmisErrors::ApiError, 'Form Definition not configured' unless klass.present?
 
       # Find or create record
-      hud_user = Hmis::Hud::User.from_user(current_user)
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
-        if record.is_a?(Hmis::File)
-          record&.assign_attributes(updated_by: current_user)
-        else
-          record&.assign_attributes(user: hud_user)
-        end
-      elsif klass == HmisExternalApis::AcHmis::ReferralRequest
-        record = klass.new(
-          requested_by: current_user,
-          identifier: SecureRandom.uuid, # FIXME we should be calling an external endpoint
-          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.id,
-        )
       else
         record = klass.new(
-          user: klass == Hmis::File ? current_user : hud_user,
-          data_source_id: hud_user.data_source_id,
           **related_id_attributes(klass.name, input),
+          data_source_id: current_user.hmis_data_source_id, # Not all records actually have this, but we need it to check permissions for some of them
         )
-        record.updated_by = current_user if klass == Hmis::File
       end
-
-      errors.add :record, :not_found unless record.present?
-      return { errors: errors } if errors.any?
+      raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
       # Check permission
       allowed = true
       allowed = current_user.permissions_for?(record, *Array(definition.record_editing_permission)) if definition.record_editing_permission.present?
       allowed = definition.allowed_proc.call(record, current_user) if definition.allowed_proc.present?
-      errors.add :record, :not_allowed unless allowed
-      return { errors: errors } if errors.any?
+      raise HmisErrors::ApiError, 'Access Denied' unless allowed
 
       # Build CustomForm
       # It wont be persisted, but it handles validation and initializes a form processor to process values
@@ -70,11 +48,12 @@ module Mutations
       )
 
       # Validate based on FormDefinition
+      errors = HmisErrors::Errors.new
       form_validations = custom_form.collect_form_validations
       errors.push(*form_validations)
 
       # Run processor to create/update record(s)
-      custom_form.form_processor.run!(owner: record)
+      custom_form.form_processor.run!(owner: record, user: current_user)
 
       # Run both validations
       is_valid = record.valid?
@@ -144,6 +123,10 @@ module Mutations
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory'
         {
           project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.ProjectID,
+        }
+      when 'HmisExternalApis::AcHmis::ReferralRequest'
+        {
+          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.id,
         }
       when 'Hmis::Hud::HmisService'
         enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)

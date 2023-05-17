@@ -31,6 +31,13 @@ module Hmis::Hud::Processors
       end
     end
 
+    def assign_metadata
+      file = @processor.send(factory_name)
+      file.assign_attributes(updated_by: @processor.current_user)
+      # 'user' is the uploader, so only set it if this is a new file record
+      file.assign_attributes(user: @processor.current_user) unless file.persisted?
+    end
+
     def information_date(_)
     end
   end

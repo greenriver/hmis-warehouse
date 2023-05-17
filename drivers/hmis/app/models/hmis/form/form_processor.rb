@@ -24,13 +24,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   validate :hmis_records_are_valid
 
-  attr_accessor :owner, :hud_user
+  attr_accessor :owner, :hud_user, :current_user
 
-  def run!(owner:, hud_user: nil)
+  def run!(owner:, user:)
     # Set the owner reference so we are updating the correct record. Unpersisted changes can't be validated correctly if you go through custom_form.owner.
     self.owner = owner
-    # Set the HUD User so processors can store it on related records
-    self.hud_user = hud_user
+    # Set the HUD User and current user, so processors can store them on related records
+    self.current_user = user
+    self.hud_user = Hmis::Hud::User.from_user(user)
 
     return unless custom_form.hud_values.present?
 
@@ -51,6 +52,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       rescue StandardError => e
         raise $ERROR_INFO, "Error processing field '#{field}': #{e.message}", $ERROR_INFO.backtrace
       end
+
+      container_processor(container)&.assign_metadata
     end
 
     valid_containers.values.each do |processor|
@@ -79,7 +82,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       data_collection_stage: custom_form.assessment.data_collection_stage,
       personal_id: custom_form.assessment.personal_id,
       information_date: custom_form.assessment.assessment_date,
-      user_id: custom_form.assessment.user_id,
     }
   end
 

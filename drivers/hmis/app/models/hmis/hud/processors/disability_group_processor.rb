@@ -21,6 +21,16 @@ module Hmis::Hud::Processors
       end
     end
 
+    def assign_metadata
+      factory_names = field_mapping.values.map(&:first)
+      factory_names.each do |factory_name|
+        @processor.send(factory_name, create: false)&.assign_attributes(
+          user: @processor.hud_user,
+          data_source_id: @processor.hud_user.data_source_id,
+        )
+      end
+    end
+
     def field_mapping
       @field_mapping ||= begin
         standard_enum = Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
