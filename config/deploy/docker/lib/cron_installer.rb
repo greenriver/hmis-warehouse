@@ -120,7 +120,9 @@ class CronInstaller
     year = '*'
 
     # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
-    if day_of_month == '*' && day_of_week == '*'
+    if day_of_week.to_i.to_s == day_of_week && day_of_week.to_i < 7 # it's an integer and looks like a day
+      day_of_week = Date::ABBR_DAYNAMES[day_of_week.to_i].upcase
+    elsif day_of_month == '*' && day_of_week == '*'
       day_of_week = '?'
     elsif day_of_month != '*'
       day_of_week = '?'
