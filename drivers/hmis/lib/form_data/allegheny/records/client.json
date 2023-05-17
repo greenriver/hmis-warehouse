@@ -16,9 +16,6 @@
       "fragment": "#client_demographics"
     },
     {
-      "fragment": "#client_mci"
-    },
-    {
       "fragment": "#client_photo",
       "enable_when": [
         {
@@ -27,6 +24,9 @@
           "answer_boolean": false
         }
       ]
+    },
+    {
+      "fragment": "#client_mci"
     }
   ]
 }
