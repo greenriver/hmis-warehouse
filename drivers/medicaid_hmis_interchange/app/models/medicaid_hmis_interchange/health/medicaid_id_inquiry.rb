@@ -50,14 +50,21 @@ module MedicaidHmisInterchange::Health
       b.NM1 '1P', '2', sender.mmis_enrollment_name, b.blank, b.blank, b.blank, b.blank, 'SV', sender_id
 
       clients.each do |client|
+        next if client.dob.blank? && client.ssn.blank?
+
+        last_name = client.last_name&.gsub(/[^a-z ]/i, '')&.upcase&.slice(0, 60)
+        first_name = client.first_name&.gsub(/[^a-z ]/i, '')&.upcase&.slice(0, 35)
+        middle_name = client.middle_name&.gsub(/[^a-z ]/i, '')&.upcase&.first
+        next if last_name.blank? || first_name.blank?
+
         # Subscriber information
         hl += 1
         b.HL hl, '2', '22', '0'
         # Use the client's rails id as the trace record number
         b.TRN '1', client.id, sender.trace_id
-        b.NM1 'IL', '1', client.last_name, client.first_name, client.middle_name
+        b.NM1 'IL', '1', last_name, first_name, middle_name
         b.REF 'SY', client.ssn if client.ssn.present?
-        b.DMG 'D8', client.dob&.strftime('%Y%m%d'), edi_gender(client)
+        b.DMG 'D8', client.dob&.strftime('%Y%m%d'), edi_gender(client) if client.dob.present?
         b.DTP '291', 'D8', service_date.strftime('%Y%m%d')
         b.EQ(b.repeated('30'))
       end

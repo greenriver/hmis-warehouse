@@ -30,6 +30,7 @@ module MedicaidHmisInterchange
     private def fetch_file_list
       directory = sftp_credentials[:path]
       results = []
+      puts 'Fetching File list'
       using_sftp do |sftp|
         sftp.dir.glob(directory, '*').each do |remote|
           next unless remote.name.match?(/.*rdc_homeless.*/)
@@ -58,8 +59,10 @@ module MedicaidHmisInterchange
     end
 
     private def deliver_submission
+      puts 'Generating submission file'
       submission = MedicaidHmisInterchange::Health::Submission.new
       zip_path = submission.run_and_save!(sftp_credentials[:data_source_name])
+      puts 'Sending submission'
       using_sftp do |sftp|
         sftp.upload!(zip_path, File.join(sftp_credentials[:path], submission.zip_filename))
       end

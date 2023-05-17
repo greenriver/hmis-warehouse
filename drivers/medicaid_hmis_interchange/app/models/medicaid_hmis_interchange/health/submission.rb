@@ -72,6 +72,8 @@ module MedicaidHmisInterchange::Health
             # If a client has more than one enrollment, use the longest duration
             client_homeless_days = 0
             client.service_history_enrollments.each do |enrollment|
+              next unless enrollment.enrollment
+
               client_homeless_days = [
                 client_homeless_days,
                 homeless_days(enrollment),
