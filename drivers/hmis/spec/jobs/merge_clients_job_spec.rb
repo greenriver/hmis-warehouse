@@ -9,9 +9,8 @@ require 'rails_helper'
 RSpec.describe Hmis::MergeClientsJob, type: :model do
   # Probably other specs aren't cleaning up:
   before(:all) { Hmis::Hud::Client.with_deleted.destroy_all }
-  before(:all) { GrdaWarehouse::DataSource.with_deleted.destroy_all }
 
-  let(:data_source) { create(:hmis_data_source) }
+  let(:data_source) { GrdaWarehouse::DataSource.hmis.first || create(:hmis_data_source) }
   let(:user) { create(:hmis_hud_user, data_source: data_source) }
   let(:client1) { create(:hmis_hud_client, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
 
@@ -28,12 +27,12 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
   let!(:client2_related_by_client_id) { create(:client_file, client_id: client2.id) }
 
   let(:repeatable_data_element_definition) { create(:hmis_custom_data_element_definition_for_primary_language) }
-  let!(:client1_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'English', data_element_definition: repeatable_data_element_definition) }
-  let!(:client2_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Russian', data_element_definition: repeatable_data_element_definition) }
+  let!(:client1_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'English', data_element_definition: repeatable_data_element_definition, data_source: data_source) }
+  let!(:client2_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Russian', data_element_definition: repeatable_data_element_definition, data_source: data_source) }
 
   let(:non_repeatable_data_element_definition) { create(:hmis_custom_data_element_definition_for_color) }
-  let!(:client1_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'Blue', data_element_definition: non_repeatable_data_element_definition) }
-  let!(:client2_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Red', data_element_definition:  non_repeatable_data_element_definition) }
+  let!(:client1_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client1, value_string: 'Blue', data_element_definition: non_repeatable_data_element_definition, data_source: data_source) }
+  let!(:client2_nr_custom_data_element) { create(:hmis_custom_data_element, owner: client2, value_string: 'Red', data_element_definition:  non_repeatable_data_element_definition, data_source: data_source) }
 
   let(:clients) { [client1, client2] }
   let(:client_ids) { clients.map(&:id) }
@@ -129,6 +128,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'soft-deletes the merged clients' do
       expect(Hmis::Hud::Client.count).to eq(1)
+      Hmis::Hud::Client.with_deleted.reload
       puts "SEARCHFORME: #{ap Hmis::Hud::Client.with_deleted}" if Hmis::Hud::Client.with_deleted.count != 2
       expect(Hmis::Hud::Client.with_deleted.count).to eq(2)
       expect(client2.reload.deleted?).to be_truthy
