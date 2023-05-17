@@ -8,7 +8,8 @@ require 'rails_helper'
 
 RSpec.describe 'MedicaidHmisInterchange::Health::Submission', type: :model do
   let!(:client) { create(:fixed_destination_client) }
-  let!(:enrollment) { create :grda_warehouse_hud_enrollment, EntryDate: Date.current - 1.day, data_source_id: client.data_source_id }
+  let!(:project) { create :grda_warehouse_hud_project, data_source_id: client.data_source_id }
+  let!(:enrollment) { create :grda_warehouse_hud_enrollment, EntryDate: Date.current - 1.day, data_source_id: client.data_source_id, project: project }
   let!(:service_history_enrollment) do
     create(
       :grda_warehouse_service_history,
@@ -16,6 +17,7 @@ RSpec.describe 'MedicaidHmisInterchange::Health::Submission', type: :model do
       client_id: client.id,
       first_date_in_program: Date.current - 1.day,
       enrollment: enrollment,
+      project: project,
     )
   end
 
