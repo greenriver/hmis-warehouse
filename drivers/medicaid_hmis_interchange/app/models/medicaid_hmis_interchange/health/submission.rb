@@ -55,7 +55,9 @@ module MedicaidHmisInterchange::Health
       file_path = File.join(@file_path, submission_filename)
       count = 0
 
-      GrdaWarehouse::Hud::Client.homeless_on_date.pluck_in_batches(:id) do |batch|
+      GrdaWarehouse::Hud::Client.homeless_on_date.
+        where(id: ExternalId.pluck(:client_id)).
+        pluck_in_batches(:id) do |batch|
         lines = {}.tap do |results|
           medicaid_ids = ExternalId.where(client_id: batch).
             where(invalidated_at: nil).
