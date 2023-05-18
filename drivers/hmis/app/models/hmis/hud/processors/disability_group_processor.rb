@@ -31,6 +31,11 @@ module Hmis::Hud::Processors
       end
     end
 
+    # Custom field on disabilities not supported yet. Needs to be treated specially since there are multiple factories
+    def process_custom_field(_, _)
+      false
+    end
+
     def field_mapping
       @field_mapping ||= begin
         standard_enum = Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
