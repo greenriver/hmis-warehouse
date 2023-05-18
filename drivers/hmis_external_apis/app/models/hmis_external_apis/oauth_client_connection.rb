@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'addressable/uri'
-
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
   OauthClientConnection = Struct.new(:client_id, :client_secret, :token_url, :headers, :scope, :base_url, keyword_init: true) do
@@ -35,8 +33,13 @@ module HmisExternalApis
 
     # normalize leading/trailing slashes
     def url_for(path)
-      uri = Addressable::URI.parse(base_url)
-      uri + path.strip.gsub(/\A\//, '')
+      return normalized_base_url if path.blank?
+
+      normalized_base_url + '/' + path.strip.gsub(/\A\/*/, '')
+    end
+
+    def normalized_base_url
+      base_url.strip.gsub(/\/*\z/, '')
     end
 
     def request(verb, url, payload = nil)
@@ -68,7 +71,7 @@ module HmisExternalApis
       OauthClientResult.new(
         body: result&.body || e.message,
         content_type: result&.content_type || e.response&.headers&.dig('content-type'),
-        error: try_parse_json(e.message) || e.message,
+        error: try_parse_json(e.message) || e.message.presence || 'Unknown Error',
         error_type: e.class.name,
         http_method: e.response.response.env.method,
         http_status: result&.status || e.response&.status,
