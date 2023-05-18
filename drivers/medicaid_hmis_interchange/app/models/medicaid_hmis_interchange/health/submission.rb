@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module MedicaidHmisInterchange::Health
   class Submission < ::HealthBase
     has_one :response
@@ -11,6 +13,7 @@ module MedicaidHmisInterchange::Health
     has_many :external_ids, through: :submission_external_ids
 
     attr_accessor :test_file, :test_file_version
+    TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
 
     def run_and_save!(contact_email, path = nil)
       @timestamp = DateTime.current
@@ -48,7 +51,7 @@ module MedicaidHmisInterchange::Health
     end
 
     private def generate_timestamp
-      @timestamp.strftime('%Y%m%d%H%M%S')
+      @timestamp.strftime(TIMESTAMP_FORMAT)
     end
 
     # Clients are included in the submission if they are enrolled in a homeless project (ES, SH, SO, TH) and not
@@ -175,7 +178,7 @@ module MedicaidHmisInterchange::Health
     private def generate_metadata(record_count)
       file_path = File.join(@file_path, metadata_filename)
       File.open(file_path, 'w') do |file|
-        file << "Date_Created = \"#{@timestamp.strftime('%Y%m%d')}\"\n"
+        file << "Date_Created = \"#{@timestamp.strftime(TIMESTAMP_FORMAT)}\"\n" # NOTE: this timestamp is used in the genration of the filename for the error file, we need it to match the filename
         file << "RDC_Homeless_File_Name = \"#{submission_filename}\"\n"
         file << "Total_Records = \"#{record_count}\"\n"
         file << "Return_To = \"#{@contact_email}\"\n"
