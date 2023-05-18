@@ -11,10 +11,10 @@ module Types
     include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasCustomDataElements
 
-    filter_options do
-      argument :projects, [ID], required: false
-      argument :roles, [Types::Forms::Enums::FormRole], required: false
-      argument :text_search, String, required: false
+    available_filter_options do
+      arg :projects, [ID]
+      arg :roles, [Types::Forms::Enums::FormRole]
+      arg :text_search, String
     end
 
     description 'Custom Assessment'

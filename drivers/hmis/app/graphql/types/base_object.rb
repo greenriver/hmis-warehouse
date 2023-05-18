@@ -18,8 +18,15 @@ module Types
       @page_type ||= BasePaginated.build(self)
     end
 
-    def self.filter_options(name = nil, &block)
-      @filter_options ||= BaseFilterInput.build(self, name: name, &block)
+    def self.filter_options_type(name = nil, omit: [])
+      raise 'Name must be supplied for filter options type if filter options are omitted' if name.nil? && omit.present?
+
+      @filter_options = {} unless @filter_options.present?
+      @filter_options[name] ||= BaseFilterOptions.build(self, name: name, omit: omit, &@available_filter_options_block)
+    end
+
+    def self.available_filter_options(&block)
+      @available_filter_options_block = block
     end
 
     def self.audit_event_type(**args)
