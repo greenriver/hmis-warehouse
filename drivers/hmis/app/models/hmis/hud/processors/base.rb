@@ -88,15 +88,13 @@ class Hmis::Hud::Processors::Base
     cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.name).where(key: field).first
     return false unless cded.present?
 
-    raise "Cannot store custom field #{field} without hud_user" unless @processor.hud_user.present?
-
     attrs = {
       user: @processor.hud_user,
       data_source_id: @processor.hud_user.data_source_id,
       data_element_definition: cded,
     }
     value_field_name = "value_#{cded.field_type}"
-    value = attribute_value_for_enum(nil, value) # convert HIDDEN=>nil
+    value = attribute_value_for_enum(nil, value) # converts HIDDEN => nil
 
     existing_values = record.custom_data_elements.where(data_element_definition: cded, owner: record)
 

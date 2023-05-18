@@ -766,8 +766,8 @@ type CreateUnitsPayload {
 
 type CustomDataElement {
   id: ID!
-  key: String
-  label: String
+  key: String!
+  label: String!
   repeats: Boolean!
   value: CustomDataElementValue
   values: [CustomDataElementValue!]
