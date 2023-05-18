@@ -14,7 +14,7 @@ module UserConcern
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
 
-    attr_accessor :remember_device, :device_name, :client_access_arbiter
+    attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
 
     # Include default devise modules. Others available are:
     devise :invitable,

@@ -29,6 +29,8 @@ class Users::InvitationsController < Devise::InvitationsController
 
     @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?
     @user = User.invite!(invite_params, current_user)
+    # if we have a user to copy user groups from, add them
+    copy_user_groups
 
     if resource.errors.empty?
       set_flash_message :notice, :send_instructions, email: resource.email if is_flashing_format? && resource.invitation_sent_at
@@ -36,6 +38,18 @@ class Users::InvitationsController < Devise::InvitationsController
     else
       @agencies = Agency.order(:name)
       render :new
+    end
+  end
+
+  private def copy_user_groups
+    return unless @user
+    return unless invite_params[:copy_form_id].present?
+
+    source_user = User.active.not_system.find(invite_params[:copy_form_id].to_i)
+    return unless source_user
+
+    source_user.user_groups.each do |group|
+      group.add(@user)
     end
   end
 
@@ -69,6 +83,7 @@ class Users::InvitationsController < Devise::InvitationsController
       :notify_on_client_added,
       :notify_on_anomaly_identified,
       :expired_at,
+      :copy_form_id,
       access_control_ids: [],
       contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
     )

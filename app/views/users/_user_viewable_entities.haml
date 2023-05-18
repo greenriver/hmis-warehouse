@@ -1,6 +1,10 @@
 - base ||= 'user'
 
 %h3 User Access
-%p Access to data in the warehouse is granted through Access Controls.  Access Controls are a combination of a Role that grants permissions, an Entity Group that specifies where the permissions should be applied, and a User Group containing the members who should be granted the permission to the associated entities.  You can assign the user to specific groups below.  Any Access Controls they have will be listed at the bottom of the page.
+%p.alert.alert-info
+  Access to data in the warehouse is granted through Access Controls.  Access Controls are a combination of a Role that grants permissions, an Entity Group that specifies where the permissions should be applied, and a User Group containing the members who should be granted the permission to the associated entities.  It is often easiest to choose an existing user whose permission is equivalent to what this user should have.  You can do that here, and further down the page, you can manually add the user to additional groups if necessary.
+  Any Access Controls for the user will be listed at the bottom of the page after saving.
+- users = User.not_system.active.to_a.map { |u| [u.name_with_email, u.id] }.reject { |_, id| id == @user.id }
 
+= f.input :copy_form_id, as: :select_two, label_method: :first, value_method: :last, collection: users, label: 'User to copy from'
 = f.association :user_groups, as: :select_two, collection: UserGroup.options_for_select, label: 'User Groups', input_html: { multiple: true }

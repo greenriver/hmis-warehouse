@@ -75,6 +75,8 @@ module Admin
           @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update!(user_params)
+          # if we have a user to copy user groups from, add them
+          copy_user_groups
         end
       rescue Exception
         flash[:error] = 'Please review the form problems below'
@@ -82,6 +84,18 @@ module Admin
         return
       end
       respond_with(@user, location: edit_admin_user_path(@user))
+    end
+
+    private def copy_user_groups
+      return unless @user
+      return unless user_params[:copy_form_id].present?
+
+      source_user = User.active.not_system.find(user_params[:copy_form_id].to_i)
+      return unless source_user
+
+      source_user.user_groups.each do |group|
+        group.add(@user)
+      end
     end
 
     def destroy
@@ -152,6 +166,7 @@ module Admin
         :otp_required_for_login,
         :expired_at,
         :training_completed,
+        :copy_form_id,
         user_group_ids: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
       )
