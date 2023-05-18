@@ -17,11 +17,9 @@ module HmisExternalApis::AcHmis
       self.errors = []
       success = nil
       # transact assumes we are only mutating records in the warehouse db
-      HmisExternalApis::AcHmis::Referral.transaction do
-        referral = create_referral
-        raise ActiveRecord::Rollback unless referral
+      success = HmisExternalApis::AcHmis::Referral.transaction do
+        referral = find_or_create_referral
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
-
         raise ActiveRecord::Rollback unless create_referral_household_members(referral)
 
         success = referral
@@ -31,15 +29,19 @@ module HmisExternalApis::AcHmis
 
     protected
 
-    def create_referral
-      params => {referral_id:, referral_date:, service_coordinator:}
-      return error_out('Referral ID already exists') if HmisExternalApis::AcHmis::Referral.where(identifier: referral_id).exists?
-
-      referral = HmisExternalApis::AcHmis::Referral.new
-      referral.identifier = referral_id
-      referral.referral_date = referral_date
-      referral.service_coordinator = :service_coordinator
-      referral.save!
+    def find_or_create_referral
+      referral = HmisExternalApis::AcHmis::Referral
+        .where(identifier: params.fetch(:referral_id))
+        .first_or_initialize
+      referral_params = params.slice(
+        :referral_date,
+        :service_coordinator,
+        :score,
+        :needs_wheelchair_accessible_unit,
+        :referral_notes,
+        :chronic,
+      )
+      referral.update!(referral_params)
       referral
     end
 
