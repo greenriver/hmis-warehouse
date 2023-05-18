@@ -945,9 +945,9 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     id bigint NOT NULL,
     owner_type character varying NOT NULL,
     custom_service_type_id bigint,
-    field_type character varying NOT NULL,
-    key character varying NOT NULL,
-    label character varying NOT NULL,
+    field_type character varying,
+    key character varying,
+    label character varying,
     repeats boolean DEFAULT false NOT NULL,
     data_source_id integer,
     "UserID" character varying(32) NOT NULL,
@@ -52759,7 +52759,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230505152333'),
 ('20230509161642'),
 ('20230511155839'),
-('20230512135003'),
-('20230518172244');
+('20230512135003');
 
 

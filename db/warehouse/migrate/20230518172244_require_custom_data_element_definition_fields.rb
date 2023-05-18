@@ -7,5 +7,11 @@ class RequireCustomDataElementDefinitionFields < ActiveRecord::Migration[6.1]
     change_column_null :CustomDataElementDefinitions, :field_type, false
     change_column_null :CustomDataElementDefinitions, :key, false
     change_column_null :CustomDataElementDefinitions, :label, false
+
+    # Delete duplicates before adding uniqueness constraint
+    Hmis::Hud::CustomDataElementDefinition.where.not(id: Hmis::Hud::CustomDataElementDefinition.group(:owner_type, :key).select("min(id)")).delete_all
+
+    add_index :CustomDataElementDefinitions, :key
+    add_index :CustomDataElementDefinitions, [:owner_type, :key], unique: true, name: 'unique_index_ensuring_one_key_per_record_type'
   end
 end
