@@ -86,6 +86,7 @@ FactoryBot.define do
   factory :report_viewer, class: 'Role' do
     name { 'report viewer' }
     can_view_all_reports { true }
+    can_view_assigned_reports { true }
   end
 
   factory :assigned_report_viewer, class: 'Role' do

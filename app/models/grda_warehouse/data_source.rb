@@ -88,10 +88,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(id: ids)
   end
 
-  scope :directly_viewable_by, ->(user) do
-    return none unless user.can_view_projects?
+  scope :directly_viewable_by, ->(user, permission: :can_view_projects) do
+    return none unless user.send("#{permission}?")
 
-    ids = data_source_ids_from_viewable_entities(user, :can_view_projects)
+    ids = data_source_ids_from_viewable_entities(user, permission)
     # If have a set (not a nil) and it's empty, this user can't access any projects
     return none if ids.is_a?(Set) && ids.empty?
 
@@ -279,8 +279,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
-  def directly_viewable_by?(user)
-    self.class.directly_viewable_by(user).where(id: id).exists?
+  def directly_viewable_by?(user, permission: :can_view_projects)
+    self.class.directly_viewable_by(user, permission: permission).where(id: id).exists?
   end
 
   def users

@@ -35,7 +35,7 @@ module GrdaWarehouse
     end
 
     scope :viewable_by, ->(user) do
-      where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user).select(:id))
+      where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user, :can_upload_hud_zips).select(:id))
     end
 
     def has_import_log? # rubocop:disable Naming/PredicateName

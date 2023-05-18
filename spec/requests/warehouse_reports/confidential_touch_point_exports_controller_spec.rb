@@ -3,16 +3,18 @@ require 'rails_helper'
 RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: :request do
   let!(:no_data_source_access_group) { create :access_group }
   let!(:report_group) { create :access_group }
+  let!(:report) { create :confidential_touch_point_report }
+  let!(:other_report) { create :touch_point_report }
+
+  let!(:user) { create :user }
+  let(:other_user) { create :user }
+
+  let!(:admin_role) { create :health_admin }
+  let!(:role) { create :report_viewer }
+  let!(:other_report_viewer) { create :report_viewer }
+  let!(:role) { create :assigned_report_viewer }
+
   describe 'Health admin user' do
-    let(:user) { create :user }
-    let(:admin_role) { create :health_admin }
-
-    let!(:report) { create :confidential_touch_point_report }
-    let!(:other_report) { create :touch_point_report }
-
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
     before(:each) do
       user.health_roles << admin_role
       add_random_user_with_report_access
@@ -36,12 +38,6 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
   end
 
   describe 'User with no access to reports' do
-    let(:user) { create :user }
-    let!(:report) { create :confidential_touch_point_report }
-
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
     before(:each) do
       add_random_user_with_report_access
 
@@ -57,13 +53,6 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
   end
 
   describe 'Report viewer' do
-    let(:user) { create :user }
-    let(:role) { create :report_viewer }
-    let!(:report) { create :confidential_touch_point_report }
-
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
     before(:each) do
       add_random_user_with_report_access
 
@@ -80,13 +69,6 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
   end
 
   describe 'Assigned Report viewer' do
-    let(:user) { create :user }
-    let(:role) { create :assigned_report_viewer }
-    let(:report) { create :confidential_touch_point_report }
-
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
     before(:each) do
       add_random_user_with_report_access
       setup_access_control(user, role, no_data_source_access_group)

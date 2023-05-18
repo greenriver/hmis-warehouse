@@ -73,7 +73,7 @@ module ClientAccessControl
       # "none" is returning as "" which blows things up terribly.
       from_assigned_projects_query = viewable_enrollments_from_access_controls(user).joins(:client).select(c_t[:id]).to_sql
       from_rois_query = viewable_enrollments_from_rois(user).joins(:client).select(c_t[:id]).to_sql
-      from_authoritative_ds = authoritative_viewable_ds_ids(user)
+      from_authoritative_ds = authoritative_viewable_ds_ids(user, permission: :can_view_clients)
 
       where_clause = c_t[:id].in([]) # generates 1=0
       where_clause = where_clause.or(c_t[:id].in(Arel.sql(from_assigned_projects_query))) if from_assigned_projects_query.present?
@@ -95,7 +95,7 @@ module ClientAccessControl
       # "none" is returning as "" which blows things up terribly.
       from_assigned_projects_query = searchable_enrollments_from_access_controls(user).joins(:client).select(c_t[:id]).to_sql
       from_rois_query = searchable_enrollments_from_rois(user).joins(:client).select(c_t[:id]).to_sql
-      from_authoritative_ds = authoritative_viewable_ds_ids(user)
+      from_authoritative_ds = authoritative_viewable_ds_ids(user, permission: :can_search_own_clients)
 
       where_clause = c_t[:id].in([]) # generates 1=0
       where_clause = where_clause.or(c_t[:id].in(Arel.sql(from_assigned_projects_query))) if from_assigned_projects_query.present?
@@ -200,8 +200,8 @@ module ClientAccessControl
       ::GrdaWarehouse::Hud::Client.unscoped.paranoia_scope
     end
 
-    private def authoritative_viewable_ds_ids(user)
-      @authoritative_viewable_ds_ids ||= ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user).pluck(:id)
+    private def authoritative_viewable_ds_ids(user, permission: :can_view_clients)
+      @authoritative_viewable_ds_ids ||= ::GrdaWarehouse::DataSource.authoritative.directly_viewable_by(user, permission: permission).pluck(:id)
     end
 
     # private def potentially_viewable_data_source_ids(user)

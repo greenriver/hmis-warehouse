@@ -3,17 +3,20 @@ require 'rails_helper'
 RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
   let!(:no_data_source_access_group) { create :access_group }
   let!(:report_group) { create :access_group }
+  let!(:user) { create :user }
+  let!(:role) { create :admin_role }
+  let!(:report) { create :touch_point_report }
+
+  let!(:other_user) { create :user }
+  let!(:other_report_viewer) { create :report_viewer }
+  let!(:report_viewer) { create :report_viewer }
+  let!(:assigned_report_viewer) { create :assigned_report_viewer }
+
   describe 'Administrative user' do
-    let(:user) { create :user }
-    let(:role) { create :admin_role }
-    let!(:report) { create :touch_point_report }
-
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
     before(:each) do
       add_random_user_with_report_access
-      setup_access_control(user, role, no_data_source_access_group)
+      report_group.set_viewables({ reports: [report.id] })
+      setup_access_control(user, role, report_group)
       sign_in(user)
     end
 
@@ -26,11 +29,6 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
   end
 
   describe 'User with no access to reports' do
-    let(:user) { create :user }
-    let!(:report) { create :touch_point_report }
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
     before(:each) do
       add_random_user_with_report_access
 
@@ -46,15 +44,10 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
   end
 
   describe 'Report viewer' do
-    let(:user) { create :user }
-    let(:role) { create :report_viewer }
-    let!(:report) { create :touch_point_report }
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
     before(:each) do
       add_random_user_with_report_access
-      setup_access_control(user, role, no_data_source_access_group)
+      report_group.set_viewables({ reports: [report.id] })
+      setup_access_control(user, report_viewer, report_group)
       sign_in(user)
     end
 
@@ -67,15 +60,11 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
   end
 
   describe 'Assigned Report viewer' do
-    let(:user) { create :user }
-    let(:role) { create :assigned_report_viewer }
-    let!(:report) { create :touch_point_report }
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
     before(:each) do
       add_random_user_with_report_access
-      setup_access_control(user, role, no_data_source_access_group)
+      # Remove previously assigned access
+      user.user_group_members.delete_all
+      setup_access_control(user, assigned_report_viewer, no_data_source_access_group)
       sign_in(user)
     end
 
