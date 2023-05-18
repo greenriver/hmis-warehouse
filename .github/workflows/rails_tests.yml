@@ -49,8 +49,8 @@ jobs:
 
       sftp:
         image: justinhimself/sftp
-        volumes:
-          - spec/support/sftp.conf:/etc/sftp/users.conf:ro
+        options: >-
+          user:password:::sftp
 
     env:
       CLIENT: test
