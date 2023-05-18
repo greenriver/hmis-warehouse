@@ -49,8 +49,6 @@ jobs:
 
       sftp:
         image: justinhimself/sftp
-        options: >-
-          user:password:::sftp
 
     env:
       CLIENT: test
