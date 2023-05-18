@@ -10,6 +10,8 @@ module MedicaidHmisInterchange::Health
     has_many :submission_external_ids
     has_many :external_ids, through: :submission_external_ids
 
+    attr_accessor :test_file, :test_file_version
+
     def run_and_save!(contact_email, path = nil)
       @timestamp = DateTime.current
       @contact_email = contact_email
@@ -34,7 +36,7 @@ module MedicaidHmisInterchange::Health
     end
 
     def metadata_filename
-      "metadata.#{timestamp || generate_timestamp}.txt"
+      "metadata_#{timestamp || generate_timestamp}.txt"
     end
 
     def zip_filename
@@ -54,7 +56,9 @@ module MedicaidHmisInterchange::Health
     private def generate_submission
       file_path = File.join(@file_path, submission_filename)
       count = 0
+      return send_test_file(file_path) if test_file
 
+      seen_medicaid_ids = Set.new
       GrdaWarehouse::Hud::Client.homeless_on_date.
         where(id: ExternalId.pluck(:client_id)).
         pluck_in_batches(:id) do |batch|
@@ -71,6 +75,9 @@ module MedicaidHmisInterchange::Health
             preload(service_history_enrollments: [:service_history_services, enrollment: :current_living_situations]).
             merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)).
             find_each do |client|
+            medicaid_id = medicaid_ids[client.id].identifier
+            next if seen_medicaid_ids.include?(medicaid_id)
+
             # If a client has more than one enrollment, use the longest duration
             client_homeless_days = 0
             client.service_history_enrollments.each do |enrollment|
@@ -81,7 +88,8 @@ module MedicaidHmisInterchange::Health
                 homeless_days(enrollment),
               ].max
             end
-            results[medicaid_ids[client.id].identifier] = client_homeless_days >= 180 ? 'Y' : 'N'
+            seen_medicaid_ids << medicaid_id
+            results[medicaid_id] = client_homeless_days >= 180 ? 'Y' : 'N'
           end
         end
         File.open(file_path, 'a') do |file|
@@ -92,6 +100,43 @@ module MedicaidHmisInterchange::Health
         end
       end
       [file_path, count]
+    end
+
+    def send_test_file(file_path)
+      raise 'You must set `test_file_version` to run a test' unless test_file_version
+
+      count = 0
+      lines = test_files[test_file_version]
+      File.open(file_path, 'a') do |file|
+        lines.each do |medicaid_id, homeless_flag|
+          file << "#{medicaid_id}|#{homeless_flag}\n"
+          count += 1
+        end
+      end
+      [file_path, count]
+    end
+
+    def test_files
+      {
+        1 => [
+          [123456000789, 'N'], # rubocop:disable Style/NumericLiterals
+          [123456000790, 'Y'], # rubocop:disable Style/NumericLiterals
+        ],
+        2 => [
+          [123456000789,	'Y'], # rubocop:disable Style/NumericLiterals
+          [123456000790,	'Y'], # rubocop:disable Style/NumericLiterals
+          [123456000791,	'N'], # rubocop:disable Style/NumericLiterals
+        ],
+        3 => [
+          [123456000789, 'Y'], # rubocop:disable Style/NumericLiterals
+          [123456000791, 'N'], # rubocop:disable Style/NumericLiterals
+          [123456000792, 'N'], # rubocop:disable Style/NumericLiterals
+        ],
+        4 => [
+          [123456000789, 'Y'], # rubocop:disable Style/NumericLiterals
+          [123456000791, 'N'], # rubocop:disable Style/NumericLiterals
+        ],
+      }
     end
 
     # clients in NbN ES are given 30 days for each month they have at least one bed-night record,
@@ -130,8 +175,8 @@ module MedicaidHmisInterchange::Health
     private def generate_metadata(record_count)
       file_path = File.join(@file_path, metadata_filename)
       File.open(file_path, 'w') do |file|
-        file << "Date Created = \"#{@timestamp.strftime('%Y%m%d')}\"\n"
-        file << "RDC_Homeless File Name = \"#{submission_filename}\"\n"
+        file << "Date_Created = \"#{@timestamp.strftime('%Y%m%d')}\"\n"
+        file << "RDC_Homeless_File_Name = \"#{submission_filename}\"\n"
         file << "Total_Records = \"#{record_count}\"\n"
         file << "Return_To = \"#{@contact_email}\"\n"
       end
