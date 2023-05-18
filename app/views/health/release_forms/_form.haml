@@ -1,5 +1,4 @@
 = simple_form_for @release_form, url: form_url, as: :form, remote: true, html: {multipart: true} do |f|
-
   - if @release_form.errors.any?
     .alert.alert-danger.flex-column.align-items-start
       %p Please review the errors below:
