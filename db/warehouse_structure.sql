@@ -945,9 +945,9 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     id bigint NOT NULL,
     owner_type character varying NOT NULL,
     custom_service_type_id bigint,
-    field_type character varying,
-    key character varying,
-    label character varying,
+    field_type character varying NOT NULL,
+    key character varying NOT NULL,
+    label character varying NOT NULL,
     repeats boolean DEFAULT false NOT NULL,
     data_source_id integer,
     "UserID" character varying(32) NOT NULL,
@@ -41334,6 +41334,13 @@ CREATE INDEX "index_CustomDataElementDefinitions_on_custom_service_type_id" ON p
 
 
 --
+-- Name: index_CustomDataElementDefinitions_on_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomDataElementDefinitions_on_key" ON public."CustomDataElementDefinitions" USING btree (key);
+
+
+--
 -- Name: index_CustomDataElementDefinitions_on_owner_type; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49895,6 +49902,13 @@ CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_
 
 
 --
+-- Name: unique_index_ensuring_one_key_per_record_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_index_ensuring_one_key_per_record_type ON public."CustomDataElementDefinitions" USING btree (owner_type, key);
+
+
+--
 -- Name: unique_index_ensuring_one_primary_per_client; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52759,6 +52773,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230505152333'),
 ('20230509161642'),
 ('20230511155839'),
-('20230512135003');
+('20230512135003'),
+('20230518172244');
 
 
