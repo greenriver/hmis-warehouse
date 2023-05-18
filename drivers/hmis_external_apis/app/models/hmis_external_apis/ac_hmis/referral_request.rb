@@ -20,6 +20,7 @@ module HmisExternalApis::AcHmis
     # active requests are ones that have not yet been fulfilled (not referenced by a referral)
     scope :active, -> {
       where.not(id: HmisExternalApis::AcHmis::ReferralPosting.select(:referral_request_id))
+        .where(voided_at: nil)
     }
   end
 end

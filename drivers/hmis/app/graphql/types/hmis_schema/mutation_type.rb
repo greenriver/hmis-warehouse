@@ -40,5 +40,6 @@ module Types
     field :submit_form, mutation: Mutations::SubmitForm
 
     field :clear_mci, mutation: Mutations::AcHmis::ClearMci
+    field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
   end
 end
