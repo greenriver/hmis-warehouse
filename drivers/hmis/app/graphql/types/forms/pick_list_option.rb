@@ -32,6 +32,8 @@ module Types
         living_situation_picklist(as: :prior)
       when 'SERVICE_TYPE'
         service_type_picklist
+      when 'AVAILABLE_SERVICE_TYPES'
+        available_service_types_picklist(project)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -144,6 +146,24 @@ module Types
           initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
         }
       end
+    end
+
+    def self.available_service_types_picklist(project)
+      return [] unless project.present?
+
+      service_form_definitions = Hmis::Form::Definition.
+        with_role(:SERVICE).
+        for_project(project)
+
+      # First get ALL the custom service types, then filter it down to only
+      # the service types that have Service Form Definitions specified for this project.
+      options = Hmis::Hud::CustomServiceType.preload(:custom_service_category).to_a.
+        select { |cst| service_form_definitions.for_service_type(cst).exists? }.
+        map(&:to_pick_list_option).
+        sort_by { |obj| obj[:group_label] + obj[:label] }
+
+      options[0][:initial_selected] = true if options.size == 1
+      options
     end
 
     def self.service_type_picklist

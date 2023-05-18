@@ -166,6 +166,89 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ),
     )
   end
+
+  describe 'Resolving available Service Types for a Project' do
+    include_context 'hmis service setup'
+    let(:bednight_service_type) do
+      Hmis::Hud::CustomServiceType.where(hud_record_type: 200).first!
+    end
+    let(:bednight_service_category) { bednight_service_type.category }
+    let(:service_form_definition) do
+      Hmis::Form::Definition.where(role: :SERVICE).first
+    end
+    let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 9 }
+
+    let!(:o2) { create :hmis_hud_organization, data_source: ds1 }
+    let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o2, project_type: 11 }
+
+    before(:each) do
+      # Remove defaults for service
+      Hmis::Form::Instance.defaults.
+        where(definition_identifier: service_form_definition.identifier).
+        destroy_all
+    end
+
+    def picklist_option_codes(project)
+      Types::Forms::PickListOption.options_for_type(
+        'AVAILABLE_SERVICE_TYPES',
+        user: hmis_user,
+        relation_id: project.id,
+      ).map { |opt| opt[:code] }
+    end
+
+    it 'is empty if there are no instances that specify custom service category or custom service type' do
+      # Should return empty, because the instance does not specify a service type or category
+      # There are no "defaults" allowed for services
+      create(
+        :hmis_form_instance,
+        entity: p1,
+        definition_identifier: service_form_definition.identifier,
+      )
+      expect(picklist_option_codes(p1)).to be_empty
+      expect(picklist_option_codes(p2)).to be_empty
+    end
+
+    it 'works when instance is associated by service category and project type' do
+      # Instance: use this service definition for BedNights in ES projects
+      create(
+        :hmis_form_instance,
+        entity_type: 'ProjectType',
+        entity_id: 1, # ES
+        definition_identifier: service_form_definition.identifier,
+        custom_service_category_id: bednight_service_category.id,
+      )
+
+      # ES project
+      expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
+      # PH project
+      expect(picklist_option_codes(p2)).to be_empty
+    end
+
+    it 'works when instance is associated by service category and project' do
+      # Instance: use this service definition for BedNights in this specific project (p2)
+      create(
+        :hmis_form_instance,
+        entity: p2,
+        definition_identifier: service_form_definition.identifier,
+        custom_service_category_id: bednight_service_category.id,
+      )
+      expect(picklist_option_codes(p2)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p1)).to be_empty
+    end
+
+    it 'works when instance is associated by service type and organization' do
+      # Instance: use this service definition for service type cst1 in organization o1
+      create(
+        :hmis_form_instance,
+        entity: o1,
+        definition_identifier: service_form_definition.identifier,
+        custom_service_type: cst1,
+      )
+      expect(picklist_option_codes(p1)).to contain_exactly(cst1.id.to_s)
+      expect(picklist_option_codes(p2)).to contain_exactly(cst1.id.to_s)
+      expect(picklist_option_codes(p3)).to be_empty
+    end
+  end
 end
 
 RSpec.configure do |c|

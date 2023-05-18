@@ -3875,6 +3875,7 @@ type PickListOption {
 
 enum PickListType {
   AVAILABLE_FILE_TYPES
+  AVAILABLE_SERVICE_TYPES
 
   """
   Unoccupied units in the specified project

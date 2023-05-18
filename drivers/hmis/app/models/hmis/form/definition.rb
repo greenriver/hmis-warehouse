@@ -68,6 +68,22 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES
 
+  scope :for_service_type, ->(service_type) do
+    instance_scope = Hmis::Form::Instance.none
+
+    base_scope = Hmis::Form::Instance.joins(:definition)
+    [
+      base_scope.for_service_type(service_type.id),
+      base_scope.for_service_category(service_type.custom_service_category_id),
+    ].each do |scope|
+      next if instance_scope.present?
+
+      instance_scope = scope unless scope.empty?
+    end
+
+    where(identifier: instance_scope.pluck(:definition_identifier))
+  end
+
   scope :for_project, ->(project) do
     instance_scope = Hmis::Form::Instance.none
 

@@ -5,6 +5,7 @@
 ###
 
 class Hmis::Form::Instance < ::GrdaWarehouseBase
+  include Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_form_instances
 
   # ! If entity is ProjectType, then using this association directly might cause issues since the ID points to an enum value, not an actual AR entity
@@ -23,6 +24,6 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   scope :for_organization, ->(organization_id) { for_organizations.where(entity_id: organization_id) }
   scope :for_project_type, ->(project_type) { for_project_types.where(entity_id: project_type) }
 
-  scope :for_service_type, ->(service_type) { where(custom_service_type: service_type) }
-  scope :for_service_category, ->(category) { where(custom_service_category: category) }
+  scope :for_service_type, ->(service_type_id) { where(custom_service_type: service_type_id) }
+  scope :for_service_category, ->(category_id) { where(custom_service_category_id: category_id) }
 end
