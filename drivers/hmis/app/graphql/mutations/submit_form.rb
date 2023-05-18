@@ -96,12 +96,7 @@ module Mutations
           record.owner.save! # Save the actual service record
           record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
         elsif record.is_a? HmisExternalApis::AcHmis::ReferralRequest
-          begin
-            HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
-          rescue HmisErrors::ApiError => e
-            errors.add :base, :server_error, full_message: e.message
-            return { errors: errors }
-          end
+          HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         else
           record.save!
           record.touch

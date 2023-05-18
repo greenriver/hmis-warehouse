@@ -13,39 +13,28 @@ module Mutations
     field :record, Types::HmisSchema::ReferralRequest, null: true
 
     def resolve(referral_request_id:)
-      return error_response('connection not configured') unless HmisExternalApis::AcHmis::LinkApi.enabled?
+      handle_error('connection not configured') unless HmisExternalApis::AcHmis::LinkApi.enabled?
 
       request = HmisExternalApis::AcHmis::ReferralRequest.active
         .viewable_by(current_user)
         .find_by(id: referral_request_id)
-      return error_response('referral request record not found') unless request
+      handle_error('referral request not found') unless request
 
-      project = Hmis::Hud::Project.viewable_by(current_user).find(request.project_id)
-      return error_response('project record not found') unless project
+      allowed = current_user.can_manage_incoming_referrals_for?(request.project)
+      handle_error('access denied') unless allowed
 
-      allowed = current_user.can_manage_incoming_referrals_for?(project)
-      return error_response('access denied') unless allowed
+      HmisExternalApis::AcHmis::VoidReferralRequestJob.perform_now(
+        referral_request: request,
+        voided_by: current_user,
+      )
 
-      begin
-        HmisExternalApis::AcHmis::VoidReferralRequestJob.perform_now(
-          referral_request: request,
-          voided_by: current_user,
-        )
-      rescue HmisErrors::ApiError => e
-        return error_response(e.message)
-      end
-
-      {
-        record: request,
-      }
+      { record: request }
     end
 
     protected
 
-    def error_response(msg)
-      errors = HmisErrors::Errors.new
-      errors.add :base, :server_error, full_message: msg
-      { errors: errors }
+    def handle_error(msg)
+      raise msg
     end
   end
 end
