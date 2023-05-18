@@ -111,6 +111,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     scope.order(version: :desc).first
   end
 
+  def self.find_definition_for_service_type(service_type, project:)
+    Hmis::Form::Definition.with_role(:SERVICE).
+      for_project(project).
+      for_service_type(service_type).
+      order(version: :desc).first
+  end
+
   # Validate JSON definition when loading, to ensure no duplicate link IDs
   def self.validate_json(json)
     seen_link_ids = Set.new

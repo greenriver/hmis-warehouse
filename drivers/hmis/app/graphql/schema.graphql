@@ -4170,6 +4170,11 @@ type Query {
   getFormDefinition(enrollmentId: ID, projectId: ID, role: FormRole!): FormDefinition
 
   """
+  Get most relevant form definition for the specified service type
+  """
+  getServiceFormDefinition(customServiceTypeId: ID, projectId: ID!): FormDefinition
+
+  """
   Inventory lookup
   """
   inventory(id: ID!): Inventory
