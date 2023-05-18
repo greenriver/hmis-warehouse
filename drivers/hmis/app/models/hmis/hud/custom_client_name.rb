@@ -22,6 +22,13 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
     update_client_name if primary?
   end
 
+  class CannotDestroyPrimaryNameException < StandardError
+  end
+
+  before_destroy do
+    raise(CannotDestroyPrimaryNameException) if primary
+  end
+
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -37,6 +44,14 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   # hide previous declaration of :viewable_by, we'll use this one
   replace_scope :viewable_by, ->(user) do
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
+  end
+
+  def ==(other)
+    columns = [:first, :last, :middle, :suffix, :use]
+
+    columns.all? do |col|
+      send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
+    end
   end
 
   def primary?

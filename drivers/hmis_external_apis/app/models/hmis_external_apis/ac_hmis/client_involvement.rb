@@ -95,6 +95,9 @@ module HmisExternalApis::AcHmis
           program_name: en.project.project_name,
           provider_name: en.project.organization.organization_name,
           client_name: en.client.brief_name,
+          household_id: en.household_id,
+          enrollment_id: en.enrollment_id,
+          relationship_to_hoh: en.relationship_to_hoh,
         }
       end
     end
