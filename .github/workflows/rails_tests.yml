@@ -176,7 +176,7 @@ jobs:
         env:
           GROVER_NO_SANDBOX: true
           CHROMIUM_PATH: /usr/bin/chromium-browser
-          MAX_FAILURES: 20
+          MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
