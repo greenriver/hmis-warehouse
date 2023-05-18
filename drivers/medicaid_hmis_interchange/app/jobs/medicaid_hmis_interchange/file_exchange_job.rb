@@ -4,20 +4,24 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'net/sftp'
+# frozen_string_literal: true
 
+require 'net/sftp'
 module MedicaidHmisInterchange
   class FileExchangeJob < ::BaseJob
+    INBOUND_SUB_PATH = 'from_ehs'
+    OUTBOUND_SUB_PATH = 'to_ehs'
     def perform
       # Don't run, if not configured.
       return unless sftp_credentials
 
-      file_list = fetch_file_list
-      if file_list.empty?
+      sent_files = fetch_file_list(OUTBOUND_SUB_PATH)
+      received_files = fetch_file_list(INBOUND_SUB_PATH)
+      if sent_files.empty?
         deliver_submission
         touch_trigger_file
       else
-        response = find_response(file_list)
+        response = find_response(received_files)
         if response.present?
           response.process_response
 
@@ -27,15 +31,15 @@ module MedicaidHmisInterchange
       end
     end
 
-    private def fetch_file_list
+    private def fetch_file_list(sub_path)
       directory = sftp_credentials[:path]
       results = []
-      puts 'Fetching File list'
       using_sftp do |sftp|
-        sftp.dir.glob(directory, '*').each do |remote|
+        # Always check in the `from_ehs` sub-directory for the response
+        sftp.dir.glob("#{directory}/#{sub_path}", '*').each do |remote|
           next unless remote.name.match?(/.*rdc_homeless.*/)
 
-          results << File.join(directory, remote.name)
+          results << File.join(directory, sub_path, remote.name)
         end
       end
 
@@ -44,7 +48,7 @@ module MedicaidHmisInterchange
 
     private def find_response(file_list)
       most_recent_upload = MedicaidHmisInterchange::Health::Submission.last
-      response_path = File.join(sftp_credentials[:path], most_recent_upload.response_filename)
+      response_path = File.join(sftp_credentials[:path], INBOUND_SUB_PATH, most_recent_upload.response_filename)
       return nil unless file_list.detect { |name| name == response_path }
 
       Tempfile.create(File.basename(response_path)) do |tmpfile|
@@ -59,12 +63,10 @@ module MedicaidHmisInterchange
     end
 
     private def deliver_submission
-      puts 'Generating submission file'
       submission = MedicaidHmisInterchange::Health::Submission.new
       zip_path = submission.run_and_save!(sftp_credentials[:data_source_name])
-      puts 'Sending submission'
       using_sftp do |sftp|
-        sftp.upload!(zip_path, File.join(sftp_credentials[:path], submission.zip_filename))
+        sftp.upload!(zip_path, File.join("#{sftp_credentials[:path]}/#{OUTBOUND_SUB_PATH}", submission.zip_filename))
       end
     ensure
       submission.remove_export_directory
@@ -72,7 +74,7 @@ module MedicaidHmisInterchange
 
     private def touch_trigger_file
       using_sftp do |sftp|
-        sftp.upload!('/dev/null', File.join(sftp_credentials[:path], 'rdc_homeless_done.txt'))
+        sftp.upload!('/dev/null', File.join("#{sftp_credentials[:path]}/#{OUTBOUND_SUB_PATH}", 'rdc_homeless_done.txt'))
       end
     end
 

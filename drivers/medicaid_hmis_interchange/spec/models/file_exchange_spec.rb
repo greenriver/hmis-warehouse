@@ -1,22 +1,34 @@
 require 'rails_helper'
-
+# You'll need `docker-compose up -d sftp` before this will work
 RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
   let!(:sftp_credentials) { create(:mhx_sftp_credentials) }
   let!(:job) { described_class.new }
 
   before :each do
     cleanup_sftp_directory
+    job.send(:using_sftp) do |sftp|
+      # NOTES for ls of SFTP
+      # sftp.dir.foreach("/") do |entry|
+      #   puts entry.longname
+      # end
+      sftp.mkdir!("#{sftp_credentials[:path]}/to_ehs")
+      sftp.mkdir!("#{sftp_credentials[:path]}/from_ehs")
+    end
   end
 
-  xit 'checks empty file list' do
-    files = job.send(:fetch_file_list)
+  # after :all do
+  #   cleanup_sftp_directory
+  # end
+
+  it 'checks empty file list' do
+    files = job.send(:fetch_file_list, 'to_ehs')
 
     expect(files).to be_empty
   end
 
-  xit 'creates a trigger file' do
+  it 'creates a trigger file' do
     job.send(:touch_trigger_file)
-    files = job.send(:fetch_file_list)
+    files = job.send(:fetch_file_list, 'to_ehs')
 
     expect(files).to_not be_empty
   end
@@ -39,37 +51,37 @@ RSpec.describe MedicaidHmisInterchange::FileExchangeJob, type: :model do
       client.save!
     end
 
-    xit 'submits for the first time' do
+    it 'submits for the first time' do
       job.perform
 
-      files = job.send(:fetch_file_list)
+      files = job.send(:fetch_file_list, 'to_ehs')
 
       expect(files.count).to eq(2) # The zip file, and the trigger file
     end
 
-    xit "doesn't submit if pending" do
+    it "doesn't submit if pending" do
       job.perform
       job.perform
 
-      files = job.send(:fetch_file_list)
+      files = job.send(:fetch_file_list, 'to_ehs')
 
       expect(files.count).to eq(2) # The zip file, and the trigger file
     end
 
-    xit 'continues after the last submission is processed' do
+    it 'continues after the last submission is processed' do
       job.perform
 
       most_recent_upload = MedicaidHmisInterchange::Health::Submission.last
-      FileUtils.touch File.join('tmp', most_recent_upload.response_filename)
+      FileUtils.touch File.join('tmp/sftp_spec/from_ehs', most_recent_upload.response_filename)
 
       job.perform
 
-      files = job.send(:fetch_file_list)
-      expect(files.count).to eq(4) # processed + response and new submission
+      files = job.send(:fetch_file_list, 'to_ehs')
+      expect(files.count).to eq(3) # processed + response and new submission
     end
   end
 
   def cleanup_sftp_directory
-    FileUtils.rm Dir.glob('tmp/*rdc_homeless*')
+    FileUtils.rm_rf Dir.glob('tmp/sftp_spec/*')
   end
 end
