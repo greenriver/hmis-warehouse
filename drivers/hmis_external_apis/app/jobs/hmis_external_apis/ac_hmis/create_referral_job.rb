@@ -33,6 +33,7 @@ module HmisExternalApis::AcHmis
       referral = HmisExternalApis::AcHmis::Referral
         .where(identifier: params.fetch(:referral_id))
         .first_or_initialize
+      raise 'referral cant be used' unless referral.accepts_new_postings?
       referral_params = params.slice(
         :referral_date,
         :service_coordinator,
@@ -52,6 +53,7 @@ module HmisExternalApis::AcHmis
       return error_out('Posting ID already exists') if HmisExternalApis::AcHmis::ReferralPosting.where(identifier: posting_id).exists?
 
       posting = referral.postings.new(identifier: posting_id)
+      posting.attributes = params.slice(:resource_coordinator_notes)
       posting.project = mper.find_project_by_mper(program_id)
       return error_out('Project not found') unless posting.project
 
