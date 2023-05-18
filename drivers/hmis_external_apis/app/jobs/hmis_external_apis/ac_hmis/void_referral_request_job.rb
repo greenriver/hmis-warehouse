@@ -12,13 +12,8 @@ module HmisExternalApis::AcHmis
 
     # @param referral_request [HmisExternalApis::AcHmis::ReferralRequest]
     # @param voided_by [Hmis::User]
-    # @param url [String]
-    def perform(referral_request:, voided_by:, url:)
-      payload = {
-        posting_id: referral_request.identifier,
-      }
-      post_referral_request(url, payload)
-      # FIXME probably should look at response?
+    def perform(referral_request:, voided_by:)
+      link.void_referral_request(id: referral_request.identifier, voided_by: voided_by)
       referral_request.update!(voided_by: voided_by, voided_at: Time.now)
     end
   end
