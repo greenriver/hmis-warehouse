@@ -26,17 +26,6 @@ module ProjectScorecard
         score(utilization_percentage, 90..Float::INFINITY, 80..89)
       end
 
-      def chronic_service_percentage
-        return nil unless [chronic_households_served, total_households_served].all?
-        return 0 unless total_households_served.positive?
-
-        ((chronic_households_served / total_households_served.to_f) * 100).round
-      end
-
-      def chronic_service_score
-        score(chronic_service_percentage, 75..100, 65..74) if key_project.psh? || key_project.sh?
-      end
-
       def unsuccessful_exits
         return nil unless [total_persons_exited, total_persons_with_positive_exit, excluded_exits].all?
 
