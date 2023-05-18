@@ -17,7 +17,8 @@ RSpec.describe Clients::NotesController, type: :request do
 
   before do
     sign_in admin
-    setup_access_control(admin, admin_role, no_data_source_access_group)
+    AccessGroup.maintain_system_groups
+    setup_access_control(admin, admin_role, AccessGroup.system_access_group(:data_sources))
   end
 
   describe 'DELETE #destroy' do

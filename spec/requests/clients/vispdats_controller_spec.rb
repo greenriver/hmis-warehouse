@@ -5,6 +5,7 @@ RSpec.describe Clients::VispdatsController, type: :request do
   # Vispdat. As you add validations to Vispdat, be sure to
   # adjust the attributes here as well.
   let(:valid_attributes) { build(:vispdat).attributes }
+  let(:authoritative_data_source) { create :authoritative_data_source }
   let(:warehouse_client) { create :authoritative_warehouse_client }
   let(:client) { warehouse_client.destination }
   let(:vispdat) { create(:vispdat, client: client) }
@@ -17,9 +18,10 @@ RSpec.describe Clients::VispdatsController, type: :request do
   let(:valid_session) {}
 
   let(:user) { create :user }
-  let(:vispdat_editor) { create :vispdat_editor }
+  let(:vispdat_editor) { create :vispdat_editor, can_view_clients: true }
 
   before(:each) do
+    no_data_source_access_group.set_viewables({ data_sources: [authoritative_data_source.id] })
     setup_access_control(user, vispdat_editor, no_data_source_access_group)
     sign_in user
   end

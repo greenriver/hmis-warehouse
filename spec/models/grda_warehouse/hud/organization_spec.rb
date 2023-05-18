@@ -32,7 +32,7 @@ RSpec.describe model, type: :model do
   let!(:p7) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
   let!(:p8) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
 
-  let!(:no_permission_role) { create :role }
+  let!(:can_view_projects) { create :role, can_view_projects: true }
   let!(:no_data_source_access_group) { create :access_group }
 
   user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
@@ -62,12 +62,12 @@ RSpec.describe model, type: :model do
       describe 'user assigned to project' do
         it 'sees o1' do
           no_data_source_access_group.set_viewables({ projects: [p1.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects, no_data_source_access_group)
           expect(user_ids[user]).to eq ids[o1]
         end
         it 'sees o1 and o3' do
           no_data_source_access_group.set_viewables({ projects: [p1.id, p5.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects, no_data_source_access_group)
           expect(user_ids[user]).to eq ids[o1, o3]
         end
       end
@@ -75,12 +75,12 @@ RSpec.describe model, type: :model do
       describe 'user assigned to organization' do
         it 'sees o1' do
           no_data_source_access_group.set_viewables({ organizations: [o1.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects, no_data_source_access_group)
           expect(user_ids[user]).to eq ids[o1]
         end
         it 'sees o1 and o3' do
           no_data_source_access_group.set_viewables({ organizations: [o1.id, o3.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects, no_data_source_access_group)
           expect(user_ids[user]).to eq ids[o1, o3]
         end
       end
@@ -88,7 +88,7 @@ RSpec.describe model, type: :model do
       describe 'user assigned to data source' do
         before do
           no_data_source_access_group.set_viewables({ data_sources: [ds1.id] })
-          setup_access_control(user, no_permission_role, no_data_source_access_group)
+          setup_access_control(user, can_view_projects, no_data_source_access_group)
         end
         it 'sees o1 and o2' do
           expect(user_ids[user]).to eq ids[o1, o2]

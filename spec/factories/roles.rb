@@ -75,6 +75,7 @@ FactoryBot.define do
   factory :cohort_client_editor, class: 'Role' do
     name { 'cohort client editor' }
     can_participate_in_cohorts { true }
+    can_view_cohorts { true }
   end
 
   factory :cohort_client_viewer, class: 'Role' do

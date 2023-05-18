@@ -11,7 +11,7 @@ RSpec.describe model, type: :model do
   # project:     p1  p2  p3 p4  p5  p6 p7  p8
 
   let!(:admin_role) { create :admin_role }
-  let!(:no_permission_role) { create :role }
+  let!(:can_view_projects) { create :role, can_view_projects: true }
 
   let!(:user) { create :user }
 
@@ -61,12 +61,12 @@ RSpec.describe model, type: :model do
       describe 'user assigned to project' do
         it 'sees ds1' do
           empty_access_group.set_viewables({ projects: [p1.id] })
-          setup_access_control(user, no_permission_role, empty_access_group)
+          setup_access_control(user, can_view_projects, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
           empty_access_group.set_viewables({ projects: [p1.id, p5.id] })
-          setup_access_control(user, no_permission_role, empty_access_group)
+          setup_access_control(user, can_view_projects, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
@@ -74,12 +74,12 @@ RSpec.describe model, type: :model do
       describe 'user assigned to organization' do
         it 'sees ds1' do
           empty_access_group.set_viewables({ organizations: [o1.id] })
-          setup_access_control(user, no_permission_role, empty_access_group)
+          setup_access_control(user, can_view_projects, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
           empty_access_group.set_viewables({ organizations: [o1.id, o3.id] })
-          setup_access_control(user, no_permission_role, empty_access_group)
+          setup_access_control(user, can_view_projects, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
@@ -87,12 +87,12 @@ RSpec.describe model, type: :model do
       describe 'user assigned to data source' do
         it 'sees ds1' do
           empty_access_group.set_viewables({ data_sources: [ds1.id] })
-          setup_access_control(user, no_permission_role, empty_access_group)
+          setup_access_control(user, can_view_projects, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
           empty_access_group.set_viewables({ data_sources: [ds1.id, ds2.id] })
-          setup_access_control(user, no_permission_role, empty_access_group)
+          setup_access_control(user, can_view_projects, empty_access_group)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end

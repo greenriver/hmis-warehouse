@@ -31,6 +31,7 @@ RSpec.describe model, type: :model do
 
       describe 'admin user' do
         before do
+          AccessGroup.maintain_system_groups
           setup_access_control(user, admin_role, AccessGroup.where(name: 'All HMIS Reports').first)
         end
         after do
