@@ -338,6 +338,7 @@ module GrdaWarehouse::Tasks
 
     def choose_attributes_from_sources dest_attr, source_clients
       dest_attr = choose_best_name(dest_attr, source_clients)
+      dest_attr = choose_best_pronouns(dest_attr, source_clients)
       dest_attr = choose_best_ssn(dest_attr, source_clients)
       dest_attr = choose_best_dob(dest_attr, source_clients)
       dest_attr = choose_best_veteran_status(dest_attr, source_clients)
@@ -379,6 +380,18 @@ module GrdaWarehouse::Tasks
           dest_attr[:NameDataQuality] = best[:NameDataQuality]
         end
       end
+      dest_attr
+    end
+
+    def choose_best_pronouns dest_attr, source_clients
+      non_blank = source_clients.select { |sc| sc[:pronouns].present? }
+      if non_blank.any?
+        best = non_blank.max_by { |sc| sc[:DateUpdated] }
+        dest_attr[:pronouns] = best[:pronouns]
+      else
+        dest_attr[:pronouns] = nil
+      end
+
       dest_attr
     end
 

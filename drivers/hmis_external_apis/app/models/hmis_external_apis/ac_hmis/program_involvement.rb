@@ -91,10 +91,11 @@ module HmisExternalApis::AcHmis
           entry_date: en.entry_date,
           exit_date: en.exit_date,
           first_name: en.client.first_name,
-          household_id: en.household_id,
           last_name: en.client.last_name,
           mci_id: mci_lookup[en.client.id],
           personal_id: en.client.personal_id,
+          household_id: en.household_id,
+          enrollment_id: en.enrollment_id,
           relationship_to_hoh: en.relationship_to_hoh,
         }
       end
