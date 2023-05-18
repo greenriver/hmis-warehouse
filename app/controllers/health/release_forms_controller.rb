@@ -13,7 +13,7 @@ module Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
-    before_action :set_blank_form, only: [:new, :edit]
+    before_action :set_blank_form, only: [:new, :edit, :update]
     before_action :set_upload_object, only: [:edit, :update, :download, :remove_file]
 
     def new
@@ -56,12 +56,9 @@ module Health
       @release_form.assign_attributes(form_params)
 
       @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file&.new_record?
-      if ! request.xhr?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).update
-        respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      elsif @release_form.valid?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).update
-      end
+      Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).update if @release_form.valid?
+
+      respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
     private def set_upload_object
