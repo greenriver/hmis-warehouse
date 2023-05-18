@@ -57,7 +57,7 @@ class AcHmisStubApplication
   end
 
   def create_referral_request
-    [201, json_headers, [{ referral_request_id: id_seq }.to_json]]
+    [201, json_headers, [{ referralRequestID: id_seq }.to_json]]
   end
 
   def json_headers
