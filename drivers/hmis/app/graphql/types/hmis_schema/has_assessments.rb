@@ -19,6 +19,7 @@ module Types
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
             argument :roles, [Types::Forms::Enums::FormRole], required: false
             argument :in_progress, GraphQL::Types::Boolean, required: false
+            filter_argument HmisSchema::Assessment
             instance_eval(&block) if block_given?
           end
         end

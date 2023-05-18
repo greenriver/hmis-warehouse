@@ -78,6 +78,12 @@ type AssessmentAccess {
   id: ID!
 }
 
+input AssessmentFilterInput {
+  projects: [ID!]
+  roles: [FormRole!]
+  textSearch: String
+}
+
 input AssessmentInput {
   """
   Required if updating an existing assessment
@@ -345,7 +351,7 @@ type Client {
   access: ClientAccess!
   addresses: [ClientAddress!]!
   age: Int
-  assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filter: AssessmentFilterInput, inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   customDataElements: [CustomDataElement!]!
@@ -1636,7 +1642,7 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
-  assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filter: AssessmentFilterInput, inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   client: Client!
   dateCreated: ISO8601DateTime!

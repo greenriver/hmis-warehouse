@@ -18,6 +18,10 @@ module Types
       @page_type ||= BasePaginated.build(self)
     end
 
+    def self.filter_options(name = nil, &block)
+      @filter_options ||= BaseFilterInput.build(self, name: name, &block)
+    end
+
     def self.audit_event_type(**args)
       @audit_event_type ||= BaseAuditEvent.build(self, **args)
     end
