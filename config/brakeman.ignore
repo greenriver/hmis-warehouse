@@ -76,7 +76,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 368,
+      "line": 369,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -704,6 +704,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "4d5a9118f61ed4fb1acf4027e0b7bccb7ecd0a7db8519ad0b98190eeb28ef3c2",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/app/jobs/hmis/merge_clients_job.rb",
+      "line": 117,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.exec_query(\"UPDATE \\\"#{candidate}\\\"\\nSET client_id = #{client_to_retain.id}\\nWHERE client_id::bigint IN (#{clients_needing_reference_updates.map(&:id).join(\",\")})\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Hmis::MergeClientsJob",
+        "method": "update_client_id_foreign_keys"
+      },
+      "user_input": "candidate",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": "Internally sourced injection"
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "4dbef2124ce5f88d9517b90cfd0933fa92ca9a4353331c92fca66c397e476a6f",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -799,7 +822,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 162,
+      "line": 150,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
       "render_path": null,
@@ -960,7 +983,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 163,
+      "line": 151,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1396,7 +1419,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "drivers/hmis/app/graphql/mutations/submit_form.rb",
-      "line": 24,
+      "line": 25,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name.constantize",
       "render_path": null,
@@ -1603,7 +1626,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 389,
+      "line": 329,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
       "render_path": null,
@@ -1641,6 +1664,29 @@
         89
       ],
       "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "939e681ac683b93b797ae92577fa07ddba84dca673b596cf50f0bd54adc07638",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/app/jobs/hmis/merge_clients_job.rb",
+      "line": 160,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.exec_query(\"UPDATE \\\"#{candidate}\\\"\\nSET \\\"PersonalID\\\" = #{client_to_retain.personal_id}\\nWHERE\\n  \\\"PersonalID\\\" IN ('#{clients_needing_reference_updates.map(&:personal_id).join(\"','\")}')\\n  AND data_source_id = '#{data_source_id}'\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Hmis::MergeClientsJob",
+        "method": "update_personal_id_foreign_keys"
+      },
+      "user_input": "candidate",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": "Internally sourced injection"
     },
     {
       "warning_type": "Dangerous Send",
@@ -1982,7 +2028,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 157,
+      "line": 145,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse HEAD > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -2844,7 +2890,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "drivers/hmis/app/graphql/types/hmis_schema/submit_form_result.rb",
-      "line": 29,
+      "line": 30,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Hmis::Form::Definition::FORM_ROLE_CONFIG.find do\n (value[:class_name] == object.class.name)\n end.last[:resolve_as].constantize",
       "render_path": null,
@@ -2861,6 +2907,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-04-26 19:28:59 +0000",
+  "updated": "2023-05-16 16:29:52 +0000",
   "brakeman_version": "5.4.1"
 }

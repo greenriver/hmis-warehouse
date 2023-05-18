@@ -51,4 +51,12 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   def self.system_values
     SYSTEM_VALUES
   end
+
+  def ==(other)
+    columns = [:system, :use, :value]
+
+    columns.all? do |col|
+      send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
+    end
+  end
 end
