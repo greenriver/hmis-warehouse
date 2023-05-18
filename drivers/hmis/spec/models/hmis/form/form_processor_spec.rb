@@ -1069,7 +1069,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       it 'updates a CustomDataElement (repeats: false)' do
         record = i1
-        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', key: 'myCustomKey')
+        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory')
         cde = create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
         expect(record.custom_data_elements.first!.value_string).to eq(cde.value_string)
 
@@ -1105,7 +1105,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       it 'updates a CustomDataElement (repeats: true)' do
         record = i1
-        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', key: 'repeatingString', repeats: true)
+        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', repeats: true)
         create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
         create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
         create(:hmis_custom_data_element, owner: record, value_string: 'old value 3', data_element_definition: cded)
@@ -1140,7 +1140,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       [nil, HIDDEN, []].each do |value|
         it "clears custom data element when set to #{value} (has 2 values)" do
-          cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', key: 'repeatingString', repeats: true)
+          cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', repeats: true)
           record = i1
           create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
           create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
