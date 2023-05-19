@@ -77,21 +77,21 @@ SET default_table_access_method = heap;
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.ar_internal_metadata (
-    key character varying NOT NULL,
-    value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
+-- CREATE TABLE public.ar_internal_metadata (
+--     key character varying NOT NULL,
+--     value character varying,
+--     created_at timestamp without time zone NOT NULL,
+--     updated_at timestamp without time zone NOT NULL
+-- );
 
 
 --
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.schema_migrations (
-    version character varying NOT NULL
-);
+-- CREATE TABLE public.schema_migrations (
+--     version character varying NOT NULL
+-- );
 
 
 --
@@ -1723,16 +1723,8 @@ ALTER TABLE ONLY public.warehouse_returns ALTER COLUMN id SET DEFAULT nextval('p
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.ar_internal_metadata
-    ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+-- ALTER TABLE ONLY public.ar_internal_metadata
+--     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
 
 
 --
@@ -2856,6 +2848,13 @@ CREATE INDEX pdq_rep_act_ext_head_enr ON public.warehouse_data_quality_report_en
 
 
 --
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+-- CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
+
+
+--
 -- Name: warehouse_partitioned_monthly_reports monthly_reports_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -2867,8 +2866,3 @@ CREATE TRIGGER monthly_reports_insert_trigger BEFORE INSERT ON public.warehouse_
 --
 
 SET search_path TO "$user", public;
-
-INSERT INTO "schema_migrations" (version) VALUES
-('20210920002734');
-
-
