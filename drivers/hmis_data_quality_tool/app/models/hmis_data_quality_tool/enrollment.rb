@@ -463,8 +463,8 @@ module HmisDataQualityTool
       return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
 
       return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
-      return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
-      return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+      return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh == 1
+      return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh == 1
 
       false
     end
@@ -1196,6 +1196,7 @@ module HmisDataQualityTool
           required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
+            :living_situation,
             :date_to_street_essh,
             :previous_street_es_sh,
             :los_under_threshold,
