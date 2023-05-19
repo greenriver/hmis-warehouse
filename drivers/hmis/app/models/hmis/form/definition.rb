@@ -71,35 +71,26 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   scope :with_role, ->(role) { where(role: role) }
 
   scope :for_project, ->(project) do
-    instance_scope = Hmis::Form::Instance.none
-
     base_scope = Hmis::Form::Instance.joins(:definition)
-    [
+
+    # Choose the first scope that has any records. Prefer more specific instances.
+    instance_scope = [
       base_scope.for_project(project.id),
       base_scope.for_organization(project.organization.id),
       base_scope.for_project_type(project.project_type),
       base_scope.defaults,
-    ].each do |scope|
-      next if instance_scope.present?
-
-      instance_scope = scope unless scope.empty?
-    end
+    ].detect(&:exists?)
 
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
   scope :for_service_type, ->(service_type) do
-    instance_scope = Hmis::Form::Instance.none
-
     base_scope = Hmis::Form::Instance.joins(:definition)
-    [
+
+    instance_scope = [
       base_scope.for_service_type(service_type.id),
       base_scope.for_service_category(service_type.custom_service_category_id),
-    ].each do |scope|
-      next if instance_scope.present?
-
-      instance_scope = scope unless scope.empty?
-    end
+    ].detect(&:exists?)
 
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
