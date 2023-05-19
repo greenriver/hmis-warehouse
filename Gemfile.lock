@@ -869,6 +869,8 @@ GEM
       net-ssh (>= 2.8.0)
     ssrf_filter (1.0.7)
     stackprof (0.2.17)
+    strong_migrations (1.4.4)
+      activerecord (>= 5.2)
     sync (0.5.0)
     temple (0.8.2)
     term-ansicolor (1.7.1)
@@ -1153,6 +1155,7 @@ DEPENDENCIES
   sprockets (~> 4.0)
   sshkit
   stackprof
+  strong_migrations
   stupidedi!
   terser
   text
