@@ -84,6 +84,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::ImportLog,
       GrdaWarehouse::GroupViewableEntity,
       GrdaWarehouse::UserViewableEntity,
+      ActiveStorage::Blob,
+      ActiveStorage::Attachment,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
