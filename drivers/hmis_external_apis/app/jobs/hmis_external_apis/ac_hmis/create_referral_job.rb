@@ -34,6 +34,7 @@ module HmisExternalApis::AcHmis
         .where(identifier: params.fetch(:referral_id))
         .first_or_initialize
       raise 'referral cant be used' unless referral.accepts_new_postings?
+
       referral_params = params.slice(
         :referral_date,
         :service_coordinator,
@@ -75,16 +76,10 @@ module HmisExternalApis::AcHmis
       posting
     end
 
-    def create_client(attrs)
-      (first_name, last_name, middle_name, dob, ssn) = attrs.values_at(:first_name, :last_name, :middle_name, :dob, :ssn)
+    def create_client(_attrs)
       client = ::Hmis::Hud::Client.new
       client.user = system_user
       client.data_source = data_source
-      client.first_name = first_name
-      client.middle_name = middle_name
-      client.last_name = last_name
-      client.dob = dob
-      client.ssn = ssn
 
       client.name_data_quality = 1 # Full name always present for MCI clients
       client.dob_data_quality = 1 # Full DOB always present for MCI clients
@@ -97,6 +92,28 @@ module HmisExternalApis::AcHmis
 
       client.veteran_status = 99
       client.ethnicity = 99
+
+      client.addresses = params[:addresses]&.map do |addr_params|
+        Hmis::Hud::CustomClientAddress.new(
+          addr_params.slice(:line1, :line2, :city, :state, :county, :use),
+        )
+      end
+
+      client.contact_points = []
+      client.contact_points += params[:phone_numbers].to_a.map do |phone_params|
+        Hmis::Hud::CustomClientAddress.new(
+          system: :phone,
+          value: phone_params[:number],
+          **values.slice(:use, :notes),
+        )
+      end
+      client.contact_points += params[:email_address].to_a.map do |address|
+        Hmis::Hud::CustomClientAddress.new(
+          system: :email,
+          value: address,
+        )
+      end
+
       client.save!
       client
     end
