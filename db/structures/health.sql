@@ -202,12 +202,12 @@ ALTER SEQUENCE public.appointments_id_seq OWNED BY public.appointments.id;
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.ar_internal_metadata (
-    key character varying NOT NULL,
-    value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
+-- CREATE TABLE public.ar_internal_metadata (
+--     key character varying NOT NULL,
+--     value character varying,
+--     created_at timestamp without time zone NOT NULL,
+--     updated_at timestamp without time zone NOT NULL
+-- );
 
 
 --
@@ -3934,9 +3934,9 @@ ALTER SEQUENCE public.scheduled_documents_id_seq OWNED BY public.scheduled_docum
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.schema_migrations (
-    version character varying NOT NULL
-);
+-- CREATE TABLE public.schema_migrations (
+--     version character varying NOT NULL
+-- );
 
 
 --
@@ -5582,8 +5582,8 @@ ALTER TABLE ONLY public.appointments
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.ar_internal_metadata
-    ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+-- ALTER TABLE ONLY public.ar_internal_metadata
+--     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
 
 
 --
@@ -6158,8 +6158,8 @@ ALTER TABLE ONLY public.scheduled_documents
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+-- ALTER TABLE ONLY public.schema_migrations
+--     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -7386,8 +7386,3 @@ ALTER TABLE ONLY public.team_members
 --
 
 SET search_path TO "$user", public;
-
-INSERT INTO "schema_migrations" (version) VALUES
-('20230322172802');
-
-
