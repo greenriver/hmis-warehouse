@@ -1,0 +1,91 @@
+{
+  "type": "GROUP",
+  "required": false,
+  "link_id": "es-allowance",
+  "text": "Emergency Shelter Allowance Grant",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "item": [
+    {
+      "type": "CHOICE",
+      "required": false,
+      "warn_if_empty": true,
+      "link_id": "es-allowance-referral",
+      "text": "Was the client referred to the County Assistance Office for the Emergency Shelter Allowance Grant?",
+      "brief_text": "Referred for ES Allowance Grant",
+      "readonly_text": "Referred to the County Assistance Office Emergency Shelter Allowance Grant?",
+      "pick_list_reference": "NoYesReasonsForMissingData"
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "warn_if_empty": true,
+      "link_id": "es-allowance-received",
+      "text": "Did the client receive funding?",
+      "brief_text": "Received ES Allowance Grant",
+      "readonly_text": "Received Emergency Shelter Allowance Grant funding?",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "disabled_display": "PROTECTED",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "es-allowance-referral",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CURRENCY",
+      "required": false,
+      "warn_if_empty": true,
+      "link_id": "es-allowance-amount",
+      "text": "How much?",
+      "brief_text": "ES Allowance Grant amount",
+      "readonly_text": "Amount received",
+      "disabled_display": "PROTECTED",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "es-allowance-referral",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "warn_if_empty": true,
+      "link_id": "es-allowance-not-received-reason",
+      "text": "Why not?",
+      "brief_text": "Reason ES Allowance Grant not received",
+      "readonly_text": "Reason ES Allowance Grant not received",
+      "disabled_display": "PROTECTED",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "es-allowance-referral",
+          "operator": "EQUAL",
+          "answer_code": "NO"
+        }
+      ],
+      "pick_list_options": [
+        {
+          "code": "Not Eligible"
+        },
+        {
+          "code": "Did not apply"
+        },
+        {
+          "code": "Pending Decision"
+        },
+        {
+          "code": "Client doesn't know"
+        },
+        {
+          "code": "Client prefers not to answer"
+        }
+      ]
+    }
+  ]
+}

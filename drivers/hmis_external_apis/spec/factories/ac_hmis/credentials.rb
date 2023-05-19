@@ -12,5 +12,8 @@ FactoryBot.define do
     factory :ac_hmis_mci_credential, parent: :grda_remote_oauth_credential do
       slug { 'ac_hmis_mci' }
     end
+    factory :ac_hmis_link_credential, parent: :grda_remote_oauth_credential do
+      slug { 'ac_hmis_link' }
+    end
   end
 end

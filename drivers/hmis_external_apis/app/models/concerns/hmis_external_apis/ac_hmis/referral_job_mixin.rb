@@ -25,5 +25,9 @@ module HmisExternalApis::AcHmis
     def mper
       @mper ||= ::HmisExternalApis::AcHmis::Mper.new
     end
+
+    def link
+      @link ||= ::HmisExternalApis::AcHmis::LinkApi.new
+    end
   end
 end

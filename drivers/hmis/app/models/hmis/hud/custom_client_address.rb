@@ -36,6 +36,23 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
   end
 
+  def ==(other)
+    columns = [
+      :address_type,
+      :city,
+      :country,
+      :district,
+      :line1,
+      :line2,
+      :postal_code,
+      :state,
+    ]
+
+    columns.all? do |col|
+      send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
+    end
+  end
+
   def type
     address_type
   end
