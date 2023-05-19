@@ -29,7 +29,11 @@ module Health
           if @create_qa
             # Checking for QA generation needs to be done before the save so that the _changed tracking is triggered
 
-            care_planning_qa = setup_care_planning_qualifying_activity if careplan.renewed_for_cp2? || @careplan.just_finished?
+            care_planning_qa = if careplan.renewed_for_cp2?
+              setup_care_planning_qualifying_activity(mode_of_contact: :phone_call, qa_date_attribute: :ncm_approved_on)
+            elsif @careplan.just_finished?
+              setup_care_planning_qualifying_activity
+            end
             cha_approved_qa = setup_cha_approved_qualifying_activity if @careplan.ncm_just_approved?
             sdoh_qa = setup_sdoh_qualifying_activity if @careplan.ncm_just_approved?
             pctp_signed_qa = setup_pctp_signed_qualifying_activity if @careplan.rn_just_approved?
@@ -65,14 +69,14 @@ module Health
       qualifying_activity.maintain_cached_values
     end
 
-    private def setup_care_planning_qualifying_activity
+    private def setup_care_planning_qualifying_activity(mode_of_contact: :in_person, qa_date_attribute: :patient_signed_on)
       Health::QualifyingActivity.new(
         source_type: @careplan.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
         activity: :care_planning,
-        date_of_activity: @careplan.patient_signed_on,
-        mode_of_contact: :in_person,
+        date_of_activity: @careplan.send(qa_date_attribute),
+        mode_of_contact: mode_of_contact,
         reached_client: :yes,
         follow_up: 'This writer completed Care Plan with patient. Patient agreed to care plan.',
         patient_id: @careplan.patient_id,

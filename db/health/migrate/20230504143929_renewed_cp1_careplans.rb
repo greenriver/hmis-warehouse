@@ -11,13 +11,13 @@ class RenewedCp1Careplans < ActiveRecord::Migration[6.1]
 
     careplans.each do |careplan|
       user = careplan.approving_ncm
-      qa = Health::QualifyingActivity.new(
+      Health::QualifyingActivity.create(
         source_type: @careplan.class.name,
         user_id: user.id,
         user_full_name: user.name_with_email,
         activity: :care_planning,
         date_of_activity: @careplan.ncm_approved_on,
-        mode_of_contact: :in_person,
+        mode_of_contact: :phone_call,
         reached_client: :yes,
         follow_up: 'This writer completed Care Plan with patient. Patient agreed to care plan.',
         patient_id: @careplan.patient_id,
