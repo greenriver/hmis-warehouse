@@ -17,12 +17,12 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       @start.to_s
     end
 
-    let(:mci) do
+    let!(:mci) do
       create(:ac_hmis_mci_credential)
       ::HmisExternalApis::AcHmis::Mci.new
     end
 
-    let(:mper) do
+    let!(:mper) do
       create(:ac_hmis_mper_credential)
       ::HmisExternalApis::AcHmis::Mper.new
     end
@@ -45,7 +45,8 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       clients.map do |client, mci_id|
         {
           mci_id: mci_id,
-          relationship_to_hoh: 99,
+          # make the first client the hoh
+          relationship_to_hoh: (client == clients[0][0] ? 1 : 99),
           first_name: client.first_name,
           middle_name: client.middle_name,
           last_name: client.last_name,
@@ -122,11 +123,6 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
     end
 
-    before(:each) do
-      _ = mci # side-effect of creating the credential
-      _ = mper
-    end
-
     it 'receives referral for referral request' do
       params = referral_params(clients)
         .merge({ referral_request_id: referral_request.identifier })
@@ -167,7 +163,11 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
       expect(referral.postings.map(&:project_id)).to(eq([project.id]))
       expect(referral.household_members.size).to(eq(new_clients.size))
-      expect(mci.find_client_by_mci(new_client_id)).to(be_present)
+      client = mci.find_client_by_mci(new_client_id)
+      expect(client).to(be_present)
+      expect(client.addresses.size).to(eq(1))
+      expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
+      expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
     end
   end
 end

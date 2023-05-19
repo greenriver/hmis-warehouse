@@ -95,34 +95,65 @@ module HmisExternalApis::AcHmis
       client.veteran_status = 99
       client.ethnicity = 99
 
+      # save the client first so address validation will pass :(
+      client.save!
+
       # additional attributes set if this client is the hoh
       setup_hoh(client) if attrs[:relationship_to_hoh] == 1
 
-      client.save!
       client
     end
 
     def setup_hoh(client)
-      client.addresses = params[:addresses]&.map do |addr_params|
-        Hmis::Hud::CustomClientAddress.new(
-          addr_params.slice(:line1, :line2, :city, :state, :county, :use),
-        )
+      common_client_attrs = {
+        PersonalID: client.PersonalID,
+        UserID: client.UserID,
+        data_source_id: client.data_source_id,
+      }
+      client_address_attrs = params[:addresses].to_a.map do |values|
+        {
+          postal_code: values[:zip],
+          **values.slice(
+            :line1,
+            :line2,
+            :city,
+            :state,
+            :use,
+            # :county,  FIXME - spec doc has a "county" field; We don't have that but we do have "country" - maybe there's a typo somewhere?
+          ),
+          # FIXME: unsure what to do with this, use uuid for now
+          AddressID: bogus_id,
+          **common_client_attrs,
+        }
       end
+      Hmis::Hud::CustomClientAddress.import!(client_address_attrs)
 
-      client.contact_points = []
-      client.contact_points += params[:phone_numbers].to_a.map do |phone_params|
-        Hmis::Hud::CustomClientAddress.new(
+      client_phone_attrs = params[:phone_numbers].to_a.map do |values|
+        {
           system: :phone,
-          value: phone_params[:number],
+          value: values[:number],
           **values.slice(:use, :notes),
-        )
+          # FIXME: unsure what to do with this, use uuid for now
+          ContactPointID: bogus_id,
+          **common_client_attrs,
+        }
       end
-      client.contact_points += params[:email_address].to_a.map do |address|
-        Hmis::Hud::CustomClientAddress.new(
+      Hmis::Hud::CustomClientContactPoint.import!(client_phone_attrs)
+
+      client_email_attrs = params[:email_address].to_a.map do |value|
+        {
           system: :email,
-          value: address,
-        )
+          value: value,
+          # FIXME: unsure what to do with this, use uuid for now
+          ContactPointID: bogus_id,
+          **common_client_attrs,
+        }
       end
+      Hmis::Hud::CustomClientContactPoint.import!(client_email_attrs)
+    end
+
+    def bogus_id
+      SecureRandom.uuid
     end
 
     def create_referral_household_members(referral)
