@@ -11,10 +11,11 @@ module MedicaidHmisInterchange::Health
     has_many :external_ids, through: :response_external_ids
 
     COLUMNS = [
-      :medicaid_id,
-      :homeless_flag,
-      :error_code,
-      :field,
+      :medicaid_id, # ID_MEDICAID
+      :homeless_flag, # RDC_HOMELESS_FLAG
+      :field, # FIELD
+      :error_code, # CDE_ERROR
+      :description, # MSG
     ].freeze
     def process_response
       problems.each do |error|

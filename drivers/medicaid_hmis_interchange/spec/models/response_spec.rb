@@ -8,7 +8,7 @@ require 'rails_helper'
 
 RSpec.describe 'MedicaidHmisInterchange::Health::Response', type: :model do
   it 'parses the response' do
-    response = "ID-1||2|2\nID-2|Y|3|1"
+    response = "ID_MEDICAID|RDC_HOMELESS_FLAG|FIELD|CDE_ERROR|MSG\nID-1||Field 2|2|Note\nID-2|Y|Field 1|3|Note"
     problems = MedicaidHmisInterchange::Health::Response.new(error_report: response).problems
 
     expect(problems.size).to eq(2)
@@ -22,7 +22,7 @@ RSpec.describe 'MedicaidHmisInterchange::Health::Response', type: :model do
     let!(:id3) { create :mhx_external_id, identifier: 'ID-3' }
 
     it "doesn't touch the external ids" do
-      response = "ID-1||2|2\nID-2|Y|3|1"
+      response = "ID_MEDICAID|RDC_HOMELESS_FLAG|FIELD|CDE_ERROR|MSG\nID-1||Field 2|2|Note\nID-2|Y|Field 1|3|Note"
       response = MedicaidHmisInterchange::Health::Response.new(error_report: response, submission: submission)
       response.process_response
 
@@ -39,7 +39,7 @@ RSpec.describe 'MedicaidHmisInterchange::Health::Response', type: :model do
     let!(:id3) { create :mhx_external_id, identifier: 'ID-3' }
 
     it 'only changes the flagged ids' do
-      response_text = "ID-1||2|2\nID-2|Y|3|1"
+      response_text = "ID_MEDICAID|RDC_HOMELESS_FLAG|FIELD|CDE_ERROR|MSG\nID-1||Field 2|2\nID-2|Y|Field 1|3|Note"
       response = MedicaidHmisInterchange::Health::Response.new(error_report: response_text, submission: submission)
       response.process_response
 
