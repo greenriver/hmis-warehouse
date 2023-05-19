@@ -143,8 +143,8 @@ module Health
             qas.each_slice(20) do |qa_batch|
               @lx = 0 # Reset LX for batch
               b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
-              hi_codes = Array.wrap(b.composite('ABK', 'Z029')) # Encounter for administrative examination, unspecified
-              hi_codes += patient.sdoh_icd10_codes.map { |code| b.composite('ABF', code) } if qa.activity == 'sdoh_positive'
+              hi_codes = [b.composite('ABK', 'Z029')] # Encounter for administrative examination, unspecified
+              hi_codes += patient.sdoh_icd10_codes.map { |code| b.composite('ABF', code) } if qas.any? { |qa| qa.activity == 'sdoh_positive' }
               b.HI(*hi_codes)
                 qa_batch.each do |qa|
                   @lx += 1
