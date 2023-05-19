@@ -98,7 +98,7 @@ module MedicaidHmisInterchange::Health
             #   2345: 'N', # Force no 180 days
             #   4567: nil, # remove from set
             # }
-            if test_data.present? && medicaid_id.key?(test_data)
+            if test_data.present? && test_data.key?(medicaid_id)
               results[medicaid_id] = test_data[medicaid_id] if test_data[medicaid_id].present?
             else
               results[medicaid_id] = client_homeless_days >= 180 ? 'Y' : 'N'
