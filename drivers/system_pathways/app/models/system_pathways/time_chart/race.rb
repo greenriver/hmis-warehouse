@@ -18,7 +18,7 @@ module SystemPathways::TimeChart::Race
       data: race_data,
       table: as_table(race_table_data, ['Project Type'] + races.values),
       link_params: {
-        columns: [[]] + races.keys.map { |k| ['filters[races][]', k] },
+        columns: [[]] + races.keys.map { |k| ['details[races][]', k] },
         rows: [[]] + detail_node_keys.map { |k| ['node', k] },
       },
     }
@@ -155,11 +155,6 @@ module SystemPathways::TimeChart::Race
         data['labels']['colors'][race] = config.foreground_color(bg_color)
         row << count
         data['columns'] << row
-
-        [
-          race,
-          data,
-        ]
       end
     end
   end
