@@ -11374,6 +11374,39 @@ ALTER SEQUENCE public.hmis_client_attributes_defined_text_id_seq OWNED BY public
 
 
 --
+-- Name: hmis_client_merge_audits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_merge_audits (
+    id bigint NOT NULL,
+    pre_merge_state jsonb NOT NULL,
+    actor_id bigint NOT NULL,
+    merged_at timestamp without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_client_merge_audits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_client_merge_audits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_client_merge_audits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_client_merge_audits_id_seq OWNED BY public.hmis_client_merge_audits.id;
+
+
+--
 -- Name: hmis_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -19036,7 +19069,8 @@ CREATE TABLE public.report_definitions (
     limitable boolean DEFAULT true NOT NULL,
     health boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -23295,6 +23329,13 @@ ALTER TABLE ONLY public.hmis_client_attributes_defined_text ALTER COLUMN id SET 
 
 
 --
+-- Name: hmis_client_merge_audits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_merge_audits ALTER COLUMN id SET DEFAULT nextval('public.hmis_client_merge_audits_id_seq'::regclass);
+
+
+--
 -- Name: hmis_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26484,6 +26525,14 @@ ALTER TABLE ONLY public.hmis_client_attributes_defined_text
 
 
 --
+-- Name: hmis_client_merge_audits hmis_client_merge_audits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_merge_audits
+    ADD CONSTRAINT hmis_client_merge_audits_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_clients hmis_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -28192,6 +28241,20 @@ CREATE INDEX assessment_q_a_id_ds_id_p_id_en_id_aq_id ON public."AssessmentQuest
 --
 
 CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResults" USING btree ("AssessmentID", data_source_id, "PersonalID", "EnrollmentID", "AssessmentResultID");
+
+
+--
+-- Name: c_r_system_pathways_clients_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_clients_idx ON public.system_pathways_clients USING btree (client_id, report_id);
+
+
+--
+-- Name: c_r_system_pathways_enrollments_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_enrollments_idx ON public.system_pathways_enrollments USING btree (client_id, report_id);
 
 
 --
@@ -49251,27 +49314,6 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
--- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
-
-
---
--- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
-
-
---
 -- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49283,13 +49325,6 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -50031,7 +50066,7 @@ CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_
 -- Name: unique_index_ensuring_one_primary_per_client; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."CustomClientName" USING btree ("primary", "PersonalID", data_source_id);
+CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."CustomClientName" USING btree ("PersonalID", data_source_id) WHERE ("primary" = true);
 
 
 --
@@ -52886,10 +52921,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230501183045'),
 ('20230502175218'),
 ('20230503155642'),
+('20230503161258'),
 ('20230504131726'),
 ('20230504152750'),
 ('20230505150822'),
 ('20230505152333'),
-('20230509161642');
+('20230509161642'),
+('20230511155839'),
+('20230512135003'),
+('20230519185108');
 
 
