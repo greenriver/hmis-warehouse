@@ -19,7 +19,7 @@ module MedicaidHmisInterchange::Health
     def process_response
       problems.each do |error|
         # If the medicaid ID was flagged by MH, mark it as invalid
-        next unless error[:error_code] == '3' && error[:field] == '1'
+        next unless error[:error_code] == '3' && error[:field] == 'Field 1'
 
         external_id = ExternalId.find_by(identifier: error[:medicaid_id])
         if external_id.present?
@@ -32,11 +32,10 @@ module MedicaidHmisInterchange::Health
 
     def problems
       @problems ||= [].tap do |list|
-        error_report.each_line do |line|
-          list << COLUMNS.zip(
-            line.split('|').
-              map(&:chomp),
-          ).to_h
+        error_report.each_line.with_index do |line, i|
+          next if i.zero?
+
+          list << COLUMNS.zip(line.split('|').map { |m| m.chomp.gsub('"', '') }).to_h
         end
       end
     end

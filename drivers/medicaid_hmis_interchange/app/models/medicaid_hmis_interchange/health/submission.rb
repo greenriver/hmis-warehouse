@@ -139,6 +139,11 @@ module MedicaidHmisInterchange::Health
           [123456000789, 'Y'], # rubocop:disable Style/NumericLiterals
           [123456000791, 'N'], # rubocop:disable Style/NumericLiterals
         ],
+        5 => [
+          [123456000789, 'Y'], # rubocop:disable Style/NumericLiterals
+          [123456000791, 'N'], # rubocop:disable Style/NumericLiterals
+          [123456000790, 'N'], # rubocop:disable Style/NumericLiterals
+        ],
       }
     end
 

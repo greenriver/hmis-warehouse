@@ -48,6 +48,8 @@ module MedicaidHmisInterchange
 
     private def find_response(file_list)
       most_recent_upload = MedicaidHmisInterchange::Health::Submission.last
+      return nil unless most_recent_upload
+
       response_path = File.join(sftp_credentials[:path], INBOUND_SUB_PATH, most_recent_upload.response_filename)
       return nil unless file_list.detect { |name| name == response_path }
 
