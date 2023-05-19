@@ -9,7 +9,6 @@ class AdditionalExternalReferralFields < ActiveRecord::Migration[6.1]
     change_column_null referrals, :identifier, true
     add_reference referrals, :enrollment
 
-
     add_column referrals, :referral_notes, :text
     add_column referrals, :chronic, :boolean
     add_column referrals, :score, :integer

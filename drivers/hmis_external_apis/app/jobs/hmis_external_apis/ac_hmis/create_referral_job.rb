@@ -15,16 +15,19 @@ module HmisExternalApis::AcHmis
       # FIXME: add param validation and capture raw request
 
       self.errors = []
-      success = nil
       # transact assumes we are only mutating records in the warehouse db
-      success = HmisExternalApis::AcHmis::Referral.transaction do
+      record = nil
+      HmisExternalApis::AcHmis::Referral.transaction do
         referral = find_or_create_referral
+        raise ActiveRecord::Rollback unless referral
+
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
+
         raise ActiveRecord::Rollback unless create_referral_household_members(referral)
 
-        success = referral
+        record = referral
       end
-      [success, errors]
+      [record, errors]
     end
 
     protected
@@ -33,7 +36,8 @@ module HmisExternalApis::AcHmis
       referral = HmisExternalApis::AcHmis::Referral
         .where(identifier: params.fetch(:referral_id))
         .first_or_initialize
-      raise 'referral cant be used' unless referral.accepts_new_postings?
+      return error_out('Referral still has active postings') unless referral.postings_inactive?
+      return error_out('Referral already linked to household') unless referral.household_members.empty?
 
       referral_params = params.slice(
         :referral_date,
@@ -94,8 +98,6 @@ module HmisExternalApis::AcHmis
 
       client.veteran_status = 99
       client.ethnicity = 99
-
-      # save the client first so address validation will pass :(
       client.save!
 
       # additional attributes set if this client is the hoh

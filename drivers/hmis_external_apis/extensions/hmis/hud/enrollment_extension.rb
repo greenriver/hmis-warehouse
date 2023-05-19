@@ -11,7 +11,7 @@ module HmisExternalApis
         extend ActiveSupport::Concern
 
         included do
-          has_many :external_referral, class_name: 'HmisExternalApis::AcHmis::Referral', dependent: :destroy
+          has_many :external_referrals, class_name: 'HmisExternalApis::AcHmis::Referral', dependent: :destroy
         end
       end
     end
