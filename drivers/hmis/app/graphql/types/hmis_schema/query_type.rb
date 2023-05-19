@@ -149,10 +149,10 @@ module Types
 
     field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
       argument :custom_service_type_id, ID, required: true
-      argument :enrollment_id, ID, required: true
+      argument :project_id, ID, required: true
     end
-    def get_service_form_definition(custom_service_type_id:, enrollment_id:)
-      project = Hmis::Hud::Enrollment.find_by(id: enrollment_id)&.project
+    def get_service_form_definition(custom_service_type_id:, project_id:)
+      project = Hmis::Hud::Project.find_by(id: project_id)
       service_type = Hmis::Hud::CustomServiceType.find_by(id: custom_service_type_id)
       return unless project.present? && service_type.present?
 
