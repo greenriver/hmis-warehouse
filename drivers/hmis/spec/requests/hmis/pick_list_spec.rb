@@ -177,16 +177,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       Hmis::Form::Definition.where(role: :SERVICE).first
     end
     let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 9 }
-
     let!(:o2) { create :hmis_hud_organization, data_source: ds1 }
     let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o2, project_type: 11 }
-
-    before(:each) do
-      # Remove defaults for service
-      Hmis::Form::Instance.defaults.
-        where(definition_identifier: service_form_definition.identifier).
-        destroy_all
-    end
 
     def picklist_option_codes(project)
       Types::Forms::PickListOption.options_for_type(

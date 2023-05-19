@@ -72,13 +72,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'should find definition by service type if there is an instance for it (by project type and service type)' do
+    it 'should find definition if there is an instance for it (by project type and service type)' do
       create(
         :hmis_form_instance,
         entity_type: 'ProjectType',
         entity_id: p1.project_type,
         definition_identifier: service_form_definition.identifier,
-        custom_service_category_id: cst1.id,
+        custom_service_type_id: cst1.id,
       )
 
       response, result = post_graphql({ enrollment_id: e1.id.to_s, custom_service_type_id: cst1.id.to_s }) { service_query }
@@ -91,7 +91,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'should find definition by service type if there is an instance for it (by project and service category)' do
+    it 'should find definition if there is an instance for it (by project and service category)' do
       create(
         :hmis_form_instance,
         entity: p1,

@@ -68,21 +68,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES
 
-  scope :for_service_type, ->(service_type) do
-    instance_scope = Hmis::Form::Instance.none
-
-    base_scope = Hmis::Form::Instance.joins(:definition)
-    [
-      base_scope.for_service_type(service_type.id),
-      base_scope.for_service_category(service_type.custom_service_category_id),
-    ].each do |scope|
-      next if instance_scope.present?
-
-      instance_scope = scope unless scope.empty?
-    end
-
-    where(identifier: instance_scope.pluck(:definition_identifier))
-  end
+  scope :with_role, ->(role) { where(role: role) }
 
   scope :for_project, ->(project) do
     instance_scope = Hmis::Form::Instance.none
@@ -102,7 +88,21 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
-  scope :with_role, ->(role) { where(role: role) }
+  scope :for_service_type, ->(service_type) do
+    instance_scope = Hmis::Form::Instance.none
+
+    base_scope = Hmis::Form::Instance.joins(:definition)
+    [
+      base_scope.for_service_type(service_type.id),
+      base_scope.for_service_category(service_type.custom_service_category_id),
+    ].each do |scope|
+      next if instance_scope.present?
+
+      instance_scope = scope unless scope.empty?
+    end
+
+    where(identifier: instance_scope.pluck(:definition_identifier))
+  end
 
   def self.find_definition_for_role(role, project: nil, version: nil)
     scope = Hmis::Form::Definition.with_role(role)
