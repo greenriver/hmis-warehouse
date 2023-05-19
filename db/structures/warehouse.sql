@@ -2598,12 +2598,12 @@ ALTER SEQUENCE public.api_client_data_source_ids_id_seq OWNED BY public.api_clie
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.ar_internal_metadata (
-    key character varying NOT NULL,
-    value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
+-- CREATE TABLE public.ar_internal_metadata (
+--     key character varying NOT NULL,
+--     value character varying,
+--     created_at timestamp without time zone NOT NULL,
+--     updated_at timestamp without time zone NOT NULL
+-- );
 
 
 --
@@ -19357,9 +19357,9 @@ ALTER SEQUENCE public.report_tokens_id_seq OWNED BY public.report_tokens.id;
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.schema_migrations (
-    version character varying NOT NULL
-);
+-- CREATE TABLE public.schema_migrations (
+--     version character varying NOT NULL
+-- );
 
 
 --
@@ -25147,8 +25147,8 @@ ALTER TABLE ONLY public.api_client_data_source_ids
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.ar_internal_metadata
-    ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+-- ALTER TABLE ONLY public.ar_internal_metadata
+--     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
 
 
 --
@@ -27453,14 +27453,6 @@ ALTER TABLE ONLY public.report_definitions
 
 ALTER TABLE ONLY public.report_tokens
     ADD CONSTRAINT report_tokens_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -49917,6 +49909,13 @@ CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."Cust
 
 
 --
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+-- CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
+
+
+--
 -- Name: unk_Geography; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51745,8 +51744,3 @@ ALTER TABLE ONLY public.import_logs
 --
 
 SET search_path TO "$user", public;
-
-INSERT INTO "schema_migrations" (version) VALUES
-('20230503161258');
-
-
