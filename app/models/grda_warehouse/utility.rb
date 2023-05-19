@@ -84,8 +84,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::ImportLog,
       GrdaWarehouse::GroupViewableEntity,
       GrdaWarehouse::UserViewableEntity,
-      ActiveStorage::Blob,
       ActiveStorage::Attachment,
+      ActiveStorage::Blob,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
@@ -157,6 +157,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,
       GrdaWarehouse::ServiceHistoryEnrollment,
+      ActiveStorage::Attachment,
+      ActiveStorage::Blob,
     ]
     return 'CASCADE' if cascade_models.include?(model)
 
