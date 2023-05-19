@@ -14,7 +14,7 @@ module HmisExternalApis::AcHmis
 
     def postings_inactive?
       postings.all? do |posting|
-        posting.closed_status? || posting.denied_pending_status?
+        posting.closed_status? || posting.denied_status?
       end
     end
   end
