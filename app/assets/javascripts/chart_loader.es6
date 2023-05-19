@@ -97,7 +97,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
 
   enableLoader() {
     let loader = document.createElement('div');
-    loader.classList.add('rollup-container', 'c-card', 'c-card--flush', 'c-card--block')
+    loader.classList.add('rollup-container', 'c-card', 'c-card--flush', 'c-card--block', 'mt-4')
     loader.dataset.chartLoaderTarget = 'loader';
     this.wrapperTarget.appendChild(loader);
   }
