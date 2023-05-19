@@ -153,8 +153,10 @@ module Types
     end
     def get_service_form_definition(custom_service_type_id:, project_id:)
       project = Hmis::Hud::Project.find_by(id: project_id)
+      raise HmisErrors::ApiError, 'Project not found' unless project.present?
+
       service_type = Hmis::Hud::CustomServiceType.find_by(id: custom_service_type_id)
-      return unless project.present? && service_type.present?
+      raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
       Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
     end
