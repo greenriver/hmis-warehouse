@@ -37,6 +37,11 @@ module HmisExternalApis::AcHmis
         .then { |r| handle_error(r) }
     end
 
+    def update_unit_capacity(payload)
+      conn.patch('Unit/Capacity', payload)
+        .then { |r| handle_error(r) }
+    end
+
     protected
 
     def handle_error(result)
