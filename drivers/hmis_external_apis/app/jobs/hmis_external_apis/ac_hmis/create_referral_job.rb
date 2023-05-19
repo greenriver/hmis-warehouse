@@ -76,14 +76,16 @@ module HmisExternalApis::AcHmis
       posting
     end
 
-    def create_client(_attrs)
-      client = ::Hmis::Hud::Client.new
+    def create_client(attrs)
+      client = ::Hmis::Hud::Client.new(
+        attrs.slice(:first_name, :last_name, :middle_name, :dob, :ssn),
+      )
       client.user = system_user
       client.data_source = data_source
 
       client.name_data_quality = 1 # Full name always present for MCI clients
       client.dob_data_quality = 1 # Full DOB always present for MCI clients
-      client.ssn_data_quality = ssn.present? ? 1 : 99
+      client.ssn_data_quality = client.ssn.present? ? 1 : 99
 
       # TODO: map races and ethnicities
       HudUtility.races.keys.each { |k| client.send("#{k}=", 99) }
@@ -93,6 +95,14 @@ module HmisExternalApis::AcHmis
       client.veteran_status = 99
       client.ethnicity = 99
 
+      # additional attributes set if this client is the hoh
+      setup_hoh(client) if attrs[:relationship_to_hoh] == 1
+
+      client.save!
+      client
+    end
+
+    def setup_hoh(client)
       client.addresses = params[:addresses]&.map do |addr_params|
         Hmis::Hud::CustomClientAddress.new(
           addr_params.slice(:line1, :line2, :city, :state, :county, :use),
@@ -113,9 +123,6 @@ module HmisExternalApis::AcHmis
           value: address,
         )
       end
-
-      client.save!
-      client
     end
 
     def create_referral_household_members(referral)

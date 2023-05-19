@@ -41,5 +41,9 @@ module HmisExternalApis::AcHmis
 
     validates :status_note, length: { maximum: 4_000 }
     validates :denial_note, length: { maximum: 2_000 }
+
+    before_create do
+      self.status_updated_at ||= created_at
+    end
   end
 end
