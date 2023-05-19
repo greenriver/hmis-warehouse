@@ -8,6 +8,7 @@ FactoryBot.define do
     verb { nil }
     can_view_clients { true }
     can_edit_clients { true }
+    can_search_own_clients { true }
     can_view_all_reports { true }
     can_view_assigned_reports { true }
     can_assign_reports { true }
