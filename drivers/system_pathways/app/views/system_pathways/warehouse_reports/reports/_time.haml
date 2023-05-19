@@ -1,4 +1,4 @@
-- time = SystemPathways::TimeChart.new(report: @report, filter: @filter)
+- time = SystemPathways::TimeChart.new(report: @report, filter: @filter, show_filter: show_filter)
 .time.mt-4{ data: { controller: 'chart-loader', chart: 'document.time' }}
   - url = URI(@report.chart_data_path('time'))
   .d-flex
@@ -12,9 +12,9 @@
         %i.ml-2.icon-angle-down
       .dropdown-menu.options
         - demo = time.known_categories.each do |label, key|
-          - url.query = @filter.for_params.merge(demographic_breakdown: key).to_query
+          - url.query = show_filter.for_params.merge(demographic_breakdown: key).to_query
           - table_link = {}
-          - table_link = { 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(chart: 'time')) } if can_access_some_version_of_clients?
+          - table_link = { 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **show_filter.for_params.merge(chart: 'time')) } if can_access_some_version_of_clients?
           - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}" }.merge(table_link)
           - classes = ['dropdown-item']
           = link_to(label, url.to_s, data: data, class: classes)

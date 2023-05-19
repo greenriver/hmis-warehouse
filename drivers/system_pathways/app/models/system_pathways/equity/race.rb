@@ -18,7 +18,7 @@ module SystemPathways::Equity::Race
       data: race_data,
       table: as_table(race_counts, ['Project Type'] + races.values),
       link_params: {
-        columns: [[]] + races.keys.map { |k| ['filters[races][]', k] },
+        columns: [[]] + races.keys.map { |k| ['details[races][]', k] },
         rows: [[]] + node_names.map { |k| ['node', k] },
       },
     }
@@ -77,11 +77,6 @@ module SystemPathways::Equity::Race
         data['colors'][race] = bg_color
         data['labels']['colors'][race] = config.foreground_color(bg_color)
         data['columns'] << row
-
-        [
-          race,
-          data,
-        ]
       end
     end
   end
