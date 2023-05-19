@@ -21,6 +21,10 @@ module Hmis::Concerns::HmisArelHelper
       Hmis::ActiveRange.arel_table
     end
 
+    def hs_t
+      Hmis::Hud::HmisService.arel_table
+    end
+
     def cs_t
       Hmis::Hud::CustomService.arel_table
     end
@@ -35,6 +39,6 @@ module Hmis::Concerns::HmisArelHelper
   end
 
   included do
-    delegate :cas_t, :wip_t, :ar_t, to: 'self.class'
+    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, to: 'self.class'
   end
 end

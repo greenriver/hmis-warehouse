@@ -30,9 +30,9 @@ class Hmis::AppSettingsController < Hmis::BaseController
       casUrl: GrdaWarehouse::Config.get(:cas_url),
       globalFeatureFlags: {
         # Whether to show MCI ID in client search results
-        mciId: HmisExternalApis::Mci.enabled?,
+        mciId: HmisExternalApis::AcHmis::Mci.enabled?,
         # Whether to show Referral and Denial screens
-        externalReferrals: GrdaWarehouse::RemoteCredential.active.where(slug: 'mper').exists?,
+        externalReferrals: HmisExternalApis::AcHmis::Mper.enabled?,
       },
     }
   end

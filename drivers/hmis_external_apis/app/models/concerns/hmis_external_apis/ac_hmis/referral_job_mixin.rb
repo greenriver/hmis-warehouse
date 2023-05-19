@@ -18,12 +18,12 @@ module HmisExternalApis::AcHmis
       JSON.parse(response.body)
     end
 
-    def mper_id(record)
-      mper_cred.external_ids.where(source: record).first!.value
+    def mci
+      @mci ||= ::HmisExternalApis::AcHmis::Mci.new
     end
 
-    def mper_cred
-      @mper_cred ||= ::GrdaWarehouse::RemoteCredential.mper
+    def mper
+      @mper ||= ::HmisExternalApis::AcHmis::Mper.new
     end
   end
 end

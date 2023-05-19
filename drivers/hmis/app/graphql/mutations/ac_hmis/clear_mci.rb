@@ -18,10 +18,10 @@ module Mutations
 
     def resolve(input:)
       errors = HmisErrors::Errors.new
-      errors.add :base, :server_error, full_message: 'MCI connection is not configured' unless HmisExternalApis::Mci.enabled?
+      errors.add :base, :server_error, full_message: 'MCI connection is not configured' unless HmisExternalApis::AcHmis::Mci.enabled?
       return { errors: errors } if errors.any?
 
-      mci = HmisExternalApis::Mci.new
+      mci = HmisExternalApis::AcHmis::Mci.new
 
       begin
         response = mci.clearance(input.to_client)

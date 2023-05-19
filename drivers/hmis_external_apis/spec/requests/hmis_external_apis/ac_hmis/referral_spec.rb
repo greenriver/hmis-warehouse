@@ -17,22 +17,27 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       @start.to_s
     end
 
-    let(:mci_cred) do
-      create(:remote_oauth_credential, slug: 'mci')
+    let(:mci) do
+      create(:ac_hmis_mci_credential)
+      ::HmisExternalApis::AcHmis::Mci.new
+    end
+
+    let(:mper) do
+      create(:ac_hmis_mper_credential)
+      ::HmisExternalApis::AcHmis::Mper.new
     end
 
     let(:clients) do
       2.times.map do
         client = create(:hmis_hud_client_complete, data_source: ds1)
         mci_id = random_id
-        mci_cred.external_ids.create!(source: client, value: mci_id)
+        mci.create_external_id(source: client, value: mci_id)
         [client, mci_id]
       end
     end
 
     let(:unit_type_id) do
-      record = mper_cred.external_ids
-        .create!(source: create(:hmis_unit_type), value: random_id)
+      record = mper.create_external_id(source: create(:hmis_unit_type), value: random_id)
       record.value
     end
 
@@ -65,6 +70,28 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         program_id: project_mper_id, # project == program
         household_members: household_member_params(clients),
         unit_type_id: unit_type_id,
+        score: 8,
+        needs_wheelchair_accessible_unit: false,
+        referral_notes: 'referral note',
+        resource_coordinator_notes: 'resource coord note',
+        chronic: false,
+        addresses: [
+          {
+            line1: '123 Main st',
+            line2: '',
+            city: 'Brattleboro',
+            state: 'VT',
+            county: '',
+            zip: '05301',
+            use: 'work',
+          },
+        ],
+        phone_numbers: [
+          number: '1234567890',
+          notes: 'phone note',
+          type: 'mobile',
+        ],
+        email_address: ['test@example.com'],
       }
     end
 
@@ -83,28 +110,27 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
     end
 
     let :project_mper_id do
-      random_id
-    end
-
-    let :mper_cred do
-      create(:remote_oauth_credential, slug: 'mper')
+      project.ProjectID
     end
 
     let :project do
-      create(:hmis_hud_project)
+      create(:hmis_hud_project, data_source: ds1)
+    end
+
+    let(:headers) do
+      conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :referrals))
+      { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
     end
 
     before(:each) do
-      _ = mci_cred # create credential
-      mper_cred
-        .external_ids.where(source: project)
-        .create!(value: project_mper_id)
+      _ = mci # side-effect of creating the credential
+      _ = mper
     end
 
     it 'receives referral for referral request' do
       params = referral_params(clients)
         .merge({ referral_request_id: referral_request.identifier })
-      post hmis_external_apis_referrals_path, params: params, as: :json
+      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
 
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
@@ -112,15 +138,16 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       expect(referral.postings.map(&:project_id)).to(eq([referral_request.project_id]))
       expect(referral.household_members.size).to(eq(clients.size))
 
+      id_scope = HmisExternalApis::ExternalId.where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
       clients.each do |client, mci_id|
         found = referral.household_members.where(client_id: client.id).first!
-        expect(mci_cred.external_ids.where(source: found.client, value: mci_id).count).to(eq(1))
+        expect(id_scope.where(source: found.client, value: mci_id).count).to(eq(1))
       end
     end
 
     it 'receives referral assignment' do
       params = referral_params(clients)
-      post hmis_external_apis_referrals_path, params: params, as: :json
+      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
 
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
@@ -134,13 +161,13 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         [build(:hmis_hud_client_complete), new_client_id],
       ]
       params = referral_params(new_clients)
-      post hmis_external_apis_referrals_path, params: params, as: :json
+      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
 
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
       expect(referral.postings.map(&:project_id)).to(eq([project.id]))
       expect(referral.household_members.size).to(eq(new_clients.size))
-      expect(Hmis::Hud::Client.first_by_external_id(cred: mci_cred, id: new_client_id)).to(be_present)
+      expect(mci.find_client_by_mci(new_client_id)).to(be_present)
     end
   end
 end

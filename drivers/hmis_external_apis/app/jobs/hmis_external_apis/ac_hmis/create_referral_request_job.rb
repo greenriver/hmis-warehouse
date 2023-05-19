@@ -32,11 +32,11 @@ module HmisExternalApis::AcHmis
       unit_type = record.unit_type
       {
         requested_date: format_date(record.requested_on),
-        provider_id: mper_id(organization),
+        provider_id: mper.identify_source(organization),
         provider_name: organization.OrganizationName,
-        project_id: mper_id(project),
+        project_id: mper.identify_source(project),
         project_name: project.ProjectName,
-        unit_type_id: mper_id(unit_type),
+        unit_type_id: mper.identify_source(unit_type),
         unit_type_description: unit_type.description,
         estimated_date_needed: format_date(record.needed_by),
         requested_by: record.requestor_name,

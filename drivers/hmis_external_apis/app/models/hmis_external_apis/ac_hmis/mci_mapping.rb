@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis
+module HmisExternalApis::AcHmis
   class MciMapping
     # MCI_RACE = {
     #   '5' => 'Native Hawaiian/Pacific Islander',
