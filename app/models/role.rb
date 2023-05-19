@@ -68,10 +68,12 @@ class Role < ApplicationRecord
     where(
       system: true,
       name: 'System User Role',
+      can_view_projects: true,
       can_edit_projects: true,
       can_manage_cohort_data: true,
       can_edit_project_groups: true,
       can_view_all_reports: true,
+      can_view_assigned_reports: true,
     ).first_or_create
   end
 
