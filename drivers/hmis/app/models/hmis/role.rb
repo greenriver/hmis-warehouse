@@ -109,6 +109,38 @@ class Hmis::Role < ::ApplicationRecord
           'Projects',
         ],
       },
+      can_manage_inventory: {
+        description: 'Ability to manage Inventory and Unit records in the project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_manage_incoming_referrals: {
+        description: 'Ability to accept/deny incoming referrals in the Project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_manage_outgoing_referrals: {
+        description: 'Ability to "refer out" from the Project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_manage_denied_referrals: {
+        description: 'Ability to manage denied referrals in the Project',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
       can_edit_organization: {
         description: 'Grants access to edit organizations',
         administrative: false,
@@ -183,6 +215,14 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_edit_enrollments: {
         description: 'Grants access to edit enrollments',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_enroll_clients: {
+        description: 'Grants access to enroll clients in the project',
         administrative: false,
         access: [:editable],
         categories: [

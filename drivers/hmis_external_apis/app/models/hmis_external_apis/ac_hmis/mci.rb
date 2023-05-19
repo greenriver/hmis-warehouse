@@ -179,7 +179,7 @@ module HmisExternalApis::AcHmis
     end
 
     def save_log!(result, payload)
-      ExternalRequestLog.create!(
+      HmisExternalApis::ExternalRequestLog.create!(
         initiator: creds,
         content_type: result.content_type,
         http_method: result.http_method,
@@ -197,15 +197,14 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      @conn ||=
-        OauthClientConnection.new(
-          client_id: creds.client_id,
-          client_secret: creds.client_secret,
-          token_url: creds.token_url,
-          base_url: creds.base_url,
-          headers: creds.additional_headers,
-          scope: creds.oauth_scope,
-        )
+      @conn ||= HmisExternalApis::OauthClientConnection.new(
+        client_id: creds.client_id,
+        client_secret: creds.client_secret,
+        token_url: creds.token_url,
+        base_url: creds.base_url,
+        headers: creds.additional_headers,
+        scope: creds.oauth_scope,
+      )
     end
 
     def client_scope

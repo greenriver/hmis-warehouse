@@ -15,7 +15,7 @@ module Mutations
 
       errors = HmisErrors::Errors.new
       errors.add :project_id, :not_found unless project.present?
-      errors.add :project_id, :not_allowed if project.present? && !current_user.permissions_for?(project, :can_edit_project_details)
+      errors.add :project_id, :not_allowed if project.present? && !current_user.permissions_for?(project, :can_manage_inventory)
       errors.add :count, :required unless input.count.present?
       errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
       errors.add :count, :out_of_range, message: 'must be non-zero' if input.count&.zero?
