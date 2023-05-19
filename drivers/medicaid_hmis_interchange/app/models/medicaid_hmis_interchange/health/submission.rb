@@ -12,7 +12,7 @@ module MedicaidHmisInterchange::Health
     has_many :submission_external_ids
     has_many :external_ids, through: :submission_external_ids
 
-    attr_accessor :test_file, :test_file_version
+    attr_accessor :test_file, :test_file_version, :test_data
     TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
 
     def run_and_save!(contact_email, path = nil)
@@ -92,7 +92,17 @@ module MedicaidHmisInterchange::Health
               ].max
             end
             seen_medicaid_ids << medicaid_id
-            results[medicaid_id] = client_homeless_days >= 180 ? 'Y' : 'N'
+            # Pass in format:
+            # {
+            #   1234: 'Y', # Force yes 180 days
+            #   2345: 'N', # Force no 180 days
+            #   4567: nil, # remove from set
+            # }
+            if test_data.present? && medicaid_id.key?(test_data)
+              results[medicaid_id] = test_data[medicaid_id] if test_data[medicaid_id].present?
+            else
+              results[medicaid_id] = client_homeless_days >= 180 ? 'Y' : 'N'
+            end
           end
         end
         File.open(file_path, 'a') do |file|

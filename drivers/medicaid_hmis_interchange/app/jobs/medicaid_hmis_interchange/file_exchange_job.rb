@@ -11,21 +11,21 @@ module MedicaidHmisInterchange
   class FileExchangeJob < ::BaseJob
     INBOUND_SUB_PATH = 'from_ehs'
     OUTBOUND_SUB_PATH = 'to_ehs'
-    def perform(test_file: false, test_file_version: nil)
+    def perform(test_file: false, test_file_version: nil, test_data: nil)
       # Don't run, if not configured.
       return unless sftp_credentials
 
       sent_files = fetch_file_list(OUTBOUND_SUB_PATH)
       received_files = fetch_file_list(INBOUND_SUB_PATH)
       if sent_files.empty?
-        deliver_submission(test_file: test_file, test_file_version: test_file_version)
+        deliver_submission(test_file: test_file, test_file_version: test_file_version, test_data: test_data)
         touch_trigger_file
       else
         response = find_response(received_files)
         if response.present?
           response.process_response
 
-          deliver_submission(test_file: test_file, test_file_version: test_file_version)
+          deliver_submission(test_file: test_file, test_file_version: test_file_version, test_data: test_data)
           touch_trigger_file
         end
       end
@@ -64,8 +64,8 @@ module MedicaidHmisInterchange
       end
     end
 
-    private def deliver_submission(test_file: false, test_file_version: nil)
-      submission = MedicaidHmisInterchange::Health::Submission.new(test_file: test_file, test_file_version: test_file_version)
+    private def deliver_submission(test_file: false, test_file_version: nil, test_data: nil)
+      submission = MedicaidHmisInterchange::Health::Submission.new(test_file: test_file, test_file_version: test_file_version, test_data: test_data)
       zip_path = submission.run_and_save!(sftp_credentials[:data_source_name])
       using_sftp do |sftp|
         sftp.upload!(zip_path, File.join("#{sftp_credentials[:path]}/#{OUTBOUND_SUB_PATH}", submission.zip_filename))
