@@ -80,6 +80,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       base_scope.for_project_type(project.project_type),
       base_scope.defaults,
     ].detect(&:exists?)
+    return none unless instance_scope.present?
 
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
@@ -91,6 +92,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       base_scope.for_service_type(service_type.id),
       base_scope.for_service_category(service_type.custom_service_category_id),
     ].detect(&:exists?)
+    return none unless instance_scope.present?
 
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
