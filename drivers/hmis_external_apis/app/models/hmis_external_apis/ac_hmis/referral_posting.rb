@@ -32,11 +32,7 @@ module HmisExternalApis::AcHmis
         assigned_to_other_program_status: 60,
         # closed: 65,
       },
-      referral_result: {
-        client_accepted_referral_result: 1,
-        client_rejected_referral_result: 2,
-        provider_rejected_referral_result: 3,
-      },
+      referral_result: ::HudLists.referral_result_map.invert.transform_keys { |k| k.downcase.gsub(/[^a-z]+/, '_') },
     )
 
     validates :status_note, length: { maximum: 4_000 }

@@ -23,6 +23,7 @@ class AdditionalExternalReferralFields < ActiveRecord::Migration[6.1]
     add_column postings, :status_note_updated_at, :text
     add_reference postings, :status_note_updated_by, index: {name: "idx_#{postings}_user_2"}
     add_column postings, :denial_reason, :integer
+    add_column postings, :referral_result, :integer
     add_column postings, :denial_note, :text
   end
 end

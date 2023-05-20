@@ -115,16 +115,15 @@ module HmisExternalApis::AcHmis
       client_address_attrs = params[:addresses].to_a.map do |values|
         {
           postal_code: values[:zip],
+          district: values[:county],
           **values.slice(
             :line1,
             :line2,
             :city,
             :state,
             :use,
-            # :county,  FIXME - spec doc has a "county" field; We don't have that but we do have "country" - maybe there's a typo somewhere?
           ),
-          # FIXME: unsure what to do with this, use uuid for now
-          AddressID: bogus_id,
+          AddressID: Hmis::Hud::Base.generate_uuid,
           **common_client_attrs,
         }
       end
@@ -135,8 +134,7 @@ module HmisExternalApis::AcHmis
           system: :phone,
           value: values[:number],
           **values.slice(:use, :notes),
-          # FIXME: unsure what to do with this, use uuid for now
-          ContactPointID: bogus_id,
+          ContactPointID: Hmis::Hud::Base.generate_uuid,
           **common_client_attrs,
         }
       end
@@ -146,16 +144,11 @@ module HmisExternalApis::AcHmis
         {
           system: :email,
           value: value,
-          # FIXME: unsure what to do with this, use uuid for now
-          ContactPointID: bogus_id,
+          ContactPointID: Hmis::Hud::Base.generate_uuid,
           **common_client_attrs,
         }
       end
       Hmis::Hud::CustomClientContactPoint.import!(client_email_attrs)
-    end
-
-    def bogus_id
-      SecureRandom.uuid
     end
 
     def create_referral_household_members(referral)
