@@ -32,10 +32,10 @@ module HmisExternalApis::AcHmis
       raise "Unexpected unit availability: project:#{project_id}, unit:#{unit_type_id}, #{total}-#{assigned}" if available < 0
 
       payload = {
-        'programID' => project_mper_id,
-        'unitTypeID' => unit_type_mper_id,
-        'availableUnits' => available,
-        'requestedBy' => requested_by,
+        program_id: project_mper_id,
+        unit_type_id: unit_type_mper_id,
+        available_units: available,
+        requested_by: requested_by,
       }
       link.update_unit_capacity(payload)
     end

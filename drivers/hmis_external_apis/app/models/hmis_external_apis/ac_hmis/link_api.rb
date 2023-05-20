@@ -27,18 +27,18 @@ module HmisExternalApis::AcHmis
     end
 
     def create_referral_request(payload)
-      conn.post('Referral/ReferralRequest', payload)
+      conn.post('Referral/ReferralRequest', format_payload(payload))
         .then { |r| handle_error(r) }
     end
 
-    def void_referral_request(id:, voided_by:)
-      payload = { isVoid: true, requestedBy: voided_by.email }
-      conn.patch("Referral/ReferralRequest/#{id}", payload)
+    def void_referral_request(referral_request_id:, requested_by:)
+      payload = format_payload({ is_void: true, requested_by: requested_by })
+      conn.patch("Referral/ReferralRequest/#{referral_request_id}", payload)
         .then { |r| handle_error(r) }
     end
 
     def update_unit_capacity(payload)
-      conn.patch('Unit/Capacity', payload)
+      conn.patch('Unit/Capacity', format_payload(payload))
         .then { |r| handle_error(r) }
     end
 
@@ -63,6 +63,14 @@ module HmisExternalApis::AcHmis
         headers: creds.additional_headers,
         scope: creds.oauth_scope,
       )
+    end
+
+    def format_payload(payload)
+      payload.transform_keys { |k| format_key_name(k) }
+    end
+
+    def format_key_name(key)
+      key.to_s.camelize(:lower).gsub(/Id\z/, 'ID')
     end
   end
 end

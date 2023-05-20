@@ -32,10 +32,12 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
       unit_type = create(:hmis_unit_type)
       unit_type_mper_id = SecureRandom.uuid
       mper.create_external_id(source: unit_type, value: unit_type_mper_id)
+      create(:hmis_unit, project: project, unit_type: unit_type)
 
       result = HmisExternalApis::OauthClientResult.new(parsed_body: {})
-      expect_any_instance_of(HmisExternalApis::AcHmis::LinkApi).to receive(:update_unit_capacity)
+      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch)
         .with(
+          'Unit/Capacity',
           {
             'availableUnits' => 1,
             'programID' => project.ProjectID,
@@ -44,8 +46,6 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
           },
         )
         .and_return(result)
-
-      create(:hmis_unit, project: project, unit_type: unit_type)
 
       HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now(
         project_id: project.id,
