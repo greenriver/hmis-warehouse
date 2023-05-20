@@ -80,12 +80,9 @@ module HmisExternalApis::AcHmis
       posting
     end
 
-    def create_client(attrs)
-      client = ::Hmis::Hud::Client.new(
-        attrs.slice(:first_name, :last_name, :middle_name, :dob, :ssn),
-      )
-      client.user = system_user
-      client.data_source = data_source
+    def update_client(client, attrs)
+      client.attributes = attrs.slice(:dob, :ssn)
+      setup_client_name(client, attrs)
 
       client.name_data_quality = 1 # Full name always present for MCI clients
       client.dob_data_quality = 1 # Full DOB always present for MCI clients
@@ -100,18 +97,63 @@ module HmisExternalApis::AcHmis
       client.ethnicity = 99
       client.save!
 
-      # additional attributes set if this client is the hoh
-      setup_hoh(client) if attrs[:relationship_to_hoh] == 1
+      # additional attributes set if this client is the HOH
+      is_hoh = attrs[:relationship_to_hoh] == 1
+      update_client_addresses(client) if is_hoh
+      update_client_contacts(client) if is_hoh
+    end
 
+    def build_client
+      client = ::Hmis::Hud::Client.new
+      client.user = system_user
+      client.data_source = data_source
       client
     end
 
-    def setup_hoh(client)
-      common_client_attrs = {
-        PersonalID: client.PersonalID,
-        UserID: client.UserID,
-        data_source_id: client.data_source_id,
-      }
+    # reconcile client record name and client custom names (ccn)
+    def setup_client_name(client, attrs)
+      name_fields = [:first_name, :last_name, :middle_name]
+      new_attrs =  attrs.slice(*name_fields)
+      prev_attrs = client.attributes.slice(*name_fields)
+      # assign directly to record if new_record
+      return client.attributes = new_attrs if client.new_record?
+
+      # name matches, no-op
+      return if prev_attrs == new_attrs
+
+      # ccn field names are different from the client record
+      # first_name => name, middle_name => name, last_name => name
+      prev_ccn_attrs = prev_attrs.transform_keys { |k| k.to_s.gsub(/_name\z/, '') }
+      new_ccn_attrs = new_attrs.transform_keys { |k| k.to_s.gsub(/_name\z/, '') }
+
+      # keep previous ccn as a non-primary custom name
+      prev_ccn = client.names.where(prev_ccn_attrs).first_or_initialize
+      assign_default_common_client_attrs(client, prev_ccn)
+      prev_ccn.name_data_quality ||= 1
+      prev_ccn.primary = false
+      prev_ccn.save!
+
+      # ensure new ccn is a primary custom name
+      new_ccn = client.names.where(new_ccn_attrs).first_or_initialize
+      assign_default_common_client_attrs(client, new_ccn)
+      new_ccn.name_data_quality = 1
+      new_ccn.primary = true
+      new_ccn.save!
+
+      # ensure the ccn is the only primary
+      client.names.where.not(id: new_ccn.id).each do |ccn|
+        # update on each record for lifecycle hooks
+        ccn.update!(primary: false)
+      end
+
+      # reload since the name might have changed
+      client.reload
+    end
+
+    def update_client_addresses(client)
+      # replace old addresses
+      client.addresses.destroy_all
+
       client_address_attrs = params[:addresses].to_a.map do |values|
         {
           postal_code: values[:zip],
@@ -124,10 +166,15 @@ module HmisExternalApis::AcHmis
             :use,
           ),
           AddressID: Hmis::Hud::Base.generate_uuid,
-          **common_client_attrs,
+          **common_client_attrs(client),
         }
       end
       Hmis::Hud::CustomClientAddress.import!(client_address_attrs)
+    end
+
+    def update_client_contacts(client)
+      # replace old phones, and emails
+      client.contact_points.destroy_all
 
       client_phone_attrs = params[:phone_numbers].to_a.map do |values|
         {
@@ -135,7 +182,7 @@ module HmisExternalApis::AcHmis
           value: values[:number],
           **values.slice(:use, :notes),
           ContactPointID: Hmis::Hud::Base.generate_uuid,
-          **common_client_attrs,
+          **common_client_attrs(client),
         }
       end
       Hmis::Hud::CustomClientContactPoint.import!(client_phone_attrs)
@@ -145,29 +192,40 @@ module HmisExternalApis::AcHmis
           system: :email,
           value: value,
           ContactPointID: Hmis::Hud::Base.generate_uuid,
-          **common_client_attrs,
+          **common_client_attrs(client),
         }
       end
       Hmis::Hud::CustomClientContactPoint.import!(client_email_attrs)
     end
+
+    def common_client_attrs(client)
+      {
+        PersonalID: client.PersonalID,
+        UserID: client.UserID,
+        data_source_id: client.data_source_id,
+      }
+    end
+
+    def assign_default_common_client_attrs(client, record)
+      common_client_attrs(client).each do |attr, value|
+        record[attr] ||= value
+      end
+    end
+
 
     def create_referral_household_members(referral)
       member_params = params.fetch(:household_members)
 
       member_params.map do |attrs|
         attrs => {mci_id:, relationship_to_hoh:}
-        member = referral.household_members.new
-        member.relationship_to_hoh = relationship_to_hoh
         found = mci.find_client_by_mci(mci_id)
-        if found
-          member.client = found
-          # TODO: update client attributes based on the values we received
-        else
-          member.client = create_client(attrs)
-          mci.create_external_id(source: member.client, value: mci_id)
-        end
+        client = found || build_client
+        update_client(client, attrs)
+        mci.create_external_id(source: client, value: mci_id) unless found
+
+        member = referral.household_members.where(client: client).first_or_initialize
+        member.relationship_to_hoh = relationship_to_hoh
         member.save!
-        member
       end
     end
 
