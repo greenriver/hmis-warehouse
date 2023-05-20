@@ -20,7 +20,7 @@ module SystemPathways::Equity::InvolvesCe
       # array for rows and array for columns to indicate which link params
       # should be attached for each
       link_params: {
-        columns: [[]] + involves_ces.keys.map { |k| ['filters[involves_ces][]', k] },
+        columns: [[]] + involves_ces.keys.map { |k| ['details[involves_ce]', k] },
         rows: [[]] + node_names.map { |k| ['node', k] },
       },
     }
@@ -63,12 +63,8 @@ module SystemPathways::Equity::InvolvesCe
           data['colors'][involves_ce] = bg_color
           data['labels']['colors'][involves_ce] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
-        [
-          involves_ce,
-          data,
-        ]
+        data['columns'] << row
       end
     end
   end
