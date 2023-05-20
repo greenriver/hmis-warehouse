@@ -18,7 +18,7 @@ module SystemPathways::TimeChart::Ethnicity
       data: ethnicity_data,
       table: as_table(ethnicity_table_data, ['Project Type'] + ethnicities.values),
       link_params: {
-        columns: [[]] + ethnicities.keys.map { |k| ['filters[ethnicities][]', k] },
+        columns: [[]] + ethnicities.keys.map { |k| ['details[ethnicities][]', k] },
         rows: [[]] + detail_node_keys.map { |k| ['node', k] },
       },
     }
@@ -108,11 +108,6 @@ module SystemPathways::TimeChart::Ethnicity
         data['labels']['colors'][ethnicity] = config.foreground_color(bg_color)
         row << count
         data['columns'] << row
-
-        [
-          ethnicity,
-          data,
-        ]
       end
     end
   end

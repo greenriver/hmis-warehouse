@@ -308,7 +308,7 @@ module SystemPathways
     private def create_universe
       clients.delete_all
       enrollments.delete_all
-      client_ids.each_slice(250) do |ids|
+      client_ids.each_slice(1_000) do |ids|
         enrollment_batch = enrollment_scope.where(client_id: ids)
 
         report_clients = {}
@@ -388,8 +388,8 @@ module SystemPathways
             chronic_member = household_chronic_status(household_id, client.id)
             days_to_move_in = 0
             days_to_exit_after_move_in = nil
-            days_to_move_in = en.move_in_date - en.entry_date if en.move_in_date.present?
-            days_to_exit_after_move_in = en.exit_date - en.move_in_date if en.move_in_date.present? && en.exit_date.present?
+            days_to_move_in = [en.move_in_date - en.entry_date, 0].max if en.move_in_date.present?
+            days_to_exit_after_move_in = [en.exit_date - en.move_in_date, 0].max if en.move_in_date.present? && en.exit_date.present?
             report_enrollments << Enrollment.new(
               client_id: client.id,
               report_id: id,
@@ -517,7 +517,7 @@ module SystemPathways
         entry.
         in_project_type(self.class.available_project_types).
         preload(:project, enrollment: [:client, :project, :disabilities_at_entry], client: :source_clients).
-        joins(:project).
+        joins(:project, :enrollment).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
       filter.apply(scope, except: [:filter_for_enrollment_cocs])
     end
