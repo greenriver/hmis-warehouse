@@ -177,11 +177,14 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
 
       params = referral_params([[client, client_mci_id]])
       expected_last_name = 'Thisisanewlastnamefortesting'
-      expected_ssn = '552563593'
-      params[:household_members][0].merge!(
-        last_name: expected_last_name,
-        ssn: expected_ssn,
-      )
+      expected = {
+        first_name: 'Thisisanewfirstnamefortesting',
+        middle_name: 'Thisisanewmiddlenamefortesting',
+        last_name: 'Thisisanewlastnamefortesting',
+        ssn: '552563593',
+        dob: '1990-02-14',
+      }
+      params[:household_members][0].merge!(expected)
       post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
 
@@ -189,8 +192,14 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       expect(referral.postings.map(&:project_id)).to(eq([project.id]))
       expect(referral.household_members.size).to(eq(1))
       client.reload
-      expect(client.last_name).to(eq(expected_last_name))
-      expect(client.ssn).to(eq(expected_ssn))
+      expected.each_pair do |key, value|
+        case key
+        when :dob
+          expect(client.send(key).strftime('%Y-%m-%d')).to(eq(value))
+        else
+          expect(client.send(key)).to(eq(value))
+        end
+      end
       expect(client.names.size).to(eq(2))
       expect(client.addresses.size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
@@ -206,7 +215,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         .merge({ referral_id: referral.identifier })
       post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
-      expect(referral.postings.size).to(eq(1))
+      expect(referral.postings.size).to(eq(2))
     end
   end
 end
