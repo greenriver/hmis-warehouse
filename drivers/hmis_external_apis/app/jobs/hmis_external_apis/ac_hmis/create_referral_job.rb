@@ -81,8 +81,8 @@ module HmisExternalApis::AcHmis
     end
 
     def update_client(client, attrs)
-      client.attributes = attrs.slice(:dob, :ssn)
       setup_client_name(client, attrs)
+      client.attributes = attrs.slice(:dob, :ssn)
 
       client.name_data_quality = 1 # Full name always present for MCI clients
       client.dob_data_quality = 1 # Full DOB always present for MCI clients
@@ -112,29 +112,34 @@ module HmisExternalApis::AcHmis
 
     # reconcile client record name and client custom names (ccn)
     def setup_client_name(client, attrs)
-      name_fields = [:first_name, :last_name, :middle_name]
-      new_attrs =  attrs.slice(*name_fields)
-      prev_attrs = client.attributes.slice(*name_fields)
+      name_fields = [:first_name, :middle_name, :last_name]
+      # first_name => 'Jane', middle_name => '', last_name => 'Smith'
+      input_attrs = attrs.slice(*name_fields).stringify_keys
+
+      # {firstName => 'Jane', middleName =>, lastName => 'Smith'
+      prev_attrs = client.attributes.slice(*name_fields.map(&:to_s).map(&:camelize))
+
       # assign directly to record if new_record
-      return client.attributes = new_attrs if client.new_record?
+      return client.attributes = input_attrs if client.new_record?
 
       # name matches, no-op
-      return if prev_attrs == new_attrs
+      return if prev_attrs.values == input_attrs.values
 
-      # ccn field names are different from the client record
-      # first_name => name, middle_name => name, last_name => name
-      prev_ccn_attrs = prev_attrs.transform_keys { |k| k.to_s.gsub(/_name\z/, '') }
-      new_ccn_attrs = new_attrs.transform_keys { |k| k.to_s.gsub(/_name\z/, '') }
-
+      # first => 'Jane', middle => '', last => 'Smith'
+      prev_ccn_attrs = prev_attrs.transform_keys { |k| k.gsub(/Name\z/, '').downcase }
       # keep previous ccn as a non-primary custom name
-      prev_ccn = client.names.where(prev_ccn_attrs).first_or_initialize
-      assign_default_common_client_attrs(client, prev_ccn)
-      prev_ccn.name_data_quality ||= 1
-      prev_ccn.primary = false
-      prev_ccn.save!
+      if prev_ccn_attrs.values.compact_blank.any?
+        prev_ccn = client.names.where(prev_ccn_attrs).first_or_initialize
+        assign_default_common_client_attrs(client, prev_ccn)
+        prev_ccn.name_data_quality ||= 1
+        prev_ccn.primary = false
+        prev_ccn.save!
+      end
 
+      # first => 'Jane', middle => '', last => 'Smith'
+      input_ccn_attrs = input_attrs.transform_keys { |k| k.gsub(/_name\z/, '') }
       # ensure new ccn is a primary custom name
-      new_ccn = client.names.where(new_ccn_attrs).first_or_initialize
+      new_ccn = client.names.where(input_ccn_attrs).first_or_initialize
       assign_default_common_client_attrs(client, new_ccn)
       new_ccn.name_data_quality = 1
       new_ccn.primary = true
@@ -145,9 +150,6 @@ module HmisExternalApis::AcHmis
         # update on each record for lifecycle hooks
         ccn.update!(primary: false)
       end
-
-      # reload since the name might have changed
-      client.reload
     end
 
     def update_client_addresses(client)
@@ -211,7 +213,6 @@ module HmisExternalApis::AcHmis
         record[attr] ||= value
       end
     end
-
 
     def create_referral_household_members(referral)
       member_params = params.fetch(:household_members)

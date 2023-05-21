@@ -169,5 +169,44 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
     end
+
+    it 'receives referral for existing clients' do
+      client_mci_id = random_id
+      client = create(:hmis_hud_client_complete, data_source: ds1)
+      mci.create_external_id(source: client, value: client_mci_id)
+
+      params = referral_params([[client, client_mci_id]])
+      expected_last_name = 'Thisisanewlastnamefortesting'
+      expected_ssn = '552563593'
+      params[:household_members][0].merge!(
+        last_name: expected_last_name,
+        ssn: expected_ssn,
+      )
+      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+      check_response_okay
+
+      referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
+      expect(referral.postings.map(&:project_id)).to(eq([project.id]))
+      expect(referral.household_members.size).to(eq(1))
+      client.reload
+      expect(client.last_name).to(eq(expected_last_name))
+      expect(client.ssn).to(eq(expected_ssn))
+      expect(client.names.size).to(eq(2))
+      expect(client.addresses.size).to(eq(1))
+      expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
+      expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
+    end
+
+    it 'receives new posting on existing referral if old posting is closed' do
+      current_posting = create(:hmis_external_api_ac_hmis_referral_posting)
+      current_posting.closed_status!
+      referral = current_posting.referral
+
+      params = referral_params(clients)
+        .merge({ referral_id: referral.identifier })
+      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+      check_response_okay
+      expect(referral.postings.size).to(eq(1))
+    end
   end
 end
