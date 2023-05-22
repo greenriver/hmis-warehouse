@@ -19,7 +19,7 @@ module Types
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
             argument :roles, [Types::Forms::Enums::FormRole], required: false
             argument :in_progress, GraphQL::Types::Boolean, required: false
-            filter_argument HmisSchema::Assessment, filter_type_name: filter_type_name, filter_omit: filter_omit
+            filters_argument HmisSchema::Assessment, filter_type_name: filter_type_name, filter_omit: filter_omit
             instance_eval(&block) if block_given?
           end
         end
@@ -39,10 +39,11 @@ module Types
 
       private
 
-      def scoped_assessments(scope, sort_order: nil, roles: nil, in_progress: nil)
+      def scoped_assessments(scope, sort_order: nil, in_progress: nil, filters: nil, roles: nil)
         scope = scope.viewable_by(current_user)
-        scope = scope.sort_by_option(sort_order) if sort_order.present?
+        scope = scope.apply_filters(filters) if filters.present?
         scope = scope.with_role(roles) if roles.present?
+        scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope = scope.in_progress if in_progress == true
         scope = scope.not_in_progress if in_progress == false
         scope

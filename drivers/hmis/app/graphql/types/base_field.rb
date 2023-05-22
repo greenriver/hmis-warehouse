@@ -16,7 +16,7 @@ module Types
       extension(PaginationWrapperExtension)
     end
 
-    def filter_argument(node_class, arg_name = :filter, filter_type_name: nil, filter_omit: [], **kwargs)
+    def filters_argument(node_class, arg_name = :filters, filter_type_name: nil, filter_omit: [], **kwargs)
       argument(arg_name, node_class.filter_options_type(filter_type_name, omit: filter_omit), required: false, **kwargs)
     end
 
