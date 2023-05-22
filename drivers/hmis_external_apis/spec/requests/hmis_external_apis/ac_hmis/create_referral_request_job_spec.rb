@@ -37,10 +37,31 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
         requested_by: hmis_user, # defined in 'hmis_base_setup' context
       )
       # setup external ids
-      mper.create_external_id(source: referral_request.unit_type, value: SecureRandom.uuid)
+      unit_type_mper_id = SecureRandom.uuid
+      mper.create_external_id(source: referral_request.unit_type, value: unit_type_mper_id)
+
+      result = HmisExternalApis::OauthClientResult.new(
+        parsed_body: { 'referralRequestID' => referral_request_id },
+      )
+      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:post)
+        .with(
+          'Referral/ReferralRequest',
+          {
+            'estimatedDate' => referral_request.needed_by.strftime('%Y-%m-%d'),
+            'programID' => referral_request.project.ProjectID,
+            'requestedBy' => hmis_user.email,
+            'requestedDate' => referral_request.requested_on.strftime('%Y-%m-%d'),
+            'requestorEmail' => referral_request.requestor_email,
+            'requestorName' => referral_request.requestor_name,
+            'requestorPhoneNumber' => referral_request.requestor_phone,
+            'unitTypeID' => unit_type_mper_id,
+          },
+        )
+        .and_return(result)
 
       HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(referral_request)
       expect(referral_request.persisted?).to(eq(true))
+      expect(referral_request.identifier).to(eq(referral_request_id))
     end
   end
 end
