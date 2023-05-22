@@ -34,7 +34,7 @@ module HmisExternalApis::AcHmis
         program_id: project.project_id,
         unit_type_id: mper.identify_source(unit_type),
         estimated_date: format_date(record.needed_by),
-        requested_by: record.requested_by.name,
+        requested_by: record.requested_by.email,
         requestor_name: record.requestor_name,
         requestor_phone_number: record.requestor_phone,
         requestor_email: record.requestor_email,
