@@ -13,7 +13,7 @@ module Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_form, only: [:show, :edit, :update, :download, :remove_file]
-    before_action :set_blank_form, only: [:new, :edit]
+    before_action :set_blank_form, only: [:new, :edit, :update, :create]
     before_action :set_upload_object, only: [:edit, :update, :download, :remove_file]
 
     def new
@@ -34,13 +34,10 @@ module Health
       @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file.present?
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.user = current_user
-
-      if ! request.xhr?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).create
-        respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      elsif @release_form.valid?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).create
-      end
+      # NOTE: for future people troubleshooting why the submission isn't "remote" when a file is attached
+      # https://stackoverflow.com/questions/65135135/rails-6-remote-true-and-multipart-true-file-uploads-not-working
+      Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).create if @release_form.valid?
+      respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
     def show
@@ -54,14 +51,12 @@ module Health
     def update
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.assign_attributes(form_params)
-
+      # NOTE: for future people troubleshooting why the submission isn't "remote" when a file is attached
+      # https://stackoverflow.com/questions/65135135/rails-6-remote-true-and-multipart-true-file-uploads-not-working
       @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file&.new_record?
-      if ! request.xhr?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).update
-        respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      elsif @release_form.valid?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).update
-      end
+      Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).update if @release_form.valid?
+
+      respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
     end
 
     private def set_upload_object

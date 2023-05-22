@@ -664,6 +664,7 @@ class RollOut
   def _interrupt
     puts "❗ Caught interrupt, stopping task #{self.task_arn}..."
     _stop_task!
+    puts "\n"
     exit 130
   end
 end

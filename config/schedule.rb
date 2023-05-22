@@ -145,6 +145,19 @@ tasks = [
     interruptable: true,
   },
   {
+    task: 'driver:medicaid_hmis_interchange:medicaid_hmis_transfer',
+    frequency: :sunday,
+    at: '5:01am',
+    # trigger: MedicaidHmisInterchange::FileExchangeJob.sftp_credentials.present? # This isn't Rails, so this won't work
+    interruptable: true,
+  },
+  {
+    task: 'driver:medicaid_hmis_interchange:medicaid_id_query',
+    frequency: 1.day,
+    at: '4:02am',
+    interruptable: true,
+  },
+  {
     task: 'dba:dry_run',
     frequency: 1.day,
     at: '11:00am',
