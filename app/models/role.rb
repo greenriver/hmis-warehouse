@@ -407,6 +407,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_see_confidential_files: {
+        description: 'Access to client confidential files.  Access is limited to the associated projects, files must be assigned to a project.',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_use_separated_consent: {
         description: 'If granted, the user will see a top level consent option for clients.  If unchecked, consent will fall under the files tab',
         administrative: false,
