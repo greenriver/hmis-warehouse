@@ -55,7 +55,7 @@ RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
       .to_return(status: 404, body: nil, headers: {})
 
     result = subject.get(path)
-    expect(result.http_status).to be_nil
+    expect(result.http_status).to eq(404)
     expect(result.body).to be_blank
     expect(result.parsed_body).to be_blank
     expect(result.error_type).to eq('OAuth2::Error')
@@ -63,9 +63,19 @@ RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
 
   it 'supports a post' do
     path = 'test/resources'
+    expected_status = 200
     stub_request(:post, "#{subject.base_url}#{path}")
-      .to_return(status: 201, body: nil, headers: {})
-    result = subject.post(path, { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
-    expect(result.http_status).to eq(201)
+      .to_return(status: expected_status, body: nil, headers: {})
+    result = subject.post(path, { 'hello' => 'world' })
+    expect(result.http_status).to eq(expected_status)
+  end
+
+  it 'supports a patch' do
+    path = 'test/resources/1'
+    expected_status = 200
+    stub_request(:patch, "#{subject.base_url}#{path}")
+      .to_return(status: expected_status, body: nil, headers: {})
+    result = subject.patch(path, { 'hello' => 'world' })
+    expect(result.http_status).to eq(expected_status)
   end
 end

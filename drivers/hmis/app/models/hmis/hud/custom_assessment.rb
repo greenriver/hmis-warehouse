@@ -50,7 +50,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   # Load project for WIP enrollment
   def project
-    super || enrollment.project
+    super || enrollment&.project
   end
 
   def enrollment
@@ -72,6 +72,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def save_in_progress
     saved_enrollment_id = enrollment.id
+    project_id = enrollment.project.id
 
     self.enrollment_id = WIP_ID
     save!(validate: false)
@@ -79,6 +80,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     self.wip = Hmis::Wip.create_with(date: assessment_date).find_or_create_by(
       source: self,
       enrollment_id: saved_enrollment_id,
+      project_id: project_id,
       client_id: client.id,
     )
 

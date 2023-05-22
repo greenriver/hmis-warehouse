@@ -20,7 +20,7 @@ module SystemPathways::Equity::Veteran
       # array for rows and array for columns to indicate which link params
       # should be attached for each
       link_params: {
-        columns: [[]] + veteran_statuses.keys.map { |k| ['filters[veteran_statuses][]', k] },
+        columns: [[]] + veteran_statuses.keys.map { |k| ['details[veteran_statuses][]', k] },
         rows: [[]] + node_names.map { |k| ['node', k] },
       },
     }
@@ -32,7 +32,10 @@ module SystemPathways::Equity::Veteran
       veteran_statuses.each_key do |k|
         data[k] ||= 0
       end
-      data.merge!(SystemPathways::Client.where(id: node_clients(label).select(:client_id)).group(:veteran_status).count)
+      # NOTE: you can't just use clients as it will join enrollents and each client may have more than one
+      # but you can't use node_clients because the distinct will count the distinct number of veteran statuses
+      single_client_scope = clients.joins(:enrollments).merge(SystemPathways::Enrollment.where(final_enrollment: true))
+      data.merge!(single_client_scope.where(client_id: node_clients(label).select(:client_id)).group(:veteran_status).count)
       [
         label,
         data,
@@ -58,12 +61,8 @@ module SystemPathways::Equity::Veteran
           data['colors'][veteran_status] = bg_color
           data['labels']['colors'][veteran_status] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
-        [
-          veteran_status,
-          data,
-        ]
+        data['columns'] << row
       end
     end
   end

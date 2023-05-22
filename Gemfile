@@ -23,6 +23,7 @@ gem 'order_as_specified'
 gem 'activerecord', '>= 6.1.7.1' # for CVE-2023-22796
 gem 'active_record_extended'
 gem 'active_median'
+gem 'strong_migrations'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
@@ -180,7 +181,11 @@ gem 'dotenv-rails'
 gem 'net-sftp', require: false
 gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
+gem 'addressable' # normalize uris
 gem 'redis-actionpack'
+
+gem 'ed25519'
+gem 'bcrypt_pbkdf'
 
 # AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'

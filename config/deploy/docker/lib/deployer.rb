@@ -44,8 +44,6 @@ class Deployer
   attr_accessor :assume_ci_build
   attr_accessor :push_allowed
 
-  attr_accessor :force_build
-
   # The fully-qualified domain name of the application
   # We use this so we can get data from the app about the deployment state
   attr_accessor :fqdn
@@ -63,7 +61,6 @@ class Deployer
     self.fqdn              = fqdn
     self.push_allowed      = true
     self.web_options       = web_options
-    self.force_build       = false
     self.registry_id       = registry_id
     self.repo_name         = repo_name
     self.variant           = 'web'
@@ -89,7 +86,6 @@ class Deployer
     roll_out.run!
 
     _add_latest_tags!
-    _clean_up_old_local_images!
   end
 
   def run_migrations!
@@ -111,13 +107,6 @@ class Deployer
     roll_out.bootstrap_databases!
   end
 
-  def test_build!
-    self.assume_ci_build = false
-    self.push_allowed = false
-    self.force_build = true
-    _build_and_push_all!
-  end
-
   private
 
   def _initial_steps
@@ -127,7 +116,6 @@ class Deployer
     _docker_login!
     _build_and_push_all!
     _check_secrets!
-    # _check_compiled_assets! # Moved to entrypoint.
   end
 
   def roll_out
@@ -188,45 +176,26 @@ class Deployer
   end
 
   def _build_and_push_all!
-    _build_and_push_image('pre-cache') if !_pre_cache_image_exists? || force_build
-    _build_and_push_image('base')
-    _build_and_push_image('web')
-    _build_and_push_image('dj')
-    # _build_and_push_image('cron')
+    _wait_for_image_ready('pre-cache')
+    _wait_for_image_ready('base')
   end
 
-  def _build_and_push_image(variant)
+  def _wait_for_image_ready(variant)
     self.variant = variant
 
     unless File.exist?(_dockerfile_path)
-      puts "[WARN] Not building #{variant} since the dockerfile #{_dockerfile_path} doesn't exist"
+      puts "[WARN] Not checking #{variant} since the dockerfile #{_dockerfile_path} doesn't exist"
       return
     end
 
     _set_image_tag!
 
-    if assume_ci_build
-      while _revision_not_in_repo?
-        puts "[INFO] Build did not finish yet for #{image_tag}. Trying again in #{WAIT_TIME} minutes."
-        # puts "[DEBUG] These are the tags:"
-        # puts _image_tags_in_repo.join(', ')
+    while _revision_not_in_repo?
+      puts "[INFO] Build did not finish yet for #{image_tag}. Trying again in #{WAIT_TIME} minutes."
+      # puts "[DEBUG] These are the tags:"
+      # puts _image_tags_in_repo.join(', ')
 
-        sleep WAIT_TIME * 60
-      end
-    end
-
-    if _revision_not_in_repo? || force_build
-      _build!
-      _tag_the_image!
-      _push_image! if push_allowed
-    else
-      puts "[INFO] Not building or pushing image #{image_tag}. It's already in the repo."
-
-      if ENV['PULL_LATEST'] == 'true'
-        puts "Pulling just so we have it locally (it's not required)."
-        _run("docker image pull #{_remote_tag}")
-        _tag_the_image!(authority: 'them')
-      end
+      sleep WAIT_TIME * 60
     end
   end
 
@@ -331,37 +300,8 @@ class Deployer
     end
   end
 
-  # This is a crude thing, but hopefully will inspire something not crude
-  def _test_stack!
-    _run('tmux split-window -h')
-    _run("tmux send-keys :1 'cd config/deploy/docker/local-test'")
-
-    puts 'Sleeping to let stack boot'
-    sleep 20
-
-    _run(<<~CMD)
-      curl -k -H 'Host: #{TEST_HOST}' https://localhost:#{TEST_PORT}
-    CMD
-  end
-
   def debug?
     ENV['DEBUG'] == 'true'
-  end
-
-  def _push_image!
-    if debug?
-      puts 'Skipping pushing to remote'
-      return
-    end
-
-    _run("docker push #{_remote_tag}")
-    _run("docker push #{_remote_latest_tag}")
-  end
-
-  def _clean_up_old_local_images!
-    _run(<<~CMD)
-      docker image prune --force -a --filter 'label=app=#{repo_name}' --filter 'until=100h'
-    CMD
   end
 
   def _image_tags_in_repo

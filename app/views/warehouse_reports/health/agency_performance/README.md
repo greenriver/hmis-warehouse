@@ -1,6 +1,7 @@
 **Valid QA Needed this month**:
 The number of patients in the outreach period (within 153 days of enrollment without having a completed care plan
-sent to PCP), and did not get a valid QA in the current or previous month
+sent to PCP), and did not get a valid QA in the last month, or if they have a completed care plan, in the last
+or previous month.
 
 **F2F Visit Needed this Month**:
 The number of patients without QAs for direct face-to-face visits in the current or previous month.

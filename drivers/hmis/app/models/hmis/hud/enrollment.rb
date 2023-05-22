@@ -51,7 +51,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
 
-  SORT_OPTIONS = [:most_recent].freeze
+  SORT_OPTIONS = [:most_recent, :household_id].freeze
 
   # hide previous declaration of :viewable_by, we'll use this one
   # A user can see any enrollment associated with a project they can access
@@ -69,18 +69,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     search_term.strip!
     # If there are Household ID matches, return those only
     household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == TRIMMED_HOUSEHOLD_ID_LENGTH
-    household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches.any?
-    return household_matches if household_matches.any?
+    household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.any?
+    return household_matches if household_matches&.any?
 
     # Search by client
     joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
-  end
-
-  scope :in_project_including_wip, ->(ids, project_ids) do
-    wip_enrollments = wip_t[:project_id].in(Array.wrap(ids))
-    actual_enrollments = e_t[:ProjectID].in(Array.wrap(project_ids))
-
-    left_outer_joins(:wip).where(wip_enrollments.or(actual_enrollments))
   end
 
   scope :heads_of_households, -> do
@@ -104,7 +97,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
         e_t[:ProjectID].eq(nil).desc, # work-in-progress enrollments
         ex_t[:ExitDate].eq(nil).desc, # active enrollments
         EntryDate: :desc,
+        date_created: :desc,
       )
+    when :household_id
+      order(household_id: :asc, date_created: :desc)
     else
       raise NotImplementedError
     end
@@ -184,5 +180,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   TRIMMED_HOUSEHOLD_ID_LENGTH = 6
   def short_household_id
     household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
+  end
+
+  def unit_occupied_on(date = Date.current)
+    Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
   end
 end

@@ -123,115 +123,225 @@ CREATE TYPE public.record_type AS ENUM (
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
+
       BEGIN
+
       IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+
             INSERT INTO service_history_services_2050 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+
             INSERT INTO service_history_services_2049 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+
             INSERT INTO service_history_services_2048 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+
             INSERT INTO service_history_services_2047 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+
             INSERT INTO service_history_services_2046 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+
             INSERT INTO service_history_services_2045 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+
             INSERT INTO service_history_services_2044 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+
             INSERT INTO service_history_services_2043 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+
             INSERT INTO service_history_services_2042 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+
             INSERT INTO service_history_services_2041 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+
             INSERT INTO service_history_services_2040 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+
             INSERT INTO service_history_services_2039 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+
             INSERT INTO service_history_services_2038 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+
             INSERT INTO service_history_services_2037 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+
             INSERT INTO service_history_services_2036 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+
             INSERT INTO service_history_services_2035 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+
             INSERT INTO service_history_services_2034 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+
             INSERT INTO service_history_services_2033 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+
             INSERT INTO service_history_services_2032 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+
             INSERT INTO service_history_services_2031 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+
             INSERT INTO service_history_services_2030 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+
             INSERT INTO service_history_services_2029 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+
             INSERT INTO service_history_services_2028 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+
             INSERT INTO service_history_services_2027 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+
             INSERT INTO service_history_services_2026 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+
             INSERT INTO service_history_services_2025 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+
             INSERT INTO service_history_services_2024 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+
             INSERT INTO service_history_services_2023 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+
             INSERT INTO service_history_services_2022 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+
             INSERT INTO service_history_services_2021 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+
             INSERT INTO service_history_services_2020 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+
             INSERT INTO service_history_services_2019 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+
             INSERT INTO service_history_services_2018 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+
             INSERT INTO service_history_services_2017 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+
             INSERT INTO service_history_services_2016 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+
             INSERT INTO service_history_services_2015 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+
             INSERT INTO service_history_services_2014 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+
             INSERT INTO service_history_services_2013 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+
             INSERT INTO service_history_services_2012 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+
             INSERT INTO service_history_services_2011 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+
             INSERT INTO service_history_services_2010 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+
             INSERT INTO service_history_services_2009 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+
             INSERT INTO service_history_services_2008 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+
             INSERT INTO service_history_services_2007 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+
             INSERT INTO service_history_services_2006 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+
             INSERT INTO service_history_services_2005 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+
             INSERT INTO service_history_services_2004 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+
             INSERT INTO service_history_services_2003 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+
             INSERT INTO service_history_services_2002 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
+
+
       ELSE
+
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
+
         END IF;
+
         RETURN NULL;
+
     END;
+
     $$;
 
 
@@ -775,6 +885,51 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 
 
 --
+-- Name: CustomClientAddress; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientAddress" (
+    id bigint NOT NULL,
+    use character varying,
+    address_type character varying,
+    line1 character varying,
+    line2 character varying,
+    city character varying,
+    state character varying,
+    district character varying,
+    country character varying,
+    postal_code character varying,
+    notes character varying,
+    "AddressID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientAddress_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientAddress_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientAddress_id_seq" OWNED BY public."CustomClientAddress".id;
+
+
+--
 -- Name: CustomClientAssessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -811,54 +966,30 @@ ALTER SEQUENCE public."CustomClientAssessments_id_seq" OWNED BY public."CustomCl
 
 
 --
--- Name: CustomFormAnswers; Type: TABLE; Schema: public; Owner: -
+-- Name: CustomClientContactPoint; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public."CustomFormAnswers" (
+CREATE TABLE public."CustomClientContactPoint" (
     id bigint NOT NULL,
-    custom_form_id bigint NOT NULL,
-    owner_type character varying NOT NULL,
-    owner_id bigint NOT NULL,
-    link_id character varying,
-    key character varying,
-    value_float double precision,
-    value_integer integer,
-    value_boolean boolean,
-    value_string character varying,
-    value_text text,
-    value_json jsonb,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    use character varying,
+    system character varying,
+    value character varying,
+    notes character varying,
+    "ContactPointID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
 );
 
 
 --
--- Name: COLUMN "CustomFormAnswers".owner_id; Type: COMMENT; Schema: public; Owner: -
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public."CustomFormAnswers".owner_id IS 'Record that this data element applies to (Client, Project, etc)';
-
-
---
--- Name: COLUMN "CustomFormAnswers".link_id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public."CustomFormAnswers".link_id IS 'Link ID of the item in the definition that this answer corresponds to';
-
-
---
--- Name: COLUMN "CustomFormAnswers".key; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public."CustomFormAnswers".key IS 'Human-readable key for this data element';
-
-
---
--- Name: CustomFormAnswers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public."CustomFormAnswers_id_seq"
+CREATE SEQUENCE public."CustomClientContactPoint_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -867,10 +998,191 @@ CREATE SEQUENCE public."CustomFormAnswers_id_seq"
 
 
 --
--- Name: CustomFormAnswers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: CustomClientContactPoint_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public."CustomFormAnswers_id_seq" OWNED BY public."CustomFormAnswers".id;
+ALTER SEQUENCE public."CustomClientContactPoint_id_seq" OWNED BY public."CustomClientContactPoint".id;
+
+
+--
+-- Name: CustomClientName; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientName" (
+    id bigint NOT NULL,
+    first character varying,
+    middle character varying,
+    last character varying,
+    suffix character varying,
+    use character varying,
+    notes text,
+    "primary" boolean,
+    "NameDataQuality" integer,
+    "CustomClientNameID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientName_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientName_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientName_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientName_id_seq" OWNED BY public."CustomClientName".id;
+
+
+--
+-- Name: CustomDataElementDefinitions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomDataElementDefinitions" (
+    id bigint NOT NULL,
+    owner_type character varying NOT NULL,
+    custom_service_type_id bigint,
+    field_type character varying,
+    key character varying,
+    label character varying,
+    repeats boolean DEFAULT false NOT NULL,
+    data_source_id integer,
+    "UserID" character varying(32) NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomDataElementDefinitions".owner_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElementDefinitions".owner_type IS 'Record that this type of data element must be associated with';
+
+
+--
+-- Name: COLUMN "CustomDataElementDefinitions".custom_service_type_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElementDefinitions".custom_service_type_id IS 'Service type that this type of data element must be associated with';
+
+
+--
+-- Name: COLUMN "CustomDataElementDefinitions".field_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElementDefinitions".field_type IS 'Type of element (string, integer, etc)';
+
+
+--
+-- Name: COLUMN "CustomDataElementDefinitions".key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElementDefinitions".key IS 'Machine-readable key for this type of data element. Will be used by the FormDefinition that collects/displays it.';
+
+
+--
+-- Name: COLUMN "CustomDataElementDefinitions".label; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElementDefinitions".label IS 'Human-readable label to use when displaying this type of data element.';
+
+
+--
+-- Name: COLUMN "CustomDataElementDefinitions".repeats; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElementDefinitions".repeats IS 'Whether multiple values are allowed per record.';
+
+
+--
+-- Name: CustomDataElementDefinitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomDataElementDefinitions_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomDataElementDefinitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomDataElementDefinitions_id_seq" OWNED BY public."CustomDataElementDefinitions".id;
+
+
+--
+-- Name: CustomDataElements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomDataElements" (
+    id bigint NOT NULL,
+    data_element_definition_id bigint NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    value_float double precision,
+    value_integer integer,
+    value_boolean boolean,
+    value_string character varying,
+    value_text text,
+    value_date date,
+    value_json jsonb,
+    data_source_id integer,
+    "UserID" character varying(32) NOT NULL,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomDataElements".data_element_definition_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElements".data_element_definition_id IS 'Definition for this data element';
+
+
+--
+-- Name: COLUMN "CustomDataElements".owner_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElements".owner_id IS 'Record that this data element belongs to (Client, Project, CustomAssessment, etc)';
+
+
+--
+-- Name: CustomDataElements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomDataElements_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomDataElements_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomDataElements_id_seq" OWNED BY public."CustomDataElements".id;
 
 
 --
@@ -6527,7 +6839,7 @@ ALTER SEQUENCE public.enrollment_change_histories_id_seq OWNED BY public.enrollm
 
 CREATE TABLE public.enrollment_extras (
     id integer NOT NULL,
-    enrollment_id integer,
+    enrollment_id integer NOT NULL,
     vispdat_grand_total integer,
     vispdat_added_at date,
     vispdat_started_at date,
@@ -6889,7 +7201,8 @@ CREATE TABLE public.external_ids (
     remote_credential_id bigint,
     external_request_log_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    namespace character varying
 );
 
 
@@ -10621,8 +10934,8 @@ CREATE TABLE public.hmis_active_ranges (
     id bigint NOT NULL,
     entity_type character varying,
     entity_id bigint,
-    start date NOT NULL,
-    "end" date,
+    start_date date NOT NULL,
+    end_date date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
@@ -10946,42 +11259,6 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
--- Name: hmis_beds; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_beds (
-    id bigint NOT NULL,
-    unit_id bigint NOT NULL,
-    bed_type character varying NOT NULL,
-    name character varying,
-    gender character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    user_id character varying NOT NULL
-);
-
-
---
--- Name: hmis_beds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_beds_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_beds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_beds_id_seq OWNED BY public.hmis_beds.id;
-
-
---
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11094,6 +11371,39 @@ CREATE SEQUENCE public.hmis_client_attributes_defined_text_id_seq
 --
 
 ALTER SEQUENCE public.hmis_client_attributes_defined_text_id_seq OWNED BY public.hmis_client_attributes_defined_text.id;
+
+
+--
+-- Name: hmis_client_merge_audits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_merge_audits (
+    id bigint NOT NULL,
+    pre_merge_state jsonb NOT NULL,
+    actor_id bigint NOT NULL,
+    merged_at timestamp without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_client_merge_audits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_client_merge_audits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_client_merge_audits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_client_merge_audits_id_seq OWNED BY public.hmis_client_merge_audits.id;
 
 
 --
@@ -13794,14 +14104,14 @@ CREATE TABLE public.hmis_dqt_clients (
     overlapping_nbn integer,
     overlapping_pre_move_in integer,
     overlapping_post_move_in integer,
-    ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false,
     veteran_status integer,
     ssn character varying,
     ssn_data_quality integer,
     name_data_quality integer,
     ethnicity integer,
-    reporting_age integer
+    reporting_age integer,
+    ch_at_most_recent_entry boolean DEFAULT false,
+    ch_at_any_entry boolean DEFAULT false
 );
 
 
@@ -13907,7 +14217,6 @@ CREATE TABLE public.hmis_dqt_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     project_type integer,
-    ch_at_entry boolean DEFAULT false,
     project_id integer,
     household_type character varying,
     household_min_age integer,
@@ -13933,19 +14242,20 @@ CREATE TABLE public.hmis_dqt_enrollments (
     cash_income_as_expected_at_entry boolean DEFAULT false,
     cash_income_as_expected_at_annual boolean DEFAULT false,
     cash_income_as_expected_at_exit boolean DEFAULT false,
-    ncb_from_any_source_at_entry integer,
-    ncb_from_any_source_at_annual integer,
-    ncb_from_any_source_at_exit integer,
+    ncb_from_any_source_at_entry boolean DEFAULT false,
+    ncb_from_any_source_at_annual boolean DEFAULT false,
+    ncb_from_any_source_at_exit boolean DEFAULT false,
     ncb_as_expected_at_entry boolean DEFAULT false,
     ncb_as_expected_at_annual boolean DEFAULT false,
     ncb_as_expected_at_exit boolean DEFAULT false,
-    insurance_from_any_source_at_entry integer,
-    insurance_from_any_source_at_annual integer,
-    insurance_from_any_source_at_exit integer,
+    insurance_from_any_source_at_entry boolean DEFAULT false,
+    insurance_from_any_source_at_annual boolean DEFAULT false,
+    insurance_from_any_source_at_exit boolean DEFAULT false,
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
     disability_at_entry_collected boolean DEFAULT false,
+    ch_at_entry boolean DEFAULT false,
     previous_street_es_sh integer,
     entry_date_entered_at timestamp without time zone,
     exit_date_entered_at timestamp without time zone,
@@ -14194,12 +14504,22 @@ CREATE TABLE public.hmis_external_referral_postings (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    identifier character varying NOT NULL,
+    identifier character varying,
     status integer NOT NULL,
     referral_id bigint NOT NULL,
     project_id bigint NOT NULL,
     referral_request_id bigint,
-    unit_type_id bigint NOT NULL
+    unit_type_id bigint NOT NULL,
+    household_id character varying,
+    resource_coordinator_notes text,
+    status_updated_at timestamp without time zone NOT NULL,
+    status_updated_by_id bigint,
+    status_note text,
+    status_note_updated_at text,
+    status_note_updated_by_id bigint,
+    denial_reason integer,
+    referral_result integer,
+    denial_note text
 );
 
 
@@ -14230,7 +14550,7 @@ CREATE TABLE public.hmis_external_referral_requests (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    identifier character varying NOT NULL,
+    identifier character varying,
     project_id bigint NOT NULL,
     unit_type_id bigint NOT NULL,
     requested_on date NOT NULL,
@@ -14271,9 +14591,14 @@ CREATE TABLE public.hmis_external_referrals (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    identifier character varying NOT NULL,
+    identifier character varying,
     referral_date date NOT NULL,
-    service_coordinator character varying NOT NULL
+    service_coordinator character varying NOT NULL,
+    enrollment_id bigint,
+    referral_notes text,
+    chronic boolean,
+    score integer,
+    needs_wheelchair_accessible_unit boolean
 );
 
 
@@ -14524,6 +14849,30 @@ ALTER SEQUENCE public.hmis_forms_id_seq OWNED BY public.hmis_forms.id;
 
 
 --
+-- Name: hmis_households; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_households AS
+ SELECT concat("Enrollment"."HouseholdID", max(("Enrollment"."ProjectID")::text), max("Enrollment".data_source_id)) AS id,
+    "Enrollment"."HouseholdID",
+    max(("Enrollment"."ProjectID")::text) AS "ProjectID",
+    max("Enrollment".data_source_id) AS data_source_id,
+    min("Enrollment"."EntryDate") AS earliest_entry,
+        CASE
+            WHEN bool_or(("Exit"."ExitDate" IS NULL)) THEN NULL::date
+            ELSE max("Exit"."ExitDate")
+        END AS latest_exit,
+    bool_or(("Enrollment"."ProjectID" IS NULL)) AS any_wip,
+    NULL::text AS "DateDeleted",
+    max("Enrollment"."DateUpdated") AS "DateUpdated",
+    min("Enrollment"."DateCreated") AS "DateCreated"
+   FROM (public."Enrollment"
+     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+  WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
+  GROUP BY "Enrollment"."HouseholdID";
+
+
+--
 -- Name: hmis_import_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14685,6 +15034,37 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: hmis_unit_occupancy; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_unit_occupancy (
+    id bigint NOT NULL,
+    unit_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    hmis_service_id bigint
+);
+
+
+--
+-- Name: hmis_unit_occupancy_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_unit_occupancy_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_unit_occupancy_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_unit_occupancy_id_seq OWNED BY public.hmis_unit_occupancy.id;
+
+
+--
 -- Name: hmis_unit_types; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14723,12 +15103,14 @@ ALTER SEQUENCE public.hmis_unit_types_id_seq OWNED BY public.hmis_unit_types.id;
 
 CREATE TABLE public.hmis_units (
     id bigint NOT NULL,
-    inventory_id bigint NOT NULL,
     name character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    user_id character varying NOT NULL
+    user_id character varying NOT NULL,
+    unit_type_id integer,
+    unit_size integer,
+    project_id integer NOT NULL
 );
 
 
@@ -17281,33 +17663,6 @@ ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.i
 
 
 --
--- Name: organization_47_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_47_tes (
-    source_id integer
-);
-
-
---
--- Name: organization_48_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_48_tes (
-    source_id integer
-);
-
-
---
--- Name: organization_49_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_49_tes (
-    source_id integer
-);
-
-
---
 -- Name: performance_measurement_goals; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18729,7 +19084,8 @@ CREATE TABLE public.report_definitions (
     limitable boolean DEFAULT true NOT NULL,
     health boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -20522,6 +20878,7 @@ CREATE TABLE public.system_pathways_enrollments (
     final_enrollment boolean DEFAULT false NOT NULL,
     move_in_date date,
     days_to_move_in integer,
+    days_to_exit_after_move_in integer,
     chronic_at_entry boolean,
     disabling_condition integer
 );
@@ -20802,6 +21159,39 @@ CREATE SEQUENCE public.text_message_topics_id_seq
 --
 
 ALTER SEQUENCE public.text_message_topics_id_seq OWNED BY public.text_message_topics.id;
+
+
+--
+-- Name: themes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.themes (
+    id bigint NOT NULL,
+    client character varying NOT NULL,
+    hmis_origin character varying,
+    hmis_value jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: themes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.themes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: themes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.themes_id_seq OWNED BY public.themes.id;
 
 
 --
@@ -21748,6 +22138,13 @@ ALTER TABLE ONLY public."CustomAssessments" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: CustomClientAddress id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAddress_id_seq"'::regclass);
+
+
+--
 -- Name: CustomClientAssessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21755,10 +22152,31 @@ ALTER TABLE ONLY public."CustomClientAssessments" ALTER COLUMN id SET DEFAULT ne
 
 
 --
--- Name: CustomFormAnswers id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: CustomClientContactPoint id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."CustomFormAnswers" ALTER COLUMN id SET DEFAULT nextval('public."CustomFormAnswers_id_seq"'::regclass);
+ALTER TABLE ONLY public."CustomClientContactPoint" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientContactPoint_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientName id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientName" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientName_id_seq"'::regclass);
+
+
+--
+-- Name: CustomDataElementDefinitions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomDataElementDefinitions" ALTER COLUMN id SET DEFAULT nextval('public."CustomDataElementDefinitions_id_seq"'::regclass);
+
+
+--
+-- Name: CustomDataElements id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomDataElements" ALTER COLUMN id SET DEFAULT nextval('public."CustomDataElements_id_seq"'::regclass);
 
 
 --
@@ -22938,13 +23356,6 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- Name: hmis_beds id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_beds ALTER COLUMN id SET DEFAULT nextval('public.hmis_beds_id_seq'::regclass);
-
-
---
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22963,6 +23374,13 @@ ALTER TABLE ONLY public.hmis_client_alerts ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.hmis_client_attributes_defined_text ALTER COLUMN id SET DEFAULT nextval('public.hmis_client_attributes_defined_text_id_seq'::regclass);
+
+
+--
+-- Name: hmis_client_merge_audits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_merge_audits ALTER COLUMN id SET DEFAULT nextval('public.hmis_client_merge_audits_id_seq'::regclass);
 
 
 --
@@ -23446,6 +23864,13 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_x_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_unit_occupancy id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_occupancy ALTER COLUMN id SET DEFAULT nextval('public.hmis_unit_occupancy_id_seq'::regclass);
 
 
 --
@@ -24527,6 +24952,13 @@ ALTER TABLE ONLY public.text_message_topics ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: themes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.themes ALTER COLUMN id SET DEFAULT nextval('public.themes_id_seq'::regclass);
+
+
+--
 -- Name: tx_research_exports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24724,6 +25156,14 @@ ALTER TABLE ONLY public."CustomAssessments"
 
 
 --
+-- Name: CustomClientAddress CustomClientAddress_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAddress"
+    ADD CONSTRAINT "CustomClientAddress_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: CustomClientAssessments CustomClientAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -24732,11 +25172,35 @@ ALTER TABLE ONLY public."CustomClientAssessments"
 
 
 --
--- Name: CustomFormAnswers CustomFormAnswers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: CustomClientContactPoint CustomClientContactPoint_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."CustomFormAnswers"
-    ADD CONSTRAINT "CustomFormAnswers_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY public."CustomClientContactPoint"
+    ADD CONSTRAINT "CustomClientContactPoint_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientName CustomClientName_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientName"
+    ADD CONSTRAINT "CustomClientName_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomDataElementDefinitions CustomDataElementDefinitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomDataElementDefinitions"
+    ADD CONSTRAINT "CustomDataElementDefinitions_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomDataElements CustomDataElements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomDataElements"
+    ADD CONSTRAINT "CustomDataElements_pkey" PRIMARY KEY (id);
 
 
 --
@@ -26092,14 +26556,6 @@ ALTER TABLE ONLY public.hmis_assessments
 
 
 --
--- Name: hmis_beds hmis_beds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_beds
-    ADD CONSTRAINT hmis_beds_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_case_notes hmis_case_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -26121,6 +26577,14 @@ ALTER TABLE ONLY public.hmis_client_alerts
 
 ALTER TABLE ONLY public.hmis_client_attributes_defined_text
     ADD CONSTRAINT hmis_client_attributes_defined_text_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_client_merge_audits hmis_client_merge_audits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_merge_audits
+    ADD CONSTRAINT hmis_client_merge_audits_pkey PRIMARY KEY (id);
 
 
 --
@@ -26673,6 +27137,14 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_unit_occupancy hmis_unit_occupancy_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_unit_occupancy
+    ADD CONSTRAINT hmis_unit_occupancy_pkey PRIMARY KEY (id);
 
 
 --
@@ -27500,6 +27972,14 @@ ALTER TABLE ONLY public.text_message_topics
 
 
 --
+-- Name: themes themes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.themes
+    ADD CONSTRAINT themes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: tx_research_exports tx_research_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -27743,90 +28223,6 @@ CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree
 
 
 --
--- Name: Enrollment_2735; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_2735" ON public."Enrollment" USING btree ("ProjectID", "HouseholdID");
-
-
---
--- Name: Enrollment_3085; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_3085" ON public."Enrollment" USING btree ("PreviousStreetESSH", "LengthOfStay");
-
-
---
--- Name: Enrollment_34e3; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_34e3" ON public."Enrollment" USING btree ("EnrollmentID", "ProjectID", "EntryDate");
-
-
---
--- Name: Enrollment_42af; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_42af" ON public."Enrollment" USING btree ("ProjectID");
-
-
---
--- Name: Enrollment_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_42d5" ON public."Enrollment" USING btree ("DateUpdated");
-
-
---
--- Name: Enrollment_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_4337" ON public."Enrollment" USING btree ("EnrollmentID");
-
-
---
--- Name: Enrollment_5328; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID");
-
-
---
--- Name: Enrollment_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
-
-
---
--- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
-
-
---
--- Name: Enrollment_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_c548" ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID");
-
-
---
--- Name: Enrollment_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_d381" ON public."Enrollment" USING btree ("DateCreated");
-
-
---
--- Name: Enrollment_f3a2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_f3a2" ON public."Enrollment" USING btree ("DateDeleted");
-
-
---
 -- Name: IncomeBenefits_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27911,6 +28307,20 @@ CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResul
 
 
 --
+-- Name: c_r_system_pathways_clients_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_clients_idx ON public.system_pathways_clients USING btree (client_id, report_id);
+
+
+--
+-- Name: c_r_system_pathways_enrollments_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_enrollments_idx ON public.system_pathways_enrollments USING btree (client_id, report_id);
+
+
+--
 -- Name: ch_enrollments_e_id_ch; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -27978,13 +28388,6 @@ CREATE INDEX client_last_name ON public."Client" USING btree ("LastName");
 --
 
 CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
-
-
---
--- Name: coc_code_test; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX coc_code_test ON public."EnrollmentCoC" USING btree ("CoCCode");
 
 
 --
@@ -28114,13 +28517,6 @@ CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("Enr
 
 
 --
--- Name: en_tt; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
-
-
---
 -- Name: enrollment_coc_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28230,13 +28626,6 @@ CREATE INDEX exit_p_id_ds_id ON public."Exit" USING btree ("PersonalID", data_so
 --
 
 CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
-
-
---
--- Name: external_ids_uniq; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX external_ids_uniq ON public.external_ids USING btree (source_id, source_type, remote_credential_id, value);
 
 
 --
@@ -40966,6 +41355,20 @@ CREATE INDEX idx_hmis_external_referral_postings_on_request_id ON public.hmis_ex
 
 
 --
+-- Name: idx_hmis_external_referral_postings_user_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_external_referral_postings_user_1 ON public.hmis_external_referral_postings USING btree (status_updated_by_id);
+
+
+--
+-- Name: idx_hmis_external_referral_postings_user_2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_external_referral_postings_user_2 ON public.hmis_external_referral_postings USING btree (status_note_updated_by_id);
+
+
+--
 -- Name: idx_inbound_api_configurations_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -41190,17 +41593,31 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 
 
 --
--- Name: index_CustomFormAnswers_on_custom_form_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_CustomDataElementDefinitions_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_CustomFormAnswers_on_custom_form_id" ON public."CustomFormAnswers" USING btree (custom_form_id);
+CREATE INDEX "index_CustomDataElementDefinitions_on_custom_service_type_id" ON public."CustomDataElementDefinitions" USING btree (custom_service_type_id);
 
 
 --
--- Name: index_CustomFormAnswers_on_owner; Type: INDEX; Schema: public; Owner: -
+-- Name: index_CustomDataElementDefinitions_on_owner_type; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_CustomFormAnswers_on_owner" ON public."CustomFormAnswers" USING btree (owner_type, owner_id);
+CREATE INDEX "index_CustomDataElementDefinitions_on_owner_type" ON public."CustomDataElementDefinitions" USING btree (owner_type);
+
+
+--
+-- Name: index_CustomDataElements_on_data_element_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomDataElements_on_data_element_definition_id" ON public."CustomDataElements" USING btree (data_element_definition_id);
+
+
+--
+-- Name: index_CustomDataElements_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomDataElements_on_owner" ON public."CustomDataElements" USING btree (owner_type, owner_id);
 
 
 --
@@ -42912,13 +43329,6 @@ CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids U
 
 
 --
--- Name: index_external_ids_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_external_ids_on_source ON public.external_ids USING btree (source_type, source_id);
-
-
---
 -- Name: index_external_ids_on_value; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43553,13 +43963,6 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 --
 
 CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING btree (site_id);
-
-
---
--- Name: index_hmis_beds_on_unit_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_beds_on_unit_id ON public.hmis_beds USING btree (unit_id);
 
 
 --
@@ -44235,6 +44638,13 @@ CREATE INDEX index_hmis_external_referral_requests_on_voided_by_id ON public.hmi
 
 
 --
+-- Name: index_hmis_external_referrals_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referrals_on_enrollment_id ON public.hmis_external_referrals USING btree (enrollment_id);
+
+
+--
 -- Name: index_hmis_form_instances_on_entity; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44347,10 +44757,24 @@ CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_c
 
 
 --
--- Name: index_hmis_units_on_inventory_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_units_on_inventory_id ON public.hmis_units USING btree (inventory_id);
+CREATE INDEX index_hmis_unit_occupancy_on_enrollment_id ON public.hmis_unit_occupancy USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_unit_occupancy_on_hmis_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_occupancy_on_hmis_service_id ON public.hmis_unit_occupancy USING btree (hmis_service_id);
+
+
+--
+-- Name: index_hmis_unit_occupancy_on_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_unit_occupancy_on_unit_id ON public.hmis_unit_occupancy USING btree (unit_id);
 
 
 --
@@ -45450,6 +45874,13 @@ CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_secret_iv ON pu
 --
 
 CREATE INDEX index_remote_configs_on_remote_credential_id ON public.remote_configs USING btree (remote_credential_id);
+
+
+--
+-- Name: index_remote_credentials_on_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_remote_credentials_on_slug ON public.remote_credentials USING btree (slug);
 
 
 --
@@ -48967,27 +49398,6 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
--- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
-
-
---
--- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
-
-
---
 -- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48999,13 +49409,6 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -49688,10 +50091,10 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 
 
 --
--- Name: tt; Type: INDEX; Schema: public; Owner: -
+-- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
 
 
 --
@@ -49741,6 +50144,13 @@ CREATE UNIQUE INDEX uniq_hud_report_universe_members ON public.hud_report_univer
 --
 
 CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_universe_members USING btree (report_cell_id, universe_membership_id, universe_membership_type) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: unique_index_ensuring_one_primary_per_client; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."CustomClientName" USING btree ("PersonalID", data_source_id) WHERE ("primary" = true);
 
 
 --
@@ -50861,6 +51271,22 @@ CREATE STATISTICS public.stats_shs_2050_age_literally_homeless ON age, literally
 --
 
 CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless FROM public.service_history_services_2050;
+
+
+--
+-- Name: hmis_households attempt_hmis_households_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_households_del AS
+    ON DELETE TO public.hmis_households DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_households attempt_hmis_households_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_households_up AS
+    ON UPDATE TO public.hmis_households DO INSTEAD NOTHING;
 
 
 --
@@ -52570,7 +52996,25 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230428141601'),
 ('20230428145659'),
 ('20230428155418'),
+('20230428203604'),
+('20230428203806'),
+('20230428210859'),
 ('20230429185311'),
-('20230429224702');
+('20230429212740'),
+('20230429224702'),
+('20230501183045'),
+('20230502175218'),
+('20230503155642'),
+('20230503161258'),
+('20230504131726'),
+('20230504152750'),
+('20230505150822'),
+('20230505152333'),
+('20230509161642'),
+('20230511155839'),
+('20230512135003'),
+('20230517023514'),
+('20230519175812'),
+('20230519185108');
 
 

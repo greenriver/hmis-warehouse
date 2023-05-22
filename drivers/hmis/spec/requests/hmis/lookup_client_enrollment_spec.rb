@@ -21,6 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:c1) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
+  let!(:e2_wip) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
   let!(:income_benefit) { create :hmis_income_benefit, data_source: ds1, client: c1, user: u1, enrollment: e1 }
   let!(:health) { create :hmis_health_and_dv, data_source: ds1, client: c1, user: u1, enrollment: e1 }
   let!(:disability) { create :hmis_disability, data_source: ds1, client: c1, user: u1, enrollment: e1 }
@@ -34,6 +35,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   before(:each) do
     hmis_login(user)
     assign_viewable(edit_access_group, ds1, hmis_user)
+    e2_wip.save_in_progress
   end
 
   let(:client_query) do
@@ -114,6 +116,59 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               #{scalar_fields(Types::HmisSchema::Service)}
             }
           }
+          incomeBenefits {
+            nodesCount
+            nodes {
+              #{scalar_fields(Types::HmisSchema::IncomeBenefit)}
+            }
+          }
+          healthAndDvs {
+            nodesCount
+            nodes {
+              #{scalar_fields(Types::HmisSchema::HealthAndDv)}
+            }
+          }
+          disabilities {
+            nodesCount
+            nodes {
+              #{scalar_fields(Types::HmisSchema::Disability)}
+            }
+          }
+          disabilityGroups {
+            #{scalar_fields(Types::HmisSchema::DisabilityGroup)}
+          }
+        }
+      }
+    GRAPHQL
+  end
+
+  let(:client_wip_enrollments_query) do
+    <<~GRAPHQL
+      query Client($id: ID!) {
+        client(id: $id) {
+          id
+          enrollments(limit: 10, offset: 0, enrollmentLimit: WIP_ONLY) {
+            nodesCount
+            nodes {
+              id
+            }
+          }
+        }
+      }
+    GRAPHQL
+  end
+
+  let(:client_non_wip_enrollments_query) do
+    <<~GRAPHQL
+      query Client($id: ID!) {
+        client(id: $id) {
+          id
+          enrollments(limit: 10, offset: 0, enrollmentLimit: NON_WIP_ONLY) {
+            nodesCount
+            nodes {
+              id
+            }
+          }
         }
       }
     GRAPHQL
@@ -141,13 +196,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       client = result.dig('data', 'client')
       expect(client['id']).to eq(c1.id.to_s)
-      expect(client['enrollments']['nodesCount']).to eq(1)
+      expect(client['enrollments']['nodesCount']).to eq(2)
       expect(client['assessments']['nodesCount']).to eq(1)
       expect(client['incomeBenefits']['nodesCount']).to eq(1)
       expect(client['disabilities']['nodesCount']).to eq(1)
       expect(client['healthAndDvs']['nodesCount']).to eq(1)
       expect(client['disabilityGroups'].size).to eq(1)
       expect(client['services']['nodesCount']).to eq(2)
+    end
+
+    it 'should apply WIP-only limit to enrollments' do
+      response, result = post_graphql(id: c1.id) { client_wip_enrollments_query }
+      expect(response.status).to eq 200
+      client = result.dig('data', 'client')
+      expect(client['id']).to eq(c1.id.to_s)
+      expect(client['enrollments']['nodesCount']).to eq(1)
+      expect(client['enrollments']['nodes'][0]['id']).to eq(e2_wip.id.to_s)
+    end
+
+    it 'should apply non-WIP-only limit to enrollments' do
+      response, result = post_graphql(id: c1.id) { client_non_wip_enrollments_query }
+      expect(response.status).to eq 200
+      client = result.dig('data', 'client')
+      expect(client['id']).to eq(c1.id.to_s)
+      expect(client['enrollments']['nodesCount']).to eq(1)
+      expect(client['enrollments']['nodes'][0]['id']).to eq(e1.id.to_s)
     end
   end
 
@@ -169,6 +242,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(enrollment['services']['nodesCount']).to eq(2)
       expect(enrollment['events']['nodesCount']).to eq(1)
       expect(enrollment['assessments']['nodesCount']).to eq(1)
+      expect(enrollment['incomeBenefits']['nodesCount']).to eq(1)
+      expect(enrollment['disabilities']['nodesCount']).to eq(1)
+      expect(enrollment['healthAndDvs']['nodesCount']).to eq(1)
+      expect(enrollment['disabilityGroups'].size).to eq(1)
     end
   end
 end
