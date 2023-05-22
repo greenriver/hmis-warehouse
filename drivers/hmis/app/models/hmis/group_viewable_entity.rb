@@ -24,7 +24,7 @@ module Hmis
     end
 
     scope :includes_project_access_group, ->(pag) do
-      where(entity_type: GrdaWarehouse::ProjectAccessGroup.name, entity_id: pag.id)
+      where(entity: pag)
     end
 
     scope :includes_project_access_groups, ->(pags) do
@@ -32,12 +32,11 @@ module Hmis
     end
 
     scope :includes_organization, ->(organization) do
-      where(entity_type: organization.class.sti_name, entity_id: organization.id).
-        or(includes_data_source(organization.data_source))
+      where(entity: organization).or(includes_data_source(organization.data_source))
     end
 
     scope :includes_data_source, ->(data_source) do
-      where(entity_type: data_source.class.sti_name, entity_id: data_source.id)
+      where(entity: data_source)
     end
 
     scope :includes_entity, ->(entity) do
