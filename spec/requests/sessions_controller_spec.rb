@@ -21,7 +21,7 @@ RSpec.describe Users::SessionsController, type: :request do
     end
 
     it 'user sees an error' do
-      response.body.should include 'Invalid Email or password'
+      expect(response.body).to include 'Invalid Email or password'
     end
 
     # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
@@ -152,7 +152,7 @@ RSpec.describe Users::SessionsController, type: :request do
         identity = create(:oauth_identity, user: user)
         post user_session_path(user: { email: user.email, password: user.password })
         expect(response).to have_http_status(:success)
-        response.body.should include 'Invalid Email or password'
+        expect(response.body).to include 'Invalid Email or password'
         identity.destroy!
       end
     end
