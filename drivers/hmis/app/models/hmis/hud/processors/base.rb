@@ -85,7 +85,7 @@ class Hmis::Hud::Processors::Base
     record = @processor.send(factory_name)
     return false unless record.respond_to?(:custom_data_elements)
 
-    cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.name).where(key: field).first
+    cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name).find_by(key: field)
     return false unless cded.present?
 
     attrs = {
@@ -116,6 +116,10 @@ class Hmis::Hud::Processors::Base
           *existing_values.drop(1).map { |old_cde| { id: old_cde.id, _destroy: 1 } },
         ],
       )
+    # If value(s) haven't changed, just update the User and timestamps
+    elsif existing_values.map(&:value) == Array.wrap(value)
+      attributes = existing_values.map { |cde| { id: cde.id, user: @processor.hud_user } }
+      record.assign_attributes(custom_data_elements_attributes: attributes)
     # Else create new custom field value(s), and delete any existing ones.
     else
       record.assign_attributes(
