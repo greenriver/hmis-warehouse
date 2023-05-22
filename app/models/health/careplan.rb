@@ -212,6 +212,10 @@ module Health
       patient.import_epic_team_members
     end
 
+    def signed?
+      patient_signed_on.present?
+    end
+
     # If we have the patient signature, and they just signed, it was just finished
     def just_finished?
       patient_signed_on.present? && patient_signed_on_changed?
