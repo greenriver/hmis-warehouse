@@ -11,7 +11,7 @@ module Hmis::Hud::Concerns::Shared
 
   included do
     def as_warehouse
-      "GrdaWarehouse::Hud::#{self.class.name.demodulize}".constantize.find(id)
+      "GrdaWarehouse::Hud::#{self.class.sti_name.demodulize}".constantize.find(id)
     end
   end
 end

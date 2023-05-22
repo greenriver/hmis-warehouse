@@ -39,7 +39,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         container, field = match[1..2]
       else
         # Key format is "projectType", and the container is the owner type ("Project")
-        container = owner.class.name.demodulize
+        container = owner.class.sti_name.demodulize
         field = key
       end
 

@@ -17,7 +17,7 @@ module Hmis
     scope :project_access_groups, -> { where(entity_type: GrdaWarehouse::ProjectAccessGroup.sti_name) }
 
     scope :includes_project, ->(project) do
-      where(entity_type: project.class.name, entity_id: project.id).
+      where(entity_type: project.class.sti_name, entity_id: project.id).
         or(includes_data_source(project.data_source)).
         or(includes_organization(project.organization)).
         or(includes_project_access_groups(project.project_groups))
@@ -32,16 +32,16 @@ module Hmis
     end
 
     scope :includes_organization, ->(organization) do
-      where(entity_type: organization.class.name, entity_id: organization.id).
+      where(entity_type: organization.class.sti_name, entity_id: organization.id).
         or(includes_data_source(organization.data_source))
     end
 
     scope :includes_data_source, ->(data_source) do
-      where(entity_type: data_source.class.name, entity_id: data_source.id)
+      where(entity_type: data_source.class.sti_name, entity_id: data_source.id)
     end
 
     scope :includes_entity, ->(entity) do
-      case entity.class.name
+      case entity.class.sti_name
       when Hmis::Hud::Project.name
         includes_project(entity)
       when Hmis::Hud::Organization.name

@@ -17,7 +17,7 @@ module Types
       elsif object.is_a?(Hmis::Hud::Client)
         Types::HmisSchema::Client
       else
-        raise "#{object.class.name} is not a valid omnisearch result"
+        raise "#{object.class.sti_name} is not a valid omnisearch result"
       end
     end
   end

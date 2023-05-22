@@ -67,7 +67,7 @@ class Hmis::User < ApplicationRecord
       base_entities = permissions_base_for_entity(entity)
 
       # Raise if there's no permissions base for the entity we're checking permissions on
-      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" if base_entities.nil?
+      raise "Invalid entity '#{entity.class.sti_name}' for permission '#{permission}'" if base_entities.nil?
 
       # No permissions on this entity if there's nothing that would grant it permissions
       return false unless base_entities.present?
@@ -173,7 +173,7 @@ class Hmis::User < ApplicationRecord
   end
 
   private def cached_viewable_project_ids(force_calculation: false)
-    key = [self.class.name, __method__, id]
+    key = [self.class.sti_name, __method__, id]
     Rails.cache.delete(key) if force_calculation
     Rails.cache.fetch(key, expires_in: 1.minutes) do
       Hmis::Hud::Project.viewable_by(self).pluck(:id).to_set
