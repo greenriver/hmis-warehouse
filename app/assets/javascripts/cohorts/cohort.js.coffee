@@ -132,7 +132,6 @@ class App.Cohorts.Cohort
       # Set the default sort on the second column
       if index == 1
         header.sort = @sort_direction
-
       switch column.renderer
         when 'checkbox'
           header.cellRenderer = 'checkboxCellRenderer'
@@ -152,8 +151,10 @@ class App.Cohorts.Cohort
           header.cellRenderer = (params) =>
             params.getValue()
         when 'html'
+          header.comparator = @sort_everything_else
           header.cellRenderer = 'htmlCellRenderer'
         else
+          header.comparator = @sort_everything_else
           header.cellRenderer = (params) =>
             params.getValue()
 
@@ -179,6 +180,21 @@ class App.Cohorts.Cohort
     if a == b
       return 0
     if moment(a, 'MMM DD, YYYY').format('YYYYMMDD') > moment(b, 'MMM DD, YYYY').format('YYYYMMDD') then 1 else -1
+
+  sort_everything_else: (a, b) =>
+    if a == null
+      return -1
+    if b == null
+      return 1
+    if !a.substring || !b.substring
+      return a - b
+    if a.length < 1 || b.length < 1
+      return a - b
+    if !isNaN(a) && !isNan(b)
+      return Number(a) - Number(b)
+    a = a.toLowerCase()
+    b = b.toLowerCase()
+    return a < b ? -1 : a > b ? 1 : 0
 
   enable_searching: () =>
     searchField = $(@search_selector)[0]
