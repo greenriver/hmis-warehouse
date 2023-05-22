@@ -7453,7 +7453,7 @@ CREATE TABLE public.files (
     consent_revoked_at timestamp without time zone,
     coc_codes jsonb DEFAULT '[]'::jsonb,
     enrollment_id bigint,
-    confidential boolean NOT NULL,
+    confidential boolean DEFAULT false NOT NULL,
     updated_by_id bigint
 );
 
@@ -53018,6 +53018,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230519185108'),
 ('20230522112541'),
 ('20230522112645'),
-('20230522112916');
+('20230522112916'),
+('20230522183433');
 
 
