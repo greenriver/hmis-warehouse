@@ -18,7 +18,7 @@ module SystemPathways::TimeChart::Chronic
       data: chronic_at_entry_data,
       table: as_table(chronic_at_entry_table_data, ['Project Type'] + chronic_at_entries.values),
       link_params: {
-        columns: [[]] + chronic_at_entries.keys.map { |k| ['filters[chronic_at_entries][]', k] },
+        columns: [[]] + chronic_at_entries.keys.map { |k| ['details[chronic_at_entries][]', k] },
         rows: [[]] + detail_node_keys.map { |k| ['node', k] },
       },
     }
@@ -108,11 +108,6 @@ module SystemPathways::TimeChart::Chronic
         data['labels']['colors'][chronic_at_entry] = config.foreground_color(bg_color)
         row << count
         data['columns'] << row
-
-        [
-          chronic_at_entry,
-          data,
-        ]
       end
     end
   end

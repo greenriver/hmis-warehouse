@@ -13,6 +13,9 @@ module HmisExternalApis::AcHmis
     belongs_to :project, class_name: 'Hmis::Hud::Project'
     belongs_to :unit_type, class_name: 'Hmis::UnitType'
 
+    belongs_to :status_updated_by, class_name: 'Hmis::User', optional: true
+    belongs_to :status_note_updated_by, class_name: 'Hmis::User', optional: true
+
     # https://docs.google.com/spreadsheets/d/12wRLTjNdcs7A_1lHwkLUoKz1YWYkfaQs/edit#gid=26094550
     enum(
       status: {
@@ -29,6 +32,14 @@ module HmisExternalApis::AcHmis
         assigned_to_other_program_status: 60,
         # closed: 65,
       },
+      referral_result: ::HudLists.referral_result_map.invert.transform_keys { |k| k.downcase.gsub(/[^a-z]+/, '_') },
     )
+
+    validates :status_note, length: { maximum: 4_000 }
+    validates :denial_note, length: { maximum: 2_000 }
+
+    before_create do
+      self.status_updated_at ||= created_at
+    end
   end
 end

@@ -35,11 +35,11 @@ module HmisExternalApis
     def url_for(path)
       return normalized_base_url if path.blank?
 
-      normalized_base_url + '/' + path.strip.gsub(/\A\/*/, '')
+      normalized_base_url + '/' + path.strip.gsub(%r{\A/*}, '')
     end
 
     def normalized_base_url
-      base_url.strip.gsub(/\/*\z/, '')
+      base_url.strip.gsub(%r{/*\z}, '')
     end
 
     def request(verb, url, payload = nil)

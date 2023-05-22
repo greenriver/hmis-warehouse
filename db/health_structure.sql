@@ -3411,6 +3411,232 @@ ALTER SEQUENCE public.member_status_reports_id_seq OWNED BY public.member_status
 
 
 --
+-- Name: mhx_external_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mhx_external_ids (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    identifier character varying NOT NULL,
+    invalidated_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: mhx_external_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mhx_external_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mhx_external_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mhx_external_ids_id_seq OWNED BY public.mhx_external_ids.id;
+
+
+--
+-- Name: mhx_medicaid_id_inquiries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mhx_medicaid_id_inquiries (
+    id bigint NOT NULL,
+    service_date date NOT NULL,
+    inquiry character varying,
+    result character varying,
+    isa_control_number integer NOT NULL,
+    group_control_number integer NOT NULL,
+    transaction_control_number integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: mhx_medicaid_id_inquiries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mhx_medicaid_id_inquiries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mhx_medicaid_id_inquiries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mhx_medicaid_id_inquiries_id_seq OWNED BY public.mhx_medicaid_id_inquiries.id;
+
+
+--
+-- Name: mhx_medicaid_id_responses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mhx_medicaid_id_responses (
+    id bigint NOT NULL,
+    medicaid_id_inquiry_id bigint,
+    response character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: mhx_medicaid_id_responses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mhx_medicaid_id_responses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mhx_medicaid_id_responses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mhx_medicaid_id_responses_id_seq OWNED BY public.mhx_medicaid_id_responses.id;
+
+
+--
+-- Name: mhx_response_external_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mhx_response_external_ids (
+    id bigint NOT NULL,
+    response_id bigint,
+    external_id_id bigint
+);
+
+
+--
+-- Name: mhx_response_external_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mhx_response_external_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mhx_response_external_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mhx_response_external_ids_id_seq OWNED BY public.mhx_response_external_ids.id;
+
+
+--
+-- Name: mhx_responses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mhx_responses (
+    id bigint NOT NULL,
+    submission_id bigint,
+    error_report character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: mhx_responses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mhx_responses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mhx_responses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mhx_responses_id_seq OWNED BY public.mhx_responses.id;
+
+
+--
+-- Name: mhx_submission_external_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mhx_submission_external_ids (
+    id bigint NOT NULL,
+    submission_id bigint,
+    external_id_id bigint
+);
+
+
+--
+-- Name: mhx_submission_external_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mhx_submission_external_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mhx_submission_external_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mhx_submission_external_ids_id_seq OWNED BY public.mhx_submission_external_ids.id;
+
+
+--
+-- Name: mhx_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mhx_submissions (
+    id bigint NOT NULL,
+    total_records integer,
+    zip_file bytea,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    "timestamp" character varying
+);
+
+
+--
+-- Name: mhx_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mhx_submissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mhx_submissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mhx_submissions_id_seq OWNED BY public.mhx_submissions.id;
+
+
+--
 -- Name: participation_forms; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5322,6 +5548,55 @@ ALTER TABLE ONLY public.member_status_reports ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: mhx_external_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_external_ids ALTER COLUMN id SET DEFAULT nextval('public.mhx_external_ids_id_seq'::regclass);
+
+
+--
+-- Name: mhx_medicaid_id_inquiries id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_medicaid_id_inquiries ALTER COLUMN id SET DEFAULT nextval('public.mhx_medicaid_id_inquiries_id_seq'::regclass);
+
+
+--
+-- Name: mhx_medicaid_id_responses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_medicaid_id_responses ALTER COLUMN id SET DEFAULT nextval('public.mhx_medicaid_id_responses_id_seq'::regclass);
+
+
+--
+-- Name: mhx_response_external_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_response_external_ids ALTER COLUMN id SET DEFAULT nextval('public.mhx_response_external_ids_id_seq'::regclass);
+
+
+--
+-- Name: mhx_responses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_responses ALTER COLUMN id SET DEFAULT nextval('public.mhx_responses_id_seq'::regclass);
+
+
+--
+-- Name: mhx_submission_external_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_submission_external_ids ALTER COLUMN id SET DEFAULT nextval('public.mhx_submission_external_ids_id_seq'::regclass);
+
+
+--
+-- Name: mhx_submissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_submissions ALTER COLUMN id SET DEFAULT nextval('public.mhx_submissions_id_seq'::regclass);
+
+
+--
 -- Name: participation_forms id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -6072,6 +6347,62 @@ ALTER TABLE ONLY public.member_status_report_patients
 
 ALTER TABLE ONLY public.member_status_reports
     ADD CONSTRAINT member_status_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mhx_external_ids mhx_external_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_external_ids
+    ADD CONSTRAINT mhx_external_ids_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mhx_medicaid_id_inquiries mhx_medicaid_id_inquiries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_medicaid_id_inquiries
+    ADD CONSTRAINT mhx_medicaid_id_inquiries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mhx_medicaid_id_responses mhx_medicaid_id_responses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_medicaid_id_responses
+    ADD CONSTRAINT mhx_medicaid_id_responses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mhx_response_external_ids mhx_response_external_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_response_external_ids
+    ADD CONSTRAINT mhx_response_external_ids_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mhx_responses mhx_responses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_responses
+    ADD CONSTRAINT mhx_responses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mhx_submission_external_ids mhx_submission_external_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_submission_external_ids
+    ADD CONSTRAINT mhx_submission_external_ids_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mhx_submissions mhx_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mhx_submissions
+    ADD CONSTRAINT mhx_submissions_pkey PRIMARY KEY (id);
 
 
 --
@@ -6912,6 +7243,62 @@ CREATE INDEX index_member_status_reports_on_deleted_at ON public.member_status_r
 
 
 --
+-- Name: index_mhx_external_ids_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_external_ids_on_client_id ON public.mhx_external_ids USING btree (client_id);
+
+
+--
+-- Name: index_mhx_external_ids_on_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_external_ids_on_identifier ON public.mhx_external_ids USING btree (identifier);
+
+
+--
+-- Name: index_mhx_medicaid_id_responses_on_medicaid_id_inquiry_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_medicaid_id_responses_on_medicaid_id_inquiry_id ON public.mhx_medicaid_id_responses USING btree (medicaid_id_inquiry_id);
+
+
+--
+-- Name: index_mhx_response_external_ids_on_external_id_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_response_external_ids_on_external_id_id ON public.mhx_response_external_ids USING btree (external_id_id);
+
+
+--
+-- Name: index_mhx_response_external_ids_on_response_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_response_external_ids_on_response_id ON public.mhx_response_external_ids USING btree (response_id);
+
+
+--
+-- Name: index_mhx_responses_on_submission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_responses_on_submission_id ON public.mhx_responses USING btree (submission_id);
+
+
+--
+-- Name: index_mhx_submission_external_ids_on_external_id_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_submission_external_ids_on_external_id_id ON public.mhx_submission_external_ids USING btree (external_id_id);
+
+
+--
+-- Name: index_mhx_submission_external_ids_on_submission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mhx_submission_external_ids_on_submission_id ON public.mhx_submission_external_ids USING btree (submission_id);
+
+
+--
 -- Name: index_participation_forms_on_case_manager_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7679,6 +8066,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230123201023'),
 ('20230317185655'),
 ('20230322163322'),
-('20230322172802');
+('20230322172802'),
+('20230504194752'),
+('20230504203640'),
+('20230508135940'),
+('20230512151350'),
+('20230516171211'),
+('20230516171223');
 
 

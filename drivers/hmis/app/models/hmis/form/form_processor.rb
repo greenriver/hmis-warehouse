@@ -50,7 +50,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     # Iterate through each used processor to apply metadata and information dates
     relevant_container_names = custom_form.hud_values.keys.map { |k| parse_key(k)&.first }.compact.uniq
-    relevant_container_names.map do |container|
+    relevant_container_names.each do |container|
       container_processor(container)&.assign_metadata
       container_processor(container)&.information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?
     end
@@ -59,13 +59,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def parse_key(key)
-    # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
-    match = /(.*?)\.(.*)/.match(key)
-    if match.present?
-      # Key format is "Enrollment.entryDate"
-      container, field = match[1..2]
+    # Key format is "Enrollment.entryDate", or simply "projectType" (in which case the container is the owner type ("Project") )
+    if key.include?('.')
+      container, field = key.split('.', 2)
     else
-      # Key format is "projectType", and the container is the owner type ("Project")
       container = owner.class.name.demodulize
       field = key
     end

@@ -20,7 +20,7 @@ module SystemPathways::Equity::Ethnicity
       # array for rows and array for columns to indicate which link params
       # should be attached for each
       link_params: {
-        columns: [[]] + ethnicities.keys.map { |k| ['filters[ethnicities][]', k] },
+        columns: [[]] + ethnicities.keys.map { |k| ['details[ethnicities][]', k] },
         rows: [[]] + node_names.map { |k| ['node', k] },
       },
     }
@@ -44,12 +44,8 @@ module SystemPathways::Equity::Ethnicity
           data['colors'][ethnicity] = bg_color
           data['labels']['colors'][ethnicity] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
-        [
-          ethnicity,
-          data,
-        ]
+        data['columns'] << row
       end
     end
   end
@@ -60,7 +56,10 @@ module SystemPathways::Equity::Ethnicity
       ethnicities.each_key do |k|
         data[k] ||= 0
       end
-      data.merge!(SystemPathways::Client.where(id: node_clients(label).select(:client_id)).group(:ethnicity).count)
+      # NOTE: you can't just use clients as it will join enrollents and each client may have more than one
+      # but you can't use node_clients because the distinct will count the distinct number of ethnicities
+      single_client_scope = clients.joins(:enrollments).merge(SystemPathways::Enrollment.where(final_enrollment: true))
+      data.merge!(single_client_scope.where(client_id: node_clients(label).select(:client_id)).group(:ethnicity).count)
       [
         label,
         data,

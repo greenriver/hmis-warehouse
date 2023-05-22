@@ -331,17 +331,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
   end
 
-  # it 'pulls validation errors up from HUD records' do
-  #   assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
-  #   assessment.custom_form.hud_values = {
-  #     'Enrollment.entryDate' => nil,
-  #   }
-
-  #   assessment.custom_form.form_processor.run!(owner: assessment, user: hmis_user)
-  #   expect(assessment.custom_form.valid?).to be false
-  #   expect(assessment.custom_form.errors[:user]).to include('must exist')
-  # end
-
   describe 'updating existing assessment' do
     it "doesn't touch an existing value, if it isn't listed (but applies the listed fields)" do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
@@ -1106,9 +1095,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       it 'updates a CustomDataElement (repeats: true)' do
         record = i1
         cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', repeats: true)
-        create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
-        create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
-        create(:hmis_custom_data_element, owner: record, value_string: 'old value 3', data_element_definition: cded)
+        common_attrs = { owner: record, data_element_definition: cded }
+        old1 = create(:hmis_custom_data_element, value_string: 'old value 1', **common_attrs)
+        old2 = create(:hmis_custom_data_element, value_string: 'old value 2', **common_attrs)
+        old3 = create(:hmis_custom_data_element, value_string: 'old value 3', **common_attrs)
         expect(record.custom_data_elements.size).to eq(3)
 
         custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
@@ -1121,6 +1111,29 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
         expect(record.custom_data_elements.size).to eq(2)
         expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('new value 1', 'new value 2')
+        # Old records should have been replaced
+        expect(record.custom_data_elements.map(&:id)).not_to include(old1.id, old2.id, old3.id)
+      end
+
+      it 'does not delete and replace if the values are the same' do
+        record = i1
+        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', repeats: true)
+        old1 = create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
+        old2 = create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
+        expect(record.custom_data_elements.size).to eq(2)
+
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          cded.key => [old1.value_string, old2.value_string],
+        )
+        custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+        custom_form.owner.save!
+        record.reload
+
+        expect(record.custom_data_elements.size).to eq(2)
+        # Old records should remain, with updated timestamps
+        expect(record.custom_data_elements.map(&:id)).to contain_exactly(old1.id, old2.id)
+        expect(record.custom_data_elements.map(&:date_updated)).not_to include(old1.date_updated, old2.date_updated)
       end
 
       [nil, HIDDEN].each do |value|
