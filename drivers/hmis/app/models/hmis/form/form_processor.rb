@@ -50,7 +50,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     # Iterate through each used processor to apply metadata and information dates
     relevant_container_names = custom_form.hud_values.keys.map { |k| parse_key(k)&.first }.compact.uniq
-    relevant_container_names.map do |container|
+    relevant_container_names.each do |container|
       container_processor(container)&.assign_metadata
       container_processor(container)&.information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?
     end
