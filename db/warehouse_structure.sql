@@ -18945,7 +18945,8 @@ CREATE TABLE public.report_definitions (
     limitable boolean DEFAULT true NOT NULL,
     health boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -52861,6 +52862,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230512135003'),
 ('20230517023514'),
 ('20230518172244'),
-('20230519175812');
+('20230519175812'),
+('20230519185108');
 
 
