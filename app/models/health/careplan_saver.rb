@@ -29,7 +29,7 @@ module Health
           if @create_qa
             # Checking for QA generation needs to be done before the save so that the _changed tracking is triggered
 
-            care_planning_qa = if careplan.renewed_for_cp2?
+            care_planning_qa = if @careplan.renewed_for_cp2?
               setup_care_planning_qualifying_activity(mode_of_contact: :phone_call, qa_date_attribute: :ncm_approved_on)
             elsif @careplan.just_finished?
               setup_care_planning_qualifying_activity
