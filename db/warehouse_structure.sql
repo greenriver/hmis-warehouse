@@ -14504,12 +14504,22 @@ CREATE TABLE public.hmis_external_referral_postings (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    identifier character varying NOT NULL,
+    identifier character varying,
     status integer NOT NULL,
     referral_id bigint NOT NULL,
     project_id bigint NOT NULL,
     referral_request_id bigint,
-    unit_type_id bigint NOT NULL
+    unit_type_id bigint NOT NULL,
+    household_id character varying,
+    resource_coordinator_notes text,
+    status_updated_at timestamp without time zone NOT NULL,
+    status_updated_by_id bigint,
+    status_note text,
+    status_note_updated_at text,
+    status_note_updated_by_id bigint,
+    denial_reason integer,
+    referral_result integer,
+    denial_note text
 );
 
 
@@ -14540,7 +14550,7 @@ CREATE TABLE public.hmis_external_referral_requests (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    identifier character varying NOT NULL,
+    identifier character varying,
     project_id bigint NOT NULL,
     unit_type_id bigint NOT NULL,
     requested_on date NOT NULL,
@@ -14581,9 +14591,14 @@ CREATE TABLE public.hmis_external_referrals (
     id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    identifier character varying NOT NULL,
+    identifier character varying,
     referral_date date NOT NULL,
-    service_coordinator character varying NOT NULL
+    service_coordinator character varying NOT NULL,
+    enrollment_id bigint,
+    referral_notes text,
+    chronic boolean,
+    score integer,
+    needs_wheelchair_accessible_unit boolean
 );
 
 
@@ -21147,6 +21162,39 @@ ALTER SEQUENCE public.text_message_topics_id_seq OWNED BY public.text_message_to
 
 
 --
+-- Name: themes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.themes (
+    id bigint NOT NULL,
+    client character varying NOT NULL,
+    hmis_origin character varying,
+    hmis_value jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: themes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.themes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: themes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.themes_id_seq OWNED BY public.themes.id;
+
+
+--
 -- Name: todd_stats; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -24904,6 +24952,13 @@ ALTER TABLE ONLY public.text_message_topics ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: themes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.themes ALTER COLUMN id SET DEFAULT nextval('public.themes_id_seq'::regclass);
+
+
+--
 -- Name: tx_research_exports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -27914,6 +27969,14 @@ ALTER TABLE ONLY public.text_message_topic_subscribers
 
 ALTER TABLE ONLY public.text_message_topics
     ADD CONSTRAINT text_message_topics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: themes themes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.themes
+    ADD CONSTRAINT themes_pkey PRIMARY KEY (id);
 
 
 --
@@ -41292,6 +41355,20 @@ CREATE INDEX idx_hmis_external_referral_postings_on_request_id ON public.hmis_ex
 
 
 --
+-- Name: idx_hmis_external_referral_postings_user_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_external_referral_postings_user_1 ON public.hmis_external_referral_postings USING btree (status_updated_by_id);
+
+
+--
+-- Name: idx_hmis_external_referral_postings_user_2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_hmis_external_referral_postings_user_2 ON public.hmis_external_referral_postings USING btree (status_note_updated_by_id);
+
+
+--
 -- Name: idx_inbound_api_configurations_uniq; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44558,6 +44635,13 @@ CREATE INDEX index_hmis_external_referral_requests_on_unit_type_id ON public.hmi
 --
 
 CREATE INDEX index_hmis_external_referral_requests_on_voided_by_id ON public.hmis_external_referral_requests USING btree (voided_by_id);
+
+
+--
+-- Name: index_hmis_external_referrals_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_referrals_on_enrollment_id ON public.hmis_external_referrals USING btree (enrollment_id);
 
 
 --
@@ -52929,6 +53013,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230509161642'),
 ('20230511155839'),
 ('20230512135003'),
+('20230517023514'),
+('20230519175812'),
 ('20230519185108');
 
 
