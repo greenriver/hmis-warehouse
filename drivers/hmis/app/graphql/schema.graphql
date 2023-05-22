@@ -78,7 +78,7 @@ type AssessmentAccess {
   id: ID!
 }
 
-input AssessmentFilterInput {
+input AssessmentFilterOptions {
   projects: [ID!]
   roles: [FormRole!]
   textSearch: String
@@ -145,7 +145,14 @@ enum AssessmentLevel {
 HUD Assessment Sorting Options
 """
 enum AssessmentSortOption {
+  """
+  Assessment Date: Most Recent First
+  """
   ASSESSMENT_DATE
+
+  """
+  Last Updated: Most Recent First
+  """
   DATE_UPDATED
 }
 
@@ -172,6 +179,11 @@ enum AssessmentType {
   (2) Virtual
   """
   VIRTUAL
+}
+
+input AssessmentsForEnrollmentFilterOptions {
+  roles: [FormRole!]
+  textSearch: String
 }
 
 type AssessmentsPaginated {
@@ -351,7 +363,7 @@ type Client {
   access: ClientAccess!
   addresses: [ClientAddress!]!
   age: Int
-  assessments(filter: AssessmentFilterInput, inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filter: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   customDataElements: [CustomDataElement!]!
@@ -1642,7 +1654,7 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
-  assessments(filter: AssessmentFilterInput, inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filter: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   client: Client!
   dateCreated: ISO8601DateTime!

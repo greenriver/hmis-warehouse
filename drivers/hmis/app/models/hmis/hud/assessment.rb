@@ -13,6 +13,11 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
+  SORT_OPTION_DESCRIPTIONS = {
+    assessment_date: 'Assessment Date: Most Recent First',
+    date_updated: 'Last Updated: Most Recent First',
+  }.freeze
+
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments

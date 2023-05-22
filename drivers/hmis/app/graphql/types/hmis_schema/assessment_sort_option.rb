@@ -12,7 +12,7 @@ module Types
     graphql_name 'AssessmentSortOption'
 
     Hmis::Hud::CustomAssessment::SORT_OPTIONS.each do |opt|
-      value opt.to_s.upcase, value: opt
+      value opt.to_s.upcase, value: opt, description: Hmis::Hud::Assessment::SORT_OPTION_DESCRIPTIONS[opt]
     end
   end
 end
