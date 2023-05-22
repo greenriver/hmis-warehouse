@@ -35,6 +35,9 @@ msgstr ""
 msgid "A summary of SPMs 1, 2, and 7 with sub-population and demographic details"
 msgstr ""
 
+msgid "A tool to look at client pathways through the continuum including some equity analysis."
+msgstr ""
+
 msgid "A tool to track data quality across HMIS data used in HUD reports."
 msgstr ""
 
@@ -147,6 +150,9 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
+msgstr ""
+
+msgid "Boston Reports Configuration"
 msgstr ""
 
 msgid "Built For Zero Monthly Report"
@@ -4007,6 +4013,9 @@ msgstr ""
 msgid "Offline Research Export"
 msgstr ""
 
+msgid "Open Path HMIS"
+msgstr ""
+
 msgid "Open Path ROI"
 msgstr ""
 
@@ -4250,6 +4259,12 @@ msgstr ""
 msgid "State-Level Homelessness Report Generator"
 msgstr ""
 
+msgid "Street 2 Home"
+msgstr ""
+
+msgid "Street to Home"
+msgstr ""
+
 msgid "Strengths"
 msgstr ""
 
@@ -4455,6 +4470,9 @@ msgid "no indication if the client was reached"
 msgstr ""
 
 msgid "no mode of contact"
+msgstr ""
+
+msgid "number of activities of this type per day exceeded"
 msgstr ""
 
 msgid "outreach activities are not payable after the outreach period"

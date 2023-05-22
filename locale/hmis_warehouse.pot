@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-03 00:40+0000\n"
-"PO-Revision-Date: 2023-02-03 00:40+0000\n"
+"POT-Creation-Date: 2023-05-22 17:42+0000\n"
+"PO-Revision-Date: 2023-05-22 17:42+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -34,6 +34,9 @@ msgid "A claim was submitted for this SSM; it is no longer editable."
 msgstr ""
 
 msgid "A summary of SPMs 1, 2, and 7 with sub-population and demographic details"
+msgstr ""
+
+msgid "A tool to look at client pathways through the continuum including some equity analysis."
 msgstr ""
 
 msgid "A tool to track data quality across HMIS data used in HUD reports."
@@ -148,6 +151,9 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
+msgstr ""
+
+msgid "Boston Reports Configuration"
 msgstr ""
 
 msgid "Built For Zero Monthly Report"
@@ -4008,6 +4014,9 @@ msgstr ""
 msgid "Offline Research Export"
 msgstr ""
 
+msgid "Open Path HMIS"
+msgstr ""
+
 msgid "Open Path ROI"
 msgstr ""
 
@@ -4251,6 +4260,12 @@ msgstr ""
 msgid "State-Level Homelessness Report Generator"
 msgstr ""
 
+msgid "Street 2 Home"
+msgstr ""
+
+msgid "Street to Home"
+msgstr ""
+
 msgid "Strengths"
 msgstr ""
 
@@ -4456,6 +4471,9 @@ msgid "no indication if the client was reached"
 msgstr ""
 
 msgid "no mode of contact"
+msgstr ""
+
+msgid "number of activities of this type per day exceeded"
 msgstr ""
 
 msgid "outreach activities are not payable after the outreach period"

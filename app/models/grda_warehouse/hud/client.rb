@@ -1719,7 +1719,7 @@ module GrdaWarehouse::Hud
         name = project&.name(ignore_confidential_status: include_confidential_names) || contact['project_name']
         name += ': ' + contact['date']&.to_date.to_s if include_dates
         name
-      end.compact.uniq.sort
+      end.compact.uniq
     end
 
     def weeks_of_service
