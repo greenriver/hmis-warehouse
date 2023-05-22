@@ -51747,6 +51747,4 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20230503161258');
-
-
+('20230127151606');
