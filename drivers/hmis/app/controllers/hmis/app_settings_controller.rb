@@ -18,6 +18,9 @@ class Hmis::AppSettingsController < Hmis::BaseController
 
     hostname = ENV['FQDN']
 
+    themes = GrdaWarehouse::Theme.where(client: ENV['CLIENT']&.to_sym).where.not(hmis_value: nil)
+    themes = themes.where(origin: current_hmis_host) if themes.size > 1
+
     render json: {
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
       logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
@@ -28,6 +31,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
       casUrl: GrdaWarehouse::Config.get(:cas_url),
+      theme: themes.first&.hmis_value,
       globalFeatureFlags: {
         # Whether to show MCI ID in client search results
         mciId: HmisExternalApis::AcHmis::Mci.enabled?,
