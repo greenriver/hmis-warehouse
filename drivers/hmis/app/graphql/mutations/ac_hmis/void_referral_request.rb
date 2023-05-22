@@ -25,7 +25,7 @@ module Mutations
 
       HmisExternalApis::AcHmis::VoidReferralRequestJob.perform_now(
         referral_request: request,
-        voided_by: current_user,
+        user: current_user,
       )
 
       { record: request }
