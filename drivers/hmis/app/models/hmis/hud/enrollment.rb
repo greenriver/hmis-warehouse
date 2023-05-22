@@ -182,4 +182,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
   end
+
+  include RailsDrivers::Extensions
 end

@@ -12,6 +12,7 @@ DEFAULT_DEST_ATTR = {
   Transgender: nil,
   Questioning: nil,
   GenderNone: nil,
+  pronouns: 'they',
 }.freeze
 
 RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
@@ -27,6 +28,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         DateUpdated: 1.day.ago,
         DateCreated: 2.days.ago,
         source_hash: 'abc',
+        pronouns: 'they',
       )
     end
     let!(:source_2) do
@@ -37,6 +39,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         DateUpdated: 2.day.ago,
         DateCreated: 3.days.ago,
         source_hash: 'bcd',
+        pronouns: nil,
       )
     end
 
@@ -148,6 +151,14 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       destination_client.reload
       expect(destination_client.FirstName).to eq('Right')
       expect(destination_client.LastName).to eq('Right')
+    end
+
+    describe 'pronouns' do
+      it 'chooses the non-nil pronoun' do
+        @cleanup.update_client_demographics_based_on_sources
+        destination_client.reload
+        expect(destination_client.pronouns).to eq('they')
+      end
     end
 
     it 'sets DOB to nil if all client records are blank' do

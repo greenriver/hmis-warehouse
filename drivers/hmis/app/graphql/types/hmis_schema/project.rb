@@ -103,7 +103,7 @@ module Types
     end
 
     def referral_requests(**args)
-      resolve_referral_requests_with_loader(:external_referral_requests, **args)
+      scoped_referral_requests(object.external_referral_requests, **args)
     end
   end
 end
