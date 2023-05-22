@@ -554,6 +554,23 @@ module PerformanceMeasurement
             details[calculation]
           },
         },
+        {
+          key: :destination,
+          data: ->(_filter) {
+            {}.tap do |destination_client_id|
+              scope = report_scope.joins(:project, :client).
+                where.not(last_date_in_program: nil).
+                distinct
+              scope.pluck(:client_id, :destination).
+                each do |client_id, destination|
+                  destination_client_id[client_id] = destination
+                end
+            end
+          },
+          value_calculation: ->(_calculation, client_id, data) {
+            data[client_id]
+          },
+        },
       ]
       [:es, :sh, :so, :th, :psh, :oph, :rrh].each do |p_type|
         extras << {
@@ -915,10 +932,11 @@ module PerformanceMeasurement
               name: :days_to_return,
               value_calculation: ->(spm_client) { spm_client[:m2_reentry_days] },
             },
-            {
-              name: :destination,
-              value_calculation: ->(spm_client) { spm_client[:m2_exit_to_destination] },
-            },
+            # This is actually destination prior to return, not the destination we want
+            # {
+            #   name: :destination,
+            #   value_calculation: ->(spm_client) { spm_client[:m2_exit_to_destination] },
+            # },
           ],
           # This needs to introspect on the number of days to re-entry and save off extra client_project records
           client_project_rows: [
