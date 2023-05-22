@@ -59,17 +59,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def parse_key(key)
-    # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
-    match = /(.*?)\.(.*)/.match(key)
-    if match.present?
-      # Key format is "Enrollment.entryDate"
-      container, field = match[1..2]
-    else
-      # Key format is "projectType", and the container is the owner type ("Project")
-      container = owner.class.name.demodulize
-      field = key
-    end
-
+    # Key format is "Enrollment.entryDate", or simply "projectType" (in which case the container is the owner type ("Project") )
+    container, field = key.split('.', 2)
+    container ||= owner.class.name.demodulize
+    field ||= key
     [container, field]
   end
 

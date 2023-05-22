@@ -107,30 +107,20 @@ class Hmis::Hud::Processors::Base
       else
         cde_attributes[:_destroy] = 1
       end
-
-      record.assign_attributes(
-        custom_data_elements_attributes: [
-          # Update or delete the existing value
-          cde_attributes,
-          # Delete any other values (there shouldn't be any, but just in case)
-          *existing_values.drop(1).map { |old_cde| { id: old_cde.id, _destroy: 1 } },
-        ],
-      )
     # If value(s) haven't changed, just update the User and timestamps
     elsif existing_values.map(&:value) == Array.wrap(value)
-      attributes = existing_values.map { |cde| { id: cde.id, user: @processor.hud_user } }
-      record.assign_attributes(custom_data_elements_attributes: attributes)
+      cde_attributes = existing_values.map { |cde| { id: cde.id, user: @processor.hud_user } }
     # Else create new custom field value(s), and delete any existing ones.
     else
-      record.assign_attributes(
-        custom_data_elements_attributes: [
-          # Add new value(s)
-          *Array.wrap(value).map { |new_value| { value_field_name => new_value, **attrs } },
-          # Destroy any existing values for this custom field
-          *existing_values.map { |old_cde| { id: old_cde.id, _destroy: 1 } },
-        ],
-      )
+      cde_attributes = [
+        # Add new value(s)
+        *Array.wrap(value).map { |new_value| { value_field_name => new_value, **attrs } },
+        # Destroy any existing values for this custom field
+        *existing_values.map { |old_cde| { id: old_cde.id, _destroy: 1 } },
+      ]
     end
+
+    record.assign_attributes(custom_data_elements_attributes: Array.wrap(cde_attributes))
     true
   end
 end

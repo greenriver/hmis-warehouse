@@ -21,10 +21,7 @@ module Hmis::Hud::Processors
       record = @processor.send(factory_name)
       return if record.persisted?
 
-      record.assign_attributes(
-        requested_by: @processor.current_user,
-        identifier: SecureRandom.uuid, # FIXME we should be calling an external endpoint
-      )
+      record.assign_attributes(requested_by: @processor.current_user)
     end
   end
 end
