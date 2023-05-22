@@ -176,7 +176,6 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       mci.create_external_id(source: client, value: client_mci_id)
 
       params = referral_params([[client, client_mci_id]])
-      expected_last_name = 'Thisisanewlastnamefortesting'
       expected = {
         first_name: 'Thisisanewfirstnamefortesting',
         middle_name: 'Thisisanewmiddlenamefortesting',
