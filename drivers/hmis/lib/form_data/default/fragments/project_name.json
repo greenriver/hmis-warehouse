@@ -1,0 +1,29 @@
+{
+  "type": "GROUP",
+  "link_id": "name",
+  "text": "Project Name",
+  "required": false,
+  "item": [
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "2.02.2",
+      "text": "Project Name",
+      "field_name": "projectName"
+    },
+    {
+      "type": "TEXT",
+      "required": false,
+      "link_id": "description",
+      "text": "Description",
+      "field_name": "description"
+    },
+    {
+      "type": "TEXT",
+      "required": false,
+      "link_id": "contact",
+      "text": "Contact Information",
+      "field_name": "contactInformation"
+    }
+  ]
+}
