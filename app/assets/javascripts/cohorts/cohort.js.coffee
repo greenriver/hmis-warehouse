@@ -186,14 +186,12 @@ class App.Cohorts.Cohort
       return -1
     if b == null
       return 1
-    if !a.substring || !b.substring
-      return a - b
-    if a.length < 1 || b.length < 1
-      return a - b
-    if !isNaN(a) && !isNan(b)
+    # Both are numbers, subtract b from a
+    if !isNaN(a) && !isNaN(b)
       return Number(a) - Number(b)
-    a = a.toLowerCase()
-    b = b.toLowerCase()
+    # Otherwise treat them both as strings
+    a = a.toString().toLowerCase()
+    b = b.toString().toLowerCase()
     return a < b ? -1 : a > b ? 1 : 0
 
   enable_searching: () =>
