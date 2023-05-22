@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
+    acts_as_paranoid
     has_many :group_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::GroupViewableEntity'
 
     scope :enabled, -> do
@@ -44,7 +45,6 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def self.maintain_report_definitions
-      cleanup_unused_reports
       report_list.each do |category, reports|
         reports.each do |report|
           r = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report[:url]).first_or_initialize
@@ -1373,7 +1373,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'system_pathways/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:system_pathways)
 
       cleanup.each do |url|
-        GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
+        GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).update_all(deleted_at: Time.current)
       end
     end
   end
