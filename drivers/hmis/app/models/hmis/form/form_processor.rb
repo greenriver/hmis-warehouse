@@ -60,9 +60,13 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   def parse_key(key)
     # Key format is "Enrollment.entryDate", or simply "projectType" (in which case the container is the owner type ("Project") )
-    container, field = key.split('.', 2)
-    container ||= owner.class.name.demodulize
-    field ||= key
+    if key.include?('.')
+      container, field = key.split('.', 2)
+    else
+      container = owner.class.name.demodulize
+      field = key
+    end
+
     [container, field]
   end
 
