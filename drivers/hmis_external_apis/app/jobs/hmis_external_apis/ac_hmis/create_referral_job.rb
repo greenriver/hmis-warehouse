@@ -15,31 +15,39 @@ module HmisExternalApis::AcHmis
       # FIXME: add param validation and capture raw request
 
       self.errors = []
-      success = nil
       # transact assumes we are only mutating records in the warehouse db
+      record = nil
       HmisExternalApis::AcHmis::Referral.transaction do
-        referral = create_referral
+        referral = find_or_create_referral
         raise ActiveRecord::Rollback unless referral
+
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
 
         raise ActiveRecord::Rollback unless create_referral_household_members(referral)
 
-        success = referral
+        record = referral
       end
-      [success, errors]
+      [record, errors]
     end
 
     protected
 
-    def create_referral
-      params => {referral_id:, referral_date:, service_coordinator:}
-      return error_out('Referral ID already exists') if HmisExternalApis::AcHmis::Referral.where(identifier: referral_id).exists?
+    def find_or_create_referral
+      referral = HmisExternalApis::AcHmis::Referral
+        .where(identifier: params.fetch(:referral_id))
+        .first_or_initialize
+      return error_out('Referral still has active postings') unless referral.postings_inactive?
+      return error_out('Referral already linked to household') unless referral.household_members.empty?
 
-      referral = HmisExternalApis::AcHmis::Referral.new
-      referral.identifier = referral_id
-      referral.referral_date = referral_date
-      referral.service_coordinator = :service_coordinator
-      referral.save!
+      referral_params = params.slice(
+        :referral_date,
+        :service_coordinator,
+        :score,
+        :needs_wheelchair_accessible_unit,
+        :referral_notes,
+        :chronic,
+      )
+      referral.update!(referral_params)
       referral
     end
 
@@ -50,6 +58,7 @@ module HmisExternalApis::AcHmis
       return error_out('Posting ID already exists') if HmisExternalApis::AcHmis::ReferralPosting.where(identifier: posting_id).exists?
 
       posting = referral.postings.new(identifier: posting_id)
+      posting.attributes = params.slice(:resource_coordinator_notes)
       posting.project = mper.find_project_by_mper(program_id)
       return error_out('Project not found') unless posting.project
 
@@ -71,20 +80,13 @@ module HmisExternalApis::AcHmis
       posting
     end
 
-    def create_client(attrs)
-      (first_name, last_name, middle_name, dob, ssn) = attrs.values_at(:first_name, :last_name, :middle_name, :dob, :ssn)
-      client = ::Hmis::Hud::Client.new
-      client.user = system_user
-      client.data_source = data_source
-      client.first_name = first_name
-      client.middle_name = middle_name
-      client.last_name = last_name
-      client.dob = dob
-      client.ssn = ssn
+    def update_client(client, attrs)
+      setup_client_name(client, attrs)
+      client.attributes = attrs.slice(:dob, :ssn)
 
       client.name_data_quality = 1 # Full name always present for MCI clients
       client.dob_data_quality = 1 # Full DOB always present for MCI clients
-      client.ssn_data_quality = ssn.present? ? 1 : 99
+      client.ssn_data_quality = client.ssn.present? ? 1 : 99
 
       # TODO: map races and ethnicities
       HudUtility.races.keys.each { |k| client.send("#{k}=", 99) }
@@ -94,7 +96,122 @@ module HmisExternalApis::AcHmis
       client.veteran_status = 99
       client.ethnicity = 99
       client.save!
+
+      # additional attributes set if this client is the HOH
+      is_hoh = attrs[:relationship_to_hoh] == 1
+      update_client_addresses(client) if is_hoh
+      update_client_contacts(client) if is_hoh
+    end
+
+    def build_client
+      client = ::Hmis::Hud::Client.new
+      client.user = system_user
+      client.data_source = data_source
       client
+    end
+
+    # reconcile client record name and client custom names (ccn)
+    def setup_client_name(client, attrs)
+      name_fields = [:first_name, :middle_name, :last_name]
+      # first_name => 'Jane', middle_name => '', last_name => 'Smith'
+      input_attrs = attrs.slice(*name_fields).stringify_keys
+
+      # {firstName => 'Jane', middleName =>, lastName => 'Smith'
+      prev_attrs = client.attributes.slice(*name_fields.map(&:to_s).map(&:camelize))
+
+      # assign directly to record if new_record
+      return client.attributes = input_attrs if client.new_record?
+
+      # name matches, no-op
+      return if prev_attrs.values == input_attrs.values
+
+      # first => 'Jane', middle => '', last => 'Smith'
+      prev_ccn_attrs = prev_attrs.transform_keys { |k| k.gsub(/Name\z/, '').downcase }
+      # keep previous ccn as a non-primary custom name
+      if prev_ccn_attrs.values.compact_blank.any?
+        prev_ccn = client.names.where(prev_ccn_attrs).first_or_initialize
+        assign_default_common_client_attrs(client, prev_ccn)
+        prev_ccn.name_data_quality ||= 1
+        prev_ccn.primary = false
+        prev_ccn.save!
+      end
+
+      # first => 'Jane', middle => '', last => 'Smith'
+      input_ccn_attrs = input_attrs.transform_keys { |k| k.gsub(/_name\z/, '') }
+      # ensure new ccn is a primary custom name
+      new_ccn = client.names.where(input_ccn_attrs).first_or_initialize
+      assign_default_common_client_attrs(client, new_ccn)
+      new_ccn.name_data_quality = 1
+      new_ccn.primary = true
+      new_ccn.save!
+
+      # ensure the ccn is the only primary
+      client.names.where.not(id: new_ccn.id).each do |ccn|
+        # update on each record for lifecycle hooks
+        ccn.update!(primary: false)
+      end
+    end
+
+    def update_client_addresses(client)
+      # replace old addresses
+      client.addresses.destroy_all
+
+      client_address_attrs = params[:addresses].to_a.map do |values|
+        {
+          postal_code: values[:zip],
+          district: values[:county],
+          **values.slice(
+            :line1,
+            :line2,
+            :city,
+            :state,
+            :use,
+          ),
+          AddressID: Hmis::Hud::Base.generate_uuid,
+          **common_client_attrs(client),
+        }
+      end
+      Hmis::Hud::CustomClientAddress.import!(client_address_attrs)
+    end
+
+    def update_client_contacts(client)
+      # replace old phones, and emails
+      client.contact_points.destroy_all
+
+      client_phone_attrs = params[:phone_numbers].to_a.map do |values|
+        {
+          system: :phone,
+          value: values[:number],
+          **values.slice(:use, :notes),
+          ContactPointID: Hmis::Hud::Base.generate_uuid,
+          **common_client_attrs(client),
+        }
+      end
+      Hmis::Hud::CustomClientContactPoint.import!(client_phone_attrs)
+
+      client_email_attrs = params[:email_address].to_a.map do |value|
+        {
+          system: :email,
+          value: value,
+          ContactPointID: Hmis::Hud::Base.generate_uuid,
+          **common_client_attrs(client),
+        }
+      end
+      Hmis::Hud::CustomClientContactPoint.import!(client_email_attrs)
+    end
+
+    def common_client_attrs(client)
+      {
+        PersonalID: client.PersonalID,
+        UserID: client.UserID,
+        data_source_id: client.data_source_id,
+      }
+    end
+
+    def assign_default_common_client_attrs(client, record)
+      common_client_attrs(client).each do |attr, value|
+        record[attr] ||= value
+      end
     end
 
     def create_referral_household_members(referral)
@@ -102,18 +219,14 @@ module HmisExternalApis::AcHmis
 
       member_params.map do |attrs|
         attrs => {mci_id:, relationship_to_hoh:}
-        member = referral.household_members.new
-        member.relationship_to_hoh = relationship_to_hoh
         found = mci.find_client_by_mci(mci_id)
-        if found
-          member.client = found
-          # TODO: update client attributes based on the values we received
-        else
-          member.client = create_client(attrs)
-          mci.create_external_id(source: member.client, value: mci_id)
-        end
+        client = found || build_client
+        update_client(client, attrs)
+        mci.create_external_id(source: client, value: mci_id) unless found
+
+        member = referral.household_members.where(client: client).first_or_initialize
+        member.relationship_to_hoh = relationship_to_hoh
         member.save!
-        member
       end
     end
 
