@@ -21162,6 +21162,39 @@ ALTER SEQUENCE public.text_message_topics_id_seq OWNED BY public.text_message_to
 
 
 --
+-- Name: themes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.themes (
+    id bigint NOT NULL,
+    client character varying NOT NULL,
+    hmis_origin character varying,
+    hmis_value jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: themes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.themes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: themes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.themes_id_seq OWNED BY public.themes.id;
+
+
+--
 -- Name: todd_stats; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -24919,6 +24952,13 @@ ALTER TABLE ONLY public.text_message_topics ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: themes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.themes ALTER COLUMN id SET DEFAULT nextval('public.themes_id_seq'::regclass);
+
+
+--
 -- Name: tx_research_exports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -27929,6 +27969,14 @@ ALTER TABLE ONLY public.text_message_topic_subscribers
 
 ALTER TABLE ONLY public.text_message_topics
     ADD CONSTRAINT text_message_topics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: themes themes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.themes
+    ADD CONSTRAINT themes_pkey PRIMARY KEY (id);
 
 
 --
@@ -52966,6 +53014,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230511155839'),
 ('20230512135003'),
 ('20230517023514'),
+('20230519175812'),
 ('20230519185108');
 
 
