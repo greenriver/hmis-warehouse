@@ -77,11 +77,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       remove_permissions(hmis_user, permission)
       action.call(a1)
 
-      mutate(input: { id: a1.id }) do |assessment_id, errors|
-        expect(assessment_id).to be_nil
-        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
-      end
-
+      expect { mutate(input: { id: a1.id }) }.to raise_error(HmisErrors::ApiError)
       expect(Hmis::Hud::CustomAssessment.all).to include(have_attributes(id: a1.id))
     end
   end

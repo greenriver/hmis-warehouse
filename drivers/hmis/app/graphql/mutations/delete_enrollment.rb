@@ -12,9 +12,8 @@ module Mutations
 
     def resolve(id:)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
-
-      return { errors: [HmisErrors::Error.new(:enrollment, :not_found)] } unless enrollment.present?
-      return { errors: [HmisErrors::Error.new(:enrollment, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_delete_enrollments)
+      raise HmisErrors::ApiError, 'Record not found' unless enrollment.present?
+      raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(enrollment, :can_delete_enrollments)
 
       errors = []
       if enrollment.in_progress?
@@ -22,8 +21,6 @@ module Mutations
       else
         errors << HmisErrors::Error.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
       end
-
-      errors << enrollment.errors.errors unless enrollment.valid?
 
       {
         enrollment: enrollment,

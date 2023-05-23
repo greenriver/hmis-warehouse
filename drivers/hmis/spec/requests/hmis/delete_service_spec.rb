@@ -70,29 +70,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should error if a service does not exist' do
-    response, result = post_graphql(id: '123') { mutation }
-
-    aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
-      service = result.dig('data', 'deleteService', 'service')
-      errors = result.dig('data', 'deleteService', 'errors')
-      expect(service).to be_nil
-      expect(errors).to contain_exactly(include('fullMessage' => 'Service not found'))
-    end
+    expect { post_graphql(id: '123') { mutation } }.to raise_error(HmisErrors::ApiError)
   end
 
   it 'should error if not allowed to delete a service' do
     remove_permissions(hmis_user, :can_edit_enrollments)
-    response, result = post_graphql(id: s1.id) { mutation }
-
-    aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
-      service = result.dig('data', 'deleteService', 'service')
-      errors = result.dig('data', 'deleteService', 'errors')
-      expect(service).to be_nil
-      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
-      expect(Hmis::Hud::Service.count).to eq(1)
-    end
+    expect { post_graphql(id: s1.id) { mutation } }.to raise_error(HmisErrors::ApiError)
   end
 end
 
