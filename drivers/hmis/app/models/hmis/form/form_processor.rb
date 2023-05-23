@@ -24,24 +24,22 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   validate :hmis_records_are_valid
 
-  attr_accessor :owner
+  attr_accessor :owner, :hud_user, :current_user
 
-  def run!(owner:)
+  def run!(owner:, user:)
     # Set the owner reference so we are updating the correct record. Unpersisted changes can't be validated correctly if you go through custom_form.owner.
     self.owner = owner
+    # Set the HUD User and current user, so processors can store them on related records
+    self.current_user = user
+    self.hud_user = Hmis::Hud::User.from_user(user)
+
     return unless custom_form.hud_values.present?
 
+    # Iterate through each hud_value, processing field-by-field
     custom_form.hud_values.each do |key, value|
-      # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
-      match = /(.*?)\.(.*)/.match(key)
-      if match.present?
-        # Key format is "Enrollment.entryDate"
-        container, field = match[1..2]
-      else
-        # Key format is "projectType", and the container is the owner type ("Project")
-        container = owner.class.name.demodulize
-        field = key
-      end
+      container, field = parse_key(key)
+      # If this key can be identified as a CustomDataElement, set it and continue
+      next if container_processor(container)&.process_custom_field(field, value)
 
       begin
         container_processor(container)&.process(field, value)
@@ -50,11 +48,26 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       end
     end
 
-    valid_containers.values.each do |processor|
-      processor.new(self).information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?
+    # Iterate through each used processor to apply metadata and information dates
+    relevant_container_names = custom_form.hud_values.keys.map { |k| parse_key(k)&.first }.compact.uniq
+    relevant_container_names.each do |container|
+      container_processor(container)&.assign_metadata
+      container_processor(container)&.information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?
     end
 
     owner.enrollment = enrollment_factory if owner.is_a?(Hmis::Hud::CustomAssessment)
+  end
+
+  def parse_key(key)
+    # Key format is "Enrollment.entryDate", or simply "projectType" (in which case the container is the owner type ("Project") )
+    if key.include?('.')
+      container, field = key.split('.', 2)
+    else
+      container = owner.class.name.demodulize
+      field = key
+    end
+
+    [container, field]
   end
 
   def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -76,7 +89,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       data_collection_stage: custom_form.assessment.data_collection_stage,
       personal_id: custom_form.assessment.personal_id,
       information_date: custom_form.assessment.assessment_date,
-      user_id: custom_form.assessment.user_id,
     }
   end
 
