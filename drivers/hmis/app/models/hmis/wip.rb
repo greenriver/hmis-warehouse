@@ -10,6 +10,6 @@ class Hmis::Wip < Hmis::HmisBase
   belongs_to :enrollment, class_name: '::Hmis::Hud::Enrollment', optional: true
   belongs_to :project, class_name: '::Hmis::Hud::Project', optional: true
 
-  scope :assessments, -> { where(source_type: Hmis::Hud::CustomAssessment.name) }
-  scope :enrollments, -> { where(source_type: Hmis::Hud::Enrollment.name) }
+  scope :assessments, -> { where(source_type: Hmis::Hud::CustomAssessment.sti_name) }
+  scope :enrollments, -> { where(source_type: Hmis::Hud::Enrollment.sti_name) }
 end
