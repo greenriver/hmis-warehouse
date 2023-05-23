@@ -148,21 +148,30 @@ module CustomImportsBostonCommunityOfOrigin
         # TODO decode geolocation_location
       end
 
+      @zipcode_loc ||= {}
       if row.zip_code.present?
         clean_zipcode = row.zip_code.strip.delete('^0-9')
-        place = Nominatim.search.country('us').postalcode(clean_zipcode).first
-        return [place.lat, place.lon] if place
+        return @zipcode_loc[clean_zipcode] ||= begin
+          place = Nominatim.search.country('us').postalcode(clean_zipcode).first
+          [place.lat, place.lon] if place
+        end
       end
 
+      @city_loc ||= {}
       if row.city.present?
         # Include the state in the city search, if we have it
-        place = Nominatim.search.country('us').city(row.city).state(row.state.presence).first
-        return [place.lat, place.lon] if place
+        return @city_loc[row.city] ||= begin
+          place = Nominatim.search.country('us').city(row.city).state(row.state.presence).first
+          [place.lat, place.lon] if place
+        end
       end
 
+      @state_loc ||= {}
       if row.state.present?
-        place = Nominatim.search.country('us').state(row.state).first
-        return [place.lat, place.lon] if place
+        return @state_loc[row.state] ||= begin
+          place = Nominatim.search.country('us').state(row.state).first
+          [place.lat, place.lon] if place
+        end
       end
 
       [nil, nil]
