@@ -6,6 +6,10 @@
 
 module CustomImportsBostonCommunityOfOrigin
   class ImportFile < ::GrdaWarehouse::CustomImports::ImportFile
+    after_initialize do
+      self.data_source_id ||= config&.data_source&.id
+    end
+
     has_many :rows
 
     def self.description
@@ -84,9 +88,7 @@ module CustomImportsBostonCommunityOfOrigin
     def post_process
       update(status: 'processing')
       # Records touched in this import
-      self.class.where(updated_at: started_at .. Time.current).
-        preload(enrollment: :project, client: :destination_client).
-        find_in_batches do |batch|
+      rows.preload(enrollment: :project, client: :destination_client).find_in_batches do |batch|
         location_batch = []
         batch.each do |row|
           next unless row.client.present?
@@ -100,13 +102,9 @@ module CustomImportsBostonCommunityOfOrigin
             collected_by: row&.enrollment&.project&.name,
           )
         end
-        ::ClientLocationHistory::Location.import!(
-          location_batch,
-          on_duplicate_key_update: {
-            conflict_target: [:source_id, :source_type],
-            columns: [:client_id, :located_on, :lat, :lon, :collected_by],
-          },
-        )
+        # Remove any pre-existing locations
+        ::ClientLocationHistory::Location.where(source_id: location_batch.map(&:source_id), source_type: rows.klass.name).delete_all
+        ::ClientLocationHistory::Location.import!(location_batch)
       end
 
       update(status: 'complete', completed_at: Time.current)
@@ -142,7 +140,7 @@ module CustomImportsBostonCommunityOfOrigin
     end
 
     # Geolocate based on available information.
-    # Search order: provided geolocation, zipcode, city, and then state
+    # Search order: provided geolocation, zip_code, city, and then state
     #
     # @return [Array<Float>] [latitude, longitude] if location found, nil otherwise
     def location(row)
@@ -150,21 +148,21 @@ module CustomImportsBostonCommunityOfOrigin
         # TODO decode geolocation_location
       end
 
-      if row.zipcode.present?
-        clean_zipcode = row.zipcode.string.delete('^0-9')
+      if row.zip_code.present?
+        clean_zipcode = row.zip_code.strip.delete('^0-9')
         place = Nominatim.search.country('us').postalcode(clean_zipcode).first
-        return [place.lat, place.long] if place
+        return [place.lat, place.lon] if place
       end
 
       if row.city.present?
         # Include the state in the city search, if we have it
         place = Nominatim.search.country('us').city(row.city).state(row.state.presence).first
-        return [place.lat, place.long] if place
+        return [place.lat, place.lon] if place
       end
 
       if row.state.present?
         place = Nominatim.search.country('us').state(row.state).first
-        return [place.lat, place.long] if place
+        return [place.lat, place.lon] if place
       end
 
       [nil, nil]

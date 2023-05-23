@@ -37,6 +37,8 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
             next unless enrollment.client.destination_client.present?
 
             zip = enrollment.LastPermanentZIP
+            next unless zip.present?
+
             place = cached_zips[zip] ||= Nominatim.search.country('us').postalcode(zip).first
             next unless place # Nominatim didn't return anything
 
@@ -50,7 +52,6 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
               collected_by: enrollment&.project&.name,
             )
           end
-          puts locations.size
         ensure # Aways save any locations that we got
           ClientLocationHistory::Location.import!(locations)
         end
