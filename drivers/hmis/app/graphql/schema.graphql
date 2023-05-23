@@ -3875,6 +3875,7 @@ type PickListOption {
 
 enum PickListType {
   AVAILABLE_FILE_TYPES
+  AVAILABLE_SERVICE_TYPES
 
   """
   Unoccupied units in the specified project
@@ -4167,6 +4168,11 @@ type Query {
   Get most relevant/recent form definition for the specified Role and project (optionally)
   """
   getFormDefinition(enrollmentId: ID, projectId: ID, role: FormRole!): FormDefinition
+
+  """
+  Get most relevant form definition for the specified service type
+  """
+  getServiceFormDefinition(customServiceTypeId: ID!, projectId: ID!): FormDefinition
 
   """
   Inventory lookup
