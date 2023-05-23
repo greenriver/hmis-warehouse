@@ -53,8 +53,7 @@ module ClientSearch
         where = metaphone_search(where, :LastName, text)
       end
 
-      # Model may define a function 'injected_search' to add additional clauses
-      where = injected_search(where, text, numeric: numeric, alpha_numeric: alpha_numeric, date: date) if respond_to?(:injected_search)
+      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
 
       begin
         # requires a block to calculate which client_ids are acceptable within
