@@ -20,11 +20,13 @@ module HmisExternalApis
                   as: :source
 
           # Used by ClientSearch concern
-          def self.client_ids_with_external_id(value)
+          def self.search_by_external_id(where, text)
             eid_t = HmisExternalApis::ExternalId.arel_table
-            HmisExternalApis::ExternalId.where(
-              eid_t[:source_type].eq(sti_name).and(eid_t[:value].eq(value)),
-            ).pluck(:source_id)
+            matches_external_value = eid_t[:source_type].eq(sti_name).and(eid_t[:value].eq(text))
+            client_ids = HmisExternalApis::ExternalId.where(matches_external_value).pluck(:source_id)
+            return where unless client_ids.any?
+
+            where.or(c_t[:id].in(client_ids))
           end
         end
       end
