@@ -24,13 +24,6 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
       create(:ac_hmis_link_credential)
     end
 
-    before(:each) do
-      result = HmisExternalApis::OauthClientResult.new(
-        parsed_body: { referralRequestID: referral_request_id }.stringify_keys,
-      )
-      allow_any_instance_of(HmisExternalApis::AcHmis::LinkApi).to receive(:create_referral_request).and_return(result)
-    end
-
     it 'has no smoke' do
       referral_request = build(
         :hmis_external_api_ac_hmis_referral_request,
