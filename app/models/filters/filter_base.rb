@@ -346,6 +346,11 @@ module Filters
       DateRange.new(start: start, end: self.end)
     end
 
+    def comparison_range
+      s, e = comparison_dates
+      s .. e
+    end
+
     def comparison_as_date_range
       s, e = comparison_dates
       DateRange.new(start: s, end: e)
@@ -983,6 +988,10 @@ module Filters
         'Including CE Current Living Situation Homeless'
       when :coordinated_assessment_living_situation_homeless
         'Including CE homeless at entry?'
+      when :chronic_status
+        'Chronic at Entry'
+      when :involves_ce
+        'Participated in CE'
       else
         key.to_s.titleize
       end
@@ -992,7 +1001,7 @@ module Filters
       [title, value]
     end
 
-    def chosen(key)
+    def chosen(key) # rubocop:disable Metrics/CyclomaticComplexity
       case key
       when :start
         date_range_words
@@ -1068,6 +1077,20 @@ module Filters
         cohort_column_housed_date
       when :cohort_column_matched_date
         cohort_column_matched_date
+      when :chronic_status
+        case chronic_status
+        when true
+          'Yes'
+        when false
+          'No'
+        end
+      when :involves_ce
+        case involves_ce
+        when true
+          'Yes'
+        when false
+          'No'
+        end
       else
         val = send(key)
         val.instance_of?(String) ? val.titleize : val

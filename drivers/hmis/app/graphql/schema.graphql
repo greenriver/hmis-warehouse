@@ -55,6 +55,7 @@ type Assessment {
   access: AssessmentAccess!
   assessmentDate: ISO8601Date!
   client: Client!
+  customDataElements: [CustomDataElement!]!
   customForm: CustomForm
   dataCollectionStage: DataCollectionStage
   dateCreated: ISO8601DateTime!
@@ -347,6 +348,7 @@ type Client {
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -760,6 +762,29 @@ type CreateUnitsPayload {
   clientMutationId: String
   errors: [ValidationError!]!
   units: [Unit!]
+}
+
+type CustomDataElement {
+  id: ID!
+  key: String!
+  label: String!
+  repeats: Boolean!
+  value: CustomDataElementValue
+  values: [CustomDataElementValue!]
+}
+
+type CustomDataElementValue {
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  id: ID!
+  user: User
+  valueBoolean: Boolean
+  valueDate: ISO8601Date
+  valueFloat: Float
+  valueInteger: Int
+  valueJson: JsonObject
+  valueString: String
+  valueText: String
 }
 
 """
@@ -2073,6 +2098,11 @@ type FormItem {
   component: Component
 
   """
+  Key of CustomDataElement to save record as. Use record_type to specify type.
+  """
+  customFieldKey: String
+
+  """
   Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout
@@ -2268,6 +2298,11 @@ enum FormRole {
   PROJECT_COC
 
   """
+  (REFERRAL_REQUEST) Referral Request
+  """
+  REFERRAL_REQUEST
+
+  """
   (SERVICE) Service
   """
   SERVICE
@@ -2280,6 +2315,7 @@ enum FormRole {
 
 type Funder {
   active: Boolean!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -2759,6 +2795,7 @@ HUD Household
 """
 type Household {
   householdClients: [HouseholdClient!]!
+  householdSize: Int!
   id: ID!
   shortId: ID!
 }
@@ -2796,6 +2833,16 @@ enum HouseholdType {
   Invalid Value
   """
   INVALID
+}
+
+type HouseholdsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Household!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -2988,6 +3035,7 @@ type Inventory {
   chVetBedInventory: Int
   chYouthBedInventory: Int
   cocCode: String!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -3577,6 +3625,11 @@ type Mutation {
     """
     input: UpdateUnitsInput!
   ): UpdateUnitsPayload
+
+  """
+  Void a referral request
+  """
+  voidReferralRequest(referralRequestId: ID!): VoidReferralRequestPayload
 }
 
 """
@@ -3727,10 +3780,12 @@ union OmnisearchResult = Client | Project
 type Organization {
   access: OrganizationAccess!
   contactInformation: String
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
+  hudId: ID!
   id: ID!
   organizationName: String!
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
@@ -3820,6 +3875,7 @@ type PickListOption {
 
 enum PickListType {
   AVAILABLE_FILE_TYPES
+  AVAILABLE_SERVICE_TYPES
 
   """
   Unoccupied units in the specified project
@@ -3900,13 +3956,16 @@ type Project {
   active: Boolean!
   contactInformation: String
   continuumProject: NoYesMissing
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
   enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
+  households(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): HouseholdsPaginated!
   housingType: HousingType
+  hudId: ID!
   id: ID!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
   operatingEndDate: ISO8601Date
@@ -3915,6 +3974,7 @@ type Project {
   projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
   projectName: String!
   projectType: ProjectType
+  referralRequests(limit: Int, offset: Int): ReferralRequestsPaginated!
   residentialAffiliation: NoYesMissing
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
@@ -3928,6 +3988,11 @@ type ProjectAccess {
   canDeleteProject: Boolean!
   canEditEnrollments: Boolean!
   canEditProjectDetails: Boolean!
+  canEnrollClients: Boolean!
+  canManageDeniedReferrals: Boolean!
+  canManageIncomingReferrals: Boolean!
+  canManageInventory: Boolean!
+  canManageOutgoingReferrals: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -4105,6 +4170,11 @@ type Query {
   getFormDefinition(enrollmentId: ID, projectId: ID, role: FormRole!): FormDefinition
 
   """
+  Get most relevant form definition for the specified service type
+  """
+  getServiceFormDefinition(customServiceTypeId: ID!, projectId: ID!): FormDefinition
+
+  """
   Inventory lookup
   """
   inventory(id: ID!): Inventory
@@ -4150,7 +4220,12 @@ type QueryAccess {
   canEditEnrollments: Boolean!
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
+  canEnrollClients: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageDeniedReferrals: Boolean!
+  canManageIncomingReferrals: Boolean!
+  canManageInventory: Boolean!
+  canManageOutgoingReferrals: Boolean!
   canManageOwnClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
@@ -4333,6 +4408,26 @@ enum RecordType {
   (144) SSVF Service
   """
   SSVF_SERVICE
+}
+
+type ReferralRequest {
+  id: ID!
+  neededBy: String!
+  requestedOn: String!
+  requestorEmail: String!
+  requestorName: String!
+  requestorPhone: String!
+  unitType: UnitTypeObject!
+}
+
+type ReferralRequestsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ReferralRequest!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -4570,6 +4665,7 @@ HUD or Custom Service rendered
 type Service {
   FAAmount: Float
   client: Client!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateProvided: ISO8601Date!
@@ -5307,7 +5403,7 @@ type SubmitFormPayload {
 """
 Union type of allowed records for form submission response
 """
-union SubmitFormResult = Client | File | Funder | Inventory | Organization | Project | ProjectCoc | Service
+union SubmitFormResult = Client | File | Funder | Inventory | Organization | Project | ProjectCoc | ReferralRequest | Service
 
 """
 Autogenerated input type of SubmitHouseholdAssessments
@@ -5658,6 +5754,14 @@ type ValueBound {
   type: BoundType!
   valueDate: ISO8601Date
   valueNumber: Int
+}
+
+"""
+Autogenerated return type of VoidReferralRequest.
+"""
+type VoidReferralRequestPayload {
+  errors: [ValidationError!]!
+  record: ReferralRequest
 }
 
 """

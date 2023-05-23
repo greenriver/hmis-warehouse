@@ -6339,6 +6339,47 @@ ALTER SEQUENCE public.custom_imports_b_contacts_rows_id_seq OWNED BY public.cust
 
 
 --
+-- Name: custom_imports_b_coo_rows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_b_coo_rows (
+    id bigint NOT NULL,
+    unique_id character varying NOT NULL,
+    personal_id character varying,
+    enrollment_id character varying,
+    city character varying,
+    state character varying,
+    zip_code character varying,
+    length_of_time character varying,
+    geolocation_location character varying,
+    collected_on date,
+    import_file_id bigint,
+    data_source_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: custom_imports_b_coo_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_b_coo_rows_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_b_coo_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_b_coo_rows_id_seq OWNED BY public.custom_imports_b_coo_rows.id;
+
+
+--
 -- Name: custom_imports_b_services_rows; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -22693,6 +22734,13 @@ ALTER TABLE ONLY public.custom_imports_b_contacts_rows ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: custom_imports_b_coo_rows id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_coo_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_coo_rows_id_seq'::regclass);
+
+
+--
 -- Name: custom_imports_b_services_rows id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25795,6 +25843,14 @@ ALTER TABLE ONLY public.custom_imports_b_al_rows
 
 ALTER TABLE ONLY public.custom_imports_b_contacts_rows
     ADD CONSTRAINT custom_imports_b_contacts_rows_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_imports_b_coo_rows custom_imports_b_coo_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_coo_rows
+    ADD CONSTRAINT custom_imports_b_coo_rows_pkey PRIMARY KEY (id);
 
 
 --
@@ -43023,6 +43079,27 @@ CREATE INDEX index_custom_imports_b_contacts_rows_on_updated_at ON public.custom
 
 
 --
+-- Name: index_custom_imports_b_coo_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_coo_rows_on_data_source_id ON public.custom_imports_b_coo_rows USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_b_coo_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_coo_rows_on_import_file_id ON public.custom_imports_b_coo_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_coo_rows_on_unique_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_custom_imports_b_coo_rows_on_unique_id ON public.custom_imports_b_coo_rows USING btree (unique_id);
+
+
+--
 -- Name: index_custom_imports_b_services_rows_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52996,6 +53073,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230406154235'),
 ('20230406183420'),
 ('20230407164611'),
+('20230410202101'),
 ('20230411193836'),
 ('20230412163545'),
 ('20230412191455'),

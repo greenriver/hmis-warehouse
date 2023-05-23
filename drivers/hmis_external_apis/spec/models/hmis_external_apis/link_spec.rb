@@ -8,6 +8,8 @@ require 'rails_helper'
 
 # CAUTION: This is not part of the normal test suite. It runs against a live remote endpoint
 # We need many secrets to test this. Essentially, this runs locally or on staging
+# The intention is to check if the remote side is behaving as we expect, rather than to test
+# our own implementation
 RSpec.describe 'LINK API', type: :model do
   if ENV['OAUTH_CREDENTIAL_TEST'] == 'true'
     let(:base_url) { ENV.fetch('LINK_BASE_URL') + '/' }
@@ -19,8 +21,8 @@ RSpec.describe 'LINK API', type: :model do
 
     let(:requested_by) { 'test@greenriver.com' }
     let(:now) { Time.now }
-    let(:program_id) { 867 }
-    let(:unit_type_id) { 20 }
+    let(:program_id) { 1008 }
+    let(:unit_type_id) { 32 }
 
     def format_date(date)
       date.to_s(:iso8601)
@@ -42,43 +44,43 @@ RSpec.describe 'LINK API', type: :model do
         'requestedDate' => format_date(now),
         'programID' => program_id,
         'unitTypeID' => unit_type_id,
-        'estimatedDate' => format_date(now),
+        'estimatedDate' => format_date(now + 1.week),
         'requestorName' => 'greenriver',
         'requestorPhoneNumber' => '8028675309',
-        'requestorEmail' => 'test@greenriver.com',
+        'requestorEmail' => requested_by,
         'requestedBy' => requested_by,
       }
       result = subject.post('Referral/ReferralRequest', payload)
-      # log_request(name: 'update_referral_request', method: 'patch', result: result, payload: payload, url: subject.url_for(path))
       log_request(name: 'create_referral_request', result: result)
-      expect(result.http_status).to eq(200)
+      expect(result.http_status).to eq(201)
     end
 
     it 'updates referral request' do
       payload = { 'isVoid' => true, 'requestedBy' => requested_by }
 
       result = subject.patch('Referral/ReferralRequest/60', payload)
-      # {"message"=>"A server error occurred.", "detail"=>"ORA-06550: line 1, column 7:\nPLS-00201: identifier 'HMIS.PC_GREEN_RIVER_API' must be declared\nORA-06550: line 1, column 7:\nPL/SQL: Statement ignored", "errorReferenceId"=>"6c7ac709-21a0-4e40-80f1-4adf400dcfe0"}
       log_request(name: 'update_referral_request', result: result)
       expect(result.http_status).to eq(200)
     end
 
-    it 'updates referral posting status' do
-      payload = {
-        'postingId' => 3777,
-        'postingStatusId' => 21,
-        'deniedReasonId' => 1,
-        'referralResultId' => 158,
-        'statusNote' => 'test',
-        'contactDate' => format_date(now),
-        'requestedBy' => requested_by,
-      }
-      result = subject.patch('Referral/PostingStatus', payload)
-      # Note: PostingStatus/ID doesn't work
-      # {"message"=>"Posting Id doesn't exist. Posting Status Id is not valid. ", "detail"=>"Invalid Parameters."}
-      log_request(name: 'update_referral_posting_status', result: result)
-      expect(result.http_status).to eq(200)
-    end
+    # this test is not repeatable - statuses can only be used once for each posting
+    # it 'updates referral posting status' do
+    #   payload = {
+    #     'postingId' => 786930,
+    #     'postingStatusId' => 18,
+    #     'deniedReasonId' => nil,
+    #     'referralResultId' => nil,
+    #     'statusNote' => 'test',
+    #     'contactDate' => format_date(now),
+    #     'requestedBy' => 'test@greenriver.com',
+    #   }
+
+    #   result = subject.patch('Referral/PostingStatus', payload)
+    #   # Note: PostingStatus/ID doesn't work
+    #   # {"status":400,"body":{"message":"Posting Status Id is not valid. ","detail":"Invalid Parameters."}
+    #   log_request(name: 'update_referral_posting_status', result: result)
+    #   expect(result.http_status).to eq(200)
+    # end
 
     it 'updates unit capacity' do
       payload = {
@@ -89,13 +91,12 @@ RSpec.describe 'LINK API', type: :model do
       }
 
       result = subject.patch('Unit/Capacity', payload)
-      # {"message"=>"A server error occurred.", "detail"=>"ORA-00942: table or view does not exist", "errorReferenceId"=>"6f30d636-d276-40dc-ab3a-3e654ec4f431"}
       log_request(name: 'update_unit_capacity', result: result)
       expect(result.http_status).to eq(200)
     end
 
+    # helpful for debugging
     def log_request(name:, result:)
-      # byebug unless result.http_status == 200
       msg = {
         name: name,
         request: {

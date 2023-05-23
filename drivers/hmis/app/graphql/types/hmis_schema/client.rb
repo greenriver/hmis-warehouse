@@ -18,6 +18,7 @@ module Types
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasAuditHistory
     include Types::HmisSchema::HasGender
+    include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
@@ -54,6 +55,7 @@ module Types
     assessments_field
     services_field
     files_field
+    custom_data_elements_field
     audit_history_field(
       field_permissions: {
         'SSN' => :can_view_full_ssn,

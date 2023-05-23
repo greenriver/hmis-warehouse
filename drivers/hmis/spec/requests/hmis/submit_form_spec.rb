@@ -150,9 +150,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
               record = definition.record_class_name.constantize.find_by(id: record_id)
               expect(record).to be_present
-              expect(Hmis::Form::CustomForm.where(owner: record).count).to eq(1)
-              custom_form = Hmis::Form::CustomForm.find_by(owner: record)
-              expect(custom_form.owner_id).to eq(record_id.to_i)
+              expect(Hmis::Form::CustomForm.count).to eq(0)
+              expect(Hmis::Form::FormProcessor.count).to eq(0)
 
               # Expect that all of the fields that were submitted exist on the record
               expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys
@@ -191,28 +190,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should fail if user lacks permission' do
           remove_permissions(hmis_user, *Array(definition.record_editing_permission))
-          response, result = post_graphql(input: { input: test_input }) { mutation }
-          record = result.dig('data', 'submitForm', 'record')
-          errors = result.dig('data', 'submitForm', 'errors')
-          expected_errors = [
-            {
-              type: :not_allowed,
-              attribute: :record,
-              severity: :error,
-            },
-          ]
-
-          aggregate_failures 'checking response' do
-            expect(response.status).to eq 200
-            expect(record).to be_nil
-            expect(errors).to match(expected_errors.map do |h|
-              a_hash_including(**h.transform_keys(&:to_s).transform_values(&:to_s))
-            end)
-          end
+          expect { post_graphql(input: { input: test_input }) { mutation } }.to raise_error(HmisErrors::ApiError)
         end
 
         it 'should update user correctly' do
           _response, result = post_graphql(input: { input: test_input }) { mutation }
+          expect(result.dig('data', 'submitForm', 'errors')).to be_blank
           record_id = result.dig('data', 'submitForm', 'record', 'id')
           record = definition.record_class_name.constantize.find_by(id: record_id)
 

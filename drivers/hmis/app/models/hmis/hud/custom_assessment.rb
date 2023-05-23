@@ -22,6 +22,9 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_one :project, through: :enrollment
+  has_many :custom_data_elements, as: :owner
+
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   # Alias fields that are not part of the Assessment schema
   alias_to_underscore [:DataCollectionStage]
@@ -72,6 +75,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def save_in_progress
     saved_enrollment_id = enrollment.id
+    project_id = enrollment.project.id
 
     self.enrollment_id = WIP_ID
     save!(validate: false)
@@ -79,6 +83,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     self.wip = Hmis::Wip.create_with(date: assessment_date).find_or_create_by(
       source: self,
       enrollment_id: saved_enrollment_id,
+      project_id: project_id,
       client_id: client.id,
     )
 

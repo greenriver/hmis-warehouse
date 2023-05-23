@@ -10,5 +10,12 @@ module HmisExternalApis::AcHmis
     self.table_name = 'hmis_external_referrals'
     has_many :household_members, class_name: 'HmisExternalApis::AcHmis::ReferralHouseholdMember', dependent: :destroy
     has_many :postings, class_name: 'HmisExternalApis::AcHmis::ReferralPosting', dependent: :destroy
+    belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
+
+    def postings_inactive?
+      postings.all? do |posting|
+        posting.closed_status? || posting.denied_status?
+      end
+    end
   end
 end

@@ -47,7 +47,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
+  belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
+  has_many :custom_data_elements, as: :owner
+
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
 
@@ -68,19 +72,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :matching_search_term, ->(search_term) do
     search_term.strip!
     # If there are Household ID matches, return those only
-    household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == TRIMMED_HOUSEHOLD_ID_LENGTH
+    household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
     household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.any?
     return household_matches if household_matches&.any?
 
     # Search by client
     joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
-  end
-
-  scope :in_project_including_wip, ->(ids, project_ids) do
-    wip_enrollments = wip_t[:project_id].in(Array.wrap(ids))
-    actual_enrollments = e_t[:ProjectID].in(Array.wrap(project_ids))
-
-    left_outer_joins(:wip).where(wip_enrollments.or(actual_enrollments))
   end
 
   scope :heads_of_households, -> do
@@ -184,12 +181,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_members.heads_of_households.first&.entry_date
   end
 
-  TRIMMED_HOUSEHOLD_ID_LENGTH = 6
-  def short_household_id
-    household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
-  end
-
   def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
   end
+
+  include RailsDrivers::Extensions
 end

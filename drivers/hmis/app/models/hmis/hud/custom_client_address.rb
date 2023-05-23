@@ -32,8 +32,25 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     left_outer_joins(:active_range).where(ar_t[:end].eq(nil).or(ar_t[:end].gteq(date)))
   end
 
-  scope :viewable_by, ->(user) do
+  replace_scope :viewable_by, ->(user) do
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
+  end
+
+  def ==(other)
+    columns = [
+      :address_type,
+      :city,
+      :country,
+      :district,
+      :line1,
+      :line2,
+      :postal_code,
+      :state,
+    ]
+
+    columns.all? do |col|
+      send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
+    end
   end
 
   def type

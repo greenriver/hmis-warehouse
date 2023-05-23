@@ -78,7 +78,7 @@ module Mutations
       # Run form processor on each assessment to create/update related records
       assessments.each do |assessment|
         assessment.assign_attributes(user_id: hmis_user.user_id)
-        assessment.custom_form.form_processor.run!(owner: assessment)
+        assessment.custom_form.form_processor.run!(owner: assessment, user: current_user)
       end
 
       # Collect validations (hmis_validate and AR validation)

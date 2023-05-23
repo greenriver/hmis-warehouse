@@ -20,8 +20,8 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
       SecureRandom.uuid
     end
 
-    let(:endpoint) do
-      'http://example.com/'
+    let!(:link_creds) do
+      create(:ac_hmis_link_credential)
     end
 
     it 'has no smoke' do
@@ -29,19 +29,32 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
         :hmis_external_api_ac_hmis_referral_request,
         requested_by: hmis_user, # defined in 'hmis_base_setup' context
       )
-
       # setup external ids
-      mper.create_external_id(source: referral_request.unit_type, value: SecureRandom.uuid)
+      unit_type_mper_id = SecureRandom.uuid
+      mper.create_external_id(source: referral_request.unit_type, value: unit_type_mper_id)
 
-      payload = { referral_request_id: referral_request_id }
-      stub_request(:post, endpoint).
-        to_return(status: 200, body: payload.to_json)
-
-      HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(
-        url: endpoint,
-        referral_request: referral_request,
+      result = HmisExternalApis::OauthClientResult.new(
+        parsed_body: { 'referralRequestID' => referral_request_id },
       )
+      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:post)
+        .with(
+          'Referral/ReferralRequest',
+          {
+            'estimatedDate' => referral_request.needed_by.strftime('%Y-%m-%d'),
+            'programID' => referral_request.project.ProjectID,
+            'requestedBy' => hmis_user.email,
+            'requestedDate' => referral_request.requested_on.strftime('%Y-%m-%d'),
+            'requestorEmail' => referral_request.requestor_email,
+            'requestorName' => referral_request.requestor_name,
+            'requestorPhoneNumber' => referral_request.requestor_phone,
+            'unitTypeID' => unit_type_mper_id,
+          },
+        )
+        .and_return(result)
+
+      HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(referral_request)
       expect(referral_request.persisted?).to(eq(true))
+      expect(referral_request.identifier).to(eq(referral_request_id))
     end
   end
 end

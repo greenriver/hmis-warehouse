@@ -40,8 +40,12 @@ class PerformanceDashboards::BaseController < ApplicationController
     filtered = params.permit(filters: @filter.known_params)
     # project_type_codes exists as both a single and multi, ensure it's always
     # an array
-
-    filtered[:filters][:project_type_codes] = Array.wrap(params[:filters][:project_type_codes]) if params.dig(:filters, :project_type_codes).is_a?(String)
+    if params.dig(:filters, :project_type_codes).is_a?(String)
+      filtered[:filters][:project_type_codes] = Array.wrap(params[:filters][:project_type_codes])
+    elsif params.dig(:filters, :project_type_codes)&.reject(&:blank?).blank? && params[:filters]&.key?(:project_type_codes)
+      # Enforce that we always have _some_ project types
+      filtered[:filters][:project_type_codes] = @filter.default_project_type_codes
+    end
     filtered
   end
   helper_method :filter_params

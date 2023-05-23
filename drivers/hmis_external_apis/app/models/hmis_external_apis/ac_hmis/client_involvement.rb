@@ -79,7 +79,7 @@ module HmisExternalApis::AcHmis
       clients = Hmis::Hud::Client.where(id: mci_lookup.keys, data_source_id: data_source.id)
 
       enrollments = Hmis::Hud::Enrollment
-        .includes(:client)
+        .includes(:client, :project, project: :organization)
         .joins(:client)
         .merge(clients)
         .not_in_progress
@@ -92,6 +92,12 @@ module HmisExternalApis::AcHmis
           mci_id: mci_lookup[en.client.id],
           personal_id: en.personal_id,
           program_id: en.project_id,
+          program_name: en.project.project_name,
+          provider_name: en.project.organization.organization_name,
+          client_name: en.client.brief_name,
+          household_id: en.household_id,
+          enrollment_id: en.enrollment_id,
+          relationship_to_hoh: en.relationship_to_hoh,
         }
       end
     end

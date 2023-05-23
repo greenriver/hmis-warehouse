@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# The definition for form fields. The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
+# rails driver:hmis:seed_definitions
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
@@ -30,6 +32,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     INVENTORY: 'Inventory',
     PROJECT_COC: 'Project CoC',
     FILE: 'File',
+    REFERRAL_REQUEST: 'Referral Request',
   }.freeze
 
   FORM_ROLE_CONFIG = {
@@ -38,13 +41,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     ORGANIZATION: { class_name: 'Hmis::Hud::Organization', permission: :can_edit_organization, resolve_as: 'Types::HmisSchema::Organization' },
     CLIENT: { class_name: 'Hmis::Hud::Client', permission: :can_edit_clients, resolve_as: 'Types::HmisSchema::Client' },
     FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
-    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
+    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_manage_inventory, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
     FILE: {
       class_name: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
       resolve_as: 'Types::HmisSchema::File',
+    },
+    REFERRAL_REQUEST: {
+      class_name: 'HmisExternalApis::AcHmis::ReferralRequest',
+      permission: :can_manage_incoming_referrals,
+      resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
   }.freeze
 
@@ -60,31 +68,47 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES
 
-  scope :for_project, ->(project) do
-    instance_scope = Hmis::Form::Instance.none
+  scope :with_role, ->(role) { where(role: role) }
 
+  scope :for_project, ->(project) do
     base_scope = Hmis::Form::Instance.joins(:definition)
-    [
+
+    # Choose the first scope that has any records. Prefer more specific instances.
+    instance_scope = [
       base_scope.for_project(project.id),
       base_scope.for_organization(project.organization.id),
       base_scope.for_project_type(project.project_type),
       base_scope.defaults,
-    ].each do |scope|
-      next if instance_scope.present?
-
-      instance_scope = scope unless scope.empty?
-    end
+    ].detect(&:exists?)
+    return none unless instance_scope.present?
 
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
-  scope :with_role, ->(role) { where(role: role) }
+  scope :for_service_type, ->(service_type) do
+    base_scope = Hmis::Form::Instance.joins(:definition)
+
+    instance_scope = [
+      base_scope.for_service_type(service_type.id),
+      base_scope.for_service_category(service_type.custom_service_category_id),
+    ].detect(&:exists?)
+    return none unless instance_scope.present?
+
+    where(identifier: instance_scope.pluck(:definition_identifier))
+  end
 
   def self.find_definition_for_role(role, project: nil, version: nil)
     scope = Hmis::Form::Definition.with_role(role)
     scope = scope.for_project(project) if project.present?
     scope = scope.where(version: version) if version.present?
     scope.order(version: :desc).first
+  end
+
+  def self.find_definition_for_service_type(service_type, project:)
+    Hmis::Form::Definition.with_role(:SERVICE).
+      for_project(project).
+      for_service_type(service_type).
+      order(version: :desc).first
   end
 
   # Validate JSON definition when loading, to ensure no duplicate link IDs

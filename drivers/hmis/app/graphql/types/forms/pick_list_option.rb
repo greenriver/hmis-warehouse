@@ -8,6 +8,8 @@
 
 module Types
   class Forms::PickListOption < Types::BaseObject
+    include Hmis::Concerns::HmisArelHelper
+
     field :code, String, 'Code for the option', null: false
     field :label, String, 'Label for the option', null: true
     field :secondary_label, String, 'Secondary label, such as project type or CoC code', null: true
@@ -32,6 +34,8 @@ module Types
         living_situation_picklist(as: :prior)
       when 'SERVICE_TYPE'
         service_type_picklist
+      when 'AVAILABLE_SERVICE_TYPES'
+        available_service_types_picklist(project)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -50,8 +54,7 @@ module Types
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
       when 'ENROLLABLE_PROJECTS'
-        # FIXME(#185009209) add specific permission for enrolling
-        Hmis::Hud::Project.with_access(user, :can_edit_enrollments).
+        Hmis::Hud::Project.viewable_by(user).with_access(user, :can_enroll_clients).
           joins(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
@@ -66,13 +69,11 @@ module Types
         return all_unit_types.map(&:to_pick_list_option) unless relation_id.present?
         return [] unless project.present? # relation id specified but project not found
 
-        project_unit_type_ids = project.units.pluck(:unit_type_id).uniq
-        all_unit_types.where(id: project_unit_type_ids).map(&:to_pick_list_option)
+        unit_types_for_project(project, available_only: false)
       when 'AVAILABLE_UNIT_TYPES'
         return [] unless project.present?
 
-        project_unit_type_ids = project.units.unoccupied.pluck(:unit_type_id).uniq
-        Hmis::UnitType.order(:description, :id).where(id: project_unit_type_ids).map(&:to_pick_list_option)
+        unit_types_for_project(project, available_only: true)
       when 'UNITS'
         return [] unless project.present?
 
@@ -94,6 +95,23 @@ module Types
           }
         end
       end
+    end
+
+    def self.unit_types_for_project(project, available_only: false)
+      units = project.units
+      units = units.unoccupied if available_only
+
+      # Hash { unit type id => num unoccupied }
+      unit_type_to_availability = units.group(:unit_type_id).count
+
+      Hmis::UnitType.order(:description, :id).
+        where(id: unit_type_to_availability.keys).
+        map(&:to_pick_list_option).
+        map do |option|
+          num_left = unit_type_to_availability[option[:code].to_i]
+          option[:secondary_label] = "#{num_left} available"
+          option
+        end
     end
 
     def self.coc_picklist(selected_project)
@@ -130,6 +148,27 @@ module Types
           initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
         }
       end
+    end
+
+    def self.available_service_types_picklist(project)
+      return [] unless project.present?
+
+      # Find services that have form definitions specified in this project
+      ids = Hmis::Form::Instance.for_services.
+        for_project_through_entities(project).
+        joins(:definition).
+        where(fd_t[:role].eq(:SERVICE)).
+        pluck(:custom_service_type_id, :custom_service_category_id)
+
+      options = Hmis::Hud::CustomServiceType.where(cst_t[:id].in(ids.map(&:first)).
+          or(cst_t[:custom_service_category_id].in(ids.map(&:last)))).
+        preload(:custom_service_category).to_a.
+        map(&:to_pick_list_option).
+        sort_by { |obj| obj[:group_label] + obj[:label] }
+
+      options[0][:initial_selected] = true if options.size == 1
+
+      options
     end
 
     def self.service_type_picklist

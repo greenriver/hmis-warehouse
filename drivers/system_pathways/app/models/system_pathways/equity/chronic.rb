@@ -20,7 +20,7 @@ module SystemPathways::Equity::Chronic
       # array for rows and array for columns to indicate which link params
       # should be attached for each
       link_params: {
-        columns: [[]] + chronic_at_entries.keys.map { |k| ['filters[chronic_at_entries][]', k] },
+        columns: [[]] + chronic_at_entries.keys.map { |k| ['details[chronic_at_entries][]', k] },
         rows: [[]] + node_names.map { |k| ['node', k] },
       },
     }
@@ -58,12 +58,8 @@ module SystemPathways::Equity::Chronic
           data['colors'][chronic_at_entry] = bg_color
           data['labels']['colors'][chronic_at_entry] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
-        [
-          chronic_at_entry,
-          data,
-        ]
+        data['columns'] << row
       end
     end
   end
