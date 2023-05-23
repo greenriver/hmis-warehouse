@@ -538,7 +538,7 @@ module HmisDataQualityTool
           denominator: ->(_item) { true },
           limiter: ->(item) {
             return false unless item.exit_date.present?
-            return item.exit_date <= item.entry_date if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            return item.exit_date <= item.entry_date if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
 
             item.exit_date < item.entry_date
           },
