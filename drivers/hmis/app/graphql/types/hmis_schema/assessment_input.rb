@@ -17,33 +17,27 @@ module Types
     argument :validate_only, Boolean, 'Validate assessment but don\'t submit it', required: false
 
     def find_or_create_assessment
-      errors = HmisErrors::Errors.new
-
       if assessment_id.present?
         # Updating an existing assessment
         assessment = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: assessment_id)
-        errors.add :assessment, :required unless assessment.present?
+        raise HmisErrors::ApiError, 'Assessment not found' unless assessment.present?
       elsif enrollment_id.present? && form_definition_id.present?
         # Creating a new assessment
         enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
         form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
-        errors.add :enrollment, :required unless enrollment.present?
-        errors.add :form_definition, :required unless form_definition.present?
+        raise HmisErrors::ApiError, 'Enrollment not found' unless enrollment.present?
+        raise HmisErrors::ApiError, 'FormDefinition not found' unless form_definition.present?
       else
-        errors.add :enrollment, :required
+        raise HmisErrors::ApiError, 'Assessment or Enrollment must be specified'
       end
-
-      # Errors: input validation failed
-      return [nil, errors.errors] if errors.any?
 
       enrollment ||= assessment&.enrollment
 
-      # Error: insufficient permissions
-      errors.add :assessment, :not_allowed unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
-      return [nil, errors.errors] if errors.any?
+      raise HmisErrors::ApiError, 'Access Denied' unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
 
-      # Errors: can't created 2nd intake/exit assessment
+      # Validation Errors: can't created 2nd intake/exit assessment
       unless assessment.present?
+        errors = HmisErrors::Errors.new
         errors.add :assessment, :invalid, full_message: 'An intake assessment for this enrollment already exists.' if form_definition.intake? && enrollment.intake_assessment.present?
         errors.add :assessment, :invalid, full_message: 'An exit assessment for this enrollment already exists.' if form_definition.exit? && enrollment.exit_assessment.present?
         return [nil, errors.errors] if errors.any?
