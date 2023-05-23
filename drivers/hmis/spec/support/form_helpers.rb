@@ -17,11 +17,7 @@ module FormHelpers
 
     values = { date_item.link_id => assessment_date, **values.stringify_keys }
     hud_values = { date_field => assessment_date, **hud_values.stringify_keys }
-
-    if definition.exit?
-      values['3.12'] = 'SAFE_HAVEN'
-      hud_values['Exit.destination'] = 'SAFE_HAVEN'
-    end
+    hud_values['Exit.destination'] = 'SAFE_HAVEN' if definition.exit?
 
     {
       values: values,

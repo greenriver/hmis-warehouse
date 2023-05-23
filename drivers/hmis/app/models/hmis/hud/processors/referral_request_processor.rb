@@ -16,5 +16,12 @@ module Hmis::Hud::Processors
 
     def information_date(_)
     end
+
+    def assign_metadata
+      record = @processor.send(factory_name)
+      return if record.persisted?
+
+      record.assign_attributes(requested_by: @processor.current_user)
+    end
   end
 end

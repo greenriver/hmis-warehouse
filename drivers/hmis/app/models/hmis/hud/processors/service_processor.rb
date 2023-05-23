@@ -36,5 +36,17 @@ module Hmis::Hud::Processors
 
     def information_date(_)
     end
+
+    def assign_metadata
+      # FIXME: handle better - working on service processing on another branch
+      @processor.owner_factory.assign_attributes(
+        user: @processor.hud_user,
+        data_source_id: @processor.hud_user.data_source_id,
+      )
+      @processor.service_factory.assign_attributes(
+        user: @processor.hud_user,
+        data_source_id: @processor.hud_user.data_source_id,
+      )
+    end
   end
 end

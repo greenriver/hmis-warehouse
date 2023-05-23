@@ -79,6 +79,8 @@ module HmisUtil
         )
 
         form_definition['item'] = form_definition['item'].map { |item| apply_fragment(item) }
+        # Validate form structure
+        Hmis::Form::Definition.validate_json(form_definition)
         definition.definition = form_definition.to_json
         definition.save!
 

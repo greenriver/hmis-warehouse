@@ -36,7 +36,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
     left_outer_joins(:active_range).where(ar_t[:end].eq(nil).or(ar_t[:end].gteq(date)))
   end
 
-  scope :viewable_by, ->(user) do
+  replace_scope :viewable_by, ->(user) do
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
   end
 

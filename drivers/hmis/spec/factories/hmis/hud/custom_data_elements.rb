@@ -9,7 +9,7 @@ FactoryBot.define do
     owner_type { 'Hmis::Hud::Project' }
     field_type { :string }
     repeats { false }
-    key { 'customKey' }
+    sequence(:key) { |n| "customKey#{n + 123}" }
     label { 'Custom Field Label' }
     data_source { association :hmis_data_source }
     user { association :hmis_hud_user, data_source: data_source }
