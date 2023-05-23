@@ -1,0 +1,34 @@
+{
+  "type": "GROUP",
+  "link_id": "dates",
+  "text": "Operating Period",
+  "required": false,
+  "item": [
+    {
+      "type": "DATE",
+      "required": true,
+      "link_id": "2.02.3",
+      "text": "Start Date",
+      "field_name": "operatingStartDate",
+      "bounds": [
+        {
+          "type": "MAX",
+          "question": "2.02.4"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "required": false,
+      "link_id": "2.02.4",
+      "text": "End Date",
+      "field_name": "operatingEndDate",
+      "bounds": [
+        {
+          "type": "MIN",
+          "question": "2.02.3"
+        }
+      ]
+    }
+  ]
+}

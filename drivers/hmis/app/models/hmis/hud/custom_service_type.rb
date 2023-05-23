@@ -21,4 +21,12 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   def hud_service?
     hud_record_type.present?
   end
+
+  def to_pick_list_option
+    {
+      code: id.to_s,
+      label: name,
+      group_label: custom_service_category.name,
+    }
+  end
 end

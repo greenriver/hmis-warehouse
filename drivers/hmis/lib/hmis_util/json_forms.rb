@@ -20,7 +20,7 @@ module HmisUtil
         if ENV['CLIENT'].present?
           Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            puts "Applying #{ENV['CLIENT']} override for #{identifier} fragment"
+            puts "Loading #{ENV['CLIENT']} override for #{identifier} fragment"
             file = File.read(file_path)
             fragments["##{identifier}"] = JSON.parse(file)
           end
@@ -55,11 +55,14 @@ module HmisUtil
     def self.apply_fragment(item)
       return item unless item['fragment']
 
+      additional_children = item['item']
       fragment = fragment_map[item['fragment']]
       raise "Fragment not found #{item['fragment']}" unless fragment.present?
 
-      other_fields = item.except('fragment')
-      { **other_fields, **fragment }
+      merged = { **item.except('fragment'), **fragment }
+      # Add custom fields to the end
+      merged['item'] = (merged['item'] || []) + (additional_children || [])
+      merged
     end
 
     # Load form definitions for editing and creating records
@@ -76,6 +79,8 @@ module HmisUtil
         )
 
         form_definition['item'] = form_definition['item'].map { |item| apply_fragment(item) }
+        # Validate form structure
+        Hmis::Form::Definition.validate_json(form_definition)
         definition.definition = form_definition.to_json
         definition.save!
 

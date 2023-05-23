@@ -21,6 +21,10 @@ module Hmis::Concerns::HmisArelHelper
       Hmis::ActiveRange.arel_table
     end
 
+    def fd_t
+      Hmis::Form::Definition.arel_table
+    end
+
     def hs_t
       Hmis::Hud::HmisService.arel_table
     end

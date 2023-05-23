@@ -1,0 +1,21 @@
+{
+  "item": [
+    {
+      "fragment": "#project_name"
+    },
+    {
+      "fragment": "#project_operating_period"
+    },
+    {
+      "fragment": "#project_details",
+      "item": [
+        {
+          "type": "BOOLEAN",
+          "link_id": "direct-entry",
+          "text": "Direct Entry",
+          "custom_field_key": "direct_entry"
+        }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,8 @@
 
 module Types
   class Forms::PickListOption < Types::BaseObject
+    include Hmis::Concerns::HmisArelHelper
+
     field :code, String, 'Code for the option', null: false
     field :label, String, 'Label for the option', null: true
     field :secondary_label, String, 'Secondary label, such as project type or CoC code', null: true
@@ -32,6 +34,8 @@ module Types
         living_situation_picklist(as: :prior)
       when 'SERVICE_TYPE'
         service_type_picklist
+      when 'AVAILABLE_SERVICE_TYPES'
+        available_service_types_picklist(project)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -144,6 +148,27 @@ module Types
           initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
         }
       end
+    end
+
+    def self.available_service_types_picklist(project)
+      return [] unless project.present?
+
+      # Find services that have form definitions specified in this project
+      ids = Hmis::Form::Instance.for_services.
+        for_project_through_entities(project).
+        joins(:definition).
+        where(fd_t[:role].eq(:SERVICE)).
+        pluck(:custom_service_type_id, :custom_service_category_id)
+
+      options = Hmis::Hud::CustomServiceType.where(cst_t[:id].in(ids.map(&:first)).
+          or(cst_t[:custom_service_category_id].in(ids.map(&:last)))).
+        preload(:custom_service_category).to_a.
+        map(&:to_pick_list_option).
+        sort_by { |obj| obj[:group_label] + obj[:label] }
+
+      options[0][:initial_selected] = true if options.size == 1
+
+      options
     end
 
     def self.service_type_picklist
