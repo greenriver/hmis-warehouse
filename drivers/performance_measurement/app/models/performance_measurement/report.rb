@@ -939,11 +939,10 @@ module PerformanceMeasurement
               name: :days_to_return,
               value_calculation: ->(spm_client) { spm_client[:m2_reentry_days] },
             },
-            # This is actually destination prior to return, not the destination we want
-            # {
-            #   name: :destination,
-            #   value_calculation: ->(spm_client) { spm_client[:m2_exit_to_destination] },
-            # },
+            {
+              name: :prior_destination,
+              value_calculation: ->(spm_client) { spm_client[:m2_exit_to_destination] },
+            },
           ],
           # This needs to introspect on the number of days to re-entry and save off extra client_project records
           client_project_rows: [
