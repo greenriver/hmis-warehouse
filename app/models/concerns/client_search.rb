@@ -52,6 +52,10 @@ module ClientSearch
         where = metaphone_search(where, :FirstName, text)
         where = metaphone_search(where, :LastName, text)
       end
+
+      # Model may define a function 'injected_search' to add additional clauses
+      where = injected_search(where, text, numeric: numeric, alpha_numeric: alpha_numeric, date: date) if respond_to?(:injected_search)
+
       begin
         # requires a block to calculate which client_ids are acceptable within
         # the search context
