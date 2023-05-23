@@ -67,7 +67,7 @@ class Hmis::User < ApplicationRecord
       base_entities = permissions_base_for_entity(entity)
 
       # Raise if there's no permissions base for the entity we're checking permissions on
-      raise "Invalid entity '#{entity.class.sti_name}' for permission '#{permission}'" if base_entities.nil?
+      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" if base_entities.nil?
 
       # No permissions on this entity if there's nothing that would grant it permissions
       return false unless base_entities.present?

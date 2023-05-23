@@ -766,8 +766,8 @@ type CreateUnitsPayload {
 
 type CustomDataElement {
   id: ID!
-  key: String
-  label: String
+  key: String!
+  label: String!
   repeats: Boolean!
   value: CustomDataElementValue
   values: [CustomDataElementValue!]
@@ -2096,6 +2096,11 @@ type FormItem {
   Component to use for display/input of this item
   """
   component: Component
+
+  """
+  Key of CustomDataElement to save record as. Use record_type to specify type.
+  """
+  customFieldKey: String
 
   """
   Include this item only if the Client meets this HUD DataCollectedAbout condition
@@ -3870,6 +3875,7 @@ type PickListOption {
 
 enum PickListType {
   AVAILABLE_FILE_TYPES
+  AVAILABLE_SERVICE_TYPES
 
   """
   Unoccupied units in the specified project
@@ -4162,6 +4168,11 @@ type Query {
   Get most relevant/recent form definition for the specified Role and project (optionally)
   """
   getFormDefinition(enrollmentId: ID, projectId: ID, role: FormRole!): FormDefinition
+
+  """
+  Get most relevant form definition for the specified service type
+  """
+  getServiceFormDefinition(customServiceTypeId: ID!, projectId: ID!): FormDefinition
 
   """
   Inventory lookup

@@ -14,7 +14,7 @@ module ProjectScorecard
 
       def accepted_referrals_percentage
         return nil unless [accepted_referrals, number_referrals].all?
-        return nil if number_referrals.zero?
+        return 0 if number_referrals.blank? || number_referrals.zero?
 
         ((accepted_referrals / number_referrals.to_f) * 100).round
       end

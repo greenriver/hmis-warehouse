@@ -232,27 +232,42 @@ module PerformanceMeasurement::ResultCalculation
 
       field = detail[:calculation_column]
 
-      reporting_count = client_count(field, :reporting, project_id: project&.project_id)
-      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
-
-      progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
-      PerformanceMeasurement::Result.new(
+      result = PerformanceMeasurement::Result.new(
         report_id: id,
         field: __method__,
         title: detail_title_for(__method__.to_sym),
-        direction: direction(reporting_count, comparison_count),
-        primary_value: reporting_count,
         primary_unit: 'clients',
-        secondary_value: progress[:progress],
         secondary_unit: '%',
         value_label: 'Change over year',
-        comparison_primary_value: comparison_count,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
+      )
+      # if we have some pit counts, use those, otherwise, calculate from SHS
+      pit_count = result.pit_count
+      comparison_pit_count = result.comparison_pit_count
+
+      reporting_count = if pit_count.present?
+        pit_count.total_count
+      else
+        client_count(field, :reporting, project_id: project&.project_id)
+      end
+      comparison_count = if comparison_pit_count.present?
+        comparison_pit_count.total_count
+      else
+        client_count(field, :comparison, project_id: project&.project_id)
+      end
+
+      progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
+      result.assign_attributes(
+        direction: direction(reporting_count, comparison_count),
+        primary_value: reporting_count,
+        secondary_value: progress[:progress],
+        comparison_primary_value: comparison_count,
         passed: progress[:passed],
         goal: progress[:goal],
         goal_progress: progress[:progress],
       )
+      result
     end
 
     # NOTE: SPM does not include SO, so this needs to be done based on SHS

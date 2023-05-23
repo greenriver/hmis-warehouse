@@ -28,6 +28,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :units, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
 

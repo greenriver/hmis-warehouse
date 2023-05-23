@@ -11,8 +11,8 @@ module Types
     # object is an OpenStruct, see HasCustomDataElements
 
     field :id, ID, null: false
-    field :key, String, null: true
-    field :label, String, null: true
+    field :key, String, null: false
+    field :label, String, null: false
     field :repeats, Boolean, null: false
     field :value, HmisSchema::CustomDataElementValue, null: true
     field :values, [HmisSchema::CustomDataElementValue], null: true
