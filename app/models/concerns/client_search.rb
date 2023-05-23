@@ -63,6 +63,7 @@ module ClientSearch
         return none
       end
 
+      # WARNING: Any ids added to client_ids below here could be outside of the search scope
       if numeric
         source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: text).pluck(:source_id)
         if source_client_ids.any?
