@@ -26,7 +26,7 @@ module HmisExternalApis
             client_ids = HmisExternalApis::ExternalId.where(matches_external_value).pluck(:source_id)
             return where unless client_ids.any?
 
-            where.or(c_t[:id].in(client_ids))
+            where.or(arel_table[:id].in(client_ids))
           end
         end
       end
