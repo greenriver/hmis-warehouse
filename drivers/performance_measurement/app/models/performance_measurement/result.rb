@@ -42,6 +42,10 @@ module PerformanceMeasurement
       @pit_count ||= report.goal_config.pit_counts.where(pit_date: report.filter.range).max_by(&:pit_date)
     end
 
+    def comparison_pit_count
+      @comparison_pit_count ||= report.goal_config.pit_counts.where(pit_date: report.filter.comparison_range).max_by(&:pit_date)
+    end
+
     def percentage?
       primary_unit.starts_with?('%')
     end

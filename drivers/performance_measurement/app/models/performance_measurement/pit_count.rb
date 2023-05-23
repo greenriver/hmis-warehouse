@@ -10,5 +10,9 @@ module PerformanceMeasurement
     acts_as_paranoid
 
     belongs_to :goal
+
+    def total_count
+      [unsheltered, sheltered].compact.sum
+    end
   end
 end
