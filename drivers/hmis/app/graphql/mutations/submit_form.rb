@@ -45,7 +45,7 @@ module Mutations
         record = klass.new(
           user: klass == Hmis::File ? current_user : hud_user,
           data_source_id: hud_user.data_source_id,
-          **related_id_attributes(klass.sti_name, input),
+          **related_id_attributes(klass.name, input),
         )
         record.updated_by = current_user if klass == Hmis::File
       end

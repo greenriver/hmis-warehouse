@@ -173,7 +173,7 @@ class Hmis::User < ApplicationRecord
   end
 
   private def cached_viewable_project_ids(force_calculation: false)
-    key = [self.class.sti_name, __method__, id]
+    key = [self.class.name, __method__, id]
     Rails.cache.delete(key) if force_calculation
     Rails.cache.fetch(key, expires_in: 1.minutes) do
       Hmis::Hud::Project.viewable_by(self).pluck(:id).to_set

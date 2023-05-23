@@ -40,7 +40,7 @@ module Hmis
     end
 
     scope :includes_entity, ->(entity) do
-      case entity.class.sti_name
+      case entity.class.name
       when Hmis::Hud::Project.name
         includes_project(entity)
       when Hmis::Hud::Organization.name
