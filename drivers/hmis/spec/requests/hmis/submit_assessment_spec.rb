@@ -202,7 +202,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     before(:each) { e1_exit.update(exit_date: 3.days.ago) }
 
     it 'should error if assessment doesn\'t exist' do
-      expect { post_graphql(input: { input: input.merge(assessment_id: '999') }) { mutation } }.to raise_error(HmisErrors::ApiError)
+      expect { post_graphql(input: { input: test_input.merge(assessment_id: '999') }) { mutation } }.to raise_error(HmisErrors::ApiError)
     end
 
     [
