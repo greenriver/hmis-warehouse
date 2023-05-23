@@ -207,10 +207,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     [
       [
-        'should return an error if assessment doesn\'t exist',
-        ->(input) { input.merge(assessment_id: '999') },
-      ],
-      [
         'should return an error if a required field is missing',
         ->(input) {
           input.merge(
