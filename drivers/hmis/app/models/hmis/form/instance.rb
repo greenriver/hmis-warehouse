@@ -14,8 +14,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
-  scope :for_projects, -> { where(entity_type: 'Hmis::Hud::Project') }
-  scope :for_organizations, -> { where(entity_type: 'Hmis::Hud::Organization') }
+  scope :for_projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
+  scope :for_organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
   scope :for_project_types, -> { where(entity_type: 'ProjectType') }
   scope :defaults, -> { where(entity_type: nil, entity_id: nil) }
 
