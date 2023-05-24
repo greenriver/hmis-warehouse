@@ -12,7 +12,7 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
-      return { errors: [HmisErrors::Error.new(:assessment, :not_found)] } unless record.present?
+      raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
       record.transaction do
         role = record.custom_form.definition.role

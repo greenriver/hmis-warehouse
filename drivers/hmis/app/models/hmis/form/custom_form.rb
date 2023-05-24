@@ -25,7 +25,7 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   end
 
   def assessment?
-    owner_type == 'Hmis::Hud::CustomAssessment'
+    owner_type == Hmis::Hud::CustomAssessment.sti_name
   end
 
   def intake?
