@@ -42,16 +42,13 @@ module Types
       field.argument :text_search, String, 'Omnisearch string', required: true
     end
 
-    def client_omni_search(text_search:, **args)
-      client_order = Hmis::Hud::Client.searchable_to(current_user).matching_search_term(text_search).
-        joins(:enrollments).
-        merge(Hmis::Hud::Enrollment.open_during_range((Date.current - 1.month)..Date.current)).
-        order(e_t[:date_updated].desc).
-        pluck(:id, e_t[:date_updated]).
-        map(&:first).
-        uniq
-      client_scope = Hmis::Hud::Client.where(id: client_order).order_as_specified(id: client_order)
-      resolve_clients(client_scope, **args)
+    def client_omni_search(text_search:)
+      client_scope = Hmis::Hud::Client.searchable_to(current_user).
+        matching_search_term(text_search).
+        includes(:enrollments).
+        order(qualified_column(e_t[:date_updated]))
+
+      resolve_clients(client_scope, no_sort: true)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
