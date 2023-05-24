@@ -26,6 +26,8 @@
 
   .row
     .col-3
+      - if file.confidential?
+        .label.label-info.mb-2 Confidential
       - if file.visible_in_window
         .font-italic.mb-2 This file is visible in the window
       - unless file.client_file.variable?

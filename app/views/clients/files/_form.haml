@@ -63,7 +63,10 @@
       .col-sm-6
         = f.input :note, as: :text, hint: '(Optional except if other is chosen above.) Give a reason for including this file.'
     - if can_manage_client_files?
-      = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
+      = f.input :visible_in_window, as: :boolean, label: 'Visible in the Window?', input_html: { :checked => true }
+    - if can_see_confidential_files?
+      = f.input :confidential, as: :boolean, label: 'Confidential File', hint: 'Access will be restricted through associated enrollment'
+      = f.input :enrollment_id, as: :select_two, label: 'Associated Enrollment', collection: @file.enrollments_for_confidential_files(current_user, @client), label_method: :first, value_method: :last, hint: 'Required if confidential'
     = f.input :client_file, as: :file, required: true
   .d-flex
     = link_to client_files_path(@client), class: 'btn btn-secondary ml-auto' do

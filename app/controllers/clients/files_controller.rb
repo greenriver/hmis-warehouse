@@ -229,6 +229,8 @@ module Clients
           :effective_date,
           :expiration_date,
           :consent_revoked_at,
+          :confidential,
+          :enrollment_id,
           coc_codes: [],
           tag_list: [],
         )

@@ -26,6 +26,8 @@ module GrdaWarehouse
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates, message: 'Effective date is required'
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates, message: 'Expiration date is required'
 
+    validates_presence_of :enrollment_id, if: :confidential?
+
     scope :confidential, -> do
       where(confidential: true)
     end
@@ -324,6 +326,18 @@ module GrdaWarehouse
 
     def note_if_other
       errors.add :note, 'Note is required if Other is chosen above' if tag_list.include?('Other') && note.blank?
+    end
+
+    def enrollments_for_confidential_files(user, destination_client)
+      GrdaWarehouse::Hud::Enrollment.visible_to(user, client_ids: destination_client.source_client_ids).
+        joins(:project).
+        preload(:project).
+        map do |en|
+          [
+            "#{en.entry_date} - #{en.project.name(user, include_project_type: true)}",
+            en.id,
+          ]
+        end
     end
 
     def copy_to_s3!
