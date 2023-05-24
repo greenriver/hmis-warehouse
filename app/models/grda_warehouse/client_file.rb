@@ -40,6 +40,18 @@ module GrdaWarehouse
       where(visible_in_window: true)
     end
 
+    scope :confidential_visible_by, ->(user) do
+      permission = :can_see_confidential_files
+      return none unless user&.send("#{permission}?")
+
+      ids = user.viewable_project_ids(permission)
+      # If have a set (not a nil) and it's empty, this user can't access any projects
+      return none if ids.is_a?(Set) && ids.empty?
+
+      confidential.joins(enrollment: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: ids))
+    end
+
     scope :visible_by?, ->(user) do
       return current_scope if user.can_manage_client_files?
 
@@ -329,8 +341,10 @@ module GrdaWarehouse
     end
 
     def enrollments_for_confidential_files(user, destination_client)
-      GrdaWarehouse::Hud::Enrollment.visible_to(user, client_ids: destination_client.source_client_ids).
-        joins(:project).
+      permission = :can_see_confidential_files
+      ids = user.viewable_project_ids(permission)
+      destination_client.source_enrollments.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: ids)).
         preload(:project).
         map do |en|
           [

@@ -1,10 +1,12 @@
+- details_visible = file.confidential == false || file.id.in?(@visible_confidential_ids)
 .well{ class: "client-file-#{file.id}"}
   .row
     .col-8
       %h3.d-flex
-        .c-checkbox.c-checkbox.mr-4
-          %input.jDownload{type: :checkbox, value: file.id, id: file.id, checked: @pre_checked&.include?(file.id)}
-          %label{for:file.id, tabindex:'1' }
+        - if details_visible
+          .c-checkbox.c-checkbox.mr-4
+            %input.jDownload{type: :checkbox, value: file.id, id: file.id, checked: @pre_checked&.include?(file.id)}
+            %label{for:file.id, tabindex:'1' }
         - file.tag_list.each do |tag|
           - included_info = @available_tags[tag]&.included_info
           .client__file-tags.mb-2
@@ -30,14 +32,15 @@
         .label.label-info.mb-2 Confidential
       - if file.visible_in_window
         .font-italic.mb-2 This file is visible in the window
-      - unless file.client_file.variable?
-        .mb-2
-          = link_to preview_client_file_path(id: file.id), class: 'btn btn-secondary btn-sm', target: '_blank' do
-            %span.icon-eye
-            Preview
-      - else
-        .jThumb.mb-2{data: {file: file.id}}
-      - if file.client_file.present?
+      - if details_visible
+        - unless !file.client_file.variable?
+          .mb-2
+            = link_to preview_client_file_path(id: file.id), class: 'btn btn-secondary btn-sm', target: '_blank' do
+              %span.icon-eye
+              Preview
+        - else
+          .jThumb.mb-2{data: {file: file.id}}
+      - if file.client_file.present? && details_visible
         %div
           = link_to appropriate_file_path(id: file.id), class: 'btn btn-secondary btn-sm' do
             %span.icon-download2
@@ -50,13 +53,15 @@
             .files-included-info
               %em Contains:
               = included_info
-      - if file.note.present?
+      - if file.note.present? && details_visible
         .client__file-note.mb-2
           %strong Note:
           = file.note
       %small.client__file-attribution
-        = "#{file.created_at} by "
-        = mail_to file.user&.name, file.user&.email, subject: file.tag_list.join(', ')
+        Uploaded #{file.created_at}
+        - if details_visible
+          by
+          = mail_to file.user&.name, file.user&.email, subject: file.tag_list.join(', ')
     .col-4
       - if GrdaWarehouse::AvailableFileTag.contains_consent_form?(file.tag_list)
         %dl

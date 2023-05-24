@@ -408,7 +408,7 @@ class Role < ApplicationRecord
         ],
       },
       can_see_confidential_files: {
-        description: 'Access to client confidential files.  Access is limited to the associated projects, files must be assigned to a project.',
+        description: 'Access to client confidential files.  Without this, a user can see that the file exists, which labels were applied to it, and when it was uploaded, but not what is in the file. Access is limited to the associated projects, files must be assigned to a project.',
         administrative: false,
         categories: [
           'Client Extras',
