@@ -1,0 +1,92 @@
+{
+  "type": "GROUP",
+  "link_id": "additional",
+  "text": "Project Details",
+  "item": [
+    {
+      "type": "CHOICE",
+      "required": true,
+      "link_id": "2.02.6",
+      "text": "Project Type",
+      "pick_list_reference": "ProjectType",
+      "field_name": "projectType"
+    },
+    {
+      "type": "GROUP",
+      "link_id": "2.02.6-conditionals",
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "2.02.C",
+          "text": "Tracking Method",
+          "pick_list_reference": "TrackingMethod",
+          "field_name": "trackingMethod",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "2.02.6",
+              "operator": "EQUAL",
+              "answer_code": "ES"
+            }
+          ]
+        },
+        {
+          "type": "BOOLEAN",
+          "required": false,
+          "link_id": "2.02.A",
+          "text": "Residential Affiliation?",
+          "field_name": "residentialAffiliation",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "2.02.6",
+              "operator": "EQUAL",
+              "answer_code": "SERVICES_ONLY"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "2.02.D",
+      "text": "Housing Type",
+      "pick_list_reference": "HousingType",
+      "field_name": "housingType"
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "2.02.8",
+      "text": "Target Population",
+      "pick_list_reference": "TargetPopulation",
+      "field_name": "targetPopulation"
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "2.02.9",
+      "text": "HOPWA Assisted Living Facility",
+      "pick_list_reference": "HOPWAMedAssistedLivingFac",
+      "field_name": "HOPWAMedAssistedLivingFac"
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "2.02.5",
+      "text": "Continuum Project?",
+      "pick_list_reference": "NoYesMissing",
+      "field_name": "continuumProject"
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "2.02.7",
+      "text": "HMIS Participating Project?",
+      "pick_list_reference": "NoYesMissing",
+      "field_name": "HMISParticipatingProject"
+    }
+  ]
+}

@@ -42,16 +42,13 @@ module Types
       field.argument :text_search, String, 'Omnisearch string', required: true
     end
 
-    def client_omni_search(text_search:, **args)
-      client_order = Hmis::Hud::Client.searchable_to(current_user).matching_search_term(text_search).
-        joins(:enrollments).
-        merge(Hmis::Hud::Enrollment.open_during_range((Date.current - 1.month)..Date.current)).
-        order(e_t[:date_updated].desc).
-        pluck(:id, e_t[:date_updated]).
-        map(&:first).
-        uniq
-      client_scope = Hmis::Hud::Client.where(id: client_order).order_as_specified(id: client_order)
-      resolve_clients(client_scope, **args)
+    def client_omni_search(text_search:)
+      client_scope = Hmis::Hud::Client.searchable_to(current_user).
+        matching_search_term(text_search).
+        includes(:enrollments).
+        order(qualified_column(e_t[:date_updated]))
+
+      resolve_clients(client_scope, no_sort: true)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
@@ -145,6 +142,20 @@ module Types
       project = Hmis::Hud::Enrollment.find_by(id: enrollment_id)&.project if enrollment_id.present?
 
       Hmis::Form::Definition.find_definition_for_role(role, project: project)
+    end
+
+    field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
+      argument :custom_service_type_id, ID, required: true
+      argument :project_id, ID, required: true
+    end
+    def get_service_form_definition(custom_service_type_id:, project_id:)
+      project = Hmis::Hud::Project.find_by(id: project_id)
+      raise HmisErrors::ApiError, 'Project not found' unless project.present?
+
+      service_type = Hmis::Hud::CustomServiceType.find_by(id: custom_service_type_id)
+      raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
+
+      Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
     end
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do

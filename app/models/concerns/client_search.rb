@@ -52,6 +52,9 @@ module ClientSearch
         where = metaphone_search(where, :FirstName, text)
         where = metaphone_search(where, :LastName, text)
       end
+
+      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
+
       begin
         # requires a block to calculate which client_ids are acceptable within
         # the search context
@@ -60,6 +63,7 @@ module ClientSearch
         return none
       end
 
+      # WARNING: Any ids added to client_ids below here could be outside of the search scope
       if numeric
         source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: text).pluck(:source_id)
         if source_client_ids.any?

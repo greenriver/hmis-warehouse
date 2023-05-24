@@ -554,6 +554,30 @@ module PerformanceMeasurement
             details[calculation]
           },
         },
+        {
+          key: :destination,
+          data: ->(_filter) {
+            {}.tap do |destination_client_id|
+              scope = report_scope.joins(:project, :client).
+                where.not(last_date_in_program: nil, destination: nil).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.pluck(:client_id, p_t[:id], :destination).
+                each do |client_id, project_id, destination|
+                  destination_client_id[client_id] ||= { value: nil, project_ids: Set.new, dob: nil }
+                  destination_client_id[client_id][:value] = destination
+                  destination_client_id[client_id][:project_ids] << project_id
+                  destination_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        },
       ]
       [:es, :sh, :so, :th, :psh, :oph, :rrh].each do |p_type|
         extras << {
@@ -916,7 +940,7 @@ module PerformanceMeasurement
               value_calculation: ->(spm_client) { spm_client[:m2_reentry_days] },
             },
             {
-              name: :destination,
+              name: :prior_destination,
               value_calculation: ->(spm_client) { spm_client[:m2_exit_to_destination] },
             },
           ],

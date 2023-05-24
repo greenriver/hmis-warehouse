@@ -30,6 +30,11 @@ BostonHmis::Application.routes.draw do
 
       post 'hmis-gql', to: 'graphql#execute', defaults: { schema: :hmis }
       mount GraphiQL::Rails::Engine, at: '/graphiql', graphql_path: '/hmis/hmis-gql', defaults: { format: :html } if Rails.env.development?
+
+      # Fall back to HMIS origin for any other `hmis/*` route.
+      # We need this because the frontend proxies ALL requests to hmis/* to the backend.
+      # Note: in a development environment, this ends up redirecting to the warehouse.
+      get '*other', to: redirect { |_, req| req.origin || '404' }
     end
     namespace :hmis_admin do
       resources :roles

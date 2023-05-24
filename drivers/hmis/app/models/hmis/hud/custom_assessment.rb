@@ -24,6 +24,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :project, through: :enrollment
   has_many :custom_data_elements, as: :owner
 
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+
   # Alias fields that are not part of the Assessment schema
   alias_to_underscore [:DataCollectionStage]
 

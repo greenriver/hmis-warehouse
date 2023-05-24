@@ -47,6 +47,68 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'Service definition lookup' do
+    include_context 'hmis service setup'
+    let(:service_query) do
+      <<~GRAPHQL
+        query GetServiceFormDefinition($customServiceTypeId: ID!, $projectId: ID!) {
+          getServiceFormDefinition(customServiceTypeId: $customServiceTypeId, projectId: $projectId) {
+            #{form_definition_fragment}
+          }
+        }
+      GRAPHQL
+    end
+    let(:service_form_definition) do
+      Hmis::Form::Definition.where(role: :SERVICE).first
+    end
+
+    it 'should find no definitions if there are no service-specific instances' do
+      response, result = post_graphql({ project_id: p1.id.to_s, custom_service_type_id: cst1.id.to_s }) { service_query }
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        form_definition = result.dig('data', 'getServiceFormDefinition')
+        expect(form_definition).to be_nil
+      end
+    end
+
+    it 'should find definition if there is an instance for it (by project type and service type)' do
+      create(
+        :hmis_form_instance,
+        entity_type: 'ProjectType',
+        entity_id: p1.project_type,
+        definition_identifier: service_form_definition.identifier,
+        custom_service_type_id: cst1.id,
+      )
+
+      response, result = post_graphql({ project_id: p1.id.to_s, custom_service_type_id: cst1.id.to_s }) { service_query }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        form_definition = result.dig('data', 'getServiceFormDefinition')
+        expect(form_definition).to be_present
+        expect(form_definition['id']).to eq(service_form_definition.id.to_s)
+      end
+    end
+
+    it 'should find definition if there is an instance for it (by project and service category)' do
+      create(
+        :hmis_form_instance,
+        entity: p1,
+        definition_identifier: service_form_definition.identifier,
+        custom_service_category_id: csc1.id,
+      )
+
+      response, result = post_graphql({ project_id: p1.id.to_s, custom_service_type_id: cst1.id.to_s }) { service_query }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        form_definition = result.dig('data', 'getServiceFormDefinition')
+        expect(form_definition).to be_present
+        expect(form_definition['id']).to eq(service_form_definition.id.to_s)
+      end
+    end
+  end
 end
 
 RSpec.configure do |c|
