@@ -4,21 +4,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Search::AssessmentSearch
+class Hmis::Filter::BaseFilter
   attr_accessor :input
   def initialize(input)
     self.input = input
   end
 
-  def results(scope)
-    scope.
-      yield_self(&method(:with_roles))
+  def filter_scope(scope)
+    scope
   end
 
   protected
 
-  def with_roles(scope)
-    with_filter(scope, input, :roles) { scope.with_role(input.roles) }
+  # Utility to clean up joins or other things that could cause trouble downstream
+  def clean_scope(scope)
+    scope.all.klass.where(id: scope.pluck(:id))
   end
 
   private

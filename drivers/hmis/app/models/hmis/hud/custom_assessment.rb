@@ -112,7 +112,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   def self.apply_filters(input)
-    Hmis::Search::AssessmentSearch.new(input).results(self)
+    Hmis::Filter::AssessmentFilter.new(input).filter_scope(self)
   end
 
   def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date: nil)

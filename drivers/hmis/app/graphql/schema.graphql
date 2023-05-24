@@ -79,7 +79,7 @@ type AssessmentAccess {
 }
 
 input AssessmentFilterOptions {
-  roles: [FormRole!]
+  roles: [AssessmentRole!]
 }
 
 input AssessmentInput {
@@ -139,6 +139,38 @@ enum AssessmentLevel {
   INVALID
 }
 
+enum AssessmentRole {
+  """
+  (ANNUAL) Annual Assessment
+  """
+  ANNUAL
+
+  """
+  (CE) Coordinated Entry
+  """
+  CE
+
+  """
+  (EXIT) Exit Assessment
+  """
+  EXIT
+
+  """
+  (INTAKE) Intake Assessment
+  """
+  INTAKE
+
+  """
+  (POST_EXIT) Post-Exit Assessment
+  """
+  POST_EXIT
+
+  """
+  (UPDATE) Update Assessment
+  """
+  UPDATE
+}
+
 """
 HUD Assessment Sorting Options
 """
@@ -180,7 +212,7 @@ enum AssessmentType {
 }
 
 input AssessmentsForEnrollmentFilterOptions {
-  roles: [FormRole!]
+  roles: [AssessmentRole!]
 }
 
 type AssessmentsPaginated {
