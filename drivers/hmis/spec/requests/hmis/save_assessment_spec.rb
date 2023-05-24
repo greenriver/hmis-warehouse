@@ -157,42 +157,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     [
       [
-        'should emit error if enrollment doesn\'t exist',
+        'should error if enrollment doesn\'t exist',
         ->(input) { input.merge(enrollment_id: '999') },
-        {
-          'fullMessage' => 'Enrollment must exist',
-        },
       ],
       [
-        'should emit error if cannot find form definition',
+        'should error if cannot find form definition',
         ->(input) { input.merge(form_definition_id: '999') },
-        {
-          'fullMessage' => 'Form definition must exist',
-        },
       ],
       [
-        'should emit error if cannot find assessment',
+        'should error if cannot find assessment',
         ->(input) { input.merge(assessment_id: '999') },
-        {
-          'fullMessage' => 'Assessment must exist',
-        },
       ],
       [
-        'should emit error if neithor enrollment nor assessment are provided',
+        'should error if neithor enrollment nor assessment are provided',
         ->(input) { input.except(:enrollment_id, :assessment_id) },
-        {
-          'fullMessage' => 'Enrollment must exist',
-        },
       ],
-    ].each do |test_name, input_proc, *expected_errors|
+    ].each do |test_name, input_proc|
       it test_name do
         input = input_proc.call(test_input)
-        response, result = post_graphql(input: { input: input }) { mutation }
-        errors = result.dig('data', 'saveAssessment', 'errors')
-        aggregate_failures 'checking response' do
-          expect(response.status).to eq 200
-          expect(errors).to match(expected_errors.map { |h| a_hash_including(**h) })
-        end
+        expect { post_graphql(input: { input: input }) { mutation } }.to raise_error(HmisErrors::ApiError)
       end
     end
 

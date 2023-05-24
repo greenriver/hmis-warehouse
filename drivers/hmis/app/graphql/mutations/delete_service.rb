@@ -11,7 +11,7 @@ module Mutations
     field :service, Types::HmisSchema::Service, null: true
 
     def resolve(id:)
-      return { errors: [HmisErrors::Error.new(:service, :not_found)] } unless Hmis::Hud::HmisService.valid_id?(id)
+      raise HmisErrors::ApiError, 'Invalid service ID' unless Hmis::Hud::HmisService.valid_id?(id)
 
       hmis_service = Hmis::Hud::HmisService.viewable_by(current_user).find_by(id: id)
       result = default_delete_record(

@@ -77,11 +77,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       remove_permissions(hmis_user, permission)
       action.call(a1)
 
-      mutate(input: { id: a1.id }) do |assessment_id, errors|
-        expect(assessment_id).to be_nil
-        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
-      end
-
+      expect { mutate(input: { id: a1.id }) }.to raise_error(HmisErrors::ApiError)
       expect(Hmis::Hud::CustomAssessment.all).to include(have_attributes(id: a1.id))
     end
   end
@@ -93,19 +89,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       action.call(a1)
       fd1.update(role: 'INTAKE')
 
-      mutate(input: { id: a1.id }) do |assessment_id, errors|
-        a1.reload
-        e1.reload
-        if key == :wip
+      if key == :submitted
+        expect { mutate(input: { id: a1.id }) }.to raise_error(HmisErrors::ApiError)
+      else
+        mutate(input: { id: a1.id }) do |assessment_id, errors|
+          a1.reload
+          e1.reload
           expect(assessment_id).to be_present
           expect(errors).to be_empty
           expect(a1.date_deleted).to be_present
           expect(e1.date_deleted).to be_present
-        elsif key == :submitted
-          expect(assessment_id).to be_nil
-          expect(errors).to contain_exactly(include('type' => 'not_allowed'))
-          expect(a1.date_deleted).to be_nil
-          expect(e1.date_deleted).to be_nil
         end
       end
     end
