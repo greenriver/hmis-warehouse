@@ -24,7 +24,7 @@ module Admin
       @group.update(group_params)
       @group.set_viewables(viewable_params)
       @group.save
-      respond_with(@group, location: admin_groups_path)
+      respond_with(@group, location: admin_access_groups_path)
     end
 
     def edit
