@@ -211,10 +211,6 @@ enum AssessmentType {
   VIRTUAL
 }
 
-input AssessmentsForEnrollmentFilterOptions {
-  roles: [AssessmentRole!]
-}
-
 type AssessmentsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -392,7 +388,7 @@ type Client {
   access: ClientAccess!
   addresses: [ClientAddress!]!
   age: Int
-  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   customDataElements: [CustomDataElement!]!
@@ -1683,7 +1679,7 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
-  assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   client: Client!
   dateCreated: ISO8601DateTime!

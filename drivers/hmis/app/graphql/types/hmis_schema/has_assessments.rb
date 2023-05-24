@@ -17,7 +17,6 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
-            argument :roles, [Types::Forms::Enums::FormRole], required: false
             argument :in_progress, GraphQL::Types::Boolean, required: false
             filters_argument HmisSchema::Assessment, type_name: filter_type_name, omit: filter_omit, **filter_args
             instance_eval(&block) if block_given?

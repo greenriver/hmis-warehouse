@@ -28,7 +28,7 @@ module Types
     hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
     field :status, HmisSchema::Enums::EnrollmentStatus, null: false
-    assessments_field filter_type_name: 'AssessmentsForEnrollment', filter_omit: [:projects]
+    assessments_field
     events_field
     services_field
     files_field
