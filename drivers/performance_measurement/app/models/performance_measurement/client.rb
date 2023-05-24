@@ -58,6 +58,7 @@ module PerformanceMeasurement
         "#{period}_income_leaver" => 'Income for Leaver',
         "#{period}_increased_income" => 'Income Increased?',
         "#{period}_prior_living_situation" => 'Prior Living Situation',
+        "#{period}_prior_destination" => 'Destination Prior to Return',
         "#{period}_destination" => 'Destination',
         "#{period}_so_destination" => 'Destination from SO',
         "#{period}_moved_in_destination" => 'Destination after Move-In',

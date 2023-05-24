@@ -24,8 +24,12 @@ class Hmis::BaseController < ApplicationController
     render_json_error(401, :unverified_request)
   end
 
+  def current_hmis_host
+    URI.parse(request.origin).host
+  end
+
   def attach_data_source_id
-    domain = URI.parse(request.origin).host
+    domain = current_hmis_host
 
     # In development: treat requests from GraphiQL as if they are coming from the local frontend
     domain = ENV['HMIS_HOSTNAME'] if Rails.env.development? && domain == ENV['HOSTNAME'] && ENV['HMIS_HOSTNAME'].present?

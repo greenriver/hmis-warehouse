@@ -51,6 +51,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+
   validates_with Hmis::Hud::Validators::EnrollmentValidator
 
   SORT_OPTIONS = [:most_recent, :household_id].freeze
@@ -182,4 +184,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
   end
+
+  include RailsDrivers::Extensions
 end

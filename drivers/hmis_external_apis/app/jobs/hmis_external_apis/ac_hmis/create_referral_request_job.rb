@@ -38,7 +38,7 @@ module HmisExternalApis::AcHmis
         requestor_name: record.requestor_name,
         requestor_phone_number: record.requestor_phone,
         requestor_email: record.requestor_email,
-      }.map { |k, v| [k.to_s.camelize(:lower), v] }.to_h
+      }
     end
   end
 end

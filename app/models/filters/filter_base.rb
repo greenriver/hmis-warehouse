@@ -346,6 +346,11 @@ module Filters
       DateRange.new(start: start, end: self.end)
     end
 
+    def comparison_range
+      s, e = comparison_dates
+      s .. e
+    end
+
     def comparison_as_date_range
       s, e = comparison_dates
       DateRange.new(start: s, end: e)

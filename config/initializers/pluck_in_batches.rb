@@ -27,7 +27,7 @@ class ActiveRecord::Relation
       batch = self.limit(batch_size).offset(offset)
       items = batch.pluck(*columns)
       page += 1
-      yield items
+      yield items if items.present?
 
       break if items.size < batch_size
     end

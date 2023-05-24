@@ -261,6 +261,15 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :homeless_on_date, ->(on_date: Date.current, chronic_types_only: false) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          currently_homeless(date: on_date, chronic_types_only: chronic_types_only).
+          distinct.
+          select(:client_id),
+      )
+    end
+
     scope :currently_homeless, ->(chronic_types_only: false) do
       # this is somewhat involved in order to make it composable and somewhat efficient
       # more efficient is a join + distinct, but the distinct makes it less composable
@@ -1709,7 +1718,7 @@ module GrdaWarehouse::Hud
       visible_project_ids = user.visible_project_ids_enrollment_context
       contacts = JSON.parse(contacts)
 
-      contacts.sort_by { |c| c['date'] || '' }.reverse.map do |contact|
+      contacts.sort_by { |c| c['date']&.to_date || 5.years.ago }.reverse.map do |contact|
         project_id = contact['project_id']
         next if project_id.present? && !project_id.in?(visible_project_ids)
 
@@ -1719,7 +1728,7 @@ module GrdaWarehouse::Hud
         name = project&.name(ignore_confidential_status: include_confidential_names) || contact['project_name']
         name += ': ' + contact['date']&.to_date.to_s if include_dates
         name
-      end.compact.uniq.sort
+      end.compact.uniq
     end
 
     def weeks_of_service

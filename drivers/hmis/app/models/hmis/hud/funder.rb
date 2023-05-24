@@ -17,6 +17,8 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
   has_many :custom_data_elements, as: :owner
 
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+
   SORT_OPTIONS = [:start_date].freeze
 
   # Convert funder string to int #183572073

@@ -147,6 +147,20 @@ module Types
       Hmis::Form::Definition.find_definition_for_role(role, project: project)
     end
 
+    field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
+      argument :custom_service_type_id, ID, required: true
+      argument :project_id, ID, required: true
+    end
+    def get_service_form_definition(custom_service_type_id:, project_id:)
+      project = Hmis::Hud::Project.find_by(id: project_id)
+      raise HmisErrors::ApiError, 'Project not found' unless project.present?
+
+      service_type = Hmis::Hud::CustomServiceType.find_by(id: custom_service_type_id)
+      raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
+
+      Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
+    end
+
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
       argument :relation_id, ID, required: false

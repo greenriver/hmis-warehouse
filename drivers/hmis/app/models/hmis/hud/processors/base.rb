@@ -20,6 +20,13 @@ class Hmis::Hud::Processors::Base
     @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
 
+  def assign_metadata
+    @processor.send(factory_name, create: false)&.assign_attributes(
+      user: @processor.hud_user,
+      data_source_id: @processor.hud_user.data_source_id,
+    )
+  end
+
   def information_date(date)
     @processor.send(factory_name, create: false)&.assign_attributes(information_date: date)
   end
@@ -72,5 +79,48 @@ class Hmis::Hud::Processors::Base
   # @return [Class, nil] a schema class that implements respond_to?, or nil
   def schema
     raise 'Implement in sub-class'
+  end
+
+  def process_custom_field(field, value)
+    record = @processor.send(factory_name)
+    return false unless record.respond_to?(:custom_data_elements)
+
+    cded = Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name).find_by(key: field)
+    return false unless cded.present?
+
+    attrs = {
+      user: @processor.hud_user,
+      data_source_id: @processor.hud_user.data_source_id,
+      data_element_definition: cded,
+    }
+    value_field_name = "value_#{cded.field_type}"
+    value = attribute_value_for_enum(nil, value) # converts HIDDEN => nil
+
+    existing_values = record.custom_data_elements.where(data_element_definition: cded, owner: record)
+
+    # If this custom field only allows 1 value and there already is one, update it.
+    if !cded.repeats && existing_values.exists?
+      cde_attributes = { id: existing_values.first.id }
+      if value.present?
+        cde_attributes[value_field_name] = value
+        cde_attributes.merge!(attrs)
+      else
+        cde_attributes[:_destroy] = 1
+      end
+    # If value(s) haven't changed, just update the User and timestamps
+    elsif existing_values.map(&:value) == Array.wrap(value)
+      cde_attributes = existing_values.map { |cde| { id: cde.id, user: @processor.hud_user } }
+    # Else create new custom field value(s), and delete any existing ones.
+    else
+      cde_attributes = [
+        # Add new value(s)
+        *Array.wrap(value).map { |new_value| { value_field_name => new_value, **attrs } },
+        # Destroy any existing values for this custom field
+        *existing_values.map { |old_cde| { id: old_cde.id, _destroy: 1 } },
+      ]
+    end
+
+    record.assign_attributes(custom_data_elements_attributes: Array.wrap(cde_attributes))
+    true
   end
 end
