@@ -5,6 +5,12 @@
 ###
 
 require 'rails_helper'
+require 'vcr'
+
+VCR.configure do |config|
+  config.cassette_library_dir = 'drivers/custom_imports_boston_community_of_origin/spec/fixtures'
+  config.hook_into :webmock
+end
 
 RSpec.describe CustomImportsBostonCommunityOfOrigin::ImportFile, type: :model do
   it 'imports rows from file' do
@@ -18,12 +24,15 @@ RSpec.describe CustomImportsBostonCommunityOfOrigin::ImportFile, type: :model do
     let!(:wc) { create :fixed_warehouse_client }
     let!(:e1) { create :hud_enrollment, personal_id: wc.source.personal_id, data_source_id: wc.source.data_source_id, last_permanent_zip: '05301' }
     let!(:e2) { create :hud_enrollment, personal_id: wc.source.personal_id, data_source_id: wc.source.data_source_id }
+
     it 'creates locations' do
       c1 = wc.source
       config = GrdaWarehouse::CustomImports::Config.create(data_source_id: c1.data_source_id)
       importer = CustomImportsBostonCommunityOfOrigin::ImportFile.create!(config: config, summary: [])
       import(importer, 'locations.csv')
-      importer.post_process
+      VCR.use_cassette('nominatim') do
+        importer.post_process
+      end
 
       expect(importer.rows.first.client_location).to be_present
       expect(e1.client_location).to be_present
