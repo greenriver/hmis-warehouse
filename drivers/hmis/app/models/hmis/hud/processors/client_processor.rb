@@ -20,7 +20,6 @@ module Hmis::Hud::Processors
       return if value == Base::HIDDEN_FIELD_VALUE && ['ssn', 'dob'].include?(attribute_name)
 
       client = @processor.send(factory_name)
-      hud_metadata_attributes = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
 
       attributes = case attribute_name
       when 'race'
@@ -41,10 +40,11 @@ module Hmis::Hud::Processors
         { attribute_name => attribute_value }
       when 'names'
         process_names(attribute_name, value)
-      when 'addresses'
-        construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
-      when 'contact_points'
-        construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
+      # TODO: implement, add tests. They _should_ be able to use the generic attribute generator..
+      # when 'addresses'
+      #   construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
+      # when 'contact_points'
+      #   construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
       when 'mci_id'
         process_mci(value)
         {}
