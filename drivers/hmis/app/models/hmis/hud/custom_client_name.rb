@@ -51,14 +51,6 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
     errors.add(:first, :invalid, full_message: self.class.first_or_last_required_message) unless first.present? || last.present?
   end
 
-  def ==(other)
-    columns = [:first, :last, :middle, :suffix, :use]
-
-    columns.all? do |col|
-      send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
-    end
-  end
-
   def primary?
     !!primary
   end
