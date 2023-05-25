@@ -72,4 +72,11 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   def self.use_values
     USE_VALUES
   end
+
+  def equal_for_merge?(other)
+    columns = [:first, :last, :middle, :suffix, :use]
+    columns.all? do |col|
+      send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
+    end
+  end
 end
