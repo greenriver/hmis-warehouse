@@ -11,6 +11,7 @@ module Types
     graphql_name 'Component'
 
     value 'INPUT_GROUP', 'Render a group that contains children of the same type (e.g. all booleans)'
+    # value 'REPEATED_INPUT_GROUP', 'Group that contains children of the same field type (e.g. all names) that should be revealed 1-at-a-time'
     value 'DISABILITY_TABLE', 'Specialized component for rendering disabilities in a table'
     value 'HORIZONTAL_GROUP', 'Render a group of inputs horizontally'
     value 'INFO_GROUP', 'Render contents in an info box'
@@ -24,5 +25,9 @@ module Types
     value 'ALERT_SUCCESS', 'Display text as a success alert'
     value 'SSN', 'SSN input component'
     value 'MCI', 'MCI linking component'
+    value 'NAME', 'Client Name input'
+    value 'ADDRESS', 'Client Address input'
+    value 'PHONE', 'Phone number input for ContactPoint'
+    value 'EMAIL', 'Email address input for ContactPoint'
   end
 end

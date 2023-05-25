@@ -25,15 +25,19 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   class CannotDestroyPrimaryNameException < StandardError
   end
 
-  before_destroy do
-    raise(CannotDestroyPrimaryNameException) if primary
-  end
+  # before_destroy do
+  #   # binding.pry
+  #   raise(CannotDestroyPrimaryNameException) if primary
+  # end
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
   alias_to_underscore [:NameDataQuality, :CustomClientNameID]
+
+  # Validate 1 primary name per client
+  # validates_uniqueness_of :PersonalID, scope: [:data_source_id], conditions: -> { where(primary: true) }
 
   scope :primary_names, -> { where(primary: true) }
 

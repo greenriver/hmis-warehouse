@@ -19,6 +19,9 @@ module Hmis::Hud::Processors
       # Skip SSN/DOB fields if hidden, because they are always hidden due to lack of permissions (see client.json form definition)
       return if value == Base::HIDDEN_FIELD_VALUE && ['ssn', 'dob'].include?(attribute_name)
 
+      client = @processor.send(factory_name)
+      hud_metadata_attributes = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
+
       attributes = case attribute_name
       when 'race'
         self.class.race_attributes(Array.wrap(attribute_value))
@@ -30,12 +33,18 @@ module Hmis::Hud::Processors
         { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
       when 'ssn_data_quality'
         # If hidden due to permissions, set to old value or 99
-        attribute_value = @processor.send(factory_name).ssn_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
+        attribute_value = client.ssn_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
         { attribute_name => attribute_value }
       when 'dob_data_quality'
         # If hidden due to permissions, set to old value or 99
-        attribute_value = @processor.send(factory_name).dob_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
+        attribute_value = client.dob_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
         { attribute_name => attribute_value }
+      when 'names'
+        process_names(attribute_name, value)
+      when 'addresses'
+        construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
+      when 'contact_points'
+        construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
       when 'mci_id'
         process_mci(value)
         {}
@@ -43,7 +52,7 @@ module Hmis::Hud::Processors
         { attribute_name => attribute_value }
       end
 
-      @processor.send(factory_name).assign_attributes(attributes)
+      client.assign_attributes(attributes)
     end
 
     def factory_name
@@ -108,6 +117,30 @@ module Hmis::Hud::Processors
       end
 
       result
+    end
+
+    private def process_names(attribute_name, values)
+      # Special case: if this Client already has a Primary name, and the submitted values
+      # have a primary name that is not already linked to an ID, link it to the current primary's id.
+      # This is needed to avoid uniqeness errors, since you cannot delete the primary. Instead, we need to update it.
+      client = @processor.send(factory_name)
+      current_primary_name_id = client.primary_name&.id
+      updates_primary = current_primary_name_id && Array.wrap(values).find { |v| v['id'] == current_primary_name_id }
+      unless updates_primary
+        values = Array.wrap(values).map do |vals|
+          if vals['primary'] && !vals['id']
+            vals.merge('id' => current_primary_name_id)
+          else
+            vals
+          end
+        end
+      end
+
+      hud_metadata_attributes = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
+      name_attributes = construct_nested_attributes(attribute_name, values, hud_metadata_attributes)
+      # Set NameDataQuality to 99, it will be overridden to match primary name in the after_save hook
+      name_attributes[:name_data_quality] = 99 unless client.name_data_quality.present?
+      name_attributes
     end
 
     # Custom handler for MCI field

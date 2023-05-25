@@ -659,6 +659,11 @@ type ClientsPaginated {
 
 enum Component {
   """
+  Client Address input
+  """
+  ADDRESS
+
+  """
   Display text as an error alert
   """
   ALERT_ERROR
@@ -689,6 +694,11 @@ enum Component {
   DISABILITY_TABLE
 
   """
+  Email address input for ContactPoint
+  """
+  EMAIL
+
+  """
   Render a group of inputs horizontally
   """
   HORIZONTAL_GROUP
@@ -707,6 +717,16 @@ enum Component {
   MCI linking component
   """
   MCI
+
+  """
+  Client Name input
+  """
+  NAME
+
+  """
+  Phone number input for ContactPoint
+  """
+  PHONE
 
   """
   Render a choice input item as radio buttons
@@ -3150,6 +3170,7 @@ enum ItemType {
   GROUP
   IMAGE
   INTEGER
+  OBJECT
   OPEN_CHOICE
   STRING
   TEXT

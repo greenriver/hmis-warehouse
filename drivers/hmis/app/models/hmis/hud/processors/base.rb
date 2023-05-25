@@ -35,14 +35,25 @@ class Hmis::Hud::Processors::Base
     field.underscore
   end
 
-  def self.hud_type(field, schema)
+  def self.graphql_type(field, schema)
+    return nil unless schema.present?
     return nil unless schema.fields[field].present?
 
     type = schema.fields[field].type
     (type = type&.of_type) while type.non_null? || type.list?
+    type
+  end
+
+  def self.hud_type(field, schema)
+    type = graphql_type(field, schema)
+    # return nil if it's not an Enum
     return nil unless type.respond_to?(:value_for)
 
     type
+  end
+
+  def graphql_type(field)
+    self.class.graphql_type(field, schema)
   end
 
   def hud_type(field)
@@ -81,6 +92,7 @@ class Hmis::Hud::Processors::Base
     raise 'Implement in sub-class'
   end
 
+  # Assign custom data element values to record, if this is a custom data element field
   def process_custom_field(field, value)
     record = @processor.send(factory_name)
     return false unless record.respond_to?(:custom_data_elements)
@@ -122,5 +134,32 @@ class Hmis::Hud::Processors::Base
 
     record.assign_attributes(custom_data_elements_attributes: Array.wrap(cde_attributes))
     true
+  end
+
+  # Get attributes for nested record(s)
+  def construct_nested_attributes(attribute_name, values, additional_attributes = {})
+    values ||= []
+
+    object_type = graphql_type(attribute_name) # eg the ClientName type
+
+    # Construct attribute objects for creating/updating records
+    attributes = values.map do |attribute_hash|
+      transformed = attribute_hash.map do |field_name, field_value|
+        # transform "nameDataQuality"=>"FULL_NAME_REPORTED" to "name_data_quality"=>1
+        transformed_value = attribute_value_for_enum(self.class.hud_type(field_name, object_type), field_value)
+        [hud_name(field_name)&.to_sym, transformed_value]
+      end.to_h
+
+      { **transformed, **additional_attributes }
+    end
+
+    # Add directive to destroy any records that aren't present in values
+    existing_values_ids = @processor.send(factory_name).send(attribute_name).pluck(:id)
+    seen_ids = attributes.map { |obj| obj[:id]&.to_i }.compact
+    (existing_values_ids - seen_ids).each do |id_to_delete|
+      attributes.unshift({ id: id_to_delete, _destroy: '1' })
+    end
+
+    { "#{attribute_name}_attributes" => attributes }
   end
 end
