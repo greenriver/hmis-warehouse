@@ -150,9 +150,12 @@ class Hmis::Hud::Processors::Base
     values = Array.wrap(value)
 
     object_type = graphql_type(attribute_name) # eg the ClientName type
+    raise "'#{attribute_name}' not found in gql schema" unless object_type.present?
 
     # Construct attribute objects for creating/updating records
     attributes = values.map do |attribute_hash|
+      raise "Error constructing nested attributes: expected Hash, found #{attribute_hash.class.name}" unless attribute_hash.is_a?(Hash)
+
       transformed = attribute_hash.map do |field_name, field_value|
         # transform "nameDataQuality"=>"FULL_NAME_REPORTED" to "name_data_quality"=>1
         transformed_value = attribute_value_for_enum(self.class.graphql_enum(field_name, object_type), field_value)
