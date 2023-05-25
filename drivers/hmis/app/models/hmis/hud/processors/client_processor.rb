@@ -13,8 +13,8 @@ module Hmis::Hud::Processors
     MCI_CREATE_UNCLEARED_CLIENT_VALUE = '_CREATE_UNCLEARED_CLIENT'.freeze
 
     def process(field, value)
-      attribute_name = hud_name(field)
-      attribute_value = attribute_value_for_enum(hud_type(field), value)
+      attribute_name = ar_attribute_name(field)
+      attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
       # Skip SSN/DOB fields if hidden, because they are always hidden due to lack of permissions (see client.json form definition)
       return if value == Base::HIDDEN_FIELD_VALUE && ['ssn', 'dob'].include?(attribute_name)

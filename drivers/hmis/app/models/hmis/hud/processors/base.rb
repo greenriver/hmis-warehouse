@@ -14,8 +14,8 @@ class Hmis::Hud::Processors::Base
   end
 
   def process(field, value)
-    attribute_name = hud_name(field)
-    attribute_value = attribute_value_for_enum(hud_type(field), value)
+    attribute_name = ar_attribute_name(field)
+    attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
     @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
@@ -31,10 +31,11 @@ class Hmis::Hud::Processors::Base
     @processor.send(factory_name, create: false)&.assign_attributes(information_date: date)
   end
 
-  def hud_name(field)
+  def ar_attribute_name(field)
     field.underscore
   end
 
+  # Get the GraphQL Type class for this field
   def self.graphql_type(field, schema)
     return nil unless schema.present?
     return nil unless schema.fields[field].present?
@@ -44,7 +45,8 @@ class Hmis::Hud::Processors::Base
     type
   end
 
-  def self.hud_type(field, schema)
+  # Get the GraphQL Enum class for this field (if any)
+  def self.graphql_enum(field, schema)
     type = graphql_type(field, schema)
     # return nil if it's not an Enum
     return nil unless type.respond_to?(:value_for)
@@ -56,10 +58,17 @@ class Hmis::Hud::Processors::Base
     self.class.graphql_type(field, schema)
   end
 
-  def hud_type(field)
-    self.class.hud_type(field, schema)
+  def graphql_enum(field)
+    self.class.graphql_enum(field, schema)
   end
 
+  # Transform the received value into the value that should be stored in the database
+  # For example:
+  #     'CLIENT_REFUSED' => 9
+  #     ['PH', 'ES'] => [10, 1]
+  #     nil => 99
+  #     _HIDDEN => nil
+  #     'some value' => 'some value'
   def attribute_value_for_enum(enum_type, value)
     is_array = value.is_a? Array
 
@@ -146,8 +155,8 @@ class Hmis::Hud::Processors::Base
     attributes = values.map do |attribute_hash|
       transformed = attribute_hash.map do |field_name, field_value|
         # transform "nameDataQuality"=>"FULL_NAME_REPORTED" to "name_data_quality"=>1
-        transformed_value = attribute_value_for_enum(self.class.hud_type(field_name, object_type), field_value)
-        [hud_name(field_name)&.to_sym, transformed_value]
+        transformed_value = attribute_value_for_enum(self.class.graphql_enum(field_name, object_type), field_value)
+        [ar_attribute_name(field_name)&.to_sym, transformed_value]
       end.to_h
 
       { **transformed, **additional_attributes }
