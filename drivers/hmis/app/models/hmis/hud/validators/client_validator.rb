@@ -24,7 +24,7 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
 
       # Validate exactly 1 primary name
       if record.names.any?
-        num_primary_names = record.names.map(&:primary).count(true)
+        num_primary_names = record.names.reject(&:marked_for_destruction?).map(&:primary).count(true)
         record.errors.add :names, :invalid, full_message: 'One primary name is required' if num_primary_names != 1
       end
     end

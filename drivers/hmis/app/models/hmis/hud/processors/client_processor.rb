@@ -120,24 +120,10 @@ module Hmis::Hud::Processors
     end
 
     private def process_names(attribute_name, values)
-      # Special case: if this Client already has a Primary name, and the submitted values
-      # have a primary name that is not already linked to an ID, link it to the current primary's id.
-      # This is needed to avoid uniqeness errors, since you cannot delete the primary. Instead, we need to update it.
       client = @processor.send(factory_name)
-      current_primary_name_id = client.primary_name&.id
-      updates_primary = current_primary_name_id && Array.wrap(values).find { |v| v['id'] == current_primary_name_id }
-      unless updates_primary
-        values = Array.wrap(values).map do |vals|
-          if vals['primary'] && !vals['id']
-            vals.merge('id' => current_primary_name_id)
-          else
-            vals
-          end
-        end
-      end
-
-      hud_metadata_attributes = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
-      name_attributes = construct_nested_attributes(attribute_name, values, hud_metadata_attributes)
+      additional_attrs = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
+      # Build attributes
+      name_attributes = construct_nested_attributes(attribute_name, values, additional_attrs)
       # Set NameDataQuality to 99, it will be overridden to match primary name in the after_save hook
       name_attributes[:name_data_quality] = 99 unless client.name_data_quality.present?
       name_attributes

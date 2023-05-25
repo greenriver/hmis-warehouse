@@ -559,7 +559,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
     let(:empty_hud_values) do
       empty = complete_hud_values.map { |k, _| [k, nil] }.to_h
-      empty['names'] = { **primary_name.map { |k, _| [k, nil] }.to_h, primary: true }.stringify_keys
+      empty['names'] = { first: 'first', primary: true }.stringify_keys
       empty
     end
 
@@ -570,9 +570,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       [existing_client, new_client].each do |client|
         custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
         custom_form.hud_values = complete_hud_values
-        custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+        custom_form.form_processor.run!(owner: client, user: hmis_user)
         # binding.pry unless client.persisted?
-        custom_form.owner.save!
+        client.save!
         client.reload
 
         # Ensure primary name is stored on Client
@@ -618,7 +618,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         custom_form.owner.save!
         client.reload
 
-        expect(client.first_name).to be nil
+        expect(client.first_name).to eq('first')
         expect(client.middle_name).to be nil
         expect(client.last_name).to be nil
         expect(client.name_suffix).to be nil
@@ -793,8 +793,32 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(client.names.primary_names.first.first).to eq('Charlotte')
       expect(client.names.size).to eq(1)
       # Even though ID was not specified, it is updated because client already had a primary
-      expect(client.names.first.id).to eq(old_primary_name.id)
+      expect(client.names.first.id).not_to eq(old_primary_name.id)
       expect(client.first_name).to eq('Charlotte')
+    end
+
+    it 'fails if First and Last are missing from primary' do
+      client = c1
+      create(:hmis_hud_custom_client_name, client: client, first: 'Atticus', primary: true)
+      expect(client.names.size).to eq(1)
+
+      # Submit a form that changes the primary  name but doesn't include the old ID
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'names' => [
+          {
+            id: client.primary_name.id,
+            primary: true,
+            first: nil,
+            last: nil,
+            nameDataQuality: 'CLIENT_REFUSED',
+          }.stringify_keys,
+        ],
+      )
+      custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+      expect(client.valid?).to eq(false)
+      errs = custom_form.form_processor.collect_active_record_errors
+      expect(errs.errors.map(&:full_message)).to contain_exactly(Hmis::Hud::CustomClientName.first_or_last_required_message)
     end
 
     it 'fails if no names are primary' do
