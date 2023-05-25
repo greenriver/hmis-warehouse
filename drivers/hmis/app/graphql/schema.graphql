@@ -465,8 +465,19 @@ type ClientAddress {
 Allowed values for ClientAddress.type
 """
 enum ClientAddressType {
+  """
+  Both
+  """
   both
+
+  """
+  Physical
+  """
   physical
+
+  """
+  Postal
+  """
   postal
 }
 
@@ -474,10 +485,29 @@ enum ClientAddressType {
 Allowed values for ClientAddress.use
 """
 enum ClientAddressUse {
+  """
+  Home
+  """
   home
+
+  """
+  Mail
+  """
   mail
+
+  """
+  Old
+  """
   old
+
+  """
+  Temp
+  """
   temp
+
+  """
+  Work
+  """
   work
 }
 
@@ -521,12 +551,39 @@ type ClientContactPoint {
 Allowed values for ClientContactPoint.system
 """
 enum ClientContactPointSystem {
+  """
+  Email
+  """
   email
+
+  """
+  Fax
+  """
   fax
+
+  """
+  Other
+  """
   other
+
+  """
+  Pager
+  """
   pager
+
+  """
+  Phone
+  """
   phone
+
+  """
+  Sms
+  """
   sms
+
+  """
+  Url
+  """
   url
 }
 
@@ -534,10 +591,29 @@ enum ClientContactPointSystem {
 Allowed values for ClientContactPoint.use
 """
 enum ClientContactPointUse {
+  """
+  Home
+  """
   home
+
+  """
+  Mobile
+  """
   mobile
+
+  """
+  Old
+  """
   old
+
+  """
+  Temp
+  """
   temp
+
+  """
+  Work
+  """
   work
 }
 
@@ -571,12 +647,39 @@ type ClientName {
 Allowed values for ClientName.use
 """
 enum ClientNameUse {
+  """
+  Anonymous
+  """
   anonymous
+
+  """
+  Maiden
+  """
   maiden
+
+  """
+  Nickname
+  """
   nickname
+
+  """
+  Official
+  """
   official
+
+  """
+  Old
+  """
   old
+
+  """
+  Temp
+  """
   temp
+
+  """
+  Usual
+  """
   usual
 }
 
