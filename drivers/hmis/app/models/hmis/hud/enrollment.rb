@@ -47,7 +47,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
+  belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
+  has_many :custom_data_elements, as: :owner
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
 
@@ -68,7 +70,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :matching_search_term, ->(search_term) do
     search_term.strip!
     # If there are Household ID matches, return those only
-    household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == TRIMMED_HOUSEHOLD_ID_LENGTH
+    household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
     household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.any?
     return household_matches if household_matches&.any?
 
@@ -175,11 +177,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def hoh_entry_date
     household_members.heads_of_households.first&.entry_date
-  end
-
-  TRIMMED_HOUSEHOLD_ID_LENGTH = 6
-  def short_household_id
-    household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
   end
 
   def unit_occupied_on(date = Date.current)

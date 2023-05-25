@@ -26,6 +26,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, dependent: :destroy
+  has_many :custom_data_elements, as: :owner
+
+  # Households in this Project, NOT including WIP Enrollments
+  has_many :households, through: :enrollments
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -91,6 +95,12 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     enrollment_ids = enrollments.pluck(:id)
     wip_ids = wip_enrollments.pluck(:id)
     Hmis::Hud::Enrollment.where(id: enrollment_ids + wip_ids)
+  end
+
+  def households_including_wip
+    household_ids = enrollments_including_wip.pluck(:household_id)
+
+    Hmis::Hud::Household.where(HouseholdID: household_ids, data_source_id: data_source_id)
   end
 
   def close_related_funders_and_inventory!

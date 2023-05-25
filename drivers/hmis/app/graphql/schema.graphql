@@ -55,6 +55,7 @@ type Assessment {
   access: AssessmentAccess!
   assessmentDate: ISO8601Date!
   client: Client!
+  customDataElements: [CustomDataElement!]!
   customForm: CustomForm
   dataCollectionStage: DataCollectionStage
   dateCreated: ISO8601DateTime!
@@ -347,6 +348,7 @@ type Client {
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -760,6 +762,29 @@ type CreateUnitsPayload {
   clientMutationId: String
   errors: [ValidationError!]!
   units: [Unit!]
+}
+
+type CustomDataElement {
+  id: ID!
+  key: String
+  label: String
+  repeats: Boolean!
+  value: CustomDataElementValue
+  values: [CustomDataElementValue!]
+}
+
+type CustomDataElementValue {
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  id: ID!
+  user: User
+  valueBoolean: Boolean
+  valueDate: ISO8601Date
+  valueFloat: Float
+  valueInteger: Int
+  valueJson: JsonObject
+  valueString: String
+  valueText: String
 }
 
 """
@@ -2285,6 +2310,7 @@ enum FormRole {
 
 type Funder {
   active: Boolean!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -2764,6 +2790,7 @@ HUD Household
 """
 type Household {
   householdClients: [HouseholdClient!]!
+  householdSize: Int!
   id: ID!
   shortId: ID!
 }
@@ -2801,6 +2828,16 @@ enum HouseholdType {
   Invalid Value
   """
   INVALID
+}
+
+type HouseholdsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Household!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -2993,6 +3030,7 @@ type Inventory {
   chVetBedInventory: Int
   chYouthBedInventory: Int
   cocCode: String!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -3732,6 +3770,7 @@ union OmnisearchResult = Client | Project
 type Organization {
   access: OrganizationAccess!
   contactInformation: String
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -3906,12 +3945,14 @@ type Project {
   active: Boolean!
   contactInformation: String
   continuumProject: NoYesMissing
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
   enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
+  households(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!
   id: ID!
@@ -3936,6 +3977,11 @@ type ProjectAccess {
   canDeleteProject: Boolean!
   canEditEnrollments: Boolean!
   canEditProjectDetails: Boolean!
+  canEnrollClients: Boolean!
+  canManageDeniedReferrals: Boolean!
+  canManageIncomingReferrals: Boolean!
+  canManageInventory: Boolean!
+  canManageOutgoingReferrals: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -4158,7 +4204,12 @@ type QueryAccess {
   canEditEnrollments: Boolean!
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
+  canEnrollClients: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageDeniedReferrals: Boolean!
+  canManageIncomingReferrals: Boolean!
+  canManageInventory: Boolean!
+  canManageOutgoingReferrals: Boolean!
   canManageOwnClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
@@ -4598,6 +4649,7 @@ HUD or Custom Service rendered
 type Service {
   FAAmount: Float
   client: Client!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateProvided: ISO8601Date!

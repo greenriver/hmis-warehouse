@@ -17,6 +17,7 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :custom_service_type
   alias_attribute :service_type, :custom_service_type
+  has_many :custom_data_elements, as: :owner
 
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator

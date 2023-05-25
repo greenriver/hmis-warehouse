@@ -39,6 +39,24 @@
           "question": "dob-dq",
           "operator": "EQUAL",
           "answer_code": "FULL_DOB_REPORTED"
+        },
+        {
+          "_comment": "dummy dependency to enable reset when field changes",
+          "question": "middle-name",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        },
+        {
+          "_comment": "dummy dependency to enable reset when field changes",
+          "question": "ssn",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        },
+        {
+          "_comment": "dummy dependency to enable reset when field changes",
+          "question": "gender",
+          "operator": "ENABLED",
+          "answer_boolean": true
         }
       ]
     }
