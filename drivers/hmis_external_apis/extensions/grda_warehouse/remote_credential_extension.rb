@@ -15,13 +15,6 @@ module HmisExternalApis
                  foreign_key: :remote_credential_id,
                  dependent: :restrict_with_exception
 
-        def self.mci
-          where(slug: 'mci').first!
-        end
-
-        def self.mper
-          where(slug: 'mper').first!
-        end
       end
     end
   end

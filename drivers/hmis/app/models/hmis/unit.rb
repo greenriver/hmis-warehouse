@@ -8,34 +8,47 @@ class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_units
 
-  belongs_to :inventory, class_name: 'Hmis::Hud::Inventory'
-  has_many :beds, dependent: :destroy
+  belongs_to :project, class_name: 'Hmis::Hud::Project'
+  # Type of this unit
+  belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
+  # Periods when this unit has been active
   has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
+  # User that last updated this unit
   belongs_to :user, class_name: 'User'
 
-  scope :active, ->(date = Date.today) do
-    active_unit = ar_t[:end].eq(nil).or(ar_t[:end].gteq(date))
-    active_inventory = i_t[:inventory_end_date].eq(nil).or(i_t[:inventory_end_date].gteq(date))
+  # All historical and current occupancies of this unit
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
 
-    joins(:inventory).left_outer_joins(:active_ranges).where(active_unit.and(active_inventory))
+  alias_attribute :date_updated, :updated_at
+  alias_attribute :date_created, :created_at
+
+  scope :of_type, ->(unit_type) { where(unit_type: unit_type) }
+
+  scope :occupied_on, ->(date = Date.current) do
+    unit_ids = joins(:unit_occupancies).merge(Hmis::UnitOccupancy.active_on(date)).pluck(:id)
+    where(id: unit_ids)
   end
 
-  scope :inactive, ->(date = Date.today) do
-    inactive_unit = ar_t[:end].not_eq(nil).and(ar_t[:end].lt(date))
-    inactive_inventory = i_t[:inventory_end_date].not_eq(nil).and(i_t[:inventory_end_date].lt(date))
-
-    joins(:inventory).left_outer_joins(:active_ranges).where(inactive_unit.or(inactive_inventory))
+  scope :unoccupied, ->(date = Date.current) do
+    occupied_unit_ids = joins(:unit_occupancies).merge(Hmis::UnitOccupancy.active_on(date)).pluck(:id)
+    where.not(id: occupied_unit_ids)
   end
+
+  def occupants_on(date = Date.current)
+    enrollment_ids = Hmis::UnitOccupancy.active_on(date).where(unit: self).pluck(:enrollment_id)
+    Hmis::Hud::Enrollment.where(id: enrollment_ids)
+  end
+  alias occupants occupants_on
 
   def start_date
-    Hmis::ActiveRange.for_entity(self)&.start || inventory.inventory_start_date
+    Hmis::ActiveRange.most_recent_for_entity(self)&.start_date
   end
 
   def end_date
-    Hmis::ActiveRange.for_entity(self)&.end || inventory.inventory_end_date
+    Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
   end
 
-  def bed_count
-    beds&.count || 0
+  def to_pick_list_option
+    { code: id, label: name, secondary_label: unit_type&.description }
   end
 end

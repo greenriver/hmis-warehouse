@@ -252,6 +252,7 @@ GEM
       babel-source (>= 4.0, < 6)
       execjs (~> 2.0)
     bcrypt (3.1.18)
+    bcrypt_pbkdf (1.1.0)
     benchmark-ips (2.10.0)
     bindex (0.8.1)
     bootsnap (1.9.1)
@@ -400,6 +401,7 @@ GEM
     dry-initializer (3.1.1)
     ecma-re-validator (0.4.0)
       regexp_parser (~> 2.2)
+    ed25519 (1.3.0)
     email_check (1.0.1)
     encryptor (3.0.0)
     erubi (1.12.0)
@@ -971,6 +973,7 @@ DEPENDENCIES
   activerecord-session_store
   activerecord-sqlserver-adapter
   acts-as-taggable-on (~> 7.0)
+  addressable
   ajax_modal_rails (~> 1.0)
   amazing_print
   ansi
@@ -999,6 +1002,7 @@ DEPENDENCIES
   aws-sdk-ssm (~> 1)
   babel-transpiler
   bcrypt
+  bcrypt_pbkdf
   bootsnap
   bootstrap (~> 4.3)
   bootstrap3-datetimepicker-rails (~> 4.17.42)
@@ -1036,6 +1040,7 @@ DEPENDENCIES
   devise-two-factor
   devise_invitable (~> 2.0)
   dotenv-rails
+  ed25519
   email_check
   encryptor
   execjs

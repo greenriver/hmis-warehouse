@@ -181,7 +181,11 @@ gem 'dotenv-rails'
 gem 'net-sftp', require: false
 gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
+gem 'addressable' # normalize uris
 gem 'redis-actionpack'
+
+gem 'ed25519'
+gem 'bcrypt_pbkdf'
 
 # AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'

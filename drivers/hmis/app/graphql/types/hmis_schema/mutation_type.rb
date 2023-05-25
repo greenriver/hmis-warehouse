@@ -23,11 +23,8 @@ module Types
     field :delete_client, mutation: Mutations::DeleteClient
 
     field :create_units, mutation: Mutations::CreateUnits
-    field :create_beds, mutation: Mutations::CreateBeds
     field :update_units, mutation: Mutations::UpdateUnits
-    field :update_beds, mutation: Mutations::UpdateBeds
     field :delete_units, mutation: Mutations::DeleteUnits
-    field :delete_beds, mutation: Mutations::DeleteBeds
 
     field :create_service, mutation: Mutations::CreateService
     field :update_service, mutation: Mutations::UpdateService
