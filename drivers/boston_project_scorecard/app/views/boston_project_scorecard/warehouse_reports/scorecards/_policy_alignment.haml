@@ -11,17 +11,26 @@
       %th Score
   %tbody
     %tr
-      %th.bg-info.align-middle.text-center{rowspan: 3} Alignment with HUD and  Boston CoC system-wide policy priorities
-      %td 16. Serving sub-populations in line with HUD and Boston CoC priorities
-      %td Project Application
-      %td Up to 6 pts: 1.2 pts for each sub-population served
-      %th.align-middle.text-center{rowspan: 5}
+      %th.bg-info.align-middle.text-center{rowspan: 4} Alignment with HUD and  Boston CoC system-wide policy priorities
+      %td 14. Type of housing project proposal; RRH, PSH, Joint TH-RRH
+      %td Project application
+      %td
+        6: PSH
+        %br
+        3: RRH/Joint TH-RRH
+      %th.align-middle.text-center{rowspan: 6}
         Weight
         #{@report.policy_alignment_weight}%
+      %td= @report.project_type_value
+      %td= @report.project_type_score
+    %tr
+      %td 15. Serving sub-populations in line with HUD and Boston CoC priorities
+      %td Project Application
+      %td Up to 6 pts: 1.2 pts for each sub-population served
       %td= f.input :subpopulations_served, collection: @report.subpopulations_served_options, as: :pretty_boolean_group, multiple: true, label: 'Select all sub-populations served:'
       %td= @report.subpopulations_served_score
     %tr
-      %td 17. Project practices a Housing First model/low barrier program
+      %td 16. Project practices a Housing First model/low barrier program
       %td Project Application and cross reference with desk review
       %td
         6 pts: yes
@@ -31,7 +40,7 @@
       %td= @report.practices_housing_first_score
     %tr
       %td
-        18. Does project serve participants who have the following vulnerabilities and severity of needs that may
+        17. Does project serve participants who have the following vulnerabilities and severity of needs that may
         prevent them to enter housing due to the following barriers
       %td Project Application
       %td Up to 6 pts: 1 pts for each sub-population served
@@ -45,7 +54,7 @@
         %p
         To qualify, the actions must have been taken within the last three years.
       %td
-        19. The project applicant currently has a process to identify whether participants over-represented in the
+        18. The project applicant currently has a process to identify whether participants over-represented in the
         homeless system (e.g., Black, Latinx, LGBTQIA, people of color) face barriers to equitably accessing or
         receiving services from their organization.
       %td City Application
@@ -58,7 +67,7 @@
       %td= @report.barrier_id_process_score
     %tr
       %td
-        20. The project applicant currently has a plan to address or eliminate barriers identified to participants
+        19. The project applicant currently has a plan to address or eliminate barriers identified to participants
         over-represented in the homeless system (e.g., Black, Latinx, LGBTQIA, people of color), OR no barriers were
         identified in the assessment above.
       %td City Application

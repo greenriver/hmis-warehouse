@@ -24,20 +24,12 @@ module BostonProjectScorecard
         percentage_string(psh_stayers_or_to_ph) if psh?
       end
 
-      def increased_stayer_employment_income_value
-        percentage_string(increased_stayer_employment_income)
+      def increased_employment_income_value
+        percentage_string(increased_employment_income)
       end
 
-      def increased_stayer_other_income_value
-        percentage_string(increased_stayer_other_income)
-      end
-
-      def increased_leaver_employment_income_value
-        percentage_string(increased_leaver_employment_income)
-      end
-
-      def increased_leaver_other_income_value
-        percentage_string(increased_leaver_other_income)
+      def increased_other_income_value
+        percentage_string(increased_other_income)
       end
 
       def days_to_lease_up_value
@@ -65,33 +57,48 @@ module BostonProjectScorecard
       end
 
       def performance_score(value)
-        return 6 if value >= 75
-        return 3 if value >= 55
-        return 2 if value >= 25
+        return 0 unless value
+
+        return 12 if value >= 75
+        return 6 if value >= 55
+        return 4 if value >= 25
 
         0
       end
 
-      def increased_stayer_employment_income_score
-        performance_score(increased_stayer_employment_income)
+      def increased_employment_income_score
+        performance_score(increased_employment_income)
       end
 
-      def increased_stayer_other_income_score
-        performance_score(increased_stayer_other_income)
-      end
-
-      def increased_leaver_employment_income_score
-        performance_score(increased_leaver_employment_income)
-      end
-
-      def increased_leaver_other_income_score
-        performance_score(increased_leaver_other_income)
+      def increased_other_income_score
+        performance_score(increased_other_income)
       end
 
       def days_to_lease_up_score
+        return 0 if days_to_lease_up < 1
         return 12 if days_to_lease_up <= 30
         return 6 if days_to_lease_up <= 60
         return 4 if days_to_lease_up <= 180
+
+        0
+      end
+
+      def utilization_rate_percent
+        return unless average_utilization_rate.present? && actual_households_served.present?
+
+        percentage(average_utilization_rate / actual_households_served.to_f)
+      end
+
+      def utilization_rate_value
+        return unless utilization_rate_percent.present?
+
+        percentage_string(utilization_rate_percent)
+      end
+
+      def utilization_rate_score
+        return unless utilization_rate_percent.present?
+        return 6 if utilization_rate_percent >= 85
+        return 3 if utilization_rate_percent >= 75
 
         0
       end

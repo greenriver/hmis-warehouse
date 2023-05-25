@@ -12,7 +12,7 @@
   %tbody
     %tr
       %th.bg-info.align-middle.text-center{rowspan: 3} HMIS data quality
-      %td 7. Personal identifying information error rate
+      %td 6. Personal identifying information error rate
       %td
         APR Table
         = link_to_apr('Q6a:', 'Question 6')
@@ -27,7 +27,7 @@
       %td= @report.pii_error_rate_value
       %td= @report.pii_error_rate_score
     %tr
-      %td 8. Universal data elements error rate
+      %td 7. Universal data elements error rate
       %td
         APR Table
         = link_to_apr('Q6b', 'Question 6')
@@ -39,7 +39,7 @@
       %td= @report.ude_error_rate_value
       %td= @report.ude_error_rate_score
     %tr
-      %td 9. Income and housing data quality
+      %td 8. Income and housing data quality
       %td
         APR Table
         = link_to_apr('Q6c', 'Question 6')
