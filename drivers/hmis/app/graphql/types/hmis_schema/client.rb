@@ -187,6 +187,7 @@ module Types
 
     def names
       if object.names.empty?
+        # If client has no CustomClientNames, construct one based on the HUD Client name fields
         return [
           object.names.new(
             id: '0',
@@ -194,10 +195,8 @@ module Types
             last: object.last_name,
             middle: object.middle_name,
             suffix: object.name_suffix,
-            name_data_quality: object.name_data_quality,
             primary: true,
-            user: object.user,
-            data_source: object.data_source,
+            **object.slice(:name_data_quality, :user_id, :data_source_id, :date_created, :date_updated),
           ),
         ]
       end
