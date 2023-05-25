@@ -61,9 +61,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should throw error if not allowed to manage files' do
       remove_permissions(hmis_user, :can_manage_any_client_files, :can_manage_own_client_files)
       file_id = f1.id
-      file, errors = call_mutation(file_id)
-      expect(file).to be_nil
-      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+      expect { call_mutation(file_id) }.to raise_error(HmisErrors::ApiError)
       expect(Hmis::File.all).to include(have_attributes(id: file_id))
     end
 
@@ -71,9 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       remove_permissions(hmis_user, :can_manage_any_client_files)
       file_id = f1.id
       f1.update!(user_id: u2.id)
-      file, errors = call_mutation(file_id)
-      expect(file).to be_nil
-      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+      expect { call_mutation(file_id) }.to raise_error(HmisErrors::ApiError)
       expect(Hmis::File.all).to include(have_attributes(id: file_id))
     end
   end
