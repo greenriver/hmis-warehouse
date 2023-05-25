@@ -119,11 +119,19 @@ module Hmis::Hud::Processors
       result
     end
 
-    private def process_names(attribute_name, values)
+    private def process_names(attribute_name, value)
       client = @processor.send(factory_name)
-      additional_attrs = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
+      # Drop names that don't have any meaningful values
+      values = Array.wrap(value).filter do |v|
+        raise "Expected Hash, found #{v.class.name}" unless v.is_a?(Hash)
+
+        v.slice('first', 'last', 'middle', 'primary').compact_blank.any?
+      end
+
       # Build attributes
+      additional_attrs = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
       name_attributes = construct_nested_attributes(attribute_name, values, additional_attrs)
+
       # Set NameDataQuality to 99, it will be overridden to match primary name in the after_save hook
       name_attributes[:name_data_quality] = 99 unless client.name_data_quality.present?
       name_attributes
