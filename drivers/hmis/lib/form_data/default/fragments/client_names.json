@@ -6,7 +6,7 @@
   "item": [
     {
       "type": "OBJECT",
-      "component": "NAMES",
+      "component": "NAME",
       "repeats": true,
       "link_id": "names",
       "field_name": "names"
