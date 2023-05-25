@@ -137,8 +137,8 @@ class Hmis::Hud::Processors::Base
   end
 
   # Get attributes for nested record(s)
-  def construct_nested_attributes(attribute_name, values, additional_attributes = {})
-    values ||= []
+  def construct_nested_attributes(attribute_name, value, additional_attributes = {})
+    values = Array.wrap(value)
 
     object_type = graphql_type(attribute_name) # eg the ClientName type
 
