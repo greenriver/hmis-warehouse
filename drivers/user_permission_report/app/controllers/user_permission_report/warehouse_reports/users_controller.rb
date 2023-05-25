@@ -10,6 +10,7 @@ module UserPermissionReport::WarehouseReports
     before_action :set_group_associations
 
     def show
+      @modal_size = :xl
       @user = User.includes(:roles, access_groups: @group_associations.keys).find(params[:id])
     end
 

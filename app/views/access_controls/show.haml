@@ -1,38 +1,4 @@
 
 = content_for :modal_title do
   Access Control
-- role = @access_control.role
-- access_group = @access_control.access_group
-.well.mb-6
-  %dl
-    %dt Role
-    %dd= role.name
-    %dt Entity Group
-    %dd= access_group.name
-    %dt User Group
-    %dd= @access_control.user_group.name
-%h3 #{role.name} Permissions
-.card.mb-6
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Permission
-        %th Description
-    %tbody
-      - role.enabled_permissions.each do |k, perm|
-        %tr
-          %th= k.to_s.humanize
-          %td= perm[:description]
-
-%h3 #{access_group.name} Entities
-- access_group.all_associated_entities.each do |section, items|
-  - next if items.count.zero?
-  .card.mb-4
-    %table.table.table-striped
-      %thead
-        %tr
-          %th= section
-      %tbody
-        - items.each do |name|
-          %tr
-            %td= name
+= render 'control', access_control: @access_control

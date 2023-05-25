@@ -272,11 +272,11 @@ class AccessGroup < ApplicationRecord
 
   def all_associated_entities
     {
-      'CoC Codes' => coc_codes.map do |code|
-        [
-          code,
-          GrdaWarehouse::Hud::Project.project_names_for_coc(code),
-        ]
+      'CoC Codes' => coc_codes.flat_map do |code|
+        [code] +
+          GrdaWarehouse::Hud::Project.project_names_for_coc(code).map do |name|
+            " – #{name} (in #{code})"
+          end
       end,
       'Project Groups' => project_access_groups.preload(:projects).map(&:name),
       'Data Sources' => data_sources.map(&:name),

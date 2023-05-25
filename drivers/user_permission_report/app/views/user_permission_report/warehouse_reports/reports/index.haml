@@ -26,7 +26,7 @@
         %th User
         %th
         %th Roles
-        %th Access Groups
+        %th Entity Groups
         - @group_associations.keys.each do |ga|
           %th= ga.to_s.humanize.titleize
       %tbody
@@ -56,14 +56,14 @@
                 All Roles
               - else
                 %ul
-                  - user.roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.each do |i|
+                  - user.roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.uniq.each do |i|
                     %li= i
             %td
               - if user.access_groups.general.count == AccessGroup.general.count
                 All Access Groups
               - else
                 %ul
-                  - user.access_groups.map{|g| next unless g.general?; link_to_if can_edit_access_groups?, g.name, edit_admin_group_path(g)}.compact.each do |i|
+                  - user.access_groups.map{|g| next unless g.general?; link_to_if can_edit_access_groups?, g.name, edit_admin_access_group_path(g)}.uniq.compact.each do |i|
                     %li= i
             - @group_associations.keys.each do |ga|
               %td
