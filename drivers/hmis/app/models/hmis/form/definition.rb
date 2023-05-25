@@ -67,6 +67,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   HUD_ASSESSMENT_FORM_ROLES = FORM_ROLES.slice(:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT).freeze
 
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES
+  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES
 
   scope :with_role, ->(role) { where(role: role) }
 

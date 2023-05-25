@@ -78,6 +78,10 @@ type AssessmentAccess {
   id: ID!
 }
 
+input AssessmentFilterOptions {
+  roles: [AssessmentRole!]
+}
+
 input AssessmentInput {
   """
   Required if updating an existing assessment
@@ -135,11 +139,50 @@ enum AssessmentLevel {
   INVALID
 }
 
+enum AssessmentRole {
+  """
+  (ANNUAL) Annual Assessment
+  """
+  ANNUAL
+
+  """
+  (CE) Coordinated Entry
+  """
+  CE
+
+  """
+  (EXIT) Exit Assessment
+  """
+  EXIT
+
+  """
+  (INTAKE) Intake Assessment
+  """
+  INTAKE
+
+  """
+  (POST_EXIT) Post-Exit Assessment
+  """
+  POST_EXIT
+
+  """
+  (UPDATE) Update Assessment
+  """
+  UPDATE
+}
+
 """
 HUD Assessment Sorting Options
 """
 enum AssessmentSortOption {
+  """
+  Assessment Date: Most Recent First
+  """
   ASSESSMENT_DATE
+
+  """
+  Last Updated: Most Recent First
+  """
   DATE_UPDATED
 }
 
@@ -345,7 +388,7 @@ type Client {
   access: ClientAccess!
   addresses: [ClientAddress!]!
   age: Int
-  assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   customDataElements: [CustomDataElement!]!
@@ -1636,7 +1679,7 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
-  assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   client: Client!
   dateCreated: ISO8601DateTime!
