@@ -415,7 +415,6 @@ type Client {
   nameSuffix: String
   names: [ClientName!]!
   personalId: String!
-  preferredName: String
   pronouns: [String!]!
   race: [Race!]!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
@@ -700,7 +699,6 @@ input ClientSearchInput {
   lastName: String
   organizations: [ID!]
   personalId: String
-  preferredName: String
   projects: [ID!]
 
   """

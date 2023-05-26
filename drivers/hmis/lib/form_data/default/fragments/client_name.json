@@ -41,13 +41,6 @@
       ]
     },
     {
-      "type": "STRING",
-      "required": false,
-      "link_id": "preferred-name",
-      "text": "Preferred Name",
-      "field_name": "preferredName"
-    },
-    {
       "type": "GROUP",
       "component": "INFO_GROUP",
       "link_id": "dq-group",

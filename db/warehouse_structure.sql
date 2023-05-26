@@ -534,7 +534,6 @@ CREATE TABLE public."Client" (
     "NativeHIPacific" integer,
     "NoSingleGender" integer,
     tc_hat_additional_days_homeless integer DEFAULT 0,
-    preferred_name character varying,
     pronouns character varying,
     sexual_orientation character varying,
     health_housing_navigator_id bigint,
@@ -52860,6 +52859,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230519175812'),
 ('20230519185108'),
 ('20230523142004'),
-('20230525202043');
+('20230525202043'),
+('20230526191445');
 
 

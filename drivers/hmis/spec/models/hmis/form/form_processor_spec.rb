@@ -622,7 +622,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.middle_name).to be nil
         expect(client.last_name).to be nil
         expect(client.name_suffix).to be nil
-        expect(client.preferred_name).to be nil
         expect(client.name_data_quality).to eq(99)
         expect(client.names.size).to eq(1)
         expect(client.dob).to be nil

@@ -31,7 +31,6 @@ module Types
     hud_field :first_name
     hud_field :middle_name
     hud_field :last_name
-    field :preferred_name, String, null: true
     hud_field :name_suffix
     hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality
     hud_field :dob

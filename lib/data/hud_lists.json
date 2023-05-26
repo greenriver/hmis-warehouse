@@ -2,7 +2,6 @@
   {
     "method_name": "export_period_type",
     "name": "ExportPeriodType",
-    "code": "1.1",
     "values": [
       { "key": 1, "description": "Updated" },
       { "key": 2, "description": "Effective" },
@@ -13,7 +12,6 @@
   {
     "method_name": "export_directive",
     "name": "ExportDirective",
-    "code": "1.2",
     "values": [
       { "key": 1, "description": "Delta refresh" },
       { "key": 2, "description": "Full refresh" },
@@ -23,7 +21,6 @@
   {
     "method_name": "disability_type",
     "name": "DisabilityType",
-    "code": "1.3",
     "values": [
       { "key": 5, "description": "Physical disability" },
       { "key": 6, "description": "Developmental disability" },
@@ -36,7 +33,6 @@
   {
     "method_name": "record_type",
     "name": "RecordType",
-    "code": "1.4",
     "values": [
       { "key": 12, "description": "Contact 12" },
       { "key": 13, "description": "Contact 13" },
@@ -56,7 +52,6 @@
   {
     "method_name": "hash_status",
     "name": "HashStatus",
-    "code": "1.5",
     "values": [
       { "key": 1, "description": "Unhashed" },
       { "key": 2, "description": "SHA-1 RHY" },
@@ -67,7 +62,6 @@
   {
     "method_name": "race_none",
     "name": "RaceNone",
-    "code": "1.6",
     "values": [
       { "key": 8, "description": "Client doesn't know" },
       { "key": 9, "description": "Client refused" },
@@ -77,7 +71,6 @@
   {
     "method_name": "no_yes_missing",
     "name": "NoYesMissing",
-    "code": "1.7",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Yes" },
@@ -87,7 +80,6 @@
   {
     "method_name": "no_yes_reasons_for_missing_data",
     "name": "NoYesReasonsForMissingData",
-    "code": "1.8",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Yes" },
@@ -99,7 +91,6 @@
   {
     "method_name": "source_type",
     "name": "SourceType",
-    "code": "1.9",
     "values": [
       { "key": 1, "description": "CoC HMIS" },
       { "key": 2, "description": "Standalone/agency-specific application" },
@@ -110,7 +101,6 @@
   {
     "method_name": "target_population",
     "name": "TargetPopulation",
-    "code": "2.02.8",
     "values": [
       { "key": 1, "description": "Domestic violence victims" },
       { "key": 3, "description": "Persons with HIV/AIDS" },
@@ -120,7 +110,6 @@
   {
     "method_name": "h_o_p_w_a_med_assisted_living_fac",
     "name": "HOPWAMedAssistedLivingFac",
-    "code": "2.02.9",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Yes" },
@@ -130,7 +119,6 @@
   {
     "method_name": "tracking_method",
     "name": "TrackingMethod",
-    "code": "2.02.C",
     "values": [
       { "key": 0, "description": "Entry/Exit Date" },
       { "key": 3, "description": "Night-by-Night" }
@@ -139,7 +127,6 @@
   {
     "method_name": "housing_type",
     "name": "HousingType",
-    "code": "2.02.D",
     "values": [
       { "key": 1, "description": "Site-based - single site" },
       { "key": 2, "description": "Site-based - clustered / multiple sites" },
@@ -149,7 +136,6 @@
   {
     "method_name": "project_type",
     "name": "ProjectType",
-    "code": "2.02.6",
     "values": [
       { "key": 1, "description": "Emergency Shelter" },
       { "key": 2, "description": "Transitional Housing" },
@@ -172,7 +158,6 @@
   {
     "method_name": "funding_source",
     "name": "FundingSource",
-    "code": "2.06.1",
     "values": [
       {
         "key": 1,
@@ -277,7 +262,6 @@
   {
     "method_name": "household_type",
     "name": "HouseholdType",
-    "code": "2.07.4",
     "values": [
       { "key": 1, "description": "Households without children" },
       {
@@ -290,7 +274,6 @@
   {
     "method_name": "bed_type",
     "name": "BedType",
-    "code": "2.07.5",
     "values": [
       { "key": 1, "description": "Facility-based" },
       { "key": 2, "description": "Voucher" },
@@ -300,7 +283,6 @@
   {
     "method_name": "availability",
     "name": "Availability",
-    "code": "2.07.6",
     "values": [
       { "key": 1, "description": "Year-round" },
       { "key": 2, "description": "Seasonal" },
@@ -310,7 +292,6 @@
   {
     "method_name": "youth_age_group",
     "name": "YouthAgeGroup",
-    "code": "2.7.B",
     "values": [
       { "key": 1, "description": "Only under age 18" },
       { "key": 2, "description": "Only ages 18 to 24" },
@@ -320,7 +301,6 @@
   {
     "method_name": "geography_type",
     "name": "GeographyType",
-    "code": "2.03.4",
     "values": [
       { "key": 1, "description": "Urban" },
       { "key": 2, "description": "Suburban" },
@@ -331,7 +311,6 @@
   {
     "method_name": "name_data_quality",
     "name": "NameDataQuality",
-    "code": "3.01.5",
     "values": [
       { "key": 1, "description": "Full name reported" },
       {
@@ -346,7 +325,6 @@
   {
     "method_name": "destination",
     "name": "Destination",
-    "code": "3.12.1",
     "values": [
       {
         "key": 1,
@@ -472,7 +450,6 @@
   {
     "method_name": "relationship_to_hoh",
     "name": "RelationshipToHoH",
-    "code": "3.15.1",
     "values": [
       { "key": 1, "description": "Self (head of household)" },
       { "key": 2, "description": "Child" },
@@ -485,7 +462,6 @@
   {
     "method_name": "ssn_data_quality",
     "name": "SSNDataQuality",
-    "code": "3.02.2",
     "values": [
       { "key": 1, "description": "Full SSN reported" },
       { "key": 2, "description": "Approximate or partial SSN reported" },
@@ -497,7 +473,6 @@
   {
     "method_name": "dob_data_quality",
     "name": "DOBDataQuality",
-    "code": "3.03.2",
     "values": [
       { "key": 1, "description": "Full DOB reported" },
       { "key": 2, "description": "Approximate or partial DOB reported" },
@@ -509,7 +484,6 @@
   {
     "method_name": "times_homeless_past_three_years",
     "name": "TimesHomelessPastThreeYears",
-    "code": "3.917.4",
     "values": [
       { "key": 1, "description": "One time" },
       { "key": 2, "description": "Two times" },
@@ -523,7 +497,6 @@
   {
     "method_name": "ethnicity",
     "name": "Ethnicity",
-    "code": "3.05.1",
     "values": [
       { "key": 0, "description": "Non-Hispanic/Non-Latin(a)(o)(x)" },
       { "key": 1, "description": "Hispanic/Latin(a)(o)(x)" },
@@ -535,7 +508,6 @@
   {
     "method_name": "gender",
     "name": "Gender",
-    "code": "3.6.1",
     "values": [
       { "key": 0, "description": "Female" },
       { "key": 1, "description": "Male" },
@@ -553,7 +525,6 @@
   {
     "method_name": "living_situation",
     "name": "LivingSituation",
-    "code": "3.12.1",
     "values": [
       {
         "key": 1,
@@ -676,7 +647,6 @@
   {
     "method_name": "residence_prior_length_of_stay",
     "name": "ResidencePriorLengthOfStay",
-    "code": "3.917.2",
     "values": [
       { "key": 2, "description": "One week or more, but less than one month" },
       { "key": 3, "description": "One month or more, but less than 90 days" },
@@ -692,7 +662,6 @@
   {
     "method_name": "months_homeless_past_three_years",
     "name": "MonthsHomelessPastThreeYears",
-    "code": "3.917.5",
     "values": [
       { "key": 8, "description": "Client doesn't know" },
       { "key": 9, "description": "Client refused" },
@@ -715,7 +684,6 @@
   {
     "method_name": "reason_not_insured",
     "name": "ReasonNotInsured",
-    "code": "4.04.A",
     "values": [
       { "key": 1, "description": "Applied; decision pending" },
       { "key": 2, "description": "Applied; client not eligible" },
@@ -729,7 +697,6 @@
   {
     "method_name": "housing_status",
     "name": "HousingStatus",
-    "code": "4.1.1",
     "values": [
       { "key": 1, "description": "Category 1 - Homeless" },
       {
@@ -751,7 +718,6 @@
   {
     "method_name": "disability_response",
     "name": "DisabilityResponse",
-    "code": "4.10.2",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Alcohol use disorder" },
@@ -765,7 +731,6 @@
   {
     "method_name": "when_d_v_occurred",
     "name": "WhenDVOccurred",
-    "code": "4.11.A",
     "values": [
       { "key": 1, "description": "Within the past three months" },
       {
@@ -785,7 +750,6 @@
   {
     "method_name": "contact_location",
     "name": "ContactLocation",
-    "code": "4.12.2",
     "values": [
       { "key": 1, "description": "Place not meant for habitation" },
       { "key": 2, "description": "Service setting, non-residential" },
@@ -795,13 +759,11 @@
   {
     "method_name": "bed_night",
     "name": "BedNight",
-    "code": "4.14",
     "values": [{ "key": 200, "description": "BedNight" }]
   },
   {
     "method_name": "r_h_y_services",
     "name": "RHYServices",
-    "code": "4.14.B",
     "values": [
       { "key": 2, "description": "Community service/service learning (CSL)" },
       { "key": 5, "description": "Education" },
@@ -832,7 +794,6 @@
   {
     "method_name": "s_s_v_f_financial_assistance",
     "name": "SSVFFinancialAssistance",
-    "code": "4.15.B",
     "values": [
       { "key": 1, "description": "Rental assistance" },
       { "key": 2, "description": "Security deposit" },
@@ -861,7 +822,6 @@
   {
     "method_name": "housing_assessment_disposition",
     "name": "HousingAssessmentDisposition",
-    "code": "4.18.1",
     "values": [
       { "key": 1, "description": "Referred to emergency shelter/safe haven" },
       { "key": 2, "description": "Referred to transitional housing" },
@@ -897,7 +857,6 @@
   {
     "method_name": "assessment_type",
     "name": "AssessmentType",
-    "code": "4.19.3",
     "values": [
       { "key": 1, "description": "Phone" },
       { "key": 2, "description": "Virtual" },
@@ -907,7 +866,6 @@
   {
     "method_name": "assessment_level",
     "name": "AssessmentLevel",
-    "code": "4.19.4",
     "values": [
       { "key": 1, "description": "Crisis Needs Assessment" },
       { "key": 2, "description": "Housing Needs Assessment" }
@@ -916,7 +874,6 @@
   {
     "method_name": "prioritization_status",
     "name": "PrioritizationStatus",
-    "code": "4.19.7",
     "values": [
       { "key": 1, "description": "Placed on prioritization list" },
       { "key": 2, "description": "Not placed on prioritization list" }
@@ -925,7 +882,6 @@
   {
     "method_name": "event",
     "name": "EventType",
-    "code": "4.20.2",
     "values": [
       { "key": 1, "description": "Referral to Prevention Assistance project" },
       {
@@ -989,7 +945,6 @@
   {
     "method_name": "referral_result",
     "name": "ReferralResult",
-    "code": "4.20.D",
     "values": [
       { "key": 1, "description": "Successful referral: client accepted" },
       { "key": 2, "description": "Unsuccessful referral: client rejected" },
@@ -999,7 +954,6 @@
   {
     "method_name": "incarcerated_parent_status",
     "name": "IncarceratedParentStatus",
-    "code": "4.33.A",
     "values": [
       {
         "key": 1,
@@ -1019,7 +973,6 @@
   {
     "method_name": "exit_action",
     "name": "ExitAction",
-    "code": "4.36.1",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Yes" },
@@ -1029,7 +982,6 @@
   {
     "method_name": "early_exit_reason",
     "name": "EarlyExitReason",
-    "code": "4.37.A",
     "values": [
       {
         "key": 1,
@@ -1044,7 +996,6 @@
   {
     "method_name": "crisis_services_use",
     "name": "CrisisServicesUse",
-    "code": "4.49.1",
     "values": [
       { "key": 0, "description": "0" },
       { "key": 1, "description": "1-2" },
@@ -1060,7 +1011,6 @@
   {
     "method_name": "p_a_t_h_how_confirmed",
     "name": "PATHHowConfirmed",
-    "code": "4.9.D",
     "values": [
       { "key": 1, "description": "Unconfirmed; presumptive or self-report" },
       {
@@ -1077,7 +1027,6 @@
   {
     "method_name": "p_a_t_h_s_m_i_information",
     "name": "PATHSMIInformation",
-    "code": "4.9.E",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Unconfirmed; presumptive or self-report" },
@@ -1097,7 +1046,6 @@
   {
     "method_name": "data_collection_stage",
     "name": "DataCollectionStage",
-    "code": "5.03.1",
     "values": [
       { "key": 1, "description": "Project entry" },
       { "key": 2, "description": "Update" },
@@ -1109,7 +1057,6 @@
   {
     "method_name": "wellbeing_agreement",
     "name": "WellbeingAgreement",
-    "code": "C1.1",
     "values": [
       { "key": 0, "description": "Strongly disagree" },
       { "key": 1, "description": "Somewhat disagree" },
@@ -1124,7 +1071,6 @@
   {
     "method_name": "feeling_frequency",
     "name": "FeelingFrequency",
-    "code": "C1.2",
     "values": [
       { "key": 0, "description": "Not at all" },
       { "key": 1, "description": "Once a month" },
@@ -1139,7 +1085,6 @@
   {
     "method_name": "moving_on_assistance",
     "name": "MovingOnAssistance",
-    "code": "C2.2",
     "values": [
       { "key": 1, "description": "Subsidized housing application assistance" },
       {
@@ -1157,7 +1102,6 @@
   {
     "method_name": "current_school_attended",
     "name": "CurrentSchoolAttended",
-    "code": "C3.2",
     "values": [
       {
         "key": 0,
@@ -1179,7 +1123,6 @@
   {
     "method_name": "most_recent_ed_status",
     "name": "MostRecentEdStatus",
-    "code": "C3.A",
     "values": [
       { "key": 0, "description": "K12: Graduated from high school" },
       { "key": 1, "description": "K12: Obtained GED" },
@@ -1203,7 +1146,6 @@
   {
     "method_name": "current_ed_status",
     "name": "CurrentEdStatus",
-    "code": "C3.B",
     "values": [
       { "key": 0, "description": "Pursuing a high school diploma or GED" },
       { "key": 1, "description": "Pursuing Associate's Degree" },
@@ -1218,7 +1160,6 @@
   {
     "method_name": "p_a_t_h_services",
     "name": "PATHServices",
-    "code": "P1.2",
     "values": [
       { "key": 1, "description": "Re-engagement" },
       { "key": 2, "description": "Screening" },
@@ -1238,7 +1179,6 @@
   {
     "method_name": "p_a_t_h_referral",
     "name": "PATHReferral",
-    "code": "P2.2",
     "values": [
       { "key": 1, "description": "Community mental health" },
       { "key": 2, "description": "Substance use treatment" },
@@ -1256,7 +1196,6 @@
   {
     "method_name": "p_a_t_h_referral_outcome",
     "name": "PATHReferralOutcome",
-    "code": "P2.A",
     "values": [
       { "key": 1, "description": "Attained" },
       { "key": 2, "description": "Not attained" },
@@ -1266,7 +1205,6 @@
   {
     "method_name": "reason_not_enrolled",
     "name": "ReasonNotEnrolled",
-    "code": "P3.A",
     "values": [
       { "key": 1, "description": "Client was found ineligible for PATH" },
       { "key": 2, "description": "Client was not enrolled for other reason(s)" }
@@ -1275,7 +1213,6 @@
   {
     "method_name": "referral_source",
     "name": "ReferralSource",
-    "code": "R1.1",
     "values": [
       { "key": 1, "description": "Self-referral" },
       {
@@ -1301,7 +1238,6 @@
   {
     "method_name": "r_h_y_numberof_years",
     "name": "RHYNumberofYears",
-    "code": "R11.A",
     "values": [
       { "key": 1, "description": "Less than one year" },
       { "key": 2, "description": "1 to 2 years" },
@@ -1312,7 +1248,6 @@
   {
     "method_name": "r_h_y_referral",
     "name": "RHYReferral",
-    "code": "R14.2",
     "values": [
       { "key": 1, "description": "Child care non-TANF" },
       {
@@ -1360,7 +1295,6 @@
   {
     "method_name": "count_exchange_for_sex",
     "name": "CountExchangeForSex",
-    "code": "R15.B",
     "values": [
       { "key": 1, "description": "1-3" },
       { "key": 2, "description": "4-7" },
@@ -1374,7 +1308,6 @@
   {
     "method_name": "project_completion_status",
     "name": "ProjectCompletionStatus",
-    "code": "R17.1",
     "values": [
       { "key": 1, "description": "Completed project" },
       { "key": 2, "description": "Youth voluntarily left early" },
@@ -1387,7 +1320,6 @@
   {
     "method_name": "expelled_reason",
     "name": "ExpelledReason",
-    "code": "R17.A",
     "values": [
       {
         "key": 1,
@@ -1403,7 +1335,6 @@
   {
     "method_name": "worker_response",
     "name": "WorkerResponse",
-    "code": "R19.A",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Yes" },
@@ -1413,7 +1344,6 @@
   {
     "method_name": "reason_no_services",
     "name": "ReasonNoServices",
-    "code": "R2.A",
     "values": [
       { "key": 1, "description": "Out of age range" },
       { "key": 2, "description": "Ward of the state" },
@@ -1425,7 +1355,6 @@
   {
     "method_name": "aftercare_provided",
     "name": "AftercareProvided",
-    "code": "R20.2",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Yes" },
@@ -1435,7 +1364,6 @@
   {
     "method_name": "sexual_orientation",
     "name": "SexualOrientation",
-    "code": "R3.1",
     "values": [
       { "key": 1, "description": "Heterosexual" },
       { "key": 2, "description": "Gay" },
@@ -1451,7 +1379,6 @@
   {
     "method_name": "last_grade_completed",
     "name": "LastGradeCompleted",
-    "code": "R4.1",
     "values": [
       { "key": 1, "description": "Less than grade 5" },
       { "key": 2, "description": "Grades 5-6" },
@@ -1473,7 +1400,6 @@
   {
     "method_name": "school_status",
     "name": "SchoolStatus",
-    "code": "R5.1",
     "values": [
       { "key": 1, "description": "Attending school regularly" },
       { "key": 2, "description": "Attending school irregularly" },
@@ -1490,7 +1416,6 @@
   {
     "method_name": "employment_type",
     "name": "EmploymentType",
-    "code": "R6.A",
     "values": [
       { "key": 1, "description": "Full-time" },
       { "key": 2, "description": "Part-time" },
@@ -1501,7 +1426,6 @@
   {
     "method_name": "not_employed_reason",
     "name": "NotEmployedReason",
-    "code": "R6.B",
     "values": [
       { "key": 1, "description": "Looking for work" },
       { "key": 2, "description": "Unable to work" },
@@ -1512,7 +1436,6 @@
   {
     "method_name": "health_status",
     "name": "HealthStatus",
-    "code": "R7.1",
     "values": [
       { "key": 1, "description": "Excellent" },
       { "key": 2, "description": "Very good" },
@@ -1527,7 +1450,6 @@
   {
     "method_name": "military_branch",
     "name": "MilitaryBranch",
-    "code": "V1.11",
     "values": [
       { "key": 1, "description": "Army" },
       { "key": 2, "description": "Air Force" },
@@ -1542,7 +1464,6 @@
   {
     "method_name": "discharge_status",
     "name": "DischargeStatus",
-    "code": "V1.12",
     "values": [
       { "key": 1, "description": "Honorable" },
       { "key": 2, "description": "General under honorable conditions" },
@@ -1561,7 +1482,6 @@
   {
     "method_name": "s_s_v_f_services",
     "name": "SSVFServices",
-    "code": "V2.2",
     "values": [
       { "key": 1, "description": "Outreach services" },
       { "key": 2, "description": "Case management services" },
@@ -1580,7 +1500,6 @@
   {
     "method_name": "h_o_p_w_a_financial_assistance",
     "name": "HOPWAFinancialAssistance",
-    "code": "V2.3",
     "values": [
       { "key": 1, "description": "Rental assistance" },
       { "key": 2, "description": "Security deposits" },
@@ -1592,7 +1511,6 @@
   {
     "method_name": "s_s_v_f_sub_type3",
     "name": "SSVFSubType3",
-    "code": "V2.A",
     "values": [
       {
         "key": 1,
@@ -1606,7 +1524,6 @@
   {
     "method_name": "s_s_v_f_sub_type4",
     "name": "SSVFSubType4",
-    "code": "V2.B",
     "values": [
       { "key": 1, "description": "Health care services" },
       { "key": 2, "description": "Daily living services" },
@@ -1635,7 +1552,6 @@
   {
     "method_name": "s_s_v_f_sub_type5",
     "name": "SSVFSubType5",
-    "code": "V2.C",
     "values": [
       { "key": 1, "description": "Personal financial planning services" },
       { "key": 2, "description": "Transportation services" },
@@ -1662,7 +1578,6 @@
   {
     "method_name": "percent_a_m_i",
     "name": "PercentAMI",
-    "code": "V4.1",
     "values": [
       { "key": 1, "description": "Less than 30%" },
       { "key": 2, "description": "30% to 50%" },
@@ -1673,7 +1588,6 @@
   {
     "method_name": "address_data_quality",
     "name": "AddressDataQuality",
-    "code": "V5.5",
     "values": [
       { "key": 1, "description": "Full address" },
       { "key": 2, "description": "Incomplete or estimated address" },
@@ -1685,7 +1599,6 @@
   {
     "method_name": "vamcs_station_number",
     "name": "VamcsStationNumber",
-    "code": "V6.1",
     "values": [
       { "key": 402, "description": "(402) Togus, ME" },
       { "key": 405, "description": "(405) White River Junction, VT" },
@@ -1838,7 +1751,6 @@
   {
     "method_name": "no_points_yes",
     "name": "NoPointsYes",
-    "code": "V7.1",
     "values": [
       { "key": 0, "description": "No (0 points)" },
       { "key": 1, "description": "Yes" },
@@ -1848,7 +1760,6 @@
   {
     "method_name": "time_to_housing_loss",
     "name": "TimeToHousingLoss",
-    "code": "V7.A",
     "values": [
       { "key": 0, "description": "1-6 days" },
       { "key": 1, "description": "7-13 days" },
@@ -1860,7 +1771,6 @@
   {
     "method_name": "annual_percent_a_m_i",
     "name": "AnnualPercentAMI",
-    "code": "V7.B",
     "values": [
       {
         "key": 0,
@@ -1878,7 +1788,6 @@
   {
     "method_name": "literal_homeless_history",
     "name": "LiteralHomelessHistory",
-    "code": "V7.C",
     "values": [
       {
         "key": 0,
@@ -1895,7 +1804,6 @@
   {
     "method_name": "eviction_history",
     "name": "EvictionHistory",
-    "code": "V7.G",
     "values": [
       { "key": 0, "description": "No prior rental evictions" },
       { "key": 1, "description": "1 prior rental eviction" },
@@ -1906,7 +1814,6 @@
   {
     "method_name": "incarcerated_adult",
     "name": "IncarceratedAdult",
-    "code": "V7.I",
     "values": [
       { "key": 0, "description": "Not incarcerated" },
       { "key": 1, "description": "Incarcerated once" },
@@ -1917,7 +1824,6 @@
   {
     "method_name": "dependent_under_6",
     "name": "DependentUnder6",
-    "code": "V7.O",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Youngest child is under 1 year old" },
@@ -1931,7 +1837,6 @@
   {
     "method_name": "voucher_tracking",
     "name": "VoucherTracking",
-    "code": "V8.1",
     "values": [
       { "key": 1, "description": "Referral package forwarded to PHA" },
       { "key": 2, "description": "Voucher denied by PHA" },
@@ -1965,7 +1870,6 @@
   {
     "method_name": "cm_exit_reason",
     "name": "CmExitReason",
-    "code": "V9.1",
     "values": [
       {
         "key": 1,
@@ -2003,7 +1907,6 @@
   {
     "method_name": "h_o_p_w_a_services",
     "name": "HOPWAServices",
-    "code": "W1.2",
     "values": [
       { "key": 1, "description": "Adult day care and personal assistance" },
       { "key": 2, "description": "Case management" },
@@ -2024,7 +1927,6 @@
   {
     "method_name": "no_assistance_reason",
     "name": "NoAssistanceReason",
-    "code": "W3",
     "values": [
       { "key": 1, "description": "Applied; decision pending" },
       { "key": 2, "description": "Applied; client not eligible" },
@@ -2041,7 +1943,6 @@
   {
     "method_name": "viral_load_available",
     "name": "ViralLoadAvailable",
-    "code": "W4.3",
     "values": [
       { "key": 0, "description": "Not available" },
       { "key": 1, "description": "Available" },
@@ -2054,7 +1955,6 @@
   {
     "method_name": "t_cell_source_viral_load_source",
     "name": "TCellSourceViralLoadSource",
-    "code": "W4.B",
     "values": [
       { "key": 1, "description": "Medical Report" },
       { "key": 2, "description": "Client Report" },
@@ -2064,7 +1964,6 @@
   {
     "method_name": "housing_assessment_at_exit",
     "name": "HousingAssessmentAtExit",
-    "code": "W5.1",
     "values": [
       {
         "key": 1,
@@ -2097,7 +1996,6 @@
   {
     "method_name": "subsidy_information",
     "name": "SubsidyInformation",
-    "code": "W5.A",
     "values": [
       { "key": 1, "description": "Without a subsidy 1" },
       {
@@ -2116,7 +2014,6 @@
   {
     "method_name": "ad_hoc_yes_no_1",
     "name": "AdHocYesNo",
-    "code": "ad_hoc_yes_no",
     "values": [
       { "key": 0, "description": "No" },
       { "key": 1, "description": "Yes" },
@@ -2128,7 +2025,6 @@
   {
     "method_name": "race",
     "name": "Race",
-    "code": "race",
     "values": [
       {
         "key": "AmIndAKNative",
