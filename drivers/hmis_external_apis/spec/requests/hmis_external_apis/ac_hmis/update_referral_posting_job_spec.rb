@@ -11,30 +11,41 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
   describe 'create referral request' do
     include_context 'hmis base setup'
 
-    let(:mper) do
-      create(:ac_hmis_mper_credential)
-      ::HmisExternalApis::AcHmis::Mper.new
+    let(:requested_by) do
+      'text@example.com'
     end
 
-    let(:endpoint) do
-      'http://example.com/'
+    let!(:link_creds) do
+      create(:ac_hmis_link_credential)
     end
 
     it 'has no smoke' do
       posting = create(:hmis_external_api_ac_hmis_referral_posting)
-
       accepted_status_code = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch(:accepted_status)
-      payload = { postings: [
-        posting_id: posting.identifier,
-        posting_status: accepted_status_code,
-      ] }
-      stub_request(:post, endpoint).
-        to_return(status: 200, body: payload.to_json)
+
+      result = HmisExternalApis::OauthClientResult.new(
+        parsed_body: {
+          'postings' => [
+            'postingId' => posting.identifier,
+            'postingStatusId' => accepted_status_code,
+          ],
+        },
+      )
+      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch)
+        .with(
+          'Referral/PostingStatus',
+          {
+            'postingId' => posting.identifier,
+            'postingStatusId' => accepted_status_code,
+            'requestedBy' => requested_by,
+          },
+        )
+        .and_return(result)
 
       HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
-        url: endpoint,
-        identifier: posting.id,
-        status: accepted_status_code,
+        posting_id: posting.identifier,
+        posting_status_id: accepted_status_code,
+        requested_by: requested_by,
       )
       posting.reload
       expect(posting.status).to(eq('accepted_status'))
