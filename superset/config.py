@@ -195,10 +195,11 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 SECRET_KEY = os.environ.get("SUPERSET_SECRET_KEY") or CHANGE_ME_SECRET_KEY
 
 # The SQLAlchemy connection string.
-# SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DATA_DIR, "superset.db")
+# SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DATA_DIR, "op" "superset.db")
+SQLALCHEMY_DATABASE_URI = "sqlite:////app/adbc/op/superset.db"
 # SQLALCHEMY_DATABASE_URI = 'mysql://myapp@localhost/myapp'
 # SQLALCHEMY_DATABASE_URI = 'postgresql://root:password@localhost/myapp'
-SQLALCHEMY_DATABASE_URI = 'postgres://postgres:postgres@db/superset'
+# SQLALCHEMY_DATABASE_URI = 'postgres://postgres:postgres@db/superset'
 
 # In order to hook up a custom password store for all SQLACHEMY connections
 # implement a function that takes a single argument of type 'sqla.engine.url',
@@ -1357,7 +1358,7 @@ PREFERRED_DATABASES: List[str] = [
 TEST_DATABASE_CONNECTION_TIMEOUT = timedelta(seconds=30)
 
 # Enable/disable CSP warning
-CONTENT_SECURITY_POLICY_WARNING = True
+CONTENT_SECURITY_POLICY_WARNING = False
 
 # Do you want Talisman enabled?
 TALISMAN_ENABLED = False

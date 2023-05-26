@@ -161,9 +161,9 @@ services:
     container_name: hmis-warehouse-superset
     image: voltrondata/superset-sqlalchemy-adbc-flight-sql
     environment:
+      SUPERSET_ADMIN_PASSWORD: admin
       VIRTUAL_HOST: superset.${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 8088
-      SUPERSET_ADMIN_PASSWORD: admin
     depends_on:
       superset_init:
         condition: service_completed_successfully
@@ -173,6 +173,7 @@ services:
       - 8088
     volumes:
       - ./superset/config.py:/app/adbc/apache-superset/superset/config.py
+      - ./superset/op:/app/adbc/op
 
   # See config/storage.yml for setup
   minio:
