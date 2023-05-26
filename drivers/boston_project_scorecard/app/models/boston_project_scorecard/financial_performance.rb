@@ -92,26 +92,6 @@ module BostonProjectScorecard
 
         0
       end
-
-      def utilization_rate_percent
-        return unless average_utilization_rate.present? && actual_households_served.present?
-
-        percentage(average_utilization_rate / actual_households_served.to_f)
-      end
-
-      def utilization_rate_value
-        return unless utilization_rate_percent.present?
-
-        percentage_string(utilization_rate_percent)
-      end
-
-      def utilization_rate_score
-        return unless utilization_rate_percent.present?
-        return 6 if utilization_rate_percent >= 85
-        return 3 if utilization_rate_percent >= 75
-
-        0
-      end
     end
   end
 end
