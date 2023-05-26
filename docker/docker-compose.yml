@@ -118,7 +118,14 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
+      PGPASSWORD: postgres
+      PGUSER: postgres
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     volumes:
       - dbdata:/var/lib/postgresql/data
     ports:
@@ -155,10 +162,17 @@ services:
     image: voltrondata/superset-sqlalchemy-adbc-flight-sql
     environment:
       VIRTUAL_HOST: superset.${FQDN:-hmis-warehouse.dev.test}
-      SUPERSET_ADMIN_PASSWORD: admin
       VIRTUAL_PORT: 8088
+      SUPERSET_ADMIN_PASSWORD: admin
+    depends_on:
+      superset_init:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
     expose:
       - 8088
+    volumes:
+      - ./superset/config.py:/app/adbc/apache-superset/superset/config.py
 
   # See config/storage.yml for setup
   minio:
@@ -177,6 +191,20 @@ services:
       - 9000:9000
       - 9001:9001 # enable for UI access
     command: server --certs-dir /certs /data
+
+  superset_init:
+    environment:
+      PGPASSWORD: postgres
+      PGUSER: postgres
+      PGHOST: db
+    image: postgis/postgis:12-3.1-alpine
+    entrypoint: /superset_init_entrypoint.sh
+    command:
+      - ''
+    volumes:
+      - ./superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
+    depends_on:
+      - db
 
 volumes:
   bundle_alpine:
