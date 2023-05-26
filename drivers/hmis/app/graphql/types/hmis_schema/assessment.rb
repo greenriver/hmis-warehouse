@@ -13,6 +13,7 @@ module Types
 
     available_filter_options do
       arg :roles, [Types::Forms::Enums::AssessmentRole]
+      arg :projects, [ID]
     end
 
     description 'Custom Assessment'

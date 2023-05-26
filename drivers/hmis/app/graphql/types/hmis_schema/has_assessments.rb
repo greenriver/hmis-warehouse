@@ -12,13 +12,13 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def assessments_field(name = :assessments, description = nil, filter_type_name: nil, filter_omit: [], filter_args: {}, **override_options, &block)
+        def assessments_field(name = :assessments, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = { type: HmisSchema::Assessment.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
             argument :in_progress, GraphQL::Types::Boolean, required: false
-            filters_argument HmisSchema::Assessment, type_name: filter_type_name, omit: filter_omit, **filter_args
+            filters_argument HmisSchema::Assessment, **filter_args
             instance_eval(&block) if block_given?
           end
         end
@@ -38,10 +38,9 @@ module Types
 
       private
 
-      def scoped_assessments(scope, sort_order: nil, in_progress: nil, filters: nil, roles: nil)
+      def scoped_assessments(scope, sort_order: nil, in_progress: nil, filters: nil)
         scope = scope.viewable_by(current_user)
         scope = scope.apply_filters(filters) if filters.present?
-        scope = scope.with_role(roles) if roles.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope = scope.in_progress if in_progress == true
         scope = scope.not_in_progress if in_progress == false
