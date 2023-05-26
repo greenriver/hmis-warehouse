@@ -6,7 +6,7 @@
 
 module HmisExternalApis::AcHmis
   class DataWarehouseApi
-    SYSTEM_ID = 'ac_hmis_warehouse'.freeze
+    SYSTEM_ID = 'ac_hmis_warehouse_api'.freeze
 
     def self.enabled?
       ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).exists?
