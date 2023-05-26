@@ -443,6 +443,7 @@ type ClientAccess {
 }
 
 type ClientAddress {
+  addressType: ClientAddressType
   city: String
   client: Client!
   country: String
@@ -456,7 +457,6 @@ type ClientAddress {
   notes: String
   postalCode: String
   state: String
-  type: ClientAddressType
   use: ClientAddressUse
   user: User
 }

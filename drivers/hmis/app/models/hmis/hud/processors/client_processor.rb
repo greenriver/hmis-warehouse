@@ -41,8 +41,9 @@ module Hmis::Hud::Processors
       when 'names'
         process_names(attribute_name, value)
       # TODO: implement, add tests. They _should_ be able to use the generic attribute generator..
-      # when 'addresses'
-      #   construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
+      when 'addresses'
+        additional_attrs = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
+        construct_nested_attributes(attribute_name, value, additional_attrs)
       # when 'contact_points'
       #   construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
       when 'mci_id'
