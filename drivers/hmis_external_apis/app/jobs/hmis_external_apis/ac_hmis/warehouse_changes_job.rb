@@ -121,8 +121,7 @@ module HmisExternalApis::AcHmis
     end
 
     def data_source
-      # FIXME: Is this right?
-      @data_source ||= GrdaWarehouse::DataSource.authoritative.where(name: 'HMIS').first!
+      @data_source ||= HmisExternalApis::AcHmis.data_source
     end
 
     def each_record_we_are_interested_in
