@@ -8,6 +8,37 @@ module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
 
+    def rule_query(composed_query, rule)
+      return composed_query if rule.blank?
+
+      composed_query = if rule.key?('column') # Base case: no children, return the arel
+        col = column(rule['column'])
+        val = col.cast_value(rule['value'])
+        case rule['operator']
+        when '<'
+          col.arel_col.lt(val)
+        when '>'
+          col.arel_col.gt(val)
+        when '=='
+          col.arel_col.eq(val)
+        when '<>'
+          col.arel_col.not_eq(val)
+        else
+          raise 'Unknown Operator'
+        end
+      elsif rule.key?('left')
+        case rule['operator']
+        when 'and'
+          rule_query(composed_query, rule['left']).and(rule_query(composed_query, rule['right']))
+        when 'or'
+          rule_query(composed_query, rule['left']).or(rule_query(composed_query, rule['right']))
+        else
+          raise 'Unknown Operator'
+        end
+      end
+      composed_query
+    end
+
     # NOTE: rules live in a json blog of the following format
     # Each layer can only have a rule or a relation
 
@@ -51,32 +82,78 @@ module GrdaWarehouse
     #     }
     #   }
     # }
-
-    def rule_query(composed_query, rule)
-      return composed_query if rule.blank?
-
-      if rule.key?('column')
-        col = column(rule['column'])
-        val = col.cast_value(rule['value'])
-        composed_query = case rule['operator']
-        when '<'
-          col.arel_col.lt(val)
-        when '>'
-          col.arel_col.gt(val)
-        when '=='
-          col.arel_col.eq(val)
-        when '<>'
-          col.arel_col.not_eq(val)
-        else
-          raise 'Unknown Operator'
-        end
-      elsif rule.key?('left')
-        # Do more
-      end
-      composed_query
-    end
-
     def default_rules
+      {
+        active: {
+          'operator' => 'and',
+          'left' => {
+            'operator' => 'and',
+            'left' => {
+              'column' => 'housed_date',
+              'operator' => '==',
+              'value' => nil,
+            },
+            'right' => {
+              'column' => 'active',
+              'operator' => '==',
+              'value' => true,
+            },
+          },
+          'right' => {
+            'operator' => 'and',
+            'left' => {
+              'column' => 'destination',
+              'operator' => '==',
+              'value' => nil,
+            },
+            'right' => {
+              'column' => 'ineligible',
+              'operator' => '==',
+              'value' => nil,
+            },
+          },
+        },
+        housed: {
+          'operator' => 'and',
+          'left' => {
+            'column' => 'housed_date',
+            'operator' => '<>',
+            'value' => nil,
+          },
+          'right' => {
+            'column' => 'destination',
+            'operator' => '<>',
+            'value' => nil,
+          },
+        },
+        ineligible: {
+          'operator' => 'and',
+          'left' => {
+            'column' => 'ineligible',
+            'operator' => '==',
+            'value' => true,
+          },
+          'right' => {
+            'operator' => 'or',
+            'left' => {
+              'column' => 'housed_date',
+              'operator' => '==',
+              'value' => nil,
+            },
+            'right' => {
+              'column' => 'destination',
+              'operator' => '==',
+              'value' => nil,
+            },
+          },
+        },
+        inactive: {
+          'column' => 'active',
+          'operator' => '==',
+          'value' => false,
+        },
+        # NOTE: deleted scope is left off since it requires overriding the default scop
+      }
     end
 
     def column(key)
@@ -87,7 +164,7 @@ module GrdaWarehouse
     end
 
     def cohort_columns
-      @cohort_columns ||= GrdaWarehouse::Cohort.available_columns.index_by(&:column)
+      @cohort_columns ||= GrdaWarehouse::Cohort.available_columns.select(&:available_for_rules?).index_by(&:column)
     end
   end
 end

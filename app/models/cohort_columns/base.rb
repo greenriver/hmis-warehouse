@@ -21,6 +21,18 @@ module CohortColumns
     attribute :editable, Boolean, lazy: false, default: true
     attribute :current_user
 
+    def available_for_rules?
+      true
+    end
+
+    def cast_value(val)
+      val.to_s
+    end
+
+    def arel_col
+      cc_t[column]
+    end
+
     def display_as_editable?(user, _cohort_client, on_cohort: cohort)
       on_cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohort_data? || (editable && user.can_participate_in_cohorts?))
     end
@@ -80,6 +92,10 @@ module CohortColumns
 
     def input_class
       'jCohortClientInput'
+    end
+
+    private def effective_date
+      cohort.effective_date || Date.current
     end
   end
 end
