@@ -1,11 +1,11 @@
 %section.client__assessments.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header
-      Self-Sufficiency Matrix Forms
+      Health Related Social Needs Assessments
     - unless @patient&.self_sufficiency_matrix_forms&.incomplete&.exists?
-      = link_to polymorphic_path( [:new] + self_sufficiency_matrix_form_path_generator), class: 'btn btn-secondary btn-sm ml-auto' do
+      = link_to new_client_health_thrive_assessment_assessment_path(@client), class: 'btn btn-secondary btn-sm ml-auto' do
         %i.icon-plus
-        Add SSM
+        Add THRIVE
 
   .c-card__content.c-card__content--flush
     = render 'ssms_table'

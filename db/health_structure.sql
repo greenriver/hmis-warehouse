@@ -4606,6 +4606,58 @@ ALTER SEQUENCE public.teams_id_seq OWNED BY public.teams.id;
 
 
 --
+-- Name: thrive_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.thrive_assessments (
+    id bigint NOT NULL,
+    patient_id bigint,
+    user_id bigint,
+    decline_to_answer boolean,
+    housing_status integer,
+    food_insecurity integer,
+    food_worries integer,
+    trouble_drug_cost boolean,
+    trouble_medical_transportation boolean,
+    trouble_utility_cost boolean,
+    trouble_caring_for_family boolean,
+    unemployed boolean,
+    interested_in_education boolean,
+    help_with_housing boolean,
+    help_with_food boolean,
+    help_with_drug_cost boolean,
+    help_with_medical_transportation boolean,
+    help_with_utilities boolean,
+    help_with_childcare boolean,
+    help_with_eldercare boolean,
+    help_with_job_search boolean,
+    help_with_education boolean,
+    completed_on date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: thrive_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.thrive_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: thrive_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.thrive_assessments_id_seq OWNED BY public.thrive_assessments.id;
+
+
+--
 -- Name: tracing_cases; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5737,6 +5789,13 @@ ALTER TABLE ONLY public.teams ALTER COLUMN id SET DEFAULT nextval('public.teams_
 
 
 --
+-- Name: thrive_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thrive_assessments ALTER COLUMN id SET DEFAULT nextval('public.thrive_assessments_id_seq'::regclass);
+
+
+--
 -- Name: tracing_cases id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -6571,6 +6630,14 @@ ALTER TABLE ONLY public.team_members
 
 ALTER TABLE ONLY public.teams
     ADD CONSTRAINT teams_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: thrive_assessments thrive_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thrive_assessments
+    ADD CONSTRAINT thrive_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -7537,6 +7604,20 @@ CREATE INDEX index_teams_on_careplan_id ON public.teams USING btree (careplan_id
 
 
 --
+-- Name: index_thrive_assessments_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_thrive_assessments_on_patient_id ON public.thrive_assessments USING btree (patient_id);
+
+
+--
+-- Name: index_thrive_assessments_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_thrive_assessments_on_user_id ON public.thrive_assessments USING btree (user_id);
+
+
+--
 -- Name: index_tracing_cases_on_aliases; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8072,6 +8153,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230508135940'),
 ('20230512151350'),
 ('20230516171211'),
-('20230516171223');
+('20230516171223'),
+('20230525153410');
 
 

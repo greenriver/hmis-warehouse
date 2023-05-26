@@ -1,0 +1,45 @@
+- content_for :modal_title, 'THRIVE Screener'
+.row
+  .col
+    .mb-2
+      %dt.inline Name:
+      %dd.inline= @client.name
+    .mb-2
+      %dt.inline Date Completed:
+      %dd.inline= @assessment.completed_on || 'in progress'
+    .mb-2
+      %dt.inline Case Worker:
+      %dd.inline= @assessment.user&.name
+  .col.pull-right
+    - if @assessment.completed_on.blank?
+      = link_to edit_client_health_thrive_assessment_assessment_path(@client, @assessment), class: 'btn btn-secondary btn-sm' do
+        %i.icon-pencil
+        Edit THRIVE
+.row
+  .col
+    - if @assessment.decline_to_answer?
+      %h3 Patient declined to answer these questions
+.row
+  .col
+    - if @assessment.question_labels.keys.map { |attr| @assessment.send(attr) }.any?
+      %h4 Screening Questions
+      %table.table-sm
+        %tbody
+          - @assessment.question_labels.each do |attr, label|
+            - value = @assessment.send(attr)
+            -next if value.nil?
+            %tr
+              %td= label
+              - if value.in?([true, false])
+                %td= yes_no(value)
+              - else
+                %td= value.humanize
+
+- if @assessment.help_labels.keys.map { |attr| @assessment.send(attr) }.any?
+  %h4 Assistance Requests
+  - @assessment.help_labels.each do |attr, label|
+    - value = @assessment.send(attr)
+    - next unless value
+    = checkmark(value)
+    = label
+    &nbsp;

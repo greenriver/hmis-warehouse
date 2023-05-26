@@ -1,0 +1,12 @@
+- @on_health = true # Force the menu
+- title = "THRIVE Screener for #{@client.full_name}"
+- content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= content_for(:title)
+
+= simple_form_for @assessment, url: client_health_thrive_assessment_assessment_path(@client, @assessment) do |f|
+  = render 'form', f: f
+
+  .form__actions.form__actions--right.mb-6
+    = f.submit 'Save', class: 'btn btn-primary'
