@@ -6002,6 +6002,40 @@ ALTER SEQUENCE public.cohort_column_options_id_seq OWNED BY public.cohort_column
 
 
 --
+-- Name: cohort_tabs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cohort_tabs (
+    id bigint NOT NULL,
+    cohort_id bigint NOT NULL,
+    name character varying,
+    rules jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: cohort_tabs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cohort_tabs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cohort_tabs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cohort_tabs_id_seq OWNED BY public.cohort_tabs.id;
+
+
+--
 -- Name: cohorts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -22658,6 +22692,13 @@ ALTER TABLE ONLY public.cohort_column_options ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: cohort_tabs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_tabs ALTER COLUMN id SET DEFAULT nextval('public.cohort_tabs_id_seq'::regclass);
+
+
+--
 -- Name: cohorts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25755,6 +25796,14 @@ ALTER TABLE ONLY public.cohort_clients
 
 ALTER TABLE ONLY public.cohort_column_options
     ADD CONSTRAINT cohort_column_options_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cohort_tabs cohort_tabs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_tabs
+    ADD CONSTRAINT cohort_tabs_pkey PRIMARY KEY (id);
 
 
 --
@@ -42939,6 +42988,13 @@ CREATE INDEX index_cohort_clients_on_deleted_at ON public.cohort_clients USING b
 
 
 --
+-- Name: index_cohort_tabs_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohort_tabs_on_cohort_id ON public.cohort_tabs USING btree (cohort_id);
+
+
+--
 -- Name: index_cohorts_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53037,6 +53093,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230522112645'),
 ('20230522112916'),
 ('20230522183433'),
-('20230523142004');
+('20230523142004'),
+('20230525193939'),
+('20230526173129');
 
 

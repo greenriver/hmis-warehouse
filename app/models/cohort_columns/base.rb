@@ -30,7 +30,7 @@ module CohortColumns
     end
 
     def arel_col
-      cc_t[column]
+      c_client_t[column]
     end
 
     def display_as_editable?(user, _cohort_client, on_cohort: cohort)

@@ -15,7 +15,7 @@ module CohortColumns
     end
 
     def cast_value(val)
-      val.to_date
+      val&.to_date
     end
 
     def display_for(user)

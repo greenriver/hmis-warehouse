@@ -11,6 +11,8 @@ module CohortColumns
     end
 
     def cast_value(val)
+      return nil unless val.present?
+
       val.to_i
     end
 

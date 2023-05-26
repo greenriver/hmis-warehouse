@@ -20,6 +20,7 @@ module GrdaWarehouse
 
     after_create :maintain_system_group
 
+    has_many :cohort_tabs, dependent: :destroy
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :tags, class_name: 'CasAccess::Tag', optional: true

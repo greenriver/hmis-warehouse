@@ -15,7 +15,7 @@ module CohortColumns
     end
 
     def arel_col
-      cc_t[:days_homeless_last_three_years_on_effective_date]
+      c_client_t[:days_homeless_last_three_years_on_effective_date]
     end
 
     def value(cohort_client) # OK

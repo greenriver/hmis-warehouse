@@ -15,7 +15,7 @@ module CohortColumns
     end
 
     def arel_col
-      cc_t[:calculated_days_homeless_on_effective_date]
+      c_client_t[:calculated_days_homeless_on_effective_date]
     end
 
     def description

@@ -5,38 +5,62 @@
 ###
 
 module GrdaWarehouse
-  class Cohort < GrdaWarehouseBase
+  class CohortTab < GrdaWarehouseBase
     include ArelHelper
+    acts_as_paranoid
+
+    belongs_to :cohort
 
     def rule_query(composed_query, rule)
       return composed_query if rule.blank?
 
-      composed_query = if rule.key?('column') # Base case: no children, return the arel
-        col = column(rule['column'])
-        val = col.cast_value(rule['value'])
-        case rule['operator']
-        when '<'
-          col.arel_col.lt(val)
-        when '>'
-          col.arel_col.gt(val)
-        when '=='
-          col.arel_col.eq(val)
-        when '<>'
-          col.arel_col.not_eq(val)
-        else
-          raise 'Unknown Operator'
-        end
-      elsif rule.key?('left')
-        case rule['operator']
-        when 'and'
-          rule_query(composed_query, rule['left']).and(rule_query(composed_query, rule['right']))
-        when 'or'
-          rule_query(composed_query, rule['left']).or(rule_query(composed_query, rule['right']))
-        else
-          raise 'Unknown Operator'
-        end
-      end
+      return prepare_rule(rule) if rule.key?('column') # Base case: no children, return the arel
+
+      composed_query = prepare_rule_combination(composed_query, rule)
       composed_query
+    end
+
+    private def prepare_rule(rule)
+      col = column(rule['column'])
+      val = if rule['value'].nil?
+        nil
+      else
+        col.cast_value(rule['value'])
+      end
+      case rule['operator']
+      when '<'
+        col.arel_col.lt(val)
+      when '>'
+        col.arel_col.gt(val)
+      when '=='
+        col.arel_col.eq(val)
+      when '<>'
+        col.arel_col.not_eq(val)
+      else
+        raise "Unknown Operator #{rule['operator']}"
+      end
+    end
+
+    private def prepare_rule_combination(composed_query, rule)
+      case rule['operator']
+      when 'and'
+        rule_query(composed_query, rule['left']).and(rule_query(composed_query, rule['right']))
+      when 'or'
+        rule_query(composed_query, rule['left']).or(rule_query(composed_query, rule['right']))
+      else
+        raise "Unknown Operator #{rule['operator']}"
+      end
+    end
+
+    private def column(key)
+      col = cohort_columns[key.to_s]
+      return col if col.present?
+
+      raise "Unknown Column #{key}"
+    end
+
+    private def cohort_columns
+      @cohort_columns ||= GrdaWarehouse::Cohort.available_columns.select(&:available_for_rules?).index_by { |cc| cc.column.to_s }
     end
 
     # NOTE: rules live in a json blog of the following format
@@ -82,9 +106,9 @@ module GrdaWarehouse
     #     }
     #   }
     # }
-    def default_rules
+    def self.default_rules
       {
-        active: {
+        'Active Clients' => {
           'operator' => 'and',
           'left' => {
             'operator' => 'and',
@@ -102,18 +126,34 @@ module GrdaWarehouse
           'right' => {
             'operator' => 'and',
             'left' => {
-              'column' => 'destination',
-              'operator' => '==',
-              'value' => nil,
+              'operator' => 'or',
+              'left' => {
+                'column' => 'destination',
+                'operator' => '==',
+                'value' => nil,
+              },
+              'right' => {
+                'column' => 'destination',
+                'operator' => '==',
+                'value' => '',
+              },
             },
             'right' => {
-              'column' => 'ineligible',
-              'operator' => '==',
-              'value' => nil,
+              'operator' => 'or',
+              'left' => {
+                'column' => 'ineligible',
+                'operator' => '==',
+                'value' => nil,
+              },
+              'right' => {
+                'column' => 'ineligible',
+                'operator' => '==',
+                'value' => false,
+              },
             },
           },
         },
-        housed: {
+        'Housed' => {
           'operator' => 'and',
           'left' => {
             'column' => 'housed_date',
@@ -121,12 +161,20 @@ module GrdaWarehouse
             'value' => nil,
           },
           'right' => {
-            'column' => 'destination',
-            'operator' => '<>',
-            'value' => nil,
+            'operator' => 'or',
+            'left' => {
+              'column' => 'destination',
+              'operator' => '<>',
+              'value' => nil,
+            },
+            'right' => {
+              'column' => 'destination',
+              'operator' => '<>',
+              'value' => '',
+            },
           },
         },
-        ineligible: {
+        'Ineligible' => {
           'operator' => 'and',
           'left' => {
             'column' => 'ineligible',
@@ -141,30 +189,27 @@ module GrdaWarehouse
               'value' => nil,
             },
             'right' => {
-              'column' => 'destination',
-              'operator' => '==',
-              'value' => nil,
+              'operator' => 'or',
+              'left' => {
+                'column' => 'destination',
+                'operator' => '==',
+                'value' => nil,
+              },
+              'right' => {
+                'column' => 'destination',
+                'operator' => '==',
+                'value' => '',
+              },
             },
           },
         },
-        inactive: {
+        'Inactive' => {
           'column' => 'active',
           'operator' => '==',
           'value' => false,
         },
         # NOTE: deleted scope is left off since it requires overriding the default scop
       }
-    end
-
-    def column(key)
-      col = cohort_columns[key.to_sym]
-      return col if col.present?
-
-      raise 'Unknown Column'
-    end
-
-    def cohort_columns
-      @cohort_columns ||= GrdaWarehouse::Cohort.available_columns.select(&:available_for_rules?).index_by(&:column)
     end
   end
 end
