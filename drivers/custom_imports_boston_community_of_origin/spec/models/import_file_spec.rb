@@ -22,8 +22,8 @@ RSpec.describe CustomImportsBostonCommunityOfOrigin::ImportFile, type: :model do
 
   describe 'with context' do
     let!(:wc) { create :fixed_warehouse_client }
-    let!(:e1) { create :hud_enrollment, personal_id: wc.source.personal_id, data_source_id: wc.source.data_source_id, last_permanent_zip: '05301' }
-    let!(:e2) { create :hud_enrollment, personal_id: wc.source.personal_id, data_source_id: wc.source.data_source_id }
+    let!(:e1) { create :hud_enrollment, personal_id: wc.source.personal_id, enrollment_id: 'E-1', data_source_id: wc.source.data_source_id, last_permanent_zip: '05301' }
+    let!(:e2) { create :hud_enrollment, personal_id: wc.source.personal_id, enrollment_id: 'E-2', data_source_id: wc.source.data_source_id }
 
     it 'creates locations' do
       c1 = wc.source
