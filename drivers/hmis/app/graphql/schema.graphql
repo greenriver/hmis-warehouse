@@ -4134,6 +4134,7 @@ type Project {
   housingType: HousingType
   hudId: ID!
   id: ID!
+  incomingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date!
@@ -4575,6 +4576,28 @@ enum RecordType {
   (144) SSVF Service
   """
   SSVF_SERVICE
+}
+
+type ReferralPosting {
+  chronic: Boolean
+  id: ID!
+  needsWheelchairAccessibleUnit: Boolean
+  referralDate: ISO8601Date!
+  referralIdentifier: ID
+  referralNotes: String
+  referredBy: String!
+  resourceCoordinatorNotes: String
+  score: Int
+}
+
+type ReferralPostingsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ReferralPosting!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type ReferralRequest {
