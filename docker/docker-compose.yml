@@ -157,11 +157,15 @@ services:
       - ./tmp/sftp_spec:/home/user/sftp
       - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
+  # On arm64, you'll need to run this before thigns work
+  # docker run --privileged --rm tonistiigi/binfmt --install amd64
   superset:
     container_name: hmis-warehouse-superset
-    image: voltrondata/superset-sqlalchemy-adbc-flight-sql
+    image: apache/superset
+    platform: linux/amd64
     environment:
       SUPERSET_ADMIN_PASSWORD: admin
+      SECRET_KEY: superset-secret-key
       VIRTUAL_HOST: superset.${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 8088
     depends_on:
@@ -172,8 +176,7 @@ services:
     expose:
       - 8088
     volumes:
-      - ./superset/config.py:/app/adbc/apache-superset/superset/config.py
-      - ./superset/op:/app/adbc/op
+      - ./superset/op:/app/pythonpath
 
   # See config/storage.yml for setup
   minio:

@@ -150,3 +150,4 @@ drivers/datalab_testkit/spec/fixtures/results/*
 
 # Superset storage
 superset/op/superset.db
+superset/op/__pycache__/*
