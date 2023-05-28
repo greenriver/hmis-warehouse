@@ -27,3 +27,37 @@ SQLALCHEMY_DATABASE_URI = "postgres://postgres:postgres@db/superset"
 # SQLALCHEMY_DATABASE_URI = 'sqlite:////app/pythonpath/superset.db'
 SQLALCHEMY_ECHO = True
 SECRET_KEY = "superset-secret-key"
+
+# from flask_appbuilder.security.manager import AUTH_OAUTH
+
+# # Set the authentication type to OAuth
+# AUTH_TYPE = AUTH_OAUTH
+# OAUTH_PROVIDERS = [
+#     {   'name':'WarehouseSSO',
+#         'token_key':'access_token', # Name of the token in the response of access_token_url
+#         'icon':'fa-address-card',   # Icon for the provider
+#         'remote_app': {
+#             'client_id':'c93xX0JyiMDEAJ0w_owqTM2Qa96TYM6MeOSpv8Cp2O4',  # Client Id (Identify Superset application)
+#             'client_secret':'qG3WHz8uKo4LlzRxfn4ebPF0b2ikENAPa6-67NMTVLY', # Secret for this Client Id (Identify Superset application)
+#             'client_kwargs':{
+#                 'scope': 'read'               # Scope for the Authorization
+#             },
+#             'access_token_method':'POST',    # HTTP Method to call access_token_url
+#             'access_token_params':{        # Additional parameters for calls to access_token_url
+#                 'client_id':'c93xX0JyiMDEAJ0w_owqTM2Qa96TYM6MeOSpv8Cp2O4'
+#             },
+#             'access_token_headers':{    # Additional headers for calls to access_token_url
+#                 'Authorization': 'Basic Base64EncodedClientIdAndSecret'
+#             },
+#             'api_base_url':'https://hmis-warehouse.dev.test/oauth/',
+#             'access_token_url':'https://hmis-warehouse.dev.test/oauth/token',
+#             'authorize_url':'https://hmis-warehouse.dev.test/oauth/authorize'
+#         }
+#     }
+# ]
+
+# # Will allow user self registration, allowing to create Flask users from Authorized User
+# AUTH_USER_REGISTRATION = True
+
+# # The default user self registration role
+# AUTH_USER_REGISTRATION_ROLE = "Public"
