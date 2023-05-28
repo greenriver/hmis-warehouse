@@ -109,7 +109,7 @@ module Types
     end
 
     def incoming_referral_postings(**args)
-      scoped_referral_postings(object.external_referral_postings, **args)
+      scoped_referral_postings(object.external_referral_postings.active, **args)
     end
   end
 end
