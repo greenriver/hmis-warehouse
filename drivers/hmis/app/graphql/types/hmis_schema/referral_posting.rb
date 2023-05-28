@@ -11,32 +11,70 @@ module Types
     # Fields that come from Referral
     field :referral_identifier, ID, null: true
     field :referral_date, GraphQL::Types::ISO8601Date, null: false
-    field :referred_by, String, null: false # service coordinator
+    field :referred_by, String, null: false
     field :referral_notes, String, null: true
-    field :resource_coordinator_notes, String, null: true
     field :chronic, Boolean, null: true
     field :score, Integer, null: true
     field :needs_wheelchair_accessible_unit, Boolean, null: true
 
     # Fields that come from ReferralHouseholdMembers
-    # hoh_name    // client.brief_name for the client where the relationship_to_hoh is 1
-    # householdSize
-    # clients {  Client type }
+    field :hoh_name, String, null: false
+    field :household_size, Integer, null: false
 
     # Fields that come from Posting
-    # postingIdentifier
-    # assignedDate // date created on the posting
-    # referralRequest { ReferralRequest type }
-    # status   // probably the updated_at and updated_by too
-    # statusNote   // probably the updated_at and updated_by too
-    # denialReason
-    # referralResult
-    # denialNote
+    field :resource_coordinator_notes, String, null: true
+    field :posting_identifier, ID, null: false, method: :identifier
+    field :assigned_date, GraphQL::Types::ISO8601Date, null: false, method: :created_at
+    field :referral_request, HmisSchema::ReferralRequest, null: true
+    field :status, HmisSchema::Enums::ReferralPostingStatus, null: false
+    field :status_updated_at, GraphQL::Types::ISO8601Date, null:true
+    field :status_updated_by, String, null:true
+    field :status_note, String, null: true
+    field :status_note_updated_at, GraphQL::Types::ISO8601Date, null:true
+    field :status_note_updated_by, String, null:true
+    field :denial_reason, String, null: true
+    field :referral_result, HmisSchema::Enums::Hud::ReferralResult, null: true
+    field :denial_note, String, null: true
+    field :referred_from, String, null: false
 
-    # Computed fields
-    #
-    # If  there is an enrollment linked to the Referral, this should be the `.project.project_name` of that enrollment.
-    # If not, it should just be "Coordinated Entry"
-    # referredFrom
+    def hoh_name
+      object.referral.household_members
+        .detect(&:self_head_of_household?)
+        &.client&.brief_name
+    end
+
+    def household_size
+      object.referral.household_members.size
+    end
+
+    def referred_from
+      object.project&.project_name || 'Coordinated Entry'
+    end
+
+    def status
+      object.status_before_type_cast
+    end
+
+    def status_updated_by
+      object.status_note_updated_by&.email
+    end
+
+    def status_note_updated_by
+      object.status_note_updated_by&.email
+    end
+
+    def referral_identifier
+      object.referral.identifier
+    end
+
+    def referred_by
+      object.referral.service_coordinator
+    end
+
+    [:referral_date, :referral_notes, :chronic, :score, :needs_wheelchair_accessible_unit].each do |name|
+      define_method(name) do
+        object.referral.send(name)
+      end
+    end
   end
 end

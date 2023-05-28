@@ -4579,15 +4579,47 @@ enum RecordType {
 }
 
 type ReferralPosting {
+  assignedDate: ISO8601Date!
   chronic: Boolean
+  denialNote: String
+  denialReason: String
+  hohName: String!
+  householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
+  postingIdentifier: ID!
   referralDate: ISO8601Date!
   referralIdentifier: ID
   referralNotes: String
+  referralRequest: ReferralRequest
+  referralResult: ReferralResult
   referredBy: String!
+  referredFrom: String!
   resourceCoordinatorNotes: String
   score: Int
+  status: ReferralPostingStatus!
+  statusNote: String
+  statusNoteUpdatedAt: ISO8601Date
+  statusNoteUpdatedBy: String
+  statusUpdatedAt: ISO8601Date
+  statusUpdatedBy: String
+}
+
+"""
+Referral Posting Status
+"""
+enum ReferralPostingStatus {
+  accepted_by_other_program_status
+  accepted_pending_status
+  accepted_status
+  assigned_status
+  assigned_to_other_program_status
+  closed_status
+  denied_pending_status
+  denied_status
+  new_status
+  not_selected_status
+  void_status
 }
 
 type ReferralPostingsPaginated {

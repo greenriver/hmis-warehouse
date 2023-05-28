@@ -10,6 +10,9 @@ module HmisExternalApis::AcHmis
     self.table_name = 'hmis_external_referral_household_members'
     belongs_to :referral, class_name: 'HmisExternalApis::AcHmis::Referral'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
-    validates :relationship_to_hoh, inclusion: { in: ::HudLists.relationship_to_ho_h_map.keys }, allow_blank: false
+
+    enum(
+      relationship_to_hoh: ::HudLists.relationship_to_ho_h_map_enum
+    )
   end
 end

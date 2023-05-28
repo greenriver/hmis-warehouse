@@ -22,7 +22,9 @@ module Types
       end
 
       def scoped_referral_postings(scope, sort_order: nil)
-        scope = scope.viewable_by(current_user).preload(:referral)
+        scope = scope.viewable_by(current_user)
+          .preload(referral: {household_members: :client})
+          .preload(:project)
         sort_order.present? ? scope.sort_by_option(sort_order) : scope
       end
     end
