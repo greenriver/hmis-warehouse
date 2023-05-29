@@ -51,7 +51,7 @@ class CohortsController < ApplicationController
 
   def show
     @modal_size = :xl
-    params[:population] ||= :active
+    params[:population] ||= 'Active Clients'
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)
     # leave off the pagination here and return all the data

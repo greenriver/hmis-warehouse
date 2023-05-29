@@ -11,7 +11,26 @@ module GrdaWarehouse
 
     belongs_to :cohort
 
-    def rule_query(composed_query, rule)
+    def show_for?(user)
+      return true if permissions.empty?
+
+      permissions.map do |perm|
+        user.send("#{perm}?")
+      end.any?
+    end
+
+    def cohort_client_filter(user) # rubocop:disable Lint/UnusedMethodArgument
+      # TODO: inactive and deleted need user permission scopes
+      # def inactive_scope user
+      # return @client_search_scope.none unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
+      # def show_inactive user
+      # return false unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
+      # def deleted_scope(user)
+      # return @client_search_scope.none unless can_see_deleted_cohort_clients?(user)
+      rule_query(nil, rules)
+    end
+
+    private def rule_query(composed_query, rule)
       return composed_query if rule.blank?
 
       return prepare_rule(rule) if rule.key?('column') # Base case: no children, return the arel
@@ -107,109 +126,141 @@ module GrdaWarehouse
     #   }
     # }
     def self.default_rules
-      {
-        'Active Clients' => {
-          'operator' => 'and',
-          'left' => {
+      [
+        {
+          name: 'Active Clients',
+          order: 0,
+          permissions: [],
+          rules: {
+            'operator' => 'and',
+            'left' => {
+              'operator' => 'and',
+              'left' => {
+                'column' => 'housed_date',
+                'operator' => '==',
+                'value' => nil,
+              },
+              'right' => {
+                'column' => 'active',
+                'operator' => '==',
+                'value' => true,
+              },
+            },
+            'right' => {
+              'operator' => 'and',
+              'left' => {
+                'operator' => 'or',
+                'left' => {
+                  'column' => 'destination',
+                  'operator' => '==',
+                  'value' => nil,
+                },
+                'right' => {
+                  'column' => 'destination',
+                  'operator' => '==',
+                  'value' => '',
+                },
+              },
+              'right' => {
+                'operator' => 'or',
+                'left' => {
+                  'column' => 'ineligible',
+                  'operator' => '==',
+                  'value' => nil,
+                },
+                'right' => {
+                  'column' => 'ineligible',
+                  'operator' => '==',
+                  'value' => false,
+                },
+              },
+            },
+          },
+        },
+        {
+          name: 'Housed',
+          order: 1,
+          permissions: [],
+          rules: {
             'operator' => 'and',
             'left' => {
               'column' => 'housed_date',
-              'operator' => '==',
+              'operator' => '<>',
               'value' => nil,
             },
             'right' => {
-              'column' => 'active',
+              'operator' => 'or',
+              'left' => {
+                'column' => 'destination',
+                'operator' => '<>',
+                'value' => nil,
+              },
+              'right' => {
+                'column' => 'destination',
+                'operator' => '<>',
+                'value' => '',
+              },
+            },
+          },
+        },
+        {
+          name: 'Ineligible',
+          order: 2,
+          permissions: [],
+          rules: {
+            'operator' => 'and',
+            'left' => {
+              'column' => 'ineligible',
               'operator' => '==',
               'value' => true,
             },
-          },
-          'right' => {
-            'operator' => 'and',
-            'left' => {
+            'right' => {
               'operator' => 'or',
               'left' => {
-                'column' => 'destination',
+                'column' => 'housed_date',
                 'operator' => '==',
                 'value' => nil,
               },
               'right' => {
-                'column' => 'destination',
-                'operator' => '==',
-                'value' => '',
-              },
-            },
-            'right' => {
-              'operator' => 'or',
-              'left' => {
-                'column' => 'ineligible',
-                'operator' => '==',
-                'value' => nil,
-              },
-              'right' => {
-                'column' => 'ineligible',
-                'operator' => '==',
-                'value' => false,
+                'operator' => 'or',
+                'left' => {
+                  'column' => 'destination',
+                  'operator' => '==',
+                  'value' => nil,
+                },
+                'right' => {
+                  'column' => 'destination',
+                  'operator' => '==',
+                  'value' => '',
+                },
               },
             },
           },
         },
-        'Housed' => {
-          'operator' => 'and',
-          'left' => {
-            'column' => 'housed_date',
-            'operator' => '<>',
-            'value' => nil,
-          },
-          'right' => {
-            'operator' => 'or',
-            'left' => {
-              'column' => 'destination',
-              'operator' => '<>',
-              'value' => nil,
-            },
-            'right' => {
-              'column' => 'destination',
-              'operator' => '<>',
-              'value' => '',
-            },
-          },
-        },
-        'Ineligible' => {
-          'operator' => 'and',
-          'left' => {
-            'column' => 'ineligible',
+        {
+          name: 'Inactive',
+          order: 3,
+          permissions: [
+            :can_view_inactive_cohort_clients,
+            :can_manage_inactive_cohort_clients,
+          ],
+          rules: {
+            'column' => 'active',
             'operator' => '==',
-            'value' => true,
-          },
-          'right' => {
-            'operator' => 'or',
-            'left' => {
-              'column' => 'housed_date',
-              'operator' => '==',
-              'value' => nil,
-            },
-            'right' => {
-              'operator' => 'or',
-              'left' => {
-                'column' => 'destination',
-                'operator' => '==',
-                'value' => nil,
-              },
-              'right' => {
-                'column' => 'destination',
-                'operator' => '==',
-                'value' => '',
-              },
-            },
+            'value' => false,
           },
         },
-        'Inactive' => {
-          'column' => 'active',
-          'operator' => '==',
-          'value' => false,
+        {
+          name: 'Removed Clients',
+          order: 4,
+          base_scope: :only_deleted,
+          permissions: [
+            :can_view_deleted_cohort_clients,
+            :can_add_cohort_clients,
+          ],
+          rules: {},
         },
-        # NOTE: deleted scope is left off since it requires overriding the default scop
-      }
+      ]
     end
   end
 end

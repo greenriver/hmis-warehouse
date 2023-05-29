@@ -795,7 +795,7 @@ GEM
       rubocop (>= 1.7.0, < 2.0)
     rubocop-rspec (2.5.0)
       rubocop (~> 1.19)
-    ruby-filemagic (0.7.2)
+    ruby-filemagic (0.7.3)
     ruby-graphviz (1.2.5)
       rexml
     ruby-mailchecker (4.0.13)

@@ -80,8 +80,8 @@ SET default_table_access_method = heap;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -1728,14 +1728,6 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
 -- Name: warehouse_data_quality_report_enrollments warehouse_data_quality_report_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2853,6 +2845,13 @@ CREATE INDEX pdq_rep_act_ent_head_enr ON public.warehouse_data_quality_report_en
 --
 
 CREATE INDEX pdq_rep_act_ext_head_enr ON public.warehouse_data_quality_report_enrollments USING btree (report_id, active, exited, head_of_household, enrolled);
+
+
+--
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
