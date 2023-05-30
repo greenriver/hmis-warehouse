@@ -558,29 +558,9 @@ enum ClientContactPointSystem {
   email
 
   """
-  Fax
-  """
-  fax
-
-  """
-  Other
-  """
-  other
-
-  """
-  Pager
-  """
-  pager
-
-  """
   Phone
   """
   phone
-
-  """
-  Sms
-  """
-  sms
 
   """
   Url
