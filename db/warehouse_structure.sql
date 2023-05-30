@@ -644,7 +644,6 @@ CREATE TABLE public."Client" (
     "NativeHIPacific" integer,
     "NoSingleGender" integer,
     tc_hat_additional_days_homeless integer DEFAULT 0,
-    preferred_name character varying,
     pronouns character varying,
     sexual_orientation character varying,
     health_housing_navigator_id bigint,
@@ -4177,7 +4176,11 @@ CREATE TABLE public.boston_project_scorecard_reports (
     plan_to_address_barriers boolean,
     contracted_budget double precision,
     archive character varying,
-    required_match_percent_met boolean
+    required_match_percent_met boolean,
+    increased_employment_income double precision,
+    increased_other_income double precision,
+    invoicing_timeliness integer,
+    invoicing_accuracy integer
 );
 
 
@@ -50159,7 +50162,7 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
 
 
 --
@@ -50216,13 +50219,6 @@ CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_
 --
 
 CREATE UNIQUE INDEX unique_index_ensuring_one_key_per_record_type ON public."CustomDataElementDefinitions" USING btree (owner_type, key);
-
-
---
--- Name: unique_index_ensuring_one_primary_per_client; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."CustomClientName" USING btree ("PersonalID", data_source_id) WHERE ("primary" = true);
 
 
 --
@@ -53094,7 +53090,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230522112916'),
 ('20230522183433'),
 ('20230523142004'),
+('20230525164255'),
+('20230525182401'),
 ('20230525193939'),
-('20230526173129');
+('20230525202043'),
+('20230526173129'),
+('20230526191445');
 
 

@@ -1,0 +1,15 @@
+{
+  "type": "GROUP",
+  "link_id": "name",
+  "text": "Name",
+  "required": false,
+  "item": [
+    {
+      "type": "OBJECT",
+      "component": "NAME",
+      "repeats": true,
+      "link_id": "names",
+      "field_name": "names"
+    }
+  ]
+}
