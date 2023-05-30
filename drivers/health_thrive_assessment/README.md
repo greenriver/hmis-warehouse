@@ -1,3 +1,4 @@
 ## HealthThriveAssessment README
 
-This README file should be used to explain the functionality of the driver.
+Implements the BMC THRIVE.  THRIVE is the Boston Medical Center social determinants
+of health (SDoH) screener.

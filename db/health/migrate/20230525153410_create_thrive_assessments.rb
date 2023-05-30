@@ -1,8 +1,8 @@
 class CreateThriveAssessments < ActiveRecord::Migration[6.1]
   def change
     create_table :thrive_assessments do |t|
-      t.references :patient
-      t.references :user
+      t.references :patient, null: false
+      t.references :user, null: false
 
       t.boolean :decline_to_answer
       t.integer :housing_status

@@ -5,17 +5,18 @@
 ###
 
 module HealthThriveAssessment
-  class AssessmentsController < HealthController
+  class AssessmentsController < IndividualPatientController
     include AjaxModalRails::Controller
 
-    before_action :set_patient
+    before_action :set_client
+    before_action :set_hpc_patient
     before_action :set_assessment, only: [:edit, :update, :show, :destroy]
 
     def new
-      if @patient.thrive_assessments.in_progress.exists?
-        @assessment = @patient.thrive_assessments.in_progress.first
+      @assessment = if @patient.thrive_assessments.in_progress.exists?
+        @patient.thrive_assessments.in_progress.first
       else
-        @assessment = @patient.thrive_assessments.create!(user: current_user)
+        @patient.thrive_assessments.create!(user: current_user)
       end
       redirect_to edit_client_health_thrive_assessment_assessment_path(@client, @assessment)
     end
@@ -25,7 +26,7 @@ module HealthThriveAssessment
 
     def update
       @assessment.update(assessment_params)
-      redirect_to client_health_careplans_path(@client)
+      respond_with @assessment, location: client_health_careplans_path(@client)
     end
 
     def show
@@ -33,7 +34,7 @@ module HealthThriveAssessment
 
     def destroy
       @assessment.destroy
-      redirect_to client_health_careplans_path(@client)
+      respond_with @assessment, location: client_health_careplans_path(@client)
     end
 
     private def assessment_params
@@ -59,11 +60,6 @@ module HealthThriveAssessment
         :help_with_education,
         :completed_on,
       )
-    end
-
-    private def set_patient
-      @client = ::GrdaWarehouse::Hud::Client.find(params[:client_id])
-      @patient = @client.patient
     end
 
     private def set_assessment
