@@ -30,7 +30,7 @@ module GrdaWarehouse
       rule_query(nil, rules)
     end
 
-    private def rule_query(composed_query, rule)
+    def rule_query(composed_query, rule)
       return composed_query if rule.blank?
 
       return prepare_rule(rule) if rule.key?('column') # Base case: no children, return the arel

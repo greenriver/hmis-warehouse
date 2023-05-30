@@ -132,8 +132,8 @@ class CohortsController < ApplicationController
       # Always add the cohort to the system group
       AccessGroup.maintain_system_groups(group: :cohorts)
       # Add default tabs
-      GrdaWarehouse::CohortTab.default_rules.each do |name, rules|
-        @cohort.cohort_tabs.create(name: name, rules: rules)
+      GrdaWarehouse::CohortTab.default_rules.each do |rule|
+        @cohort.cohort_tabs.create(**rule)
       end
     end
     # Search the list so you can see the newly created cohort
