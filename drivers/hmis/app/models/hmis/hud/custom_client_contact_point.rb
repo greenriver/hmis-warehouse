@@ -4,10 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Represents a way to contact a Client (typically by phone or email)
+# Based on https://build.fhir.org/datatypes.html#ContactPoint
 class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   self.table_name = :CustomClientContactPoint
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  # Based on https://build.fhir.org/valueset-contact-point-use.html
   USE_VALUES = [
     :home,
     :work,
@@ -16,14 +19,11 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
     :mobile,
   ].freeze
 
+  # Based on https://build.fhir.org/valueset-contact-point-system.html
   SYSTEM_VALUES = [
-    :phone,
-    # :fax,
-    :email,
-    # :pager,
-    :url, # can be used for whatsapp etc
-    # :sms,
-    :other, # misc - unsure
+    :phone, # value is a phone number (for voice or sms)
+    :email, # value is an email address
+    :url,   # value is not a phone or email and is expressed as a URL. (E.g. Skype, Twitter, Facebook, etc.) Do not use for email addresses.
   ].freeze
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
