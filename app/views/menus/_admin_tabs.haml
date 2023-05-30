@@ -53,3 +53,6 @@
     - if can_manage_inbound_api_configurations?
       %li.nav-item{role: 'presentation', class: ('active' if controller_name == 'inbound_api_configurations')}
         = link_to 'Inbound APIs', admin_inbound_api_configurations_path, class: 'nav-link'
+    - if can_manage_config?
+      %li.nav-item{role: 'presentation', class: ('active' if controller_name == 'idunno')}
+        = link_to 'Oauth', oauth_applications_path, class: 'nav-link'

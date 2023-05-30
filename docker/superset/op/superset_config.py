@@ -30,6 +30,9 @@ from celery.schedules import crontab
 
 logger = logging.getLogger()
 
+# FIXME: this is for dev only and untested
+import urllib3
+urllib3.disable_warnings()
 
 # def get_env_variable(var_name: str, default: Optional[str] = None) -> str:
 #     """Get the environment variable or raise exception."""
@@ -102,14 +105,65 @@ logger = logging.getLogger()
 
 FEATURE_FLAGS = {"ALERT_REPORTS": True}
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = True
-#WEBDRIVER_BASEURL = "http://superset:8088/"
-WEBDRIVER_BASEURL = "https://open-path-superset.127.0.0.1.nip.io/"
+WEBDRIVER_BASEURL = os.environ['SUPERSET_WEBDRIVER_BASEURL']
 # The base URL for the email report hyperlinks.
 WEBDRIVER_BASEURL_USER_FRIENDLY = WEBDRIVER_BASEURL
 
 SQLLAB_CTAS_NO_LIMIT = True
 
 SQLALCHEMY_DATABASE_URI = "postgres://postgres:postgres@db/superset"
+
+SQLALCHEMY_ECHO = True
+
+SECRET_KEY = os.environ["SUPERSET_SECRET_KEY"]
+
+# Redirect doesn't have https without this
+ENABLE_PROXY_FIX = True
+
+print("Initializing oauth configuration")
+
+from flask_appbuilder.security.manager import AUTH_OAUTH
+
+# Set the authentication type to OAuth
+AUTH_TYPE = AUTH_OAUTH
+OAUTH_PROVIDERS = [
+    {   'name': 'WarehouseSSO',
+        'token_key': 'access_token', # Name of the token in the response of access_token_url
+        'icon': 'fa-address-card',   # Icon for the provider
+        'remote_app': {
+            'client_id': os.environ['SUPERSET_OAUTH_CLIENT_ID'], # Client Id (Identify Superset application)
+            'client_secret': os.environ['SUPERSET_OAUTH_CLIENT_SECRET'], # Secret for this Client Id (Identify Superset application)
+            'client_kwargs': {
+                'scope': 'public'               # Scope for the Authorization
+            },
+            'access_token_method': 'POST',    # HTTP Method to call access_token_url
+            'access_token_params': {        # Additional parameters for calls to access_token_url
+                'client_id': os.environ['SUPERSET_OAUTH_CLIENT_ID']
+            },
+            'access_token_headers':{    # Additional headers for calls to access_token_url
+                #     'Authorization': 'Basic Base64EncodedClientIdAndSecret'
+                # FIXME: make dynamic
+                'Host': 'open-path-superset.127.0.0.1.nip.io'
+            },
+            'api_base_url': os.environ['SUPERSET_OAUTH_API_BASE_URL'],
+            'access_token_url': os.environ['SUPERSET_OAUTH_ACCESS_TOKEN_URL'],
+            'authorize_url': os.environ['SUPERSET_OAUTH_AUTHORIZE_URL']
+        }
+    }
+]
+
+from doorkeeper_sso_security_manager import DoorkeeperSsoSecurityManager
+
+CUSTOM_SECURITY_MANAGER = DoorkeeperSsoSecurityManager
+
+
+print("Done with oauth configuration")
+
+# # Will allow user self registration, allowing to create Flask users from Authorized User
+# AUTH_USER_REGISTRATION = True
+
+# # The default user self registration role
+# AUTH_USER_REGISTRATION_ROLE = "Public"
 
 #
 # Optionally import superset_config_docker.py (which will have been included on
@@ -123,4 +177,4 @@ try:
         f"Loaded your Docker configuration at " f"[{superset_config_docker.__file__}]"
     )
 except ImportError:
-    logger.info("Using default Docker config...")
+    logger.info("Using default config...")

@@ -112,6 +112,18 @@ services:
       - mailhog
       - minio
 
+  ngrok:
+    network_mode: host
+    tty: true
+    stdin_open: true
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    image: ngrok/ngrok
+    command:
+      - http
+      - https://open-path-warehouse.127.0.0.1.nip.io
+      - --request-header-add=host:open-path-warehouse.127.0.0.1.nip.io
+
   db:
     image: postgis/postgis:12-3.1-alpine
     container_name: hmis-warehouse-db
@@ -162,7 +174,7 @@ services:
   #
   # First time running:
   #   docker compose run superset /app/pythonpath/init.sh
-  superset:
+  superset: &superset
     container_name: hmis-warehouse-superset
     build:
       context: docker/superset
@@ -172,11 +184,16 @@ services:
       - "traefik.http.routers.op-superset.rule=Host(`open-path-superset.127.0.0.1.nip.io`)"
       - "traefik.http.routers.op-superset.tls=true"
       - "traefik.http.services.op-superset.loadbalancer.server.port=8088"
+    extra_hosts:
+      # The backend needs to talk through your reverse-proxy (like nginx-proxy or traefik)
+      # FIXME: make this flexible
+      - 'open-path-warehouse.127.0.0.1.nip.io:172.18.0.4'
     environment:
       SUPERSET_ADMIN_PASSWORD: admin
       SUPERSET_SECRET_KEY: superset-secret-key-1234
       VIRTUAL_HOST: superset.${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 8088
+      SUPERSET_WEBDRIVER_BASEURL: ${SUPERSET_WEBDRIVER_BASEURL:-http://superset:8088/}
       # These need to come from /oauth/applications in the warehouse
       # application when logged in as an admin with those permissions
       SUPERSET_OAUTH_CLIENT_ID: setinoverride
@@ -185,10 +202,12 @@ services:
       SUPERSET_OAUTH_ACCESS_TOKEN_URL: setinoverride
       SUPERSET_OAUTH_API_BASE_URL: setinoverride
     depends_on:
-      superset_init:
-        condition: service_completed_successfully
       db:
         condition: service_healthy
+      superset_init:
+        condition: service_completed_successfully
+      superset_init_2:
+        condition: service_completed_successfully
     expose:
       - 8088
     volumes:
@@ -213,6 +232,7 @@ services:
     command: server --certs-dir /certs /data
 
   superset_init:
+    container_name: superset_make_db
     environment:
       PGPASSWORD: postgres
       PGUSER: postgres
@@ -225,6 +245,20 @@ services:
       - ./docker/superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
     depends_on:
       - db
+
+  superset_init_2:
+    <<: *superset
+    container_name: superset_init_user_and_db_structure
+    entrypoint: ''
+    command: /init.sh
+    volumes:
+      - ./docker/superset/op/init.sh:/init.sh
+      - ./docker/superset/op:/app/pythonpath
+    depends_on:
+      superset_init:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
 
 volumes:
   bundle_alpine:

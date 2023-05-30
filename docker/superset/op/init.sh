@@ -1,14 +1,25 @@
 #!/bin/bash
 
-superset db upgrade
+flag=/app/pythonpath/.did.db.init
 
-superset fab create-admin \
-  --username admin \
-  --firstname Superset \
-  --lastname Admin \
-  --email admin@superset.com \
-  --password admin
+if grep ok $flag
+then
+  echo Not initing db
+else
+  echo Upgrading superset database
 
-superset init
+  superset db upgrade
 
-# superset load_examples
+  superset fab create-admin \
+    --username admin \
+    --firstname Superset \
+    --lastname Admin \
+    --email admin@superset.com \
+    --password admin
+
+  superset init
+
+  echo ok > $flag
+
+  # superset load_examples
+fi
