@@ -1,0 +1,15 @@
+{
+  "type": "GROUP",
+  "link_id": "address-group",
+  "text": "Address",
+  "required": false,
+  "item": [
+    {
+      "type": "OBJECT",
+      "component": "ADDRESS",
+      "repeats": true,
+      "link_id": "addresses",
+      "field_name": "addresses"
+    }
+  ]
+}

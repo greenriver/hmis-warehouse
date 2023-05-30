@@ -46,14 +46,14 @@ module Types
 
       result = transform_changes(object, result).map do |key, value|
         name = key.camelize(:lower)
-        field = Hmis::Hud::Processors::Base.hud_type(name, schema_type)
+        gql_enum = Hmis::Hud::Processors::Base.graphql_enum(name, schema_type)
 
         values = value.map do |val|
           next unless val.present?
-          next val unless field.present?
-          next val.map { |v| v.present? ? field.key_for(v) : nil } if val.is_a? Array
+          next val unless gql_enum.present?
+          next val.map { |v| v.present? ? gql_enum.key_for(v) : nil } if val.is_a? Array
 
-          field.key_for(val)
+          gql_enum.key_for(val)
         end
 
         values = 'changed' unless authorize_field(object, key)

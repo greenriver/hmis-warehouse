@@ -39,18 +39,21 @@ RSpec.describe Hmis::Hud::Client, type: :model do
   end
 
   describe 'with multiple names' do
+    let!(:c1) { create :hmis_hud_client_complete, data_source: ds1, user: u1, FirstName: 'Jelly', LastName: 'Bean' }
+
     it 'should handle names correctly' do
       n1 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'First', primary: true)
       n2 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Second')
       n3 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Third')
-
+      c1.update(names: [n1, n2, n3])
       expect(c1.names).to contain_exactly(*[n1, n2, n3].map { |n| have_attributes(id: n.id) })
       expect(c1.names.primary_names).to contain_exactly(have_attributes(id: n1.id))
       expect(c1.primary_name).to have_attributes(id: n1.id)
+      expect(c1.valid?).to be true
 
-      expect do
-        create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Fourth', primary: true)
-      end.to raise_error(ActiveRecord::RecordNotUnique)
+      n4 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Fourth', primary: true)
+      c1.update(names: [n1, n2, n3, n4])
+      expect(c1.valid?).to be false
     end
 
     it 'should update name when primary name is updated' do

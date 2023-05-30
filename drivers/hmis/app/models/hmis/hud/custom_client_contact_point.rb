@@ -52,7 +52,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
     SYSTEM_VALUES
   end
 
-  def ==(other)
+  def equal_for_merge?(other)
     columns = [:system, :use, :value]
 
     columns.all? do |col|

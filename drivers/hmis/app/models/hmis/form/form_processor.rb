@@ -271,7 +271,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
       # Skip relation fields, to avoid errors like "Income Benefit is invalid" on the Enrollment
       ar_errors = record.errors.errors.reject do |e|
-        e.attribute.to_s.underscore.ends_with?('_id') || record.send(e.attribute).is_a?(ActiveRecord::Relation)
+        e.attribute.to_s.underscore.ends_with?('_id') || (record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation))
       end
       errors.add_ar_errors(ar_errors)
     end
