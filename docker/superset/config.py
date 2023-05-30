@@ -196,7 +196,8 @@ SECRET_KEY = os.environ.get("SUPERSET_SECRET_KEY") or CHANGE_ME_SECRET_KEY
 
 # The SQLAlchemy connection string.
 # SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DATA_DIR, "op" "superset.db")
-SQLALCHEMY_DATABASE_URI = "sqlite:////app/adbc/op/superset.db"
+#SQLALCHEMY_DATABASE_URI = "sqlite:////app/adbc/op/superset.db"
+SQLALCHEMY_DATABASE_URI = "postgres://postgres:postgres@db/superset"
 # SQLALCHEMY_DATABASE_URI = 'mysql://myapp@localhost/myapp'
 # SQLALCHEMY_DATABASE_URI = 'postgresql://root:password@localhost/myapp'
 # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:postgres@db/superset'

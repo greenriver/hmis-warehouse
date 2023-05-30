@@ -102,11 +102,14 @@ logger = logging.getLogger()
 
 FEATURE_FLAGS = {"ALERT_REPORTS": True}
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = True
-WEBDRIVER_BASEURL = "http://superset:8088/"
+#WEBDRIVER_BASEURL = "http://superset:8088/"
+WEBDRIVER_BASEURL = "https://open-path-superset.127.0.0.1.nip.io/"
 # The base URL for the email report hyperlinks.
 WEBDRIVER_BASEURL_USER_FRIENDLY = WEBDRIVER_BASEURL
 
 SQLLAB_CTAS_NO_LIMIT = True
+
+SQLALCHEMY_DATABASE_URI = "postgres://postgres:postgres@db/superset"
 
 #
 # Optionally import superset_config_docker.py (which will have been included on

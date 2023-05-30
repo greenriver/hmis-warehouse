@@ -157,11 +157,16 @@ services:
       - ./tmp/sftp_spec:/home/user/sftp
       - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
-  # On arm64, you'll need to run this before thigns work
-  # docker run --privileged --rm tonistiigi/binfmt --install amd64
+  # On arm64, you'll need to run this before things work:
+  #   docker run --privileged --rm tonistiigi/binfmt --install amd64
+  #
+  # First time running:
+  #   docker compose run superset /app/pythonpath/init.sh
   superset:
     container_name: hmis-warehouse-superset
-    image: apache/superset
+    build:
+      context: docker/superset
+    image: op-superset
     platform: linux/amd64
     labels:
       - "traefik.http.routers.op-superset.rule=Host(`open-path-superset.127.0.0.1.nip.io`)"
@@ -169,9 +174,16 @@ services:
       - "traefik.http.services.op-superset.loadbalancer.server.port=8088"
     environment:
       SUPERSET_ADMIN_PASSWORD: admin
-      SECRET_KEY: superset-secret-key
+      SUPERSET_SECRET_KEY: superset-secret-key-1234
       VIRTUAL_HOST: superset.${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 8088
+      # These need to come from /oauth/applications in the warehouse
+      # application when logged in as an admin with those permissions
+      SUPERSET_OAUTH_CLIENT_ID: setinoverride
+      SUPERSET_OAUTH_CLIENT_SECRET: setinoverride
+      SUPERSET_OAUTH_AUTHORIZE_URL: setinoverride
+      SUPERSET_OAUTH_ACCESS_TOKEN_URL: setinoverride
+      SUPERSET_OAUTH_API_BASE_URL: setinoverride
     depends_on:
       superset_init:
         condition: service_completed_successfully
@@ -180,7 +192,7 @@ services:
     expose:
       - 8088
     volumes:
-      - ./superset/op:/app/pythonpath
+      - ./docker/superset/op:/app/pythonpath
 
   # See config/storage.yml for setup
   minio:
@@ -210,7 +222,7 @@ services:
     command:
       - ''
     volumes:
-      - ./superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
+      - ./docker/superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
     depends_on:
       - db
 

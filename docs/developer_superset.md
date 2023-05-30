@@ -11,11 +11,7 @@ docker-compose up superset
 ```
 If all goes well, it'll run through the config and you'll end up with a new `superset` db on your postgres container.  If it looks like there were any errors, open a second terminal and run the following:
 ```sh
-docker-compose exec superset bash
-superset db upgrade
-superset fab create-admin --username admin --password admin --firstname Super --lastname Admin --email admin@greenriver.com
-superset load_examples
-superset init
+docker compose run superset /app/pythonpath/init.sh
 ```
 
 At this point the usual `docker-compose up -d` should bring up a functional superset installation at http://superset.hmis-warehouse.dev.test.
