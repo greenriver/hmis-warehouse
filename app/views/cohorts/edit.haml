@@ -5,7 +5,8 @@
     &laquo; Cohort
 = simple_form_for @cohort, as: :cohort, url: cohort_path(@cohort) do |f|
   .row
-    .col-sm-8
+    .col-sm-6
+      %h3 Overview
       .well
         = f.input :name, disabled: @cohort.system_cohort
         = f.input :short_name, input_html: {maxlength: 8, style: 'width: 8em;'}
@@ -13,6 +14,7 @@
         = f.input :only_window, as: :pretty_boolean, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
         = f.input :enforce_project_visibility_on_cells, as: :pretty_boolean, label: 'Enforce project visibility', hint: 'For cells that show project details, limit to projects each user can see.  If disabled, all projects are visible, confidential projects will not be exposed.'
         = f.input :active_cohort, as: :pretty_boolean, label: 'Active'
+    .col-sm-6
       %h3 Access
       .well
         = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: 'Specified user and members of specified groups will have access to this cohort.'
@@ -24,7 +26,8 @@
         = f.input :show_on_client_dashboard, as: :pretty_boolean, label: 'Show cohort in client dashboard?'
         = f.input :visible_in_cas, as: :pretty_boolean,  label: 'Show cohort in CAS?'
         = f.input :tag_id, collection: CasAccess::Tag.available_cohort_tags, label: 'CAS Tag', hint: 'A CAS tag should only be applied to one cohort at a time.  It is used in conjunction with the Rank prioritization scheme to determine which cohort client rank to use for a client.', as: :select_two
-
+  .row
+    .col-sm-6
       %h3 View Options
       .well
         = f.input :days_of_inactivity, label: 'How many days of client inactivity should trigger a warning?', input_html: {style: 'width: 6em;'}
@@ -35,7 +38,7 @@
         - unless @assessment_types.blank?
           = f.input :assessment_trigger, collection: @assessment_types, label: 'Assessment submission triggers client addition to cohort:', as: :select_two
         = f.input :default_sort_direction, collection: @cohort.class.sort_directions.invert, include_blank: false, selected: @cohort.default_sort_direction, hint: hint, as: :select_two
-
+    .col-sm-6
       %h3 Thresholds
       .well
         %p Thresholds are a mechanism to add context to a location on a cohort.  You choose a row number, color, and label and a line of the color chosen will be drawn at that location.  These have no functional purpose, but can be coordinated with a rule in CAS that matches on rank.
@@ -45,14 +48,36 @@
               .col-2= f.input "threshold_row_#{i}", label: 'Threshold'
               .col-3= f.input "threshold_color_#{i}", label: false, input_html: {class: 'colorpicker mt-no-label'}
               .col= f.input "threshold_label_#{i}", label: 'Label'
-        .row
-          .col-sm-6
-            - unless @cohort.system_cohort
-              = link_to cohort_path(@cohort), method: :delete, data: {confirm: "Are you sure you want to delete cohort \"#{@cohort.name}\"?"}, class: 'btn btn-danger' do
-                %i.icon-cross
-                Delete Cohort
-          .col-sm-6.text-right
-            = f.submit value: 'Update Cohort', class: 'btn btn-primary'
+  .row
+    .col-sm-12
+      %h3 Tabs
+      .well
+        %p The following tabs will be available to people who can access this cohort.  If you would like additional tabs to be visible, please concact your site adminstrator.
+        %table.table
+          %thead
+            %tr
+              %th Tab
+              %th Required Permission
+              %th SQL Query
+          %tbody
+            - @cohort.cohort_tabs.order(order: :asc).each do |tab|
+              %tr
+                %th= tab.name
+                %%td
+                  - tab.permissions.each do |perm|
+                    %div
+                      %strong= perm.to_s.humanize
+                      %br
+                      %em= Role.permissions_with_descriptions[perm.to_sym][:description]
+                %td= tab.to_sql
+  .row
+    .col-sm-6
+      - unless @cohort.system_cohort
+        = link_to cohort_path(@cohort), method: :delete, data: {confirm: "Are you sure you want to delete cohort \"#{@cohort.name}\"?"}, class: 'btn btn-danger' do
+          %i.icon-cross
+          Delete Cohort
+    .col-sm-6.text-right
+      = f.submit value: 'Update Cohort', class: 'btn btn-primary'
 
 = content_for :page_js do
   :javascript

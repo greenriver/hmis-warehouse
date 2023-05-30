@@ -30,6 +30,10 @@ module GrdaWarehouse
       rule_query(nil, rules)
     end
 
+    def to_sql
+      rule_query(nil, rules)&.to_sql
+    end
+
     def rule_query(composed_query, rule)
       return composed_query if rule.blank?
 
