@@ -16,7 +16,7 @@
       "fragment": "#client_demographics"
     },
     {
-      "fragment": "#client_addresses"
+      "fragment": "#client_contact_information"
     },
     {
       "fragment": "#client_photo",
