@@ -87,12 +87,18 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(
+      return @conn unless @conn.nil?
+
+      user_pass_base_64 = Base64.encode64("#{creds.client_id}:#{creds.client_secret}")
+      additional_headers = creds.additional_headers
+      additional_headers['Authorization'] = "Basic #{user_pass_base_64}"
+
+      @conn = HmisExternalApis::OauthClientConnection.new(
         client_id: creds.client_id,
         client_secret: creds.client_secret,
         token_url: creds.token_url,
         base_url: creds.base_url,
-        headers: creds.additional_headers,
+        headers: additional_headers,
         scope: creds.oauth_scope,
       )
     end

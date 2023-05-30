@@ -22,8 +22,6 @@ RSpec.describe 'Data Warehouse API', type: :model do
     let(:subject) { HmisExternalApis::AcHmis::DataWarehouseApi.new }
 
     before do
-      user_pass_base_64 = Base64.encode64("#{client_id}:#{client_secret}")
-
       ::GrdaWarehouse::RemoteCredentials::Oauth.create!(
         client_id: client_id,
         client_secret: client_secret,
@@ -31,7 +29,6 @@ RSpec.describe 'Data Warehouse API', type: :model do
         additional_headers: {
           'X-DwApi-Key' => api_key,
           'Ocp-Apim-Subscription-Key' => ocp_apim_subscription_key,
-          'Authorization' => "Basic #{user_pass_base_64}",
         },
         base_url: base_url,
         oauth_scope: 'API_TEST',
