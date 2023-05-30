@@ -163,6 +163,10 @@ services:
     container_name: hmis-warehouse-superset
     image: apache/superset
     platform: linux/amd64
+    labels:
+      - "traefik.http.routers.op-superset.rule=Host(`open-path-superset.127.0.0.1.nip.io`)"
+      - "traefik.http.routers.op-superset.tls=true"
+      - "traefik.http.services.op-superset.loadbalancer.server.port=8088"
     environment:
       SUPERSET_ADMIN_PASSWORD: admin
       SECRET_KEY: superset-secret-key
