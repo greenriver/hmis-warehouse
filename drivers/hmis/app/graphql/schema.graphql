@@ -399,6 +399,7 @@ type Client {
   disabilityGroups: [DisabilityGroup!]!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
+  emailAddresses: [ClientContactPoint!]!
   enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   externalIds: [ExternalIdentifier!]!
@@ -415,6 +416,7 @@ type Client {
   nameSuffix: String
   names: [ClientName!]!
   personalId: String!
+  phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!

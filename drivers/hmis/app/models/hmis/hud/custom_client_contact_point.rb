@@ -18,12 +18,12 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
 
   SYSTEM_VALUES = [
     :phone,
-    :fax,
+    # :fax,
     :email,
-    :pager,
-    :url,
-    :sms,
-    :other,
+    # :pager,
+    :url, # can be used for whatsapp etc
+    # :sms,
+    :other, # misc - unsure
   ].freeze
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
@@ -39,6 +39,9 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   replace_scope :viewable_by, ->(user) do
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
   end
+
+  scope :phones, -> { where(system: :phone) }
+  scope :emails, -> { where(system: :email) }
 
   def self.hud_key
     :ContactPointID

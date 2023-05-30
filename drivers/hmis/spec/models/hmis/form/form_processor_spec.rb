@@ -571,7 +571,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
         custom_form.hud_values = complete_hud_values
         custom_form.form_processor.run!(owner: client, user: hmis_user)
-        # binding.pry unless client.persisted?
         client.save!
         client.reload
 
@@ -752,9 +751,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           # 3) Delete the old secondary name (by not including it)
         ],
       )
-      custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
-      # binding.pry
-      custom_form.owner.save!
+      custom_form.form_processor.run!(owner: client, user: hmis_user)
+      client.save!
       client.reload
 
       # Ensure primary name is stored on Client
@@ -840,6 +838,105 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
         expect(custom_form.owner.valid?).to eq(false)
       end
+    end
+
+    it 'updates, adds, and deletes CustomClientAddresses' do
+      # Give client some addresses
+      client = c1
+      addr1 = create(:hmis_hud_custom_client_address, client: client)
+      addr2 = create(:hmis_hud_custom_client_address, client: client)
+      expect(client.addresses.size).to eq(2)
+
+      # Submit a form that changes the address
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'addresses' => [
+          # Update addr 1
+          {
+            id: addr1.id,
+            city: 'foo',
+          }.stringify_keys,
+          # Add a new addr
+          {
+            city: 'bar',
+          }.stringify_keys,
+          # Delete addr 2 (by not including it)
+        ],
+      )
+      custom_form.form_processor.run!(owner: client, user: hmis_user)
+      client.save!
+      client.reload
+
+      expect(client.addresses.size).to eq(2)
+      expect(client.addresses.pluck(:id)).to include(addr1.id)
+      expect(client.addresses.pluck(:id)).not_to include(addr2.id)
+      expect(client.addresses.pluck(:city)).to contain_exactly('foo', 'bar')
+    end
+
+    it 'updates, adds, and deletes client phone numbers' do
+      # Give client some contacts
+      client = c1
+      contact1 = create(:hmis_hud_custom_client_contact_point, client: client, system: :phone)
+      contact2 = create(:hmis_hud_custom_client_contact_point, client: client, system: :phone)
+      expect(client.contact_points.phones.size).to eq(2)
+
+      # Submit a form that changes the contacts
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'phoneNumbers' => [
+          # Update contact 1
+          {
+            id: contact1.id,
+            value: '8025550000',
+          }.stringify_keys,
+          # Add a new contact
+          {
+            value: '6031110000',
+          }.stringify_keys,
+          # Delete contact 2 (by not including it)
+        ],
+      )
+      custom_form.form_processor.run!(owner: client, user: hmis_user)
+      client.save!
+      client.reload
+
+      expect(client.contact_points.phones.size).to eq(2)
+      expect(client.contact_points.pluck(:id)).to include(contact1.id)
+      expect(client.contact_points.pluck(:id)).not_to include(contact2.id)
+      expect(client.contact_points.pluck(:value)).to contain_exactly('8025550000', '6031110000')
+    end
+
+    it 'updates, adds, and deletes client emails' do
+      # Give client some contacts
+      client = c1
+      contact1 = create(:hmis_hud_custom_client_contact_point, client: client, system: :email)
+      contact2 = create(:hmis_hud_custom_client_contact_point, client: client, system: :email)
+      expect(client.contact_points.emails.size).to eq(2)
+
+      # Submit a form that changes the contacts
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'emailAddresses' => [
+          # Update contact 1
+          {
+            id: contact1.id,
+            value: 'foo@bar.com',
+          }.stringify_keys,
+          # Add a new contact
+          {
+            value: 'baz@boop.com',
+          }.stringify_keys,
+          # Delete contact 2 (by not including it)
+        ],
+      )
+      custom_form.form_processor.run!(owner: client, user: hmis_user)
+      client.save!
+      client.reload
+
+      expect(client.contact_points.emails.size).to eq(2)
+      expect(client.contact_points.pluck(:id)).to include(contact1.id)
+      expect(client.contact_points.pluck(:id)).not_to include(contact2.id)
+      expect(client.contact_points.pluck(:value)).to contain_exactly('foo@bar.com', 'baz@boop.com')
     end
   end
 

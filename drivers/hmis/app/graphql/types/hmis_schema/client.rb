@@ -46,6 +46,8 @@ module Types
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
+    field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
+    field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     enrollments_field without_args: [:search_term]
     income_benefits_field
     disabilities_field
@@ -201,6 +203,14 @@ module Types
       end
 
       object.names
+    end
+
+    def phone_numbers
+      object.contact_points.where(system: :phone)
+    end
+
+    def email_addresses
+      object.contact_points.where(system: :email)
     end
   end
 end
