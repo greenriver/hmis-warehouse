@@ -68,28 +68,29 @@ module HealthThriveAssessment
 
     def question_labels
       {
-        housing_status: 'What is your living situation today?',
-        food_insecurity: "Within the past 12 months, the food you bought just didn't last and you didn't have money to get more.",
-        food_worries: 'Within the past 12 months, you worried whether your food would run out before you got money to buy more.',
-        trouble_drug_cost: 'Do you have trouble paying for medicines?',
-        trouble_medical_transportation: 'Do you have trouble gettng transportation to medical appointments?',
-        trouble_utility_cost: 'Do you have trouble paying your heating or electricity bill?',
-        trouble_caring_for_family: 'Do you have trouble taking care of a child, family member or friend?',
-        unemployed: 'Are you currently unemployed and looking for a job?',
-        interested_in_education: 'Are you interested in more education?',
+        housing_status: ['What is your living situation today?', housing_statuses],
+        food_insecurity: ["Within the past 12 months, the food you bought just didn't last and you didn't have money to get more.", food_insecurity_responses],
+        food_worries: ['Within the past 12 months, you worried whether your food would run out before you got money to buy more.', food_worries_responses],
+        trouble_drug_cost: ['Do you have trouble paying for medicines?', yes_no],
+        trouble_medical_transportation: ['Do you have trouble gettng transportation to medical appointments?', yes_no],
+        trouble_utility_cost: ['Do you have trouble paying your heating or electricity bill?', yes_no],
+        trouble_caring_for_family: ['Do you have trouble taking care of a child, family member or friend?', yes_no],
+        unemployed: ['Are you currently unemployed and looking for a job?', yes_no],
+        interested_in_education: ['Are you interested in more education?', yes_no],
       }
     end
 
     def help_labels
       {
-        help_with_food: 'Housing / Shelter',
-        help_with_drug_cost: 'Food',
-        help_with_medical_transportation: 'Paying for Medicine',
-        help_with_utilities: 'Transportation to medical appointments',
-        help_with_childcare: 'Utilities',
-        help_with_eldercare: 'Child care / Daycare',
-        help_with_job_search: 'Care for elder or disabled',
-        help_with_education: 'Job search / training',
+        help_with_housing: 'Housing / Shelter',
+        help_with_food: 'Food',
+        help_with_drug_cost: 'Paying for Medicine',
+        help_with_medical_transportation: 'Transportation to medical appointments',
+        help_with_utilities: 'Utilities',
+        help_with_childcare: 'Child care / Daycare',
+        help_with_eldercare: 'Care for elder or disabled',
+        help_with_job_search: 'Job search / training',
+        help_with_education: 'Education',
       }
     end
   end

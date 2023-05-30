@@ -14,28 +14,13 @@
         = link_to 'Delete', client_health_thrive_assessment_assessment_path(@client, @assessment), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure you want to delete this THRIVE?"}
 
 .well.mt-4
-  = f.input :housing_status, as: :select_two, collection: @assessment.housing_statuses, label: 'What is your living situation today?'
-  = f.input :food_insecurity, as: :select_two, collection: @assessment.food_insecurity_responses , label: "Within the past 12 months, the food you bought just didn't last and you didn't have money to get more."
-  = f.input :food_worries, as: :select_two, collection: @assessment.food_worries_responses , label: "Within the past 12 months, you worried whether your food would run out before you got money to buy more."
-  = f.input :trouble_drug_cost, as: :select_two, collection: @assessment.yes_no, label: 'Do you have trouble paying for medicines?'
-  = f.input :trouble_medical_transportation, as: :select_two, collection: @assessment.yes_no, label: 'Do you have trouble gettng transportation to medical appointments?'
-  = f.input :trouble_utility_cost, as: :select_two, collection: @assessment.yes_no, label: 'Do you have trouble paying your heating or electricity bill?'
-  = f.input :trouble_caring_for_family, as: :select_two, collection: @assessment.yes_no, label: 'Do you have trouble taking care of a child, family member or friend?'
-  = f.input :unemployed, as: :select_two, collection: @assessment.yes_no, label: 'Are you currently unemployed and looking for a job?'
-  = f.input :interested_in_education, as: :select_two, collection: @assessment.yes_no, label: 'Are you interested in more education?'
+  - @assessment.question_labels.each do |key, (label, collection)|
+    = f.input key, as: :select_two, collection: collection, label: label
 
 %h2 Resources you want help with:
 .well
-  = f.input :help_with_food, as: :pretty_boolean, label: 'Housing / Shelter'
-  = f.input :help_with_drug_cost, as: :pretty_boolean, label: 'Food'
-  = f.input :help_with_medical_transportation, as: :pretty_boolean, label: 'Paying for Medicine'
-  = f.input :help_with_utilities, as: :pretty_boolean, label: 'Transportation to medical appointments'
-  = f.input :help_with_childcare, as: :pretty_boolean, label: 'Utilities'
-  = f.input :help_with_eldercare, as: :pretty_boolean, label: 'Child care / Daycare'
-  = f.input :help_with_job_search, as: :pretty_boolean, label: 'Care for elder or disabled'
-  = f.input :help_with_education, as: :pretty_boolean, label: 'Job search / training'
-
-= f.input :decline_to_answer, as: :pretty_boolean, label: 'I do not want to answer these questions'
+  - @assessment.help_labels.each do |key, label|
+    = f.input key, as: :pretty_boolean, label: label
 
 .well
   = f.input :completed_on, as: :date_picker

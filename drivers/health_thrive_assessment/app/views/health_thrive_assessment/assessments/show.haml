@@ -25,13 +25,15 @@
       %h4 Screening Questions
       %table.table-sm
         %tbody
-          - @assessment.question_labels.each do |attr, label|
+          - @assessment.question_labels.each do |attr, (label, source)|
             - value = @assessment.send(attr)
             -next if value.nil?
             %tr
               %td= label
               - if value.in?([true, false])
-                %td= yes_no(value)
+                %td= yes_no(value) # Use the helper to include the checkmark
+              - elsif source.present?
+                %td= source.invert[value.to_sym]
               - else
                 %td= value.humanize
 
