@@ -2153,14 +2153,15 @@ type File {
   enrollment: Enrollment
   enrollmentId: ID
   expirationDate: ISO8601Date
-  fileBlobId: ID!
+  fileBlobId: ID
   id: ID!
   name: String!
   ownFile: Boolean!
+  redacted: Boolean!
   tags: [String!]!
   updatedBy: ApplicationUser
   uploadedBy: ApplicationUser
-  url: String!
+  url: String
   user: User
 }
 
