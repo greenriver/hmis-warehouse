@@ -119,6 +119,8 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+      PGPASSWORD: postgres
+      PGUSER: postgres
     volumes:
       - dbdata:/var/lib/postgresql/data
     ports:
