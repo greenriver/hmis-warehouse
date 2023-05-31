@@ -1863,7 +1863,7 @@ enum EnrollmentSortOption {
   HOUSEHOLD_ID
 
   """
-  Most Recent First
+  Most Recent
   """
   MOST_RECENT
 }
