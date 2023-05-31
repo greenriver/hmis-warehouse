@@ -118,9 +118,15 @@ module Types
     field :service, Types::HmisSchema::Service, 'Service lookup', null: true do
       argument :id, ID, required: true
     end
-
     def service(id:)
       Hmis::Hud::HmisService.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :service_type, Types::HmisSchema::ServiceType, 'Service type lookup', null: true do
+      argument :id, ID, required: true
+    end
+    def service_type(id:)
+      Hmis::Hud::CustomServiceType.find_by(id: id)
     end
 
     field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do

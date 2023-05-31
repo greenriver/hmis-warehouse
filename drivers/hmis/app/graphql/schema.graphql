@@ -4353,6 +4353,11 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
+
+  """
+  Service type lookup
+  """
+  serviceType(id: ID!): ServiceType
 }
 
 type QueryAccess {
@@ -5101,6 +5106,17 @@ enum ServiceSubTypeProvided {
   (2) Transportation services
   """
   SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__TRANSPORTATION_SERVICES
+}
+
+type ServiceType {
+  category: String!
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  hudRecordType: RecordType
+  hudTypeProvided: ServiceTypeProvided
+  id: ID!
+  name: String!
+  user: User
 }
 
 """
