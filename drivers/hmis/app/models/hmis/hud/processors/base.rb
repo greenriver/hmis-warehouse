@@ -146,11 +146,11 @@ class Hmis::Hud::Processors::Base
   end
 
   # Get attributes for nested record(s)
-  def construct_nested_attributes(attribute_name, value, additional_attributes = {})
+  def construct_nested_attributes(field, value, additional_attributes: {}, scope_name: nil)
     values = Array.wrap(value)
 
-    object_type = graphql_type(attribute_name) # eg the ClientName type
-    raise "'#{attribute_name}' not found in gql schema" unless object_type.present?
+    object_type = graphql_type(field) # eg the ClientName type
+    raise "'#{field}' not found in gql schema" unless object_type.present?
 
     # Construct attribute objects for creating/updating records
     attributes = values.map do |attribute_hash|
@@ -166,7 +166,10 @@ class Hmis::Hud::Processors::Base
     end
 
     # Add directive to destroy any records that aren't present in values
-    existing_values_ids = @processor.send(factory_name).send(attribute_name).pluck(:id)
+    attribute_name = ar_attribute_name(field)
+    existing_values = @processor.send(factory_name).send(attribute_name)
+    existing_values = existing_values.send(scope_name) if scope_name.present?
+    existing_values_ids = existing_values.pluck(:id)
     seen_ids = attributes.map { |obj| obj[:id]&.to_i }.compact
     (existing_values_ids - seen_ids).each do |id_to_delete|
       attributes.unshift({ id: id_to_delete, _destroy: '1' })

@@ -15,6 +15,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  self.ignored_columns = ['preferred_name']
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -43,6 +44,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
+  accepts_nested_attributes_for :addresses, allow_destroy: true
+  accepts_nested_attributes_for :contact_points, allow_destroy: true
 
   # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
   has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
@@ -246,7 +249,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
 
     # TODO: nicks and/or metaphone searches?
-    scope = scope.where(c_t[:preferred_name].matches("#{input.preferred_name}%")) if input.preferred_name.present?
     scope = scope.where(c_t[:SSN].matches("%#{input.ssn_serial}")) if input.ssn_serial.present?
     scope = scope.where(c_t[:DOB].eq(Date.parse(input.dob))) if input.dob.present?
 
@@ -322,7 +324,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Mirrors `clientBriefName` in frontend
   def brief_name
-    preferred_name || [first_name, last_name].compact.join(' ')
+    [first_name, last_name].compact.join(' ')
   end
 
   include RailsDrivers::Extensions
