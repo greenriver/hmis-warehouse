@@ -7,8 +7,8 @@
 module Hmis::Hud::Processors
   class IncomeBenefitProcessor < Base
     def process(field, value)
-      attribute_name = hud_name(field)
-      attribute_value = attribute_value_for_enum(hud_type(field), value)
+      attribute_name = ar_attribute_name(field)
+      attribute_value = attribute_value_for_enum(graphql_enum(field), value)
       attribute_value = 0 if override_to_no?(attribute_name, attribute_value)
 
       @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)

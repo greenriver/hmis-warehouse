@@ -399,6 +399,7 @@ type Client {
   disabilityGroups: [DisabilityGroup!]!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
+  emailAddresses: [ClientContactPoint!]!
   enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   externalIds: [ExternalIdentifier!]!
@@ -415,7 +416,7 @@ type Client {
   nameSuffix: String
   names: [ClientName!]!
   personalId: String!
-  preferredName: String
+  phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
@@ -443,6 +444,7 @@ type ClientAccess {
 }
 
 type ClientAddress {
+  addressType: ClientAddressType
   city: String
   client: Client!
   country: String
@@ -456,7 +458,6 @@ type ClientAddress {
   notes: String
   postalCode: String
   state: String
-  type: ClientAddressType
   use: ClientAddressUse
   user: User
 }
@@ -465,8 +466,19 @@ type ClientAddress {
 Allowed values for ClientAddress.type
 """
 enum ClientAddressType {
+  """
+  Both
+  """
   both
+
+  """
+  Physical
+  """
   physical
+
+  """
+  Postal
+  """
   postal
 }
 
@@ -474,10 +486,29 @@ enum ClientAddressType {
 Allowed values for ClientAddress.use
 """
 enum ClientAddressUse {
+  """
+  Home
+  """
   home
+
+  """
+  Mail
+  """
   mail
+
+  """
+  Old
+  """
   old
+
+  """
+  Temp
+  """
   temp
+
+  """
+  Work
+  """
   work
 }
 
@@ -521,12 +552,19 @@ type ClientContactPoint {
 Allowed values for ClientContactPoint.system
 """
 enum ClientContactPointSystem {
+  """
+  Email
+  """
   email
-  fax
-  other
-  pager
+
+  """
+  Phone
+  """
   phone
-  sms
+
+  """
+  Url
+  """
   url
 }
 
@@ -534,10 +572,29 @@ enum ClientContactPointSystem {
 Allowed values for ClientContactPoint.use
 """
 enum ClientContactPointUse {
+  """
+  Home
+  """
   home
+
+  """
+  Mobile
+  """
   mobile
+
+  """
+  Old
+  """
   old
+
+  """
+  Temp
+  """
   temp
+
+  """
+  Work
+  """
   work
 }
 
@@ -571,12 +628,39 @@ type ClientName {
 Allowed values for ClientName.use
 """
 enum ClientNameUse {
+  """
+  Anonymous
+  """
   anonymous
+
+  """
+  Maiden
+  """
   maiden
+
+  """
+  Nickname
+  """
   nickname
+
+  """
+  Official
+  """
   official
+
+  """
+  Old
+  """
   old
+
+  """
+  Temp
+  """
   temp
+
+  """
+  Usual
+  """
   usual
 }
 
@@ -597,7 +681,6 @@ input ClientSearchInput {
   lastName: String
   organizations: [ID!]
   personalId: String
-  preferredName: String
   projects: [ID!]
 
   """
@@ -659,6 +742,11 @@ type ClientsPaginated {
 
 enum Component {
   """
+  Client Address input
+  """
+  ADDRESS
+
+  """
   Display text as an error alert
   """
   ALERT_ERROR
@@ -689,6 +777,11 @@ enum Component {
   DISABILITY_TABLE
 
   """
+  Email address input for ContactPoint
+  """
+  EMAIL
+
+  """
   Render a group of inputs horizontally
   """
   HORIZONTAL_GROUP
@@ -707,6 +800,16 @@ enum Component {
   MCI linking component
   """
   MCI
+
+  """
+  Client Name input
+  """
+  NAME
+
+  """
+  Phone number input for ContactPoint
+  """
+  PHONE
 
   """
   Render a choice input item as radio buttons
@@ -3150,6 +3253,7 @@ enum ItemType {
   GROUP
   IMAGE
   INTEGER
+  OBJECT
   OPEN_CHOICE
   STRING
   TEXT
@@ -4010,6 +4114,7 @@ type Project {
   housingType: HousingType
   hudId: ID!
   id: ID!
+  incomingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date!
@@ -4451,6 +4556,103 @@ enum RecordType {
   (144) SSVF Service
   """
   SSVF_SERVICE
+}
+
+type ReferralPosting {
+  assignedDate: ISO8601Date!
+  chronic: Boolean
+  denialNote: String
+  denialReason: String
+  hohName: String!
+  householdSize: Int!
+  id: ID!
+  needsWheelchairAccessibleUnit: Boolean
+  postingIdentifier: ID
+  referralDate: ISO8601Date!
+  referralIdentifier: ID
+  referralNotes: String
+  referralRequest: ReferralRequest
+  referralResult: ReferralResult
+  referredBy: String!
+  referredFrom: String!
+  resourceCoordinatorNotes: String
+  score: Int
+  status: ReferralPostingStatus!
+  statusNote: String
+  statusNoteUpdatedAt: ISO8601Date
+  statusNoteUpdatedBy: String
+  statusUpdatedAt: ISO8601Date
+  statusUpdatedBy: String
+}
+
+"""
+Referral Posting Status
+"""
+enum ReferralPostingStatus {
+  """
+  Accepted By Other Program
+  """
+  accepted_by_other_program_status
+
+  """
+  Accepted Pending
+  """
+  accepted_pending_status
+
+  """
+  Accepted
+  """
+  accepted_status
+
+  """
+  Assigned
+  """
+  assigned_status
+
+  """
+  Assigned To Other Program
+  """
+  assigned_to_other_program_status
+
+  """
+  Closed
+  """
+  closed_status
+
+  """
+  Denied Pending
+  """
+  denied_pending_status
+
+  """
+  Denied
+  """
+  denied_status
+
+  """
+  New
+  """
+  new_status
+
+  """
+  Not Selected
+  """
+  not_selected_status
+
+  """
+  Void
+  """
+  void_status
+}
+
+type ReferralPostingsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ReferralPosting!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type ReferralRequest {

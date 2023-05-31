@@ -1,12 +1,14 @@
 version: '3.8'
 
 x-app: &app
-  image: hmis-warehouse:3.5
+  image: hmis-warehouse:3.6
   build:
     context: .
     args:
       RUBY_VERSION: 3.1.3
       BUNDLER_VERSION: '2.4.10'
+      USER_ID: ${USER_ID:-1001}
+      GROUP_ID: ${GROUP_ID:-1001}
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
@@ -38,6 +40,7 @@ x-backend: &backend
     - bundle_alpine:/bundle
     - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates
     - /etc/ssl/certs:/etc/ssl/certs
+    - node_modules_alpine:/node_modules
 
 services:
   shell:
@@ -133,6 +136,8 @@ services:
       PGPASSWORD: postgres
       PGUSER: postgres
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+      PGPASSWORD: postgres
+      PGUSER: postgres
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
       interval: 10s

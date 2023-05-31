@@ -14,8 +14,8 @@ class Hmis::Hud::Processors::Base
   end
 
   def process(field, value)
-    attribute_name = hud_name(field)
-    attribute_value = attribute_value_for_enum(hud_type(field), value)
+    attribute_name = ar_attribute_name(field)
+    attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
     @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
@@ -31,24 +31,44 @@ class Hmis::Hud::Processors::Base
     @processor.send(factory_name, create: false)&.assign_attributes(information_date: date)
   end
 
-  def hud_name(field)
+  def ar_attribute_name(field)
     field.underscore
   end
 
-  def self.hud_type(field, schema)
+  # Get the GraphQL Type class for this field
+  def self.graphql_type(field, schema)
+    return nil unless schema.present?
     return nil unless schema.fields[field].present?
 
     type = schema.fields[field].type
     (type = type&.of_type) while type.non_null? || type.list?
+    type
+  end
+
+  # Get the GraphQL Enum class for this field (if any)
+  def self.graphql_enum(field, schema)
+    type = graphql_type(field, schema)
+    # return nil if it's not an Enum
     return nil unless type.respond_to?(:value_for)
 
     type
   end
 
-  def hud_type(field)
-    self.class.hud_type(field, schema)
+  def graphql_type(field)
+    self.class.graphql_type(field, schema)
   end
 
+  def graphql_enum(field)
+    self.class.graphql_enum(field, schema)
+  end
+
+  # Transform the received value into the value that should be stored in the database
+  # For example:
+  #     'CLIENT_REFUSED' => 9
+  #     ['PH', 'ES'] => [10, 1]
+  #     nil => 99
+  #     _HIDDEN => nil
+  #     'some value' => 'some value'
   def attribute_value_for_enum(enum_type, value)
     is_array = value.is_a? Array
 
@@ -81,6 +101,7 @@ class Hmis::Hud::Processors::Base
     raise 'Implement in sub-class'
   end
 
+  # Assign custom data element values to record, if this is a custom data element field
   def process_custom_field(field, value)
     record = @processor.send(factory_name)
     return false unless record.respond_to?(:custom_data_elements)
@@ -122,5 +143,38 @@ class Hmis::Hud::Processors::Base
 
     record.assign_attributes(custom_data_elements_attributes: Array.wrap(cde_attributes))
     true
+  end
+
+  # Get attributes for nested record(s)
+  def construct_nested_attributes(field, value, additional_attributes: {}, scope_name: nil)
+    values = Array.wrap(value)
+
+    object_type = graphql_type(field) # eg the ClientName type
+    raise "'#{field}' not found in gql schema" unless object_type.present?
+
+    # Construct attribute objects for creating/updating records
+    attributes = values.map do |attribute_hash|
+      raise "Error constructing nested attributes: expected Hash, found #{attribute_hash.class.name}" unless attribute_hash.is_a?(Hash)
+
+      transformed = attribute_hash.map do |field_name, field_value|
+        # transform "nameDataQuality"=>"FULL_NAME_REPORTED" to "name_data_quality"=>1
+        transformed_value = attribute_value_for_enum(self.class.graphql_enum(field_name, object_type), field_value)
+        [ar_attribute_name(field_name)&.to_sym, transformed_value]
+      end.to_h
+
+      { **transformed, **additional_attributes }
+    end
+
+    # Add directive to destroy any records that aren't present in values
+    attribute_name = ar_attribute_name(field)
+    existing_values = @processor.send(factory_name).send(attribute_name)
+    existing_values = existing_values.send(scope_name) if scope_name.present?
+    existing_values_ids = existing_values.pluck(:id)
+    seen_ids = attributes.map { |obj| obj[:id]&.to_i }.compact
+    (existing_values_ids - seen_ids).each do |id_to_delete|
+      attributes.unshift({ id: id_to_delete, _destroy: '1' })
+    end
+
+    { "#{attribute_name}_attributes" => attributes }
   end
 end
