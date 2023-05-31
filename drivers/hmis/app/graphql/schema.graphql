@@ -4114,6 +4114,7 @@ type Project {
   housingType: HousingType
   hudId: ID!
   id: ID!
+  incomingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date!
@@ -4555,6 +4556,103 @@ enum RecordType {
   (144) SSVF Service
   """
   SSVF_SERVICE
+}
+
+type ReferralPosting {
+  assignedDate: ISO8601Date!
+  chronic: Boolean
+  denialNote: String
+  denialReason: String
+  hohName: String!
+  householdSize: Int!
+  id: ID!
+  needsWheelchairAccessibleUnit: Boolean
+  postingIdentifier: ID
+  referralDate: ISO8601Date!
+  referralIdentifier: ID
+  referralNotes: String
+  referralRequest: ReferralRequest
+  referralResult: ReferralResult
+  referredBy: String!
+  referredFrom: String!
+  resourceCoordinatorNotes: String
+  score: Int
+  status: ReferralPostingStatus!
+  statusNote: String
+  statusNoteUpdatedAt: ISO8601Date
+  statusNoteUpdatedBy: String
+  statusUpdatedAt: ISO8601Date
+  statusUpdatedBy: String
+}
+
+"""
+Referral Posting Status
+"""
+enum ReferralPostingStatus {
+  """
+  Accepted By Other Program
+  """
+  accepted_by_other_program_status
+
+  """
+  Accepted Pending
+  """
+  accepted_pending_status
+
+  """
+  Accepted
+  """
+  accepted_status
+
+  """
+  Assigned
+  """
+  assigned_status
+
+  """
+  Assigned To Other Program
+  """
+  assigned_to_other_program_status
+
+  """
+  Closed
+  """
+  closed_status
+
+  """
+  Denied Pending
+  """
+  denied_pending_status
+
+  """
+  Denied
+  """
+  denied_status
+
+  """
+  New
+  """
+  new_status
+
+  """
+  Not Selected
+  """
+  not_selected_status
+
+  """
+  Void
+  """
+  void_status
+}
+
+type ReferralPostingsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ReferralPosting!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type ReferralRequest {
