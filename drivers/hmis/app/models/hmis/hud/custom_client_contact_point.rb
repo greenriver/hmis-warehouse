@@ -36,7 +36,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
     left_outer_joins(:active_range).where(ar_t[:end].eq(nil).or(ar_t[:end].gteq(date)))
   end
 
-  scope :viewable_by, ->(user) do
+  replace_scope :viewable_by, ->(user) do
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
   end
 
@@ -50,5 +50,13 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
 
   def self.system_values
     SYSTEM_VALUES
+  end
+
+  def ==(other)
+    columns = [:system, :use, :value]
+
+    columns.all? do |col|
+      send(col)&.strip&.downcase == other.send(col)&.strip&.downcase
+    end
   end
 end

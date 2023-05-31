@@ -24,6 +24,7 @@ module Types
     value 'UNITS', 'Units in the specified project'
     value 'AVAILABLE_UNITS', 'Unoccupied units in the specified project'
     value 'SERVICE_TYPE'
+    value 'AVAILABLE_SERVICE_TYPES'
     value 'SUB_TYPE_PROVIDED_3'
     value 'SUB_TYPE_PROVIDED_4'
     value 'SUB_TYPE_PROVIDED_5'

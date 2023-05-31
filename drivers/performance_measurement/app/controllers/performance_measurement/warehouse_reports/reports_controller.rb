@@ -66,7 +66,7 @@ module PerformanceMeasurement::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{@report.detail_title_for(@key).tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
+          filename = "#{@report.detail_title_for(@key).tr(' ', '-').tr(',', '')}-#{Date.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

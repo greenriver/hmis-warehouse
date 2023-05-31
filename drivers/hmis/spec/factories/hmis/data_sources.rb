@@ -6,8 +6,8 @@
 
 FactoryBot.define do
   factory :hmis_data_source, class: 'GrdaWarehouse::DataSource' do
-    sequence(:id, 1)
-    authoritative { true }
+    sequence(:id) { |n| n + 1 }
+    sequence(:authoritative, &:zero?)
     hmis { GraphqlHelpers::HMIS_HOSTNAME }
     name { 'HMIS' }
     short_name { 'HMIS' }

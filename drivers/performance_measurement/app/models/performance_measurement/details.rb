@@ -787,6 +787,7 @@ module PerformanceMeasurement::Details
           measure: 'Measure 2',
           detail_columns: [
             'days_to_return',
+            'prior_destination',
           ],
         },
         returned_in_two_years: {
@@ -807,6 +808,7 @@ module PerformanceMeasurement::Details
           measure: 'Measure 2',
           detail_columns: [
             'days_to_return',
+            'prior_destination',
           ],
         },
         increased_income_all_clients: {
@@ -971,7 +973,6 @@ module PerformanceMeasurement::Details
         "#{period}_current_project_types",
         "#{period}_prior_project_types",
         "#{period}_prior_living_situation",
-        "#{period}_destination",
       ] + detail_columns_for(key: key, period: period)
       PerformanceMeasurement::Client.column_titles(period: period).select { |k, _| k.to_s.in?(columns) }.to_h
     end
