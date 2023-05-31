@@ -1910,4 +1910,17 @@ module HudUtility
   def ignored_enum_value
     999
   end
+
+  # tranform up hud list for use as an enum
+  # {1 => 'Test (this)'} => {'test_this' => 1}
+  # @param name [Symbol] method on HudLists
+  def hud_list_map_as_enumerable(name)
+    original = ::HudLists.send(name)
+    keyed = original.invert.transform_keys do |key|
+      key.downcase.gsub(/[^a-z0-9]+/, ' ').strip.gsub(' ', '_')
+    end
+    raise "cannot key #{name}" if keyed.size != original.size
+
+    keyed
+  end
 end

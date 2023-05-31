@@ -15,6 +15,7 @@ module Types
     include Types::HmisSchema::HasUnits
     include Types::HmisSchema::HasHouseholds
     include Types::HmisSchema::HasReferralRequests
+    include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
@@ -50,6 +51,7 @@ module Types
     enrollments_field filter_omit: [:project_types], filter_type_name: 'EnrollmentsForProject'
     custom_data_elements_field
     referral_requests_field :referral_requests
+    referral_postings_field :incoming_referral_postings
     access_field do
       can :delete_project
       can :edit_project_details
@@ -104,6 +106,10 @@ module Types
 
     def referral_requests(**args)
       scoped_referral_requests(object.external_referral_requests, **args)
+    end
+
+    def incoming_referral_postings(**args)
+      scoped_referral_postings(object.external_referral_postings.active, **args)
     end
   end
 end

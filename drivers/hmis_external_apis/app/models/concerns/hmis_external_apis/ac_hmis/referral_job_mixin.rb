@@ -29,5 +29,10 @@ module HmisExternalApis::AcHmis
     def link
       @link ||= ::HmisExternalApis::AcHmis::LinkApi.new
     end
+
+    def format_date(date)
+      date&.strftime('%Y-%m-%d')
+    end
+
   end
 end

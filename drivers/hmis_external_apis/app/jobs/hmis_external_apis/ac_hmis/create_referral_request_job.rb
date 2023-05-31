@@ -22,10 +22,6 @@ module HmisExternalApis::AcHmis
 
     protected
 
-    def format_date(date)
-      date.strftime('%Y-%m-%d')
-    end
-
     def payload(record)
       project = record.project
       unit_type = record.unit_type
