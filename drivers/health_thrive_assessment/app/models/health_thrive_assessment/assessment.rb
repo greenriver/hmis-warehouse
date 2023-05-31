@@ -6,16 +6,37 @@
 
 module HealthThriveAssessment
   class Assessment < HealthBase
+    include Rails.application.routes.url_helpers
+
     phi_patient :patient_id
     phi_attr :user_id, Phi::SmallPopulation
     phi_attr :completed_at, Phi::Date
 
-    belongs_to :patient, optional: true
+    belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, optional: true
 
     scope :in_progress, -> { where(completed_on: nil) }
+    scope :completed_within, ->(range) { where(completed_on: range) }
+
+    scope :allowed_for_engagement, -> do
+      joins(patient: :patient_referrals).
+        merge(
+          ::Health::PatientReferral.contributing.
+            where(
+              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:completed_on].to_sql} + INTERVAL '1 year'")),
+            ),
+        )
+    end
 
     alias_attribute :completed_at, :completed_on
+
+    def active?
+      completed_on && completed_on >= 1.years.ago
+    end
+
+    def completed?
+      completed_on.present?
+    end
 
     enum housing_status: {
       steady: 10,
@@ -92,6 +113,10 @@ module HealthThriveAssessment
         help_with_job_search: 'Job search / training',
         help_with_education: 'Education',
       }
+    end
+
+    def edit_path
+      client_health_thrive_assessment_assessment_path(patient.client, self)
     end
   end
 end

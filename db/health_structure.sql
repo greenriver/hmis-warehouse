@@ -3174,6 +3174,39 @@ ALTER SEQUENCE public.hl7_value_set_codes_id_seq OWNED BY public.hl7_value_set_c
 
 
 --
+-- Name: hrsn_screenings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hrsn_screenings (
+    id bigint NOT NULL,
+    patient_id bigint,
+    instrument_type character varying,
+    instrument_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hrsn_screenings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hrsn_screenings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hrsn_screenings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hrsn_screenings_id_seq OWNED BY public.hrsn_screenings.id;
+
+
+--
 -- Name: import_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4611,8 +4644,8 @@ ALTER SEQUENCE public.teams_id_seq OWNED BY public.teams.id;
 
 CREATE TABLE public.thrive_assessments (
     id bigint NOT NULL,
-    patient_id bigint,
-    user_id bigint,
+    patient_id bigint NOT NULL,
+    user_id bigint NOT NULL,
     decline_to_answer boolean,
     housing_status integer,
     food_insecurity integer,
@@ -5565,6 +5598,13 @@ ALTER TABLE ONLY public.hl7_value_set_codes ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: hrsn_screenings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hrsn_screenings ALTER COLUMN id SET DEFAULT nextval('public.hrsn_screenings_id_seq'::regclass);
+
+
+--
 -- Name: import_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -6366,6 +6406,14 @@ ALTER TABLE ONLY public.health_goals
 
 ALTER TABLE ONLY public.hl7_value_set_codes
     ADD CONSTRAINT hl7_value_set_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hrsn_screenings hrsn_screenings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hrsn_screenings
+    ADD CONSTRAINT hrsn_screenings_pkey PRIMARY KEY (id);
 
 
 --
@@ -7258,6 +7306,20 @@ CREATE INDEX index_health_goals_on_patient_id ON public.health_goals USING btree
 --
 
 CREATE INDEX index_health_goals_on_user_id ON public.health_goals USING btree (user_id);
+
+
+--
+-- Name: index_hrsn_screenings_on_instrument; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hrsn_screenings_on_instrument ON public.hrsn_screenings USING btree (instrument_type, instrument_id);
+
+
+--
+-- Name: index_hrsn_screenings_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hrsn_screenings_on_patient_id ON public.hrsn_screenings USING btree (patient_id);
 
 
 --
@@ -8154,6 +8216,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230512151350'),
 ('20230516171211'),
 ('20230516171223'),
-('20230525153410');
+('20230525153410'),
+('20230526201807'),
+('20230530192424');
 
 

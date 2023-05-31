@@ -34,21 +34,21 @@ module Health
     end
 
     def ssm_status
-      ssm_form = @patient.self_sufficiency_matrix_forms.recent.first
-      return [:no_signed_form, 'Self-Sufficiency Matrix', new_client_health_self_sufficiency_matrix_form_path(@client), false, nil] if ssm_form.blank?
+      ssm_form = @patient.hrsn_screenings.recent.first&.instrument
+      return [:no_signed_form, 'HRSN Screening', new_client_health_thrive_assessment_assessment_path(@client), false, nil] if ssm_form.blank?
 
       if ssm_form.completed?
-        return [:too_old, 'Self-Sufficiency Matrix', new_client_health_self_sufficiency_matrix_form_path(@client), false, "Last completed on #{ssm_form.completed_at.to_date}"] if ssm_form.completed_at < @valid_after
-        return [:expired, 'Self-Sufficiency Matrix', new_client_health_self_sufficiency_matrix_form_path(@client), false, "Last completed on #{ssm_form.completed_at.to_date}"] unless ssm_form.active?
+        return [:too_old, 'HRSN Screening', new_client_health_thrive_assessment_assessment_path(@client), false, "Last completed on #{ssm_form.completed_at.to_date}"] if ssm_form.completed_at < @valid_after
+        return [:expired, 'HRSN Screening', new_client_health_thrive_assessment_assessment_path(@client), false, "Last completed on #{ssm_form.completed_at.to_date}"] unless ssm_form.active?
 
-        [:valid, 'Self-Sufficiency Matrix', client_health_self_sufficiency_matrix_form_path(@client, ssm_form), true, nil]
+        [:valid, 'HRSN Screening', ssm_form.edit_path, true, nil]
       else
-        return [:too_old, 'Self-Sufficiency Matrix', new_client_health_self_sufficiency_matrix_form_path(@client), false, "Last completed on #{ssm_form.completed_at.to_date}"] if ssm_form.completed_at.present? && ssm_form.completed_at < @valid_after
+        return [:too_old, 'HRSN Screening', new_client_health_thrive_assessment_assessment_path(@client), false, "Last completed on #{ssm_form.completed_at.to_date}"] if ssm_form.completed_at.present? && ssm_form.completed_at < @valid_after
 
-        prior_forms = @patient.self_sufficiency_matrix_forms.count > 1
-        return [:being_updated, 'Self-Sufficiency Matrix', client_health_self_sufficiency_matrix_form_path(@client, ssm_form), true, "Started on #{ssm_form.created_at.to_date}"] if prior_forms
+        prior_forms = @patient.hrsn_screenings.count > 1
+        return [:being_updated, 'HRSN Screening', ssm_form.edit_path, true, "Started on #{ssm_form.created_at.to_date}"] if prior_forms
 
-        [:in_progress, 'Self-Sufficiency Matrix', client_health_self_sufficiency_matrix_form_path(@client, ssm_form), true, "Started on #{ssm_form.created_at.to_date}"]
+        [:in_progress, 'HRSN Screening', ssm_form.edit_path, true, "Started on #{ssm_form.created_at.to_date}"]
       end
     end
 
