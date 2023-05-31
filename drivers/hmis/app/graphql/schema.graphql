@@ -400,7 +400,7 @@ type Client {
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   emailAddresses: [ClientContactPoint!]!
-  enrollments(filters: EnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(filters: EnrollmentsForClientFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
@@ -1840,13 +1840,6 @@ enum EnrollmentFilterOptionStatus {
   INCOMPLETE
 }
 
-input EnrollmentFilterOptions {
-  openOnDate: ISO8601Date
-  projectTypes: [ProjectType!]
-  searchTerm: String
-  statuses: [EnrollmentFilterOptionStatus!]
-}
-
 """
 HMIS Enrollment household member input
 """
@@ -1908,6 +1901,18 @@ enum EnrollmentStatus {
   Exit Incomplete
   """
   OWN_EXIT_INCOMPLETE
+}
+
+input EnrollmentsForClientFilterOptions {
+  openOnDate: ISO8601Date
+  projectTypes: [ProjectType!]
+  statuses: [EnrollmentFilterOptionStatus!]
+}
+
+input EnrollmentsForProjectFilterOptions {
+  openOnDate: ISO8601Date
+  searchTerm: String
+  statuses: [EnrollmentFilterOptionStatus!]
 }
 
 type EnrollmentsPaginated {
@@ -4139,7 +4144,7 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
-  enrollments(filters: EnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   households(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): HouseholdsPaginated!
   housingType: HousingType
