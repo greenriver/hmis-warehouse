@@ -12,7 +12,7 @@ module Types
     graphql_name 'ReferralPostingStatus'
 
     HmisExternalApis::AcHmis::ReferralPosting.statuses.each_pair do |field, field_value|
-      value field, value: field_value
+      value field, field.gsub(/_status\z/, '').gsub('_', ' ').titleize, value: field_value
     end
   end
 end

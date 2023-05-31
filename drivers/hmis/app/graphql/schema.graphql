@@ -4567,7 +4567,7 @@ type ReferralPosting {
   householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
-  postingIdentifier: ID!
+  postingIdentifier: ID
   referralDate: ISO8601Date!
   referralIdentifier: ID
   referralNotes: String
@@ -4589,16 +4589,59 @@ type ReferralPosting {
 Referral Posting Status
 """
 enum ReferralPostingStatus {
+  """
+  Accepted By Other Program
+  """
   accepted_by_other_program_status
+
+  """
+  Accepted Pending
+  """
   accepted_pending_status
+
+  """
+  Accepted
+  """
   accepted_status
+
+  """
+  Assigned
+  """
   assigned_status
+
+  """
+  Assigned To Other Program
+  """
   assigned_to_other_program_status
+
+  """
+  Closed
+  """
   closed_status
+
+  """
+  Denied Pending
+  """
   denied_pending_status
+
+  """
+  Denied
+  """
   denied_status
+
+  """
+  New
+  """
   new_status
+
+  """
+  Not Selected
+  """
   not_selected_status
+
+  """
+  Void
+  """
   void_status
 }
 
