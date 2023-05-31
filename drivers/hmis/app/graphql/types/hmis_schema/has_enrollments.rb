@@ -12,16 +12,20 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def enrollments_field(name = :enrollments, description = nil, type: Types::HmisSchema::Enrollment.page_type, without_args: [], filter_type_name: nil, filter_omit: [], filter_args: {}, **override_options, &block)
+        def enrollments_field(
+          name = :enrollments,
+          description = nil,
+          type: Types::HmisSchema::Enrollment.page_type,
+          filter_type_name: nil,
+          filter_omit: [],
+          filter_args: {},
+          **override_options,
+          &block
+        )
           default_field_options = { type: type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, HmisSchema::EnrollmentSortOption, required: false
-            argument :enrollment_limit, HmisSchema::EnrollmentLimit, required: false
-            argument :open_on_date, GraphQL::Types::ISO8601Date, required: false
-            argument :project_types, [Types::HmisSchema::Enums::ProjectType], required: false unless without_args.include? :project_types
-            argument :search_term, String, required: false unless without_args.include? :search_term
-
             filters_argument HmisSchema::Enrollment, type_name: filter_type_name, omit: filter_omit, **filter_args
 
             instance_eval(&block) if block_given?
