@@ -48,7 +48,7 @@ module Types
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    enrollments_field filter_omit: [:search_term], filter_type_name: 'EnrollmentsForClient'
+    enrollments_field filter_args: { omit: [:search_term], type_name: 'EnrollmentsForClient' }
     income_benefits_field
     disabilities_field
     disability_groups_field

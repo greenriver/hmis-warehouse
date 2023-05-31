@@ -1,0 +1,42 @@
+{
+  "name": "element-closest",
+  "version": "2.0.2",
+  "description": "Return the closest element matching a selector up the DOM tree",
+  "author": "Jonathan Neal <jonathantneal@hotmail.com> (http://jonathantneal.com)",
+  "license": "CC0-1.0",
+  "repository": "jonathantneal/closest",
+  "homepage": "https://github.com/jonathantneal/closest#readme",
+  "bugs": "https://github.com/jonathantneal/closest/issues",
+  "main": "element-closest.js",
+  "files": [
+    "element-closest.js"
+  ],
+  "scripts": {
+    "test": "eslint *.js --ignore-path .gitignore && jscs *.js"
+  },
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.8.1",
+    "eslint-config-10up": "github:jonathantneal/eslint-config-10up",
+    "jscs": "^3.0.7",
+    "jscs-config-10up": "github:jonathantneal/jscs-config-10up"
+  },
+  "eslintConfig": {
+    "extends": "10up"
+  },
+  "jscsConfig": {
+    "preset": "10up"
+  },
+  "keywords": [
+    "polyfill",
+    "dom",
+    "document",
+    "element",
+    "closest",
+    "matches",
+    "standard",
+    "specification"
+  ]
+}

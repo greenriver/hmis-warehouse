@@ -16,8 +16,6 @@ module Types
           name = :enrollments,
           description = nil,
           type: Types::HmisSchema::Enrollment.page_type,
-          filter_type_name: nil,
-          filter_omit: [],
           filter_args: {},
           **override_options,
           &block
@@ -26,7 +24,7 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, HmisSchema::EnrollmentSortOption, required: false
-            filters_argument HmisSchema::Enrollment, type_name: filter_type_name, omit: filter_omit, **filter_args
+            filters_argument HmisSchema::Enrollment, **filter_args
 
             instance_eval(&block) if block_given?
           end
@@ -43,14 +41,9 @@ module Types
 
       private
 
-      def scoped_enrollments(scope, sort_order: :most_recent, enrollment_limit: nil, open_on_date: nil, project_types: nil, search_term: nil, filters: nil)
+      def scoped_enrollments(scope, sort_order: :most_recent, filters: nil)
         scope = scope.viewable_by(current_user)
         scope = scope.apply_filters(filters) if filters.present?
-        scope = scope.not_in_progress if enrollment_limit == 'NON_WIP_ONLY'
-        scope = scope.in_progress if enrollment_limit == 'WIP_ONLY'
-        scope = scope.open_on_date(open_on_date) if open_on_date.present?
-        scope = scope.with_project_type(project_types) if project_types.present?
-        scope = scope.matching_search_term(search_term) if search_term.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end

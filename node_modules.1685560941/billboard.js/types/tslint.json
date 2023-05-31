@@ -1,0 +1,9 @@
+{
+    "extends": "dtslint/dtslint.json",
+    "rules": {
+        "semicolon": true,
+        "indent": [true, "tabs", 4],
+        "jsdoc-format": false,
+        "whitespace": [false, "check-module"]
+    }
+}

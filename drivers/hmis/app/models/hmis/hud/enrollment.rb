@@ -58,7 +58,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   SORT_OPTIONS = [:most_recent, :household_id].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
-    most_recent: 'Most Recent First',
+    most_recent: 'Most Recent',
     household_id: 'Household ID',
   }.freeze
 
