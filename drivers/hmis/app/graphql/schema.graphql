@@ -6025,6 +6025,11 @@ type ValueBound {
   id: String
 
   """
+  Value to offset the comparison value. Can be positive or negative. If date, offset is applied as number of days.
+  """
+  offset: Int
+
+  """
   Link ID of dependent question, if this items value should be compared to another items value
   """
   question: String
