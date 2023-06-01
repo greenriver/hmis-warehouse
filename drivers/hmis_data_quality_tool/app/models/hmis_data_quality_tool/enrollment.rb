@@ -530,14 +530,17 @@ module HmisDataQualityTool
         },
         exit_date_issues: {
           title: 'Exit Before Entry',
-          description: 'Enrollment exit date must occur after entry date',
+          description: 'Enrollment exit date must occur after entry date for residential projects, and on or after for all others',
           required_for: 'All',
           detail_columns: default_detail_columns + [
             :relationship_to_hoh,
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            item.exit_date.present? && item.exit_date < item.entry_date
+            return false unless item.exit_date.present?
+            return item.exit_date <= item.entry_date if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+
+            item.exit_date < item.entry_date
           },
         },
         destination_issues: {
@@ -627,9 +630,19 @@ module HmisDataQualityTool
             ! item.enrollment_coc.in?(item.project_coc_codes)
           },
         },
+        future_entry_date_issues: {
+          title: 'Future Entry Date',
+          description: 'Entry is in the future',
+          required_for: 'All',
+          detail_columns: default_detail_columns,
+          denominator: ->(_item) { true },
+          limiter: ->(item) {
+            item.entry_date.present? && item.entry_date > Date.current
+          },
+        },
         future_exit_date_issues: {
           title: 'Future Exit Date',
-          description: 'Exit date occurred before entry date, but should occur on or after the entry date',
+          description: 'Exit is in the future',
           required_for: 'All',
           detail_columns: default_detail_columns,
           denominator: ->(_item) { true },

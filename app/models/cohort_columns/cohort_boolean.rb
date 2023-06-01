@@ -10,6 +10,10 @@ module CohortColumns
       :boolean
     end
 
+    def cast_value(val)
+      val.to_s == 'true'
+    end
+
     def display_for(user)
       if display_as_editable?(user, cohort_client)
         selected = !!value(cohort_client)
