@@ -180,6 +180,7 @@ module Hmis::Hud::Processors
       client.external_ids << HmisExternalApis::ExternalId.new(
         value: value,
         remote_credential: HmisExternalApis::AcHmis::Mci.new.creds,
+        namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID,
       )
     end
   end
