@@ -170,7 +170,17 @@ class Hmis::Hud::Processors::Base
     existing_values = @processor.send(factory_name).send(attribute_name)
     existing_values = existing_values.send(scope_name) if scope_name.present?
     existing_values_ids = existing_values.pluck(:id)
-    seen_ids = attributes.map { |obj| obj[:id]&.to_i }.compact
+    seen_ids = []
+    attributes.each do |attrs|
+      id = attrs[:id]&.to_i
+      next unless id.present?
+
+      if existing_values_ids.include?(id)
+        seen_ids << id
+      else
+        attrs.delete(:id) # ID doesn't exist. Remove it so a new record is created.
+      end
+    end
     (existing_values_ids - seen_ids).each do |id_to_delete|
       attributes.unshift({ id: id_to_delete, _destroy: '1' })
     end
