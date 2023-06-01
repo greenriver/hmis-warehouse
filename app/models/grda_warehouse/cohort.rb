@@ -85,15 +85,18 @@ module GrdaWarehouse
       end
     end
 
-    private def active_tab(population)
-      cohort_tabs.find_by(name: population) || cohort_tabs.find_by(name: 'Active Clients')
+    private def active_tab(user, population)
+      tab = cohort_tabs.find_by(name: population)
+      return tab if tab&.show_for?(user)
+
+      cohort_tabs.find_by(name: 'Active Clients')
     end
 
     private def clients_for_tab(user, population, tab = nil)
-      active_tab = tab || active_tab(population)
+      active_tab = tab || active_tab(user, population)
       cohort_clients.joins(:client).
         send(active_tab.base_scope).
-        where(active_tab.cohort_client_filter(user))
+        where(active_tab.cohort_client_filter)
     end
 
     def search_clients(page: nil, per: nil, population: :active, user:)

@@ -19,14 +19,7 @@ module GrdaWarehouse
       end.any?
     end
 
-    def cohort_client_filter(user) # rubocop:disable Lint/UnusedMethodArgument
-      # TODO: inactive and deleted need user permission scopes
-      # def inactive_scope user
-      # return @client_search_scope.none unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
-      # def show_inactive user
-      # return false unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
-      # def deleted_scope(user)
-      # return @client_search_scope.none unless can_see_deleted_cohort_clients?(user)
+    def cohort_client_filter
       rule_query(nil, rules)
     end
 
@@ -86,7 +79,7 @@ module GrdaWarehouse
       @cohort_columns ||= GrdaWarehouse::Cohort.available_columns.select(&:available_for_rules?).index_by { |cc| cc.column.to_s }
     end
 
-    # NOTE: rules live in a json blog of the following format
+    # NOTE: rules live in a json blob of the following format
     # Each layer can only have a rule or a relation
 
     # { # Rule
