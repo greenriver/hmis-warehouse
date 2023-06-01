@@ -3,7 +3,7 @@ class OauthController < ApplicationController
 
   layout false
 
-  before_action -> { doorkeeper_authorize!(:user_profile) }
+  before_action -> { doorkeeper_authorize!(:user_data) }
 
   def user
     user = User.find(doorkeeper_token.resource_owner_id)

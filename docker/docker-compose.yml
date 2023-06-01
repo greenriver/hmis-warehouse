@@ -125,11 +125,10 @@ services:
       NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-setme}
       NGROK_API_KEY: ${NGROK_API_KEY:-setme}
     image: ngrok/ngrok
-    # FIXME: don't hard code by preference
     command:
       - http
-      - https://open-path-warehouse.127.0.0.1.nip.io
-      - --request-header-add=host:open-path-warehouse.127.0.0.1.nip.io
+      - https://${FQDN:-hmis-warehouse.dev.test}
+      - --request-header-add=host:${FQDN:-hmis-warehouse.dev.test}
 
   # Assumes one ngrok tunnel active
   # Places the public URL into /ngrok/public_url
@@ -206,6 +205,7 @@ services:
       SUPERSET_ADMIN_PASSWORD: admin
       SUPERSET_SECRET_KEY: superset-secret-key-1234
       VIRTUAL_HOST: superset.${FQDN:-hmis-warehouse.dev.test}
+      WAREHOUSE_URL: https://${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 8088
       SUPERSET_WEBDRIVER_BASEURL: ${SUPERSET_WEBDRIVER_BASEURL:-http://superset:8088/}
       # These need to come from /oauth/applications in the warehouse

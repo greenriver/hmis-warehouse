@@ -132,8 +132,7 @@ with open('/ngrok/public_url', 'r') as file:
 
 print(f'Using {backchannel_oauth_provider_url} as the url for oauth between both backend systems (the warehouse and superset)')
 
-# FIXME: testing
-oauth_provider_url = 'https://open-path-warehouse.127.0.0.1.nip.io'
+oauth_provider_url = os.environ['WAREHOUSE_URL']
 
 # Set the authentication type to OAuth
 AUTH_TYPE = AUTH_OAUTH
@@ -172,10 +171,11 @@ CUSTOM_SECURITY_MANAGER = DoorkeeperSsoSecurityManager
 
 print("Done with oauth configuration")
 
-# # Will allow user self registration, allowing to create Flask users from Authorized User
+# Will allow user self registration, allowing to create Flask users from Authorized User
+# i.e. You use oauth to log in, and the first time this happens, you get a user record
 AUTH_USER_REGISTRATION = True
 
-# # The default user self registration role
+# The default user self registration role
 AUTH_USER_REGISTRATION_ROLE = "Admin"
 
 #
