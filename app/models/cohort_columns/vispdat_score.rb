@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'VI-SPDAT Score'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def available_for_rules?
+      false
+    end
+
     def value(cohort_client) # OK
       cohort_client.client.processed_service_history&.vispdat_score
     end

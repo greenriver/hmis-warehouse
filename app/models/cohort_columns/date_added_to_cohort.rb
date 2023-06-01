@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Date Added to Cohort'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def cast_value(val)
+      val.to_date
+    end
+
     def date_format
       'll'
     end

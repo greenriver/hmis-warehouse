@@ -12,7 +12,12 @@
           %li.nav-item.active.active-tab{role: 'presentation'}
             %a.nav-link{href: '#'}
               = details[:title]
+              - if details[:count]
+                .label.label-info= details[:count]
       - else
         - if details[:permission]
           %li.nav-item{class: item_class}
-            = link_to details[:title], action, class: 'nav-link'
+            = link_to action, class: 'nav-link' do
+              = details[:title]
+              - if details[:count]
+                .label.label-info= details[:count]
