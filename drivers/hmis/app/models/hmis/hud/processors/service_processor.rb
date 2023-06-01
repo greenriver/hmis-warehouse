@@ -13,16 +13,19 @@ module Hmis::Hud::Processors
 
       return if attribute_name == 'custom_service_type'
 
-      if attribute_name == 'type_provided' && attribute_value.present?
-        record_type, type_provided = attribute_value.split(':')
-        @processor.send(factory_name).assign_attributes(
-          record_type: record_type,
-          type_provided: type_provided,
-        )
-        custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: record_type, hud_type_provided: type_provided)
+      service = @processor.send(factory_name)
+
+      if attribute_name == 'service_type_id'
+        custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: value)
+        # assign CST to the hmis service
         @processor.owner_factory.assign_attributes(custom_service_type: custom_service_type)
+        # set HUD fields on the HUD record
+        service.assign_attributes(
+          record_type: custom_service_type&.hud_record_type,
+          type_provided: custom_service_type&.hud_type_provided,
+        )
       else
-        @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
+        service.assign_attributes(attribute_name => attribute_value)
       end
     end
 

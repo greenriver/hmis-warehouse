@@ -14,7 +14,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  has_one :project, through: :enrollment
   belongs_to :owner, polymorphic: true # Service or CustomService
   belongs_to :custom_service_type
   has_many :custom_service_categories, through: :custom_service_type
@@ -51,6 +50,11 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   def readonly?
     true
+  end
+
+  # Use method instead of has_one so that projects for WIP enrollments are resolved
+  def project
+    enrollment.project
   end
 
   # FIXME: needs to be updated to support Custom services

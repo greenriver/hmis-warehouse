@@ -15,6 +15,8 @@ module Types
       Hmis::Hud::Service.hmis_configuration(version: '2022')
     end
 
+    # TODO: resolve service type; make custom compatible..
+
     hud_field :id, ID, null: false
     hud_field :enrollment, Types::HmisSchema::Enrollment, null: false
     hud_field :client, HmisSchema::Client, null: false
