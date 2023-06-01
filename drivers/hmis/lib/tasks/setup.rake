@@ -10,4 +10,5 @@ task seed_service_types: [:environment, 'log:info_to_stdout'] do
   next unless data_source_id.present?
 
   ::HmisUtil::ServiceTypes.seed_hud_service_types(data_source_id)
+  ::HmisUtil::ServiceTypes.seed_hud_service_form_instances
 end

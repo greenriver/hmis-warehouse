@@ -369,7 +369,10 @@ class SeedMaker
     return unless datasources.present?
 
     # Load HUD service types
-    datasources.each { |hmis_ds| HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id) }
+    datasources.each do |hmis_ds|
+      HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id)
+      HmisUtil::ServiceTypes.seed_hud_service_form_instances
+    end
   end
 
   def populate_internal_system_choices

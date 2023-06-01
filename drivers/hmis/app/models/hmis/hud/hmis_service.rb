@@ -57,14 +57,25 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     enrollment.project
   end
 
-  # FIXME: needs to be updated to support Custom services
   private def initialize_owner
-    self.owner = Hmis::Hud::Service.new(
-      enrollment_id: enrollment_id,
-      personal_id: personal_id,
-      user_id: user_id,
-      data_source_id: data_source_id,
-    )
+    raise 'Cannot initialize HmisService without a CustomServiceType' unless custom_service_type.present?
+
+    if custom_service_type.hud_service?
+      self.owner = Hmis::Hud::Service.new(
+        enrollment_id: enrollment_id,
+        personal_id: personal_id,
+        user_id: user_id,
+        data_source_id: data_source_id,
+      )
+    else
+      self.owner = Hmis::Hud::CustomService.new(
+        enrollment_id: enrollment_id,
+        personal_id: personal_id,
+        user_id: user_id,
+        data_source_id: data_source_id,
+        custom_service_type: custom_service_type,
+      )
+    end
   end
 
   HUD_SERVICE_ID_PREFIX = '1'.freeze

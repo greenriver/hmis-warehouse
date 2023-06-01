@@ -2247,6 +2247,7 @@ input FormInput {
   organizationId: ID
   projectId: ID
   recordId: ID
+  serviceTypeId: ID
   values: JsonObject
 }
 

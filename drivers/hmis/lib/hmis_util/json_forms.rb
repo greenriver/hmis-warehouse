@@ -67,9 +67,11 @@ module HmisUtil
 
     # Load form definitions for editing and creating records
     def self.seed_record_form_definitions
+      role_map = { service_custom: :SERVICE }.freeze
       record_forms.each do |identifier, form_definition|
         role = identifier.upcase.to_sym
-        raise "unrecognized role #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+        role = role_map[identifier.to_sym] unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+        raise "No role found for #{identifier}" unless role.present?
 
         definition = Hmis::Form::Definition.find_or_create_by(
           identifier: identifier,

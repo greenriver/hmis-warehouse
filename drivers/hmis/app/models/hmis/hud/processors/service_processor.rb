@@ -20,10 +20,12 @@ module Hmis::Hud::Processors
         # assign CST to the hmis service
         @processor.owner_factory.assign_attributes(custom_service_type: custom_service_type)
         # set HUD fields on the HUD record
-        service.assign_attributes(
-          record_type: custom_service_type&.hud_record_type,
-          type_provided: custom_service_type&.hud_type_provided,
-        )
+        if service.is_a?(Hmis::Hud::Service)
+          service.assign_attributes(
+            record_type: custom_service_type&.hud_record_type,
+            type_provided: custom_service_type&.hud_type_provided,
+          )
+        end
       else
         service.assign_attributes(attribute_name => attribute_value)
       end
