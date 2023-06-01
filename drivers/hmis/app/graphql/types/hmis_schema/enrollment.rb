@@ -22,6 +22,19 @@ module Types
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
     end
 
+    available_filter_options do
+      arg :statuses, [
+        Types::BaseEnum.generate_enum('EnrollmentFilterOptionStatus') do
+          value 'EXITED', description: 'Exited'
+          value 'ACTIVE', description: 'Active'
+          value 'INCOMPLETE', description: 'Incomplete'
+        end,
+      ]
+      arg :open_on_date, GraphQL::Types::ISO8601Date
+      arg :project_types, [Types::HmisSchema::Enums::ProjectType]
+      arg :search_term, String
+    end
+
     description 'HUD Enrollment'
     field :id, ID, null: false
     field :project, Types::HmisSchema::Project, null: false
