@@ -394,6 +394,7 @@ module HmisDataQualityTool
           destination_issues: Enrollment,
           current_living_situation_issues: CurrentLivingSituation,
           unaccompanied_youth_issues: Enrollment,
+          future_entry_date_issues: Enrollment,
           future_exit_date_issues: Enrollment,
           move_in_prior_to_start_issues: Enrollment,
           move_in_post_exit_issues: Enrollment,

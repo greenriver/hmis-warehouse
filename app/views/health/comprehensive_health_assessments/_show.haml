@@ -30,7 +30,7 @@
           = link_to polymorphic_path(cha_path_generator, id: @cha.id), method: :delete, class: 'btn btn-danger btn-sm mt-4', data: { confirm: 'Are you sure you want to delete this CHA?' } do
             %i.icon-cross
             Delete CHA
-        - else
+        - elsif @qa_submitted
           .alert.alert-info
             = _('A claim was submitted for this CHA; it is no longer editable.')
 

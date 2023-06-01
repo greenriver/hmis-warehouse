@@ -815,7 +815,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def last_intentional_contacts(client_id)
-      open_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
+      open_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.enrollments_open_in_last_three_years.
         where(client_id: @client_ids)
 
       @services ||= {}.tap do |h|
