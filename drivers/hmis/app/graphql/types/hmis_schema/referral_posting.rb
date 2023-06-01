@@ -9,32 +9,32 @@ module Types
     field :id, ID, null: false
 
     # Fields that come from Referral
-    field :referral_identifier, ID, null: true
+    field :referral_identifier, ID
     field :referral_date, GraphQL::Types::ISO8601Date, null: false
     field :referred_by, String, null: false
-    field :referral_notes, String, null: true
-    field :chronic, Boolean, null: true
-    field :score, Integer, null: true
-    field :needs_wheelchair_accessible_unit, Boolean, null: true
+    field :referral_notes, String
+    field :chronic, Boolean
+    field :score, Integer
+    field :needs_wheelchair_accessible_unit, Boolean
 
     # Fields that come from ReferralHouseholdMembers
     field :hoh_name, String, null: false
     field :household_size, Integer, null: false
 
     # Fields that come from Posting
-    field :resource_coordinator_notes, String, null: true
-    field :posting_identifier, ID, null: false, method: :identifier
+    field :resource_coordinator_notes, String
+    field :posting_identifier, ID, method: :identifier
     field :assigned_date, GraphQL::Types::ISO8601Date, null: false, method: :created_at
-    field :referral_request, HmisSchema::ReferralRequest, null: true
+    field :referral_request, HmisSchema::ReferralRequest
     field :status, HmisSchema::Enums::ReferralPostingStatus, null: false
-    field :status_updated_at, GraphQL::Types::ISO8601Date, null:true
-    field :status_updated_by, String, null:true
-    field :status_note, String, null: true
-    field :status_note_updated_at, GraphQL::Types::ISO8601Date, null:true
-    field :status_note_updated_by, String, null:true
-    field :denial_reason, String, null: true
-    field :referral_result, HmisSchema::Enums::Hud::ReferralResult, null: true
-    field :denial_note, String, null: true
+    field :status_updated_at, GraphQL::Types::ISO8601Date
+    field :status_updated_by, String
+    field :status_note, String
+    field :status_note_updated_at, GraphQL::Types::ISO8601Date
+    field :status_note_updated_by, String
+    field :denial_reason, String
+    field :referral_result, HmisSchema::Enums::Hud::ReferralResult
+    field :denial_note, String
     field :referred_from, String, null: false
 
     def hoh_name
@@ -56,7 +56,7 @@ module Types
     end
 
     def status_updated_by
-      object.status_note_updated_by&.email
+      object.status_updated_by&.email
     end
 
     def status_note_updated_by

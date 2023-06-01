@@ -12,7 +12,7 @@ module HmisExternalApis::AcHmis
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 
     enum(
-      relationship_to_hoh: ::HudLists.relationship_to_ho_h_map_enum
+      relationship_to_hoh: ::HudUtility.hud_list_map_as_enumerable(:relationship_to_ho_h_map)
     )
   end
 end

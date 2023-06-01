@@ -428,10 +428,6 @@ module HudLists
     }.freeze
   end
 
-  def relationship_to_ho_h_map_enum
-    map_as_enumerable(relationship_to_ho_h_map)
-  end
-
   # 3.6.1
   def gender_map
     {
@@ -682,10 +678,6 @@ module HudLists
       2 => 'Unsuccessful referral: client rejected',
       3 => 'Unsuccessful referral: provider rejected',
     }.freeze
-  end
-
-  def referral_result_map_enum
-    map_as_enumerable(referral_result_map)
   end
 
   # 4.33.A
@@ -1695,16 +1687,4 @@ module HudLists
       "race": :race_map,
     }.freeze
   end
-
-  # {1 => 'Test (this)'} => {'test_this' => 1}
-  # @param original [Hash]
-  def map_as_enumerable(original)
-    keyed = original.invert.transform_keys do |key|
-      key.downcase.gsub(/[^a-z0-9]+/, ' ').strip.gsub(' ', '_')
-    end
-    raise "cannot key #{name}" if keyed.size != original.size
-
-    keyed
-  end
-
 end

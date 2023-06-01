@@ -35,7 +35,7 @@ module HmisExternalApis::AcHmis
         assigned_to_other_program_status: 60,
         # closed: 65,
       },
-      referral_result: ::HudLists.referral_result_map_enum
+      referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_result_map),
     )
 
     validates :status_note, length: { maximum: 4_000 }
@@ -47,6 +47,5 @@ module HmisExternalApis::AcHmis
 
     INACTIVE_STATUSES = [:closed_status, :accepted_by_other_program_status, :denied_status].freeze
     scope :active, -> { where.not(status: INACTIVE_STATUSES) }
-
   end
 end

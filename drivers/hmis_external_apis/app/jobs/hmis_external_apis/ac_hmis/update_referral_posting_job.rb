@@ -24,21 +24,35 @@ module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    # @param identifier [String]  HmisExternalApis::AcHmis::ReferralPosting.identifier
-    # @param status [Integer] new status
-    # @param referral_result [Integer] Only for denials. Value from HUD list 4.20.D.
-    # @param url [String]
-    def perform(identifier:, status:, url:, referral_result: nil)
-      raise 'Invalid status. Expected one of: [Closed(13), AcceptedPending(18), DeniedPending(19), Accepted(20), Denied(21)]' unless [13, 18, 19, 20, 21].include?(status)
+    VALID_STATUS_IDS = HmisExternalApis::AcHmis::ReferralPosting.statuses.values_at(:closed_status, :accepted_pending_status, :denied_pending_status, :accepted_status, :denied_status).to_set
+
+    # @param posting_id [Integer]  HmisExternalApis::AcHmis::ReferralPosting.identifier
+    # @param posting_status_id [Integer] new status
+    # @param requested_by [String]
+    # @param referral_result_id [Integer] Only for denials. Value from HUD list 4.20.D.
+    # @param denied_reason_id [Integer] required when Posting status is Denied Pending
+    # @param denied_reason_text [String]
+    # @param status_note [String]
+    # @param contact_date [String] required when Posting status is Denied Pending or Accepted Pending
+    def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denied_reason_text: nil, status_note: nil, contact_date: nil, referral_result_id: nil)
+      raise 'Invalid status. Expected one of: [Closed(13), AcceptedPending(18), DeniedPending(19), Accepted(20), Denied(21)]' unless VALID_STATUS_IDS.include?(posting_status_id)
 
       payload = {
-        posting_id: identifier,
-        posting_status: status,
-      }
-      payload[:referral_result] = referral_result if referral_result
+        posting_id: posting_id,
+        posting_status_id: posting_status_id,
+        referral_result_id: referral_result_id,
+        denied_reason_id: denied_reason_id,
+        denied_reason_text: denied_reason_text,
+        status_note: status_note,
+        contact_date: format_date(contact_date),
+        requested_by: requested_by,
+      }.filter { |_, v| v.present? }
 
-      response = post_referral_request(url, payload)
-      update_referral_postings(response.fetch('postings'))
+      payload[:denied_reason_id] = denied_reason_id if denied_reason_id
+
+      response = link.update_referral_posting_status(payload)
+      posting_attrs = response.parsed_body.fetch('postings').map { |h| h.transform_keys(&:underscore) }
+      update_referral_postings(posting_attrs)
     end
 
     protected
@@ -52,15 +66,14 @@ module HmisExternalApis::AcHmis
       # build lookup tables for entities referenced in postings; avoid n+1 queries
       postings_by_identifier = posting_attrs
         .map { |h| h.fetch('posting_id') }
-        .compact
+        .compact_blank
         .then do |ids|
-          ids.any? ? posting_scope.where(identifier: ids).index_by(&:identifier) : {}
+          posting_scope.where(identifier: ids).index_by(&:identifier)
         end
       posting_attrs.map do |attrs|
         posting_id = attrs.fetch('posting_id')
-
         posting = postings_by_identifier[posting_id]
-        posting.status = attrs.fetch('posting_status')
+        posting.status = attrs.fetch('posting_status_id')
         posting.save!
         posting
       end

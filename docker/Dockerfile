@@ -4,6 +4,8 @@ ARG RUBY_VERSION
 FROM ruby:$RUBY_VERSION-alpine3.17
 
 ARG BUNDLER_VERSION
+ARG USER_ID=1001
+ARG GROUP_ID=1001
 
 ENV RAILS_ENV ${RAILS_ENV}
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
@@ -50,14 +52,25 @@ WORKDIR /app
 RUN gem update --system \
     && gem install bundler:$BUNDLER_VERSION
 
+RUN addgroup -g ${GROUP_ID} app \
+  && adduser -u ${USER_ID} -G app -h /home/app -D app
+
 # Install gems
-COPY Gemfile /app/Gemfile
-COPY Gemfile.lock /app/Gemfile.lock
+COPY --chown=app:app Gemfile /app/Gemfile
+COPY --chown=app:app Gemfile.lock /app/Gemfile.lock
 
 ENV BUNDLE_PATH=/bundle
-ENV PATH=$PATH:/app/bin
+ENV GEM_HOME=/bundle
+ENV BUNDLE_JOBS=4
+ENV BUNDLE_RETRY=3
+ENV BUNDLE_APP_CONFIG=$BUNDLE_PATH
+ENV BUNDLE_BIN=$BUNDLE_PATH/bin
+ENV PATH=$BUNDLE_BIN:$PATH:/app/bin
 COPY docker/entrypoint.sh /usr/bin/
 COPY docker/spec.entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/spec.entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
+
+# We should do this, but I don't want to break anything for anybody
+# USER app

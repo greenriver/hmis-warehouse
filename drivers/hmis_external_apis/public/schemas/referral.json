@@ -80,7 +80,6 @@
           "last_name": { "type": "string" },
           "middle_name": { "type": "string" },
           "suffix": { "type": "string" },
-          "preferred_name": { "type": "string" },
           "gender": { "type": "string" },
           "dob": { "type": "string", "format": "date" },
           "veteran_status": { "type": "string" },

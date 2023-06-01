@@ -399,6 +399,7 @@ type Client {
   disabilityGroups: [DisabilityGroup!]!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
+  emailAddresses: [ClientContactPoint!]!
   enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   externalIds: [ExternalIdentifier!]!
@@ -415,7 +416,7 @@ type Client {
   nameSuffix: String
   names: [ClientName!]!
   personalId: String!
-  preferredName: String
+  phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
@@ -443,6 +444,7 @@ type ClientAccess {
 }
 
 type ClientAddress {
+  addressType: ClientAddressType
   city: String
   client: Client!
   country: String
@@ -456,7 +458,6 @@ type ClientAddress {
   notes: String
   postalCode: String
   state: String
-  type: ClientAddressType
   use: ClientAddressUse
   user: User
 }
@@ -557,29 +558,9 @@ enum ClientContactPointSystem {
   email
 
   """
-  Fax
-  """
-  fax
-
-  """
-  Other
-  """
-  other
-
-  """
-  Pager
-  """
-  pager
-
-  """
   Phone
   """
   phone
-
-  """
-  Sms
-  """
-  sms
 
   """
   Url
@@ -700,7 +681,6 @@ input ClientSearchInput {
   lastName: String
   organizations: [ID!]
   personalId: String
-  preferredName: String
   projects: [ID!]
 
   """
@@ -4588,7 +4568,7 @@ type ReferralPosting {
   householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
-  postingIdentifier: ID!
+  postingIdentifier: ID
   referralDate: ISO8601Date!
   referralIdentifier: ID
   referralNotes: String
@@ -4610,16 +4590,59 @@ type ReferralPosting {
 Referral Posting Status
 """
 enum ReferralPostingStatus {
+  """
+  Accepted By Other Program
+  """
   accepted_by_other_program_status
+
+  """
+  Accepted Pending
+  """
   accepted_pending_status
+
+  """
+  Accepted
+  """
   accepted_status
+
+  """
+  Assigned
+  """
   assigned_status
+
+  """
+  Assigned To Other Program
+  """
   assigned_to_other_program_status
+
+  """
+  Closed
+  """
   closed_status
+
+  """
+  Denied Pending
+  """
   denied_pending_status
+
+  """
+  Denied
+  """
   denied_status
+
+  """
+  New
+  """
   new_status
+
+  """
+  Not Selected
+  """
   not_selected_status
+
+  """
+  Void
+  """
   void_status
 }
 
