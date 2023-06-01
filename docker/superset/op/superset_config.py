@@ -173,10 +173,10 @@ CUSTOM_SECURITY_MANAGER = DoorkeeperSsoSecurityManager
 print("Done with oauth configuration")
 
 # # Will allow user self registration, allowing to create Flask users from Authorized User
-# AUTH_USER_REGISTRATION = True
+AUTH_USER_REGISTRATION = True
 
 # # The default user self registration role
-# AUTH_USER_REGISTRATION_ROLE = "Public"
+AUTH_USER_REGISTRATION_ROLE = "Admin"
 
 #
 # Optionally import superset_config_docker.py (which will have been included on

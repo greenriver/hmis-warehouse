@@ -10,6 +10,6 @@ class DoorkeeperSsoSecurityManager(SupersetSecurityManager):
             # token_info = self.appbuilder.sm.oauth_remotes[provider].get('oauth/token/info').json()
             # logging.debug("token info: {0}".format(token_info))
 
-            me = self.appbuilder.sm.oauth_remotes[provider].get('oauth/user-data').data
+            me = self.appbuilder.sm.oauth_remotes[provider].get(f'oauth/user-data').json()
             logging.debug("user_data: {0}".format(me))
             return { 'name' : me['name'], 'email' : me['email'], 'id' : me['id'] }
