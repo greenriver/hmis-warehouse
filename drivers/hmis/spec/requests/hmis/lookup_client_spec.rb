@@ -45,6 +45,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           files {
             nodes {
               id
+              name
+              confidential
+              redacted
+              fileBlobId
+              tags
+              updatedBy {
+                id
+              }
+              uploadedBy {
+                id
+              }
+              url
             }
           }
         }
@@ -151,7 +163,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should return only non-confidential files if not allowed to see confidential' do
     remove_permissions(hmis_user, :can_manage_own_client_files, :can_view_any_confidential_client_files)
     _response, result = post_graphql(id: c1.id) { query }
-    expect(result.dig('data', 'client')).to include('files' => { 'nodes' => contain_exactly(include('id' => f1.id.to_s)) })
+    expect(result.dig('data', 'client')).to include(
+      'files' => {
+        'nodes' => contain_exactly(
+          include('id' => f1.id.to_s),
+          include(
+            'id' => f2.id.to_s,
+            'redacted' => true,
+            'name' => 'Confidential File',
+            'confidential' => true,
+            'fileBlobId' => nil,
+            'tags' => [],
+            'updatedBy' => nil,
+            'uploadedBy' => nil,
+            'url' => nil,
+          ),
+        ),
+      },
+    )
   end
 
   it 'should return user\' own files if allowed to manage own files, regardless of any view permissions' do
