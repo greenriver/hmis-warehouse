@@ -145,7 +145,7 @@ OAUTH_PROVIDERS = [
             'client_id': os.environ['SUPERSET_OAUTH_CLIENT_ID'], # Client Id (Identify Superset application)
             'client_secret': os.environ['SUPERSET_OAUTH_CLIENT_SECRET'], # Secret for this Client Id (Identify Superset application)
             'client_kwargs': {
-                'scope': 'public'               # Scope for the Authorization
+                'scope': 'user_data'               # Scope for the Authorization
             },
             'access_token_method': 'POST',    # HTTP Method to call access_token_url
             'access_token_params': {        # Additional parameters for calls to access_token_url

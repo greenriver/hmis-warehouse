@@ -245,7 +245,7 @@ Doorkeeper.configure do
   # (disabled by default)
   #
   # enforce_configured_scopes
-  default_scopes :public
+  default_scopes :user_data
   enforce_configured_scopes
 
   # Change the way client credentials are retrieved from the request object.
