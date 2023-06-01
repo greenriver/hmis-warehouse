@@ -115,17 +115,32 @@ services:
       - mailhog
       - minio
 
-  ngrok:
+  ngrok: &ngrok
     network_mode: host
     tty: true
     stdin_open: true
+    volumes:
+      - ngrok:/ngrok
     environment:
-      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-setme}
+      NGROK_API_KEY: ${NGROK_API_KEY:-setme}
     image: ngrok/ngrok
+    # FIXME: don't hard code by preference
     command:
       - http
       - https://open-path-warehouse.127.0.0.1.nip.io
       - --request-header-add=host:open-path-warehouse.127.0.0.1.nip.io
+
+  # Assumes one ngrok tunnel active
+  # Places the public URL into /ngrok/public_url
+  ngrok_public:
+    <<: *ngrok
+    user: root
+    entrypoint: ''
+    command: bash -c 'sleep 3 && ngrok api tunnels list --api-key=\$NGROK_API_KEY | grep public_url | cut -d\" -f4 > /ngrok/public_url'
+    depends_on:
+      ngrok:
+        condition: service_started
 
   db:
     image: postgis/postgis:12-3.1-alpine
@@ -133,8 +148,6 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
-      PGPASSWORD: postgres
-      PGUSER: postgres
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
       PGPASSWORD: postgres
       PGUSER: postgres
@@ -189,10 +202,6 @@ services:
       - "traefik.http.routers.op-superset.rule=Host(`open-path-superset.127.0.0.1.nip.io`)"
       - "traefik.http.routers.op-superset.tls=true"
       - "traefik.http.services.op-superset.loadbalancer.server.port=8088"
-    extra_hosts:
-      # The backend needs to talk through your reverse-proxy (like nginx-proxy or traefik)
-      # FIXME: make this flexible
-      - 'open-path-warehouse.127.0.0.1.nip.io:172.18.0.4'
     environment:
       SUPERSET_ADMIN_PASSWORD: admin
       SUPERSET_SECRET_KEY: superset-secret-key-1234
@@ -200,15 +209,16 @@ services:
       VIRTUAL_PORT: 8088
       SUPERSET_WEBDRIVER_BASEURL: ${SUPERSET_WEBDRIVER_BASEURL:-http://superset:8088/}
       # These need to come from /oauth/applications in the warehouse
-      # application when logged in as an admin with those permissions
-      SUPERSET_OAUTH_CLIENT_ID: setinoverride
-      SUPERSET_OAUTH_CLIENT_SECRET: setinoverride
-      SUPERSET_OAUTH_AUTHORIZE_URL: setinoverride
-      SUPERSET_OAUTH_ACCESS_TOKEN_URL: setinoverride
-      SUPERSET_OAUTH_API_BASE_URL: setinoverride
+      # application when logged in as an admin
+      SUPERSET_OAUTH_CLIENT_ID: ${SUPERSET_OAUTH_CLIENT_ID:-setme}
+      SUPERSET_OAUTH_CLIENT_SECRET: ${SUPERSET_OAUTH_CLIENT_SECRET:-setme}
     depends_on:
       db:
         condition: service_healthy
+      ngrok:
+        condition: service_started
+      ngrok_public:
+        condition: service_completed_successfully
       superset_init:
         condition: service_completed_successfully
       superset_init_2:
@@ -217,6 +227,7 @@ services:
       - 8088
     volumes:
       - ./docker/superset/op:/app/pythonpath
+      - ngrok:/ngrok
 
   # See config/storage.yml for setup
   minio:
@@ -271,6 +282,7 @@ volumes:
   rails_cache_alpine:
   dbdata:
   redis:
+  ngrok:
 
 networks:
   default:

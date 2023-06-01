@@ -151,4 +151,5 @@ drivers/datalab_testkit/spec/fixtures/results/*
 # Superset storage
 docker/superset/op/superset.db
 docker/superset/op/__pycache__/*
+docker/superset/op/__pycache__/**
 docker/superset/op/.did.db.init

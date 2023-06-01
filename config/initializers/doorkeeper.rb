@@ -10,7 +10,7 @@ Doorkeeper.configure do
     # raise "Please configure doorkeeper resource_owner_authenticator block located in #{__FILE__}"
     # Put your resource owner authentication logic here.
     # Example implementation:
-    #   User.find_by(id: session[:user_id]) || redirect_to(new_user_session_url)
+    # User.find_by(id: session[:user_id]) || redirect_to(new_user_session_url)
     current_user || warden.authenticate!(scope: :user)
   end
 
@@ -21,7 +21,7 @@ Doorkeeper.configure do
   admin_authenticator do
     current_user ||= warden.authenticate!(scope: :user)
     if current_user
-      head :forbidden unless current_user.can_manage_config?
+      redirect_to '/' unless current_user.can_manage_config?
     else
       redirect_to new_user_session_url
     end
@@ -120,7 +120,7 @@ Doorkeeper.configure do
   # +ActionController::API+. The return value of this option must be a stringified class name.
   # See https://doorkeeper.gitbook.io/guides/configuration/other-configurations#custom-controllers
   #
-  # base_controller 'ApplicationController'
+  # base_controller 'DoorkeeperController'
 
   # Reuse access token for the same resource owner within an application (disabled by default).
   #
@@ -254,7 +254,7 @@ Doorkeeper.configure do
   # Check out https://github.com/doorkeeper-gem/doorkeeper/wiki/Changing-how-clients-are-authenticated
   # for more information on customization
   #
-  # client_credentials :from_basic, :from_params
+  client_credentials :from_basic, :from_params
 
   # Change the way access token is authenticated from the request object.
   # By default it retrieves first from the `HTTP_AUTHORIZATION` header, then
@@ -262,7 +262,7 @@ Doorkeeper.configure do
   # Check out https://github.com/doorkeeper-gem/doorkeeper/wiki/Changing-how-clients-are-authenticated
   # for more information on customization
   #
-  # access_token_methods :from_bearer_authorization, :from_access_token_param, :from_bearer_param
+  access_token_methods :from_bearer_authorization, :from_access_token_param, :from_bearer_param
 
   # Forces the usage of the HTTPS protocol in non-native redirect uris (enabled
   # by default in non-development environments). OAuth2 delegates security in

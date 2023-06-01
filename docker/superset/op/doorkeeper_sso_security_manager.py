@@ -7,6 +7,9 @@ class DoorkeeperSsoSecurityManager(SupersetSecurityManager):
         if provider == 'WarehouseSSO':
             # As example, this line request a GET to base_url + '/' + userDetails with Bearer  Authentication,
             # and expects that authorization server checks the token, and response with user details
-            me = self.appbuilder.sm.oauth_remotes[provider].get('userDetails').data
+            fluf = self.appbuilder.sm.oauth_remotes[provider].get('oauth/token/info')
+            logging.debug("fluf: {0}".format(fluf))
+
+            me = self.appbuilder.sm.oauth_remotes[provider].get('oauth/token/info').data
             logging.debug("user_data: {0}".format(me))
             return { 'name' : me['name'], 'email' : me['email'], 'id' : me['user_name'], 'username' : me['user_name'], 'first_name':'', 'last_name':''}

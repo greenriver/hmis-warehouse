@@ -30,22 +30,18 @@ from celery.schedules import crontab
 
 logger = logging.getLogger()
 
-# FIXME: this is for dev only and untested
-import urllib3
-urllib3.disable_warnings()
-
-# def get_env_variable(var_name: str, default: Optional[str] = None) -> str:
-#     """Get the environment variable or raise exception."""
-#     try:
-#         return os.environ[var_name]
-#     except KeyError:
-#         if default is not None:
-#             return default
-#         else:
-#             error_msg = "The environment variable {} was missing, abort...".format(
-#                 var_name
-#             )
-#             raise EnvironmentError(error_msg)
+def get_env_variable(var_name: str, default: Optional[str] = None) -> str:
+    """Get the environment variable or raise exception."""
+    try:
+        return os.environ[var_name]
+    except KeyError:
+        if default is not None:
+            return default
+        else:
+            error_msg = "The environment variable {} was missing, abort...".format(
+                var_name
+            )
+            raise EnvironmentError(error_msg)
 
 
 # DATABASE_DIALECT = get_env_variable("DATABASE_DIALECT")
@@ -113,7 +109,13 @@ SQLLAB_CTAS_NO_LIMIT = True
 
 SQLALCHEMY_DATABASE_URI = "postgres://postgres:postgres@db/superset"
 
-SQLALCHEMY_ECHO = True
+SQLALCHEMY_ECHO = get_env_variable(var_name='SQLALCHEMY_ECHO', default=False)
+
+# Quiet down warnings in superset. It's not our problem
+import warnings
+from sqlalchemy import exc as sa_exc
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=sa_exc.SAWarning)
 
 SECRET_KEY = os.environ["SUPERSET_SECRET_KEY"]
 
@@ -123,6 +125,15 @@ ENABLE_PROXY_FIX = True
 print("Initializing oauth configuration")
 
 from flask_appbuilder.security.manager import AUTH_OAUTH
+
+with open('/ngrok/public_url', 'r') as file:
+    # aka the warehouse (not superset)
+    backchannel_oauth_provider_url = file.read().rstrip()
+
+print(f'Using {backchannel_oauth_provider_url} as the url for oauth between both backend systems (the warehouse and superset)')
+
+# FIXME: testing
+oauth_provider_url = 'https://open-path-warehouse.127.0.0.1.nip.io'
 
 # Set the authentication type to OAuth
 AUTH_TYPE = AUTH_OAUTH
@@ -142,15 +153,17 @@ OAUTH_PROVIDERS = [
             },
             'access_token_headers':{    # Additional headers for calls to access_token_url
                 #     'Authorization': 'Basic Base64EncodedClientIdAndSecret'
-                # FIXME: make dynamic
-                'Host': 'open-path-superset.127.0.0.1.nip.io'
+                'Host': os.environ['VIRTUAL_HOST'],
+                'ngrok-skip-browser-warning': 'true',
             },
-            'api_base_url': os.environ['SUPERSET_OAUTH_API_BASE_URL'],
-            'access_token_url': os.environ['SUPERSET_OAUTH_ACCESS_TOKEN_URL'],
-            'authorize_url': os.environ['SUPERSET_OAUTH_AUTHORIZE_URL']
+            'api_base_url': f'{backchannel_oauth_provider_url}/',
+            'access_token_url': f'{backchannel_oauth_provider_url}/oauth/token',
+            'authorize_url': f'{oauth_provider_url}/oauth/authorize',
         }
     }
 ]
+
+print(OAUTH_PROVIDERS)
 
 from doorkeeper_sso_security_manager import DoorkeeperSsoSecurityManager
 
