@@ -1,0 +1,23 @@
+- title = _('Demographic Summary')
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
+      = render "utility"
+    .top-nav-prs1
+      %h1.mb-5= title
+      .mb-4= render 'hero_counts'
+    .main-inner-prs1
+      .text-right.mb-4
+        = render 'report_downloads/report_download', export: @pdf_export, excel_export: @excel_export, excel_download_path: nil
+      - @report.class.available_section_types.each do |section|
+        = render 'background_render', url: render_section_core_demographics_report_warehouse_reports_demographic_summary_index_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
+          .rollup
+            .rollup-container.well
+        = render 'common/section_not_loading', path_to_section: section_demographic_summary_demographics_report_warehouse_reports_core_index_path(partial: section, filters: @filter.for_params[:filters])

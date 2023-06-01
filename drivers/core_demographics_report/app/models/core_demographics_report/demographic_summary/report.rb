@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CoreDemographicsReport
-  class Core
+module CoreDemographicsReport::DemographicSummary
+  class Report
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
@@ -14,14 +14,8 @@ module CoreDemographicsReport
     include CoreDemographicsReport::GenderCalculations
     include CoreDemographicsReport::RaceCalculations
     include CoreDemographicsReport::EthnicityCalculations
-    include CoreDemographicsReport::DisabilityCalculations
-    include CoreDemographicsReport::RelationshipCalculations
-    include CoreDemographicsReport::DvCalculations
-    include CoreDemographicsReport::PriorCalculations
     include CoreDemographicsReport::HouseholdTypeCalculations
-    include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
-
     include CoreDemographicsReport::ReportConcern
 
     attr_reader :filter
