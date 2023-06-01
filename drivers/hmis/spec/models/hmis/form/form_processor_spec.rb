@@ -794,6 +794,32 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(client.first_name).to eq('Charlotte')
     end
 
+    it 'ignores nonexistent ids on names' do
+      client = c1
+      expect(client.names.size).to eq(0)
+
+      # Submit a form that changes the primary  name but doesn't include the old ID
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'names' => [
+          {
+            id: '0', # Gets ignored, a new record is created
+            primary: true,
+            first: 'Charlotte',
+            nameDataQuality: 'CLIENT_REFUSED',
+          }.stringify_keys,
+        ],
+      )
+      custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+      client.save!
+      client.reload
+
+      expect(client.names.size).to eq(1)
+      expect(client.names.primary_names.first.first).to eq('Charlotte')
+      expect(client.names.first.id).not_to eq(0)
+      expect(client.first_name).to eq('Charlotte')
+    end
+
     it 'fails if First and Last are missing from primary' do
       client = c1
       create(:hmis_hud_custom_client_name, client: client, first: 'Atticus', primary: true)
