@@ -129,7 +129,8 @@ module BostonProjectScorecard
         :management_oversight_notes,
         :prioritization_pass,
         :prioritization_notes,
-        :invoicing,
+        :invoicing_timeliness,
+        :invoicing_accuracy,
         :actual_households_served,
         :amount_agency_spent,
         :contracted_budget,
@@ -192,6 +193,14 @@ module BostonProjectScorecard
         one_a_value = percentage(answer(apr, 'Q23c', 'B46'))
         one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B45')).to_f)
 
+        adult_count = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
+        employment_increased = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
+        other_increased = answer(apr, 'Q19a1', 'I4') + answer(apr, 'Q19a2', 'I4')
+        employment_percent = 0
+        employment_percent = employment_increased / adult_count.to_f if adult_count.positive?
+        other_percent = 0
+        other_percent = other_increased / adult_count.to_f if adult_count.positive?
+
         assessment_answers.merge!(
           {
             apr_id: apr.id,
@@ -201,6 +210,8 @@ module BostonProjectScorecard
             increased_stayer_other_income: percentage(answer(apr, 'Q19a1', 'J4')),
             increased_leaver_employment_income: percentage(answer(apr, 'Q19a2', 'J2')),
             increased_leaver_other_income: percentage(answer(apr, 'Q19a2', 'J4')),
+            increased_employment_income: percentage(employment_percent),
+            increased_other_income: percentage(other_percent),
             days_to_lease_up: answer(apr, 'Q22c', 'B11').round,
           },
         )

@@ -1,0 +1,32 @@
+{
+  "type": "GROUP",
+  "link_id": "contact",
+  "text": "Contact Information",
+  "required": false,
+  "item": [
+    {
+      "type": "OBJECT",
+      "component": "ADDRESS",
+      "repeats": true,
+      "link_id": "addresses",
+      "field_name": "addresses",
+      "text": "Addresses"
+    },
+    {
+      "type": "OBJECT",
+      "component": "PHONE",
+      "repeats": true,
+      "link_id": "phones",
+      "field_name": "phoneNumbers",
+      "text": "Phone Numbers"
+    },
+    {
+      "type": "OBJECT",
+      "component": "EMAIL",
+      "repeats": true,
+      "link_id": "emails",
+      "field_name": "emailAddresses",
+      "text": "Emails"
+    }
+  ]
+}

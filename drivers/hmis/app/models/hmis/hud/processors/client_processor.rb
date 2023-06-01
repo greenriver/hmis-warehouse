@@ -39,13 +39,13 @@ module Hmis::Hud::Processors
         attribute_value = client.dob_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
         { attribute_name => attribute_value }
       when 'names'
-        process_names(attribute_name, value)
-      # TODO: implement, add tests. They _should_ be able to use the generic attribute generator..
+        process_names(field, value)
       when 'addresses'
-        additional_attrs = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
-        construct_nested_attributes(attribute_name, value, additional_attrs)
-      # when 'contact_points'
-      #   construct_nested_attributes(attribute_name, value, hud_metadata_attributes)
+        construct_nested_attributes(field, value, additional_attributes: related_record_attributes)
+      when 'phone_numbers'
+        process_contact_points(value, system: :phone, scope_name: :phones)
+      when 'email_addresses'
+        process_contact_points(value, system: :email, scope_name: :emails)
       when 'mci_id'
         process_mci(value)
         {}
@@ -120,7 +120,20 @@ module Hmis::Hud::Processors
       result
     end
 
-    private def process_names(attribute_name, value)
+    private def related_record_attributes
+      {
+        user: @processor.hud_user,
+        data_source_id: @processor.hud_user.data_source_id,
+        client: @processor.send(factory_name),
+      }
+    end
+
+    private def process_contact_points(value, system:, scope_name:)
+      attrs = { **related_record_attributes, system: system }
+      construct_nested_attributes('contactPoints', value, additional_attributes: attrs, scope_name: scope_name)
+    end
+
+    private def process_names(field, value)
       client = @processor.send(factory_name)
       # Drop names that don't have any meaningful values
       values = Array.wrap(value).filter do |v|
@@ -130,8 +143,7 @@ module Hmis::Hud::Processors
       end
 
       # Build attributes
-      additional_attrs = { user: @processor.hud_user, data_source_id: @processor.hud_user.data_source_id, client: client }
-      name_attributes = construct_nested_attributes(attribute_name, values, additional_attrs)
+      name_attributes = construct_nested_attributes(field, values, additional_attributes: related_record_attributes)
 
       # Set NameDataQuality to 99, it will be overridden to match primary name in the after_save hook
       name_attributes[:name_data_quality] = 99 unless client.name_data_quality.present?
