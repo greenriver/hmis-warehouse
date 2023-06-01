@@ -26,7 +26,7 @@ module Types
       object.category.name
     end
 
-    def type_provided
+    def hud_type_provided
       [object.hud_record_type, object.hud_type_provided].compact_blank.join(':')
     end
   end

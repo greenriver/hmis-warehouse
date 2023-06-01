@@ -151,14 +151,14 @@ module Types
     end
 
     field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
-      argument :custom_service_type_id, ID, required: true
+      argument :service_type_id, ID, required: true
       argument :project_id, ID, required: true
     end
-    def get_service_form_definition(custom_service_type_id:, project_id:)
+    def get_service_form_definition(service_type_id:, project_id:)
       project = Hmis::Hud::Project.find_by(id: project_id)
       raise HmisErrors::ApiError, 'Project not found' unless project.present?
 
-      service_type = Hmis::Hud::CustomServiceType.find_by(id: custom_service_type_id)
+      service_type = Hmis::Hud::CustomServiceType.find_by(id: service_type_id)
       raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
       Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)

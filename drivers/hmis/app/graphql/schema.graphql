@@ -4357,7 +4357,7 @@ type Query {
   """
   Get most relevant form definition for the specified service type
   """
-  getServiceFormDefinition(customServiceTypeId: ID!, projectId: ID!): FormDefinition
+  getServiceFormDefinition(projectId: ID!, serviceTypeId: ID!): FormDefinition
 
   """
   Inventory lookup
