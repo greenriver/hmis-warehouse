@@ -22,7 +22,6 @@ module Types
     # Fields that come from ReferralHouseholdMembers
     field :hoh_name, String, null: false
     field :household_size, Integer, null: false
-    # QUESTION: do we need to check visibility on each client?
     field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
     # Fields that come from Posting

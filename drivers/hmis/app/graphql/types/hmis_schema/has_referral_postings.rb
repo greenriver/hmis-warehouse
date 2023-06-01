@@ -24,6 +24,7 @@ module Types
       def scoped_referral_postings(scope, sort_order: nil)
         scope = scope.viewable_by(current_user)
           .preload(referral: { household_members: :client })
+          .preload(:unit_type)
           .preload(:status_note_updated_by)
           .preload(:status_updated_by)
           .preload(:project)
