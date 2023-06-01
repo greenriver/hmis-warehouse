@@ -24,6 +24,11 @@ module Types
       Hmis::Hud::Client.hmis_configuration(version: '2022')
     end
 
+    available_filter_options do
+      arg :projects, [ID]
+      arg :age_range, HmisSchema::Enums::AgeRange
+    end
+
     description 'HUD Client'
     field :id, ID, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
