@@ -132,7 +132,7 @@ module GrdaWarehouse
     end
 
     def cohort_tabs_for_user(user)
-      cohort_tabs.map do |tab|
+      cohort_tabs.order(order: :asc).map do |tab|
         permission = tab.show_for?(user)
         next unless permission
 
