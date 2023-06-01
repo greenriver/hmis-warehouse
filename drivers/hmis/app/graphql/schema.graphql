@@ -400,7 +400,7 @@ type Client {
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   emailAddresses: [ClientContactPoint!]!
-  enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(filters: EnrollmentsForClientFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
@@ -1823,6 +1823,23 @@ type EnrollmentAccess {
   id: ID!
 }
 
+enum EnrollmentFilterOptionStatus {
+  """
+  Active
+  """
+  ACTIVE
+
+  """
+  Exited
+  """
+  EXITED
+
+  """
+  Incomplete
+  """
+  INCOMPLETE
+}
+
 """
 HMIS Enrollment household member input
 """
@@ -1840,7 +1857,14 @@ enum EnrollmentLimit {
 HUD Enrollment Sorting Options
 """
 enum EnrollmentSortOption {
+  """
+  Household ID
+  """
   HOUSEHOLD_ID
+
+  """
+  Most Recent
+  """
   MOST_RECENT
 }
 
@@ -1877,6 +1901,18 @@ enum EnrollmentStatus {
   Exit Incomplete
   """
   OWN_EXIT_INCOMPLETE
+}
+
+input EnrollmentsForClientFilterOptions {
+  openOnDate: ISO8601Date
+  projectTypes: [ProjectType!]
+  statuses: [EnrollmentFilterOptionStatus!]
+}
+
+input EnrollmentsForProjectFilterOptions {
+  openOnDate: ISO8601Date
+  searchTerm: String
+  statuses: [EnrollmentFilterOptionStatus!]
 }
 
 type EnrollmentsPaginated {
@@ -2153,14 +2189,15 @@ type File {
   enrollment: Enrollment
   enrollmentId: ID
   expirationDate: ISO8601Date
-  fileBlobId: ID!
+  fileBlobId: ID
   id: ID!
   name: String!
   ownFile: Boolean!
+  redacted: Boolean!
   tags: [String!]!
   updatedBy: ApplicationUser
   uploadedBy: ApplicationUser
-  url: String!
+  url: String
   user: User
 }
 
@@ -4108,7 +4145,7 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
-  enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   households(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): HouseholdsPaginated!
   housingType: HousingType
@@ -6001,6 +6038,11 @@ type ValueBound {
   Unique identifier for this bound
   """
   id: String
+
+  """
+  Value to offset the comparison value. Can be positive or negative. If date, offset is applied as number of days.
+  """
+  offset: Int
 
   """
   Link ID of dependent question, if this items value should be compared to another items value

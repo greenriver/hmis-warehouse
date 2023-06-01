@@ -38,6 +38,6 @@ class HmisCsvImporter::HmisCsvValidation::EntryAfterExit < HmisCsvImporter::Hmis
   end
 
   def self.title
-    'Exit must occur after Entry'
+    'Exit must occur after Entry for residential projects'
   end
 end

@@ -1718,7 +1718,7 @@ module GrdaWarehouse::Hud
       visible_project_ids = user.visible_project_ids_enrollment_context
       contacts = JSON.parse(contacts)
 
-      contacts.sort_by { |c| c['date'] || '' }.reverse.map do |contact|
+      contacts.sort_by { |c| c['date']&.to_date || 5.years.ago }.reverse.map do |contact|
         project_id = contact['project_id']
         next if project_id.present? && !project_id.in?(visible_project_ids)
 
