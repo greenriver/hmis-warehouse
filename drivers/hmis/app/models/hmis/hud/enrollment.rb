@@ -93,7 +93,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   scope :not_in_progress, -> { where.not(project_id: nil) }
 
-  scope :with_project_type, ->(project_types) { joins(:project).merge(Hmis::Hud::Project.with_project_type(project_types)) }
+  scope :with_project_type, ->(project_types) do
+    wip_enrollments = joins(wip: :project).where(p_t[:project_type].in(project_types)).pluck(wip_t[:source_id])
+    nonwip_enrollments = joins(:project).where(p_t[:project_type].in(project_types)).pluck(:id)
+
+    where(id: wip_enrollments + nonwip_enrollments)
+  end
 
   scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
   scope :active, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
