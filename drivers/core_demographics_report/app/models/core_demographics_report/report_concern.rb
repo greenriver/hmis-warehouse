@@ -112,6 +112,10 @@ module
       age_calculation.in((18..110).to_a)
     end
 
+    private def youth_clause
+      age_calculation.in((18..24).to_a)
+    end
+
     private def child_clause
       age_calculation.in((0..17).to_a)
     end

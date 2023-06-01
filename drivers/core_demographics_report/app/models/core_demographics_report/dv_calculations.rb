@@ -15,7 +15,7 @@ module
             title: "DV Response #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_dv(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_dv(key)).distinct },
           }
         end
         ::HudUtility.when_occurreds.each do |key, title|
@@ -23,7 +23,7 @@ module
             title: "DV Occurrence Timing #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_dv_occurrence(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_dv_occurrence(key)).distinct },
           }
         end
       end

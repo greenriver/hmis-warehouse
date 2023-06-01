@@ -55,7 +55,7 @@ module
             title: title,
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_age_range(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_age_range(key)).distinct },
           }
         end
         age_categories.each do |age_key, age_title|
@@ -64,7 +64,7 @@ module
               title: "Age - #{age_title} #{gender_title}",
               headers: client_headers,
               columns: client_columns,
-              scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_gender_age(gender, age_key)).distinct },
+              scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_gender_age(gender, age_key)).distinct },
             }
           end
         end

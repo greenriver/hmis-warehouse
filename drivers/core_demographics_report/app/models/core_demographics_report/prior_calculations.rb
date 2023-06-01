@@ -15,7 +15,7 @@ module
             title: "Number of Times on the Streets, ES, or SH in The Past 3 Years #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_times(id)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_prior_times(id)).distinct },
           }
         end
         ::HudUtility.month_categories.each do |id, title|
@@ -23,7 +23,7 @@ module
             title: "Number of Months on the Streets, ES, or SH in The Past 3 Years #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_months(id)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_prior_months(id)).distinct },
           }
         end
         ::HudUtility.living_situations.each do |id, title|
@@ -31,7 +31,7 @@ module
             title: "Prior Living Situation #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_situation(id)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_prior_situation(id)).distinct },
           }
         end
       end

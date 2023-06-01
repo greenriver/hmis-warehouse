@@ -15,6 +15,8 @@ module CoreDemographicsReport::DemographicSummary
     include CoreDemographicsReport::RaceCalculations
     include CoreDemographicsReport::EthnicityCalculations
     include CoreDemographicsReport::HouseholdTypeCalculations
+    include CoreDemographicsReport::ChronicCalculations
+    include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
     include CoreDemographicsReport::ReportConcern
 
@@ -38,12 +40,8 @@ module CoreDemographicsReport::DemographicSummary
         'gender_ages',
         'races',
         'ethnicities',
-        'disabilities',
-        'relationships',
-        'dvs',
-        'priors',
         'household_types',
-        'projects',
+        'chronic',
       ]
     end
 
@@ -51,6 +49,15 @@ module CoreDemographicsReport::DemographicSummary
       return true unless section.in?(['disabilities', 'races'])
 
       Rails.cache.exist?(cache_key_for_section(section))
+    end
+
+    def detail_hash
+      {}.merge(age_detail_hash).
+        merge(gender_detail_hash).
+        merge(ethnicity_detail_hash).
+        merge(race_detail_hash).
+        merge(household_detail_hash).
+        merge(enrollment_detail_hash)
     end
 
     private def cache_key_for_section(section)
@@ -74,7 +81,7 @@ module CoreDemographicsReport::DemographicSummary
       [
         :core_demographics_report,
         :warehouse_reports,
-        :core,
+        :demographic_summary,
         :index,
       ]
     end

@@ -23,7 +23,7 @@
             - HudUtility.disability_types.each do |id, title|
               %tr
                 %th= title
-                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.disability_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "disability_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.disability_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "disability_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
                 %td= number_to_percentage(report.disability_percentage(id), precision: 2)
         %table.table
           %thead

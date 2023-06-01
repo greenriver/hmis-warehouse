@@ -25,12 +25,12 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     def index
-      @pdf_export = CoreDemographicsReport::DocumentExports::CoreDemographicsExport.new
-      @excel_export = CoreDemographicsReport::DocumentExports::CoreDemographicsExcelExport.new
+      @pdf_export = CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExport.new
+      @excel_export = CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExcelExport.new
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Core Demographics - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Demographic Summary - #{Time.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -42,7 +42,7 @@ module CoreDemographicsReport::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Core Demographics Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Demographic Summary Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -58,7 +58,7 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     private def report_class
-      CoreDemographicsReport::Core
+      CoreDemographicsReport::DemographicSummary::Report
     end
 
     def section
@@ -88,7 +88,7 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     private def set_pdf_export
-      @pdf_export = CoreDemographicsReport::DocumentExports::CoreDemographicsExport.new
+      @pdf_export = CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExport.new
     end
   end
 end
