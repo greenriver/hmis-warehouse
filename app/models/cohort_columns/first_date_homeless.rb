@@ -10,6 +10,14 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'First Date Homeless'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def cast_value(val)
+      val.to_date
+    end
+
+    def arel_col
+      wcp_t[:first_date_homeless]
+    end
+
     def date_format
       'll'
     end

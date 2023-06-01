@@ -10,6 +10,14 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'DOB'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def cast_value(val)
+      val.to_date
+    end
+
+    def arel_col
+      c_t[:DOB]
+    end
+
     def value(cohort_client) # OK
       cohort_client.client.DOB
     end
