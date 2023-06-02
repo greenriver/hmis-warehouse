@@ -12,13 +12,14 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def projects_field(name = :projects, description = nil, without_args: [], **override_options, &block)
+        def projects_field(name = :projects, description = nil, without_args: [], filter_args: {}, **override_options, &block)
           default_field_options = { type: Types::HmisSchema::Project.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :project_types, [Types::HmisSchema::Enums::ProjectType], required: false unless without_args.include? :project_types
             argument :search_term, String, required: false unless without_args.include? :search_term
             argument :sort_order, Types::HmisSchema::ProjectSortOption, required: false
+            filters_argument HmisSchema::Project, **filter_args
             instance_eval(&block) if block_given?
           end
         end
