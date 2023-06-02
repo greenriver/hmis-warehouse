@@ -8,7 +8,7 @@ module
   CoreDemographicsReport::ChronicCalculations
   extend ActiveSupport::Concern
   included do
-    def household_detail_hash
+    def chronic_detail_hash
       {}.tap do |hashes|
         available_chronic_types.invert.each do |key, title|
           hashes["chronic_#{key}"] = {
@@ -68,7 +68,7 @@ module
           report_scope.distinct.
             joins(enrollment: :ch_enrollment).
             merge(GrdaWarehouse::ChEnrollment.chronically_homeless).
-            order(first_date_in_program: :desc).
+            order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc
             pluck(:client_id, :first_date_in_program).
             each do |client_id, _|
               clients[:client] ||= Set.new
@@ -77,7 +77,7 @@ module
           hoh_scope.distinct.
             joins(enrollment: :ch_enrollment).
             merge(GrdaWarehouse::ChEnrollment.chronically_homeless).
-            order(first_date_in_program: :desc).
+            order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc
             pluck(:client_id, :first_date_in_program).
             each do |client_id, _|
               clients[:household] ||= Set.new

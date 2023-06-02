@@ -16,6 +16,8 @@ module CoreDemographicsReport::DemographicSummary
     include CoreDemographicsReport::EthnicityCalculations
     include CoreDemographicsReport::HouseholdTypeCalculations
     include CoreDemographicsReport::ChronicCalculations
+    include CoreDemographicsReport::UnshelteredCalculations
+    include CoreDemographicsReport::HighAcuityCalculations
     include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
     include CoreDemographicsReport::ReportConcern
@@ -42,6 +44,8 @@ module CoreDemographicsReport::DemographicSummary
         'ethnicities',
         'household_types',
         'chronic',
+        'unsheltered',
+        'high_acuity',
       ]
     end
 
@@ -57,6 +61,8 @@ module CoreDemographicsReport::DemographicSummary
         merge(ethnicity_detail_hash).
         merge(race_detail_hash).
         merge(household_detail_hash).
+        merge(chronic_detail_hash).
+        merge(unsheltered_detail_hash).
         merge(enrollment_detail_hash)
     end
 
