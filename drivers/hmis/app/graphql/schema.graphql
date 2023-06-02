@@ -37,6 +37,66 @@ input AddRecentItemInput {
 }
 
 """
+HUD Age Ranges
+"""
+enum AgeRange {
+  """
+  62+
+  """
+  Age62Plus
+
+  """
+  65+
+  """
+  Age65Plus
+
+  """
+  13-17
+  """
+  Ages13to17
+
+  """
+  18-24
+  """
+  Ages18to24
+
+  """
+  25-34
+  """
+  Ages25to34
+
+  """
+  35-44
+  """
+  Ages35to44
+
+  """
+  45-54
+  """
+  Ages45to54
+
+  """
+  55-61
+  """
+  Ages55to61
+
+  """
+  55-64
+  """
+  Ages55to64
+
+  """
+  5-12
+  """
+  Ages5to12
+
+  """
+  Under 5
+  """
+  Under5
+}
+
+"""
 User account for a user of the system
 """
 type ApplicationUser {
@@ -596,6 +656,11 @@ enum ClientContactPointUse {
   Work
   """
   work
+}
+
+input ClientFilterOptions {
+  ageRange: AgeRange
+  projects: [ID!]
 }
 
 """
@@ -4322,6 +4387,7 @@ type Query {
   Client omnisearch
   """
   clientOmniSearch(
+    filters: ClientFilterOptions
     limit: Int
     offset: Int
     sortOrder: ClientSortOption
@@ -4335,7 +4401,7 @@ type Query {
   """
   Search for clients
   """
-  clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
+  clientSearch(filters: ClientFilterOptions, input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
   currentUser: ApplicationUser
 
   """
