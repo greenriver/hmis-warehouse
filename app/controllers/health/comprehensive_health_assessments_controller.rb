@@ -136,7 +136,8 @@ module Health
     end
 
     def set_locked
-      @cha_locked = @cha&.qualifying_activities&.submitted&.exists? || false
+      @cha_locked = @cha&.completed? || false
+      @qa_submitted = @cha&.qualifying_activities&.submitted&.exists? || false
     end
 
     def set_form

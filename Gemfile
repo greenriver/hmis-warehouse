@@ -64,7 +64,7 @@ gem 'carrierwave-i18n'
 gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
 gem 'image_processing'
 
-gem 'ruby-filemagic'
+gem 'ruby-filemagic' unless ENV['SKIP_FILEMAGIC'].to_s == 'true'
 gem 'mini_magick'
 gem 'mimemagic'
 # there are no obvious breaking changes but

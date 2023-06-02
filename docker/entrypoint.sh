@@ -5,7 +5,8 @@ if [[ -d /node_modules ]]
 then
   if [[ -L /app/node_modules ]]
   then
-    echo /app/node_modules is a symlink as desired
+    # no news is good news
+    # echo /app/node_modules is a symlink as desired
   else
     echo Saving /app/node_modules with alternate name
     mv /app/node_modules "/app/node_modules.`date +'%s'`"

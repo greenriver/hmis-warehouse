@@ -16,31 +16,33 @@
         %br
         .text-danger
           * These are done through the funding periods
-      %td 10. Type of housing project proposal; RRH, PSH, Joint TH-RRH
-      %td Project application
-      %td
-        6: PSH
-        %br
-        3: RRH/Joint TH-RRH
-      %th.align-middle.text-center{rowspan: 6}
+      %td 9. Invoice Timeliness
+      %td CoC monitoring report/ Agency external audit
+      %th.align-middle.text-center{rowspan: 5}
         Weight
         #{@report.financial_performance_weight}%
-      %td= @report.project_type_value
-      %td= @report.project_type_score
+      %td
+        3 pts: Invoices regularly submitted on time
+        %br
+        2 pts: Invoices submitted usually on time
+        %br
+        1 pt: Invoices submitted quarterly or less frequently than monthly
+      %td= f.input :invoicing_timeliness, collection: @report.invoicing_timeliness_options, as: :pretty_boolean_group, label: "Choose one:"
+      %td= @report.invoicing_timeliness_score
     %tr
-      %td 11. Invoicing- submit invoices- on time, with all back up materials, and for eligible activities
+      %td 10. Invoice Accuracy
       %td CoC monitoring report/ Agency external audit
       %td
-        6 pts: Invoices regularly submitted on time
+        3 pts: Invoices regularly complete and accurate
         %br
-        3 pts: Usually on time, complete with few errors
+        2 pts: Invoices occasionally contain a few errors
         %br
-        1 pt: Submitted quarterly/not monthly
-      %td= f.input :invoicing, collection: @report.invoicing_options, as: :pretty_boolean_group, label: "Choose one:"
-      %td= @report.invoicing_score
+        1 pt: Invoices frequently contain errors that require correction
+      %td= f.input :invoicing_accuracy, collection: @report.invoicing_accuracy_options, as: :pretty_boolean_group, label: "Choose one:"
+      %td= @report.invoicing_accuracy_score
     %tr
       %td
-        12. Is the project efficient with funds? Does the cost per person served in each project
+        11. Is the project efficient with funds? Does the cost per person served in each project
         (include HUD funds and match total and compare standard practice: $4,000 per household.
       %td
         Project Application Budget
@@ -59,7 +61,7 @@
       %td= @report.efficiency_score
     %tr
       %td
-        13. Required match based on project budget
+        12. Required match based on project budget
         %p
         Was the match reported at end of operating year greater than the minimum required?
       %td
@@ -74,7 +76,7 @@
       %td= @report.required_match_score
     %tr
       %td
-        14. Project Returns
+        13. Project Returns
         %p
         What % of unobligated funds in the most recent grant application year were returned?
       %td Most Recently Completed Grant Year Funds Returned (sourced from ASPEND) divided by the Contract Budget
@@ -87,19 +89,3 @@
         = f.input :returned_funds
         = @report.returned_funds_value
       %td= @report.returned_funds_score
-    %tr
-      %td 15. Project utilization rate from current project operating year
-      %td
-        APR (quarterly average for operating year)
-        %p
-          APR Table
-        = link_to_apr('Q8b', 'Question 8')
-        Average of cells B2, B3, B4, B5 / Total Number of Households Served
-      %td
-        6 pts: 85 -over 100%
-        %br
-        3 pt: 84 - 75%
-        %br
-        0 pts: under 74%
-      %td= @report.utilization_rate_value
-      %td= @report.utilization_rate_score

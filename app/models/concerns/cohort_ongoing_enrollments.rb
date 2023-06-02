@@ -7,6 +7,10 @@
 module CohortOngoingEnrollments
   extend ActiveSupport::Concern
 
+  def available_for_rules?
+    false
+  end
+
   def value_requires_user?
     true
   end
