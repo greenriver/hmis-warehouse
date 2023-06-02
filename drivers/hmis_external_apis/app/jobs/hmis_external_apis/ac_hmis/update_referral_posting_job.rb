@@ -58,7 +58,7 @@ module HmisExternalApis::AcHmis
 
     protected
 
-    # we may get references to postings that are do not belong to the updated referral
+    # we may get references to postings that do not belong to the updated referral
     def posting_scope
       HmisExternalApis::AcHmis::ReferralPosting
     end

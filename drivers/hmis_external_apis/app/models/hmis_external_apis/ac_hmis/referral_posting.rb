@@ -47,5 +47,24 @@ module HmisExternalApis::AcHmis
 
     INACTIVE_STATUSES = [:closed_status, :accepted_by_other_program_status, :denied_status].freeze
     scope :active, -> { where.not(status: INACTIVE_STATUSES) }
+
+    # referral came from LINK
+    def from_link?
+      identifier.present?
+    end
+
+    attr_accessor :current_user
+    before_update :track_status_changes
+    def track_status_changes
+      user = current_user || Hmis::User.system_user
+      if status_note_changed?
+        self.status_note_updated_at = Time.now unless status_note_updated_at_changed?
+        self.status_note_updated_by = user unless status_note_updated_by_id_changed?
+      end
+      if status_changed? # rubocop:disable Style/GuardClause
+        self.status_updated_at = Time.now unless status_updated_at_changed?
+        self.status_updated_by = user unless status_updated_by_id_changed?
+      end
+    end
   end
 end
