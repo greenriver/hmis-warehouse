@@ -64,6 +64,19 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(ProjectType: project_types)
   end
 
+  scope :with_funders, ->(funders) do
+    joins(:funders).where(f_t[:funder].in(funders))
+  end
+
+  scope :with_statuses, ->(statuses) do
+    return self if statuses.include?('OPEN') && statuses.include?('CLOSED')
+
+    return where(p_t[:operating_end_date].eq(nil).or(p_t[:operating_end_date].gteq(Date.today))) if statuses.include?('OPEN')
+    return where(p_t[:operating_end_date].lt(Date.today)) if statuses.include?('CLOSED')
+
+    self
+  end
+
   scope :matching_search_term, ->(search_term) do
     return none unless search_term.present?
 
@@ -73,6 +86,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    organization_and_name: 'Organization and Name',
+    name: 'Name',
+  }.freeze
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
@@ -85,6 +103,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ProjectFilter.new(input).filter_scope(self)
   end
 
   def active
