@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Days Homeless For Pathways'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def available_for_rules?
+      false
+    end
+
     def value(cohort_client) # OK
       client = cohort_client.client
       # NOTE: this will return nothing unless the client has a recent pathways or transfer assessment
