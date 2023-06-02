@@ -151,7 +151,6 @@ OAUTH_PROVIDERS = [
                 'client_id': os.environ['SUPERSET_OAUTH_CLIENT_ID']
             },
             'access_token_headers':{    # Additional headers for calls to access_token_url
-                #     'Authorization': 'Basic Base64EncodedClientIdAndSecret'
                 'Host': os.environ['VIRTUAL_HOST'],
                 'ngrok-skip-browser-warning': 'true',
             },
