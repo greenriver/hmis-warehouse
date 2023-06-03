@@ -96,11 +96,10 @@ module Types
         end
 
       when 'REFERRAL_POSTING_STATUSES'
-        # Do we want all the possible statuses in the picklist?
-        HmisExternalApis::AcHmis::ReferralPosting.statuses.keys.map do |field|
+        HmisExternalApis::AcHmis::ReferralPosting::VALID_LOCAL_STATUSES.map do |status|
           {
-            code: field,
-            label: field.gsub(/_status\z/, '').humanize,
+            code: status,
+            label: status.gsub(/_status\z/, '').humanize,
           }
         end
       when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'

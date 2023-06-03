@@ -32,7 +32,7 @@ module Mutations
       accepting_referral = posting.changes['status'] == ['assigned_status', 'accepted_pending_status']
 
       posting.transaction do
-        posting.save
+        posting.save(context: :hmis_user_action) # context for validations
         errors.add_ar_errors(posting.errors.errors)
 
         if errors.empty? && accepting_referral
@@ -40,9 +40,9 @@ module Mutations
           handle_error('access denied') unless current_user.permissions_for?(project, :can_enroll_clients)
           build_enrollments(posting).each do |enrollment|
             if enrollment.valid?
-              enrollment.save_in_progress # calls enrollment.save!
+              enrollment.save_in_progress # this method will unset projectID and calls enrollment.save!
             else
-              errors += enrollment.errors.errors
+              handle_error('Could not create valid enrollments')
             end
           end
         end
@@ -64,10 +64,10 @@ module Mutations
       HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
         posting_id: posting.identifier,
         posting_status_id: posting.status_before_type_cast,
-        denied_reason_id: posting.denied_reason_before_typecast,
-        denied_reason_text: posting.denied_reason_text,
         status_note: posting.status_note,
-        contact_date: now,
+        denied_reason_id: posting.denial_reason_before_type_cast,
+        denied_reason_text: posting.denial_note,
+        contact_date: Time.now,
         requested_by: current_user.email,
       )
     end

@@ -38,8 +38,13 @@ module HmisExternalApis::AcHmis
       referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_result_map),
     )
 
-    validates :status_note, length: { maximum: 4_000 }
-    validates :denial_note, length: { maximum: 2_000 }
+    VALID_LOCAL_STATUSES = ['assigned_status', 'accepted_pending_status', 'denied_pending_status'].freeze
+    VALID_LOCAL_STATUS_IDS = statuses.values_at(*VALID_LOCAL_STATUSES).freeze
+
+    validates :status, inclusion: { in: VALID_LOCAL_STATUSES }, on: :hmis_user_action
+    validates :status_note, length: { maximum: 4_000 }, on: :hmis_user_action
+    validates :denial_reason, presence: true, if: :denied_pending_status?, on: :hmis_user_action
+    validates :denial_note, length: { maximum: 2_000 }, on: :hmis_user_action
 
     before_create do
       self.status_updated_at ||= created_at
@@ -59,11 +64,11 @@ module HmisExternalApis::AcHmis
       user = current_user || Hmis::User.system_user
       if status_note_changed?
         self.status_note_updated_at = Time.now unless status_note_updated_at_changed?
-        self.status_note_updated_by = user unless status_note_updated_by_id_changed?
+        self.status_note_updated_by_id = user.id unless status_note_updated_by_id_changed?
       end
       if status_changed? # rubocop:disable Style/GuardClause
         self.status_updated_at = Time.now unless status_updated_at_changed?
-        self.status_updated_by = user unless status_updated_by_id_changed?
+        self.status_updated_by_id = user.id unless status_updated_by_id_changed?
       end
     end
   end
