@@ -94,6 +94,17 @@ module Types
             label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
           }
         end
+
+      when 'REFERRAL_POSTING_STATUSES'
+        # Do we want all the possible statuses in the picklist?
+        HmisExternalApis::AcHmis::ReferralPosting.statuses.keys.map do |field|
+          {
+            code: field,
+            label: field.gsub(/_status\z/, '').humanize,
+          }
+        end
+      when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'
+        [] # tbd
       end
     end
 

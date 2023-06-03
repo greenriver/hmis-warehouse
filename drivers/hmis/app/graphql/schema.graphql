@@ -4101,6 +4101,16 @@ enum PickListType {
   """
   PROJECT
   REFERRAL_OUTCOME
+
+  """
+  Referral Posting Status
+  """
+  REFERRAL_POSTING_DENIAL_REASON_TYPES
+
+  """
+  Referral Posting Status
+  """
+  REFERRAL_POSTING_STATUSES
   SERVICE_TYPE
   STATE
   SUB_TYPE_PROVIDED_3
@@ -4643,9 +4653,8 @@ type ReferralPosting {
 }
 
 input ReferralPostingInput {
-  denialReason: ReferralPostingStatus
-  denialReasonId: ReferralPostingStatus
-  postingStatusId: ReferralPostingStatus
+  denialReasonId: ID
+  status: ID
   statusNote: String
 }
 

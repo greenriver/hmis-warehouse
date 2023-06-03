@@ -73,14 +73,16 @@ module Mutations
     end
 
     def build_enrollments(posting)
+      project = posting.project
+      household_id = Hmis::Hud::Enrollment.generate_household_id
       posting.referral.household_members.preload(:client).map do |member|
         Hmis::Hud::Enrollment.new(
-          user: current_user,
+          user_id: current_user.id,
           data_source: project.data_source,
-          entry_date: entry_date,
-          project: posting.project,
+          entry_date: Date.today, # is this right?
+          project: project,
           personal_id: member.client.PersonalID,
-          household_id: member.household_id,
+          household_id: household_id,
         )
       end
     end

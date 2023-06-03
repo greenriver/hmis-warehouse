@@ -7,9 +7,10 @@
 module Types
   class HmisSchema::ReferralPostingInput < BaseInputObject
     argument :status_note, String, required: false
-    argument :posting_status_id, HmisSchema::Enums::ReferralPostingStatus, required: false
-    argument :denial_reason, HmisSchema::Enums::ReferralPostingStatus, required: false
-    argument :denial_reason_id, HmisSchema::Enums::ReferralPostingStatus, required: false
+    argument :status, ID, required: false
+    argument :denial_reason_id, ID, required: false
+    # maybe we want this too?
+    # argument :denial_reason, String, required: false
 
     def to_params
       to_h
