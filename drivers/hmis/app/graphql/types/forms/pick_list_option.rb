@@ -99,7 +99,7 @@ module Types
         HmisExternalApis::AcHmis::ReferralPosting::VALID_LOCAL_STATUSES.map do |status|
           {
             code: status,
-            label: status.gsub(/_status\z/, '').humanize,
+            label: status.gsub(/_status\z/, '').humanize.titleize,
           }
         end
       when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'

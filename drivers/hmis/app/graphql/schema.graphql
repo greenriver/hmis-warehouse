@@ -4653,7 +4653,8 @@ type ReferralPosting {
 }
 
 input ReferralPostingInput {
-  denialReasonId: ID
+  denialNote: String
+  denialReason: ID
   status: ID
   statusNote: String
 }
