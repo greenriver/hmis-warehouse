@@ -46,7 +46,7 @@ module HmisExternalApis::AcHmis
         denied_reason_text: denied_reason_text,
         status_note: status_note,
         contact_date: format_date(contact_date),
-        requested_by: requested_by,
+        requested_by: format_requested_by(requested_by),
       }.filter { |_, v| v.present? }
 
       payload[:denied_reason_id] = denied_reason_id if denied_reason_id

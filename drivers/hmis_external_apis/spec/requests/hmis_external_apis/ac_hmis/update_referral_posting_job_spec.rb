@@ -12,7 +12,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
     include_context 'hmis base setup'
 
     let(:requested_by) do
-      'text@example.com'
+      'test1234@example.com'
     end
 
     let!(:link_creds) do
@@ -21,7 +21,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
 
     it 'has no smoke' do
       posting = create(:hmis_external_api_ac_hmis_referral_posting)
-      accepted_status_code = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch(:accepted_status)
+      accepted_status_code = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
 
       result = HmisExternalApis::OauthClientResult.new(
         parsed_body: {
@@ -37,7 +37,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
           {
             'postingId' => posting.identifier,
             'postingStatusId' => accepted_status_code,
-            'requestedBy' => requested_by,
+            'requestedBy' => requested_by.slice(0, 20),
           },
         )
         .and_return(result)
@@ -48,7 +48,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
         requested_by: requested_by,
       )
       posting.reload
-      expect(posting.status).to(eq('accepted_status'))
+      expect(posting.status_before_type_cast).to(eq(accepted_status_code))
     end
   end
 end

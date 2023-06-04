@@ -26,7 +26,7 @@ RSpec.describe HmisExternalApis::AcHmis::VoidReferralRequestJob do
           "Referral/ReferralRequest/#{referral_request.identifier}",
           {
             'isVoid' => true,
-            'requestedBy' => hmis_user.email,
+            'requestedBy' => hmis_user.email.slice(0, 20),
           },
         )
         .and_return(result)

@@ -13,7 +13,7 @@ module HmisExternalApis::AcHmis
     # @param referral_request [HmisExternalApis::AcHmis::ReferralRequest]
     # @param user [Hmis::User]
     def perform(referral_request:, user:)
-      link.void_referral_request(referral_request_id: referral_request.identifier, requested_by: user.email)
+      link.void_referral_request(referral_request_id: referral_request.identifier, requested_by: format_requested_by(user.email))
       referral_request.update!(voided_by: user, voided_at: Time.now)
     end
   end

@@ -25,7 +25,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
     end
 
     let(:requested_by) do
-      'test@example.com'
+      'test1234@example.com'
     end
 
     it 'has no smoke' do
@@ -44,7 +44,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
           {
             'availableUnits' => 2,
             'programID' => project.ProjectID,
-            'requestedBy' => requested_by,
+            'requestedBy' => requested_by.slice(0, 20),
             'unitTypeID' => unit_type_mper_id,
           },
         )
@@ -53,7 +53,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
       HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now(
         project_id: project.id,
         unit_type_id: unit_type.id,
-        requested_by: 'test@example.com',
+        requested_by: requested_by,
       )
     end
   end

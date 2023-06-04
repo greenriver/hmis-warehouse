@@ -30,9 +30,14 @@ module HmisExternalApis::AcHmis
       @link ||= ::HmisExternalApis::AcHmis::LinkApi.new
     end
 
+    # @param date [Date]
     def format_date(date)
       date&.strftime('%Y-%m-%d')
     end
 
+    # @param str [String]
+    def format_requested_by(str)
+      str.slice(0, 20) # max length of 20 for requestedBy
+    end
   end
 end
