@@ -18,6 +18,7 @@ module CoreDemographicsReport::DemographicSummary
     include CoreDemographicsReport::ChronicCalculations
     include CoreDemographicsReport::UnshelteredCalculations
     include CoreDemographicsReport::HighAcuityCalculations
+    include CoreDemographicsReport::FirstTimeCalculations
     include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
     include CoreDemographicsReport::ReportConcern
@@ -46,6 +47,7 @@ module CoreDemographicsReport::DemographicSummary
         'chronic',
         'high_acuity',
         'unsheltered',
+        'no_recent_homelessness',
       ]
     end
 
@@ -64,6 +66,7 @@ module CoreDemographicsReport::DemographicSummary
         merge(chronic_detail_hash).
         merge(high_acuity_detail_hash).
         merge(unsheltered_detail_hash).
+        merge(no_recent_homelessness_detail_hash).
         merge(enrollment_detail_hash)
     end
 
@@ -78,7 +81,7 @@ module CoreDemographicsReport::DemographicSummary
 
     protected def build_control_sections
       [
-        build_general_control_section,
+        build_general_control_section(include_inactivity_days: true),
         build_coc_control_section,
         add_demographic_disabilities_control_section,
       ]
