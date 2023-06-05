@@ -71,7 +71,10 @@ module
             pluck(:client_id, d_t[:DisabilityType]).
             group_by(&:shift).
             each do |client_id, disabilities|
-              next unless disabilities > 1
+              # Don't count anyone with only one disabling condition
+              next unless disabilities.count > 1
+              # Don't count anyone we've already counted in the chronic counts
+              next if chronic_clients[:client].include?(client_id)
 
               clients[:client] ||= Set.new
               clients[:client] << client_id
@@ -82,7 +85,10 @@ module
             pluck(:client_id, d_t[:DisabilityType]).
             group_by(&:shift).
             each do |client_id, disabilities|
-              next unless disabilities > 1
+              # Don't count anyone with only one disabling condition
+              next unless disabilities.count > 1
+              # Don't count anyone we've already counted in the chronic counts
+              next if chronic_clients[:household].include?(client_id)
 
               clients[:household] ||= Set.new
               clients[:household] << client_id
