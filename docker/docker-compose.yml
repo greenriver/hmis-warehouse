@@ -5,7 +5,7 @@ x-app: &app
   build:
     context: .
     args:
-      RUBY_VERSION: 3.1.3
+      RUBY_VERSION: 3.1.4
       BUNDLER_VERSION: '2.4.10'
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
