@@ -122,53 +122,65 @@ SECRET_KEY = os.environ["SUPERSET_SECRET_KEY"]
 # Redirect doesn't have https without this
 ENABLE_PROXY_FIX = True
 
-print("Initializing oauth configuration")
+# Set the authentication type to OAuth if desired
+if (get_env_variable(var_name='SUPERSET_USE_OAUTH', default="false") == "true"):
+    print("Initializing oauth configuration")
 
-from flask_appbuilder.security.manager import AUTH_OAUTH
+    from flask_appbuilder.security.manager import AUTH_OAUTH
 
-with open('/ngrok/public_url', 'r') as file:
-    # aka the warehouse (not superset)
-    backchannel_oauth_provider_url = file.read().rstrip()
+    with open('/ngrok/public_url', 'r') as file:
+        # aka the warehouse (not superset)
+        backchannel_oauth_provider_url = file.read().rstrip()
 
-print(f'Using {backchannel_oauth_provider_url} as the url for oauth between both backend systems (the warehouse and superset)')
+    if len(backchannel_oauth_provider_url) < 10:
+        print('Could not get public url to use for oauth. aborting')
+        exit
+    else:
+        print(f'Using {backchannel_oauth_provider_url} as the url for oauth between both backend systems (the warehouse and superset)')
 
-oauth_provider_url = os.environ['WAREHOUSE_URL']
+    oauth_provider_url = os.environ['WAREHOUSE_URL']
 
-# Set the authentication type to OAuth
-AUTH_TYPE = AUTH_OAUTH
-OAUTH_PROVIDERS = [
-    {   'name': 'WarehouseSSO',
-        'token_key': 'access_token', # Name of the token in the response of access_token_url
-        'icon': 'fa-address-card',   # Icon for the provider
-        'remote_app': {
-            'client_id': os.environ['SUPERSET_OAUTH_CLIENT_ID'], # Client Id (Identify Superset application)
-            'client_secret': os.environ['SUPERSET_OAUTH_CLIENT_SECRET'], # Secret for this Client Id (Identify Superset application)
-            'client_kwargs': {
-                'scope': 'user_data'               # Scope for the Authorization
-            },
-            'access_token_method': 'POST',    # HTTP Method to call access_token_url
-            'access_token_params': {        # Additional parameters for calls to access_token_url
-                'client_id': os.environ['SUPERSET_OAUTH_CLIENT_ID']
-            },
-            'access_token_headers':{    # Additional headers for calls to access_token_url
-                'Host': os.environ['VIRTUAL_HOST'],
-                'ngrok-skip-browser-warning': 'true',
-            },
-            'api_base_url': f'{backchannel_oauth_provider_url}/',
-            'access_token_url': f'{backchannel_oauth_provider_url}/oauth/token',
-            'authorize_url': f'{oauth_provider_url}/oauth/authorize',
+    from base64 import b64encode
+    basic_auth_username = os.environ['NGROK_BASIC_AUTH_USERNAME']
+    basic_auth_password = os.environ['NGROK_BASIC_AUTH_PASSWORD']
+    user_pass = b64encode(bytes(f'{basic_auth_username}:{basic_auth_password}', 'utf-8')).decode()
+
+    AUTH_TYPE = AUTH_OAUTH
+
+    OAUTH_PROVIDERS = [
+        {   'name': 'WarehouseSSO',
+            'token_key': 'access_token', # Name of the token in the response of access_token_url
+            'icon': 'fa-address-card',   # Icon for the provider
+            'remote_app': {
+                'client_id': os.environ['SUPERSET_OAUTH_CLIENT_ID'], # Client Id (Identify Superset application)
+                'client_secret': os.environ['SUPERSET_OAUTH_CLIENT_SECRET'], # Secret for this Client Id (Identify Superset application)
+                'client_kwargs': {
+                    'scope': 'user_data'               # Scope for the Authorization
+                },
+                'access_token_method': 'POST',    # HTTP Method to call access_token_url
+                'access_token_params': {        # Additional parameters for calls to access_token_url
+                    'client_id': os.environ['SUPERSET_OAUTH_CLIENT_ID']
+                },
+                'access_token_headers':{    # Additional headers for calls to access_token_url
+                    'Host': os.environ['VIRTUAL_HOST'],
+                    'ngrok-skip-browser-warning': 'true',
+                    'Authorization': f'Basic {user_pass}'
+                },
+                'api_base_url': f'{backchannel_oauth_provider_url}/',
+                'access_token_url': f'{backchannel_oauth_provider_url}/oauth/token',
+                'authorize_url': f'{oauth_provider_url}/oauth/authorize',
+            }
         }
-    }
-]
+    ]
 
-print(OAUTH_PROVIDERS)
+    print(OAUTH_PROVIDERS)
 
-from doorkeeper_sso_security_manager import DoorkeeperSsoSecurityManager
+    from doorkeeper_sso_security_manager import DoorkeeperSsoSecurityManager
 
-CUSTOM_SECURITY_MANAGER = DoorkeeperSsoSecurityManager
+    CUSTOM_SECURITY_MANAGER = DoorkeeperSsoSecurityManager
 
 
-print("Done with oauth configuration")
+    print("Done with oauth configuration")
 
 # Will allow user self registration, allowing to create Flask users from Authorized User
 # i.e. You use oauth to log in, and the first time this happens, you get a user record

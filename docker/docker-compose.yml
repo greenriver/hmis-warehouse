@@ -131,6 +131,8 @@ services:
     stdin_open: true
     volumes:
       - ngrok:/ngrok
+    expose: ['4040']
+    ports: ['4040']
     environment:
       NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-setme_warning_web_app_will_be_available_on_internet}
       NGROK_API_KEY: ${NGROK_API_KEY:-setme}
@@ -139,6 +141,7 @@ services:
       - http
       - https://${FQDN:-hmis-warehouse.dev.test}
       - --request-header-add=host:${FQDN:-hmis-warehouse.dev.test}
+      - --basic-auth="${NGROK_BASIC_AUTH_USERNAME:-op-dev}:${NGROK_BASIC_AUTH_PASSWORD:-375148e9582f2369475505f2c6f8a5be}"
 
   # Assumes one ngrok tunnel active
   # Places the public URL into /ngrok/public_url
@@ -148,7 +151,7 @@ services:
     <<: *ngrok
     user: root
     entrypoint: ''
-    command: bash -c 'sleep 3 && ngrok api tunnels list --api-key=\$NGROK_API_KEY | grep public_url | cut -d\" -f4 > /ngrok/public_url'
+    command: bash -c 'sleep 3 && rm -f /ngrok/public_url && ngrok api tunnels list --api-key=\$NGROK_API_KEY | grep public_url | cut -d\" -f4 > /ngrok/public_url'
     depends_on:
       ngrok:
         condition: service_started
@@ -224,6 +227,9 @@ services:
       # application when logged in as an admin
       SUPERSET_OAUTH_CLIENT_ID: ${SUPERSET_OAUTH_CLIENT_ID:-setme}
       SUPERSET_OAUTH_CLIENT_SECRET: ${SUPERSET_OAUTH_CLIENT_SECRET:-setme}
+      SUPERSET_USE_OAUTH: ${SUPERSET_USE_OAUTH:-false}
+      NGROK_BASIC_AUTH_USERNAME: ${NGROK_BASIC_AUTH_USERNAME:-op-dev}
+      NGROK_BASIC_AUTH_PASSWORD: ${NGROK_BASIC_AUTH_PASSWORD:-375148e9582f2369475505f2c6f8a5be}
     depends_on:
       db:
         condition: service_healthy
