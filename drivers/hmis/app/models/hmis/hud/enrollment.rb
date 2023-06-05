@@ -100,6 +100,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     where(id: wip_enrollments + nonwip_enrollments)
   end
 
+  scope :with_age_range, ->(range) do
+    joins(:client).merge(Hmis::Hud::Client.with_age_range(range))
+  end
+
   scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
   scope :active, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }

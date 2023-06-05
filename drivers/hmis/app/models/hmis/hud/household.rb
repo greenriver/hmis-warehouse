@@ -56,7 +56,13 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
   end
 
-  SORT_OPTIONS = [:most_recent].freeze
+  SORT_OPTIONS = [
+    :most_recent,
+  ].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    most_recent: 'Most Recent',
+  }.freeze
 
   def readonly?
     true
@@ -75,5 +81,9 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::HouseholdFilter.new(input).filter_scope(self)
   end
 end

@@ -37,6 +37,66 @@ input AddRecentItemInput {
 }
 
 """
+HUD Age Ranges
+"""
+enum AgeRange {
+  """
+  62+
+  """
+  Age62Plus
+
+  """
+  65+
+  """
+  Age65Plus
+
+  """
+  13-17
+  """
+  Ages13to17
+
+  """
+  18-24
+  """
+  Ages18to24
+
+  """
+  25-34
+  """
+  Ages25to34
+
+  """
+  35-44
+  """
+  Ages35to44
+
+  """
+  45-54
+  """
+  Ages45to54
+
+  """
+  55-61
+  """
+  Ages55to61
+
+  """
+  55-64
+  """
+  Ages55to64
+
+  """
+  5-12
+  """
+  Ages5to12
+
+  """
+  Under 5
+  """
+  Under5
+}
+
+"""
 User account for a user of the system
 """
 type ApplicationUser {
@@ -2993,6 +3053,23 @@ type HouseholdClient {
   relationshipToHoH: RelationshipToHoH!
 }
 
+input HouseholdFilterOptions {
+  ageRange: AgeRange
+  openOnDate: ISO8601Date
+  searchTerm: String
+  statuses: [EnrollmentFilterOptionStatus!]
+}
+
+"""
+HUD Household Sorting Options
+"""
+enum HouseholdSortOption {
+  """
+  Most Recent
+  """
+  MOST_RECENT
+}
+
 """
 2.07.4
 """
@@ -4147,7 +4224,7 @@ type Project {
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
-  households(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): HouseholdsPaginated!
+  households(enrollmentLimit: EnrollmentLimit, filters: HouseholdFilterOptions, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: HouseholdSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!
   id: ID!

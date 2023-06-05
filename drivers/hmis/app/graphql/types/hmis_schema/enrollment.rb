@@ -23,13 +23,7 @@ module Types
     end
 
     available_filter_options do
-      arg :statuses, [
-        Types::BaseEnum.generate_enum('EnrollmentFilterOptionStatus') do
-          value 'EXITED', description: 'Exited'
-          value 'ACTIVE', description: 'Active'
-          value 'INCOMPLETE', description: 'Incomplete'
-        end,
-      ]
+      arg :statuses, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
       arg :open_on_date, GraphQL::Types::ISO8601Date
       arg :project_types, [Types::HmisSchema::Enums::ProjectType]
       arg :search_term, String

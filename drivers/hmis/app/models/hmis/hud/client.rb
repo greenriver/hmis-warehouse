@@ -106,6 +106,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  scope :with_age_range, ->(range) do
+    query = c_t[:DOB].lteq(Date.today.years_ago(range.begin))
+    query = query.and(c_t[:DOB].gteq(Date.today.years_ago(range.end))) unless range.end == Float::INFINITY
+
+    where(query)
+  end
+
   # Clients that have no Enrollments (WIP or otherwise)
   scope :unenrolled, -> do
     # Clients that have no projects, AND no wip enrollments
