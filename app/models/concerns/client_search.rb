@@ -22,17 +22,17 @@ module ClientSearch
       # Explicitly search for only last, first if there's a comma in the search
       if text.include?(',')
         last, first = text.split(',').map(&:strip)
-        where = sa[:LastName].lower.matches("#{last.downcase}%") if last.present?
+        where = with_custom_name_search(sa[:LastName].lower.matches("#{last.downcase}%"), :last, last) if last.present?
         if last.present? && first.present?
-          where = where.and(sa[:FirstName].lower.matches("#{first.downcase}%"))
+          where = where.and(with_custom_name_search(sa[:FirstName].lower.matches("#{first.downcase}%"), :first, first))
         elsif first.present?
-          where = sa[:FirstName].lower.matches("#{first.downcase}%")
+          where = with_custom_name_search(sa[:FirstName].lower.matches("#{first.downcase}%"), :first, first)
         end
         # Explicitly search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
-        where = sa[:FirstName].lower.matches("#{first.downcase}%").
-          and(sa[:LastName].lower.matches("#{last.downcase}%"))
+        where = with_custom_name_search(sa[:FirstName].lower.matches("#{first.downcase}%"), :first, first).
+          and(with_custom_name_search(sa[:LastName].lower.matches("#{last.downcase}%"), :last, last))
         # Explicitly search for a PersonalID
       elsif alpha_numeric && (text.size == 32 || text.size == 36)
         where = sa[:PersonalID].matches(text.gsub('-', ''))
@@ -45,8 +45,8 @@ module ClientSearch
         where = sa[:PersonalID].eq(text).or(sa[:id].eq(text))
       else
         query = "%#{text}%"
-        where = sa[:FirstName].matches(query).
-          or(sa[:LastName].matches(query))
+        where = with_custom_name_search(sa[:FirstName].matches(query), :first, first).
+          or(with_custom_name_search(sa[:LastName].matches(query), :last, last))
 
         where = nickname_search(where, text)
         where = metaphone_search(where, :FirstName, text)
@@ -88,6 +88,12 @@ module ClientSearch
       where = where.or(nf('LOWER', [arel_table[field]]).in(alt_names)) if alt_names.present?
 
       where
+    end
+
+    def self.with_custom_name_search(where, field, text, association: :names)
+      return where unless reflect_on_association(association)&.klass == Hmis::Hud::CustomClientName
+
+      where.or(Hmis::Hud::CustomClientName.arel_table[field].lower.matches("#{text&.downcase}%"))
     end
   end
 end

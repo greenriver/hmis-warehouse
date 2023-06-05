@@ -100,7 +100,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :matching_search_term, ->(text_search) do
     text_searcher(text_search) do |where|
-      where(where).pluck(:id)
+      left_outer_joins(:names).where(where).pluck(:id)
     rescue RangeError
       return none
     end
@@ -230,22 +230,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
     if input.text_search.present?
       scope = text_searcher(input.text_search) do |where|
-        scope.where(where).pluck(:id)
+        scope.left_outer_joins(:names).where(where).pluck(:id)
       end
     end
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
+      ccn_query = ccn_t[:first].matches("#{input.first_name}%")
       query = nickname_search(query, input.first_name)
       query = metaphone_search(query, :FirstName, input.first_name)
-      scope = scope.where(query)
+      scope = scope.where(id: scope.left_outer_joins(:names).where(query.or(ccn_query)).pluck(:id))
     end
 
     if input.last_name.present?
       query = c_t[:LastName].matches("#{input.last_name}%")
+      ccn_query = ccn_t[:last].matches("#{input.first_name}%")
       query = nickname_search(query, input.last_name)
       query = metaphone_search(query, :LastName, input.last_name)
-      scope = scope.where(query)
+      scope = scope.where(id: scope.left_outer_joins(:names).where(query.or(ccn_query)).pluck(:id))
     end
 
     # TODO: nicks and/or metaphone searches?
