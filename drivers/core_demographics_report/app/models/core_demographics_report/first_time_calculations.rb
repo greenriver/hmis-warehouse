@@ -72,13 +72,13 @@ module
     # inactivity period (default is 24 months).
     private def client_ids_with_prior_homelessness
       @client_ids_with_prior_homelessness ||= begin
-        project_types = HudUtility.homeless_project_type_numbers
+        project_types = HudUtility.homeless_project_type_numbers & filter.project_type_numbers
         # Use month duration to handle leap years
-        inactivity_duration = @filter.inactivity_days > 90 ? @filter.inactivity_days.days.in_months.round.months : @filter.inactivity_days.days
-        # NOTE: this currently by-passes report universe choices, but not permission restrictions to find homeless entries
-        scope = report_scope_source.entry.
-          open_between(start_date: @filter.start_date - inactivity_duration, end_date: @filter.start_date - 1.day).
-          with_service_between(start_date: @filter.start_date - inactivity_duration, end_date: @filter.start_date - 1.day).
+        inactivity_duration = filter.inactivity_days > 90 ? filter.inactivity_days.days.in_months.round.months : filter.inactivity_days.days
+        # NOTE: this is limited to the report universe, except for the date range
+        scope = report_scope(include_date_range: false).
+          open_between(start_date: filter.start_date - inactivity_duration, end_date: filter.start_date - 1.day).
+          with_service_between(start_date: filter.start_date - inactivity_duration, end_date: filter.start_date - 1.day).
           in_project_type(project_types)
         scope = filter_for_user_access(scope)
         scope.pluck(:client_id).to_set

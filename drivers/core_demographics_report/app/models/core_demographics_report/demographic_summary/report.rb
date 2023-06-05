@@ -19,6 +19,7 @@ module CoreDemographicsReport::DemographicSummary
     include CoreDemographicsReport::UnshelteredCalculations
     include CoreDemographicsReport::HighAcuityCalculations
     include CoreDemographicsReport::FirstTimeCalculations
+    include CoreDemographicsReport::OutcomeCalculations
     include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
     include CoreDemographicsReport::ReportConcern
@@ -48,6 +49,7 @@ module CoreDemographicsReport::DemographicSummary
         'high_acuity',
         'unsheltered',
         'no_recent_homelessness',
+        'outcome',
       ]
     end
 
@@ -67,6 +69,7 @@ module CoreDemographicsReport::DemographicSummary
         merge(high_acuity_detail_hash).
         merge(unsheltered_detail_hash).
         merge(no_recent_homelessness_detail_hash).
+        merge(outcome_detail_hash).
         merge(enrollment_detail_hash)
     end
 

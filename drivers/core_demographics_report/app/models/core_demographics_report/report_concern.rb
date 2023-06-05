@@ -34,11 +34,11 @@ module
     end
 
     # @return filtered scope
-    def report_scope(all_project_types: false)
+    def report_scope(all_project_types: false, include_date_range: true)
       # Report range
       scope = report_scope_source
       scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
+      scope = filter_for_range(scope) unless include_date_range
       scope = filter_for_cocs(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_household_type(scope)
