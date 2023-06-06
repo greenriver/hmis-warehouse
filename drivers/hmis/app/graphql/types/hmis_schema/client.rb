@@ -31,7 +31,6 @@ module Types
     hud_field :first_name
     hud_field :middle_name
     hud_field :last_name
-    field :preferred_name, String, null: true
     hud_field :name_suffix
     hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality
     hud_field :dob
@@ -47,6 +46,8 @@ module Types
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
+    field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
+    field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     enrollments_field without_args: [:search_term]
     income_benefits_field
     disabilities_field
@@ -187,6 +188,7 @@ module Types
 
     def names
       if object.names.empty?
+        # If client has no CustomClientNames, construct one based on the HUD Client name fields
         return [
           object.names.new(
             id: '0',
@@ -194,15 +196,21 @@ module Types
             last: object.last_name,
             middle: object.middle_name,
             suffix: object.name_suffix,
-            name_data_quality: object.name_data_quality,
             primary: true,
-            user: object.user,
-            data_source: object.data_source,
+            **object.slice(:name_data_quality, :user_id, :data_source_id, :date_created, :date_updated),
           ),
         ]
       end
 
       object.names
+    end
+
+    def phone_numbers
+      object.contact_points.where(system: :phone)
+    end
+
+    def email_addresses
+      object.contact_points.where(system: :email)
     end
   end
 end

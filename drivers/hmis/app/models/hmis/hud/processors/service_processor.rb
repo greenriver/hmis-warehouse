@@ -8,8 +8,8 @@ module Hmis::Hud::Processors
   class ServiceProcessor < Base
     # Process as HUD Service. This needs to be updated to support Custom Services.
     def process(field, value)
-      attribute_name = hud_name(field)
-      attribute_value = attribute_value_for_enum(hud_type(field), value)
+      attribute_name = ar_attribute_name(field)
+      attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
       return if attribute_name == 'custom_service_type'
 

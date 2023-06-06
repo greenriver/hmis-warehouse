@@ -9,6 +9,14 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :rrh_desired
     attribute :title, String, lazy: true, default: 'Interested in RRH'
 
+    def cast_value(val)
+      val.to_s == 'true'
+    end
+
+    def arel_col
+      c_t[:rrh_desired]
+    end
+
     def renderer
       'html'
     end

@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Most Recent Current Living Situation Sheltered?'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def available_for_rules?
+      false
+    end
+
     def value(cohort_client) # OK
       checkmark_or_x text_value(cohort_client)
     end

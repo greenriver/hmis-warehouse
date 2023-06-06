@@ -56,7 +56,8 @@ module MedicaidHmisInterchange
       Tempfile.create(File.basename(response_path)) do |tmpfile|
         using_sftp do |sftp|
           sftp.download!(response_path, tmpfile.path)
-          return MedicaidHmisInterchange::Health::Response.create(
+          tmpfile.rewind
+          return MedicaidHmisInterchange::Health::Response.create!(
             submission_id: most_recent_upload.id,
             error_report: tmpfile.read,
           )

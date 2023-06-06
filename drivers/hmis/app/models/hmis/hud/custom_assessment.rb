@@ -111,6 +111,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     data_collection_stage == 3
   end
 
+  def self.apply_filters(input)
+    Hmis::Filter::AssessmentFilter.new(input).filter_scope(self)
+  end
+
   def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date: nil)
     new_assessment = new(
       data_source_id: enrollment.data_source_id,
