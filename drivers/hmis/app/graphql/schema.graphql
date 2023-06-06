@@ -1908,11 +1908,6 @@ input EnrollmentHouseholdMemberInput {
   relationshipToHoH: RelationshipToHoH!
 }
 
-enum EnrollmentLimit {
-  NON_WIP_ONLY
-  WIP_ONLY
-}
-
 """
 HUD Enrollment Sorting Options
 """
@@ -3054,7 +3049,7 @@ type HouseholdClient {
 }
 
 input HouseholdFilterOptions {
-  ageRange: AgeRange
+  hohAgeRange: AgeRange
   openOnDate: ISO8601Date
   searchTerm: String
   statuses: [EnrollmentFilterOptionStatus!]
@@ -4224,7 +4219,7 @@ type Project {
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
-  households(enrollmentLimit: EnrollmentLimit, filters: HouseholdFilterOptions, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: HouseholdSortOption): HouseholdsPaginated!
+  households(filters: HouseholdFilterOptions, limit: Int, offset: Int, sortOrder: HouseholdSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!
   id: ID!
