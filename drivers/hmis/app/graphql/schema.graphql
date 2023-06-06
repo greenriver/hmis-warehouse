@@ -4992,7 +4992,6 @@ type SaveAssessmentPayload {
 HUD or Custom Service rendered
 """
 type Service {
-  FAAmount: Float
   client: Client!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
@@ -5000,13 +4999,13 @@ type Service {
   dateProvided: ISO8601Date!
   dateUpdated: ISO8601DateTime!
   enrollment: Enrollment!
+  faAmount: Float
   id: ID!
   movingOnOtherType: String
   otherTypeProvided: String
-  recordType: RecordType
   referralOutcome: PATHReferralOutcome
+  serviceType: ServiceType!
   subTypeProvided: ServiceSubTypeProvided
-  typeProvided: ServiceTypeProvided
   user: User
 }
 
