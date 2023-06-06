@@ -177,5 +177,13 @@ module Types
     def access
       {}
     end
+
+    field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do
+      argument :id, ID, required: true
+    end
+
+    def referral_posting(id:)
+      HmisExternalApis::AcHmis::ReferralPosting.viewable_by(current_user).find_by(id: id)
+    end
   end
 end

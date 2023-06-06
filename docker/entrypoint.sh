@@ -7,6 +7,7 @@ then
   then
     # no news is good news
     # echo /app/node_modules is a symlink as desired
+    echo ""
   else
     echo Saving /app/node_modules with alternate name
     mv /app/node_modules "/app/node_modules.`date +'%s'`"
