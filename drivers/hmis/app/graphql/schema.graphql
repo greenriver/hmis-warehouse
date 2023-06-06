@@ -3973,7 +3973,7 @@ type Organization {
   hudId: ID!
   id: ID!
   organizationName: String!
-  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+  projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
   user: User
   victimServiceProvider: NoYesMissing!
 }
@@ -4213,11 +4213,37 @@ type ProjectCocsPaginated {
   pagesCount: Int!
 }
 
+enum ProjectFilterOptionStatus {
+  """
+  Closed
+  """
+  CLOSED
+
+  """
+  Open
+  """
+  OPEN
+}
+
+input ProjectFilterOptions {
+  funders: [FundingSource!]
+  projectTypes: [ProjectType!]
+  searchTerm: String
+  statuses: [ProjectFilterOptionStatus!]
+}
+
 """
 HUD Project Sorting Options
 """
 enum ProjectSortOption {
+  """
+  Name
+  """
   NAME
+
+  """
+  Organization and Name
+  """
   ORGANIZATION_AND_NAME
 }
 
@@ -4385,7 +4411,8 @@ type Query {
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc
-  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+  projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
+  referralPosting(id: ID!): ReferralPosting
 
   """
   Service lookup
@@ -4601,12 +4628,25 @@ enum RecordType {
   SSVF_SERVICE
 }
 
+"""
+HUD Client within a Referral Household
+"""
+type ReferralHouseholdMember {
+  client: Client!
+  id: ID!
+  relationshipToHoH: RelationshipToHoH!
+}
+
+"""
+A referral for a household of one or more clients
+"""
 type ReferralPosting {
   assignedDate: ISO8601Date!
   chronic: Boolean
   denialNote: String
   denialReason: String
   hohName: String!
+  householdMembers: [ReferralHouseholdMember!]!
   householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
@@ -4626,6 +4666,7 @@ type ReferralPosting {
   statusNoteUpdatedBy: String
   statusUpdatedAt: ISO8601Date
   statusUpdatedBy: String
+  unitType: UnitTypeObject!
 }
 
 """

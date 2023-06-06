@@ -68,11 +68,14 @@
       %td
         2. % of clients who increased income through
         %b employment
+        %br
         (Stayers and Leavers)
       %td
         APR Tables
+        %br
         = link_to_apr('Q19a1,', 'Question 19')
         Cell J2 (Stayers)
+        %br
         = link_to_apr('Q19a2,', 'Question 19')
         Cell J2 (Leavers)
       %td
@@ -87,13 +90,19 @@
       %td= @report.increased_employment_income_score
     %tr
       %td
-        3. % of clients who increased non-earned income
-        %b (ex. social benefits)
+        3. % of clients who increased n
+        %b on-earned income
+        (ex. social benefits)
+        %br
         (Stayers and Leavers)
       %td
-        APR Table
+        APR Tables
+        %br
         = link_to_apr('Q19a1,', 'Question 19')
-        Cell J4
+        Cell J4 (Stayers)
+        %br
+        = link_to_apr('Q19a2,', 'Question 19')
+        Cell J4 (Leavers)
       %td
         12 pts: 100-75%
         %br
