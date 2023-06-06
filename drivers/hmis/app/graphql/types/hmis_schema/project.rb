@@ -48,7 +48,7 @@ module Types
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
-    enrollments_field without_args: [:project_types]
+    enrollments_field filter_args: { omit: [:project_types], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
     referral_postings_field :incoming_referral_postings
