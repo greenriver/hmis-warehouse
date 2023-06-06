@@ -45,6 +45,10 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   end
 
   def with_hoh_age_range(scope)
-    with_filter(scope, :age_range) { scope.merge(Hmis::Hud::Enrollment.with_age_range(input.age_range)).merge(Hmis::Hud::Enrollment.heads_of_households) }
+    with_filter(scope, :hoh_age_range) do
+      start_age = input.hoh_age_range.begin
+      end_age = input.hoh_age_range.end
+      scope.merge(Hmis::Hud::Enrollment.heads_of_households.in_age_group(start_age: start_age, end_age: end_age))
+    end
   end
 end
