@@ -67,7 +67,6 @@ module HmisUtil
 
     # Load form definitions for editing and creating records
     def self.seed_record_form_definitions
-      # role_map = { service_custom: :SERVICE }.freeze
       record_forms.each do |identifier, form_definition|
         role = identifier.upcase.to_sym
         next unless Hmis::Form::Definition::FORM_ROLES.key?(role)
@@ -91,6 +90,20 @@ module HmisUtil
       end
 
       puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
+    end
+
+    def self.load_definition(identifier, role:)
+      form_definition = record_forms[identifier.to_s]
+      return unless form_definition.present?
+
+      form_definition['item'] = form_definition['item'].map { |item| apply_fragment(item) }
+      Hmis::Form::Definition.validate_json(form_definition)
+      Hmis::Form::Definition.where(
+        identifier: identifier,
+        role: role,
+        version: 0,
+        status: 'draft',
+      ).first_or_create!(definition: form_definition.to_json)
     end
 
     # Load form definitions for HUD assessments
