@@ -30,8 +30,14 @@ module HmisExternalApis::AcHmis
       @link ||= ::HmisExternalApis::AcHmis::LinkApi.new
     end
 
-    # @param date [Date]
-    def format_date(date)
+    # @param date [Time, DateTime]
+    def format_date(value)
+      date = case value
+      when Time, DateTime
+        value.in_time_zone(Rails.configuration.time_zone).to_date
+      else
+        value
+      end
       date&.strftime('%Y-%m-%d')
     end
 

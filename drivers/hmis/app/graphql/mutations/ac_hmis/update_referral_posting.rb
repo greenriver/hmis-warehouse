@@ -21,7 +21,6 @@ module Mutations
       handle_error('referral not found') unless posting
 
       errors = HmisErrors::Errors.new
-      project = posting.project
       allowed = current_user.can_manage_incoming_referrals_for?(posting.project)
       handle_error('access denied') unless allowed
 
@@ -29,22 +28,23 @@ module Mutations
       posting.attributes = input.to_params
 
       # if moving from assigned to accepted_pending
-      accepting_referral = posting.changes['status'] == ['assigned_status', 'accepted_pending_status']
+      posting_status_change = posting.changes['status']
 
       posting.transaction do
         posting.save(context: :hmis_user_action) # context for validations
         errors.add_ar_errors(posting.errors.errors)
 
-        if errors.empty? && accepting_referral
-          # not sure if this extra check is needed
-          handle_error('access denied') unless current_user.permissions_for?(project, :can_enroll_clients)
+        if errors.empty? && posting_status_change == ['assigned_status', 'accepted_pending_status']
+          household_id ||= Hmis::Hud::Enrollment.generate_household_id
           build_enrollments(posting).each do |enrollment|
+            enrollment.household_id = household_id
             if enrollment.valid?
               enrollment.save_in_progress # this method will unset projectID and calls enrollment.save!
             else
               handle_error('Could not create valid enrollments')
             end
           end
+          posting.update!(household_id: household_id)
         end
         raise ActiveRecord::Rollback if errors.any?
       end
@@ -52,8 +52,8 @@ module Mutations
 
       # send to link if:
       # * the referral came from link
-      # * status has changed from "assigned" (if user just updated note)
-      send_update(posting) if posting.from_link? && !posting.assigned_status?
+      # * status has changed (status will be unchanged if user just updated note)
+      send_update(posting) if posting.from_link? && posting_status_change.present?
       posting.reload # reload as posting may have been updated from API response
       { record: posting }
     end
@@ -67,22 +67,21 @@ module Mutations
         status_note: posting.status_note,
         denied_reason_id: posting.denial_reason_before_type_cast,
         denied_reason_text: posting.denial_note,
-        contact_date: Time.now,
+        contact_date: Time.current,
         requested_by: current_user.email,
       )
     end
 
     def build_enrollments(posting)
       project = posting.project
-      household_id = Hmis::Hud::Enrollment.generate_household_id
       posting.referral.household_members.preload(:client).map do |member|
         Hmis::Hud::Enrollment.new(
-          user_id: current_user.id,
+          user: Hmis::Hud::User.from_user(current_user),
           data_source: project.data_source,
-          entry_date: Date.today, # is this right?
+          entry_date: Date.current,
           project: project,
           personal_id: member.client.PersonalID,
-          household_id: household_id,
+          RelationshipToHoH: member.relationship_to_hoh_before_type_cast,
         )
       end
     end
