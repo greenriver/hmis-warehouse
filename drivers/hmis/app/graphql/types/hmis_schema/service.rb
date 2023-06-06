@@ -21,6 +21,9 @@ module Types
     field :service_type, HmisSchema::ServiceType, null: false
     field :date_provided, GraphQL::Types::ISO8601Date, null: false
     field :fa_amount, Float, null: true
+    field :fa_start_date, GraphQL::Types::ISO8601Date, null: true
+    field :fa_end_date, GraphQL::Types::ISO8601Date, null: true
+
     custom_data_elements_field
 
     # HUD fields

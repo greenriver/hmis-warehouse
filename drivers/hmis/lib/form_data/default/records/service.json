@@ -120,9 +120,9 @@
     {
       "type": "CURRENCY",
       "required": false,
-      "link_id": "FAAmount",
+      "link_id": "faAmount",
       "text": "Financial Assistance",
-      "field_name": "FAAmount",
+      "field_name": "faAmount",
       "enable_behavior": "ANY",
       "service_detail_type": "CLIENT",
       "enable_when": [

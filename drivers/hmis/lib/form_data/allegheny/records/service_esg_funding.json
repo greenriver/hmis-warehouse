@@ -1,0 +1,81 @@
+{
+  "_comment": "Should be enabled for funding sources 9 and 10",
+  "item": [
+    {
+      "type": "STRING",
+      "link_id": "service-type-id",
+      "field_name": "serviceTypeId",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$serviceTypeId"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "date-provided",
+      "required": true,
+      "text": "Date Provided",
+      "field_name": "dateProvided"
+    },
+    {
+      "type": "CURRENCY",
+      "required": false,
+      "link_id": "amount",
+      "text": "Amount",
+      "field_name": "faAmount",
+      "enable_behavior": "ANY",
+      "service_detail_type": "CLIENT"
+    },
+    {
+      "type": "DATE",
+      "link_id": "fa-start-date",
+      "required": true,
+      "text": "Payment Start Date",
+      "field_name": "faStartDate"
+    },
+    {
+      "type": "DATE",
+      "link_id": "fa-end-date",
+      "required": true,
+      "text": "Payment End Date",
+      "field_name": "faEndDate"
+    },
+    {
+      "type": "CHOICE",
+      "required": true,
+      "link_id": "funding-source",
+      "text": "Funding Source",
+      "custom_field_key": "funding_source",
+      "pick_list_options": [
+        {
+          "code": "Funder 1"
+        },
+        {
+          "code": "Funder 2"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "warn_if_empty": true,
+      "link_id": "payment-type",
+      "text": "Payment Type",
+      "custom_field_key": "payment_type",
+      "pick_list_options": [
+        {
+          "code": "Arrears"
+        },
+        {
+          "code": "Forward rent"
+        },
+        {
+          "code": "Security Deposit"
+        }
+      ]
+    }
+  ]
+}

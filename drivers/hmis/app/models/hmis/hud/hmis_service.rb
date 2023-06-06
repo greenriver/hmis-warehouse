@@ -26,7 +26,9 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   after_initialize :initialize_owner, if: :new_record?
 
   SORT_OPTIONS = [:date_provided].freeze
-  HUD_ATTRIBUTES = [:record_type, :type_provided, :other_type_provided, :moving_on_other_type, :sub_type_provided, :referral_outcome, :FAAmount, :fa_amount].freeze
+  HUD_ATTRIBUTES = [:record_type, :type_provided, :other_type_provided, :moving_on_other_type, :sub_type_provided, :referral_outcome].freeze
+
+  delegate :fa_amount, :fa_start_date, :fa_end_date, to: :owner
 
   attr_accessor(*HUD_ATTRIBUTES)
 

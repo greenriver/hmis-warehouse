@@ -5000,6 +5000,8 @@ type Service {
   dateUpdated: ISO8601DateTime!
   enrollment: Enrollment!
   faAmount: Float
+  faEndDate: ISO8601Date
+  faStartDate: ISO8601Date
   id: ID!
   movingOnOtherType: String
   otherTypeProvided: String

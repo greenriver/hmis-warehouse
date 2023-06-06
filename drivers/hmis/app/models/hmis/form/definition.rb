@@ -14,6 +14,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :custom_forms
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
+  # TODO: validate role
+
   FORM_ROLES = {
     # Assessment forms
     INTAKE: 'Intake Assessment',

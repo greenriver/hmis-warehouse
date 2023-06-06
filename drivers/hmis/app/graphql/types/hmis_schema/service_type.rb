@@ -27,7 +27,9 @@ module Types
     end
 
     def hud_type_provided
-      [object.hud_record_type, object.hud_type_provided].compact_blank.join(':')
+      return unless object.hud_record_type.present? && object.hud_type_provided.present?
+
+      [object.hud_record_type, object.hud_type_provided].join(':')
     end
   end
 end
