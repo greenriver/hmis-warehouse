@@ -18,7 +18,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   has_many :custom_data_elements, as: :owner
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
-
+  alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]
   validates_with Hmis::Hud::Validators::ServiceValidator
 
   # Use method instead of has_one so that projects for WIP enrollments are resolved
