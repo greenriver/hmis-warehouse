@@ -1,0 +1,26 @@
+.o-page__main-content
+  .d-flex
+    .mb-6
+      %small
+        Entered by
+        = @assessment.user.name
+    - if @blank_thrive_url.present?
+      .mb-6.ml-auto
+        = link_to @blank_thrive_url, class: 'btn btn-secondary' do
+          %i.icon-download2
+          Blank THRIVE Screener Form
+    - unless @assessment.completed_on
+      .mb-6.ml-4
+        = link_to 'Delete', client_health_thrive_assessment_assessment_path(@client, @assessment), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure you want to delete this THRIVE?"}
+
+.well.mt-4
+  - @assessment.question_labels.each do |key, (label, collection)|
+    = f.input key, as: :select_two, collection: collection, label: label
+
+%h2 Resources you want help with:
+.well
+  - @assessment.help_labels.each do |key, label|
+    = f.input key, as: :pretty_boolean, label: label
+
+.well
+  = f.input :completed_on, as: :date_picker

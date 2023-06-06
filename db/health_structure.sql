@@ -3174,6 +3174,39 @@ ALTER SEQUENCE public.hl7_value_set_codes_id_seq OWNED BY public.hl7_value_set_c
 
 
 --
+-- Name: hrsn_screenings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hrsn_screenings (
+    id bigint NOT NULL,
+    patient_id bigint,
+    instrument_type character varying,
+    instrument_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hrsn_screenings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hrsn_screenings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hrsn_screenings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hrsn_screenings_id_seq OWNED BY public.hrsn_screenings.id;
+
+
+--
 -- Name: import_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4606,6 +4639,58 @@ ALTER SEQUENCE public.teams_id_seq OWNED BY public.teams.id;
 
 
 --
+-- Name: thrive_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.thrive_assessments (
+    id bigint NOT NULL,
+    patient_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    decline_to_answer boolean,
+    housing_status integer,
+    food_insecurity integer,
+    food_worries integer,
+    trouble_drug_cost boolean,
+    trouble_medical_transportation boolean,
+    trouble_utility_cost boolean,
+    trouble_caring_for_family boolean,
+    unemployed boolean,
+    interested_in_education boolean,
+    help_with_housing boolean,
+    help_with_food boolean,
+    help_with_drug_cost boolean,
+    help_with_medical_transportation boolean,
+    help_with_utilities boolean,
+    help_with_childcare boolean,
+    help_with_eldercare boolean,
+    help_with_job_search boolean,
+    help_with_education boolean,
+    completed_on date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: thrive_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.thrive_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: thrive_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.thrive_assessments_id_seq OWNED BY public.thrive_assessments.id;
+
+
+--
 -- Name: tracing_cases; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5513,6 +5598,13 @@ ALTER TABLE ONLY public.hl7_value_set_codes ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: hrsn_screenings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hrsn_screenings ALTER COLUMN id SET DEFAULT nextval('public.hrsn_screenings_id_seq'::regclass);
+
+
+--
 -- Name: import_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5734,6 +5826,13 @@ ALTER TABLE ONLY public.team_members ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.teams ALTER COLUMN id SET DEFAULT nextval('public.teams_id_seq'::regclass);
+
+
+--
+-- Name: thrive_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thrive_assessments ALTER COLUMN id SET DEFAULT nextval('public.thrive_assessments_id_seq'::regclass);
 
 
 --
@@ -6310,6 +6409,14 @@ ALTER TABLE ONLY public.hl7_value_set_codes
 
 
 --
+-- Name: hrsn_screenings hrsn_screenings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hrsn_screenings
+    ADD CONSTRAINT hrsn_screenings_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: import_configs import_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6571,6 +6678,14 @@ ALTER TABLE ONLY public.team_members
 
 ALTER TABLE ONLY public.teams
     ADD CONSTRAINT teams_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: thrive_assessments thrive_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thrive_assessments
+    ADD CONSTRAINT thrive_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -7194,6 +7309,20 @@ CREATE INDEX index_health_goals_on_user_id ON public.health_goals USING btree (u
 
 
 --
+-- Name: index_hrsn_screenings_on_instrument; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hrsn_screenings_on_instrument ON public.hrsn_screenings USING btree (instrument_type, instrument_id);
+
+
+--
+-- Name: index_hrsn_screenings_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hrsn_screenings_on_patient_id ON public.hrsn_screenings USING btree (patient_id);
+
+
+--
 -- Name: index_loaded_ed_ip_visits_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7534,6 +7663,20 @@ CREATE INDEX index_team_members_on_type ON public.team_members USING btree (type
 --
 
 CREATE INDEX index_teams_on_careplan_id ON public.teams USING btree (careplan_id);
+
+
+--
+-- Name: index_thrive_assessments_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_thrive_assessments_on_patient_id ON public.thrive_assessments USING btree (patient_id);
+
+
+--
+-- Name: index_thrive_assessments_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_thrive_assessments_on_user_id ON public.thrive_assessments USING btree (user_id);
 
 
 --
@@ -8072,6 +8215,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230508135940'),
 ('20230512151350'),
 ('20230516171211'),
-('20230516171223');
+('20230516171223'),
+('20230525153410'),
+('20230526201807'),
+('20230530192424');
 
 

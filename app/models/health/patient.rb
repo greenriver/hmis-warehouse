@@ -102,6 +102,11 @@ module Health
       merge(Health::Careplan.recent)
     end, class_name: 'Health::Careplan'
 
+    has_many :hrsn_screenings
+    has_one :recent_hrsn_screening, -> do
+      merge(Health::HrsnScreening.recent)
+    end, class_name: 'Health::HrsnScreening'
+
     has_many :services
     has_many :equipments
     has_many :backup_plans
@@ -291,10 +296,9 @@ module Health
     # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
     # to be approved by the patients PCP.
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
-      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
-        completed.
+      ssm_patient_id_scope = Health::HrsnScreening.distinct.
+        completed_within(..on.to_time).
         allowed_for_engagement.
-        where(completed_at: (..on.to_time)).
         select(:patient_id)
 
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
