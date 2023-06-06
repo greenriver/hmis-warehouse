@@ -1,0 +1,25 @@
+%h3 Available informal, caregiver, or social supports, including peer supports
+= f.input :has_supports, as: :pretty_boolean_group, collection: @assessment.yes_no, label: 'Does the Enrollee have supports?', input_html: { class: 'jHasSupports' }
+.jHasSupportsPicker
+  = render 'with_other', f: f, key: :supports, kind: :select_two, collection: @assessment.supports_responses, label: 'If Yes, check all that apply:', input_html: { multiple: true }
+
+%h3 Social Supports
+= f.input :social_supports, as: :text, label: 'Friendship/Social/Peer Support Relationships, Pets, Community Supports/Self Help Groups (AA, NA, SMART, NAMI, Peer Support, etc.)', placeholder: @assessment.social_supports_placeholder
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jHasSupports').change(function() {
+        if(this.value == 'yes') {
+          $('.jHasSupportsPicker').slideDown();
+        } else {
+          $('.jHasSupportsPicker').slideUp();
+        }
+      });
+
+      $('.jHasSupports').each(function() {
+        if(this.value != 'no') {
+          $('.jHasSupportsPicker').hide();
+        }
+      });
+    });

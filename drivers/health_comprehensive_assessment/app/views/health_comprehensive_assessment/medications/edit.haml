@@ -1,0 +1,7 @@
+- content_for :modal_title, 'Update Medication Information'
+
+= simple_form_for @medication, url: client_health_comprehensive_assessment_assessment_medication_path(@client, @assessment, @medication), remote: true do |f|
+  = render 'form', f: f
+
+  .form__actions.form__actions--right.mb-6
+    = f.submit 'Save', class: 'btn btn-primary'
