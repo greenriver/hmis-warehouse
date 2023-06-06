@@ -15,8 +15,8 @@ module Hmis::Hud::Processors
     end
 
     def process(field, value)
-      attribute_name = hud_name(field)
-      attribute_value = attribute_value_for_enum(hud_type(field), value)
+      attribute_name = ar_attribute_name(field)
+      attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
       if attribute_name == 'tags'
         @processor.send(factory_name).tag_list = Array(attribute_value)

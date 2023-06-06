@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Days Homeless Plus Overrides*'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def cast_value(val)
+      val.to_i
+    end
+
     def description
       'Days homeless + verified additional days'
     end

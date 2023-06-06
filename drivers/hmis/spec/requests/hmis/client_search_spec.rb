@@ -109,7 +109,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         data_source: ds1,
         FirstName: 'William',
         LastName: 'Smith',
-        preferred_name: 'Bill',
         PersonalID: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
         # warehouse_id: '85e55698e335bdbcc3ead1b39828ee92',
         SSN: '123456789',
@@ -150,8 +149,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # TODO: Test nickname match
       # TODO: Test metaphone match
       ['wrong last name and not match', { last_name: 'Jones' }, false],
-      ['preferred name', { preferred_name: 'Bill' }, true],
-      ['wrong preferred name and not match', { preferred_name: 'Rich' }, false],
       ['last 4 of ssn', { ssn_serial: '6789' }, true],
       ['wrong last 4 of ssn and not match', { ssn_serial: '0000' }, false],
       ['dob d/m/yyyy', { dob: '1/12/1999' }, true],

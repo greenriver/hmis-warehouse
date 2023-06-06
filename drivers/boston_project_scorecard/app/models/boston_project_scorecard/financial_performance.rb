@@ -29,16 +29,28 @@ module BostonProjectScorecard
         0
       end
 
-      def invoicing_options
+      def invoicing_timeliness_options
         {
-          'Invoices regularly submitted on time': 6,
-          'Usually on time, complete with few errors': 3,
-          'Submitted quarterly/not monthly': 1,
+          'Invoices regularly submitted on time': 3,
+          'Invoices submitted usually on time': 2,
+          'Invoices submitted quarterly or less frequently than monthly': 1,
         }
       end
 
-      def invoicing_score
-        invoicing
+      def invoicing_timeliness_score
+        invoicing_timeliness
+      end
+
+      def invoicing_accuracy_options
+        {
+          'Invoices regularly complete and accurate': 3,
+          'Invoices occasionally contain a few errors': 2,
+          'Invoices frequently contain errors that require correction': 1,
+        }
+      end
+
+      def invoicing_accuracy_score
+        invoicing_accuracy
       end
 
       def cost_efficiency_value
@@ -77,26 +89,6 @@ module BostonProjectScorecard
       def returned_funds_score
         return unless returned_funds_percent.present?
         return 6 if returned_funds_percent <= 10
-
-        0
-      end
-
-      def utilization_rate_percent
-        return unless average_utilization_rate.present? && actual_households_served.present?
-
-        percentage(average_utilization_rate / actual_households_served.to_f)
-      end
-
-      def utilization_rate_value
-        return unless utilization_rate_percent.present?
-
-        percentage_string(utilization_rate_percent)
-      end
-
-      def utilization_rate_score
-        return unless utilization_rate_percent.present?
-        return 6 if utilization_rate_percent >= 85
-        return 3 if utilization_rate_percent >= 75
 
         0
       end

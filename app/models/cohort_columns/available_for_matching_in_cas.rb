@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Available in CAS'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def available_for_rules?
+      false
+    end
+
     def renderer
       'html'
     end

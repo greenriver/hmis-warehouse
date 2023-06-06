@@ -12,7 +12,7 @@ module Types
     graphql_name 'ClientNameUse'
 
     Hmis::Hud::CustomClientName.use_values.each do |val|
-      value val
+      value val, val.to_s.humanize
     end
   end
 end

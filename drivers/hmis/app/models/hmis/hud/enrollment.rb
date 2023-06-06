@@ -57,6 +57,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   SORT_OPTIONS = [:most_recent, :household_id].freeze
 
+  SORT_OPTION_DESCRIPTIONS = {
+    most_recent: 'Most Recent',
+    household_id: 'Household ID',
+  }.freeze
+
   # hide previous declaration of :viewable_by, we'll use this one
   # A user can see any enrollment associated with a project they can access
   replace_scope :viewable_by, ->(user) do
@@ -88,6 +93,17 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   scope :not_in_progress, -> { where.not(project_id: nil) }
 
+  scope :with_project_type, ->(project_types) do
+    wip_enrollments = joins(wip: :project).where(p_t[:project_type].in(project_types)).pluck(wip_t[:source_id])
+    nonwip_enrollments = joins(:project).where(p_t[:project_type].in(project_types)).pluck(:id)
+
+    where(id: wip_enrollments + nonwip_enrollments)
+  end
+
+  scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
+  scope :active, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
+  scope :incomplete, -> { in_progress }
+
   def project
     super || Hmis::Hud::Project.find_by(id: wip.project_id)
   end
@@ -108,6 +124,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::EnrollmentFilter.new(input).filter_scope(self)
   end
 
   def self.generate_household_id

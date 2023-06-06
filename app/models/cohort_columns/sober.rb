@@ -10,6 +10,14 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Appropriate for Sober Supportive Housing'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def cast_value(val)
+      val.to_s
+    end
+
+    def arel_col
+      c_t[:sober_housing]
+    end
+
     def renderer
       'html'
     end

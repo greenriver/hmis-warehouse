@@ -11,7 +11,7 @@ FactoryBot.define do
     sequence(:CustomClientNameID) { |n| n + 100 }
     sequence(:first) { |n| ['Jim', 'Sue', 'Bob'][n % 3] }
     sequence(:last) { |n| ['Smith', 'Brown', 'Portman', 'Underwood', 'Jordan', 'White', 'Black'][n % 7] }
-
+    NameDataQuality { 1 }
     after(:build) do |client_name|
       client_name.user ||= create(:hmis_hud_user, data_source: client_name.data_source)
     end
