@@ -4385,6 +4385,7 @@ type Query {
   """
   projectCoc(id: ID!): ProjectCoc
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+  referralPosting(id: ID!): ReferralPosting
 
   """
   Service lookup
@@ -4595,12 +4596,25 @@ enum RecordType {
   SSVF_SERVICE
 }
 
+"""
+HUD Client within a Referral Household
+"""
+type ReferralHouseholdMember {
+  client: Client!
+  id: ID!
+  relationshipToHoH: RelationshipToHoH!
+}
+
+"""
+A referral for a household of one or more clients
+"""
 type ReferralPosting {
   assignedDate: ISO8601Date!
   chronic: Boolean
   denialNote: String
   denialReason: String
   hohName: String!
+  householdMembers: [ReferralHouseholdMember!]!
   householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
@@ -4620,6 +4634,7 @@ type ReferralPosting {
   statusNoteUpdatedBy: String
   statusUpdatedAt: ISO8601Date
   statusUpdatedBy: String
+  unitType: UnitTypeObject!
 }
 
 """

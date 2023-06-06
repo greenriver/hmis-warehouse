@@ -6,6 +6,8 @@
 
 module Types
   class HmisSchema::ReferralPosting < Types::BaseObject
+    description 'A referral for a household of one or more clients'
+
     field :id, ID, null: false
 
     # Fields that come from Referral
@@ -20,6 +22,7 @@ module Types
     # Fields that come from ReferralHouseholdMembers
     field :hoh_name, String, null: false
     field :household_size, Integer, null: false
+    field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
     # Fields that come from Posting
     field :resource_coordinator_notes, String
@@ -36,11 +39,16 @@ module Types
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult
     field :denial_note, String
     field :referred_from, String, null: false
+    field :unit_type, HmisSchema::UnitTypeObject, null: false
 
     def hoh_name
       object.referral.household_members
         .detect(&:self_head_of_household?)
         &.client&.brief_name
+    end
+
+    def household_members
+      object.referral.household_members
     end
 
     def household_size
