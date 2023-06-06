@@ -52,6 +52,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
+  CUSTOM_NAME_OPTIONS = {
+    association: :names,
+    klass: Hmis::Hud::CustomClientName,
+    field_map: {
+      FirstName: :first,
+      LastName: :last,
+    },
+  }.freeze
+
   attr_accessor :image_blob_id
   attr_accessor :create_mci_id
   after_save do
@@ -99,7 +108,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :matching_search_term, ->(text_search) do
-    text_searcher(text_search) do |where|
+    text_searcher(text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
       left_outer_joins(:names).where(where).pluck(:id)
     rescue RangeError
       return none
@@ -229,7 +238,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
     if input.text_search.present?
-      scope = text_searcher(input.text_search) do |where|
+      scope = text_searcher(input.text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
         scope.left_outer_joins(:names).where(where).pluck(:id)
       end
     end
@@ -239,7 +248,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       ccn_query = ccn_t[:first].matches("#{input.first_name}%")
       query = nickname_search(query, input.first_name)
       query = metaphone_search(query, :FirstName, input.first_name)
-      scope = scope.where(id: scope.left_outer_joins(:names).where(query.or(ccn_query)).pluck(:id))
+      client_id_query = scope.left_outer_joins(:names).
+        where(query.or(ccn_query)).
+        pluck(:id)
+      scope = scope.where(id: client_id_query)
     end
 
     if input.last_name.present?
@@ -247,7 +259,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       ccn_query = ccn_t[:last].matches("#{input.first_name}%")
       query = nickname_search(query, input.last_name)
       query = metaphone_search(query, :LastName, input.last_name)
-      scope = scope.where(id: scope.left_outer_joins(:names).where(query.or(ccn_query)).pluck(:id))
+      client_id_query = scope.left_outer_joins(:names).
+        where(query.or(ccn_query)).
+        pluck(:id)
+      scope = scope.where(id: client_id_query)
     end
 
     # TODO: nicks and/or metaphone searches?
