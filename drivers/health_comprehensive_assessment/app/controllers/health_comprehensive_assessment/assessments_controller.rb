@@ -26,6 +26,15 @@ module HealthComprehensiveAssessment
 
     def update
       @assessment.update(ca_params)
+      respond_with @assessment, location: client_health_careplans_path(@client)
+    end
+
+    def show
+    end
+
+    def destroy
+      @assessment.destroy
+      respond_with @assessment, location: client_health_careplans_path(@client)
     end
 
     GROUP_PARAMS = [
