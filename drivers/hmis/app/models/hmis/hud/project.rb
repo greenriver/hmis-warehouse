@@ -68,11 +68,18 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     joins(:funders).where(f_t[:funder].in(funders))
   end
 
+  scope :open_on_date, ->(date = Date.current) do
+    where(p_t[:operating_end_date].eq(nil).or(p_t[:operating_end_date].gteq(date)))
+  end
+
+  scope :closed_on_date, ->(date = Date.current) do
+    where(p_t[:operating_end_date].lt(date))
+  end
+
   scope :with_statuses, ->(statuses) do
     return self if statuses.include?('OPEN') && statuses.include?('CLOSED')
-
-    return where(p_t[:operating_end_date].eq(nil).or(p_t[:operating_end_date].gteq(Date.today))) if statuses.include?('OPEN')
-    return where(p_t[:operating_end_date].lt(Date.today)) if statuses.include?('CLOSED')
+    return open_on_date(Date.current) if statuses.include?('OPEN')
+    return closed_on_date(Date.current) if statuses.include?('CLOSED')
 
     self
   end
