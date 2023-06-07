@@ -1966,7 +1966,6 @@ input EnrollmentsForClientFilterOptions {
 
 input EnrollmentsForProjectFilterOptions {
   openOnDate: ISO8601Date
-  projectType: [ProjectType!]
   searchTerm: String
   status: [EnrollmentFilterOptionStatus!]
 }
