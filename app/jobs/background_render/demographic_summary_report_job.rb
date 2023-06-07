@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class BackgroundRender::CoreDemographicsReportJob < BackgroundRenderJob
+class BackgroundRender::DemographicSummaryReportJob < BackgroundRenderJob
   def render_html(partial:, filters:, user_id:)
     current_user = User.find(user_id)
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filters).with_indifferent_access)
@@ -18,7 +18,7 @@ class BackgroundRender::CoreDemographicsReportJob < BackgroundRenderJob
     raise 'Rollup not in allowlist' unless @section.present?
 
     @section = @report.section_subpath + @section
-    CoreDemographicsReport::WarehouseReports::CoreController.render(
+    CoreDemographicsReport::WarehouseReports::DemographicSummaryController.render(
       partial: @section,
       assigns: {
         report: @report,
@@ -43,6 +43,6 @@ class BackgroundRender::CoreDemographicsReportJob < BackgroundRenderJob
   end
 
   private def report_class
-    CoreDemographicsReport::Core
+    CoreDemographicsReport::DemographicSummary::Report
   end
 end

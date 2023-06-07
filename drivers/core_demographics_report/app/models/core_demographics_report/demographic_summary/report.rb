@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CoreDemographicsReport
-  class Core
+module CoreDemographicsReport::DemographicSummary
+  class Report
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
@@ -14,14 +14,14 @@ module CoreDemographicsReport
     include CoreDemographicsReport::GenderCalculations
     include CoreDemographicsReport::RaceCalculations
     include CoreDemographicsReport::EthnicityCalculations
-    include CoreDemographicsReport::DisabilityCalculations
-    include CoreDemographicsReport::RelationshipCalculations
-    include CoreDemographicsReport::DvCalculations
-    include CoreDemographicsReport::PriorCalculations
     include CoreDemographicsReport::HouseholdTypeCalculations
+    include CoreDemographicsReport::ChronicCalculations
+    include CoreDemographicsReport::UnshelteredCalculations
+    include CoreDemographicsReport::HighAcuityCalculations
+    include CoreDemographicsReport::FirstTimeCalculations
+    include CoreDemographicsReport::OutcomeCalculations
     include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
-
     include CoreDemographicsReport::ReportConcern
 
     attr_reader :filter
@@ -34,7 +34,7 @@ module CoreDemographicsReport
     end
 
     def self.url
-      'core_demographics_report/warehouse_reports/core'
+      'core_demographics_report/warehouse_reports/demographic_summary'
     end
 
     def self.available_section_types
@@ -44,12 +44,12 @@ module CoreDemographicsReport
         'gender_ages',
         'races',
         'ethnicities',
-        'disabilities',
-        'relationships',
-        'dvs',
-        'priors',
         'household_types',
-        'projects',
+        'chronic',
+        'high_acuity',
+        'unsheltered',
+        'no_recent_homelessness',
+        'outcome',
       ]
     end
 
@@ -57,6 +57,20 @@ module CoreDemographicsReport
       return true unless section.in?(['disabilities', 'races'])
 
       Rails.cache.exist?(cache_key_for_section(section))
+    end
+
+    def detail_hash
+      {}.merge(age_detail_hash).
+        merge(gender_detail_hash).
+        merge(ethnicity_detail_hash).
+        merge(race_detail_hash).
+        merge(household_detail_hash).
+        merge(chronic_detail_hash).
+        merge(high_acuity_detail_hash).
+        merge(unsheltered_detail_hash).
+        merge(no_recent_homelessness_detail_hash).
+        merge(outcome_detail_hash).
+        merge(enrollment_detail_hash)
     end
 
     private def cache_key_for_section(section)
@@ -70,7 +84,7 @@ module CoreDemographicsReport
 
     protected def build_control_sections
       [
-        build_general_control_section,
+        build_general_control_section(include_inactivity_days: true),
         build_coc_control_section,
         add_demographic_disabilities_control_section,
       ]
@@ -80,7 +94,7 @@ module CoreDemographicsReport
       [
         :core_demographics_report,
         :warehouse_reports,
-        :core,
+        :demographic_summary,
         :index,
       ]
     end
@@ -101,12 +115,12 @@ module CoreDemographicsReport
           rows = report.gender_data_for_export(rows)
           rows = report.race_data_for_export(rows)
           rows = report.ethnicity_data_for_export(rows)
-          rows = report.relationship_data_for_export(rows)
-          rows = report.disability_data_for_export(rows)
-          rows = report.dv_status_data_for_export(rows)
-          rows = report.priors_data_for_export(rows)
           rows = report.household_type_data_for_export(rows)
-          rows = report.enrollment_data_for_export(rows)
+          rows = report.chronic_data_for_export(rows)
+          rows = report.high_acuity_data_for_export(rows)
+          rows = report.unsheltered_data_for_export(rows)
+          rows = report.no_recent_homelessness_data_for_export(rows)
+          rows = report.outcome_data_for_export(rows)
         end
       end
     end
