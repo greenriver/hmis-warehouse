@@ -14,8 +14,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :custom_forms
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
-  # TODO: validate role
-
   FORM_ROLES = {
     # Assessment forms
     INTAKE: 'Intake Assessment',
@@ -36,6 +34,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FILE: 'File',
     REFERRAL_REQUEST: 'Referral Request',
   }.freeze
+
+  validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
 
   FORM_ROLE_CONFIG = {
     SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
