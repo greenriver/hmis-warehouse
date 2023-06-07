@@ -2801,6 +2801,8 @@ CREATE TABLE public.hca_assessments (
     patient_id bigint NOT NULL,
     user_id bigint NOT NULL,
     completed_on date,
+    reviewed_by_id bigint,
+    reviewed_on date,
     name character varying,
     pronouns character varying,
     pronouns_other character varying,

@@ -4,6 +4,8 @@ class CreateHealthComprehensiveAssessments < ActiveRecord::Migration[6.1]
       t.references :patient, null: false
       t.references :user, null: false
       t.date :completed_on
+      t.bigint :reviewed_by_id
+      t.date :reviewed_on
 
       t.string :name
       t.string :pronouns

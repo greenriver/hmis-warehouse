@@ -6,12 +6,19 @@
 
 module HealthComprehensiveAssessment
   class Assessment < HealthBase
+    include Rails.application.routes.url_helpers
+
     phi_patient :patient_id
     phi_attr :user_id, Phi::SmallPopulation
     phi_attr :completed_on, Phi::Date
+    phi_attr :reviewed_by_id, Phi::SmallPopulation
+    phi_attr :reviewed_on, Phi::Date
+    # An assessment is almost entirely PHI, but the attributes are not listed here due to their number
 
     belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, optional: true
+    belongs_to :reviewed_by, class_name: 'User', optional: true
+
     has_many :medications, dependent: :destroy
     has_many :sud_treatments, dependent: :destroy
 
@@ -20,11 +27,20 @@ module HealthComprehensiveAssessment
     scope :allowed_for_engagement, -> do
       joins(patient: :patient_referrals).
         merge(
-          Health::PatientReferral.contributing.
+          ::Health::PatientReferral.contributing.
             where(
               hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:completed_on].to_sql} + INTERVAL '1 year'")),
             ),
         )
+    end
+    scope :reviewed, -> { where.not(reviewed_by_id: nil) }
+    scope :reviewed_within, ->(range) { where(reviewed_on: range) }
+
+    alias_attribute :completed_at, :completed_on
+    alias_attribute :reviewed_at, :reviewed_on
+
+    def edit_path
+      client_health_comprehensive_assessment_assessment_path(patient.client, self)
     end
 
     def identifying_information

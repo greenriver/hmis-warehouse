@@ -53,19 +53,19 @@ module Health
     end
 
     def cha_status
-      cha_form = @patient.ca_assessments.recent.first
+      cha_form = @patient.ca_assessments.recent.first&.instrument
       return [:no_signed_form, 'Comprehensive Assessment', new_client_health_comprehensive_assessment_assessment_path(@client), false, nil] if cha_form.blank?
       return [:too_old, 'Comprehensive Assessment', new_client_health_comprehensive_assessment_assessment_path(@client), false, "Last completed on #{cha_form.completed_at.to_date}"] if cha_form.completed_at.present? && cha_form.completed_at < @valid_after
 
       if cha_form.completed?
         return [:expired, 'Comprehensive Assessment', new_client_health_comprehensive_assessment_assessment_path(@client), false, "Last completed on #{cha_form.completed_at.to_date}"] unless cha_form.active?
 
-        [:valid, 'Comprehensive Assessment', client_health_comprehensive_assessment_assessment_path(@client, cha_form), true, nil]
+        [:valid, 'Comprehensive Assessment', cha_form.edit_path, true, nil]
       else
         prior_forms = @patient.ca_assessments.count > 1
-        return [:being_updated, 'Comprehensive Assessment', client_health_comprehensive_assessment_assessment_path(@client, cha_form), true, "Started on #{cha_form.created_at.to_date}"] if prior_forms
+        return [:being_updated, 'Comprehensive Assessment', cha_form.edit_path, true, "Started on #{cha_form.created_at.to_date}"] if prior_forms
 
-        [:in_progress, 'Comprehensive Assessment', client_health_comprehensive_assessment_assessment_path(@client, cha_form), true, "Started on #{cha_form.created_at.to_date}"]
+        [:in_progress, 'Comprehensive Assessment', cha_form.edit_path, true, "Started on #{cha_form.created_at.to_date}"]
       end
     end
 

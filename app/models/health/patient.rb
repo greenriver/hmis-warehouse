@@ -319,7 +319,7 @@ module Health
       cha_patient_id_scope = Health::CaAssessment.distinct.
         reviewed.
         allowed_for_engagement.
-        where(reviewed_at: (..on.to_time)).
+        reviewed_within(..on.to_time).
         select(:patient_id)
 
       epic_cha_patient_id_scope = Health::EpicCha.distinct.

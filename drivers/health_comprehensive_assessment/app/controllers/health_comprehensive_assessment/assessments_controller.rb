@@ -49,7 +49,7 @@ module HealthComprehensiveAssessment
 
     def ca_params
       permitted_cols = ::HealthComprehensiveAssessment::Assessment.column_names.map(&:to_sym) -
-        [:id, :user_id, :patient_id, :created_at, :updated_at] # Deny only a few columns, be careful adding new columns!
+        [:id, :user_id, :patient_id, :reviewed_by_id, :reviewed_on, :created_at, :updated_at] # Deny protected columns, be careful adding new columns!
 
       permitted_group_cols = GROUP_PARAMS.map { |key| [key, []] }.to_h
       params.require(:health_comprehensive_assessment_assessment).permit(permitted_cols, **permitted_group_cols)

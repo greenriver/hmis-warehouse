@@ -9,6 +9,8 @@
 # Control: PHI attributes documented
 module Health
   class ComprehensiveHealthAssessment < HealthBase
+    include Rails.application.routes.url_helpers
+
     acts_as_paranoid
     phi_patient :patient_id
     phi_attr :user_id, Phi::SmallPopulation, 'ID of user'
@@ -18,6 +20,10 @@ module Health
     phi_attr :reviewed_at, Phi::Date, 'Date of review'
     phi_attr :health_file_id, Phi::OtherIdentifier, 'ID of health file'
     phi_attr :answers, Phi::FreeText
+
+    def edit_path
+      client_health_cha_path(patient.client_id, id)
+    end
 
     # Generates translation keys of the form "CHA A_Q5_A6"
     def self.answers_for section: nil, question: nil, number: 0
@@ -893,6 +899,7 @@ module Health
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
+    scope :reviewed_within, ->(range) { where(reviewed_at: range) }
     scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil) }
     # hide previous declaration of :complete, we'll use this one
     replace_scope :complete, -> { where.not(completed_at: nil) }

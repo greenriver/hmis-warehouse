@@ -12,7 +12,7 @@ class MoveCasToCaAssessments < ActiveRecord::Migration[6.1]
     HealthComprehensiveAssessment::Assessment.find_in_batches do |batch|
       cas = []
       batch.each do |ca|
-        cas << Health::HrsnScreening.new(patient_id: ca.patient_id, instrument_type: 'HealthComprehensiveAssessment::Assessment', instrument: ca)
+        cas << Health::CaAssessment.new(patient_id: ca.patient_id, instrument_type: 'HealthComprehensiveAssessment::Assessment', instrument: ca)
       end
       Health::CaAssessment.import(cas)
     end
