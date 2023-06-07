@@ -17,9 +17,6 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::ServiceSortOption, required: false
-            argument :service_type, GraphQL::Types::ID, required: false
-            argument :service_category, GraphQL::Types::ID, required: false
-            argument :search_term, String, required: false
             filters_argument HmisSchema::Service, **filter_args
             instance_eval(&block) if block_given?
           end
@@ -36,13 +33,10 @@ module Types
 
       private
 
-      def scoped_services(scope, sort_order: :date_provided, service_type: nil, service_category: nil, search_term: nil, filters: nil)
+      def scoped_services(scope, sort_order: :date_provided, filters: nil)
         scope = scope.viewable_by(current_user)
         scope = scope.apply_filters(filters) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
-        scope = scope.where(service_type: service_type) if service_type.present?
-        scope = scope.in_service_category(service_category) if service_category.present?
-        scope = scope.matching_search_term(search_term) if search_term.present?
         scope
       end
     end
