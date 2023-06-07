@@ -116,12 +116,11 @@ module CoreDemographicsReport::DemographicSummary
           rows = report.race_data_for_export(rows)
           rows = report.ethnicity_data_for_export(rows)
           rows = report.household_type_data_for_export(rows)
-
-          # 'chronic',
-          # 'high_acuity',
-          # 'unsheltered',
-          # 'no_recent_homelessness',
-          # 'outcome',
+          rows = report.chronic_data_for_export(rows)
+          rows = report.high_acuity_data_for_export(rows)
+          rows = report.unsheltered_data_for_export(rows)
+          rows = report.no_recent_homelessness_data_for_export(rows)
+          rows = report.outcome_data_for_export(rows)
         end
       end
     end

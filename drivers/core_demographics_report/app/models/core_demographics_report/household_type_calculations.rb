@@ -60,14 +60,14 @@ module
     def household_type_data_for_export(rows)
       rows['_Household Types'] ||= []
       rows['*Household Types'] ||= []
-      rows['*Household Types'] += ['Household Type', 'Count', 'Percentage', nil, nil]
-      @filter.available_household_types.invert.each do |id, title|
+      rows['*Household Types'] += ['Household Type', nil, 'Count', 'Percentage', nil]
+      available_household_types.invert.each do |id, title|
         rows["_Household Types_data_#{title}"] ||= []
         rows["_Household Types_data_#{title}"] += [
           title,
+          nil,
           household_type_hoh_count(id),
           household_type_hoh_percentage(id) / 100,
-          nil,
         ]
       end
       rows

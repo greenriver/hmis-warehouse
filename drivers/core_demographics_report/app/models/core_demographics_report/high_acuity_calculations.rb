@@ -38,14 +38,14 @@ module
     def high_acuity_data_for_export(rows)
       rows['_High Acuity Type'] ||= []
       rows['*High Acuity Type'] ||= []
-      rows['*High Acuity Type'] += ['High Acuity Type', 'Count', 'Percentage', nil, nil]
-      @filter.available_high_acuity_types.invert.each do |id, title|
+      rows['*High Acuity Type'] += ['High Acuity Type', nil, 'Count', 'Percentage', nil]
+      available_high_acuity_types.invert.each do |id, title|
         rows["_High Acuity Type_data_#{title}"] ||= []
         rows["_High Acuity Type_data_#{title}"] += [
           title,
+          nil,
           high_acuity_count(id),
           high_acuity_percentage(id) / 100,
-          nil,
         ]
       end
       rows

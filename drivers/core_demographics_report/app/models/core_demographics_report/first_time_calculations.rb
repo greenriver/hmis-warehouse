@@ -38,14 +38,14 @@ module
     def no_recent_homelessness_data_for_export(rows)
       rows['_No Recent Homelessness Type'] ||= []
       rows['*No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] += ['No Recent Homelessness Type', 'Count', 'Percentage', nil, nil]
-      @filter.available_no_recent_homelessness_types.invert.each do |id, title|
+      rows['*No Recent Homelessness Type'] += ['No Recent Homelessness Type', nil, 'Count', 'Percentage', nil]
+      available_no_recent_homelessness_types.invert.each do |id, title|
         rows["_No Recent Homelessness Type_data_#{title}"] ||= []
         rows["_No Recent Homelessness Type_data_#{title}"] += [
           title,
+          nil,
           no_recent_homelessness_count(id),
           no_recent_homelessness_percentage(id) / 100,
-          nil,
         ]
       end
       rows

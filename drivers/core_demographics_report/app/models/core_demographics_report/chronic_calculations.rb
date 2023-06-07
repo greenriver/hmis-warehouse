@@ -38,14 +38,14 @@ module
     def chronic_data_for_export(rows)
       rows['_Chronic Type'] ||= []
       rows['*Chronic Type'] ||= []
-      rows['*Chronic Type'] += ['Chronic Type', 'Count', 'Percentage', nil, nil]
-      @filter.available_chronic_types.invert.each do |id, title|
+      rows['*Chronic Type'] += ['Chronic Type', nil, 'Count', 'Percentage', nil]
+      available_chronic_types.invert.each do |id, title|
         rows["_Chronic Type_data_#{title}"] ||= []
         rows["_Chronic Type_data_#{title}"] += [
           title,
+          nil,
           chronic_count(id),
           chronic_percentage(id) / 100,
-          nil,
         ]
       end
       rows

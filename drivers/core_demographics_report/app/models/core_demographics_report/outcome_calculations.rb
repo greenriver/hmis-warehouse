@@ -46,14 +46,14 @@ module
     def outcome_data_for_export(rows)
       rows['_Outcome Type'] ||= []
       rows['*Outcome Type'] ||= []
-      rows['*Outcome Type'] += ['Outcome Type', 'Count', 'Percentage', nil, nil]
-      @filter.available_outcome_types.invert.each do |id, title|
+      rows['*Outcome Type'] += ['Outcome Type', nil, 'Count', 'Percentage', nil]
+      available_outcome_types.invert.each do |id, title|
         rows["_Outcome Type_data_#{title}"] ||= []
         rows["_Outcome Type_data_#{title}"] += [
           title,
+          nil,
           outcome_count(id),
           outcome_percentage(id) / 100,
-          nil,
         ]
       end
       rows

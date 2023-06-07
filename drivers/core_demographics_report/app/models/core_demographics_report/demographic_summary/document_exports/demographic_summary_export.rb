@@ -30,7 +30,7 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = 'core_demographics_report/warehouse_reports/core/index_pdf'
+        template_file = 'core_demographics_report/warehouse_reports/demographic_summary/index_pdf'
         layout = 'layouts/performance_report'
 
         html = PdfGenerator.html(
@@ -42,7 +42,7 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "Core Demographics #{DateTime.current.to_s(:db)}",
+          file_name: "#{_('Demographic Summary')} #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end

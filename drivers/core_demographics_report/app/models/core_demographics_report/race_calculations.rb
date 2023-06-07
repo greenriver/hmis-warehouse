@@ -42,14 +42,14 @@ module
     def race_data_for_export(rows)
       rows['_Race Break'] ||= []
       rows['*Race'] ||= []
-      rows['*Race'] += ['Race', 'Count', 'Percentage', nil, nil]
+      rows['*Race'] += ['Race', nil, 'Count', 'Percentage', nil]
       race_buckets.each do |id, title|
         rows["_Race_data_#{title}"] ||= []
         rows["_Race_data_#{title}"] += [
           title,
+          nil,
           race_count(id),
           race_percentage(id) / 100,
-          nil,
         ]
       end
       rows

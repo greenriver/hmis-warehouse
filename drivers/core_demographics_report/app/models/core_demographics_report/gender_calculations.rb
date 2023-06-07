@@ -54,14 +54,14 @@ module
     def gender_data_for_export(rows)
       rows['_Gender Break'] ||= []
       rows['*Gender Breakdowns'] ||= []
-      rows['*Gender Breakdowns'] += ['Gender', 'Count', 'Percentage', nil, nil]
+      rows['*Gender Breakdowns'] += ['Gender', nil, 'Count', 'Percentage', nil]
       HudUtility.genders.each do |id, title|
         rows["_Gender Breakdowns_data_#{title}"] ||= []
         rows["_Gender Breakdowns_data_#{title}"] += [
           title,
+          nil,
           gender_count(id),
           gender_percentage(id) / 100,
-          nil,
           nil,
         ]
       end

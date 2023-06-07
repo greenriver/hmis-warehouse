@@ -36,13 +36,13 @@ module
     def unsheltered_data_for_export(rows)
       rows['_Unsheltered'] ||= []
       rows['*Unsheltered'] ||= []
-      rows['*Unsheltered'] += ['Unsheltered', 'Count', 'Percentage', nil, nil]
+      rows['*Unsheltered'] += ['Unsheltered', nil, 'Count', 'Percentage', nil]
       rows['_Unsheltered_data_Active in Street Outreach'] ||= []
       rows['_Unsheltered_data_Active in Street Outreach'] += [
         'Active in Street Outreach',
+        nil,
         unsheltered_count(:client),
         unsheltered_percentage(:client) / 100,
-        nil,
       ]
       rows
     end
