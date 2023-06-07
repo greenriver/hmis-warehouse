@@ -44,7 +44,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
           {
             'availableUnits' => 2,
             'programID' => project.ProjectID,
-            'requestedBy' => requested_by.slice(0, 20),
+            'requestedBy' => requested_by,
             'unitTypeID' => unit_type_mper_id,
           },
         )

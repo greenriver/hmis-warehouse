@@ -37,7 +37,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
           {
             'postingId' => posting.identifier,
             'postingStatusId' => accepted_status_code,
-            'requestedBy' => requested_by.slice(0, 20),
+            'requestedBy' => requested_by,
           },
         )
         .and_return(result)
