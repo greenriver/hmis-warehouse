@@ -258,7 +258,8 @@ CREATE TABLE public.ca_assessments (
     instrument_type character varying,
     instrument_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -3002,7 +3003,8 @@ CREATE TABLE public.hca_assessments (
     financial_supports jsonb,
     financial_supports_other character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -3520,7 +3522,8 @@ CREATE TABLE public.hrsn_screenings (
     instrument_type character varying,
     instrument_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -5004,7 +5007,8 @@ CREATE TABLE public.thrive_assessments (
     help_with_education boolean,
     completed_on date,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -8661,6 +8665,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230530192424'),
 ('20230601151608'),
 ('20230606204139'),
-('20230606204254');
+('20230606204254'),
+('20230607195153');
 
 

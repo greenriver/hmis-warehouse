@@ -6,6 +6,8 @@
 
 module Health
   class CaAssessment < HealthBase
+    acts_as_paranoid
+
     belongs_to :instrument, polymorphic: true
 
     # Internal relations for joins
@@ -31,29 +33,29 @@ module Health
     end
 
     scope :completed_within, ->(range) do
-      cha_ids = joins(:cha).merge(Health::ComprehensiveHealthAssessment.completed_within(range)).pluck(:id)
-      ca_ids = joins(:ca).merge(HealthComprehensiveAssessment::Assessment.completed_within(range)).pluck(:id)
+      cha_ids = joins(:cha).merge(Health::ComprehensiveHealthAssessment.completed_within(range)).pluck(:instrument_id)
+      ca_ids = joins(:ca).merge(HealthComprehensiveAssessment::Assessment.completed_within(range)).pluck(:instrument_id)
       where(instrument_id: cha_ids, instrument_type: 'Health::ComprehensiveHealthAssessment').
         or(where(instrument_id: ca_ids, instrument_type: 'HealthComprehensiveAssessment::Assessment'))
     end
 
     scope :allowed_for_engagement, -> do
-      cha_ids = joins(:cha).merge(Health::ComprehensiveHealthAssessment.allowed_for_engagement).pluck(:id)
-      ca_ids = joins(:ca).merge(HealthComprehensiveAssessment::Assessment.allowed_for_engagement).pluck(:id)
+      cha_ids = joins(:cha).merge(Health::ComprehensiveHealthAssessment.allowed_for_engagement).pluck(:instrument_id)
+      ca_ids = joins(:ca).merge(HealthComprehensiveAssessment::Assessment.allowed_for_engagement).pluck(:instrument_id)
       where(instrument_id: cha_ids, instrument_type: 'Health::ComprehensiveHealthAssessment').
         or(where(instrument_id: ca_ids, instrument_type: 'HealthComprehensiveAssessment::Assessment'))
     end
 
     scope :reviewed, -> do
-      cha_ids = joins(:cha).merge(Health::ComprehensiveHealthAssessment.reviewed).pluck(:id)
-      ca_ids = joins(:ca).merge(HealthComprehensiveAssessment::Assessment.reviewed).pluck(:id)
+      cha_ids = joins(:cha).merge(Health::ComprehensiveHealthAssessment.reviewed).pluck(:instrument_id)
+      ca_ids = joins(:ca).merge(HealthComprehensiveAssessment::Assessment.reviewed).pluck(:instrument_id)
       where(instrument_id: cha_ids, instrument_type: 'Health::ComprehensiveHealthAssessment').
         or(where(instrument_id: ca_ids, instrument_type: 'HealthComprehensiveAssessment::Assessment'))
     end
 
     scope :reviewed_within, ->(range) do
-      cha_ids = joins(:cha).merge(Health::ComprehensiveHealthAssessment.reviewed_within(range)).pluck(:id)
-      ca_ids = joins(:ca).merge(HealthComprehensiveAssessment::Assessment.reviewed_within(range)).pluck(:id)
+      cha_ids = joins(:cha).merge(Health::ComprehensiveHealthAssessment.reviewed_within(range)).pluck(:instrument_id)
+      ca_ids = joins(:ca).merge(HealthComprehensiveAssessment::Assessment.reviewed_within(range)).pluck(:instrument_id)
       where(instrument_id: cha_ids, instrument_type: 'Health::ComprehensiveHealthAssessment').
         or(where(instrument_id: ca_ids, instrument_type: 'HealthComprehensiveAssessment::Assessment'))
     end
