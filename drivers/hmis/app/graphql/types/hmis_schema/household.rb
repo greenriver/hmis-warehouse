@@ -16,6 +16,13 @@ module Types
 
     # object is a Hmis::Hud::Household
 
+    available_filter_options do
+      arg :statuses, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
+      arg :open_on_date, GraphQL::Types::ISO8601Date
+      arg :hoh_age_range, HmisSchema::Enums::AgeRange
+      arg :search_term, String
+    end
+
     def household_clients
       object.enrollments.map do |enrollment|
         {
