@@ -86,6 +86,8 @@ module
         HudUtility.no_yes_reasons_for_missing_data(column)
       when 'Relationship To HoH'
         HudUtility.relationship_to_hoh(column)
+      when 'Destination'
+        HudUtility.destination(column)
       else
         column
       end
@@ -106,6 +108,9 @@ module
         'Transgender',
         'Questioning',
         'Unknown Gender',
+        'Entry Date',
+        'Exit Date',
+        'Destination',
       ]
     end
 
@@ -140,6 +145,9 @@ module
         c_t[:Transgender],
         c_t[:Questioning],
         c_t[:GenderNone],
+        e_t[:EntryDate],
+        she_t[:exit_date],
+        she_t[:destination],
       ]
     end
   end

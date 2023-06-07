@@ -34,7 +34,7 @@ module CoreDemographicsReport::DemographicSummary
     end
 
     def self.url
-      'core_demographics_report/warehouse_reports/core'
+      'core_demographics_report/warehouse_reports/demographic_summary'
     end
 
     def self.available_section_types
@@ -115,12 +115,13 @@ module CoreDemographicsReport::DemographicSummary
           rows = report.gender_data_for_export(rows)
           rows = report.race_data_for_export(rows)
           rows = report.ethnicity_data_for_export(rows)
-          rows = report.relationship_data_for_export(rows)
-          rows = report.disability_data_for_export(rows)
-          rows = report.dv_status_data_for_export(rows)
-          rows = report.priors_data_for_export(rows)
           rows = report.household_type_data_for_export(rows)
-          rows = report.enrollment_data_for_export(rows)
+
+          # 'chronic',
+          # 'high_acuity',
+          # 'unsheltered',
+          # 'no_recent_homelessness',
+          # 'outcome',
         end
       end
     end
