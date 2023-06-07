@@ -24,18 +24,6 @@
     },
     {
       "type": "STRING",
-      "link_id": "service-type-id",
-      "field_name": "serviceTypeId",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$serviceTypeId"
-        }
-      ]
-    },
-    {
-      "type": "STRING",
       "required": true,
       "link_id": "otherTypeProvided",
       "text": "Describe service",

@@ -5,8 +5,9 @@ task seed_definitions: [:environment, 'log:info_to_stdout'] do
 end
 
 desc 'Load a particular definition'
-# rails driver:hmis:load_definition identifier=esg_funding_service role=SERVICE
+# rake driver:hmis:load_definition['esg_funding_service','SERVICE']
 task :load_definition, [:identifier, :role] => [:environment, 'log:info_to_stdout'] do |_t, args|
+  raise "Usage: rake driver:hmis:load_definition['esg_funding_service','SERVICE']" unless args[:identifier].present? && args[:role].present?
   ::HmisUtil::JsonForms.load_definition(args[:identifier], role: args[:role])
 end
 

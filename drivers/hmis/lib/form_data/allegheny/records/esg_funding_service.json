@@ -2,18 +2,6 @@
   "_comment": "Should be enabled for funding sources 9 and 10",
   "item": [
     {
-      "type": "STRING",
-      "link_id": "service-type-id",
-      "field_name": "serviceTypeId",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$serviceTypeId"
-        }
-      ]
-    },
-    {
       "type": "DATE",
       "link_id": "date-provided",
       "required": true,
