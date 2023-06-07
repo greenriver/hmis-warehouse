@@ -13,6 +13,8 @@ module Types
 
     available_filter_options do
       arg :roles, [Types::Forms::Enums::AssessmentRole]
+      arg :project_types, [Types::HmisSchema::Enums::ProjectType]
+      arg :projects, [ID]
     end
 
     description 'Custom Assessment'
