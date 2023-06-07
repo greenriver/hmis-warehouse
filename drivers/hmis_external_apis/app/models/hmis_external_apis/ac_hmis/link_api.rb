@@ -50,6 +50,7 @@ module HmisExternalApis::AcHmis
     protected
 
     def handle_error(result)
+      Sentry.capture_exception(result.error) if result.error
       raise HmisErrors::ApiError, result.error if result.error
 
       result

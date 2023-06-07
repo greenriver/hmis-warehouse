@@ -19,6 +19,7 @@
 # DeniedPending(19)      | Assigned(12), AcceptedPending(18)
 # Accepted(20)           | AcceptedPending(18)
 # Denied(21)             | DeniedPending(19)
+# Accepted(20)           | Closed(13)
 
 module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob

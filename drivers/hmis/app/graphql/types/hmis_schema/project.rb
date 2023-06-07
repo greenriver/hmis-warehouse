@@ -22,6 +22,18 @@ module Types
       Hmis::Hud::Project.hmis_configuration(version: '2022')
     end
 
+    available_filter_options do
+      arg :statuses, [
+        Types::BaseEnum.generate_enum('ProjectFilterOptionStatus') do
+          value 'OPEN', description: 'Open'
+          value 'CLOSED', description: 'Closed'
+        end,
+      ]
+      arg :project_types, [Types::HmisSchema::Enums::ProjectType]
+      arg :funders, [HmisSchema::Enums::Hud::FundingSource]
+      arg :search_term, String
+    end
+
     hud_field :id, ID, null: false
     field :hud_id, ID, null: false
     hud_field :project_name
@@ -48,7 +60,7 @@ module Types
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
-    enrollments_field without_args: [:project_types]
+    enrollments_field filter_args: { omit: [:project_types], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
     referral_postings_field :incoming_referral_postings
