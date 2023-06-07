@@ -53,6 +53,26 @@ module GrdaWarehouse::Hud
     end, **hud_assoc(:PersonalID, 'Assessment')
 
     # operates on source_clients only
+    has_one :most_recent_pathways_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+        scope: pathways,
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
+    # operates on source_clients only
+    has_one :most_recent_transfer_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+        scope: transfer,
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
+    # operates on source_clients only
     has_one :most_recent_current_living_situation, -> do
       one_for_column(
         :InformationDate,
