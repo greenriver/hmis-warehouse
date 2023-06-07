@@ -16,7 +16,9 @@ module HealthComprehensiveAssessment
       @assessment = if @patient.comprehensive_assessments.in_progress.exists?
         @patient.comprehensive_assessments.in_progress.first
       else
-        @patient.comprehensive_assessments.create!(user: current_user)
+        ca = @patient.comprehensive_assessments.create!(user: current_user)
+        @patient.ca_assessments.create(instrument: ca)
+        ca
       end
       redirect_to edit_client_health_comprehensive_assessment_assessment_path(@client, @assessment)
     end
@@ -33,6 +35,7 @@ module HealthComprehensiveAssessment
     end
 
     def destroy
+      @patient.ca_assessments.find_by(instrument: @assessment).destroy
       @assessment.destroy
       respond_with @assessment, location: client_health_careplans_path(@client)
     end
