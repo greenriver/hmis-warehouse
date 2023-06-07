@@ -377,26 +377,6 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
-    scope :age_group, ->(start_age: 0, end_age: nil) do
-      start_age = 0 unless start_age.is_a?(Integer)
-      end_age   = nil unless end_age.is_a?(Integer)
-      if end_age.present?
-        where(DOB: end_age.years.ago..start_age.years.ago)
-      else
-        where(arel_table[:DOB].lteq(start_age.years.ago))
-      end
-    end
-
-    scope :age_group_within_range, ->(start_age: 0, end_age: nil, start_date: Date.current, end_date: Date.current) do
-      start_age = 0 unless start_age.is_a?(Integer)
-      end_age   = nil unless end_age.is_a?(Integer)
-      if end_age.present?
-        where(DOB: (start_date - end_age.years)..(end_date - start_age.years))
-      else
-        where(arel_table[:DOB].lteq(start_date - start_age.years))
-      end
-    end
-
     scope :needs_history_pdf, -> do
       destination.where(generate_history_pdf: true)
     end
