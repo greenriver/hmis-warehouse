@@ -60,7 +60,7 @@ module Types
     end
 
     def status
-      object.status_before_type_cast
+      object.status
     end
 
     def status_updated_by

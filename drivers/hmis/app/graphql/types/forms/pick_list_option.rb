@@ -94,6 +94,16 @@ module Types
             label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
           }
         end
+
+      when 'REFERRAL_POSTING_STATUSES'
+        HmisExternalApis::AcHmis::ReferralPosting::VALID_LOCAL_STATUSES.map do |status|
+          {
+            code: status,
+            label: status.gsub(/_status\z/, '').humanize.titleize,
+          }
+        end
+      when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'
+        [] # tbd
       end
     end
 

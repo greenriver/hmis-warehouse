@@ -25,7 +25,7 @@ module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    VALID_STATUS_IDS = HmisExternalApis::AcHmis::ReferralPosting.statuses.values_at(:closed_status, :accepted_pending_status, :denied_pending_status, :accepted_status, :denied_status).to_set
+    VALID_STATUS_IDS = HmisExternalApis::AcHmis::ReferralPosting::VALID_LOCAL_STATUS_IDS
 
     # @param posting_id [Integer]  HmisExternalApis::AcHmis::ReferralPosting.identifier
     # @param posting_status_id [Integer] new status
@@ -36,7 +36,7 @@ module HmisExternalApis::AcHmis
     # @param status_note [String]
     # @param contact_date [String] required when Posting status is Denied Pending or Accepted Pending
     def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denied_reason_text: nil, status_note: nil, contact_date: nil, referral_result_id: nil)
-      raise 'Invalid status. Expected one of: [Closed(13), AcceptedPending(18), DeniedPending(19), Accepted(20), Denied(21)]' unless VALID_STATUS_IDS.include?(posting_status_id)
+      raise "Invalid status. Expected one of: [#{VALID_STATUS_IDS.inspect}]" unless VALID_STATUS_IDS.include?(posting_status_id)
 
       payload = {
         posting_id: posting_id,
@@ -46,7 +46,7 @@ module HmisExternalApis::AcHmis
         denied_reason_text: denied_reason_text,
         status_note: status_note,
         contact_date: format_date(contact_date),
-        requested_by: requested_by,
+        requested_by: format_requested_by(requested_by),
       }.filter { |_, v| v.present? }
 
       payload[:denied_reason_id] = denied_reason_id if denied_reason_id
@@ -58,7 +58,7 @@ module HmisExternalApis::AcHmis
 
     protected
 
-    # we may get references to postings that are do not belong to the updated referral
+    # we may get references to postings that do not belong to the updated referral
     def posting_scope
       HmisExternalApis::AcHmis::ReferralPosting
     end
