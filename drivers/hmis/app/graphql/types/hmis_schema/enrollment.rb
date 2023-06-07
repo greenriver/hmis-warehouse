@@ -23,9 +23,9 @@ module Types
     end
 
     available_filter_options do
-      arg :statuses, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
+      arg :status, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
       arg :open_on_date, GraphQL::Types::ISO8601Date
-      arg :project_types, [Types::HmisSchema::Enums::ProjectType]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :search_term, String
     end
 

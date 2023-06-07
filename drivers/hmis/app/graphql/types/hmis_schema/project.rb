@@ -23,14 +23,14 @@ module Types
     end
 
     available_filter_options do
-      arg :statuses, [
+      arg :status, [
         Types::BaseEnum.generate_enum('ProjectFilterOptionStatus') do
           value 'OPEN', description: 'Open'
           value 'CLOSED', description: 'Closed'
         end,
       ]
-      arg :project_types, [Types::HmisSchema::Enums::ProjectType]
-      arg :funders, [HmisSchema::Enums::Hud::FundingSource]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :funder, [HmisSchema::Enums::Hud::FundingSource]
       arg :search_term, String
     end
 
