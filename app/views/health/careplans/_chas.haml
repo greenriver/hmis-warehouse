@@ -2,7 +2,7 @@
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header
       Comprehensive Assessments
-    - unless @patient.comprehensive_health_assessments.incomplete.exists?
+    - unless @patient&.ca_assessments&.incomplete&.exists?
       = link_to new_client_health_comprehensive_assessment_assessment_path(@client), class: 'btn btn-secondary btn-sm ml-auto' do
         %i.icon-plus
         Add CA

@@ -897,6 +897,7 @@ module Health
     # hide previous declaration of :complete, we'll use this one
     replace_scope :complete, -> { where.not(completed_at: nil) }
     scope :completed, -> { complete }
+    scope :completed_within, ->(range) { where(completed_at: range) }
 
     scope :active, -> do
       reviewed.where(arel_table[:completed_at].gteq(1.years.ago))

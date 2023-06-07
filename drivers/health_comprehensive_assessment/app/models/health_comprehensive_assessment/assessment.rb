@@ -16,6 +16,16 @@ module HealthComprehensiveAssessment
     has_many :sud_treatments, dependent: :destroy
 
     scope :in_progress, -> { where(completed_on: nil) }
+    scope :completed_within, ->(range) { where(completed_at: range) }
+    scope :allowed_for_engagement, -> do
+      joins(patient: :patient_referrals).
+        merge(
+          Health::PatientReferral.contributing.
+            where(
+              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:completed_on].to_sql} + INTERVAL '1 year'")),
+            ),
+        )
+    end
 
     def identifying_information
       {

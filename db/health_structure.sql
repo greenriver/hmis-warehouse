@@ -249,6 +249,39 @@ ALTER SEQUENCE public.backup_plans_id_seq OWNED BY public.backup_plans.id;
 
 
 --
+-- Name: ca_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ca_assessments (
+    id bigint NOT NULL,
+    patient_id bigint,
+    instrument_type character varying,
+    instrument_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ca_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ca_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ca_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ca_assessments_id_seq OWNED BY public.ca_assessments.id;
+
+
+--
 -- Name: careplan_equipment; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5515,6 +5548,13 @@ ALTER TABLE ONLY public.backup_plans ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: ca_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ca_assessments ALTER COLUMN id SET DEFAULT nextval('public.ca_assessments_id_seq'::regclass);
+
+
+--
 -- Name: careplan_equipment id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -6289,6 +6329,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.backup_plans
     ADD CONSTRAINT backup_plans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ca_assessments ca_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ca_assessments
+    ADD CONSTRAINT ca_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -7177,6 +7225,20 @@ CREATE INDEX idx_crmc_member_service_start_date ON public.claims_reporting_medic
 --
 
 CREATE INDEX index_backup_plans_on_patient_id ON public.backup_plans USING btree (patient_id);
+
+
+--
+-- Name: index_ca_assessments_on_instrument; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ca_assessments_on_instrument ON public.ca_assessments USING btree (instrument_type, instrument_id);
+
+
+--
+-- Name: index_ca_assessments_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ca_assessments_on_patient_id ON public.ca_assessments USING btree (patient_id);
 
 
 --
@@ -8595,6 +8657,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230525153410'),
 ('20230526201807'),
 ('20230530192424'),
-('20230601151608');
+('20230601151608'),
+('20230606204139'),
+('20230606204254');
 
 
