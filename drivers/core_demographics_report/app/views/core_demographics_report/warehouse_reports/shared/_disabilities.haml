@@ -1,0 +1,42 @@
+- reports = [@report]
+- column_class = 'col-sm-8'
+- if @report.include_comparison?
+  - reports << @comparison
+  - column_class = 'col-sm-6'
+.row
+  - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
+    %div{class: column_class}
+      %h3 Indefinite and Impairing Disabilities
+      %p The following clients have reported a disability with no subsequent "No" response for that disability, and have reported the disability as indefinite and impairing.  Clients may have more than one disability type.
+
+      .card.mb-4{class: comparison_class}
+        %table.table.mb-4
+          %thead
+            %tr
+              %th Disability
+              %th Count
+              %th Percentage
+          %tbody
+            - HudUtility.disability_types.each do |id, title|
+              %tr
+                %th= title
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.disability_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "disability_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= number_to_percentage(report.disability_percentage(id), precision: 2)
+        %table.table
+          %thead
+            %tr
+              %th Disability
+              %th Count
+              %th Percentage
+          %tbody
+            %tr
+              %th At Least One Disability
+              %td= number_with_delimiter(report.yes_disability_count)
+              %td= number_to_percentage(report.yes_disability_percentage, precision: 2)
+            %tr
+              %th No Disability
+              %td= number_with_delimiter(report.no_disability_count)
+              %td= number_to_percentage(report.no_disability_percentage, precision: 2)

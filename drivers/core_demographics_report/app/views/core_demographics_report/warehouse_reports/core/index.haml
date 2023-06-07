@@ -12,7 +12,7 @@
       = render "utility"
     .top-nav-prs1
       %h1.mb-5= title
-      .mb-4= render 'hero_counts'
+      .mb-4= render 'core_demographics_report/warehouse_reports/shared/hero_counts'
     .main-inner-prs1
       .text-right.mb-4
         = render 'report_downloads/report_download', export: @pdf_export, excel_export: @excel_export, excel_download_path: nil
