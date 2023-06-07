@@ -13,16 +13,11 @@ th_style = wb_styles.add_style(
     border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
   }
 )
-wb_styles.add_style(
-  {
-    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
-  }
-)
 wb.add_worksheet(name: 'Report Info') do |sheet|
   sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
-      'Core Demographics Report',
+      _('Demographic Summary'),
     ],
     style: header_style,
   )

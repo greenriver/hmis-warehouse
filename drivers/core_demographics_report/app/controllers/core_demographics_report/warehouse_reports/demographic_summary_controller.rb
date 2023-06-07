@@ -25,7 +25,6 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     def index
-      @pdf_export = CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExport.new
       @excel_export = CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExcelExport.new
       respond_to do |format|
         format.html {}
