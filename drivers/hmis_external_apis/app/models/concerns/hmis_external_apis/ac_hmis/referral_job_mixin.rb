@@ -43,7 +43,7 @@ module HmisExternalApis::AcHmis
 
     # @param str [String]
     def format_requested_by(str)
-      str.slice(0, 20) # max length of 20 for requestedBy
+      str.slice(0, 50) # max length of 50 for requestedBy
     end
   end
 end
