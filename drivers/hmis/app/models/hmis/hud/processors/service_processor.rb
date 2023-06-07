@@ -29,6 +29,7 @@ module Hmis::Hud::Processors
 
     def assign_metadata
       hmis_service = @processor.owner_factory
+      hmis_service.assign_attributes(user: @processor.hud_user)
       hmis_service.owner.assign_attributes(user: @processor.hud_user)
       return unless hmis_service.hud_service?
 

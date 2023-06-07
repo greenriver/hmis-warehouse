@@ -199,12 +199,10 @@ module FormHelpers
     },
     SERVICE: {
       values: {
-        'typeProvided' => 'MOVING_ON_ASSISTANCE__OTHER',
         'movingOnOtherType' => 'something',
         'dateProvided' => '2023-03-15',
       },
       hud_values: {
-        'typeProvided' => 'MOVING_ON_ASSISTANCE__OTHER',
         'otherTypeProvided' => '_HIDDEN',
         'movingOnOtherType' => 'something',
         'subTypeProvided' => '_HIDDEN',
