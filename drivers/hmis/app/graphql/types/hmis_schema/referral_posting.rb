@@ -41,10 +41,23 @@ module Types
     field :referred_from, String, null: false
     field :unit_type, HmisSchema::UnitTypeObject, null: false
 
+    # If this posting has been accepted, this is the enrollment for the HoH at the enrolled household.
+    # This enrollment is NOT necessarily the same as the `hoh_name`, because the HoH may have changed after
+    # posting was accepted.
+    field :hoh_enrollment, HmisSchema::Enrollment, null: true
+
     def hoh_name
       object.referral.household_members
         .detect(&:self_head_of_household?)
         &.client&.brief_name
+    end
+
+    def hoh_enrollment
+      return unless object.household_id
+
+      Hmis::Hud::Enrollment.viewable_by(current_user).
+        where(household_id: object.household_id).
+        heads_of_households.first
     end
 
     def household_members
