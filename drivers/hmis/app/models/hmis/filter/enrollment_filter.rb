@@ -17,13 +17,13 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_statuses(scope)
-    with_filter(scope, :statuses) do
+    with_filter(scope, :status) do
       if input.statuses.present?
         ids = []
 
-        ids += scope.active.pluck(:id) if input.statuses.include?('ACTIVE')
-        ids += scope.incomplete.pluck(:id) if input.statuses.include?('INCOMPLETE')
-        ids += scope.exited.pluck(:id) if input.statuses.include?('EXITED')
+        ids += scope.active.pluck(:id) if input.status.include?('ACTIVE')
+        ids += scope.incomplete.pluck(:id) if input.status.include?('INCOMPLETE')
+        ids += scope.exited.pluck(:id) if input.status.include?('EXITED')
 
         return scope.where(id: ids)
       end
@@ -37,7 +37,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
   end
 
   def with_project_types(scope)
-    with_filter(scope, :project_types) { scope.with_project_type(input.project_types) }
+    with_filter(scope, :project_type) { scope.with_project_type(input.project_type) }
   end
 
   def with_search_term(scope)
