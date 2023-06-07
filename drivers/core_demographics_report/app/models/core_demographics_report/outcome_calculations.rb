@@ -22,6 +22,14 @@ module
     end
 
     def outcome_count(type)
+      # Return average days
+      if type.to_s == 'average_los'
+        values = outcome_clients[type].map(&:last)
+        return 0 unless values.count.positive?
+
+        (values.sum.to_f / values.count).round
+      end
+
       outcome_clients[type]&.count&.presence || 0
     end
 
@@ -51,8 +59,10 @@ module
       rows
     end
 
-    private def outcome_client_ids(key)
-      outcome_clients[key]
+    private def outcome_client_ids(type)
+      return outcome_clients[type].map(&:first) if type.to_s == 'average_los'
+
+      outcome_clients[type]
     end
 
     def available_outcome_types
@@ -73,12 +83,11 @@ module
 
     private def client_ids_with_homeless_activity_1_months
       @client_ids_with_homeless_activity_1_months ||= begin
-        project_types = HudUtility.homeless_project_type_numbers & filter.project_type_numbers
         # NOTE: this is limited to the report universe, except for the date range
         scope = report_scope(include_date_range: false).
           open_between(start_date: filter.start_date - 1.months, end_date: filter.start_date - 1.days).
           with_service_between(start_date: filter.start_date - 1.months, end_date: filter.start_date - 1.days).
-          in_project_type(project_types)
+          in_project(homeless_project_ids)
         scope = filter_for_user_access(scope)
         scope.pluck(:client_id).to_set
       end
@@ -86,12 +95,11 @@ module
 
     private def client_ids_with_homeless_activity_1_12_months
       @client_ids_with_homeless_activity_1_12_months ||= begin
-        project_types = HudUtility.homeless_project_type_numbers & filter.project_type_numbers
         # NOTE: this is limited to the report universe, except for the date range
         scope = report_scope(include_date_range: false).
           open_between(start_date: filter.start_date - 12.months, end_date: filter.start_date - 1.months).
           with_service_between(start_date: filter.start_date - 12.months, end_date: filter.start_date - 1.months).
-          in_project_type(project_types)
+          in_project(homeless_project_ids)
         scope = filter_for_user_access(scope)
         scope.pluck(:client_id).to_set
       end
@@ -99,12 +107,11 @@ module
 
     private def client_ids_with_homeless_activity_0_12_months
       @client_ids_with_homeless_activity_0_12_months ||= begin
-        project_types = HudUtility.homeless_project_type_numbers & filter.project_type_numbers
         # NOTE: this is limited to the report universe, except for the date range
         scope = report_scope(include_date_range: false).
           open_between(start_date: filter.start_date - 12.months, end_date: filter.start_date - 1.days).
           with_service_between(start_date: filter.start_date - 12.months, end_date: filter.start_date - 1.days).
-          in_project_type(project_types)
+          in_project(homeless_project_ids)
         scope = filter_for_user_access(scope)
         scope.pluck(:client_id).to_set
       end
@@ -112,15 +119,21 @@ module
 
     private def client_ids_with_homeless_activity_12_24_months
       @client_ids_with_homeless_activity_12_24_months ||= begin
-        project_types = HudUtility.homeless_project_type_numbers & filter.project_type_numbers
         # NOTE: this is limited to the report universe, except for the date range
         scope = report_scope(include_date_range: false).
           open_between(start_date: filter.start_date - 24.months, end_date: filter.start_date - 12.months).
           with_service_between(start_date: filter.start_date - 24.months, end_date: filter.start_date - 12.months).
-          in_project_type(project_types)
+          in_project(homeless_project_ids)
         scope = filter_for_user_access(scope)
         scope.pluck(:client_id).to_set
       end
+    end
+
+    # Homeless project ids that overlap the effective project ids of the filter
+    # This prevents including projects that aren't included in the filter, but
+    # also allows limiting to homeless project types
+    private def homeless_project_ids
+      @homeless_project_ids ||= GrdaWarehouse::Hud::Project.homeless.pluck(:id) & filter.effective_project_ids
     end
 
     # shs
@@ -130,7 +143,13 @@ module
     private def outcome_clients
       @outcome_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          # TODO: average LOS
+          # TODO: Average LOS - Unique days in homeless projects in the report scope
+          clients[:average_los] = report_scope.distinct.
+            in_project(homeless_project_ids).
+            joins(:service_history_services).
+            group(:client_id).
+            count(:date).to_set
+
           # Exit destinations
           clients[:exit_counted] = Set.new
           clients[:exit_homeless] = Set.new
@@ -154,8 +173,6 @@ module
             end
 
           # Returns
-          # TODO: needs to check for no in 1 month, but yes in returns
-          # or no in 1 year, and yes in 2 years
           clients[:return_counted] = Set.new
           clients[:returns_1_years] = Set.new
           clients[:returns_1_2_years] = Set.new

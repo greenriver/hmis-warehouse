@@ -21,5 +21,12 @@
             - @report.available_outcome_types.each do |title, id|
               %tr
                 %th= title
-                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.outcome_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "outcome_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
-                %td= number_to_percentage(report.outcome_percentage(id), precision: 2)
+                %td
+                  = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.outcome_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "outcome_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                  - if id.to_s == 'average_los'
+                    days
+                %td
+                  - if id.to_s == 'average_los'
+                    N/A
+                  - else
+                    = number_to_percentage(report.outcome_percentage(id), precision: 2)
