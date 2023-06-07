@@ -208,7 +208,7 @@ module FormHelpers
         'otherTypeProvided' => '_HIDDEN',
         'movingOnOtherType' => 'something',
         'subTypeProvided' => '_HIDDEN',
-        'FAAmount' => '_HIDDEN',
+        'faAmount' => '_HIDDEN',
         'referralOutcome' => '_HIDDEN',
         'dateProvided' => '2023-03-15',
       },
