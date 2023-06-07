@@ -138,6 +138,10 @@
   %h3 Income/Financial Support
   = render 'with_other', f: f,  key: :financial_supports, kind: :select_two, collection: @assessment.financial_support_responses, label: 'Do you receive any sources of financial assistance?', input_html: { multiple: true }
 
+%h2 Completed
+.well
+  = f.input :completed_on, as: :date_picker, label: 'Date of completion'
+
 - content_for :page_js do
   :javascript
     $(document).ready(function() {

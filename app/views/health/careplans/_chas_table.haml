@@ -11,7 +11,7 @@
           %td
             = link_to client_health_comprehensive_assessment_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true } do
               %h4.mb-0.mt-0 CA
-          %td= assessment.completed_on || 'in progress'
+          %td= "Completed on #{assessment.completed_on}" || 'in progress'
           %td= assessment&.user&.name
       - @patient.chas.each do |form|
         - if form.is_a? Health::ComprehensiveHealthAssessment
