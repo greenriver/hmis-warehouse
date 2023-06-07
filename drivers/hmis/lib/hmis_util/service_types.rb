@@ -57,9 +57,57 @@ module HmisUtil
         funders: [21], # HHS: PATH - Street Outreach & Supportive Services Only
       },
       {
+        record_type: 142, # R14 RHY Service Connections
+        project_types: [
+          0, # ES
+          1, # ES
+          2, # TH
+          6, # services only
+          12, # HP
+        ],
+      },
+      {
+        record_type: 143, # W1 Services Provided – HOPWA
+        project_types: [
+          0, # Emergency Shelter
+          1, # Emergency Shelter
+          2, # Transitional Housing
+          3, # PH - Permanent Supportive Housing
+          6, # Services Only
+          12, # Homelessness Prevention
+        ],
+      },
+      {
+        record_type: 151, # W2 Financial Assistance - HOPWA
+        project_types: [
+          6, # Services Only
+          12, # Homelessness Prevention
+        ],
+      },
+      {
+        record_type: 144, # V2 Services Provided – SSVF
+        project_types: [
+          12, # Homelessness Prevention
+          13, # PH - Rapid Re-housing
+        ],
+      },
+      {
+        record_type: 152, # V3 Financial Assistance – SSVF
+        project_types: [
+          12, # Homelessness Prevention
+          13, # PH - Rapid Re-housing
+        ],
+      },
+      {
+        record_type: 210, # V8 HUD-VASH Voucher Tracking
+        project_types: [
+          3, # PH - Permanent Supportive Housing
+        ],
+      },
+      {
         record_type: 300, # C2 Moving On Assistance Provided
         project_types: [
-          3, # PSH
+          3, # PH - Permanent Supportive Housing
         ],
         funders: [2], # HUD: CoC - Permanent Supportive Housing
       },
