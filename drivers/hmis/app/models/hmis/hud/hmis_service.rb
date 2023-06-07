@@ -45,11 +45,11 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   end
 
   scope :with_project_type, ->(project_types) do
-    joins(:project).merge(Hmis::Hud::Project.with_project_type(project_types))
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project_type(project_types))
   end
 
   scope :with_project, ->(project_ids) do
-    joins(:project).merge(Hmis::Hud::Project.where(id: project_ids))
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_projects(project_ids))
   end
 
   scope :matching_search_term, ->(search_term) do
