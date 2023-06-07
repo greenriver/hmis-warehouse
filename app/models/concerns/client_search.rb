@@ -90,9 +90,9 @@ module ClientSearch
       where
     end
 
-    def self.name_search(arel_t, field, text, search_custom_names: true, custom_name_options: {})
+    def self.name_search(arel_t, field, text, custom_name_options: {})
       query = arel_t[field].lower.matches(text)
-      return with_custom_name_search(query, field, text, **custom_name_options) if search_custom_names && custom_name_options.present?
+      return with_custom_name_search(query, field, text, **custom_name_options) if  custom_name_options.present?
 
       query
     end
