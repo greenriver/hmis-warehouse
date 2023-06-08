@@ -147,7 +147,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       query Client($id: ID!) {
         client(id: $id) {
           id
-          enrollments(limit: 10, offset: 0, filters: { statuses: [INCOMPLETE] }) {
+          enrollments(limit: 10, offset: 0, filters: { status: [INCOMPLETE] }) {
             nodesCount
             nodes {
               id
@@ -163,7 +163,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       query Client($id: ID!) {
         client(id: $id) {
           id
-          enrollments(limit: 10, offset: 0, filters: { statuses: [ACTIVE, EXITED] }) {
+          enrollments(limit: 10, offset: 0, filters: { status: [ACTIVE, EXITED] }) {
             nodesCount
             nodes {
               id

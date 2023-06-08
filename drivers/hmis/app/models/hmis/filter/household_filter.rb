@@ -17,13 +17,13 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_statuses(scope)
-    with_filter(scope, :statuses) do
-      if input.statuses.present?
+    with_filter(scope, :status) do
+      if input.status.present?
         ids = []
 
-        ids += scope.merge(Hmis::Hud::Enrollment.active).pluck(:id) if input.statuses.include?('ACTIVE')
-        ids += scope.merge(Hmis::Hud::Enrollment.incomplete).pluck(:id) if input.statuses.include?('INCOMPLETE')
-        ids += scope.merge(Hmis::Hud::Enrollment.exited).pluck(:id) if input.statuses.include?('EXITED')
+        ids += scope.merge(Hmis::Hud::Enrollment.active).pluck(:id) if input.status.include?('ACTIVE')
+        ids += scope.merge(Hmis::Hud::Enrollment.incomplete).pluck(:id) if input.status.include?('INCOMPLETE')
+        ids += scope.merge(Hmis::Hud::Enrollment.exited).pluck(:id) if input.status.include?('EXITED')
 
         return scope.where(id: ids)
       end
@@ -37,7 +37,7 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   end
 
   def with_project_types(scope)
-    with_filter(scope, :project_types) { scope.merge(Hmis::Hud::Enrollment.with_project_type(input.project_types)) }
+    with_filter(scope, :project_type) { scope.merge(Hmis::Hud::Enrollment.with_project_type(input.project_type)) }
   end
 
   def with_search_term(scope)

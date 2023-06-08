@@ -16,7 +16,7 @@ class Hmis::Filter::AssessmentFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_role(scope)
-    with_filter(scope, :roles) { scope.with_role(input.roles) }
+    with_filter(scope, :type) { scope.with_role(input.type) }
   end
 
   def with_project_type(scope)

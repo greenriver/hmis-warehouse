@@ -12,7 +12,7 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     available_filter_options do
-      arg :role, [Types::Forms::Enums::AssessmentRole]
+      arg :type, [Types::Forms::Enums::AssessmentRole]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :project, [ID]
     end

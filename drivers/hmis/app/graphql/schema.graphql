@@ -141,7 +141,7 @@ type AssessmentAccess {
 input AssessmentFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
-  role: [AssessmentRole!]
+  type: [AssessmentRole!]
 }
 
 input AssessmentInput {
@@ -1962,14 +1962,14 @@ enum EnrollmentStatus {
 
 input EnrollmentsForClientFilterOptions {
   openOnDate: ISO8601Date
-  projectTypes: [ProjectType!]
-  statuses: [EnrollmentFilterOptionStatus!]
+  projectType: [ProjectType!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 input EnrollmentsForProjectFilterOptions {
   openOnDate: ISO8601Date
   searchTerm: String
-  statuses: [EnrollmentFilterOptionStatus!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 type EnrollmentsPaginated {
@@ -3054,7 +3054,7 @@ input HouseholdFilterOptions {
   hohAgeRange: AgeRange
   openOnDate: ISO8601Date
   searchTerm: String
-  statuses: [EnrollmentFilterOptionStatus!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 """
@@ -4314,10 +4314,10 @@ enum ProjectFilterOptionStatus {
 }
 
 input ProjectFilterOptions {
-  funders: [FundingSource!]
-  projectTypes: [ProjectType!]
+  funder: [FundingSource!]
+  projectType: [ProjectType!]
   searchTerm: String
-  statuses: [ProjectFilterOptionStatus!]
+  status: [ProjectFilterOptionStatus!]
 }
 
 """
