@@ -53,11 +53,9 @@ module Types
     end
 
     def hoh_enrollment
-      return unless object.household_id
+      return unless object.household_id.present?
 
-      Hmis::Hud::Enrollment.viewable_by(current_user).
-        where(household_id: object.household_id).
-        heads_of_households.first
+      load_ar_association(object, :hoh_enrollment)
     end
 
     def household_members
