@@ -4728,6 +4728,7 @@ type ReferralPosting {
   chronic: Boolean
   denialNote: String
   denialReason: String
+  hohEnrollment: Enrollment
   hohName: String!
   householdMembers: [ReferralHouseholdMember!]!
   householdSize: Int!
