@@ -32,85 +32,110 @@ module HmisUtil
       end
     end
 
+    BED_NIGHT_CONFIG = {
+      record_type: 200, # BedNight
+      project_types: [
+        0, # Emergency Shelter - Entry Exit
+        1, # Emergency Shelter - NbN
+      ],
+    }.freeze
+
+    P1_PATH_SERVICE_CONFIG = {
+      record_type: 141, # P1 Services Provided - PATH Funded
+      project_types: [
+        4, # Street Outreach
+        6, # Services Only
+      ],
+      funders: [21], # HHS: PATH - Street Outreach & Supportive Services Only
+    }.freeze
+
+    P2_PATH_REFERRAL_CONFIG = {
+      record_type: 161, # P2 Referrals Provided - PATH
+      project_types: [
+        4, # Street Outreach
+        6, # Services Only
+      ],
+      funders: [21], # HHS: PATH - Street Outreach & Supportive Services Only
+    }.freeze
+
+    R14_RHY_SERVICE_CONFIG = {
+      record_type: 142, # R14 RHY Service Connections
+      project_types: [
+        0, # Emergency Shelter - Entry Exit
+        1, # Emergency Shelter - NbN
+        2, # Transitional Housing
+        6, # Services Only
+        12, # Homelessness Prevention
+      ],
+      # TODO: funders
+    }.freeze
+
+    W1_HOPWA_SERVICE_CONFIG = {
+      record_type: 143, # W1 Services Provided – HOPWA
+      project_types: [
+        0, # Emergency Shelter - Entry Exit
+        1, # Emergency Shelter - NbN
+        2, # Transitional Housing
+        3, # PH - Permanent Supportive Housing
+        6, # Services Only
+        12, # Homelessness Prevention
+      ],
+      # TODO: funder
+    }.freeze
+
+    W2_HOPWA_FINANCIAL_CONFIG = {
+      record_type: 151, # W2 Financial Assistance - HOPWA
+      project_types: [
+        6, # Services Only
+        12, # Homelessness Prevention
+      ],
+    }.freeze
+
+    V2_SSVF_SERVICE_CONFIG = {
+      record_type: 144, # V2 Services Provided – SSVF
+      project_types: [
+        12, # Homelessness Prevention
+        13, # PH - Rapid Re-housing
+      ],
+      # TODO: funder
+    }.freeze
+
+    V3_SSVF_FINANCIAL_CONFIG = {
+      record_type: 152, # V3 Financial Assistance – SSVF
+      project_types: [
+        12, # Homelessness Prevention
+        13, # PH - Rapid Re-housing
+      ],
+      # TODO: funder
+    }.freeze
+
+    V8_HUD_VASH_VOUCHER_CONFIG = {
+      record_type: 210, # V8 HUD-VASH Voucher Tracking
+      project_types: [
+        3, # PH - Permanent Supportive Housing
+      ],
+      # TODO: funder
+    }.freeze
+
+    C2_MOVING_ON_CONFIG = {
+      record_type: 300, # C2 Moving On Assistance Provided
+      project_types: [
+        3, # PH - Permanent Supportive Housing
+      ],
+      funders: [2], # HUD: CoC - Permanent Supportive Housing
+    }.freeze
+
     HUD_SERVICE_INSTANCE_CONFIG = [
-      {
-        record_type: 200, # BedNight
-        project_types: [
-          1, # ES
-          0, # ES NBN (2024)
-        ],
-      },
-      {
-        record_type: 141, # P1 Services Provided - PATH Funded
-        project_types: [
-          4, # Street Outreach
-          6, # Services Only
-        ],
-        funders: [21], # HHS: PATH - Street Outreach & Supportive Services Only
-      },
-      {
-        record_type: 161, # P2 Referrals Provided - PATH
-        project_types: [
-          4, # Street Outreach
-          6, # Services Only
-        ],
-        funders: [21], # HHS: PATH - Street Outreach & Supportive Services Only
-      },
-      {
-        record_type: 142, # R14 RHY Service Connections
-        project_types: [
-          0, # ES
-          1, # ES
-          2, # TH
-          6, # services only
-          12, # HP
-        ],
-      },
-      {
-        record_type: 143, # W1 Services Provided – HOPWA
-        project_types: [
-          0, # Emergency Shelter
-          1, # Emergency Shelter
-          2, # Transitional Housing
-          3, # PH - Permanent Supportive Housing
-          6, # Services Only
-          12, # Homelessness Prevention
-        ],
-      },
-      {
-        record_type: 151, # W2 Financial Assistance - HOPWA
-        project_types: [
-          6, # Services Only
-          12, # Homelessness Prevention
-        ],
-      },
-      {
-        record_type: 144, # V2 Services Provided – SSVF
-        project_types: [
-          12, # Homelessness Prevention
-          13, # PH - Rapid Re-housing
-        ],
-      },
-      {
-        record_type: 152, # V3 Financial Assistance – SSVF
-        project_types: [
-          12, # Homelessness Prevention
-          13, # PH - Rapid Re-housing
-        ],
-      },
-      {
-        record_type: 210, # V8 HUD-VASH Voucher Tracking
-        project_types: [
-          3, # PH - Permanent Supportive Housing
-        ],
-      },
-      {
-        record_type: 300, # C2 Moving On Assistance Provided
-        project_types: [
-          3, # PH - Permanent Supportive Housing
-        ],
-        funders: [2], # HUD: CoC - Permanent Supportive Housing
-      },
+      BED_NIGHT_CONFIG,
+      P1_PATH_SERVICE_CONFIG,
+      P2_PATH_REFERRAL_CONFIG,
+      R14_RHY_SERVICE_CONFIG,
+      W1_HOPWA_SERVICE_CONFIG,
+      W2_HOPWA_FINANCIAL_CONFIG,
+      V2_SSVF_SERVICE_CONFIG,
+      V3_SSVF_FINANCIAL_CONFIG,
+      V8_HUD_VASH_VOUCHER_CONFIG,
+      C2_MOVING_ON_CONFIG,
     ].freeze
 
     # Ensures that Form Instances exist for each HUD Service Type according to the configuration.
