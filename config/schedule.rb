@@ -163,6 +163,13 @@ tasks = [
     at: '11:00am',
     interruptable: true,
   },
+  {
+    task: 'driver:hmis_external_apis:import:ac_projects',
+    frequency: 1.day,
+    at: '8:00am', # FIXME: when are we expecting the file? I'll set this to a few hours later
+    interruptable: true,
+    trigger: ENV['IS_AC'] == 'true' # FIXME: will this be automatic on staging? How to best detect this installation?
+  },
   # {
   #   task: 'glacier:backup:database',
   #   frequency: 1.month,
