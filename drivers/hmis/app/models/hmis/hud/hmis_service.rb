@@ -49,7 +49,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   end
 
   scope :with_project, ->(project_ids) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_projects(project_ids))
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
   end
 
   scope :matching_search_term, ->(search_term) do
