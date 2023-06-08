@@ -53,7 +53,7 @@ module GrdaWarehouse::Hud
     end, **hud_assoc(:PersonalID, 'Assessment')
 
     # operates on source_clients only
-    has_one :most_recent_pathways_assessment, -> do
+    has_one :most_recent_2023_pathways_assessment, -> do
       one_for_column(
         :AssessmentDate,
         source_arel_table: as_t,
@@ -63,7 +63,7 @@ module GrdaWarehouse::Hud
     end, **hud_assoc(:PersonalID, 'Assessment')
 
     # operates on source_clients only
-    has_one :most_recent_transfer_assessment, -> do
+    has_one :most_recent_2023_transfer_assessment, -> do
       one_for_column(
         :AssessmentDate,
         source_arel_table: as_t,
