@@ -139,9 +139,9 @@ type AssessmentAccess {
 }
 
 input AssessmentFilterOptions {
-  projectTypes: [ProjectType!]
-  projects: [ID!]
-  roles: [AssessmentRole!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  role: [AssessmentRole!]
 }
 
 input AssessmentInput {
