@@ -20,10 +20,10 @@ class Hmis::Filter::AssessmentFilter < Hmis::Filter::BaseFilter
   end
 
   def with_project_type(scope)
-    with_filter(scope, :project_types) { scope.with_project_type(input.project_types) }
+    with_filter(scope, :project_type) { scope.with_project_type(input.project_type) }
   end
 
   def with_project(scope)
-    with_filter(scope, :projects) { scope.with_project(input.projects) }
+    with_filter(scope, :project) { scope.with_project(input.project) }
   end
 end
