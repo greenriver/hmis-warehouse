@@ -9,8 +9,19 @@ namespace :import do
 
     # importer = HmisExternalApis::AcHmis::Importers::ProjectsImporter.new(zip_file: file_name)
 
-    # c = Aws::S3::Client.new(endpoint: ENV.fetch('MINIO_ENDPOINT', 'https://s3.dev.test:9000'), region: 'us-east-1', access_key_id: 'local_access_key', secret_access_key: 'local_secret_key', force_path_style: true)
-    # c.create_bucket(bucket: ENV.fetch('ACTIVE_STORAGE_BUCKET', 'active-storage'))
+    c = Aws::S3::Client.new(endpoint: ENV.fetch('MINIO_ENDPOINT', 'https://s3.dev.test:9000'), region: 'us-east-1', access_key_id: 'local_access_key', secret_access_key: 'local_secret_key', force_path_style: true)
+    bucket = ENV.fetch('ACTIVE_STORAGE_BUCKET', 'active-storage')
+    c.create_bucket(bucket: bucket) rescue 'nil'
+
+    key = "mper/#{SecureRandom.hex}.zip"
+
+    c.put_object(
+      {
+        body: File.read(file_name, encoding: 'ascii-8bit'),
+        bucket: bucket,
+        key: key,
+      },
+    )
 
     HmisExternalApis::AcHmis::Importers::ProjectsImporter.import_from_s3
 

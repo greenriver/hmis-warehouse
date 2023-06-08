@@ -108,6 +108,12 @@ class AwsS3
     file.get(response_target: target_path)
   end
 
+  def get_as_io(key:)
+    StringIO.new.tap do |result|
+      @bucket.object(key).get(response_target: result)
+    end
+  end
+
   def put(file_name:, prefix:)
     name = "#{prefix}/#{File.basename(file_name)}"
     obj = @bucket.object(name)
