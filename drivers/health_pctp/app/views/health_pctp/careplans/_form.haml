@@ -1,0 +1,106 @@
+%h1 Care Plan / Patient-Centered Treatment Plan
+%h2 Identifying Information
+.well
+  = render 'field_section', f: f, fields: @careplan.identifying_information
+
+%h2 Care team
+.well
+  %table.table
+    %thead
+      %tr
+        %th Care Team Members
+        %th Name
+        %th Phone Number
+        %th Email
+    %tbody
+      - @careplan.care_team_members.each do |key, label|
+        %tr
+          %td= label
+          - [:name, :phone, :email].each do |kind|
+            %td= f.input "#{key}_#{kind}", label: false
+
+%h2 Enrollee Overview
+.well
+  = f.input :overview, as: :text, label: @careplan.enrollee_overview_label, input_html: {rows: 5}
+
+%h2 Demographic Information
+.well
+  = render 'field_section', f: f, fields: @careplan.demographic_information
+
+%h2 Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
+.well
+  %h3 In Enrollee's words
+  = f.input :strengths, as: :text, label: 'Strengths', input_html: {rows: 5}
+  = f.input :weaknesses, as: :text, label: 'Weaknesses', input_html: {rows: 5}
+  = f.input :interests, as: :text, label: 'Interests', input_html: {rows: 5}
+  = f.input :choices, as: :text, label: 'Choices and Preferences', input_html: {rows: 5}
+  = f.input :care_goals, as: :text, label: 'Care goals', input_html: {rows: 5}
+  = f.input :personal_goals, as: :text, label: 'Personal goals', input_html: {rows: 5}
+  = f.input :cultural_considerations, as: :text, label: 'Cultural considerations', input_html: {rows: 5}
+
+%h2 Accessibility Requirements and Equipment Needs
+.well
+  = f.input :accessibility_needs, as: :pretty_boolean_group, collection: @careplan.yes_no
+  = f.input :accommodation_types, as: :pretty_boolean_group, collection:@careplan.accommodation_responses, multiple: true
+  = f.input :accessibility_equipment, as: :select_two, collection: @careplan.accessibility_equipment_responses, input_html: { multiple: true }
+  = f.input :accessibility_equipment_notes, as: :text, label: 'Comments'
+  = f.input :accessibility_equipment_start, as: :date_picker, label: 'Start Date'
+  = f.input :accessibility_equipment_end, as: :date_picker, label: 'End Date'
+
+%h2 Identified Needs and Conditions
+.well
+  = render 'needs_table', f: f
+
+%h2 Care Goals, Plans, and Barriers
+.well
+  = f.input :goals, as: :text, label: @careplan.goals_label, input_html: {rows: 5}
+
+  = render 'goals_table', f: f
+
+%h2 Contingency Plan
+.well
+  %i
+    For BH Enrollees, this section should be used to help the Enrollee identify contingencies in their services,
+    including but not limited to: occasions when critical services (e.g. medications, transportation) or caregivers
+    are unavailable and when there is a failure of other essential supports and services.
+
+  .mt-4= f.input :contingency_plan, as: :text, input_html: {rows: 5}
+
+%h2 Crisis Plan
+.well
+  %i
+    The Crisis Prevention Plan provides a thorough checklist of the triggers that may lead to or escalate a psychiatric
+    crisis. The plan also includes potential clinical presentations and a preferred disposition and treatment plan
+    for each of these presentations as well as the Enrollee’s preferences with respect to involvement of the Enrollee,
+    their family and other supports, such as behavioral health providers, community social service agencies, and
+    natural community supports.
+
+  .mt-4= f.input :crisis_plan, as: :text, label: 'Crisis Plan – Do you have any triggers that you would like us to be aware of?', input_html: {rows: 5}
+
+%h2 Additional Concerns
+.well
+  = f.input :additional_concerns, as: :text, input_html: {rows: 6}, label: 'Additional needs or conditions that the Enrollee would like to address in the future'
+
+%h2 Complete & Review
+= render 'complete', f: f
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jWithOther').change(function() {
+        other_input = $(this).closest('.jSelectPair').find('.jOther');
+        values = $(this).val();
+        if(values.includes('other')) {
+          $(other_input).slideDown();
+        } else {
+          $(other_input).slideUp();
+        }
+      });
+
+      $('.jWithOther').each(function() {
+        values =$(this).val();
+        if(! values.includes('other')) {
+          $(this).closest('.jSelectPair').find('.jOther').hide();
+        }
+      });
+    });

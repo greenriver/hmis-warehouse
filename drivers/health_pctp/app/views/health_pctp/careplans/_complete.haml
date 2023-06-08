@@ -1,0 +1,38 @@
+.well
+  .row
+    .col
+      = f.input :patient_signed_on, as: :date_picker, label: 'Patient signed on'
+    .col
+      .mt-6= f.input :verbal_approval, as: :pretty_boolean, label: 'Patient unable to sign – verbal approval received'
+  - if @careplan.verbal_approval? || true
+    = f.input :verbal_approval_followup, as: :pretty_boolean, label: 'The Care Plan was signed by the Assigned or Engaged Enrollee (or authorized representative) within 90 days of verbal approval.  '
+
+%h3 BH Document Review
+.well
+  = f.input :offered_services_choice_care_planning, as: :pretty_boolean, label: 'The Assigned or Engaged Enrollee has been provided choice in CP services/programs during the care planning process'
+  = f.input :offered_provider_choice_care_planning, as: :pretty_boolean, label: 'The Assigned or Engaged Enrollee has been provided choice in available CP providers during the care planning process'
+  = f.input :received_recommendations, as: :pretty_boolean, label: 'The Engaged Enrollee was informed of recommended services for which they may be clinically eligible, subject to prior authorization where applicable'
+
+%h3 The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager
+.well
+  = f.input :offered_services_choice_treatment_planning, as: :pretty_boolean, label: 'The Engaged Enrollee has been provided choice in services and providers during the treatment planning process'
+  = f.input :reviewed_by_ccm_on, as: :date_picker, label: 'Date of approval', hint: 'By approving this record, you agree that the above information is true to the best of your knowledge'
+
+%h3 Enrollee Rights
+.well
+  %p The Engaged Enrollee has been notified of his or her rights, including:
+  = f.input :right_to_approve_pctp, as: :pretty_boolean, label: 'The right to approve the BH Person-Centered Treatment Plan'
+  = f.input :right_to_appeal, as: :pretty_boolean, label: 'The right to appeal any denial, termination, suspension, or reduction in services through MassHealth or the ACO or MCO'
+  = f.input :right_to_change_cc, as: :pretty_boolean, label: 'The right to request a different CP Care Coordinator from the Contractor'
+  = f.input :right_to_change_bhcp, as: :pretty_boolean, label: 'The right to request a different BH CP'
+  = f.input :right_to_complain, as: :pretty_boolean, label: "The right to submit an internal Grievance to the Contractor and the Contractor's internal Grievances procedure"
+  = f.input :right_to_ombudsman, as: :pretty_boolean, label: 'The right to access Ombudsman  services'
+
+%h3 The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)
+.well
+  = f.input :reviewed_by_rn_on, as: :date_picker, label: 'Date of approval'
+
+%h3 Document delivery
+.well
+  = f.input :provided_to_patient, as: :pretty_boolean, label: 'The Enrollee was provided a copy of the plan'
+  = f.input :sent_to_pcp_on, as: :date_picker, label: 'The careplan was sent to the PCP on'

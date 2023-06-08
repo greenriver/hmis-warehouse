@@ -1,0 +1,8 @@
+- fields.each do |key, (labels, kind, collection, input_html, controlled)|
+  - input_html = input_html || {}
+  - if labels.is_a?(Array)
+    - label = labels.first
+    - hint = labels.last
+  -else
+    - label = labels
+  = render 'with_other', f: f, key: key, kind: kind, collection: collection, label: label, hint: hint, input_html: input_html, controlled: controlled
