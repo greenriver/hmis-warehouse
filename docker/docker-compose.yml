@@ -168,6 +168,9 @@ services:
       MINIO_SECRET_KEY: local_secret_key
       MINIO_ROOT_USER: local_access_key
       MINIO_ROOT_PASSWORD: local_secret_key
+    expose:
+      - '9000'
+      - '9001'
     ports:
       - 9000:9000
       - 9001:9001 # enable for UI access
