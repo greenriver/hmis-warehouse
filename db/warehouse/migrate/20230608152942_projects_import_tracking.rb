@@ -6,7 +6,6 @@ class ProjectsImportTracking < ActiveRecord::Migration[6.1]
       t.text :key, null: false, comment: 'path in an s3 bucket to the file'
       t.jsonb :result, null: false, default: {}
       t.datetime :attempted_at, null: false, comment: 'last time an import was attempted'
-      # t.datetime :ignored_at, comment: 'set if imports should not be attempted'
     end
 
     safety_assured do

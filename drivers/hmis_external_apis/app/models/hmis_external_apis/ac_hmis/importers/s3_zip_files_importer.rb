@@ -4,8 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# This class iterates over the zip file objects in a bucket "directory" and
+# calls an importer on that directory after extraction.
+# FIXME: Does this already exist somewhere?
+
 module HmisExternalApis::AcHmis::Importers
   class S3ZipFilesImporter
+    # FIXME: add some better exception handling for failure conditions
     include NotifierConfig
 
     attr_accessor :bucket_name

@@ -132,7 +132,7 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def analyze
-      ProjectsImportAttempt.connection.exec_query('ANALYZE VERBOSE "Funder", "Project", "Organization";')
+      ProjectsImportAttempt.connection.exec_query('ANALYZE VERBOSE "Funder", "Project", "Organization", "CustomDataElements";')
     end
 
     def finish
@@ -154,6 +154,8 @@ module HmisExternalApis::AcHmis::Importers
       CSV.parse(io.read, headers: true, skip_lines: /\A\s*\z/)
     end
 
+    # FIXME: This feels like something that might already exist, but I didn't
+    # find a good candidate that I felt safe modifying or reusing. Let me know if it exists
     def generic_upsert(file:, conflict_target:, klass:, ignore_columns: [])
       Rails.logger.info "Upserting #{file}"
 
