@@ -22,7 +22,7 @@ module HealthComprehensiveAssessment::PopulateAssessmentConcern
       )
 
       patient.medications.each do |medication|
-        this.medications.create(
+        medications.create(
           medication: medication.name,
           dosage: medication.instructions,
         )
