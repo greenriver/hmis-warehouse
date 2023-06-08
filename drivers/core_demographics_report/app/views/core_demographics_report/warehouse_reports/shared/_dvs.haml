@@ -21,7 +21,7 @@
             - ::HudUtility.no_yes_reasons_for_missing_data_options.each do |id, title|
               %tr
                 %th= title
-                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.dv_status_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "dv_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.dv_status_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "dv_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
                 %td= number_to_percentage(report.dv_status_percentage(id), precision: 2)
 
       %h3 DV Victim/Survivor - Most Recent Occurance
@@ -37,5 +37,5 @@
             - ::HudUtility.when_occurreds.each do |id, title|
               %tr
                 %th= title
-                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.dv_occurrence_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "dv_occurrence_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.dv_occurrence_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "dv_occurrence_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
                 %td= number_to_percentage(report.dv_occurrence_percentage(id), precision: 2)

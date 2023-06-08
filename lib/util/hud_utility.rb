@@ -271,6 +271,15 @@ module HudUtility
     ::HudLists.project_type_brief_map.invert[type]
   end
 
+  def homeless_project_type_numbers
+    [
+      1, # ES
+      2, # TH
+      4, # SO
+      8, # SH
+    ].freeze
+  end
+
   # 2.02.C
   def tracking_method(id, reverse = false)
     map = tracking_methods
