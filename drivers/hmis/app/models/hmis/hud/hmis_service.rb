@@ -14,7 +14,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  has_one :project, through: :enrollment
   belongs_to :owner, polymorphic: true # Service or CustomService
   belongs_to :custom_service_type
   has_many :custom_service_categories, through: :custom_service_type
@@ -27,8 +26,10 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   after_initialize :initialize_owner, if: :new_record?
 
   SORT_OPTIONS = [:date_provided].freeze
-  HUD_ATTRIBUTES = [:record_type, :type_provided, :other_type_provided, :moving_on_other_type, :sub_type_provided, :referral_outcome, :FAAmount, :fa_amount].freeze
+  HUD_ATTRIBUTES = [:record_type, :type_provided, :other_type_provided, :moving_on_other_type, :sub_type_provided, :referral_outcome].freeze
+  HUD_AND_CUSTOM_ATTRIBUTES = [:fa_amount, :fa_start_date, :fa_end_date].freeze
 
+  delegate(*HUD_AND_CUSTOM_ATTRIBUTES, to: :owner)
   attr_accessor(*HUD_ATTRIBUTES)
 
   HUD_ATTRIBUTES.each do |hud_field_name|
@@ -69,14 +70,20 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     true
   end
 
-  # FIXME: needs to be updated to support Custom services
+  # Use method instead of has_one so that projects for WIP enrollments are resolved
+  def project
+    enrollment.project
+  end
+
   private def initialize_owner
-    self.owner = Hmis::Hud::Service.new(
-      enrollment_id: enrollment_id,
-      personal_id: personal_id,
-      user_id: user_id,
-      data_source_id: data_source_id,
-    )
+    raise 'Cannot initialize HmisService without a CustomServiceType' unless custom_service_type.present?
+
+    attrs = [:enrollment_id, :personal_id, :user_id, :data_source_id].map { |k| [k, send(k)] }.to_h
+    if custom_service_type.hud_service?
+      self.owner = Hmis::Hud::Service.new(**attrs)
+    else
+      self.owner = Hmis::Hud::CustomService.new(**attrs, custom_service_type: custom_service_type)
+    end
   end
 
   HUD_SERVICE_ID_PREFIX = '1'.freeze
