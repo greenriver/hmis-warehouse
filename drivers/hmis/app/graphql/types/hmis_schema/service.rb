@@ -15,6 +15,13 @@ module Types
       Hmis::Hud::Service.hmis_configuration(version: '2022')
     end
 
+    available_filter_options do
+      arg :service_category, [ID]
+      arg :service_type, [ID]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :project, [ID]
+    end
+
     hud_field :id, ID, null: false
     hud_field :enrollment, Types::HmisSchema::Enrollment, null: false
     hud_field :client, HmisSchema::Client, null: false

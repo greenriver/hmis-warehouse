@@ -139,7 +139,9 @@ type AssessmentAccess {
 }
 
 input AssessmentFilterOptions {
-  roles: [AssessmentRole!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  role: [AssessmentRole!]
 }
 
 input AssessmentInput {
@@ -479,7 +481,7 @@ type Client {
   phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
-  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: User
@@ -1871,7 +1873,7 @@ type Enrollment {
   previousStreetEssh: NoYesMissing
   project: Project!
   relationshipToHoH: RelationshipToHoH!
-  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   user: User
@@ -5101,6 +5103,13 @@ type Service {
 enum ServiceDetailType {
   BULK
   CLIENT
+}
+
+input ServiceFilterOptions {
+  project: [ID!]
+  projectType: [ProjectType!]
+  serviceCategory: [ID!]
+  serviceType: [ID!]
 }
 
 """
