@@ -104,7 +104,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     with_projects_where(p_t[:project_type].in(project_types))
   end
 
-  scope :with_projects, ->(project_ids) do
+  scope :with_project, ->(project_ids) do
     with_projects_where(p_t[:id].in(project_ids))
   end
 
