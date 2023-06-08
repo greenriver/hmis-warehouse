@@ -11,6 +11,7 @@ module HmisExternalApis::AcHmis::Importers
     attr_accessor :bucket_name
     attr_accessor :prefix
     attr_accessor :importer_class
+    attr_accessor :skip_lambda
 
     def initialize(bucket_name: ENV.fetch('ACTIVE_STORAGE_BUCKET'))
       self.bucket_name = bucket_name
@@ -20,6 +21,9 @@ module HmisExternalApis::AcHmis::Importers
       s3_zip_files_importer = new
       s3_zip_files_importer.prefix = 'mper'
       s3_zip_files_importer.importer_class = ProjectsImporter
+      s3_zip_files_importer.skip_lambda = ->(s3_object) do
+        ProjectsImportAttempt.given(s3_object).to_skip.any?
+      end
       s3_zip_files_importer.run!
     end
 
@@ -32,7 +36,7 @@ module HmisExternalApis::AcHmis::Importers
           next
         end
 
-        if ProjectsImportAttempt.given(s3_object).to_skip.any?
+        if skip_lambda.call(s3_object)
           Rails.logger.debug "Skipping #{s3_object.key} that was already imported, ignored, or failed"
           next
         end
@@ -53,17 +57,7 @@ module HmisExternalApis::AcHmis::Importers
               end
             end
 
-            if Dir.glob("#{dir}/*csv").empty?
-              msg = "No csv files were found in #{s3_object.key}"
-              Rails.logger.error(msg)
-              attempt = ProjectsImportAttempt.where(etag: s3_object.etag, key: s3_object.key).first_or_initialize
-              attempt.attempted_at = Time.now
-              attempt.status = 'failed'
-              attempt.result = { error: msg }
-              attempt.save!
-            else
-              importer_class.new(dir: dir, key: s3_object.key, etag: s3_object.etag).run!
-            end
+            importer_class.new(dir: dir, key: s3_object.key, etag: s3_object.etag).run!
           end
         end
       end
