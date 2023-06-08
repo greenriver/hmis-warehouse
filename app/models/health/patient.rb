@@ -107,6 +107,11 @@ module Health
       merge(Health::HrsnScreening.recent)
     end, class_name: 'Health::HrsnScreening'
 
+    has_many :ca_assessments
+    has_one :recent_ca_assessment, -> do
+      merge(Health::CaAssessment.recent)
+    end, class_name: 'Health::CaAssessment'
+
     has_many :services
     has_many :equipments
     has_many :backup_plans
@@ -311,10 +316,10 @@ module Health
         allowed_for_engagement.
         select(:patient_id)
 
-      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
+      cha_patient_id_scope = Health::CaAssessment.distinct.
         reviewed.
         allowed_for_engagement.
-        where(reviewed_at: (..on.to_time)).
+        reviewed_within(..on.to_time).
         select(:patient_id)
 
       epic_cha_patient_id_scope = Health::EpicCha.distinct.

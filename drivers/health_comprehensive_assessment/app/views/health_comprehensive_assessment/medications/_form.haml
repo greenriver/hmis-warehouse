@@ -1,0 +1,8 @@
+.jMedication
+  .row
+    .col-4
+      = f.input :medication, as: :text, label: 'Medication', input_html: {rows: 6}, placeholder: 'The information should be captured even if the person does not know the name of the medication. If this is the case, in the Medication column list “unknown” and then list all other information the person remembers'
+    .col-4
+      = f.input :dosage, as: :text, input_html: {rows: 6}, label: 'Dosage/Route/Frequency', placeholder: 'Example: 50 mg by mouth @ 8 AM, 3 PM and 10 PM.'
+    .col-4
+      = f.input :side_effects, as: :text, input_html: {rows: 6}, label: 'Reported Side Effects'

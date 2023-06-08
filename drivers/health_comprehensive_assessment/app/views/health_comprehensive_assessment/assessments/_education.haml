@@ -1,0 +1,34 @@
+.well.jSelectPair
+  = f.input :education_level, as: :select_two, collection: @assessment.education_level_responses, label: 'Highest Level of Education Achieved', input_html: { class: 'jWithGrade' }
+  = f.input :education_level_other, label: 'Please specify:', wrapper_html: { class: :jOther }
+  = f.input :grade_level, as: :numeric, label: 'Highest grade completed', wrapper_html: { class: :jGradeLevel }
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jWithGrade').change(function() {
+        other_input = $(this).closest('.jSelectPair').find('.jOther');
+        grade_level_input = $(this).closest('.jSelectPair').find('.jGradeLevel');
+        values = $(this).val();
+        if(values.includes('other')) {
+          $(other_input).slideDown();
+        } else {
+          $(other_input).slideUp();
+        }
+        if(values.includes('some_school')) {
+          $(grade_level_input).slideDown();
+        } else {
+          $(grade_level_input).slideUp();
+        }
+      });
+
+      $('.jWithGrade').each(function() {
+        values =$(this).val();
+        if(! values.includes('other')) {
+          $(this).closest('.jSelectPair').find('.jOther').hide();
+        }
+        if(! values.includes('some_school')) {
+          $(this).closest('.jSelectPair').find('.jGradeLevel').hide();
+        }
+      });
+    });
