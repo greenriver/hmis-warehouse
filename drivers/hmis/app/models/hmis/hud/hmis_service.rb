@@ -35,9 +35,21 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     define_method(hud_field_name) { hud_service&.send(hud_field_name) }
   end
 
+  scope :with_service_type, ->(service_type_id) do
+    where(custom_service_type_id: service_type_id)
+  end
+
   scope :in_service_category, ->(category_id) do
     type_ids = Hmis::Hud::CustomServiceType.where(custom_service_category_id: category_id).pluck(:id)
-    where(custom_service_type_id: type_ids)
+    with_service_type(type_ids)
+  end
+
+  scope :with_project_type, ->(project_types) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project_type(project_types))
+  end
+
+  scope :with_project, ->(project_ids) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
   end
 
   scope :matching_search_term, ->(search_term) do
@@ -47,6 +59,10 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     query = "%#{search_term}%"
     joins(:custom_service_type, :custom_service_categories).
       where(cst_t[:name].matches(query).or(csc_t[:name].matches(query)))
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ServiceFilter.new(input).filter_scope(self)
   end
 
   def readonly?
