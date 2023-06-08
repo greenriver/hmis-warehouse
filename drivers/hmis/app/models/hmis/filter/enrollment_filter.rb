@@ -18,7 +18,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
 
   def with_statuses(scope)
     with_filter(scope, :status) do
-      if input.statuses.present?
+      if input.status.present?
         ids = []
 
         ids += scope.active.pluck(:id) if input.status.include?('ACTIVE')

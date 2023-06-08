@@ -18,7 +18,7 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
 
   def with_statuses(scope)
     with_filter(scope, :status) do
-      if input.statuses.present?
+      if input.status.present?
         ids = []
 
         ids += scope.merge(Hmis::Hud::Enrollment.active).pluck(:id) if input.status.include?('ACTIVE')
