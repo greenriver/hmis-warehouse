@@ -75,6 +75,7 @@ module HmisExternalApis::AcHmis
       posting.unit_type = mper.find_unit_type_by_mper(unit_type_id)
       return error_out('Unit Type not found') unless posting.unit_type
 
+      posting.data_source = data_source
       posting.status = 'assigned_status'
       posting.save!
       posting

@@ -17,15 +17,15 @@ class Hmis::Filter::ProjectFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_statuses(scope)
-    with_filter(scope, :statuses) { scope.with_statuses(input.statuses) }
+    with_filter(scope, :status) { scope.with_statuses(input.status) }
   end
 
   def with_funders(scope)
-    with_filter(scope, :funders) { scope.with_funders(input.funders) }
+    with_filter(scope, :funder) { scope.with_funders(input.funder) }
   end
 
   def with_project_types(scope)
-    with_filter(scope, :project_types) { scope.with_project_type(input.project_types) }
+    with_filter(scope, :project_type) { scope.with_project_type(input.project_type) }
   end
 
   def with_search_term(scope)

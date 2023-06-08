@@ -12,13 +12,20 @@ module HmisExternalApis::AcHmis
     belongs_to :referral_request, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', optional: true
     belongs_to :project, class_name: 'Hmis::Hud::Project'
     belongs_to :unit_type, class_name: 'Hmis::UnitType'
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     belongs_to :status_updated_by, class_name: 'Hmis::User', optional: true
     belongs_to :status_note_updated_by, class_name: 'Hmis::User', optional: true
 
+    # Enrollment(s) are only present if this referral was accepted
+    has_many :enrollments, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Enrollment')
+    has_one :hoh_enrollment, -> { where(relationship_to_hoh: 1) }, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Enrollment')
+    has_one :household, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Household')
+
     scope :viewable_by, ->(_user) { raise } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated
     include ::Hmis::Hud::Concerns::ProjectRelated
 
+    alias_attribute :household_id, :HouseholdID
     # https://docs.google.com/spreadsheets/d/12wRLTjNdcs7A_1lHwkLUoKz1YWYkfaQs/edit#gid=26094550
     enum(
       status: {

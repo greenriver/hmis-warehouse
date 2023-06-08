@@ -42,8 +42,6 @@ module Types
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType4, '144:4')
       when 'SUB_TYPE_PROVIDED_5'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType5, '144:5')
-      when 'REFERRAL_OUTCOME'
-        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::PATHReferralOutcome)
       when 'CURRENT_LIVING_SITUATION'
         living_situation_picklist(as: :current)
       when 'DESTINATION'

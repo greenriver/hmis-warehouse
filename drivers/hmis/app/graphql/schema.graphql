@@ -139,7 +139,9 @@ type AssessmentAccess {
 }
 
 input AssessmentFilterOptions {
-  roles: [AssessmentRole!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  type: [AssessmentRole!]
 }
 
 input AssessmentInput {
@@ -479,7 +481,7 @@ type Client {
   phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
-  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: User
@@ -1871,7 +1873,7 @@ type Enrollment {
   previousStreetEssh: NoYesMissing
   project: Project!
   relationshipToHoH: RelationshipToHoH!
-  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   user: User
@@ -1960,14 +1962,14 @@ enum EnrollmentStatus {
 
 input EnrollmentsForClientFilterOptions {
   openOnDate: ISO8601Date
-  projectTypes: [ProjectType!]
-  statuses: [EnrollmentFilterOptionStatus!]
+  projectType: [ProjectType!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 input EnrollmentsForProjectFilterOptions {
   openOnDate: ISO8601Date
   searchTerm: String
-  statuses: [EnrollmentFilterOptionStatus!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 type EnrollmentsPaginated {
@@ -2302,6 +2304,7 @@ input FormInput {
   organizationId: ID
   projectId: ID
   recordId: ID
+  serviceTypeId: ID
   values: JsonObject
 }
 
@@ -3052,7 +3055,7 @@ input HouseholdFilterOptions {
   hohAgeRange: AgeRange
   openOnDate: ISO8601Date
   searchTerm: String
-  statuses: [EnrollmentFilterOptionStatus!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 """
@@ -3874,12 +3877,6 @@ type Mutation {
     """
     input: UpdateRelationshipToHoHInput!
   ): UpdateRelationshipToHoHPayload
-  updateService(
-    """
-    Parameters for UpdateService
-    """
-    input: UpdateServiceInput!
-  ): UpdateServicePayload
   updateUnits(
     """
     Parameters for UpdateUnits
@@ -4312,10 +4309,10 @@ enum ProjectFilterOptionStatus {
 }
 
 input ProjectFilterOptions {
-  funders: [FundingSource!]
-  projectTypes: [ProjectType!]
+  funder: [FundingSource!]
+  projectType: [ProjectType!]
   searchTerm: String
-  statuses: [ProjectFilterOptionStatus!]
+  status: [ProjectFilterOptionStatus!]
 }
 
 """
@@ -4470,7 +4467,7 @@ type Query {
   """
   Get most relevant form definition for the specified service type
   """
-  getServiceFormDefinition(customServiceTypeId: ID!, projectId: ID!): FormDefinition
+  getServiceFormDefinition(projectId: ID!, serviceTypeId: ID!): FormDefinition
 
   """
   Inventory lookup
@@ -4504,6 +4501,11 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
+
+  """
+  Service type lookup
+  """
+  serviceType(id: ID!): ServiceType
 }
 
 type QueryAccess {
@@ -4726,6 +4728,7 @@ type ReferralPosting {
   chronic: Boolean
   denialNote: String
   denialReason: String
+  hohEnrollment: Enrollment
   hohName: String!
   householdMembers: [ReferralHouseholdMember!]!
   householdSize: Int!
@@ -5080,7 +5083,6 @@ type SaveAssessmentPayload {
 HUD or Custom Service rendered
 """
 type Service {
-  FAAmount: Float
   client: Client!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
@@ -5088,13 +5090,15 @@ type Service {
   dateProvided: ISO8601Date!
   dateUpdated: ISO8601DateTime!
   enrollment: Enrollment!
+  faAmount: Float
+  faEndDate: ISO8601Date
+  faStartDate: ISO8601Date
   id: ID!
   movingOnOtherType: String
   otherTypeProvided: String
-  recordType: RecordType
   referralOutcome: PATHReferralOutcome
+  serviceType: ServiceType!
   subTypeProvided: ServiceSubTypeProvided
-  typeProvided: ServiceTypeProvided
   user: User
 }
 
@@ -5103,13 +5107,20 @@ enum ServiceDetailType {
   CLIENT
 }
 
+input ServiceFilterOptions {
+  project: [ID!]
+  projectType: [ProjectType!]
+  serviceCategory: [ID!]
+  serviceType: [ID!]
+}
+
 """
 HUD Service Input
 """
 input ServiceInput {
-  FAAmount: Float
   dateProvided: ISO8601Date
   enrollmentId: ID
+  faAmount: Float
   movingOnOtherType: String
   otherTypeProvided: String
   recordType: RecordType
@@ -5273,6 +5284,17 @@ enum ServiceSubTypeProvided {
   (2) Transportation services
   """
   SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__TRANSPORTATION_SERVICES
+}
+
+type ServiceType {
+  category: String!
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  hudRecordType: RecordType
+  hudTypeProvided: ServiceTypeProvided
+  id: ID!
+  name: String!
+  user: User
 }
 
 """
@@ -6054,30 +6076,6 @@ type UpdateRelationshipToHoHPayload {
   clientMutationId: String
   enrollment: Enrollment
   errors: [ValidationError!]!
-}
-
-"""
-Autogenerated input type of UpdateService
-"""
-input UpdateServiceInput {
-  """
-  A unique identifier for the client performing the mutation.
-  """
-  clientMutationId: String
-  id: ID!
-  input: ServiceInput!
-}
-
-"""
-Autogenerated return type of UpdateService.
-"""
-type UpdateServicePayload {
-  """
-  A unique identifier for the client performing the mutation.
-  """
-  clientMutationId: String
-  errors: [ValidationError!]!
-  service: Service
 }
 
 """
