@@ -51,6 +51,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     joins(:custom_form).merge(Hmis::Form::CustomForm.with_role(role))
   end
 
+  scope :with_project_type, ->(project_types) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project_type(project_types))
+  end
+
+  scope :with_project, ->(project_ids) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
+  end
+
   # Load project for WIP enrollment
   def project
     super || enrollment&.project

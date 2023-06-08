@@ -23,14 +23,14 @@ module Types
     end
 
     available_filter_options do
-      arg :statuses, [
+      arg :status, [
         Types::BaseEnum.generate_enum('ProjectFilterOptionStatus') do
           value 'OPEN', description: 'Open'
           value 'CLOSED', description: 'Closed'
         end,
       ]
-      arg :project_types, [Types::HmisSchema::Enums::ProjectType]
-      arg :funders, [HmisSchema::Enums::Hud::FundingSource]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :funder, [HmisSchema::Enums::Hud::FundingSource]
       arg :search_term, String
     end
 
@@ -60,7 +60,7 @@ module Types
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
-    enrollments_field filter_args: { omit: [:project_types], type_name: 'EnrollmentsForProject' }
+    enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
     referral_postings_field :incoming_referral_postings

@@ -139,7 +139,9 @@ type AssessmentAccess {
 }
 
 input AssessmentFilterOptions {
-  roles: [AssessmentRole!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  type: [AssessmentRole!]
 }
 
 input AssessmentInput {
@@ -479,7 +481,7 @@ type Client {
   phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
-  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: User
@@ -1871,7 +1873,7 @@ type Enrollment {
   previousStreetEssh: NoYesMissing
   project: Project!
   relationshipToHoH: RelationshipToHoH!
-  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   user: User
@@ -1960,14 +1962,14 @@ enum EnrollmentStatus {
 
 input EnrollmentsForClientFilterOptions {
   openOnDate: ISO8601Date
-  projectTypes: [ProjectType!]
-  statuses: [EnrollmentFilterOptionStatus!]
+  projectType: [ProjectType!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 input EnrollmentsForProjectFilterOptions {
   openOnDate: ISO8601Date
   searchTerm: String
-  statuses: [EnrollmentFilterOptionStatus!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 type EnrollmentsPaginated {
@@ -3053,7 +3055,7 @@ input HouseholdFilterOptions {
   hohAgeRange: AgeRange
   openOnDate: ISO8601Date
   searchTerm: String
-  statuses: [EnrollmentFilterOptionStatus!]
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 """
@@ -4307,10 +4309,10 @@ enum ProjectFilterOptionStatus {
 }
 
 input ProjectFilterOptions {
-  funders: [FundingSource!]
-  projectTypes: [ProjectType!]
+  funder: [FundingSource!]
+  projectType: [ProjectType!]
   searchTerm: String
-  statuses: [ProjectFilterOptionStatus!]
+  status: [ProjectFilterOptionStatus!]
 }
 
 """
@@ -5102,6 +5104,13 @@ type Service {
 enum ServiceDetailType {
   BULK
   CLIENT
+}
+
+input ServiceFilterOptions {
+  project: [ID!]
+  projectType: [ProjectType!]
+  serviceCategory: [ID!]
+  serviceType: [ID!]
 }
 
 """

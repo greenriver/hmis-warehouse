@@ -93,11 +93,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   scope :not_in_progress, -> { where.not(project_id: nil) }
 
-  scope :with_project_type, ->(project_types) do
-    wip_enrollments = joins(wip: :project).where(p_t[:project_type].in(project_types)).pluck(wip_t[:source_id])
-    nonwip_enrollments = joins(:project).where(p_t[:project_type].in(project_types)).pluck(:id)
+  scope :with_projects_where, ->(query) do
+    wip_enrollments = joins(wip: :project).where(query).pluck(wip_t[:source_id])
+    nonwip_enrollments = joins(:project).where(query).pluck(:id)
 
     where(id: wip_enrollments + nonwip_enrollments)
+  end
+
+  scope :with_project_type, ->(project_types) do
+    with_projects_where(p_t[:project_type].in(project_types))
+  end
+
+  scope :with_project, ->(project_ids) do
+    with_projects_where(p_t[:id].in(project_ids))
   end
 
   scope :in_age_group, ->(start_age: 0, end_age: nil) do
