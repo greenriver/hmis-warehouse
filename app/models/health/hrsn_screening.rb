@@ -6,6 +6,8 @@
 
 module Health
   class HrsnScreening < HealthBase
+    acts_as_paranoid
+
     belongs_to :instrument, polymorphic: true
 
     # Internal relations for joins
@@ -31,15 +33,15 @@ module Health
     end
 
     scope :completed_within, ->(range) do
-      ssm_ids = joins(:ssm).merge(Health::SelfSufficiencyMatrixForm.completed_within(range)).pluck(:id)
-      thrive_ids = joins(:thrive).merge(HealthThriveAssessment::Assessment.completed_within(range)).pluck(:id)
+      ssm_ids = joins(:ssm).merge(Health::SelfSufficiencyMatrixForm.completed_within(range)).pluck(:instrument_id)
+      thrive_ids = joins(:thrive).merge(HealthThriveAssessment::Assessment.completed_within(range)).pluck(:instrument_id)
       where(instrument_id: ssm_ids, instrument_type: 'Health::SelfSufficiencyMatrixForm').
         or(where(instrument_id: thrive_ids, instrument_type: 'HealthThriveAssessment::Assessment'))
     end
 
     scope :allowed_for_engagement, -> do
-      ssm_ids = joins(:ssm).merge(Health::SelfSufficiencyMatrixForm.allowed_for_engagement).pluck(:id)
-      thrive_ids = joins(:thrive).merge(HealthThriveAssessment::Assessment.allowed_for_engagement).pluck(:id)
+      ssm_ids = joins(:ssm).merge(Health::SelfSufficiencyMatrixForm.allowed_for_engagement).pluck(:instrument_id)
+      thrive_ids = joins(:thrive).merge(HealthThriveAssessment::Assessment.allowed_for_engagement).pluck(:instrument_id)
       where(instrument_id: ssm_ids, instrument_type: 'Health::SelfSufficiencyMatrixForm').
         or(where(instrument_id: thrive_ids, instrument_type: 'HealthThriveAssessment::Assessment'))
     end

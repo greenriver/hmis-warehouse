@@ -1,0 +1,16 @@
+%table.table
+  %thead
+    %tr
+      %th Service Type
+      %th Provider
+      %th Address
+      %th Phone
+      %th Notes
+  %tbody
+    - @assessment.service_providers.each do |type_key, (type_label, notes_prompt)|
+      %tr
+        %td= type_label
+        %td= f.input "#{type_key}_provider", as: :text, label: false
+        %td= f.input "#{type_key}_address", as: :text, label: false
+        %td= f.input "#{type_key}_phone", as: :text, label: false
+        %td= f.input "#{type_key}_notes", as: :text, label: false, placeholder: notes_prompt

@@ -16,7 +16,9 @@ module HealthThriveAssessment
       @assessment = if @patient.thrive_assessments.in_progress.exists?
         @patient.thrive_assessments.in_progress.first
       else
-        @patient.thrive_assessments.create!(user: current_user)
+        thrive = @patient.thrive_assessments.create!(user: current_user)
+        @patient.hrsn_screenings.create(instrument: thrive)
+        thrive
       end
       redirect_to edit_client_health_thrive_assessment_assessment_path(@client, @assessment)
     end
@@ -33,6 +35,7 @@ module HealthThriveAssessment
     end
 
     def destroy
+      @patient.hrsn_screenings.find_by(instrument: @assessment).destroy
       @assessment.destroy
       respond_with @assessment, location: client_health_careplans_path(@client)
     end

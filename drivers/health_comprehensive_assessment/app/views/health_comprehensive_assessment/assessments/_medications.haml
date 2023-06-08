@@ -1,0 +1,30 @@
+.jMedications
+  .col.text-right
+    = link_to new_client_health_comprehensive_assessment_assessment_medication_path(@client, @assessment), class: 'btn btn-secondary', data: { loads_in_ajax_modal: true } do
+      %i.icon-plus
+      Add Medication
+
+  .row.mt-4
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Medication
+          %th Dosage/Route/Frequency
+          %th Reported Side Effects
+          %th
+      %tbody
+        - if @assessment.medications.exists?
+          - @assessment.medications.order(id: :desc).each do |medication|
+            %tr
+              %td= medication.medication
+              %td= medication.dosage
+              %td= medication.side_effects
+              %td
+                .mb-4
+                  = link_to edit_client_health_comprehensive_assessment_assessment_medication_path(@client, @assessment, medication), class: 'btn btn-secondary btn-sm btn-icon-only',  data: { loads_in_ajax_modal: true } do
+                    %i.icon-pencil
+                = link_to client_health_comprehensive_assessment_assessment_medication_path(@client, @assessment, medication), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to delete this medication?' }, remote: true do
+                  %i.icon-cross
+        - else
+          %tr
+            %td.text-center{colspan:4} No medications
