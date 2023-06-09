@@ -59,6 +59,8 @@ jobs:
           - '9000:9000'
 
     env:
+      AWS_ACCESS_KEY_ID: local_access_key
+      AWS_SECRET_ACCESS_KEY: local_secret_key
       CLIENT: test
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: boston_hmis_test
@@ -78,7 +80,7 @@ jobs:
       HEALTH_DATABASE_USER: postgres
       HEALTH_FROM: greenriver.testing@mailinator.com
       HOSTNAME: openpath.host
-      MINIO_ENDPOINT: minio:9000
+      MINIO_ENDPOINT: http://minio:9000
       USE_MINIO_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
@@ -181,10 +183,6 @@ jobs:
       - name: Run s3 test
         env:
           LOG_LEVEL: INFO
-          MINIO_ENDPOINT: http://minio:9000
-          USE_MINIO_ENDPOINT: true
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
         run: |
           echo test s3
           bundle exec rspec --color --format p -P drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/importers/s3_zip_files_importer_spec.rb
@@ -194,10 +192,6 @@ jobs:
           GROVER_NO_SANDBOX: true
           CHROMIUM_PATH: /usr/bin/chromium-browser
           MAX_FAILURES: 20
-          MINIO_ENDPOINT: http://minio:9000
-          USE_MINIO_ENDPOINT: true
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
           LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
