@@ -72,7 +72,7 @@ module HmisExternalApis::AcHmis::Importers
               end
             end
 
-            importer_class.new(dir: dir, key: s3_object.key, etag: s3_object.etag).run! if importer_class.present?
+            importer_class.new(dir: '.', key: s3_object.key, etag: s3_object.etag).run! if importer_class.present?
           end
         end
       end
