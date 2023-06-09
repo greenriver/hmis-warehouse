@@ -59,8 +59,6 @@ jobs:
           - '9000:9000'
 
     env:
-      AWS_ACCESS_KEY_ID: local_access_key
-      AWS_SECRET_ACCESS_KEY: local_secret_key
       CLIENT: test
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: boston_hmis_test
@@ -182,13 +180,19 @@ jobs:
 
       - name: Run s3 test
         env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
           LOG_LEVEL: INFO
         run: |
           echo test s3
+          curl http://minio:9000
+          echo did curl
           bundle exec rspec --color --format p -P drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/importers/s3_zip_files_importer_spec.rb
 
       - name: Run tests
         env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
           GROVER_NO_SANDBOX: true
           CHROMIUM_PATH: /usr/bin/chromium-browser
           MAX_FAILURES: 20
