@@ -93,8 +93,6 @@ module HmisExternalApis::AcHmis::Importers
       )
     end
 
-    # FIXME: I'm not sure how to execute this efficiently since I think we might have to fetch the user from the project.
-    # FIXME: What do we do if there's no user? I'm just skipping them for now.
     def upsert_walkins
       project_ids = @project_result.ids
       walkin = records_from_csv('Project.csv').map { |x| x['Walkin'] }
@@ -102,32 +100,23 @@ module HmisExternalApis::AcHmis::Importers
       project_ids.length != walkin.length and raise(AbortImportException, 'Project upsert should have been the same length as the parsed csv')
 
       project_ids.zip(walkin).each do |(project_id, bool_str)|
-        project = Hmis::Hud::Project.find(project_id)
-
-        if project.user.blank?
-          Rails.logger.error "Can't create a custom data element without a user, and the project doesn't have a user for Project #{project_id}"
-          next
-        end
-
         cde = Hmis::Hud::CustomDataElement
           .where(
-            owner: project,
-            # FIXME: we could do this to make this all faster, but we need the user I think.
-            # owner_type: 'Hmis::Hud::Project',
-            # owner_id: project_id,
+            owner_type: 'Hmis::Hud::Project',
+            owner_id: project_id,
             data_element_definition: cded,
             data_source: data_source,
-            user: project.user,
           )
           .first_or_initialize
 
-        cde.value_boolean =
-          case bool_str
-          when 'Y' then true
-          when 'N' then false
-          end
-
-        cde.save!
+        cde.update!(
+          user: sys_user,
+          value_boolean:
+            case bool_str
+            when 'Y' then true
+            when 'N' then false
+            end,
+        )
       end
     end
 
@@ -150,7 +139,6 @@ module HmisExternalApis::AcHmis::Importers
         io.rewind
       end
 
-      # FIXME: Are these going to be huge?
       CSV.parse(io.read, headers: true, skip_lines: /\A\s*\z/)
     end
 
