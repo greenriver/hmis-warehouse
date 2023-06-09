@@ -44,6 +44,14 @@ module HealthComprehensiveAssessment
       client_health_comprehensive_assessment_assessment_path(patient.client, self)
     end
 
+    def completed?
+      completed_on.present?
+    end
+
+    def active?
+      completed_on && completed_on >= 1.years.ago
+    end
+
     def identifying_information
       {
         name: ['Enrollee Name', :string, nil],

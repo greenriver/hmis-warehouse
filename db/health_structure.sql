@@ -2975,7 +2975,7 @@ CREATE TABLE public.hca_assessments (
     sud_treatment_sources_other character varying,
     preferred_mode character varying,
     communicate_in_english character varying,
-    accessibility_equipment character varying,
+    accessibility_equipment jsonb,
     accessibility_equipment_notes character varying,
     accessibility_equipment_start date,
     accessibility_equipment_end date,
@@ -3004,7 +3004,8 @@ CREATE TABLE public.hca_assessments (
     financial_supports_other character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    care_goals character varying
 );
 
 
@@ -8802,6 +8803,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230606204139'),
 ('20230606204254'),
 ('20230607195153'),
-('20230608152551');
+('20230608152551'),
+('20230609132021');
 
 

@@ -88,7 +88,8 @@ module BostonProjectScorecard
 
       def returned_funds_score
         return unless returned_funds_percent.present?
-        return 6 if returned_funds_percent <= 10
+        return 6 if returned_funds_percent <= 5
+        return 3 if returned_funds_percent <= 10
 
         0
       end
