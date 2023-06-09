@@ -55,8 +55,6 @@ jobs:
         env:
           MINIO_ACCESS_KEY: local_access_key
           MINIO_SECRET_KEY: local_secret_key
-          #MINIO_ROOT_USER: local_access_key
-          #MINIO_ROOT_PASSWORD: local_secret_key
         ports:
           - '9000:9000'
 
@@ -185,6 +183,8 @@ jobs:
           LOG_LEVEL: INFO
           MINIO_ENDPOINT: minio:9000
           USE_MINIO_ENDPOINT: true
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
         run: |
           echo test s3
           bundle exec rspec --color --format p -P drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/importers/s3_zip_files_importer_spec.rb
@@ -196,6 +196,8 @@ jobs:
           MAX_FAILURES: 20
           MINIO_ENDPOINT: minio:9000
           USE_MINIO_ENDPOINT: true
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
           LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
