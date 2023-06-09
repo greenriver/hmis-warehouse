@@ -181,7 +181,7 @@ jobs:
       - name: Run s3 test
         env:
           LOG_LEVEL: INFO
-          MINIO_ENDPOINT: minio:9000
+          MINIO_ENDPOINT: http://minio:9000
           USE_MINIO_ENDPOINT: true
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -194,7 +194,7 @@ jobs:
           GROVER_NO_SANDBOX: true
           CHROMIUM_PATH: /usr/bin/chromium-browser
           MAX_FAILURES: 20
-          MINIO_ENDPOINT: minio:9000
+          MINIO_ENDPOINT: http://minio:9000
           USE_MINIO_ENDPOINT: true
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
