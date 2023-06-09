@@ -73,8 +73,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
-  scope :for_project, ->(project) do
-    base_scope = Hmis::Form::Instance.joins(:definition)
+  scope :for_project, ->(project:, role:) do
+    # Consider all instances for this role
+    base_scope = Hmis::Form::Instance.joins(:definition).merge(Hmis::Form::Definition.with_role(role))
 
     # Choose the first scope that has any records. Prefer more specific instances.
     instance_scope = [
@@ -101,15 +102,19 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.find_definition_for_role(role, project: nil, version: nil)
-    scope = Hmis::Form::Definition.with_role(role)
-    scope = scope.for_project(project) if project.present?
+    if project.present?
+      scope = Hmis::Form::Definition.for_project(project: project, role: role)
+    else
+      scope = Hmis::Form::Definition.with_role(role)
+    end
+
     scope = scope.where(version: version) if version.present?
     scope.order(version: :desc).first
   end
 
   def self.find_definition_for_service_type(service_type, project:)
-    Hmis::Form::Definition.with_role(:SERVICE).
-      for_project(project).
+    Hmis::Form::Definition.
+      for_project(project: project, role: :SERVICE).
       for_service_type(service_type).
       order(version: :desc).first
   end
