@@ -7,6 +7,7 @@
 module HealthComprehensiveAssessment
   class Assessment < HealthBase
     include Rails.application.routes.url_helpers
+    include HealthComprehensiveAssessment::PopulateAssessmentConcern
     acts_as_paranoid
 
     phi_patient :patient_id

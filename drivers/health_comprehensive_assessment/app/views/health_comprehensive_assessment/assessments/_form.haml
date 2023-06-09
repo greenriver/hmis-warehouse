@@ -1,13 +1,12 @@
-%h1 Comprehensive Assessment
-%h2 Identifying Information
+%h2#section-identifying-information Identifying Information
 .well
   = render 'field_section', f: f, fields: @assessment.identifying_information
 
-%h2 Demographic Information
+%h2#section-demographic-information Demographic Information
 .well
   = render 'field_section', f: f, fields: @assessment.demographic_information
 
-%h2 Immediate care needs and current services
+%h2#section-immediate-care-needs Immediate care needs and current services
 %h3 (including but not limited to any Care Coordination or management activities and any services being provided by state agencies)
 
 %h4 Current Services
@@ -19,7 +18,7 @@
   %h5 Other service providers
   = render 'service_providers_table', f: f
 
-%h2 Health Conditions
+%h2#section-health-conditions Health Conditions
 %h3 Medical History/Medical Needs (include ICD codes if applicable)
 .well
   = render 'medical_history_table', f: f
@@ -163,4 +162,3 @@
         }
       });
     });
-

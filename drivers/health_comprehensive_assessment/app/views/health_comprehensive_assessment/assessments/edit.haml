@@ -1,5 +1,10 @@
+%h1 Comprehensive Assessment
 = simple_form_for @assessment, url: client_health_comprehensive_assessment_assessment_path(@client, @assessment), html: { class: :jCaForm } do |f|
-  = render 'form', f: f
+  .row
+    .col-sm-3
+      = render 'form_navigation'
+    .col-sm-9
+      = render 'form', f: f
 
   .form__actions.form__actions--right.mb-6
     = f.submit 'Save', class: 'btn btn-primary'
