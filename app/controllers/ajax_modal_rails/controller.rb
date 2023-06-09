@@ -18,7 +18,7 @@ module AjaxModalRails::Controller
   HEADER = 'HTTP_X_AJAX_MODAL'.freeze
 
   included do
-    layout ->(c) { ajax_modal_request? ? ajax_modal_layout : nil } # rubocop:disable Lint/UnusedBlockArgument
+    layout -> { ajax_modal_request? ? ajax_modal_layout : nil }
 
     def modal_size
       case @modal_size
