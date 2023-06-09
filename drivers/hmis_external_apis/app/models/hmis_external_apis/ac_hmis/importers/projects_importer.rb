@@ -47,7 +47,7 @@ module HmisExternalApis::AcHmis::Importers
     def start
       setup_notifier('HMIS Projects')
       Rails.logger.info "Starting #{attempt.key}"
-      attempt.attempted_at = Time.now
+      attempt.attempted_at = Time.current
       attempt.status = ProjectsImportAttempt::STARTED
       attempt.save!
     end
