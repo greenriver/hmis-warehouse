@@ -1,16 +1,31 @@
 %h1 Comprehensive Assessment
+= content_for :body_data_scrollspy, true
 = simple_form_for @assessment, url: client_health_comprehensive_assessment_assessment_path(@client, @assessment), html: { class: :jCaForm } do |f|
-  .row
-    .col-sm-3
-      = render 'form_navigation'
-    .col-sm-9
+  .form.form--with-nav.j-form.autosave
+    = render 'form_navigation'
+    .form__questions
       = render 'form', f: f
-
-  .form__actions.form__actions--right.mb-6
-    = f.submit 'Save', class: 'btn btn-primary'
 
 - content_for :page_js do
   :javascript
+    $(document).ready(function() {
+      $('.jWithOther').change(function() {
+        other_input = $(this).closest('.jSelectPair').find('.jOther');
+        values = $(this).val();
+        if(values.includes('other')) {
+          $(other_input).slideDown();
+        } else {
+          $(other_input).slideUp();
+        }
+      });
+
+      $('.jWithOther').each(function() {
+        values =$(this).val();
+        if(! values.includes('other')) {
+          $(this).closest('.jSelectPair').find('.jOther').hide();
+        }
+      });
+    });
     $(document).change(function() {
       form = $('.jCaForm');
       $.ajax({

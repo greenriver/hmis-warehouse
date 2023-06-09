@@ -1,6 +1,6 @@
 %nav.form__nav.j-form-nav.scrollspy{style: 'padding-bottom: 160px;'}
   %ul.list-group.nav.j-form-nav-list.mb-3
-    - ['identifying-information', 'demographic-information', 'immediate-care-needs', 'health-conditions'].each do |words|
+    - ['identifying-information', 'demographic-information', 'immediate-care-needs', 'health-conditions', 'medications', 'communication', 'functional-status', 'strengths', 'mental-health', 'accessibility', 'supports', 'risk-factors', 'advance-directives', 'employment', 'legal-status', 'education', 'income'].each do |words|
       %li.list-group-item.nav-item
         = link_to "Section #{words}", "#section-#{words}", class: 'nav-link'
 

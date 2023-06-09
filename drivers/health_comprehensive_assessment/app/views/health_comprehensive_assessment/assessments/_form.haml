@@ -29,7 +29,7 @@
   = f.input :general_health_pain, as: :select_two, collection: @assessment.pain_levels, label: 'In the past 7 days, how much pain have you felt?'
   = f.input :general_health_comments, as: :text, label: 'Comments'
 
-%h2 Medications
+%h2#section-medications Medications
 %h3 Medication Summary
 .well
   = render 'medications'
@@ -39,20 +39,20 @@
   = f.input :medication_adherence, as: :select_two, collection: @assessment.medication_adherence_responses, label: 'How often do you have trouble taking medicines the way you been told to take them?'
   = f.input :medication_adherence_notes, as: :text, label: 'Notes/Comments'
 
-%h2 Enrollee's ability to communicate concerns, symptoms, or care goals
+%h2#section-communication Enrollee's ability to communicate concerns, symptoms, or care goals
 %h3 Ability to communicate concerns, symptoms, or care goals
 .well
   = f.input :can_communicate_about, as: :pretty_boolean_group, collection: @assessment.can_communicate_about_responses, label: 'Does the Enrollee have the ability to communicate: (check all that apply):', multiple: true
   = f.input :can_communicate_notes, as: :text, label: 'Notes/Comments'
 
-%h2 Functional status and needs
+%h2#section-functional-status Functional status and needs
 %i (including needs for assistance with any Activities of Daily Living (ADLs) or Instrumental Activities of Daily Living (IADLs))
 .well
   %h3 Assessed Needs Checklist – Activities of Daily Living
   = f.input :assessed_needs, as: :pretty_boolean_group, collection: @assessment.assessed_needs_responses, label: 'Check all current need areas for the enrollee:', multiple: true
   = f.input :assessed_needs_notes, as: :text, label: 'Additional comments'
 
-%h2 Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
+%h2#section-strengths Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
 .well
   %h3 In Enrollee's words
   = f.input :strengths, as: :text, label: 'Strengths', input_html: {rows: 5}
@@ -63,7 +63,7 @@
   = f.input :personal_goals, as: :text, label: 'Personal goals', input_html: {rows: 5}
   = f.input :cultural_considerations, as: :text, label: 'Cultural considerations', input_html: {rows: 5}
 
-%h2 Current and past mental health and substance use
+%h2#section-mental-health Current and past mental health and substance use
 %h3 Substance use
 .well
   = f.input :substance_use, as: :pretty_boolean_group, collection: @assessment.substance_use_responses, label: 'How many times in the past year have you used medication for non-medical reasons?'
@@ -87,7 +87,7 @@
   = f.input :sud_treatment_efficacy, as: :text, label: 'Efficacy of past and current treatment', input_html: { rows: 5 }, placeholder: 'Indicate if treatment was helpful and explain why the person thinks it was or was not helpful.'
   = render 'with_other', f: f, key: :sud_treatment_sources, kind: :select_two, collection: @assessment.sud_treatment_sources_responses, label: 'Sources of Information', input_html: { multiple: true }
 
-%h2 Accessibility Requirements
+%h2#section-accessibility Accessibility Requirements
 %i (Including but not limited to preferred language and specific communication needs, transportation needs, and equipment needs)
 
 %h3 Accessibility Requirements and Equipment Needs
@@ -100,11 +100,11 @@
   = f.input :accessibility_equipment_start, as: :date_picker, label: 'Start Date'
   = f.input :accessibility_equipment_end, as: :date_picker, label: 'End Date'
 
-%h2 Available informal, caregiver, or social supports, including Peer Supports
+%h2#section-supports Available informal, caregiver, or social supports, including Peer Supports
 .well
   = render 'social_supports', f: f
 
-%h2 Risk factors for abuse or neglect
+%h2#section-risk-factors Risk factors for abuse or neglect
 .well
   %h3 Risk Factors for Abuse or Neglect
   %p Because violence and abuse happen to a lot of people and affects their health, we are asking the following questions
@@ -114,26 +114,26 @@
 
   = f.input :abuse_risk_notes, as: :text, label: 'Comments/Notes'
 
-%h2 Advance directives status and preferences and guardianship status
+%h2#section-advance-directives Advance directives status and preferences and guardianship status
 .well
   = render 'advanced_directives', f: f
 
-%h2 Employment Status
+%h2#section-employment Employment Status
 .well
   %h3 Employment status, professional interests and professional goals
   = render 'field_section', f: f, fields: @assessment.employment_questions
 
-%h2 Legal Status for Individuals in Justice System
+%h2#section-legal-status Legal Status for Individuals in Justice System
 .well
   %h3 Legal Status for individuals involved in the justice system
   = render 'legal_status', f: f
 
-%h2 Education
+%h2#section-education Education
 .well
   %h3 Education
   = render 'education', f: f
 
-%h2 Income and Financial Support
+%h2#section-income Income and Financial Support
 .well
   %h3 Income/Financial Support
   = render 'with_other', f: f,  key: :financial_supports, kind: :select_two, collection: @assessment.financial_support_responses, label: 'Do you receive any sources of financial assistance?', input_html: { multiple: true }
@@ -141,24 +141,5 @@
 %h2 Completed
 .well
   = f.input :completed_on, as: :date_picker, label: 'Date of completion'
-
-- content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jWithOther').change(function() {
-        other_input = $(this).closest('.jSelectPair').find('.jOther');
-        values = $(this).val();
-        if(values.includes('other')) {
-          $(other_input).slideDown();
-        } else {
-          $(other_input).slideUp();
-        }
-      });
-
-      $('.jWithOther').each(function() {
-        values =$(this).val();
-        if(! values.includes('other')) {
-          $(this).closest('.jSelectPair').find('.jOther').hide();
-        }
-      });
-    });
+.form__actions.form__actions--right.mb-6
+  = f.submit 'Save', class: 'btn btn-primary'
