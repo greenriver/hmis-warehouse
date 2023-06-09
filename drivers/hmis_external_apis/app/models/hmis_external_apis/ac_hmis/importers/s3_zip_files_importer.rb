@@ -6,29 +6,38 @@
 
 # This class iterates over the zip file objects in a bucket "directory" and
 # calls an importer on that directory after extraction.
-# FIXME: Does this already exist somewhere?
 
 module HmisExternalApis::AcHmis::Importers
   class S3ZipFilesImporter
-    # FIXME: add some better exception handling for failure conditions
-    include NotifierConfig
-
     attr_accessor :bucket_name
     attr_accessor :prefix
     attr_accessor :importer_class
     attr_accessor :skip_lambda
+    attr_accessor :found_csvs
 
-    def initialize(bucket_name: ENV.fetch('ACTIVE_STORAGE_BUCKET'))
+    MPER_SLUG = 'mper'.freeze
+
+    def initialize(bucket_name:)
       self.bucket_name = bucket_name
+      self.prefix = ''
+      self.skip_lambda = ->(_s3_object) { false }
+      self.found_csvs = []
+    end
+
+    def self.run_mper?
+      GrdaWarehouse::RemoteCredentials::S3.where(slug: MPER_SLUG).exists?
     end
 
     def self.mper
-      s3_zip_files_importer = new
+      creds = GrdaWarehouse::RemoteCredentials::S3.find_by(slug: MPER_SLUG)
+
+      s3_zip_files_importer = new(bucket_name: creds.bucket)
       s3_zip_files_importer.prefix = 'mper'
       s3_zip_files_importer.importer_class = ProjectsImporter
       s3_zip_files_importer.skip_lambda = ->(s3_object) do
         ProjectsImportAttempt.given(s3_object).to_skip.any?
       end
+
       s3_zip_files_importer.run!
     end
 
@@ -56,13 +65,14 @@ module HmisExternalApis::AcHmis::Importers
                 next unless csv.file?
 
                 Rails.logger.info "Found #{csv.name} in the archive."
+                found_csvs << csv.name
                 File.open(csv.name, 'w:ascii-8bit') do |f|
                   f.write zipfile.read
                 end
               end
             end
 
-            importer_class.new(dir: dir, key: s3_object.key, etag: s3_object.etag).run!
+            importer_class.new(dir: dir, key: s3_object.key, etag: s3_object.etag).run! if importer_class.present?
           end
         end
       end

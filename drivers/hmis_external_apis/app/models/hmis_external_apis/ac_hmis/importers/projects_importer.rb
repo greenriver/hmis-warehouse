@@ -23,7 +23,6 @@ module HmisExternalApis::AcHmis::Importers
     def run!
       start
       sanity_check
-      # validate
       ProjectsImportAttempt.transaction do
         upsert_funders
         upsert_orgs
@@ -33,14 +32,7 @@ module HmisExternalApis::AcHmis::Importers
       analyze
       finish
     rescue AbortImportException => e
-      # FIXME: see if this is right
-      @notifier.ping(
-        'Failure in project importer',
-        {
-          exception: e,
-          info: nil,
-        },
-      )
+      @notifier.ping('Failure in project importer', { exception: e })
       Rails.logger.fatal e.message
     end
 
@@ -62,10 +54,6 @@ module HmisExternalApis::AcHmis::Importers
       attempt.result = { error: msg }
       attempt.save!
       raise AbortImportException, msg
-    end
-
-    def validate
-      Rails.logger.info 'Validating CSVs (wip)'
     end
 
     def upsert_funders
@@ -142,8 +130,6 @@ module HmisExternalApis::AcHmis::Importers
       CSV.parse(io.read, headers: true, skip_lines: /\A\s*\z/)
     end
 
-    # FIXME: This feels like something that might already exist, but I didn't
-    # find a good candidate that I felt safe modifying or reusing. Let me know if it exists
     def generic_upsert(file:, conflict_target:, klass:, ignore_columns: [])
       Rails.logger.info "Upserting #{file}"
 
@@ -180,7 +166,9 @@ module HmisExternalApis::AcHmis::Importers
         raise AbortImportException, msg
       end
 
-      attempt.status = "finished #{file}"
+      attempt.update_attribute(:status, "finished #{file}")
+
+      Rails.logger.info "Upserted #{result.ids.length} records"
 
       result
     end

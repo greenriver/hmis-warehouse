@@ -50,6 +50,15 @@ jobs:
       sftp:
         image: justinhimself/sftp
 
+      minio:
+        env:
+          MINIO_ACCESS_KEY: local_access_key
+          MINIO_SECRET_KEY: local_secret_key
+          #MINIO_ROOT_USER: local_access_key
+          #MINIO_ROOT_PASSWORD: local_secret_key
+        ports:
+          - '9000:9000'
+
     env:
       CLIENT: test
       DATABASE_ADAPTER: postgresql
@@ -70,6 +79,8 @@ jobs:
       HEALTH_DATABASE_USER: postgres
       HEALTH_FROM: greenriver.testing@mailinator.com
       HOSTNAME: openpath.host
+      MINIO_ENDPOINT: minio:9000
+      USE_MINIO_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
       REPORTING_DATABASE_ADAPTER: postgresql
@@ -168,16 +179,26 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
+      - name: Run s3 test
+        env:
+          LOG_LEVEL: INFO
+          MINIO_ENDPOINT: minio:9000
+          USE_MINIO_ENDPOINT: true
+        run: |
+          bundle exec rspec --color --format p -P drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/importers/s3_zip_files_importer_spec.rb
 
       - name: Run tests
         env:
           GROVER_NO_SANDBOX: true
           CHROMIUM_PATH: /usr/bin/chromium-browser
           MAX_FAILURES: 20
+          MINIO_ENDPOINT: minio:9000
+          USE_MINIO_ENDPOINT: true
           LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
+
       - name: Run logging tests
         env:
           LOG_LEVEL: INFO
