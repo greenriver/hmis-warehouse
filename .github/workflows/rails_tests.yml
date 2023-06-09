@@ -51,6 +51,7 @@ jobs:
         image: justinhimself/sftp
 
       minio:
+        image: minio/minio
         env:
           MINIO_ACCESS_KEY: local_access_key
           MINIO_SECRET_KEY: local_secret_key
@@ -185,6 +186,7 @@ jobs:
           MINIO_ENDPOINT: minio:9000
           USE_MINIO_ENDPOINT: true
         run: |
+          echo test s3
           bundle exec rspec --color --format p -P drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/importers/s3_zip_files_importer_spec.rb
 
       - name: Run tests
