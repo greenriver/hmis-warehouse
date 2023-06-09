@@ -1,4 +1,5 @@
 - content_for :modal_title, 'New Help Document'
-.help-form
-  = render 'form'
-= render 'form_js'
+= turbo_frame_tag 'new_help' do
+  .help-form
+    = render 'form'
+  = render 'form_js'
