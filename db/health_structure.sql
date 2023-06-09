@@ -2975,7 +2975,7 @@ CREATE TABLE public.hca_assessments (
     sud_treatment_sources_other character varying,
     preferred_mode character varying,
     communicate_in_english character varying,
-    accessibility_equipment character varying,
+    accessibility_equipment jsonb,
     accessibility_equipment_notes character varying,
     accessibility_equipment_start date,
     accessibility_equipment_end date,
@@ -3004,7 +3004,8 @@ CREATE TABLE public.hca_assessments (
     financial_supports_other character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    care_goals character varying
 );
 
 
@@ -4237,6 +4238,112 @@ CREATE SEQUENCE public.patients_id_seq
 --
 
 ALTER SEQUENCE public.patients_id_seq OWNED BY public.patients.id;
+
+
+--
+-- Name: pctp_careplans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_careplans (
+    id bigint NOT NULL,
+    patient_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name character varying,
+    dob date,
+    phone character varying,
+    email character varying,
+    mmis character varying,
+    aco character varying,
+    cc_name character varying,
+    cc_phone character varying,
+    cc_email character varying,
+    ccm_name character varying,
+    ccm_phone character varying,
+    ccm_email character varying,
+    pcp_name character varying,
+    pcp_phone character varying,
+    pcp_email character varying,
+    rn_name character varying,
+    rn_phone character varying,
+    rn_email character varying,
+    other_members_name character varying,
+    other_members_phone character varying,
+    other_members_email character varying,
+    overview character varying,
+    scribe character varying,
+    update_reason character varying,
+    update_reason_other character varying,
+    sex_at_birth character varying,
+    sex_at_birth_other character varying,
+    gender character varying,
+    gender_other character varying,
+    orientation character varying,
+    orientation_other character varying,
+    race character varying,
+    ethnicity character varying,
+    language character varying,
+    contact character varying,
+    contact_other character varying,
+    strengths character varying,
+    weaknesses character varying,
+    interests character varying,
+    choices character varying,
+    care_goals character varying,
+    personal_goals character varying,
+    cultural_considerations character varying,
+    accessibility_needs character varying,
+    accommodation_types jsonb,
+    accessibility_equipment jsonb,
+    accessibility_equipment_notes character varying,
+    accessibility_equipment_start date,
+    accessibility_equipment_end date,
+    goals character varying,
+    service_summary character varying,
+    contingency_plan character varying,
+    crisis_plan character varying,
+    additional_concerns character varying,
+    patient_signed_on date,
+    verbal_approval boolean,
+    verbal_approval_followup boolean,
+    reviewed_by_ccm_id bigint,
+    reviewed_by_ccm_on date,
+    offered_services_choice_care_planning boolean,
+    offered_provider_choice_care_planning boolean,
+    received_recommendations boolean,
+    offered_services_choice_treatment_planning boolean,
+    right_to_approve_pctp boolean,
+    right_to_appeal boolean,
+    right_to_change_cc boolean,
+    right_to_change_bhcp boolean,
+    right_to_complain boolean,
+    right_to_ombudsman boolean,
+    reviewed_by_rn_id bigint,
+    reviewed_by_rn_on date,
+    provided_to_patient boolean,
+    sent_to_pcp_on date,
+    sent_to_pcp_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: pctp_careplans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_careplans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_careplans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_careplans_id_seq OWNED BY public.pctp_careplans.id;
 
 
 --
@@ -6086,6 +6193,13 @@ ALTER TABLE ONLY public.patients ALTER COLUMN id SET DEFAULT nextval('public.pat
 
 
 --
+-- Name: pctp_careplans id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_careplans ALTER COLUMN id SET DEFAULT nextval('public.pctp_careplans_id_seq'::regclass);
+
+
+--
 -- Name: premium_payments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -6943,6 +7057,14 @@ ALTER TABLE ONLY public.patient_referrals
 
 ALTER TABLE ONLY public.patients
     ADD CONSTRAINT patients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_careplans pctp_careplans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_careplans
+    ADD CONSTRAINT pctp_careplans_pkey PRIMARY KEY (id);
 
 
 --
@@ -7941,6 +8063,20 @@ CREATE INDEX index_patients_on_nurse_care_manager_id ON public.patients USING bt
 
 
 --
+-- Name: index_pctp_careplans_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_careplans_on_patient_id ON public.pctp_careplans USING btree (patient_id);
+
+
+--
+-- Name: index_pctp_careplans_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_careplans_on_user_id ON public.pctp_careplans USING btree (user_id);
+
+
+--
 -- Name: index_premium_payments_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8666,6 +8802,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230601151608'),
 ('20230606204139'),
 ('20230606204254'),
-('20230607195153');
+('20230607195153'),
+('20230608152551'),
+('20230609132021');
 
 
