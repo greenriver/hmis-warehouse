@@ -503,6 +503,8 @@ GEM
       thor (>= 0.14, < 2.0)
     jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
+    jsbundling-rails (1.1.1)
+      railties (>= 6.0.0)
     json (2.6.3)
     json_schemer (0.2.24)
       ecma-re-validator (~> 0.3)
@@ -889,6 +891,10 @@ GEM
       sync
     tiny_tds (2.1.5)
     todo_or_die (0.0.4)
+    turbo-rails (1.4.0)
+      actionpack (>= 6.0.0)
+      activejob (>= 6.0.0)
+      railties (>= 6.0.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unf (0.1.4)
@@ -1070,6 +1076,7 @@ DEPENDENCIES
   jquery-minicolors-rails
   jquery-rails
   jquery-ui-rails
+  jsbundling-rails (~> 1.1)
   json
   json_schemer
   kaminari
@@ -1120,6 +1127,7 @@ DEPENDENCIES
   rails-html-sanitizer (>= 1.4.4)
   rails_drivers!
   redcarpet
+  redis (~> 4.0)
   redis-actionpack
   reline
   responders
@@ -1163,6 +1171,7 @@ DEPENDENCIES
   timecop
   tiny_tds
   todo_or_die
+  turbo-rails
   validate_url
   validates_email_format_of
   vcr

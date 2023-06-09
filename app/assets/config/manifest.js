@@ -4,3 +4,4 @@
 
 //= link_directory ../stylesheets .css
 //= link theme/styles/_variables.css
+//= link_tree ../builds

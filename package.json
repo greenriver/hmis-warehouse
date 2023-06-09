@@ -9,6 +9,7 @@
     "test": "test"
   },
   "dependencies": {
+    "@hotwired/turbo-rails": "^7.3.0",
     "@stimulus/polyfills": "^2.0.0",
     "beautifymarker": "^1.0.9",
     "billboard.js": "^3.6.0",
@@ -18,6 +19,7 @@
     "d3-interpolate": "3.0.1",
     "d3-sankey": "^0.12.3",
     "d3-scale-chromatic": "3.0.0",
+    "esbuild": "^0.17.19",
     "inputmask": "3.3.8",
     "leaflet": "1.7.1",
     "leaflet.markercluster": "^1.5.3",
@@ -38,7 +40,8 @@
   },
   "scripts": {
     "lint": "eslint app/assets/javascripts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=assets"
   },
   "repository": {
     "type": "git",

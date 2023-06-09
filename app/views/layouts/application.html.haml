@@ -16,7 +16,7 @@
     - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
       - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
       = stylesheet_link_tag(theme_styles, media: 'all')
-
+    = javascript_include_tag 'application_es6_native', 'data-turbo-track': 'reload', defer: true
     = render 'layouts/favicon'
     = csrf_meta_tags
   - data = {}

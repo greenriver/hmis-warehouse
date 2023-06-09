@@ -124,6 +124,8 @@ gem 'simple_form'
 gem 'virtus'
 
 # Asset related
+gem 'jsbundling-rails', '~> 1.1'
+gem 'turbo-rails'
 gem 'bootstrap', '~> 4.3'
 gem 'jquery-rails'
 gem 'coffee-rails'
@@ -308,3 +310,6 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
+
+# Use Redis for Action Cable
+gem 'redis', '~> 4.0'

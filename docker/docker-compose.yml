@@ -94,7 +94,7 @@ services:
     container_name: hmis-warehouse-web
     stdin_open: true
     tty: true
-    command: bundle exec rails server -b 0.0.0.0
+    command: ./bin/dev
     labels:
       - "traefik.http.routers.op.rule=Host(`open-path-warehouse.127.0.0.1.nip.io`)"
       - "traefik.http.routers.op.tls=true"
