@@ -4,7 +4,7 @@ on:
   push:
     branches:
       # Just enable this for your branch as needed
-      - tb/mper-importer/185008935
+      - some-branch-pushed-to-build-these-images
 
 # Branch pushes will cancel any running jobs to the same branch
 concurrency:

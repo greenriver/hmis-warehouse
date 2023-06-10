@@ -181,17 +181,6 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
-      - name: Run s3 test
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          LOG_LEVEL: INFO
-        run: |
-          echo test s3
-          curl http://minio:9000
-          echo did curl
-          bundle exec rspec --color --format p -P drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/importers/s3_zip_files_importer_spec.rb
-
       - name: Run tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
