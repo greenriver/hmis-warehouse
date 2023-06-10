@@ -50,6 +50,17 @@ jobs:
       sftp:
         image: justinhimself/sftp
 
+      minio:
+        image: ghcr.io/greenriver/openpath-minio:1.0
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          MINIO_ACCESS_KEY: local_access_key
+          MINIO_SECRET_KEY: local_secret_key
+        ports:
+          - '9000:9000'
+
     env:
       CLIENT: test
       DATABASE_ADAPTER: postgresql
@@ -169,13 +180,6 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
-
-      # We would need to build a new image that has this command in order to
-      # use it in the service section above.
-      - name: Start minio
-        run: |
-          docker network ls
-          docker run -d --name minio -p 9000:9000 minio/minio server /data
 
       - name: Run s3 test
         env:
