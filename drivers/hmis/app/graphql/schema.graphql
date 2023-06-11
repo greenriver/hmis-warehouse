@@ -4730,11 +4730,13 @@ type ReferralPosting {
   denialNote: String
   denialReason: String
   hohEnrollment: Enrollment
+  hohMciId: ID
   hohName: String!
   householdMembers: [ReferralHouseholdMember!]!
   householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
+  organizationName: String
   postingIdentifier: ID
   referralDate: ISO8601Date!
   referralIdentifier: ID
