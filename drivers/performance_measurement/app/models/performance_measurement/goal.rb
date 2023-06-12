@@ -14,11 +14,19 @@ module PerformanceMeasurement
     end
 
     scope :coc, -> do
-      where.not(coc_code: :default)
+      ordered.where.not(coc_code: :default)
+    end
+
+    scope :ordered, -> do
+      order(active: :desc, coc_code: :asc)
+    end
+
+    scope :active, -> do
+      where(active: true)
     end
 
     def self.for_coc(coc_code)
-      goal = where(coc_code: coc_code).first
+      goal = where(coc_code: coc_code).active.first
       return goal if goal
 
       default_goal
@@ -39,7 +47,7 @@ module PerformanceMeasurement
     def self.default_first
       goals = [default_goal]
       goals += coc.to_a
-      goals
+      goals.group_by(&:coc_name)
     end
 
     def duplicate!
@@ -57,13 +65,17 @@ module PerformanceMeasurement
       new_goal
     end
 
-    def available_cocs
-      ::HudUtility.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
-        [
-          "#{name} (#{code})",
-          code,
-        ]
-      end
+    def enforce_activation!
+      return unless active?
+
+      self.class.where(coc_code: coc_code).
+        where.not(id: id).
+        update_all(active: false)
+    end
+
+    def available_cocs(user)
+      ::Filters::HudFilterBase.new(user_id: user.id).
+        coc_code_options_for_select(user: user)
     end
 
     def coc_name

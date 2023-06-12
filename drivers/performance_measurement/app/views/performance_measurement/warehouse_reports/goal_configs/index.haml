@@ -12,35 +12,38 @@
         = f.input :always_run_for_coc, label: 'Always run for full CoC'
       .col-sm-2
         = f.submit 'Set CoC Config', class: 'btn-secondary btn-sm ml-4'
-.row.mb-4
-  .col-sm-8
-    %p Goals can be adjusted on a per-CoC basis.  If a particular CoC does not have a goal configuration, the default goal will be used.
 
-
-
-  .col-sm-4.d-flex
-    .ml-auto
-      = link_to performance_measurement_warehouse_reports_goal_configs_path(), method: :post, class: 'btn btn-primary' do
-        %i.icon-plus
-        Add CoC Specific Goal
-
-.card
-  %table.table.table-striped
-    %thead
-      %tr
-        %th CoC
-        %th Active Goal?
-        %th Label
-        %th Updated
-        %th
-    %tbody
-      - @goals.each do |goal|
-        %tr
-          %td= link_to goal.coc_name, edit_performance_measurement_warehouse_reports_goal_config_path(goal)
-          %td= yes_no(goal.active)
-          %td= goal.label
-          %td= goal.updated_at
-          %td
-            - if goal.deleteable?
-              = link_to performance_measurement_warehouse_reports_goal_config_path(goal), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger' do
-                %i.icon-cross
+- @goals.each do |coc_name, goals|
+  .mb-6
+    - if goals.first.default?
+      %h3 Default Goal
+      %p The default goal will be used if there is no more specific goal for a given report run.
+    - else
+      %h3= coc_name
+    .card
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Label
+            %th Active Goal?
+            %th Updated
+            %th
+        %tbody
+          - goals.each do |goal|
+            %tr
+              %td= link_to((goal.label.presence || goal.coc_name), edit_performance_measurement_warehouse_reports_goal_config_path(goal))
+              %td= yes_no(goal.active)
+              %td= goal.updated_at
+              %td
+                - if goal.deleteable?
+                  = link_to performance_measurement_warehouse_reports_goal_config_path(goal), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger' do
+                    %i.icon-cross
+    - if goals.first.default?
+      .row.mb-6.mt-6
+        .col-sm-8
+          %p Goals can be adjusted on a per-CoC basis.  If a particular CoC does not have a goal configuration, the default goal will be used.
+        .col-sm-4.d-flex
+          .ml-auto
+            = link_to performance_measurement_warehouse_reports_goal_configs_path(), method: :post, class: 'btn btn-primary' do
+              %i.icon-plus
+              Add CoC Specific Goal

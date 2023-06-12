@@ -27,6 +27,7 @@ module PerformanceMeasurement::WarehouseReports
 
     def update
       @goal.update(goal_params)
+      @goal.enforce_activation!
       respond_with(@goal, location: performance_measurement_warehouse_reports_goal_configs_path)
     end
 
@@ -66,6 +67,7 @@ module PerformanceMeasurement::WarehouseReports
         :income,
         :always_run_for_coc,
         :label,
+        :active,
       )
       p[:coc_code] = :default if p[:coc_code].blank?
       p

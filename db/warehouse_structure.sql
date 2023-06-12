@@ -20723,7 +20723,8 @@ CREATE TABLE public.simple_report_instances (
     updated_at timestamp without time zone NOT NULL,
     started_at timestamp without time zone,
     completed_at timestamp without time zone,
-    failed_at timestamp without time zone
+    failed_at timestamp without time zone,
+    goal_configuration_id bigint
 );
 
 
@@ -49464,6 +49465,13 @@ CREATE INDEX index_simple_report_cells_on_report_instance_id ON public.simple_re
 
 
 --
+-- Name: index_simple_report_instances_on_goal_configuration_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_instances_on_goal_configuration_id ON public.simple_report_instances USING btree (goal_configuration_id);
+
+
+--
 -- Name: index_simple_report_instances_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53199,6 +53207,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230611160741'),
 ('20230612113450'),
 ('20230612142203'),
-('20230612171240');
+('20230612171240'),
+('20230612200730');
 
 

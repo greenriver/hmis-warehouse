@@ -21,16 +21,15 @@ module PerformanceMeasurement
 
     acts_as_paranoid
 
-    alias_attribute :export_id, :goal_id
-
     belongs_to :user
-    belongs_to :goal
+    belongs_to :goal_configuration, class_name: 'PerformanceMeasurement::Goal'
     has_many :clients
     has_many :projects
     has_many :results
     has_many :client_projects
 
     after_initialize :filter
+    after_initialize :goal_config
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
@@ -144,7 +143,12 @@ module PerformanceMeasurement
     end
 
     def goal_config
-      @goal_config ||= PerformanceMeasurement::Goal.for_coc(coc_code)
+      # FIXME: this isn't getting set correctly
+      @goal_config ||= begin
+        assign_attributes(goal_configuration_id: PerformanceMeasurement::Goal.for_coc(coc_code)&.id) if goal_configuration.blank?
+        save! if persisted? && goal_configuration_id_changed?
+        goal_configuration
+      end
     end
 
     private def reset_filter
