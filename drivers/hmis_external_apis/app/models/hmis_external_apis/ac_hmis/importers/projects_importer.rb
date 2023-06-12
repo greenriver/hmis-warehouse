@@ -13,6 +13,7 @@ module HmisExternalApis::AcHmis::Importers
     attr_accessor :attempt
     attr_accessor :data_source
     attr_accessor :dir
+    attr_accessor :extra_columns
 
     def initialize(dir:, key:, etag:)
       self.attempt = ProjectsImportAttempt.where(etag: etag, key: key).first_or_initialize
@@ -45,9 +46,16 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def sanity_check
-      return unless Dir.glob("#{dir}/*csv").empty?
+      msg = []
 
-      msg = "No csv files were found in #{attempt.key}"
+      msg << 'Funder.csv was not present.' unless File.exist?("#{dir}/Funder.csv")
+      msg << 'Organization.csv was not present.' unless File.exist?("#{dir}/Organization.csv")
+      msg << 'Project.csv was not present.' unless File.exist?("#{dir}/Project.csv")
+
+      return unless msg.present?
+
+      msg = msg.join('. ')
+
       Rails.logger.error(msg)
       attempt.attempted_at = Time.now
       attempt.status = ProjectsImportAttempt::FAILED
@@ -57,6 +65,14 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def upsert_funders
+      file = 'Funder.csv'
+
+      check_columns(
+        file: file,
+        expected_columns: ['FunderID', 'ProjectID', 'Funder', 'OtherFunder', 'GrantID', 'StartDate', 'EndDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        critical_columns: ['FunderID'],
+      )
+
       generic_upsert(
         file: 'Funder.csv',
         conflict_target: ['"FunderID"', 'data_source_id'],
@@ -65,16 +81,32 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def upsert_orgs
+      file = 'Organization.csv'
+
+      check_columns(
+        file: file,
+        expected_columns: ['OrganizationID', 'OrganizationName', 'VictimServiceProvider', 'OrganizationCommonName', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        critical_columns: ['OrganizationID'],
+      )
+
       generic_upsert(
-        file: 'Organization.csv',
+        file: file,
         conflict_target: ['"OrganizationID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Organization,
       )
     end
 
     def upsert_projects
+      file = 'Project.csv'
+
+      check_columns(
+        file: file,
+        expected_columns: ['ProjectID', 'OrganizationID', 'ProjectName', 'ProjectCommonName', 'OperatingStartDate', 'OperatingEndDate', 'ContinuumProject', 'ProjectType', 'HousingType', 'ResidentialAffiliation', 'TrackingMethod', 'HMISParticipatingProject', 'TargetPopulation', 'HOPWAMedAssistedLivingFac', 'PITCount', 'Walkin', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        critical_columns: ['ProjectID'],
+      )
+
       @project_result = generic_upsert(
-        file: 'Project.csv',
+        file: file,
         conflict_target: ['"ProjectID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Project,
         ignore_columns: ['Walkin'],
@@ -119,7 +151,26 @@ module HmisExternalApis::AcHmis::Importers
       attempt.save!
     end
 
-    def records_from_csv(file)
+    def check_columns(file:, expected_columns:, critical_columns:)
+      rows = records_from_csv(file, row_limit: 1)
+
+      raise AbortImportException, "There was no data in #{file}." if rows.empty?
+
+      keys = rows.first.to_h.keys
+
+      missing_columns = expected_columns - keys
+      missing_critical_columns = critical_columns - keys
+
+      self.extra_columns = keys - expected_columns
+
+      Rails.logger.warn("Skipping extra columns (#{extra_columns.join(', ')}) in #{file}") if extra_columns.present?
+
+      raise(AbortImportException, "There were critical missing columns in #{file}: #{missing_critical_columns.join(', ')}.") if missing_critical_columns.present?
+
+      Rails.logger.warn("There were non-critical missing columns in #{file}: #{missing_columns.join(', ')}.") if missing_columns.present?
+    end
+
+    def records_from_csv(file, row_limit: nil)
       io = File.open(file, 'r')
 
       # Checking for BOM
@@ -129,7 +180,18 @@ module HmisExternalApis::AcHmis::Importers
         io.rewind
       end
 
-      CSV.parse(io.read, headers: true, skip_lines: /\A\s*\z/)
+      if row_limit
+        CSV.parse(io.read, **csv_config).take(row_limit)
+      else
+        CSV.parse(io.read, **csv_config)
+      end
+    end
+
+    def csv_config
+      {
+        headers: true,
+        skip_lines: /\A\s*\z/,
+      }
     end
 
     def generic_upsert(file:, conflict_target:, klass:, ignore_columns: [])
@@ -148,6 +210,14 @@ module HmisExternalApis::AcHmis::Importers
       if ignore_columns.present?
         records.each do |r|
           ignore_columns.each do |col|
+            r.delete(col)
+          end
+        end
+      end
+
+      if extra_columns.present?
+        records.each do |r|
+          extra_columns.each do |col|
             r.delete(col)
           end
         end
@@ -173,6 +243,8 @@ module HmisExternalApis::AcHmis::Importers
       Rails.logger.info "Upserted #{result.ids.length} records"
 
       result
+    ensure
+      self.extra_columns = []
     end
 
     def cded
