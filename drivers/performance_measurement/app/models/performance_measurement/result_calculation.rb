@@ -28,6 +28,7 @@ module PerformanceMeasurement::ResultCalculation
         :time_stay,
         :time_move_in,
         :recidivism_6_months,
+        :recidivism_12_months,
         :recidivism_24_months
         progress = reporting_value
         progress.round <= goal_value # we display values in integers, if we're within the same integer, just say it passed
@@ -741,6 +742,10 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def returned_in_six_months(detail, project: nil)
+      returned_in_range(detail, __method__, project: project)
+    end
+
+    def returned_in_one_year(detail, project: nil)
       returned_in_range(detail, __method__, project: project)
     end
 

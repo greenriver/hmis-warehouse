@@ -958,6 +958,17 @@ module PerformanceMeasurement
               }
             },
             ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 365)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :returned_in_on_year,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
               return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 730)
 
               {
