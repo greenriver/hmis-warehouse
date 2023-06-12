@@ -21,6 +21,7 @@ module Types
 
     # Fields that come from ReferralHouseholdMembers
     field :hoh_name, String, null: false
+    field :hoh_mci_id, ID, null: true
     field :household_size, Integer, null: false
     field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
@@ -40,16 +41,23 @@ module Types
     field :denial_note, String
     field :referred_from, String, null: false
     field :unit_type, HmisSchema::UnitTypeObject, null: false
+    field :organization_name, String, null: true
 
     # If this posting has been accepted, this is the enrollment for the HoH at the enrolled household.
     # This enrollment is NOT necessarily the same as the `hoh_name`, because the HoH may have changed after
     # posting was accepted.
     field :hoh_enrollment, HmisSchema::Enrollment, null: true
 
+    def hoh_member
+      object.referral.household_members.detect(&:self_head_of_household?)
+    end
+
     def hoh_name
-      object.referral.household_members
-        .detect(&:self_head_of_household?)
-        &.client&.brief_name
+      hoh_member&.client&.brief_name
+    end
+
+    def hoh_mci_id
+      hoh_member&.mci_id
     end
 
     def hoh_enrollment
@@ -68,6 +76,10 @@ module Types
 
     def referred_from
       object.project&.project_name || 'Coordinated Entry'
+    end
+
+    def organization_name
+      object.project&.organization&.organization_name
     end
 
     def status

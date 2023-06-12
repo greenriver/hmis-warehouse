@@ -15,6 +15,7 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
+    include Types::HmisSchema::HasReferralPostings
     include ::Hmis::Concerns::HmisArelHelper
 
     projects_field :projects
@@ -190,6 +191,15 @@ module Types
 
     def referral_posting(id:)
       HmisExternalApis::AcHmis::ReferralPosting.viewable_by(current_user).find_by(id: id)
+    end
+
+    referral_postings_field :denied_pending_referral_postings
+    def denied_pending_referral_postings(**args)
+      return [] unless current_user.can_manage_denied_referrals?
+
+      postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
+
+      scoped_referral_postings(postings, **args)
     end
   end
 end
