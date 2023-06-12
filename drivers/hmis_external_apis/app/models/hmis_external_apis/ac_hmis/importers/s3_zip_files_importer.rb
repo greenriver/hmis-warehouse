@@ -32,7 +32,7 @@ module HmisExternalApis::AcHmis::Importers
       creds = GrdaWarehouse::RemoteCredentials::S3.find_by(slug: MPER_SLUG)
 
       s3_zip_files_importer = new(bucket_name: creds.bucket)
-      s3_zip_files_importer.prefix = 'mper'
+      s3_zip_files_importer.prefix = creds.path
       s3_zip_files_importer.importer_class = ProjectsImporter
       s3_zip_files_importer.skip_lambda = ->(s3_object) do
         ProjectsImportAttempt.given(s3_object).to_skip.any?

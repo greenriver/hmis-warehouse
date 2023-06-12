@@ -82,6 +82,7 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def upsert_walkins
+      Rails.logger.info 'Upserting walkins'
       project_ids = @project_result.ids
       walkin = records_from_csv('Project.csv').map { |x| x['Walkin'] }
 
@@ -109,7 +110,8 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def analyze
-      ProjectsImportAttempt.connection.exec_query('ANALYZE VERBOSE "Funder", "Project", "Organization", "CustomDataElements";')
+      Rails.logger.info 'Analyzing imported tables'
+      ProjectsImportAttempt.connection.exec_query('ANALYZE "Funder", "Project", "Organization", "CustomDataElements";')
     end
 
     def finish
