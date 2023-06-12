@@ -518,6 +518,8 @@ module HmisDataQualityTool
                   where(item_class.arel_table[:project_id].eq(project.id)).
                   count
               end
+              next if overall_count.zero?
+
               this_result[:projects][project.id] = {
                 project_name: project&.name(user) || 'unknown',
                 invalid_count: invalid_count,
