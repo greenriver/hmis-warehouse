@@ -29,6 +29,7 @@ module HmisExternalApis::AcHmis::Importers
         upsert_orgs
         upsert_projects
         upsert_walkins
+        upsert_inventory
       end
       analyze
       finish
@@ -51,6 +52,7 @@ module HmisExternalApis::AcHmis::Importers
       msg << 'Funder.csv was not present.' unless File.exist?("#{dir}/Funder.csv")
       msg << 'Organization.csv was not present.' unless File.exist?("#{dir}/Organization.csv")
       msg << 'Project.csv was not present.' unless File.exist?("#{dir}/Project.csv")
+      msg << 'Inventory.csv was not present.' unless File.exist?("#{dir}/Inventory.csv")
 
       return unless msg.present?
 
@@ -139,6 +141,22 @@ module HmisExternalApis::AcHmis::Importers
             end,
         )
       end
+    end
+
+    def upsert_inventory
+      file = 'Inventory.csv'
+
+      check_columns(
+        file: file,
+        expected_columns: [:unknown],
+        critical_columns: ['InventoryID'],
+      )
+
+      @project_result = generic_upsert(
+        file: file,
+        conflict_target: ['"InventoryID"', 'data_source_id'],
+        klass: GrdaWarehouse::Hud::Inventory,
+      )
     end
 
     def analyze
