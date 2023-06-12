@@ -36,6 +36,7 @@ module HmisExternalApis::AcHmis::Importers
     rescue AbortImportException => e
       @notifier.ping('Failure in project importer', { exception: e })
       Rails.logger.fatal e.message
+      Rails.logger.fatal 'ProjectsImporter aborted before it finished.'
     end
 
     def start
@@ -148,7 +149,7 @@ module HmisExternalApis::AcHmis::Importers
 
       check_columns(
         file: file,
-        expected_columns: [:unknown],
+        expected_columns: ['InventoryID', 'ProjectID', 'CoCCode', 'HouseholdType', 'Availability', 'UnitInventory', 'BedInventory', 'CHVetBedInventory', 'YouthVetBedInventory', 'VetBedInventory', 'CHYouthBedInventory', 'YouthBedInventory', 'CHBedInventory', 'OtherBedInventory', 'ESBedType', 'InventoryStartDate', 'InventoryEndDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
         critical_columns: ['InventoryID'],
       )
 
