@@ -229,6 +229,7 @@ module PerformanceMeasurement::Details
           {
             returned_in_two_years: [
               :returned_in_six_months,
+              :returned_in_one_year,
             ],
           },
           {
@@ -784,6 +785,27 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total exits to permanent destinations',
           calculation_description: 'The number of persons who returned to homelessness within 6 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
           calculation_column: :returned_in_six_months,
+          measure: 'Measure 2',
+          detail_columns: [
+            'days_to_return',
+            'prior_destination',
+          ],
+        },
+        returned_in_one_year: {
+          category: 'Non-Recurring',
+          sub_category: 'Recidivism',
+          column: :both,
+          year_over_year_change: false,
+          title: 'Percentage of People Who Returned to Homelessness Within Twelve Months',
+          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within one year of exit',
+          goal_description_brief: 'returns',
+          goal_direction: '< ',
+          goal_unit: '%',
+          goal_calculation: :recidivism_12_months,
+          numerator_label: 'returned to homelessness',
+          denominator_label: 'Total exits to permanent destinations',
+          calculation_description: 'The number of persons who returned to homelessness within 12 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
+          calculation_column: :returned_in_one_year,
           measure: 'Measure 2',
           detail_columns: [
             'days_to_return',
