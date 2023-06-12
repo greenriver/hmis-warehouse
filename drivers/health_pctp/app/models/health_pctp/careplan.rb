@@ -16,6 +16,7 @@ module HealthPctp
     belongs_to :user, optional: true
 
     has_many :needs, dependent: :destroy
+    has_many :care_goals, dependent: :destroy
 
     scope :in_progress, -> { where(patient_signed_on: nil) }
     scope :completed_within, ->(range) { where(patient_signed_on: range) }

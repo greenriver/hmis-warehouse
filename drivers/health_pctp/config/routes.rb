@@ -3,6 +3,7 @@ BostonHmis::Application.routes.draw do
     namespace :health_pctp do
       resources :careplans do
         resources :needs
+        resources :goals
       end
     end
   end

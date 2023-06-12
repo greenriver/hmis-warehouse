@@ -1,0 +1,54 @@
+.card
+  .card-header
+    %h3 Goal
+  .card-body
+    .row
+      .col
+        %h4 Domain
+        = goal.domain_responses.invert[goal.domain]
+      .col
+        %h4 Goal
+        = goal.goal
+      .col
+        %h4 Status
+        = goal.status_responses.invert[goal.status]
+    .row
+      .col
+        %h4 Estimated Completion Date
+        = goal.estimated_completion_date
+      .col
+        %h4 Start Date
+        = goal.start_date
+      .col
+        %h4 End Date
+        = goal.end_date
+    .row
+      .col
+        %h4 Barriers
+        = goal.barriers
+      .col
+        %h4 Plan for Follow-up
+        = goal.followup
+      .col
+        %h4 Comments
+        = goal.comments
+    .row
+      .col
+        %h4 Source of Identification
+        = goal.source_responses.invert[goal.source]
+      .col
+        %h4 Priority
+        = goal.priority_responses.invert[goal.priority]
+    .row
+      .col
+        %h4 Plans/Interventions
+    .row
+      .col
+        %h4 Responsible Party
+        = goal.responsible_party
+      .col
+        %h4 Times
+        = goal.times
+      .col
+        %h4 Interval
+        = goal.interval

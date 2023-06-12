@@ -4241,6 +4241,52 @@ ALTER SEQUENCE public.patients_id_seq OWNED BY public.patients.id;
 
 
 --
+-- Name: pctp_care_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_care_goals (
+    id bigint NOT NULL,
+    careplan_id bigint,
+    domain character varying,
+    goal character varying,
+    status character varying,
+    estimated_completion_date date,
+    start_date date,
+    end_date date,
+    barriers character varying,
+    followup character varying,
+    comments character varying,
+    source character varying,
+    priority character varying,
+    plan character varying,
+    responsible_party character varying,
+    times character varying,
+    "interval" character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: pctp_care_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_care_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_care_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_care_goals_id_seq OWNED BY public.pctp_care_goals.id;
+
+
+--
 -- Name: pctp_careplans; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6229,6 +6275,13 @@ ALTER TABLE ONLY public.patients ALTER COLUMN id SET DEFAULT nextval('public.pat
 
 
 --
+-- Name: pctp_care_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_care_goals ALTER COLUMN id SET DEFAULT nextval('public.pctp_care_goals_id_seq'::regclass);
+
+
+--
 -- Name: pctp_careplans id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -7100,6 +7153,14 @@ ALTER TABLE ONLY public.patient_referrals
 
 ALTER TABLE ONLY public.patients
     ADD CONSTRAINT patients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_care_goals pctp_care_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_care_goals
+    ADD CONSTRAINT pctp_care_goals_pkey PRIMARY KEY (id);
 
 
 --
@@ -8114,6 +8175,13 @@ CREATE INDEX index_patients_on_nurse_care_manager_id ON public.patients USING bt
 
 
 --
+-- Name: index_pctp_care_goals_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_care_goals_on_careplan_id ON public.pctp_care_goals USING btree (careplan_id);
+
+
+--
 -- Name: index_pctp_careplans_on_patient_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8863,6 +8931,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230607195153'),
 ('20230608152551'),
 ('20230609132021'),
-('20230609153005');
+('20230609153005'),
+('20230612180417');
 
 

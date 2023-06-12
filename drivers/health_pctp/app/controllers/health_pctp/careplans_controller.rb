@@ -43,7 +43,7 @@ module HealthPctp
     ].freeze
 
     private def careplan_params
-      permitted_cols = ::HealthComprehensiveAssessment::Assessment.column_names.map(&:to_sym) -
+      permitted_cols = ::HealthPctp::Careplan.column_names.map(&:to_sym) -
         [:id, :user_id, :patient_id, :created_at, :updated_at] # Deny protected columns, be careful adding new columns!
 
       permitted_cols -= [:reviewed_by_ccm_id, :reviewed_by_ccm_on] unless current_user.can_approve_cha?
