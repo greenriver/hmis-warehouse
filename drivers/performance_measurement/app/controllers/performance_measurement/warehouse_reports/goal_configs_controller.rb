@@ -9,7 +9,7 @@ module PerformanceMeasurement::WarehouseReports
     include WarehouseReportAuthorization
     include AjaxModalRails::Controller
     include ArelHelper
-    before_action :set_goal, only: [:edit, :update, :destroy]
+    before_action :set_goal, only: [:edit, :update, :destroy, :duplicate]
 
     def index
       @default_goal = goal_source.ensure_default
@@ -35,6 +35,11 @@ module PerformanceMeasurement::WarehouseReports
       respond_with(@goal, location: performance_measurement_warehouse_reports_goal_configs_path)
     end
 
+    def duplicate
+      new_goal = @goal.duplicate!
+      respond_with(new_goal, location: performance_measurement_warehouse_reports_goal_configs_path)
+    end
+
     private def set_goal
       @goal = goal_source.find(params[:id].to_i)
     end
@@ -52,11 +57,15 @@ module PerformanceMeasurement::WarehouseReports
         :time_stay,
         :time_move_in,
         :destination,
+        :destination_so,
+        :destination_homeless_plus,
+        :destination_permanent,
         :recidivism_6_months,
         :recidivism_12_months,
         :recidivism_24_months,
         :income,
         :always_run_for_coc,
+        :label,
       )
       p[:coc_code] = :default if p[:coc_code].blank?
       p

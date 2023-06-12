@@ -42,6 +42,21 @@ module PerformanceMeasurement
       goals
     end
 
+    def duplicate!
+      new_goal = dup
+      new_goal.active = true
+      self.class.transaction do
+        update(active: false)
+        new_goal.save!
+        pit_counts.each do |p|
+          new_count = p.dup
+          new_count.goal_id = new_goal.id
+          new_count.save!
+        end
+      end
+      new_goal
+    end
+
     def available_cocs
       ::HudUtility.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
         [

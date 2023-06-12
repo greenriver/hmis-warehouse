@@ -29,12 +29,16 @@
     %thead
       %tr
         %th CoC
+        %th Active Goal?
+        %th Label
         %th Updated
         %th
     %tbody
       - @goals.each do |goal|
         %tr
           %td= link_to goal.coc_name, edit_performance_measurement_warehouse_reports_goal_config_path(goal)
+          %td= yes_no(goal.active)
+          %td= goal.label
           %td= goal.updated_at
           %td
             - if goal.deleteable?

@@ -21,7 +21,10 @@ module PerformanceMeasurement
 
     acts_as_paranoid
 
+    alias_attribute :export_id, :goal_id
+
     belongs_to :user
+    belongs_to :goal
     has_many :clients
     has_many :projects
     has_many :results

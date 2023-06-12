@@ -17725,7 +17725,12 @@ CREATE TABLE public.performance_measurement_goals (
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
     always_run_for_coc boolean DEFAULT false,
-    recidivism_12_months integer DEFAULT 20 NOT NULL
+    recidivism_12_months integer DEFAULT 20 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    label character varying,
+    destination_so integer DEFAULT 85 NOT NULL,
+    destination_homeless_plus integer DEFAULT 85 NOT NULL,
+    destination_permanent integer DEFAULT 85 NOT NULL
 );
 
 
@@ -53106,6 +53111,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230604013712'),
 ('20230606184316'),
 ('20230608153225'),
-('20230612113450');
+('20230612113450'),
+('20230612142203'),
+('20230612171240');
 
 
