@@ -967,7 +967,7 @@ module PerformanceMeasurement
                 report_id: id,
                 client_id: spm_client[:client_id],
                 project_id: project_id,
-                for_question: :returned_in_on_year,
+                for_question: :returned_in_one_year,
                 period: variant_name,
               }
             },

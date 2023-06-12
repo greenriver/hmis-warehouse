@@ -227,6 +227,7 @@ module HmisExternalApis::AcHmis
 
         member = referral.household_members.where(client: client).first_or_initialize
         member.relationship_to_hoh = relationship_to_hoh
+        member.mci_id = mci_id
         member.save!
       end
     end

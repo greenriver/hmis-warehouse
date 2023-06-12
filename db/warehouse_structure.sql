@@ -2557,6 +2557,60 @@ ALTER SEQUENCE public."YouthEducationStatus_id_seq" OWNED BY public."YouthEducat
 
 
 --
+-- Name: ac_hmis_projects_import_attempts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ac_hmis_projects_import_attempts (
+    id bigint NOT NULL,
+    status character varying DEFAULT 'init'::character varying NOT NULL,
+    etag character varying NOT NULL,
+    key text NOT NULL,
+    result jsonb DEFAULT '{}'::jsonb NOT NULL,
+    attempted_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN ac_hmis_projects_import_attempts.etag; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.ac_hmis_projects_import_attempts.etag IS 'fingerprint of the file';
+
+
+--
+-- Name: COLUMN ac_hmis_projects_import_attempts.key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.ac_hmis_projects_import_attempts.key IS 'path in an s3 bucket to the file';
+
+
+--
+-- Name: COLUMN ac_hmis_projects_import_attempts.attempted_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.ac_hmis_projects_import_attempts.attempted_at IS 'last time an import was attempted';
+
+
+--
+-- Name: ac_hmis_projects_import_attempts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ac_hmis_projects_import_attempts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ac_hmis_projects_import_attempts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ac_hmis_projects_import_attempts_id_seq OWNED BY public.ac_hmis_projects_import_attempts.id;
+
+
+--
 -- Name: ad_hoc_batches; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14515,7 +14569,8 @@ CREATE TABLE public.hmis_external_referral_household_members (
     updated_at timestamp(6) without time zone NOT NULL,
     relationship_to_hoh integer NOT NULL,
     referral_id bigint NOT NULL,
-    client_id bigint NOT NULL
+    client_id bigint NOT NULL,
+    mci_id character varying
 );
 
 
@@ -22392,6 +22447,13 @@ ALTER TABLE ONLY public."YouthEducationStatus" ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: ac_hmis_projects_import_attempts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ac_hmis_projects_import_attempts ALTER COLUMN id SET DEFAULT nextval('public.ac_hmis_projects_import_attempts_id_seq'::regclass);
+
+
+--
 -- Name: ad_hoc_batches id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25443,6 +25505,14 @@ ALTER TABLE ONLY public."User"
 
 ALTER TABLE ONLY public."YouthEducationStatus"
     ADD CONSTRAINT "YouthEducationStatus_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: ac_hmis_projects_import_attempts ac_hmis_projects_import_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ac_hmis_projects_import_attempts
+    ADD CONSTRAINT ac_hmis_projects_import_attempts_pkey PRIMARY KEY (id);
 
 
 --
@@ -42352,6 +42422,20 @@ CREATE INDEX "index_User_on_pending_date_deleted" ON public."User" USING btree (
 
 
 --
+-- Name: index_ac_hmis_projects_import_attempts_on_etag; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ac_hmis_projects_import_attempts_on_etag ON public.ac_hmis_projects_import_attempts USING btree (etag);
+
+
+--
+-- Name: index_ac_hmis_projects_import_attempts_on_key_and_etag; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ac_hmis_projects_import_attempts_on_key_and_etag ON public.ac_hmis_projects_import_attempts USING btree (key, etag);
+
+
+--
 -- Name: index_ad_hoc_batches_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53110,7 +53194,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230526191445'),
 ('20230604013712'),
 ('20230606184316'),
+('20230608152942'),
 ('20230608153225'),
+('20230611160741'),
 ('20230612113450'),
 ('20230612142203'),
 ('20230612171240');
