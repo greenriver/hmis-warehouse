@@ -1379,10 +1379,7 @@ CREATE TABLE public."CustomServices" (
     service_name character varying,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    "FAAmount" double precision,
-    "FAStartDate" date,
-    "FAEndDate" date
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -2417,9 +2414,7 @@ CREATE TABLE public."Services" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "MovingOnOtherType" character varying,
-    "FAStartDate" date,
-    "FAEndDate" date
+    "MovingOnOtherType" character varying
 );
 
 
@@ -14552,17 +14547,16 @@ CREATE TABLE public.hmis_external_referral_postings (
     project_id bigint NOT NULL,
     referral_request_id bigint,
     unit_type_id bigint NOT NULL,
-    "HouseholdID" character varying,
+    household_id character varying,
     resource_coordinator_notes text,
     status_updated_at timestamp without time zone NOT NULL,
     status_updated_by_id bigint,
     status_note text,
+    status_note_updated_at text,
     status_note_updated_by_id bigint,
     denial_reason integer,
     referral_result integer,
-    denial_note text,
-    status_note_updated_at timestamp without time zone,
-    data_source_id integer NOT NULL
+    denial_note text
 );
 
 
@@ -17724,8 +17718,7 @@ CREATE TABLE public.performance_measurement_goals (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    always_run_for_coc boolean DEFAULT false,
-    recidivism_12_months integer DEFAULT 20 NOT NULL
+    always_run_for_coc boolean DEFAULT false
 );
 
 
@@ -53103,10 +53096,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230525202043'),
 ('20230526173129'),
 ('20230526191445'),
-('20230604013712'),
-('20230606184316'),
-('20230608153225'),
-('20230612113450'),
 ('20230612142203');
-
-
