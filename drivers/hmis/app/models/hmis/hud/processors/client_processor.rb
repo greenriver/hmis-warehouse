@@ -13,11 +13,13 @@ module Hmis::Hud::Processors
     MCI_CREATE_UNCLEARED_CLIENT_VALUE = '_CREATE_UNCLEARED_CLIENT'.freeze
 
     def process(field, value)
-      attribute_name = hud_name(field)
-      attribute_value = attribute_value_for_enum(hud_type(field), value)
+      attribute_name = ar_attribute_name(field)
+      attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
       # Skip SSN/DOB fields if hidden, because they are always hidden due to lack of permissions (see client.json form definition)
       return if value == Base::HIDDEN_FIELD_VALUE && ['ssn', 'dob'].include?(attribute_name)
+
+      client = @processor.send(factory_name)
 
       attributes = case attribute_name
       when 'race'
@@ -30,12 +32,20 @@ module Hmis::Hud::Processors
         { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
       when 'ssn_data_quality'
         # If hidden due to permissions, set to old value or 99
-        attribute_value = @processor.send(factory_name).ssn_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
+        attribute_value = client.ssn_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
         { attribute_name => attribute_value }
       when 'dob_data_quality'
         # If hidden due to permissions, set to old value or 99
-        attribute_value = @processor.send(factory_name).dob_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
+        attribute_value = client.dob_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
         { attribute_name => attribute_value }
+      when 'names'
+        process_names(field, value)
+      when 'addresses'
+        construct_nested_attributes(field, value, additional_attributes: related_record_attributes)
+      when 'phone_numbers'
+        process_contact_points(value, system: :phone, scope_name: :phones)
+      when 'email_addresses'
+        process_contact_points(value, system: :email, scope_name: :emails)
       when 'mci_id'
         process_mci(value)
         {}
@@ -43,7 +53,7 @@ module Hmis::Hud::Processors
         { attribute_name => attribute_value }
       end
 
-      @processor.send(factory_name).assign_attributes(attributes)
+      client.assign_attributes(attributes)
     end
 
     def factory_name
@@ -110,6 +120,36 @@ module Hmis::Hud::Processors
       result
     end
 
+    private def related_record_attributes
+      {
+        user: @processor.hud_user,
+        data_source_id: @processor.hud_user.data_source_id,
+        client: @processor.send(factory_name),
+      }
+    end
+
+    private def process_contact_points(value, system:, scope_name:)
+      attrs = { **related_record_attributes, system: system }
+      construct_nested_attributes('contactPoints', value, additional_attributes: attrs, scope_name: scope_name)
+    end
+
+    private def process_names(field, value)
+      client = @processor.send(factory_name)
+      # Drop names that don't have any meaningful values
+      values = Array.wrap(value).filter do |v|
+        raise "Expected Hash, found #{v.class.name}" unless v.is_a?(Hash)
+
+        v.slice('first', 'last', 'middle', 'primary').compact_blank.any?
+      end
+
+      # Build attributes
+      name_attributes = construct_nested_attributes(field, values, additional_attributes: related_record_attributes)
+
+      # Set NameDataQuality to 99, it will be overridden to match primary name in the after_save hook
+      name_attributes[:name_data_quality] = 99 unless client.name_data_quality.present?
+      name_attributes
+    end
+
     # Custom handler for MCI field
     private def process_mci(value)
       return unless HmisExternalApis::AcHmis::Mci.enabled?
@@ -140,6 +180,7 @@ module Hmis::Hud::Processors
       client.external_ids << HmisExternalApis::ExternalId.new(
         value: value,
         remote_credential: HmisExternalApis::AcHmis::Mci.new.creds,
+        namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID,
       )
     end
   end

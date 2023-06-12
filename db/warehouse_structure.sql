@@ -644,7 +644,6 @@ CREATE TABLE public."Client" (
     "NativeHIPacific" integer,
     "NoSingleGender" integer,
     tc_hat_additional_days_homeless integer DEFAULT 0,
-    preferred_name character varying,
     pronouns character varying,
     sexual_orientation character varying,
     health_housing_navigator_id bigint,
@@ -4177,7 +4176,11 @@ CREATE TABLE public.boston_project_scorecard_reports (
     plan_to_address_barriers boolean,
     contracted_budget double precision,
     archive character varying,
-    required_match_percent_met boolean
+    required_match_percent_met boolean,
+    increased_employment_income double precision,
+    increased_other_income double precision,
+    invoicing_timeliness integer,
+    invoicing_accuracy integer
 );
 
 
@@ -5999,6 +6002,40 @@ CREATE SEQUENCE public.cohort_column_options_id_seq
 --
 
 ALTER SEQUENCE public.cohort_column_options_id_seq OWNED BY public.cohort_column_options.id;
+
+
+--
+-- Name: cohort_tabs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cohort_tabs (
+    id bigint NOT NULL,
+    cohort_id bigint NOT NULL,
+    name character varying,
+    rules jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: cohort_tabs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cohort_tabs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cohort_tabs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cohort_tabs_id_seq OWNED BY public.cohort_tabs.id;
 
 
 --
@@ -22658,6 +22695,13 @@ ALTER TABLE ONLY public.cohort_column_options ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: cohort_tabs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_tabs ALTER COLUMN id SET DEFAULT nextval('public.cohort_tabs_id_seq'::regclass);
+
+
+--
 -- Name: cohorts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25755,6 +25799,14 @@ ALTER TABLE ONLY public.cohort_clients
 
 ALTER TABLE ONLY public.cohort_column_options
     ADD CONSTRAINT cohort_column_options_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: cohort_tabs cohort_tabs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cohort_tabs
+    ADD CONSTRAINT cohort_tabs_pkey PRIMARY KEY (id);
 
 
 --
@@ -42939,6 +42991,13 @@ CREATE INDEX index_cohort_clients_on_deleted_at ON public.cohort_clients USING b
 
 
 --
+-- Name: index_cohort_tabs_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohort_tabs_on_cohort_id ON public.cohort_tabs USING btree (cohort_id);
+
+
+--
 -- Name: index_cohorts_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50103,7 +50162,7 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
 
 
 --
@@ -50160,13 +50219,6 @@ CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_
 --
 
 CREATE UNIQUE INDEX unique_index_ensuring_one_key_per_record_type ON public."CustomDataElementDefinitions" USING btree (owner_type, key);
-
-
---
--- Name: unique_index_ensuring_one_primary_per_client; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_index_ensuring_one_primary_per_client ON public."CustomClientName" USING btree ("PersonalID", data_source_id) WHERE ("primary" = true);
 
 
 --
@@ -53037,6 +53089,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230522112645'),
 ('20230522112916'),
 ('20230522183433'),
-('20230523142004');
-
-
+('20230523142004'),
+('20230525164255'),
+('20230525182401'),
+('20230525193939'),
+('20230525202043'),
+('20230526173129'),
+('20230526191445'),
+('20230612142203');

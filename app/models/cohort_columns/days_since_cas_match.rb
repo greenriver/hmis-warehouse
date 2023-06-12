@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Days Since CAS Match'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def available_for_rules?
+      false
+    end
+
     def value(cohort_client)
       match_started_time = cohort_client.client.processed_service_history&.last_cas_match_date
       override_date = cohort_client.client.cas_match_override

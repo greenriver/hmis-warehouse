@@ -17,20 +17,21 @@ module ClientSearch
       numeric = /[\d-]+/.match(text).try(:[], 0) == text
       date = /\d\d\/\d\d\/\d\d\d\d/.match(text).try(:[], 0) == text
       social = /\d\d\d-\d\d-\d\d\d\d/.match(text).try(:[], 0) == text
+      # TODO: perform all name searches against CustomClientNames
+
       # Explicitly search for only last, first if there's a comma in the search
       if text.include?(',')
         last, first = text.split(',').map(&:strip)
         where = sa[:LastName].lower.matches("#{last.downcase}%") if last.present?
         if last.present? && first.present?
-          where = where.and(sa[:FirstName].lower.matches("#{first.downcase}%")).or(sa[:preferred_name].lower.matches("#{first.downcase}%"))
+          where = where.and(sa[:FirstName].lower.matches("#{first.downcase}%"))
         elsif first.present?
-          where = sa[:FirstName].lower.matches("#{first.downcase}%").or(sa[:preferred_name].lower.matches("#{first.downcase}%"))
+          where = sa[:FirstName].lower.matches("#{first.downcase}%")
         end
         # Explicitly search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
         where = sa[:FirstName].lower.matches("#{first.downcase}%").
-          or(sa[:preferred_name].lower.matches("#{first.downcase}%")).
           and(sa[:LastName].lower.matches("#{last.downcase}%"))
         # Explicitly search for a PersonalID
       elsif alpha_numeric && (text.size == 32 || text.size == 36)
@@ -45,13 +46,15 @@ module ClientSearch
       else
         query = "%#{text}%"
         where = sa[:FirstName].matches(query).
-          or(sa[:LastName].matches(query)).
-          or(sa[:preferred_name].matches(query))
+          or(sa[:LastName].matches(query))
 
         where = nickname_search(where, text)
         where = metaphone_search(where, :FirstName, text)
         where = metaphone_search(where, :LastName, text)
       end
+
+      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
+
       begin
         # requires a block to calculate which client_ids are acceptable within
         # the search context
@@ -60,6 +63,7 @@ module ClientSearch
         return none
       end
 
+      # WARNING: Any ids added to client_ids below here could be outside of the search scope
       if numeric
         source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: text).pluck(:source_id)
         if source_client_ids.any?

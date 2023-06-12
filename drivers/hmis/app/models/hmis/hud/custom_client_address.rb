@@ -36,7 +36,7 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
   end
 
-  def ==(other)
+  def equal_for_merge?(other)
     columns = [
       :address_type,
       :city,

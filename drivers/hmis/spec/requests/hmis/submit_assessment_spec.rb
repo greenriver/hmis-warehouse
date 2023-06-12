@@ -201,14 +201,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
     before(:each) { e1_exit.update(exit_date: 3.days.ago) }
 
+    it 'should error if assessment doesn\'t exist' do
+      expect { post_graphql(input: { input: test_input.merge(assessment_id: '999') }) { mutation } }.to raise_error(HmisErrors::ApiError)
+    end
+
     [
       [
-        'should emit error if assessment doesn\'t exist',
-        ->(input) { input.merge(assessment_id: '999') },
-        { 'fullMessage' => 'Assessment must exist' },
-      ],
-      [
-        'should return error if a required field is missing',
+        'should return an error if a required field is missing',
         ->(input) {
           input.merge(
             hud_values: { **input[:hud_values], 'linkid-required' => nil },

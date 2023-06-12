@@ -16,12 +16,8 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "first-name",
-          "operator": "EXISTS",
-          "answer_boolean": true
-        },
-        {
-          "question": "last-name",
+          "question": "names",
+          "_comment": "further check for First/Last and DQ happens in the MCI component",
           "operator": "EXISTS",
           "answer_boolean": true
         },
@@ -31,20 +27,9 @@
           "answer_boolean": true
         },
         {
-          "question": "name-dq",
-          "operator": "EQUAL",
-          "answer_code": "FULL_NAME_REPORTED"
-        },
-        {
           "question": "dob-dq",
           "operator": "EQUAL",
           "answer_code": "FULL_DOB_REPORTED"
-        },
-        {
-          "_comment": "dummy dependency to enable reset when field changes",
-          "question": "middle-name",
-          "operator": "ENABLED",
-          "answer_boolean": true
         },
         {
           "_comment": "dummy dependency to enable reset when field changes",

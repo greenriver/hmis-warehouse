@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Housing Search Agency'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def available_for_rules?
+      false
+    end
+
     def available_options
       Rails.cache.fetch('all_project_names', expires_in: 5.minutes) do
         agencies = Set.new

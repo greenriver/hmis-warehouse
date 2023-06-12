@@ -51,7 +51,7 @@ class CohortsController < ApplicationController
 
   def show
     @modal_size = :xl
-    params[:population] ||= :active
+    params[:population] ||= 'Active Clients'
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)
     # leave off the pagination here and return all the data
@@ -125,11 +125,17 @@ class CohortsController < ApplicationController
   end
 
   def create
-    @cohort = cohort_source.create!(cohort_params)
-    # If the user doesn't have All Cohorts access, grant them access to the cohort
-    current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
-    # Always add the cohort to the system group
-    AccessGroup.maintain_system_groups(group: :cohorts)
+    GrdaWarehouse::Cohort.transaction do
+      @cohort = cohort_source.create!(cohort_params)
+      # If the user doesn't have All Cohorts access, grant them access to the cohort
+      current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
+      # Always add the cohort to the system group
+      AccessGroup.maintain_system_groups(group: :cohorts)
+      # Add default tabs
+      GrdaWarehouse::CohortTab.default_rules.each do |rule|
+        @cohort.cohort_tabs.create(**rule)
+      end
+    end
     # Search the list so you can see the newly created cohort
     redirect_to cohorts_path('q[name_cont]' => @cohort.name)
   rescue Exception => e

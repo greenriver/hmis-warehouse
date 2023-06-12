@@ -12,11 +12,8 @@ module Mutations
 
     def resolve(client_id:)
       client = Hmis::Hud::Client.visible_to(current_user).find_by(id: client_id)
-
-      errors = HmisErrors::Errors.new
-      errors.add :client_id, :not_found unless client.present?
-      errors.add :client_id, :not_allowed if client.present? && !current_user.permission?(:can_edit_clients)
-      return { errors: errors } if errors.any?
+      raise HmisErrors::ApiError, 'Record not found' unless client.present?
+      raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(client, :can_edit_clients)
 
       client.delete_image
       client = client.reload

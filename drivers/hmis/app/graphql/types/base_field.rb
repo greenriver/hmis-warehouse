@@ -16,6 +16,10 @@ module Types
       extension(PaginationWrapperExtension)
     end
 
+    def filters_argument(node_class, arg_name = :filters, type_name: nil, omit: [], **kwargs)
+      argument(arg_name, node_class.filter_options_type(type_name, omit: omit), required: false, **kwargs)
+    end
+
     class PaginationWrapperExtension < GraphQL::Schema::FieldExtension
       def apply
         field.argument(:offset, Integer, required: false)

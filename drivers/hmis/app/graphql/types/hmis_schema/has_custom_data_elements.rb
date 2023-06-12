@@ -35,7 +35,7 @@ module Types
           define_method(:resolve_custom_data_elements) do |record, definition_scope: nil|
             # Always resolve all _available_ custom element types for this record type,
             # even if they have no value, so that they can be shown as empty if missing.
-            definition_scope ||= Hmis::Hud::CustomDataElementDefinition.for_type(record.class.name)
+            definition_scope ||= Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name)
             return [] unless definition_scope.exists?
 
             custom_values = Hmis::Hud::CustomDataElement.where(owner: record).group_by(&:data_element_definition_id)
