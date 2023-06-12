@@ -29,7 +29,6 @@ module PerformanceMeasurement
     has_many :client_projects
 
     after_initialize :filter
-    after_initialize :goal_config
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
@@ -143,12 +142,14 @@ module PerformanceMeasurement
     end
 
     def goal_config
-      # FIXME: this isn't getting set correctly
       @goal_config ||= begin
-        assign_attributes(goal_configuration_id: PerformanceMeasurement::Goal.for_coc(coc_code)&.id) if goal_configuration.blank?
-        save! if persisted? && goal_configuration_id_changed?
+        update_goal_configuration! if persisted? && goal_configuration.blank?
         goal_configuration
       end
+    end
+
+    def update_goal_configuration!
+      update(goal_configuration_id: PerformanceMeasurement::Goal.for_coc(filter.coc_code)&.id)
     end
 
     private def reset_filter
