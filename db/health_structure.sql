@@ -4347,6 +4347,42 @@ ALTER SEQUENCE public.pctp_careplans_id_seq OWNED BY public.pctp_careplans.id;
 
 
 --
+-- Name: pctp_needs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_needs (
+    id bigint NOT NULL,
+    careplan_id bigint,
+    domain character varying,
+    need_or_condition character varying,
+    start_date date,
+    end_date date,
+    status character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: pctp_needs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_needs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_needs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_needs_id_seq OWNED BY public.pctp_needs.id;
+
+
+--
 -- Name: premium_payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6200,6 +6236,13 @@ ALTER TABLE ONLY public.pctp_careplans ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: pctp_needs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_needs ALTER COLUMN id SET DEFAULT nextval('public.pctp_needs_id_seq'::regclass);
+
+
+--
 -- Name: premium_payments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -7065,6 +7108,14 @@ ALTER TABLE ONLY public.patients
 
 ALTER TABLE ONLY public.pctp_careplans
     ADD CONSTRAINT pctp_careplans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_needs pctp_needs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_needs
+    ADD CONSTRAINT pctp_needs_pkey PRIMARY KEY (id);
 
 
 --
@@ -8077,6 +8128,13 @@ CREATE INDEX index_pctp_careplans_on_user_id ON public.pctp_careplans USING btre
 
 
 --
+-- Name: index_pctp_needs_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_needs_on_careplan_id ON public.pctp_needs USING btree (careplan_id);
+
+
+--
 -- Name: index_premium_payments_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8804,6 +8862,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230606204254'),
 ('20230607195153'),
 ('20230608152551'),
-('20230609132021');
+('20230609132021'),
+('20230609153005');
 
 

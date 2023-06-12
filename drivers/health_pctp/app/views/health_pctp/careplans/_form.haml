@@ -49,13 +49,13 @@
 
 %h2 Identified Needs and Conditions
 .well
-  = render 'needs_table', f: f
+  = render 'needs', f: f
 
 %h2 Care Goals, Plans, and Barriers
 .well
   = f.input :goals, as: :text, label: @careplan.goals_label, input_html: {rows: 5}
 
-  = render 'goals_table', f: f
+  = render 'goals', f: f
 
 %h2 Contingency Plan
 .well

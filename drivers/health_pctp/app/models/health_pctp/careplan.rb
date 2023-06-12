@@ -15,6 +15,8 @@ module HealthPctp
     belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, optional: true
 
+    has_many :needs, dependent: :destroy
+
     scope :in_progress, -> { where(patient_signed_on: nil) }
     scope :completed_within, ->(range) { where(patient_signed_on: range) }
 
