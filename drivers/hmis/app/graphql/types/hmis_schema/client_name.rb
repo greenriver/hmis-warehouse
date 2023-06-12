@@ -24,5 +24,11 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     # Object is a Hmis::Hud::CustomClientName
+
+    [:first, :middle, :last, :suffix].each do |attr|
+      define_method(attr) do
+        object.send(attr)&.titleize
+      end
+    end
   end
 end

@@ -113,6 +113,12 @@ module Types
       can :view_any_confidential_client_files
     end
 
+    [:first_name, :middle_name, :last_name, :name_suffix].each do |attr|
+      define_method(attr) do
+        object.send(attr)&.titleize
+      end
+    end
+
     def external_ids
       object.external_identifiers.
         map do |key, vals|
