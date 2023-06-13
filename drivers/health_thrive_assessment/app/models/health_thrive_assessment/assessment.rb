@@ -39,6 +39,10 @@ module HealthThriveAssessment
       completed_on.present?
     end
 
+    def positive_sdoh?
+      homeless?
+    end
+
     enum housing_status: {
       steady: 10,
       at_risk: 20,

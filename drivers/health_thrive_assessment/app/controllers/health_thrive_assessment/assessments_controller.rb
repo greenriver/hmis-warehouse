@@ -28,6 +28,7 @@ module HealthThriveAssessment
 
     def update
       @assessment.update(assessment_params)
+      @patient.current_qa_factory.complete_hrsn(@assessment) if @assessment.completed_on.present?
       respond_with @assessment, location: client_health_careplans_path(@client)
     end
 
