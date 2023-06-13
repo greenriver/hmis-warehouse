@@ -69,8 +69,7 @@ module Mutations
         posting_status_id: posting.status_before_type_cast,
         status_note: posting.status_note,
         denied_reason_id: posting.denial_reason_before_type_cast,
-        # Not sure if this param is accepted yet, leaving out for now
-        # denial_note: posting.denial_note,
+        denial_note: posting.denial_note,
         referral_result_id: posting.referral_result_before_type_cast,
         contact_date: contact_date,
         requested_by: current_user.email,
