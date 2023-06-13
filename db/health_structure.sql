@@ -3510,6 +3510,43 @@ ALTER SEQUENCE public.health_goals_id_seq OWNED BY public.health_goals.id;
 
 
 --
+-- Name: health_qa_factory_factories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.health_qa_factory_factories (
+    id bigint NOT NULL,
+    patient_id bigint,
+    careplan_id bigint,
+    hrsn_screening_qa_id bigint,
+    ca_development_qa_id bigint,
+    ca_completed_qa_id bigint,
+    careplan_development_qa_id bigint,
+    careplan_completed_qa_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: health_qa_factory_factories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.health_qa_factory_factories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: health_qa_factory_factories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.health_qa_factory_factories_id_seq OWNED BY public.health_qa_factory_factories.id;
+
+
+--
 -- Name: hl7_value_set_codes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6190,6 +6227,13 @@ ALTER TABLE ONLY public.health_goals ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: health_qa_factory_factories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.health_qa_factory_factories ALTER COLUMN id SET DEFAULT nextval('public.health_qa_factory_factories_id_seq'::regclass);
+
+
+--
 -- Name: hl7_value_set_codes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -7058,6 +7102,14 @@ ALTER TABLE ONLY public.health_flexible_service_vprs
 
 ALTER TABLE ONLY public.health_goals
     ADD CONSTRAINT health_goals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: health_qa_factory_factories health_qa_factory_factories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.health_qa_factory_factories
+    ADD CONSTRAINT health_qa_factory_factories_pkey PRIMARY KEY (id);
 
 
 --
@@ -8049,6 +8101,55 @@ CREATE INDEX index_health_goals_on_user_id ON public.health_goals USING btree (u
 
 
 --
+-- Name: index_health_qa_factory_factories_on_ca_completed_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_ca_completed_qa_id ON public.health_qa_factory_factories USING btree (ca_completed_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_ca_development_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_ca_development_qa_id ON public.health_qa_factory_factories USING btree (ca_development_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_completed_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_completed_qa_id ON public.health_qa_factory_factories USING btree (careplan_completed_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_development_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_development_qa_id ON public.health_qa_factory_factories USING btree (careplan_development_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_id ON public.health_qa_factory_factories USING btree (careplan_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_hrsn_screening_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_hrsn_screening_qa_id ON public.health_qa_factory_factories USING btree (hrsn_screening_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_patient_id ON public.health_qa_factory_factories USING btree (patient_id);
+
+
+--
 -- Name: index_hrsn_screenings_on_instrument; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8991,6 +9092,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230601151608'),
 ('20230606204139'),
 ('20230606204254'),
+('20230607183613'),
 ('20230607195153'),
 ('20230608152551'),
 ('20230609132021'),

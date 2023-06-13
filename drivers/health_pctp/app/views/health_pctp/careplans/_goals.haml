@@ -11,8 +11,8 @@
           %th
           %th
       %tbody
-        - if @careplan.care_goals.exists?
-          - @careplan.care_goals.order(id: :desc).each do |goal|
+        - if @careplan.care_goal_details.exists?
+          - @careplan.care_goal_details.order(id: :desc).each do |goal|
             %tr
               %td= render 'health_pctp/careplans/goal_card', goal: goal
               %td
