@@ -26,7 +26,7 @@ module HmisExternalApis::AcHmis
       project = record.project
       unit_type = record.unit_type
       {
-        requested_date: format_datetime(record.requested_on),
+        requested_date: format_date(record.requested_on),
         program_id: project.project_id,
         unit_type_id: mper.identify_source(unit_type),
         estimated_date: format_date(record.needed_by),
