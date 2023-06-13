@@ -1844,21 +1844,32 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
+  alcoholDrugUseDisorderFam: NoYesMissing
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
+  childWelfareMonths: Int
+  childWelfareYears: RHYNumberofYears
   client: Client!
+  clientEnrolledInPath: NoYesMissing
+  countOutreachReferralApproaches: Int
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
+  dateOfBcpStatus: ISO8601Date
+  dateOfPathStatus: ISO8601Date
   dateToStreetEssh: ISO8601Date
   dateUpdated: ISO8601DateTime!
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   disabilityGroups: [DisabilityGroup!]!
   disablingCondition: NoYesReasonsForMissingData
+  eligibleForRhy: NoYesMissing
+  enrollmentCoc: String
   entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitAssessment: Assessment
   exitDate: ISO8601Date
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
+  formerWardChildWelfare: NoYesReasonsForMissingData
+  formerWardJuvenileJustice: NoYesReasonsForMissingData
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   household: Household!
   householdSize: Int!
@@ -1866,16 +1877,28 @@ type Enrollment {
   inProgress: Boolean!
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   intakeAssessment: Assessment
+  juvenileJusticeMonths: Int
+  juvenileJusticeYears: RHYNumberofYears
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
   losUnderThreshold: NoYesMissing
+  mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
+  percentAmi: PercentAMI
+  physicalDisabilityFam: NoYesMissing
   previousStreetEssh: NoYesMissing
   project: Project!
+  reasonNoServices: ReasonNoServices
+  reasonNotEnrolled: ReasonNotEnrolled
+  referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
+  runawayYouth: NoYesReasonsForMissingData
   services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  sexualOrientation: SexualOrientation
+  sexualOrientationOther: String
   status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
+  unemploymentFam: NoYesMissing
   user: User
 }
 
@@ -4099,6 +4122,36 @@ enum PATHReferralOutcome {
   UNKNOWN
 }
 
+"""
+V4.1
+"""
+enum PercentAMI {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (3) Greater than 50%
+  """
+  GREATER_THAN_50
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Less than 30%
+  """
+  LESS_THAN_30
+
+  """
+  (2) 30% to 50%
+  """
+  NUM_30_TO_50
+}
+
 type PickListOption {
   """
   Code for the option
@@ -4540,6 +4593,36 @@ type QueryAccess {
 }
 
 """
+R11.A
+"""
+enum RHYNumberofYears {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Less than one year
+  """
+  LESS_THAN_ONE_YEAR
+
+  """
+  (2) 1 to 2 years
+  """
+  NUM_1_TO_2_YEARS
+
+  """
+  (3) 3 to 5 or more years
+  """
+  NUM_3_TO_5_OR_MORE_YEARS
+}
+
+"""
 HUD Race (1.7)
 """
 enum Race {
@@ -4582,6 +4665,61 @@ enum Race {
   (White) White
   """
   WHITE
+}
+
+"""
+R2.A
+"""
+enum ReasonNoServices {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (4) Other
+  """
+  OTHER
+
+  """
+  (1) Out of age range
+  """
+  OUT_OF_AGE_RANGE
+
+  """
+  (3) Ward of the criminal justice system
+  """
+  WARD_OF_THE_CRIMINAL_JUSTICE_SYSTEM
+
+  """
+  (2) Ward of the state
+  """
+  WARD_OF_THE_STATE
+}
+
+"""
+P3.A
+"""
+enum ReasonNotEnrolled {
+  """
+  (1) Client was found ineligible for PATH
+  """
+  CLIENT_WAS_FOUND_INELIGIBLE_FOR_PATH
+
+  """
+  (2) Client was not enrolled for other reason(s)
+  """
+  CLIENT_WAS_NOT_ENROLLED_FOR_OTHER_REASON_S
+
+  """
+  Invalid Value
+  """
+  INVALID
 }
 
 """
@@ -4725,7 +4863,7 @@ type ReferralHouseholdMember {
 A referral for a household of one or more clients
 """
 type ReferralPosting {
-  assignedDate: ISO8601Date!
+  assignedDate: ISO8601DateTime!
   chronic: Boolean
   denialNote: String
   denialReason: String
@@ -4738,7 +4876,7 @@ type ReferralPosting {
   needsWheelchairAccessibleUnit: Boolean
   organizationName: String
   postingIdentifier: ID
-  referralDate: ISO8601Date!
+  referralDate: ISO8601DateTime!
   referralIdentifier: ID
   referralNotes: String
   referralRequest: ReferralRequest
@@ -4749,9 +4887,9 @@ type ReferralPosting {
   score: Int
   status: ReferralPostingStatus!
   statusNote: String
-  statusNoteUpdatedAt: ISO8601Date
+  statusNoteUpdatedAt: ISO8601DateTime
   statusNoteUpdatedBy: String
-  statusUpdatedAt: ISO8601Date
+  statusUpdatedAt: ISO8601DateTime
   statusUpdatedBy: String
   unitType: UnitTypeObject!
 }
@@ -4835,8 +4973,9 @@ type ReferralPostingsPaginated {
 
 type ReferralRequest {
   id: ID!
-  neededBy: String!
-  requestedOn: String!
+  identifier: ID!
+  neededBy: ISO8601Date!
+  requestedOn: ISO8601DateTime!
   requestorEmail: String!
   requestorName: String!
   requestorPhone: String!
@@ -4876,6 +5015,96 @@ enum ReferralResult {
   (3) Unsuccessful referral: provider rejected
   """
   UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED
+}
+
+"""
+R1.1
+"""
+enum ReferralSource {
+  """
+  (30) Child Welfare/CPS
+  """
+  CHILD_WELFARE_CPS
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (28) Hotline
+  """
+  HOTLINE
+
+  """
+  (2) Individual: Parent/Guardian/Relative/Friend/Foster Parent/Other Individual
+  """
+  INDIVIDUAL_PARENT_GUARDIAN_RELATIVE_FRIEND_FOSTER_PARENT_OTHER_INDIVIDUAL
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (34) Juvenile Justice
+  """
+  JUVENILE_JUSTICE
+
+  """
+  (35) Law Enforcement/ Police
+  """
+  LAW_ENFORCEMENT_POLICE
+
+  """
+  (37) Mental Hospital
+  """
+  MENTAL_HOSPITAL
+
+  """
+  (39) Other organization
+  """
+  OTHER_ORGANIZATION
+
+  """
+  (7) Outreach Project
+  """
+  OUTREACH_PROJECT
+
+  """
+  (10) Outreach project: other
+  """
+  OUTREACH_PROJECT_OTHER
+
+  """
+  (18) Residential Project
+  """
+  RESIDENTIAL_PROJECT
+
+  """
+  (38) School
+  """
+  SCHOOL
+
+  """
+  (1) Self-referral
+  """
+  SELF_REFERRAL
+
+  """
+  (11) Temporary Shelter
+  """
+  TEMPORARY_SHELTER
 }
 
 """
@@ -5793,6 +6022,61 @@ type ServicesPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+R3.1
+"""
+enum SexualOrientation {
+  """
+  (4) Bisexual
+  """
+  BISEXUAL
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (2) Gay
+  """
+  GAY
+
+  """
+  (1) Heterosexual
+  """
+  HETEROSEXUAL
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (3) Lesbian
+  """
+  LESBIAN
+
+  """
+  (6) Other
+  """
+  OTHER
+
+  """
+  (5) Questioning / unsure
+  """
+  QUESTIONING_UNSURE
 }
 
 """

@@ -17,20 +17,6 @@
       "link_id": "1",
       "item": [
         {
-          "type": "DATE",
-          "required": true,
-          "link_id": "requested-on",
-          "text": "Requested Date",
-          "field_name": "requestedOn",
-          "bounds": [
-            {
-              "id": "min-request-on",
-              "type": "MIN",
-              "question": "today"
-            }
-          ]
-        },
-        {
           "type": "CHOICE",
           "required": true,
           "link_id": "unitTypeId",
@@ -48,18 +34,13 @@
             {
               "id": "min-needed-by-lax",
               "type": "MIN",
-              "question": "today"
-            },
-            {
-              "id": "min-needed-by",
-              "type": "MIN",
-              "question": "requested-on",
+              "question": "today",
               "offset": 1
             },
             {
               "id": "max-needed-by",
               "type": "MAX",
-              "question": "requested-on",
+              "question": "today",
               "offset": 15
             }
           ]
