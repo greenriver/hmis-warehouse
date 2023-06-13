@@ -4863,7 +4863,7 @@ type ReferralHouseholdMember {
 A referral for a household of one or more clients
 """
 type ReferralPosting {
-  assignedDate: ISO8601Date!
+  assignedDate: ISO8601DateTime!
   chronic: Boolean
   denialNote: String
   denialReason: String
@@ -4876,7 +4876,7 @@ type ReferralPosting {
   needsWheelchairAccessibleUnit: Boolean
   organizationName: String
   postingIdentifier: ID
-  referralDate: ISO8601Date!
+  referralDate: ISO8601DateTime!
   referralIdentifier: ID
   referralNotes: String
   referralRequest: ReferralRequest
@@ -4887,9 +4887,9 @@ type ReferralPosting {
   score: Int
   status: ReferralPostingStatus!
   statusNote: String
-  statusNoteUpdatedAt: ISO8601Date
+  statusNoteUpdatedAt: ISO8601DateTime
   statusNoteUpdatedBy: String
-  statusUpdatedAt: ISO8601Date
+  statusUpdatedAt: ISO8601DateTime
   statusUpdatedBy: String
   unitType: UnitTypeObject!
 }
@@ -4973,8 +4973,9 @@ type ReferralPostingsPaginated {
 
 type ReferralRequest {
   id: ID!
-  neededBy: String!
-  requestedOn: String!
+  identifier: ID!
+  neededBy: ISO8601Date!
+  requestedOn: ISO8601DateTime!
   requestorEmail: String!
   requestorName: String!
   requestorPhone: String!

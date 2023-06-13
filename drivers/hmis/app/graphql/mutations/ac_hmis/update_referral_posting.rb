@@ -61,13 +61,17 @@ module Mutations
     protected
 
     def send_update(posting)
+      # Contact date should only be present when chaing to AcceptedPending or DeniedPending
+      contact_date = ['accepted_pending_status', 'denied_pending_status'].include?(posting.status) ? Time.current : nil
+
       HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
         posting_id: posting.identifier,
         posting_status_id: posting.status_before_type_cast,
         status_note: posting.status_note,
         denied_reason_id: posting.denial_reason_before_type_cast,
-        denied_reason_text: posting.denial_note,
-        contact_date: Time.current,
+        denial_note: posting.denial_note,
+        referral_result_id: posting.referral_result_before_type_cast,
+        contact_date: contact_date,
         requested_by: current_user.email,
       )
     end
