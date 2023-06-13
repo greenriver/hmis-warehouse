@@ -26,33 +26,33 @@ module Health
       @goal = Health::Goal::Base.new
       @readonly = false
       @patient = @patient ||= Health::Patient.new
-      @careplans = @patient&.careplans&.sorted
+      @careplans = @patient&.pctp_careplans&.sorted
       # most-recent careplan
-      @careplan = @careplans&.first
+      @careplan = @careplans&.first&.instrument
       @disable_goal_actions = true
-      @goals = @careplan&.hpc_goals
+      # @goals = @careplan&.hpc_goals
 
       # Callbacks don't work in development, so we have to do something like this
       return unless Rails.env.development?
 
-      @careplans&.each do |cp|
-        [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
-          begin
-            # This is trying to ensure we run the same thing here as we do for the callback from HS
-            json = { signature_request: doc.fetch_signature_request }.to_json
-            response = HelloSignController::CallbackResponse.new(json)
-          rescue HelloSign::Error::NotFound
-            Rails.logger.fatal "Ignoring a document we couldn't track down."
-          end
-          begin
-            response.process!
-          rescue ActiveRecord::RecordNotFound
-            Rails.logger.fatal "Ignoring a document we couldn't track down."
-          rescue Exception
-            Rails.logger.fatal "Ignoring a document we couldn't track down."
-          end
-        end
-      end
+      # @careplans&.each do |cp|
+      #   [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
+      #     begin
+      #       # This is trying to ensure we run the same thing here as we do for the callback from HS
+      #       json = { signature_request: doc.fetch_signature_request }.to_json
+      #       response = HelloSignController::CallbackResponse.new(json)
+      #     rescue HelloSign::Error::NotFound
+      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
+      #     end
+      #     begin
+      #       response.process!
+      #     rescue ActiveRecord::RecordNotFound
+      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
+      #     rescue Exception
+      #       Rails.logger.fatal "Ignoring a document we couldn't track down."
+      #     end
+      #   end
+      # end
     end
 
     def show

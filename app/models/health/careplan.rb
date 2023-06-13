@@ -9,6 +9,8 @@
 # Control: PHI attributes documented
 module Health
   class Careplan < HealthBase
+    include Rails.application.routes.url_helpers
+
     acts_as_paranoid
 
     phi_patient :patient_id
@@ -190,7 +192,17 @@ module Health
         merge(Health::PatientReferral.contributing)
     end
 
-    # End Scopes
+    scope :reviewed_within, ->(range) { where(rn_approved_on: range) }
+
+    # End Scope
+
+    def edit_path
+      edit_client_health_careplan_path(patient.client, id)
+    end
+
+    def show_path
+      client_health_careplan_path(patient.client, id)
+    end
 
     # if the care plan has been signed, return the health file id associated with the most
     # recent signature

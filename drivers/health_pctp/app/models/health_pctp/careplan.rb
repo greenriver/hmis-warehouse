@@ -21,6 +21,9 @@ module HealthPctp
     scope :in_progress, -> { where(patient_signed_on: nil) }
     scope :completed_within, ->(range) { where(patient_signed_on: range) }
 
+    scope :rn_approved, -> { where.not(reviewed_by_rn_on: nil) }
+    scope :reviewed_within, ->(range) { where(reviewed_by_rn_on: range) }
+
     scope :allowed_for_engagement, -> do
       joins(patient: :patient_referrals).
         merge(
@@ -31,14 +34,38 @@ module HealthPctp
         )
     end
 
+    scope :editable, -> { where(patient_signed_on: nil) }
+
     alias_attribute :completed_at, :patient_signed_on
+    alias_attribute :initial_date, :created_at
+    alias_attribute :careplan_sent_on, :sent_to_pcp_on
 
     def active?
-      completed_on && completed_on >= 1.years.ago
+      completed? && patient_signed_on >= 1.years.ago
+    end
+
+    def editable?
+      patient_signed_on.nil?
     end
 
     def completed?
-      completed_on.present?
+      patient_signed_on.present?
+    end
+
+    def cp1?
+      false
+    end
+
+    def cp2?
+      true
+    end
+
+    def edit_path
+      edit_client_health_pctp_careplan_path(patient.client, id)
+    end
+
+    def show_path
+      client_health_pctp_careplan_path(patient.client, id)
     end
 
     def identifying_information

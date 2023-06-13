@@ -1,10 +1,10 @@
 - wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
-- @any_editable = @patient.careplans.editable.exists?
+- @any_editable = @patient.pctp_careplans.editable.exists?
 %section.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
     %h2 Person-Centered Treatment Plan
     - unless @any_editable
-      = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn btn-secondary btn-sm' do
+      = link_to new_client_health_pctp_careplan_path(@client, @patient), class: 'btn btn-secondary btn-sm' do
         %i.icon-plus
         Create a Care Plan
   .c-card__content.c-card__content--flush.table-responsive
@@ -19,30 +19,30 @@
 
         %tbody
           - @careplans.each do |careplan|
-            - doc = careplan.primary_signable_document || Health::SignableDocument.new
+            - careplan = careplan.instrument
             %tr
               %td
                 .d-flex.flex-column.align-items-start.flex-wrap
                   - if careplan.editable?
                     .mr-auto
-                      = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
+                      = link_to careplan.edit_path do
                         %i.icon-pencil
                         Edit
                   - elsif ! @any_editable
-                    .w-100.mb-4
-                      = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
-                        %i.icon-copy.mr-2
-                        Make Copy
+                    -# .w-100.mb-4
+                    -#   = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
+                    -#     %i.icon-copy.mr-2
+                    -#     Make Copy
                     .w-100
-                      = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
+                      = link_to careplan.edit_path do
                         %i.icon-pencil.mr-2
                         Update Signature Dates
               %td= careplan.initial_date&.to_date
               %td
                 = render 'signatures', careplan: careplan
               %td
-                = render "signable_document", careplan: careplan
-                = link_to polymorphic_path([:coversheet] + careplan_path_generator, id: careplan) do
-                  PDF: Coversheet
+                -# = render "signable_document", careplan: careplan
+                -# = link_to polymorphic_path([:coversheet] + careplan_path_generator, id: careplan) do
+                -#   PDF: Coversheet
     - else
       = render 'no_careplan_on_file'

@@ -6,7 +6,7 @@
     .signature-date
       (#{careplan.patient_signed_on&.to_date})
   - elsif careplan.id == @careplan.id
-    = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
+    = link_to careplan.edit_path, class: 'btn btn-sm btn-secondary' do
       Enter Patient Signature
 .pctp__signature
   - if careplan.careplan_sent_on.present?
@@ -17,7 +17,7 @@
       (#{careplan.careplan_sent_on&.to_date})
   - elsif (careplan.cp1? && careplan.needs_rereview?) || (careplan.cp2? && careplan.patient_signed_on)
     - if current_user.can_approve_careplan? || current_user.can_approve_cha?
-      = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
+      = link_to careplan.edit_path do
         Review Care Plan
 - if careplan.cp1? && careplan.needs_rereview?
   .pctp__expiration.mt-2
