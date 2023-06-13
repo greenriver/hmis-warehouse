@@ -34,6 +34,7 @@ module Hmis
         update_client_id_foreign_keys
         delete_warehouse_clients
         update_personal_id_foreign_keys
+        merge_mci_ids
 
         client_to_retain.reload
         dedup(:names, keepers: client_to_retain.names.where(primary: true))
@@ -147,6 +148,16 @@ module Hmis
 
         candidate.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
       end
+    end
+
+    def merge_mci_ids
+      mci_ids = HmisExternalApis::AcHmis::Mci.external_ids
+      # merge ids
+      records_by_value = mci_ids.where(source: clients_needing_reference_updates)
+        .order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
+
+      mci_ids.where(id: records_by_value.values.map(&:id))
+        .update_all(source_id: client_to_retain.id)
     end
 
     def delete_warehouse_clients
