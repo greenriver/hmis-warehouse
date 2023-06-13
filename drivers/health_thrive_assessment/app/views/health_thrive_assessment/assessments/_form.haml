@@ -23,4 +23,7 @@
     = f.input key, as: :pretty_boolean, label: label
 
 .well
+  = f.input :decline_to_answer, as: :pretty_boolean, label: 'I do not want to answer these questions.'
+
+.well
   = f.input :completed_on, as: :date_picker
