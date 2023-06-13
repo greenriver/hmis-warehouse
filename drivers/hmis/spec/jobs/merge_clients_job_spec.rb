@@ -139,7 +139,6 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     end
 
     it 'merges external ids' do
-      byebug
       expect(client1.ac_hmis_mci_ids.pluck(:value).sort).to eq([external_id_client_1, external_id_client_2].map(&:value).sort)
     end
 
