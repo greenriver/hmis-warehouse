@@ -81,7 +81,7 @@ module HealthPctp
 
     def care_team_members
       {
-        cc: "Enrollee's Care Coordinator (s)",
+        cc: "Enrollee's Care Coordinator(s)",
         ccm: "Enrollee's Clinical Care Manager(s)",
         pcp: "Enrollee's PCP or PCP Designee",
         rn: "Enrollee's RN",

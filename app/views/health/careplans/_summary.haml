@@ -19,13 +19,13 @@
 
         %tbody
           - @careplans.each do |careplan|
-            - careplan = careplan.instrument
+            - instrument = careplan.instrument
             %tr
               %td
                 .d-flex.flex-column.align-items-start.flex-wrap
-                  - if careplan.editable?
+                  - if instrument.editable?
                     .mr-auto
-                      = link_to careplan.edit_path do
+                      = link_to instrument.edit_path do
                         %i.icon-pencil
                         Edit
                   - elsif ! @any_editable
@@ -34,12 +34,12 @@
                     -#     %i.icon-copy.mr-2
                     -#     Make Copy
                     .w-100
-                      = link_to careplan.edit_path do
+                      = link_to instrument.edit_path do
                         %i.icon-pencil.mr-2
                         Update Signature Dates
-              %td= careplan.initial_date&.to_date
+              %td= instrument.initial_date&.to_date
               %td
-                = render 'signatures', careplan: careplan
+                = render 'signatures', careplan: instrument
               %td
                 -# = render "signable_document", careplan: careplan
                 -# = link_to polymorphic_path([:coversheet] + careplan_path_generator, id: careplan) do
