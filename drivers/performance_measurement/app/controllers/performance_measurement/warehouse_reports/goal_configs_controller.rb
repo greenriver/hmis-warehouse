@@ -53,6 +53,7 @@ module PerformanceMeasurement::WarehouseReports
         :time_move_in,
         :destination,
         :recidivism_6_months,
+        :recidivism_12_months,
         :recidivism_24_months,
         :income,
         :always_run_for_coc,

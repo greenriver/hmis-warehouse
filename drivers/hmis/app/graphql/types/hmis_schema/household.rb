@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::Household < Types::BaseObject
     description 'HUD Household'
-    field :id, ID, null: false
+    field :id, ID, null: false, method: :household_id
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
