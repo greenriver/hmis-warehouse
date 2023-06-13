@@ -1,0 +1,7 @@
+- content_for :modal_title, 'Add New Need or Condition'
+
+= simple_form_for @need, url: client_health_pctp_careplan_needs_path(@client, @careplan), remote: true do |f|
+  = render 'form', f: f
+
+  .form__actions.form__actions--right.mb-6
+    = f.submit 'Save', class: 'btn btn-primary'

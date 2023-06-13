@@ -112,6 +112,11 @@ module Health
       merge(Health::CaAssessment.recent)
     end, class_name: 'Health::CaAssessment'
 
+    has_many :pctp_careplans
+    has_one :recent_pctp_careplan, -> do
+      merge(Health::PctpCareplan.recent)
+    end, class_name: 'Health::PctpCareplan'
+
     has_many :services
     has_many :equipments
     has_many :backup_plans
@@ -327,9 +332,9 @@ module Health
         where(cha_updated_at: (..on.to_time)).
         select(hp_t[:id].to_sql)
 
-      pctp_signed_patient_id_scope = Health::Careplan.distinct.
+      pctp_signed_patient_id_scope = Health::PctpCareplan.distinct.
         rn_approved.
-        where(rn_approved_on: (..on.to_time)).
+        reviewed_within(..on.to_time).
         select(:patient_id)
 
       where(
