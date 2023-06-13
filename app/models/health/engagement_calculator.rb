@@ -70,20 +70,20 @@ module Health
     end
 
     def careplan_status
-      careplan = @patient.careplans.sorted.first
-      return [:no_signed_form, 'PCTP Approved', new_client_health_careplan_path(@client), false, nil] if careplan.blank?
-      return [:valid, 'PCTP Approved', client_health_careplan_path(@client, careplan), false, nil] if careplan.active?
+      careplan = @patient.pctp_careplans.sorted.first&.instrument
+      return [:no_signed_form, 'PCTP Approved', new_client_health_pctp_careplan_path(@client, @patient), false, nil] if careplan.blank?
+      return [:valid, 'PCTP Approved', careplan.show_path, false, nil] if careplan.active?
 
       if careplan.editable?
-        return [:being_updated, 'PCTP Approved', client_health_careplan_path(@client, careplan), false, "Started on #{careplan.created_at.to_date}"] if @patient.careplans.expired.exists?
+        return [:being_updated, 'PCTP Approved', careplan.edit_path, false, "Started on #{careplan.created_at.to_date}"] if @patient.careplans.expired.exists?
 
-        [:in_progress, 'PCTP Approved', client_health_careplan_path(@client, careplan), false, "Started on #{careplan.created_at.to_date}"]
+        [:in_progress, 'PCTP Approved', careplan.edit_path, false, "Started on #{careplan.created_at.to_date}"]
       elsif careplan.signed?
-        [:in_progress, 'PCTP Approved', client_health_careplan_path(@client, careplan), false, "Patient signed on #{careplan.patient_signed_on.to_date}"]
+        [:in_progress, 'PCTP Approved', careplan.edit_path, false, "Patient signed on #{careplan.patient_signed_on.to_date}"]
       elsif careplan.completed?
-        [:expired, 'PCTP Approved', new_client_health_careplan_path(@client), false, "Last completed on #{careplan.completed_on}"]
+        [:expired, 'PCTP Approved', new_client_health_pctp_careplan_path(@client, @patient), false, "Last completed on #{careplan.completed_on}"]
       else
-        [:expired, 'PCTP Approved', new_client_health_careplan_path(@client), false, "Incomplete, last updated on #{careplan.updated_at.to_date}"]
+        [:expired, 'PCTP Approved', new_client_health_pctp_careplan_path(@client, @patient), false, "Incomplete, last updated on #{careplan.updated_at.to_date}"]
       end
     end
   end

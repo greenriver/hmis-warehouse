@@ -1,0 +1,26 @@
+.jGoals
+  .col.text-right
+    = link_to new_client_health_pctp_careplan_goal_path(@client, @careplan), class: 'btn btn-secondary', data: { loads_in_ajax_modal: true } do
+      %i.icon-plus
+      Add Goal
+
+  .row.mt-4
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th
+          %th
+      %tbody
+        - if @careplan.care_goals.exists?
+          - @careplan.care_goals.order(id: :desc).each do |goal|
+            %tr
+              %td= render 'health_pctp/careplans/goal_card', goal: goal
+              %td
+                .mb-4
+                  = link_to edit_client_health_pctp_careplan_goal_path(@client, @careplan, goal), class: 'btn btn-secondary btn-sm btn-icon-only',  data: { loads_in_ajax_modal: true } do
+                    %i.icon-pencil
+                = link_to client_health_pctp_careplan_goal_path(@client, @careplan, goal), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to delete this goal?' }, remote: true do
+                  %i.icon-cross
+        - else
+          %tr
+            %td.text-center{colspan:2} No Goals

@@ -1,0 +1,34 @@
+.jNeeds
+  .col.text-right
+    = link_to new_client_health_pctp_careplan_need_path(@client, @careplan), class: 'btn btn-secondary', data: { loads_in_ajax_modal: true } do
+      %i.icon-plus
+      Add Need or Condition
+
+  .row.mt-4
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Domain
+          %th Identified Need or Condition
+          %th Start Date
+          %th End Date
+          %th Status
+          %th
+      %tbody
+        - if @careplan.needs.exists?
+          - @careplan.needs.order(id: :desc).each do |need|
+            %tr
+              %td= need.translate_domain_response(need.domain)
+              %td= need.need_or_condition
+              %td= need.start_date
+              %td= need.end_date
+              %td= need.translate_status_response(need.status)
+              %td
+                .mb-4
+                  = link_to edit_client_health_pctp_careplan_need_path(@client, @careplan, need), class: 'btn btn-secondary btn-sm btn-icon-only',  data: { loads_in_ajax_modal: true } do
+                    %i.icon-pencil
+                = link_to client_health_pctp_careplan_need_path(@client, @careplan, need), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to delete this need?' }, remote: true do
+                  %i.icon-cross
+        - else
+          %tr
+            %td.text-center{colspan:6} No Identified Needs and Conditions

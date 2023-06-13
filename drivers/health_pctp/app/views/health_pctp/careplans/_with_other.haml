@@ -1,0 +1,16 @@
+- hint = hint || nil
+- input_html = input_html || {}
+- controlled = controlled || nil
+%div
+  - if collection.present?
+    - if collection.values.include?('other')
+      - input_html = input_html.deep_merge(class: 'jWithOther')
+      .well.jSelectPair{class: controlled}
+        = f.input key, as: kind, collection: collection, label: label, hint: hint, input_html: input_html
+        = f.input "#{key}_other", label: 'Please specify:', wrapper_html: { class: :jOther }
+    - else
+      %div{class: controlled}
+        = f.input key, as: kind, collection: collection, label: label, hint: hint, input_html: input_html
+  - else
+    %div{class: controlled}
+    = f.input key, as: kind, label: label, hint: hint, input_html: input_html

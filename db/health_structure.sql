@@ -159,6 +159,40 @@ ALTER SEQUENCE public.agency_users_id_seq OWNED BY public.agency_users.id;
 
 
 --
+-- Name: any_careplans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.any_careplans (
+    id bigint NOT NULL,
+    patient_id bigint,
+    instrument_type character varying,
+    instrument_id bigint,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: any_careplans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.any_careplans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: any_careplans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.any_careplans_id_seq OWNED BY public.any_careplans.id;
+
+
+--
 -- Name: appointments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3476,6 +3510,43 @@ ALTER SEQUENCE public.health_goals_id_seq OWNED BY public.health_goals.id;
 
 
 --
+-- Name: health_qa_factory_factories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.health_qa_factory_factories (
+    id bigint NOT NULL,
+    patient_id bigint,
+    careplan_id bigint,
+    hrsn_screening_qa_id bigint,
+    ca_development_qa_id bigint,
+    ca_completed_qa_id bigint,
+    careplan_development_qa_id bigint,
+    careplan_completed_qa_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: health_qa_factory_factories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.health_qa_factory_factories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: health_qa_factory_factories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.health_qa_factory_factories_id_seq OWNED BY public.health_qa_factory_factories.id;
+
+
+--
 -- Name: hl7_value_set_codes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4238,6 +4309,197 @@ CREATE SEQUENCE public.patients_id_seq
 --
 
 ALTER SEQUENCE public.patients_id_seq OWNED BY public.patients.id;
+
+
+--
+-- Name: pctp_care_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_care_goals (
+    id bigint NOT NULL,
+    careplan_id bigint,
+    domain character varying,
+    goal character varying,
+    status character varying,
+    estimated_completion_date date,
+    start_date date,
+    end_date date,
+    barriers character varying,
+    followup character varying,
+    comments character varying,
+    source character varying,
+    priority character varying,
+    plan character varying,
+    responsible_party character varying,
+    times character varying,
+    "interval" character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: pctp_care_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_care_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_care_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_care_goals_id_seq OWNED BY public.pctp_care_goals.id;
+
+
+--
+-- Name: pctp_careplans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_careplans (
+    id bigint NOT NULL,
+    patient_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name character varying,
+    dob date,
+    phone character varying,
+    email character varying,
+    mmis character varying,
+    aco character varying,
+    cc_name character varying,
+    cc_phone character varying,
+    cc_email character varying,
+    ccm_name character varying,
+    ccm_phone character varying,
+    ccm_email character varying,
+    pcp_name character varying,
+    pcp_phone character varying,
+    pcp_email character varying,
+    rn_name character varying,
+    rn_phone character varying,
+    rn_email character varying,
+    other_members_name character varying,
+    other_members_phone character varying,
+    other_members_email character varying,
+    overview character varying,
+    scribe character varying,
+    update_reason character varying,
+    update_reason_other character varying,
+    sex_at_birth character varying,
+    sex_at_birth_other character varying,
+    gender character varying,
+    gender_other character varying,
+    orientation character varying,
+    orientation_other character varying,
+    race character varying,
+    ethnicity character varying,
+    language character varying,
+    contact character varying,
+    contact_other character varying,
+    strengths character varying,
+    weaknesses character varying,
+    interests character varying,
+    choices character varying,
+    care_goals character varying,
+    personal_goals character varying,
+    cultural_considerations character varying,
+    accessibility_needs character varying,
+    accommodation_types jsonb,
+    accessibility_equipment jsonb,
+    accessibility_equipment_notes character varying,
+    accessibility_equipment_start date,
+    accessibility_equipment_end date,
+    goals character varying,
+    service_summary character varying,
+    contingency_plan character varying,
+    crisis_plan character varying,
+    additional_concerns character varying,
+    patient_signed_on date,
+    verbal_approval boolean,
+    verbal_approval_followup boolean,
+    reviewed_by_ccm_id bigint,
+    reviewed_by_ccm_on date,
+    offered_services_choice_care_planning boolean,
+    offered_provider_choice_care_planning boolean,
+    received_recommendations boolean,
+    offered_services_choice_treatment_planning boolean,
+    right_to_approve_pctp boolean,
+    right_to_appeal boolean,
+    right_to_change_cc boolean,
+    right_to_change_bhcp boolean,
+    right_to_complain boolean,
+    right_to_ombudsman boolean,
+    reviewed_by_rn_id bigint,
+    reviewed_by_rn_on date,
+    provided_to_patient boolean,
+    sent_to_pcp_on date,
+    sent_to_pcp_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: pctp_careplans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_careplans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_careplans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_careplans_id_seq OWNED BY public.pctp_careplans.id;
+
+
+--
+-- Name: pctp_needs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_needs (
+    id bigint NOT NULL,
+    careplan_id bigint,
+    domain character varying,
+    need_or_condition character varying,
+    start_date date,
+    end_date date,
+    status character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: pctp_needs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_needs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_needs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_needs_id_seq OWNED BY public.pctp_needs.id;
 
 
 --
@@ -5541,6 +5803,13 @@ ALTER TABLE ONLY public.agency_users ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: any_careplans id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.any_careplans ALTER COLUMN id SET DEFAULT nextval('public.any_careplans_id_seq'::regclass);
+
+
+--
 -- Name: appointments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5961,6 +6230,13 @@ ALTER TABLE ONLY public.health_goals ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: health_qa_factory_factories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.health_qa_factory_factories ALTER COLUMN id SET DEFAULT nextval('public.health_qa_factory_factories_id_seq'::regclass);
+
+
+--
 -- Name: hl7_value_set_codes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -6084,6 +6360,27 @@ ALTER TABLE ONLY public.patient_referrals ALTER COLUMN id SET DEFAULT nextval('p
 --
 
 ALTER TABLE ONLY public.patients ALTER COLUMN id SET DEFAULT nextval('public.patients_id_seq'::regclass);
+
+
+--
+-- Name: pctp_care_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_care_goals ALTER COLUMN id SET DEFAULT nextval('public.pctp_care_goals_id_seq'::regclass);
+
+
+--
+-- Name: pctp_careplans id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_careplans ALTER COLUMN id SET DEFAULT nextval('public.pctp_careplans_id_seq'::regclass);
+
+
+--
+-- Name: pctp_needs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_needs ALTER COLUMN id SET DEFAULT nextval('public.pctp_needs_id_seq'::regclass);
 
 
 --
@@ -6312,6 +6609,14 @@ ALTER TABLE ONLY public.agency_patient_referrals
 
 ALTER TABLE ONLY public.agency_users
     ADD CONSTRAINT agency_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: any_careplans any_careplans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.any_careplans
+    ADD CONSTRAINT any_careplans_pkey PRIMARY KEY (id);
 
 
 --
@@ -6803,6 +7108,14 @@ ALTER TABLE ONLY public.health_goals
 
 
 --
+-- Name: health_qa_factory_factories health_qa_factory_factories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.health_qa_factory_factories
+    ADD CONSTRAINT health_qa_factory_factories_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hl7_value_set_codes hl7_value_set_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6944,6 +7257,30 @@ ALTER TABLE ONLY public.patient_referrals
 
 ALTER TABLE ONLY public.patients
     ADD CONSTRAINT patients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_care_goals pctp_care_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_care_goals
+    ADD CONSTRAINT pctp_care_goals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_careplans pctp_careplans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_careplans
+    ADD CONSTRAINT pctp_careplans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_needs pctp_needs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_needs
+    ADD CONSTRAINT pctp_needs_pkey PRIMARY KEY (id);
 
 
 --
@@ -7225,6 +7562,20 @@ CREATE INDEX idx_cpd_on_cp_payment_upload_id ON public.claims_reporting_cp_payme
 --
 
 CREATE INDEX idx_crmc_member_service_start_date ON public.claims_reporting_medical_claims USING btree (member_id, service_start_date);
+
+
+--
+-- Name: index_any_careplans_on_instrument; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_any_careplans_on_instrument ON public.any_careplans USING btree (instrument_type, instrument_id);
+
+
+--
+-- Name: index_any_careplans_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_any_careplans_on_patient_id ON public.any_careplans USING btree (patient_id);
 
 
 --
@@ -7753,6 +8104,55 @@ CREATE INDEX index_health_goals_on_user_id ON public.health_goals USING btree (u
 
 
 --
+-- Name: index_health_qa_factory_factories_on_ca_completed_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_ca_completed_qa_id ON public.health_qa_factory_factories USING btree (ca_completed_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_ca_development_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_ca_development_qa_id ON public.health_qa_factory_factories USING btree (ca_development_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_completed_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_completed_qa_id ON public.health_qa_factory_factories USING btree (careplan_completed_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_development_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_development_qa_id ON public.health_qa_factory_factories USING btree (careplan_development_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_id ON public.health_qa_factory_factories USING btree (careplan_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_hrsn_screening_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_hrsn_screening_qa_id ON public.health_qa_factory_factories USING btree (hrsn_screening_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_patient_id ON public.health_qa_factory_factories USING btree (patient_id);
+
+
+--
 -- Name: index_hrsn_screenings_on_instrument; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7939,6 +8339,34 @@ CREATE INDEX index_patients_on_medicaid_id ON public.patients USING btree (medic
 --
 
 CREATE INDEX index_patients_on_nurse_care_manager_id ON public.patients USING btree (nurse_care_manager_id);
+
+
+--
+-- Name: index_pctp_care_goals_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_care_goals_on_careplan_id ON public.pctp_care_goals USING btree (careplan_id);
+
+
+--
+-- Name: index_pctp_careplans_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_careplans_on_patient_id ON public.pctp_careplans USING btree (patient_id);
+
+
+--
+-- Name: index_pctp_careplans_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_careplans_on_user_id ON public.pctp_careplans USING btree (user_id);
+
+
+--
+-- Name: index_pctp_needs_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_needs_on_careplan_id ON public.pctp_needs USING btree (careplan_id);
 
 
 --
@@ -8667,7 +9095,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230601151608'),
 ('20230606204139'),
 ('20230606204254'),
+('20230607183613'),
 ('20230607195153'),
-('20230609132021');
+('20230608152551'),
+('20230609132021'),
+('20230609153005'),
+('20230612180417'),
+('20230612200614'),
+('20230613185511');
 
 
