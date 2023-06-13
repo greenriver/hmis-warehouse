@@ -25,7 +25,7 @@ module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    VALID_STATUS_IDS = HmisExternalApis::AcHmis::ReferralPosting::VALID_LOCAL_STATUS_IDS
+    VALID_STATUS_IDS = HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUS_IDS
 
     # @param posting_id [Integer]  HmisExternalApis::AcHmis::ReferralPosting.identifier
     # @param posting_status_id [Integer] new status

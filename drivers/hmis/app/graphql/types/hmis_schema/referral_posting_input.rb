@@ -10,6 +10,8 @@ module Types
     argument :status, ID, required: false
     argument :denial_reason, ID, required: false
     argument :denial_note, String, required: false
+    argument :referral_result, ID, required: false
+    argument :re_request, Boolean, required: false
 
     def to_params
       to_h

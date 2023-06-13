@@ -93,8 +93,15 @@ module Types
           }
         end
 
-      when 'REFERRAL_POSTING_STATUSES'
-        HmisExternalApis::AcHmis::ReferralPosting::VALID_LOCAL_STATUSES.map do |status|
+      when 'ASSIGNED_REFERRAL_POSTING_STATUSES'
+        HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUSES.map do |status|
+          {
+            code: status,
+            label: status.gsub(/_status\z/, '').humanize.titleize,
+          }
+        end
+      when 'DENIED_PENDING_REFERRAL_POSTING_STATUSES'
+        HmisExternalApis::AcHmis::ReferralPosting::DENIAL_STATUSES.map do |status|
           {
             code: status,
             label: status.gsub(/_status\z/, '').humanize.titleize,
@@ -102,6 +109,12 @@ module Types
         end
       when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'
         [] # tbd
+      when 'REFERRAL_RESULT_TYPES'
+        # ::HudLists.referral_result_map
+        [
+          { code: 2, label: 'Client Rejected' },
+          { code: 3, label: 'Provider Rejected' },
+        ]
       end
     end
 
