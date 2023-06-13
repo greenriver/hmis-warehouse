@@ -8,6 +8,8 @@ module HealthPctp
   class Careplan < HealthBase
     include Rails.application.routes.url_helpers
 
+    acts_as_paranoid
+
     phi_patient :patient_id
     phi_attr :user_id, Phi::SmallPopulation
     phi_attr :completed_at, Phi::Date

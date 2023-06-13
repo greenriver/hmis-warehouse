@@ -6,6 +6,8 @@
 
 module HealthPctp
   class CareGoal < HealthBase
+    acts_as_paranoid
+
     belongs_to :careplan
 
     def domain_responses
