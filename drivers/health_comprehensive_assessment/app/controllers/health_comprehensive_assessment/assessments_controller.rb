@@ -62,5 +62,9 @@ module HealthComprehensiveAssessment
     private def set_assessment
       @assessment = @patient.comprehensive_assessments.find(params[:id])
     end
+
+    def flash_interpolation_options
+      { resource_name: 'Comprehensive Assessment' }
+    end
   end
 end

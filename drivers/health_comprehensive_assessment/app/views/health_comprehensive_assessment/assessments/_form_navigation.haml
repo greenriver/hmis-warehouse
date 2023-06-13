@@ -1,0 +1,23 @@
+%nav.form__nav.j-form-nav.scrollspy{style: 'padding-bottom: 160px;'}
+  %ul.list-group.nav.j-form-nav-list.mb-3
+    - ['identifying-information', 'demographic-information', 'immediate-care-needs', 'health-conditions', 'medications', 'communication', 'functional-status', 'strengths', 'mental-health', 'accessibility', 'supports', 'risk-factors', 'advance-directives', 'employment', 'legal-status', 'education', 'income'].each do |words|
+      %li.list-group-item.nav-item
+        = link_to "Section #{words}", "#section-#{words}", class: 'nav-link'
+
+- content_for :page_js do
+  :javascript
+    $(function(){
+      var tabs = document.querySelector('.j-form-nav');
+      new App.Affix({
+        element: tabs,
+        offset: tabs.getBoundingClientRect().top,
+        elementToPad: null
+      })
+      var sectionTitles = $("h2[id^='section']").map(function(){
+        return $(this).text().trim()
+      })
+      $('.j-form-nav-list').find('a').each(function(i, el){
+        el.textContent = sectionTitles[i]
+      })
+      $('body').scrollspy({target: '.j-form-nav', offset: 250})
+    })
