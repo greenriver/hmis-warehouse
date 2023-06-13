@@ -7233,7 +7233,8 @@ CREATE TABLE public.external_request_logs (
     response text NOT NULL,
     requested_at timestamp without time zone NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    http_status integer
 );
 
 

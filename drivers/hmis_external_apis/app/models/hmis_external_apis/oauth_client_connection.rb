@@ -80,6 +80,7 @@ module HmisExternalApis
         request_log.update!(
           content_type: result.content_type,
           response: result.body,
+          http_status: result.status,
         )
       end
 
