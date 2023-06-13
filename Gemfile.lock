@@ -247,10 +247,6 @@ GEM
       descendants_tracker (~> 0.0.4)
       ice_nine (~> 0.11.0)
       thread_safe (~> 0.3, >= 0.3.1)
-    babel-source (5.8.35)
-    babel-transpiler (0.7.0)
-      babel-source (>= 4.0, < 6)
-      execjs (~> 2.0)
     bcrypt (3.1.18)
     bcrypt_pbkdf (1.1.0)
     benchmark-ips (2.10.0)
@@ -1007,7 +1003,6 @@ DEPENDENCIES
   aws-sdk-ses (~> 1)
   aws-sdk-sns
   aws-sdk-ssm (~> 1)
-  babel-transpiler
   bcrypt
   bcrypt_pbkdf
   bootsnap

@@ -132,7 +132,7 @@ gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets', '~> 4.0'
-gem 'babel-transpiler'
+# gem 'babel-transpiler'
 # gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
@@ -185,6 +185,8 @@ gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
 gem 'addressable' # normalize uris
 gem 'redis-actionpack'
+# Use Redis for Action Cable
+gem 'redis', '~> 4.0'
 
 gem 'ed25519'
 gem 'bcrypt_pbkdf'
@@ -310,6 +312,3 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
-
-# Use Redis for Action Cable
-gem 'redis', '~> 4.0'
