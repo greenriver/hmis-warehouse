@@ -7,5 +7,13 @@
 module HealthComprehensiveAssessment
   class SudTreatment < HealthBase
     belongs_to :assessment
+
+    def inpatient?
+      inpatient == 'inpatient'
+    end
+
+    def completed?
+      completed == 'yes'
+    end
   end
 end

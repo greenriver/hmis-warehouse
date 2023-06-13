@@ -27,7 +27,7 @@
                 %td= treatment.inpatient? ? "Inpatient" : "Outpatient"
               - else
                 %td
-              %td= checkmark(treatment.completed)
+              %td= checkmark(treatment.completed?)
               %td
                 .mb-4
                   = link_to edit_client_health_comprehensive_assessment_assessment_sud_treatment_path(@client, @assessment, treatment), class: 'btn btn-secondary btn-sm btn-icon-only',  data: { loads_in_ajax_modal: true } do

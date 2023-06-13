@@ -61,6 +61,7 @@ module HealthComprehensiveAssessment
         update_reason: ['Reason for Update', :select_two, update_reason_responses],
         phone: ['Enrollee Phone Number', :tel, nil],
         email: ['Enrollee Email Address', :email, nil],
+        address: ['Address', :string, nil],
         contact: ['Preferred method of contact', :select_two, contact_responses],
         message_ok: ['Okay to leave a message on the phone?', :pretty_boolean_group, yes_no],
         internet_access: ['Do you have access to the internet?', :pretty_boolean_group, yes_no],
