@@ -18,7 +18,7 @@ module HealthPctp
     belongs_to :user, optional: true
 
     has_many :needs, dependent: :destroy
-    has_many :care_goals, dependent: :destroy
+    has_many :care_goal_details, class_name: 'CareGoal', dependent: :destroy
 
     scope :in_progress, -> { where(patient_signed_on: nil) }
     scope :completed_within, ->(range) { where(patient_signed_on: range) }
@@ -54,6 +54,14 @@ module HealthPctp
       patient_signed_on.present?
     end
 
+    def reviewed?
+      reviewed_by_ccm_on.present?
+    end
+
+    def approved?
+      reviewed_by_rn_on.present?
+    end
+
     def cp1?
       false
     end
@@ -68,6 +76,10 @@ module HealthPctp
 
     def show_path
       client_health_pctp_careplan_path(patient.client, id)
+    end
+
+    def expires_on
+      patient_signed_on + 1.year
     end
 
     def identifying_information

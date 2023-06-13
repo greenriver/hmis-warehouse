@@ -29,6 +29,7 @@ module HealthComprehensiveAssessment
 
     def update
       @assessment.update(ca_params)
+      @patient.current_qa_factory.complete_ca(@assessment) if @assessment.completed_on.present?
       respond_with @assessment, location: client_health_careplans_path(@client)
     end
 

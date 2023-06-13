@@ -25,7 +25,17 @@ module HealthPctp
     end
 
     def update
-      @careplan.update(careplan_params)
+      @careplan.assign_attributes(careplan_params)
+      ccm_reviewed = @careplan.reviewed_by_ccm_on.present? && @careplan.reviewed_by_ccm_on_changed?
+      rn_reviewed = @careplan.reviewed_by_rn_on.present? && @careplan.reviewed_by_rn_on_changed?
+
+      @careplan.save
+      @careplan.update(reviewed_by_ccm_id: current_user.id) if ccm_reviewed
+      @careplan.update(reviewed_by_rn_id: current_user.id) if rn_reviewed
+
+      @patient.current_qa_factory.complete_careplan(@careplan) if @careplan.completed?
+      @patient.current_qa_factory.review_careplan(@careplan) if @careplan.reviewed?
+      @patient.current_qa_factory.approve_careplan(@careplan) if @careplan.approved?
       respond_with @careplan, location: client_health_careplans_path(@client)
     end
 
