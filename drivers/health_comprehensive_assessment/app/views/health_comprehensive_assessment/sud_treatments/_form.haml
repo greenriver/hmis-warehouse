@@ -10,6 +10,6 @@
     .col-4
       = f.input :provider_name, as: :text, input_html: {rows: 5}, label: 'Name of Provider/Agency'
     .col-4
-      = f.input :inpatient?, as: :select_two, collection: @assessment.in_patient_responses, label: 'Inpatient/Outpatient'
+      = f.input :inpatient, as: :select_two, collection: @assessment.in_patient_responses, label: 'Inpatient/Outpatient'
     .col-4
       = f.input :completed, as: :select_two, collection: @assessment.yes_no, label: 'Check if person completed the originally planned service. Example: Check No if person discharged himself against doctor’s orders'

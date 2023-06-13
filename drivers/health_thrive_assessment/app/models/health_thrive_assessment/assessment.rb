@@ -65,9 +65,9 @@ module HealthThriveAssessment
 
     def food_insecurity_responses
       {
-        never: 'Never true',
-        sometimes: 'Sometimes true',
         often: 'Often true',
+        sometimes: 'Sometimes true',
+        never: 'Never true',
       }.invert
     end
 
@@ -79,9 +79,9 @@ module HealthThriveAssessment
 
     def food_worries_responses
       {
-        never: 'Never true',
-        sometimes: 'Sometimes true',
         often: 'Often true',
+        sometimes: 'Sometimes true',
+        never: 'Never true',
       }.invert
     end
 

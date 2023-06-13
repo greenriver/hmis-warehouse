@@ -11,7 +11,6 @@
       %dt.inline Case Worker:
       %dd.inline= @assessment.user&.name
   .col.pull-right
-    - if @assessment.completed_on.blank?
-      = link_to edit_client_health_comprehensive_assessment_assessment_path(@client, @assessment), class: 'btn btn-secondary btn-sm' do
-        %i.icon-pencil
-        Edit CA
+    = link_to edit_client_health_comprehensive_assessment_assessment_path(@client, @assessment), class: 'btn btn-secondary btn-sm' do
+      %i.icon-pencil
+      Edit CA
