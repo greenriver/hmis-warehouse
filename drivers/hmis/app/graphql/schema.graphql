@@ -4300,6 +4300,7 @@ type Project {
   residentialAffiliation: NoYesMissing
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
+  unitTypes: [UnitTypeCapacity!]!
   units(active: Boolean, limit: Int, occupied: Boolean, offset: Int): UnitsPaginated!
   user: User
 }
@@ -6281,6 +6282,13 @@ input UnitInput {
   prefix: String
   projectId: ID!
   unitTypeId: ID
+}
+
+type UnitTypeCapacity {
+  availability: Int!
+  capacity: Int!
+  id: ID!
+  unitType: String!
 }
 
 type UnitTypeObject {
