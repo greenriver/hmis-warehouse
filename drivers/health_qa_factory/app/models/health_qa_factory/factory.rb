@@ -48,7 +48,7 @@ module HealthQaFactory
     private def create_hrsn_screening_qa(screener)
       user = User.find(careplan.reviewed_by_ccm_id)
 
-      qa = ::Health::QualifyingActivity.create(
+      qa = ::Health::QualifyingActivity.new(
         source_type: screener.class.name,
         source_id: screener.id,
         user_id: user.id,
@@ -69,6 +69,7 @@ module HealthQaFactory
           follow_up: 'Patient SDoH Screening Negative',
         )
       end
+      qa.save
 
       qa
     end
