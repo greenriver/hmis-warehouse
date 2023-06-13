@@ -130,32 +130,28 @@ module GrdaWarehouse
           permissions: [],
           rules: {
             'operator' => 'and',
+
             'left' => {
-              'operator' => 'and',
-              'left' => {
-                'column' => 'housed_date',
-                'operator' => '==',
-                'value' => nil,
-              },
-              'right' => {
-                'column' => 'active',
-                'operator' => '==',
-                'value' => true,
-              },
-            },
-            'right' => {
               'operator' => 'and',
               'left' => {
                 'operator' => 'or',
                 'left' => {
-                  'column' => 'destination',
-                  'operator' => '==',
-                  'value' => nil,
+                  'operator' => 'or',
+                  'left' => {
+                    'column' => 'destination',
+                    'operator' => '==',
+                    'value' => nil,
+                  },
+                  'right' => {
+                    'column' => 'destination',
+                    'operator' => '==',
+                    'value' => '',
+                  },
                 },
                 'right' => {
-                  'column' => 'destination',
+                  'column' => 'housed_date',
                   'operator' => '==',
-                  'value' => '',
+                  'value' => nil,
                 },
               },
               'right' => {
@@ -171,6 +167,11 @@ module GrdaWarehouse
                   'value' => false,
                 },
               },
+            },
+            'right' => {
+              'column' => 'active',
+              'operator' => '==',
+              'value' => true,
             },
           },
         },
