@@ -1,0 +1,14 @@
+= render 'breadcrumbs'
+
+%p
+  This page demonstrates how to include a javascript file for only one route, instead of globally.  This example includes d3 and uses it to count the divs on the page.
+  You should see some text in the box below if it is working.
+
+.well
+  .output
+
+%p
+  This is accomplised by adding an array to the controller to indicate which files to include.  This controller specifies the following:
+  %br
+  %code @per_page_js = ['js_example']
+%p At the moment, hot-reloading isn't working, for javascript included using this mechanism, so you'll need to restart puma to see the changes.

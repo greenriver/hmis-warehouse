@@ -17,6 +17,9 @@
       - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
       = stylesheet_link_tag(theme_styles, media: 'all')
     = javascript_include_tag 'application_es6_native', 'data-turbo-track': 'reload', defer: true
+    - if @per_page_js.present?
+      - @per_page_js.each do |js_file|
+        = javascript_include_tag js_file, defer: true
     = render 'layouts/favicon'
     = csrf_meta_tags
   - data = {}

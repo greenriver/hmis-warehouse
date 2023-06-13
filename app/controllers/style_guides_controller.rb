@@ -54,13 +54,13 @@ class StyleGuidesController < ApplicationController
     grid_lines = []
     timeline_date_range.each do |d|
       entries << (rand(1..50) > 45 ? 0.5 : nil)
-      class_name = ''
-      class_name =
-        if d == d.at_beginning_of_month
-          '--start-of-month'
-        elsif d == d.at_beginning_of_week
-          '--start-of-week'
-        end
+      class_name = if d == d.at_beginning_of_month
+        '--start-of-month'
+      elsif d == d.at_beginning_of_week
+        '--start-of-week'
+      else
+        ''
+      end
       grid_lines << { value: d, class: "date-tick #{class_name}" }
     end
     @timeline_config = {
@@ -125,6 +125,11 @@ class StyleGuidesController < ApplicationController
   def modal
   end
 
+  def js_example
+    # You can include javascript files for a single controller action by specifying an array of file paths
+    @per_page_js = ['js_example']
+  end
+
   private def guide_routes
     @guide_routes ||= {
       add_goal: 'Add Goal',
@@ -143,6 +148,7 @@ class StyleGuidesController < ApplicationController
       reports: 'Reports',
       public_reports: 'Reports (Public)',
       tags: 'Tags',
+      js_example: 'JS Example',
     }
   end
   helper_method :guide_routes

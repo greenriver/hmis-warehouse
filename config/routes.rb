@@ -876,6 +876,7 @@ Rails.application.routes.draw do
       get :reports
       get :stimulus_select
       get :tags
+      get :js_example
     end
   end
 
