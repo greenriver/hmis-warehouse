@@ -40,9 +40,9 @@
 
 %h2 Accessibility Requirements and Equipment Needs
 .well
-  = f.input :accessibility_needs, as: :pretty_boolean_group, collection: @careplan.yes_no
-  = f.input :accommodation_types, as: :pretty_boolean_group, collection:@careplan.accommodation_responses, multiple: true
-  = f.input :accessibility_equipment, as: :select_two, collection: @careplan.accessibility_equipment_responses, input_html: { multiple: true }
+  = f.input :accessibility_needs, as: :pretty_boolean_group, collection: @careplan.yes_no, label: 'Does the Enrollee have accessibility requirements including but not limited to communication, transportation, and equipment needs?'
+  = f.input :accommodation_types, as: :pretty_boolean_group, collection:@careplan.accommodation_responses, multiple: true, label: 'Accomodation Type'
+  = f.input :accessibility_equipment, as: :select_two, collection: @careplan.accessibility_equipment_responses, input_html: { multiple: true }, label: 'Equipment'
   = f.input :accessibility_equipment_notes, as: :text, label: 'Comments'
   = f.input :accessibility_equipment_start, as: :date_picker, label: 'Start Date'
   = f.input :accessibility_equipment_end, as: :date_picker, label: 'End Date'

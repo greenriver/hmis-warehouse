@@ -4,7 +4,7 @@
       = f.input :patient_signed_on, as: :date_picker, label: 'Patient signed on'
     .col
       .mt-6= f.input :verbal_approval, as: :pretty_boolean, label: 'Patient unable to sign – verbal approval received'
-  - if @careplan.verbal_approval? || true
+  - if @careplan.verbal_approval?
     = f.input :verbal_approval_followup, as: :pretty_boolean, label: 'The Care Plan was signed by the Assigned or Engaged Enrollee (or authorized representative) within 90 days of verbal approval.'
 
 %h3 BH Document Review
