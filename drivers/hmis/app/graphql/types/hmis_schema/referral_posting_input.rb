@@ -17,7 +17,7 @@ module Types
       # re_request is not a posting attribute. It's on the input because
       # we are have to include it in the form
       result = to_h.except(:re_request)
-      result[:referral_result] = referral_result.downcase
+      result[:referral_result] = referral_result.downcase if result[:referral_result]
       result
     end
   end
