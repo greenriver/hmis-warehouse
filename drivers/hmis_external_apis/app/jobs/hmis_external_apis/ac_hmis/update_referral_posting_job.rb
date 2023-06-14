@@ -25,8 +25,6 @@ module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    VALID_STATUS_IDS = HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUS_IDS
-
     # @param posting_id [Integer]  HmisExternalApis::AcHmis::ReferralPosting.identifier
     # @param posting_status_id [Integer] new status
     # @param requested_by [String]
@@ -36,7 +34,6 @@ module HmisExternalApis::AcHmis
     # @param status_note [String]
     # @param contact_date [String] required when Posting status is Denied Pending or Accepted Pending
     def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denial_note: nil, status_note: nil, contact_date: nil, referral_result_id: nil)
-      raise "Invalid status. Expected one of: [#{VALID_STATUS_IDS.inspect}]" unless VALID_STATUS_IDS.include?(posting_status_id)
 
       payload = {
         posting_id: posting_id,

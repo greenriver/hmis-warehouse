@@ -14,7 +14,9 @@ module Types
     argument :re_request, Boolean, required: false
 
     def to_params
-      to_h
+      # re_request is not a posting attribute. It's on the input because
+      # we are have to include it in the form
+      to_h.except(:re_request)
     end
   end
 end
