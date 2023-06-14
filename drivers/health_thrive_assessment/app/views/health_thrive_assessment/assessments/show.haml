@@ -14,6 +14,11 @@
     = link_to edit_client_health_thrive_assessment_assessment_path(@client, @assessment), class: 'btn btn-secondary btn-sm' do
       %i.icon-pencil
       Edit THRIVE
+    .mt-4
+      = link_to client_health_thrive_assessment_assessment_path(@client, @assessment), method: :delete, class: 'btn btn-secondary btn-danger btn-sm', data: {confirm: "Are you sure you want to delete this THRIVE?"} do
+        %i.icon-cross
+        Delete THRIVE
+
 .row
   .col
     - if @assessment.decline_to_answer?
