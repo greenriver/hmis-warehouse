@@ -129,8 +129,8 @@ module Types
       when 'REFERRAL_RESULT_TYPES'
         # ::HudLists.referral_result_map
         [
-          { code: 'unsuccessful_referral_client_rejected', label: 'Client Rejected' },
-          { code: 'unsuccessful_referral_provider_rejected', label: 'Provider Rejected' },
+          { code: 'UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED', label: 'Client Rejected' },
+          { code: 'UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED', label: 'Provider Rejected' },
         ]
       end
     end

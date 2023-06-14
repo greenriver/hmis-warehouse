@@ -48,6 +48,10 @@ module Types
     # posting was accepted.
     field :hoh_enrollment, HmisSchema::Enrollment, null: true
 
+    def referral_result
+      object.referral_result_before_type_cast
+    end
+
     def hoh_member
       object.referral.household_members.detect(&:self_head_of_household?)
     end
