@@ -25,6 +25,12 @@ module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
+    # map from HudLists.referral_result_map to implementation-specific codes
+    REFERRAL_RESULT_CODE_MAP = {
+      2 => 158, # 158 Unsuccessful referral: client rejected
+      3 => 159, # 159 Unsuccessful referral: provider rejected
+    }.freeze
+
     # @param posting_id [Integer]  HmisExternalApis::AcHmis::ReferralPosting.identifier
     # @param posting_status_id [Integer] new status
     # @param requested_by [String]
@@ -34,11 +40,10 @@ module HmisExternalApis::AcHmis
     # @param status_note [String]
     # @param contact_date [String] required when Posting status is Denied Pending or Accepted Pending
     def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denial_note: nil, status_note: nil, contact_date: nil, referral_result_id: nil)
-
       payload = {
         posting_id: posting_id,
         posting_status_id: posting_status_id,
-        referral_result_id: referral_result_id,
+        referral_result_id: REFERRAL_RESULT_CODE_MAP[referral_result_id],
         denied_reason_id: denied_reason_id,
         denial_note: denial_note,
         status_note: status_note,
