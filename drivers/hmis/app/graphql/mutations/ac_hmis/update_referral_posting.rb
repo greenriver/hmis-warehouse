@@ -64,8 +64,9 @@ module Mutations
       posting.reload # reload as posting may have been updated from API response
 
       # resend original referral request
-      if posting_status_change == ['denied_pending_status', 'denied_status'] && input.re_request
+      if posting_status_change == ['denied_pending_status', 'denied_status'] && input.resend_referral_request
         raise unless posting.from_link?
+        raise unless posting.referral_request_id
 
         new_request = posting.referral_request.dup
         HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(new_request)
@@ -76,7 +77,7 @@ module Mutations
     protected
 
     def send_update(posting)
-      # Contact date should only be present when chaing to AcceptedPending or DeniedPending
+      # Contact date should only be present when changing to AcceptedPending or DeniedPending
       contact_date = ['accepted_pending_status', 'denied_pending_status'].include?(posting.status) ? Time.current : nil
 
       HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(

@@ -101,10 +101,15 @@ module Types
           }
         end
       when 'DENIED_PENDING_REFERRAL_POSTING_STATUSES'
+        label_map = {
+          'assigned_status' => 'Send Back',
+          'denied_status' => 'Approve Denial',
+          'denied_pending_status' => 'Denied Pending',
+        }
         HmisExternalApis::AcHmis::ReferralPosting::DENIAL_STATUSES.map do |status|
           {
             code: status,
-            label: status.gsub(/_status\z/, '').humanize.titleize,
+            label: label_map.fetch(status),
           }
         end
       when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'

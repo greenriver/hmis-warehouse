@@ -11,12 +11,12 @@ module Types
     argument :denial_reason, ID, required: false
     argument :denial_note, String, required: false
     argument :referral_result, ID, required: false
-    argument :re_request, Boolean, required: false
+    argument :resend_referral_request, Boolean, required: false
 
     def to_params
-      # re_request is not a posting attribute. It's on the input because
+      # resend_referral_request is not a posting attribute. It's on the input because
       # we are have to include it in the form
-      result = to_h.except(:re_request)
+      result = to_h.except(:resend_referral_request)
       result[:referral_result] = referral_result.downcase if result[:referral_result]
       result
     end

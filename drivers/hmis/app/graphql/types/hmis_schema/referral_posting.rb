@@ -41,7 +41,8 @@ module Types
     field :denial_note, String
     field :referred_from, String, null: false
     field :unit_type, HmisSchema::UnitTypeObject, null: false
-    field :organization_name, String, null: true
+    field :project, HmisSchema::Project, null: true
+    field :organization, HmisSchema::Organization, null: true
 
     # If this posting has been accepted, this is the enrollment for the HoH at the enrolled household.
     # This enrollment is NOT necessarily the same as the `hoh_name`, because the HoH may have changed after
@@ -53,7 +54,7 @@ module Types
     end
 
     def hoh_member
-      object.referral.household_members.detect(&:self_head_of_household?)
+      household_members.detect(&:self_head_of_household?)
     end
 
     def hoh_name
@@ -71,19 +72,19 @@ module Types
     end
 
     def household_members
-      object.referral.household_members
+      referral.household_members
     end
 
     def household_size
-      object.referral.household_members.size
+      household_members.size
     end
 
     def referred_from
-      object.project&.project_name || 'Coordinated Entry'
+      project&.project_name || 'Coordinated Entry'
     end
 
-    def organization_name
-      object.project&.organization&.organization_name
+    def organization
+      project&.organization
     end
 
     def status
@@ -99,17 +100,26 @@ module Types
     end
 
     def referral_identifier
-      object.referral.identifier
+      referral.identifier
     end
 
     def referred_by
-      object.referral.service_coordinator
+      referral.service_coordinator
     end
 
     [:referral_date, :referral_notes, :chronic, :score, :needs_wheelchair_accessible_unit].each do |name|
       define_method(name) do
-        object.referral.send(name)
+        referral.send(name)
       end
     end
+
+    def project
+      object.project
+    end
+
+    def referral
+      object.referral
+    end
+
   end
 end

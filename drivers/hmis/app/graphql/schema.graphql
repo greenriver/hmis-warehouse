@@ -4883,8 +4883,9 @@ type ReferralPosting {
   householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
-  organizationName: String
+  organization: Organization
   postingIdentifier: ID
+  project: Project
   referralDate: ISO8601DateTime!
   referralIdentifier: ID
   referralNotes: String
@@ -4906,8 +4907,8 @@ type ReferralPosting {
 input ReferralPostingInput {
   denialNote: String
   denialReason: ID
-  reRequest: Boolean
   referralResult: ID
+  resendReferralRequest: Boolean
   status: ID
   statusNote: String
 }
