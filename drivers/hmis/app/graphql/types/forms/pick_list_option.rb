@@ -108,7 +108,24 @@ module Types
           }
         end
       when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'
-        [] # tbd
+        [
+          {
+            "code": "3",
+            "label": "No Show"
+          },
+          {
+            "code": "17",
+            "label": "Vacancy no longer exit-pending"
+          },
+          {
+            "code": "18",
+            "label": "Household Enrolled but Refused HMIS"
+          },
+          {
+            "code": "19",
+            "label": "Estimated vacancy no longer available"
+          }
+        ]
       when 'REFERRAL_RESULT_TYPES'
         # ::HudLists.referral_result_map
         [
