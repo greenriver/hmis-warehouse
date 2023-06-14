@@ -453,6 +453,7 @@ type Client {
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
+  currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -462,6 +463,7 @@ type Client {
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   emailAddresses: [ClientContactPoint!]!
+  employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enrollments(filters: EnrollmentsForClientFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   externalIds: [ExternalIdentifier!]!
@@ -486,6 +488,7 @@ type Client {
   ssnDataQuality: SSNDataQuality!
   user: User
   veteranStatus: NoYesReasonsForMissingData!
+  youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
 }
 
 type ClientAccess {
@@ -970,6 +973,128 @@ type CreateUnitsPayload {
   clientMutationId: String
   errors: [ValidationError!]!
   units: [Unit!]
+}
+
+"""
+C3.B
+"""
+enum CurrentEdStatus {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Pursuing Associate's Degree
+  """
+  PURSUING_ASSOCIATE_S_DEGREE
+
+  """
+  (0) Pursuing a high school diploma or GED
+  """
+  PURSUING_A_HIGH_SCHOOL_DIPLOMA_OR_GED
+
+  """
+  (2) Pursuing Bachelor's Degree
+  """
+  PURSUING_BACHELOR_S_DEGREE
+
+  """
+  (3) Pursuing Graduate Degree
+  """
+  PURSUING_GRADUATE_DEGREE
+
+  """
+  (4) Pursuing other post-secondary credential
+  """
+  PURSUING_OTHER_POST_SECONDARY_CREDENTIAL
+}
+
+"""
+HUD Current Living Situation
+"""
+type CurrentLivingSituation {
+  client: Client!
+  currentLivingSituation: LivingSituation!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  enrollment: Enrollment!
+  id: ID!
+  informationDate: ISO8601Date!
+  leaseOwn60Day: NoYesReasonsForMissingData
+  leaveSituation14Days: NoYesReasonsForMissingData
+  locationDetails: String
+  movedTwoOrMore: NoYesReasonsForMissingData
+  resourcesToObtain: NoYesReasonsForMissingData
+  subsequentResidence: NoYesReasonsForMissingData
+  user: User
+  verifiedBy: String
+}
+
+type CurrentLivingSituationsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CurrentLivingSituation!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
+C3.2
+"""
+enum CurrentSchoolAttended {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (2) Currently enrolled and attending regularly (when school or the course is in session)
+  """
+  CURRENTLY_ENROLLED_AND_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION
+
+  """
+  (1) Currently enrolled but NOT attending regularly (when school or the course is in session)
+  """
+  CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (0) Not currently enrolled in any school or educational course
+  """
+  NOT_CURRENTLY_ENROLLED_IN_ANY_SCHOOL_OR_EDUCATIONAL_COURSE
 }
 
 type CustomDataElement {
@@ -1769,6 +1894,66 @@ enum DisabledDisplay {
   PROTECTED
 }
 
+"""
+HUD Employment Education
+"""
+type EmploymentEducation {
+  client: Client!
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  employed: NoYesReasonsForMissingData
+  employmentType: EmploymentType
+  enrollment: Enrollment!
+  id: ID!
+  informationDate: ISO8601Date!
+  lastGradeCompleted: LastGradeCompleted
+  notEmployedReason: NotEmployedReason
+  schoolStatus: SchoolStatus
+  user: User
+}
+
+type EmploymentEducationsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [EmploymentEducation!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
+R6.A
+"""
+enum EmploymentType {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (1) Full-time
+  """
+  FULL_TIME
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (2) Part-time
+  """
+  PART_TIME
+
+  """
+  (3) Seasonal / sporadic (including day labor)
+  """
+  SEASONAL_SPORADIC_INCLUDING_DAY_LABOR
+}
+
 enum EnableBehavior {
   ALL
   ANY
@@ -1852,6 +2037,7 @@ type Enrollment {
   client: Client!
   clientEnrolledInPath: NoYesMissing
   countOutreachReferralApproaches: Int
+  currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date
@@ -1862,6 +2048,7 @@ type Enrollment {
   disabilityGroups: [DisabilityGroup!]!
   disablingCondition: NoYesReasonsForMissingData
   eligibleForRhy: NoYesMissing
+  employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enrollmentCoc: String
   entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
@@ -1900,6 +2087,7 @@ type Enrollment {
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   unemploymentFam: NoYesMissing
   user: User
+  youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
 }
 
 type EnrollmentAccess {
@@ -3400,6 +3588,91 @@ Arbitrary JSON Type
 scalar JsonObject
 
 """
+R4.1
+"""
+enum LastGradeCompleted {
+  """
+  (11) Associate's degree
+  """
+  ASSOCIATE_S_DEGREE
+
+  """
+  (12) Bachelor's degree
+  """
+  BACHELOR_S_DEGREE
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (7) GED
+  """
+  GED
+
+  """
+  (2) Grades 5-6
+  """
+  GRADES_5_6
+
+  """
+  (3) Grades 7-8
+  """
+  GRADES_7_8
+
+  """
+  (4) Grades 9-11
+  """
+  GRADES_9_11
+
+  """
+  (5) Grade 12
+  """
+  GRADE_12
+
+  """
+  (13) Graduate degree
+  """
+  GRADUATE_DEGREE
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Less than grade 5
+  """
+  LESS_THAN_GRADE_5
+
+  """
+  (6) School program does not have grade levels
+  """
+  SCHOOL_PROGRAM_DOES_NOT_HAVE_GRADE_LEVELS
+
+  """
+  (10) Some college
+  """
+  SOME_COLLEGE
+
+  """
+  (14) Vocational certification
+  """
+  VOCATIONAL_CERTIFICATION
+}
+
+"""
 3.12.1
 """
 enum LivingSituation {
@@ -3716,6 +3989,71 @@ enum MonthsHomelessPastThreeYears {
   (109) 9
   """
   NUM_9
+}
+
+"""
+C3.A
+"""
+enum MostRecentEdStatus {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (6) Higher education: Dropped out
+  """
+  HIGHER_EDUCATION_DROPPED_OUT
+
+  """
+  (7) Higher education: Obtained a credential/degree
+  """
+  HIGHER_EDUCATION_OBTAINED_A_CREDENTIAL_DEGREE
+
+  """
+  (5) Higher education: Pursuing a credential but not currently attending
+  """
+  HIGHER_EDUCATION_PURSUING_A_CREDENTIAL_BUT_NOT_CURRENTLY_ATTENDING
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (2) K12: Dropped out
+  """
+  K12_DROPPED_OUT
+
+  """
+  (4) K12: Expelled
+  """
+  K12_EXPELLED
+
+  """
+  (0) K12: Graduated from high school
+  """
+  K12_GRADUATED_FROM_HIGH_SCHOOL
+
+  """
+  (1) K12: Obtained GED
+  """
+  K12_OBTAINED_GED
+
+  """
+  (3) K12: Suspended
+  """
+  K12_SUSPENDED
 }
 
 type Mutation {
@@ -4051,6 +4389,36 @@ enum NoYesReasonsForMissingData {
   (1) Yes
   """
   YES
+}
+
+"""
+R6.B
+"""
+enum NotEmployedReason {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Looking for work
+  """
+  LOOKING_FOR_WORK
+
+  """
+  (3) Not looking for work
+  """
+  NOT_LOOKING_FOR_WORK
+
+  """
+  (2) Unable to work
+  """
+  UNABLE_TO_WORK
 }
 
 """
@@ -5309,6 +5677,66 @@ type SaveAssessmentPayload {
   """
   clientMutationId: String
   errors: [ValidationError!]!
+}
+
+"""
+R5.1
+"""
+enum SchoolStatus {
+  """
+  (2) Attending school irregularly
+  """
+  ATTENDING_SCHOOL_IRREGULARLY
+
+  """
+  (1) Attending school regularly
+  """
+  ATTENDING_SCHOOL_REGULARLY
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (5) Dropped out
+  """
+  DROPPED_OUT
+
+  """
+  (7) Expelled
+  """
+  EXPELLED
+
+  """
+  (3) Graduated from high school
+  """
+  GRADUATED_FROM_HIGH_SCHOOL
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (4) Obtained GED
+  """
+  OBTAINED_GED
+
+  """
+  (6) Suspended
+  """
+  SUSPENDED
 }
 
 """
@@ -6572,4 +7000,32 @@ enum WhenDVOccurred {
   (1) Within the past three months
   """
   WITHIN_THE_PAST_THREE_MONTHS
+}
+
+"""
+HUD Youth Education Status
+"""
+type YouthEducationStatus {
+  client: Client!
+  currentEdStatus: CurrentEdStatus
+  currentSchoolAttend: CurrentSchoolAttended
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  enrollment: Enrollment!
+  id: ID!
+  informationDate: ISO8601Date!
+  mostRecentEdStatus: MostRecentEdStatus
+  user: User
+}
+
+type YouthEducationStatusesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [YouthEducationStatus!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
