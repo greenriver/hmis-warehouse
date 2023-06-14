@@ -46,9 +46,7 @@ module HmisExternalApis::AcHmis
     )
 
     DENIAL_STATUSES = ['assigned_status', 'denied_status', 'denied_pending_status'].freeze
-
     ASSIGNED_STATUSES = ['assigned_status', 'accepted_pending_status', 'denied_pending_status'].freeze
-    ASSIGNED_STATUS_IDS = statuses.values_at(*ASSIGNED_STATUSES).freeze
 
     validates :status, presence: true
     with_options on: :hmis_user_action do
@@ -59,7 +57,7 @@ module HmisExternalApis::AcHmis
     end
 
     with_options on: :hmis_admin_action do
-      validates :status, inclusion: { in: DENIAL_STATUSES }, on: :hmis_user_action
+      validates :status, inclusion: { in: DENIAL_STATUSES }
       validates :denial_note, presence: true, if: :denied_status?
       validates :referral_result, presence: true, if: :denied_status?
     end
