@@ -55,6 +55,7 @@ module PerformanceMeasurement::WarehouseReports
         :people,
         :capacity,
         :time_time,
+        :time_time_homeless_and_ph,
         :time_stay,
         :time_move_in,
         :destination,

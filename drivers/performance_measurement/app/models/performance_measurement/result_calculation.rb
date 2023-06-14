@@ -25,6 +25,7 @@ module PerformanceMeasurement::ResultCalculation
         progress <= - goal_value
       # less than or equal to goal
       when :time_time,
+        :time_time_homeless_and_ph,
         :time_stay,
         :time_move_in,
         :recidivism_6_months,
