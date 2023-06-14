@@ -1,4 +1,7 @@
 %h1 Care Plan / Patient-Centered Treatment Plan
+
+= f.input :initial_date, as: :date_picker, label: 'Initiation Date'
+
 %h2 Identifying Information
 .well
   = render 'field_section', f: f, fields: @careplan.identifying_information

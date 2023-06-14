@@ -40,7 +40,6 @@ module HealthPctp
     scope :editable, -> { where(patient_signed_on: nil) }
 
     alias_attribute :completed_at, :patient_signed_on
-    alias_attribute :initial_date, :created_at
     alias_attribute :careplan_sent_on, :sent_to_pcp_on
 
     def active?

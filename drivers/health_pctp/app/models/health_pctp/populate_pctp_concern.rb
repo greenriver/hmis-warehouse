@@ -15,6 +15,8 @@ module HealthPctp::PopulatePctpConcern
       tc = Health::UserCareCoordinator.find_by(care_coordinator_id: patient.care_coordinator.id)&.coordination_team&.team_coordinator
 
       update(
+        initial_date: Date.current,
+
         name: ca.name,
         dob: ca.dob,
         email: ca.email,
