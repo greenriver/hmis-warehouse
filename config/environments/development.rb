@@ -127,5 +127,4 @@ Rails.application.configure do
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
- config.action_controller.forgery_protection_origin_check = false
 end
