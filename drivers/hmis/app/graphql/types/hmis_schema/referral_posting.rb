@@ -12,7 +12,7 @@ module Types
 
     # Fields that come from Referral
     field :referral_identifier, ID
-    field :referral_date, GraphQL::Types::ISO8601Date, null: false
+    field :referral_date, GraphQL::Types::ISO8601DateTime, null: false
     field :referred_by, String, null: false
     field :referral_notes, String
     field :chronic, Boolean
@@ -28,13 +28,13 @@ module Types
     # Fields that come from Posting
     field :resource_coordinator_notes, String
     field :posting_identifier, ID, method: :identifier
-    field :assigned_date, GraphQL::Types::ISO8601Date, null: false, method: :created_at
+    field :assigned_date, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :referral_request, HmisSchema::ReferralRequest
     field :status, HmisSchema::Enums::ReferralPostingStatus, null: false
-    field :status_updated_at, GraphQL::Types::ISO8601Date
+    field :status_updated_at, GraphQL::Types::ISO8601DateTime
     field :status_updated_by, String
     field :status_note, String
-    field :status_note_updated_at, GraphQL::Types::ISO8601Date
+    field :status_note_updated_at, GraphQL::Types::ISO8601DateTime
     field :status_note_updated_by, String
     field :denial_reason, String
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult

@@ -13,7 +13,6 @@ module HmisExternalApis::AcHmis
 
     # post params to external api
     def post_referral_request(url, params)
-      # FIXME: add authentication
       response = Faraday.post(url, params)
       JSON.parse(response.body)
     end
@@ -39,6 +38,16 @@ module HmisExternalApis::AcHmis
         value
       end
       date&.strftime('%Y-%m-%d')
+    end
+
+    # @param date [Time, DateTime]
+    def format_datetime(value)
+      case value
+      when Time, DateTime
+        value.in_time_zone(Rails.configuration.time_zone).iso8601
+      else
+        value&.iso8601
+      end
     end
 
     # @param str [String]

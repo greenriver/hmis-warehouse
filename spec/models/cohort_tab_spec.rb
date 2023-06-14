@@ -6,7 +6,7 @@ RSpec.describe GrdaWarehouse::CohortTab, type: :model do
 
   describe 'Default tabs generate expected SQL' do
     it 'active query matches' do
-      query = '"cohort_clients"."housed_date" IS NULL AND "cohort_clients"."active" = TRUE AND ("cohort_clients"."destination" IS NULL OR "cohort_clients"."destination" = \'\') AND ("cohort_clients"."ineligible" IS NULL OR "cohort_clients"."ineligible" = FALSE)'
+      query = '(("cohort_clients"."destination" IS NULL OR "cohort_clients"."destination" = \'\') OR "cohort_clients"."housed_date" IS NULL) AND ("cohort_clients"."ineligible" IS NULL OR "cohort_clients"."ineligible" = FALSE) AND "cohort_clients"."active" = TRUE'
       rule = tab.class.default_rules.detect { |r| r[:name] == 'Active Clients' }
       expect(tab.rule_query(nil, rule[:rules]).to_sql).to eq(query)
     end

@@ -35,7 +35,7 @@ module HmisExternalApis::AcHmis
     # @param denied_reason_text [String]
     # @param status_note [String]
     # @param contact_date [String] required when Posting status is Denied Pending or Accepted Pending
-    def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denied_reason_text: nil, status_note: nil, contact_date: nil, referral_result_id: nil)
+    def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denial_note: nil, status_note: nil, contact_date: nil, referral_result_id: nil)
       raise "Invalid status. Expected one of: [#{VALID_STATUS_IDS.inspect}]" unless VALID_STATUS_IDS.include?(posting_status_id)
 
       payload = {
@@ -43,7 +43,7 @@ module HmisExternalApis::AcHmis
         posting_status_id: posting_status_id,
         referral_result_id: referral_result_id,
         denied_reason_id: denied_reason_id,
-        denied_reason_text: denied_reason_text,
+        denial_note: denial_note,
         status_note: status_note,
         contact_date: format_date(contact_date),
         requested_by: format_requested_by(requested_by),
