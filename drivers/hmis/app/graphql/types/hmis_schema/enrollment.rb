@@ -19,6 +19,7 @@ module Types
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasYouthEducationStatuses
     include Types::HmisSchema::HasEmploymentEducations
+    include Types::HmisSchema::HasCurrentLivingSituations
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
@@ -48,6 +49,7 @@ module Types
     health_and_dvs_field
     youth_education_statuses_field
     employment_educations_field
+    current_living_situations_field
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
