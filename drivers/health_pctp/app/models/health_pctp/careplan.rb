@@ -110,14 +110,18 @@ module HealthPctp
         "Please also consider the Enrollee's ability to adhere to treatment plans."
     end
 
-    def demographic_information
+    def demographic_information_1
       {
         scribe: ['Person completing this care plan', :string, nil],
         update_reason: ['Reason for Update', :select_two, update_reason_responses],
         sex_at_birth: [['Sex at Birth', 'What sex were you assigned at birth?'], :select_two, sex_at_birth_responses],
         gender: [['Gender Identity', 'What is your current gender identity?'], :select_two, gender_responses],
         orientation: [['Sexual Orientation', 'Do you think of yourself as:'], :select_two, orientation_responses],
-        race: ['Race', :select_two, race_responses],
+      }
+    end
+
+    def demographic_information_2
+      {
         ethnicity: ['Ethnicity', :select_two, ethnicity_responses],
         language: ['Language', :select_two, language_responses],
         contact: ['Preferred method of contact', :select_two, contact_responses],

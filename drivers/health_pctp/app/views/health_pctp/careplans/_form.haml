@@ -25,7 +25,9 @@
 
 %h2 Demographic Information
 .well
-  = render 'field_section', f: f, fields: @careplan.demographic_information
+  = render 'field_section', f: f, fields: @careplan.demographic_information_1
+  = f.input :race, as: :select_two, collection: @careplan.race_responses, input_html: {multiple: true}
+  = render 'field_section', f: f, fields: @careplan.demographic_information_2
 
 %h2 Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
 .well

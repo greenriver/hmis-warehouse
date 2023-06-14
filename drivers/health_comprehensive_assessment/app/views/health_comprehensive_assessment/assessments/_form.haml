@@ -4,6 +4,7 @@
 
 %h2#section-demographic-information Demographic Information
 .well
+  = f.input :race, as: :select_two, collection: @assessment.race_responses, input_html: {multiple: true}
   = render 'field_section', f: f, fields: @assessment.demographic_information
 
 %h2#section-immediate-care-needs Immediate care needs and current services

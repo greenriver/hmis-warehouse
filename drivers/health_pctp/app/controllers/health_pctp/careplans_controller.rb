@@ -52,12 +52,14 @@ module HealthPctp
     end
 
     GROUP_PARAMS = [
+      :race,
       :accommodation_types,
       :accessibility_equipment,
     ].freeze
 
     private def careplan_params
       permitted_cols = ::HealthPctp::Careplan.column_names.map(&:to_sym) -
+        GROUP_PARAMS -
         [:id, :user_id, :patient_id, :created_at, :updated_at] # Deny protected columns, be careful adding new columns!
 
       permitted_cols -= [:reviewed_by_ccm_id, :reviewed_by_ccm_on] unless current_user.can_approve_cha?

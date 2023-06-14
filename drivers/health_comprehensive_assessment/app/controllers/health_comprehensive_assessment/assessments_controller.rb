@@ -49,11 +49,13 @@ module HealthComprehensiveAssessment
       :anxiety_status, :bipolar_status, :depression_status, :schizophrenia_status, :cancer_status, :diabetes_status,
       :arthritis_status, :ckd_status, :liver_status, :transplant_status, :weight_status, :other_condition_status,
       :can_communicate_about, :assessed_needs, :substance_use, :sud_treatment_sources, :accessibility_equipment,
-      :has_supports, :supports, :advanced_directive, :has_legal_involvement, :legal_involvements, :financial_supports
+      :has_supports, :supports, :advanced_directive, :has_legal_involvement, :legal_involvements, :financial_supports,
+      :race
     ].freeze
 
     def ca_params
       permitted_cols = ::HealthComprehensiveAssessment::Assessment.column_names.map(&:to_sym) -
+        GROUP_PARAMS -
         [:id, :user_id, :patient_id, :reviewed_by_id, :reviewed_on, :created_at, :updated_at] # Deny protected columns, be careful adding new columns!
 
       permitted_group_cols = GROUP_PARAMS.map { |key| [key, []] }.to_h
