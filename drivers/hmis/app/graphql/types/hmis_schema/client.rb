@@ -15,6 +15,7 @@ module Types
     include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasYouthEducationStatuses
+    include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasAuditHistory
@@ -55,6 +56,7 @@ module Types
     disability_groups_field
     health_and_dvs_field
     youth_education_statuses_field
+    employment_educations_field
     assessments_field
     services_field
     files_field
