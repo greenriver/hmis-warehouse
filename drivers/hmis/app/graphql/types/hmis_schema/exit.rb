@@ -18,7 +18,40 @@ module Types
     field :user, HmisSchema::User, null: true
     hud_field :exit_date, null: false
     hud_field :destination, Types::HmisSchema::Enums::Hud::Destination, null: false
+    hud_field :destination_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :other_destination
+    hud_field :housing_assessment, Types::HmisSchema::Enums::Hud::HousingAssessmentAtExit
+    hud_field :subsidy_information, Types::HmisSchema::Enums::Hud::SubsidyInformation
+    hud_field :project_completion_status, Types::HmisSchema::Enums::Hud::ProjectCompletionStatus
+    hud_field :early_exit_reason, Types::HmisSchema::Enums::Hud::ExpelledReason
+    hud_field :exchange_for_sex, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :exchange_for_sex_past_three_months, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :count_of_exchange_for_sex, Types::HmisSchema::Enums::Hud::CountExchangeForSex
+    hud_field :asked_or_forced_to_exchange_for_sex, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :asked_or_forced_to_exchange_for_sex_past_three_months, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :workplace_violence_threats, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :workplace_promise_difference, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :coerced_to_continue_work, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :labor_exploit_past_three_months, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :counseling_received, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :individual_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :family_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :group_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :session_count_at_exit, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :post_exit_counseling_plan, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :sessions_in_plan, Int
+    hud_field :destination_safe_client, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :destination_safe_worker, Types::HmisSchema::Enums::Hud::WorkerResponse
+    hud_field :pos_adult_connections, Types::HmisSchema::Enums::Hud::WorkerResponse
+    hud_field :pos_peer_connections, Types::HmisSchema::Enums::Hud::WorkerResponse
+    hud_field :pos_community_connections, Types::HmisSchema::Enums::Hud::WorkerResponse
+    hud_field :aftercare_date, GraphQL::Types::ISO8601Date
+    hud_field :aftercare_provided, Types::HmisSchema::Enums::Hud::AftercareProvided
+    hud_field :email_social_media, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :telephone, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :in_person_individual, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :in_person_group, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :cm_exit_reason, Types::HmisSchema::Enums::Hud::CmExitReason
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
