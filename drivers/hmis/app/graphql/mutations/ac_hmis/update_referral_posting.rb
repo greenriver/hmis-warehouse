@@ -54,7 +54,6 @@ module Mutations
       # * the referral came from link
       # * status has changed (status will be unchanged if user just updated note)
       send_update(posting) if posting.from_link? && posting_status_change.present?
-      posting.reload # reload as posting may have been updated from API response
       { record: posting }
     end
 
