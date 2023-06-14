@@ -18,6 +18,10 @@ module HealthPctp
     belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, optional: true
 
+    belongs_to :reviewed_by_ccm, optional: true, class_name: 'User'
+    belongs_to :reviewed_by_rn, optional: true, class_name: 'User'
+    belongs_to :sent_to_pcp_by, optional: true, class_name: 'User'
+
     has_many :needs, dependent: :destroy
     has_many :care_goal_details, class_name: 'CareGoal', dependent: :destroy
 
@@ -41,6 +45,16 @@ module HealthPctp
 
     alias_attribute :completed_at, :patient_signed_on
     alias_attribute :careplan_sent_on, :sent_to_pcp_on
+
+    attr_accessor :review_by_ccm_complete
+    attr_accessor :review_by_rn_complete
+    attr_accessor :was_sent_to_pcp
+
+    after_find do
+      self.review_by_ccm_complete = reviewed_by_ccm_on.present?
+      self.review_by_rn_complete = reviewed_by_rn_on.present?
+      self.was_sent_to_pcp = sent_to_pcp_on.present?
+    end
 
     def active?
       completed? && patient_signed_on >= 1.years.ago

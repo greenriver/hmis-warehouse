@@ -12,11 +12,14 @@
   = f.input :offered_services_choice_care_planning, as: :pretty_boolean, label: 'The Assigned or Engaged Enrollee has been provided choice in CP services/programs during the care planning process'
   = f.input :offered_provider_choice_care_planning, as: :pretty_boolean, label: 'The Assigned or Engaged Enrollee has been provided choice in available CP providers during the care planning process'
   = f.input :received_recommendations, as: :pretty_boolean, label: 'The Engaged Enrollee was informed of recommended services for which they may be clinically eligible, subject to prior authorization where applicable'
-
-%h3 The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager
-.well
   = f.input :offered_services_choice_treatment_planning, as: :pretty_boolean, label: 'The Engaged Enrollee has been provided choice in services and providers during the treatment planning process'
-  = f.input :reviewed_by_ccm_on, as: :date_picker, label: 'Date of approval', hint: 'By approving this record, you agree that the above information is true to the best of your knowledge'
+
+.well
+  - if current_user.can_approve_cha?
+    %h4 By approving this record, you agree that the above information is true to the best of your knowledge
+    = f.input :review_by_ccm_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager'
+  - if @careplan.review_by_ccm_complete
+    = "Reviewed by #{@careplan.reviewed_by_ccm.name} on #{@careplan.reviewed_by_ccm_on}"
 
 %h3 Enrollee Rights
 .well
@@ -28,11 +31,15 @@
   = f.input :right_to_complain, as: :pretty_boolean, label: "The right to submit an internal Grievance to the Contractor and the Contractor's internal Grievances procedure"
   = f.input :right_to_ombudsman, as: :pretty_boolean, label: 'The right to access Ombudsman  services'
 
-%h3 The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)
 .well
-  = f.input :reviewed_by_rn_on, as: :date_picker, label: 'Date of approval'
+  - if current_user.can_approve_careplan
+    = f.input :review_by_rn_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)'
+  - if @careplan.review_by_rn_complete
+    = "Reviewed by #{@careplan.reviewed_by_rn.name} on #{@careplan.reviewed_by_rn_on}"
 
 %h3 Document delivery
 .well
   = f.input :provided_to_patient, as: :pretty_boolean, label: 'The Enrollee was provided a copy of the plan'
-  = f.input :sent_to_pcp_on, as: :date_picker, label: 'The careplan was sent to the PCP on'
+  = f.input :was_sent_to_pcp, as: :pretty_boolean, label: 'The careplan was sent to the PCP'
+  - if @careplan.was_sent_to_pcp
+    = "Sent by #{@careplan.sent_to_pcp_by.name} on #{@careplan.sent_to_pcp_on}"
