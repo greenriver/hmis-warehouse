@@ -25,7 +25,7 @@ module Health
     end
 
     scope :completed, -> do
-      completed_within(.. Date.current)
+      completed_within(.. Date.current.end_of_day)
     end
 
     scope :incomplete, -> do

@@ -53,7 +53,7 @@ module Health
     end
 
     scope :completed, -> do
-      completed_within(.. Date.current)
+      completed_within(.. Date.current.end_of_day)
     end
 
     scope :incomplete, -> do
@@ -61,7 +61,7 @@ module Health
     end
 
     scope :rn_approved, -> do
-      reviewed_within(.. Date.current)
+      reviewed_within(.. Date.current.end_of_day)
     end
 
     scope :completed_within, ->(range) do
