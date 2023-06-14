@@ -60,6 +60,8 @@ module HmisExternalApis::AcHmis
       validates :status, inclusion: { in: DENIAL_STATUSES }
       validates :denial_note, presence: true, if: :denied_status?
       validates :referral_result, presence: true, if: :denied_status?
+      validates :denial_reason, presence: true, if: :denied_pending_status?
+      validates :denial_note, length: { maximum: 2_000 }
     end
 
     before_create do
