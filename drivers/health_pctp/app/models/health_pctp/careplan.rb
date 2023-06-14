@@ -7,6 +7,7 @@
 module HealthPctp
   class Careplan < HealthBase
     include Rails.application.routes.url_helpers
+    include HealthPctp::PopulatePctpConcern
 
     acts_as_paranoid
 

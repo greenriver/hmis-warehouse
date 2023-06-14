@@ -16,7 +16,10 @@ module HealthPctp
       @careplan = if @patient.pctps.in_progress.exists?
         @patient.pctps.in_progress.first
       else
-        @patient.pctps.create!(user: current_user)
+        pctp = @patient.pctps.create!(user: current_user)
+        pctp.populate_from_ca(current_user)
+        @patient.pctp_careplans.create(instrument: pctp)
+        pctp
       end
       redirect_to edit_client_health_pctp_careplan_path(@client, @careplan)
     end
@@ -43,6 +46,7 @@ module HealthPctp
     end
 
     def destroy
+      @patient.pctp_careplans.find_by(instrument: @careplan)&.destroy
       @careplan.destroy
       respond_with @careplan, location: client_health_careplans_path(@client)
     end

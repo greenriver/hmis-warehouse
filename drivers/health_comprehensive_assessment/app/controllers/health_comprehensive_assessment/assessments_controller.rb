@@ -37,7 +37,7 @@ module HealthComprehensiveAssessment
     end
 
     def destroy
-      @patient.ca_assessments.find_by(instrument: @assessment).destroy
+      @patient.ca_assessments.find_by(instrument: @assessment)&.destroy
       @assessment.destroy
       respond_with @assessment, location: client_health_careplans_path(@client)
     end

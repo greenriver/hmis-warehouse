@@ -9,11 +9,11 @@ module HealthComprehensiveAssessment::PopulateAssessmentConcern
 
   included do
     def populate_from_patient
-      pcp = provider.team_members.detect { |member| member.is_a?(Health::Team::Provider) || member.is_a?(Health::Team::PcpDesignee) }
+      pcp = patient.team_members.detect { |member| member.is_a?(Health::Team::Provider) || member.is_a?(Health::Team::PcpDesignee) }
 
       update(
         name: patient.name,
-        dob: patient.dob,
+        dob: patient.birthdate,
         disabled: patient.client.currently_disabled? ? 'yes' : 'no',
         pcp_provider: pcp&.full_name,
         pcp_address: pcp&.email,
