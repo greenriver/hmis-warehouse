@@ -45,7 +45,7 @@ module HmisExternalApis::AcHmis
         denied_reason_id: denied_reason_id,
         denial_notes: denial_note,
         status_note: status_note,
-        contact_date: format_date(contact_date),
+        contact_date: format_datetime(contact_date),
         requested_by: format_requested_by(requested_by),
       }.compact_blank
 
