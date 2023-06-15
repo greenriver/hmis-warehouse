@@ -50,6 +50,7 @@ module HmisExternalApis::AcHmis
     protected
 
     def handle_error(result)
+      Sentry.capture_exception(result.error) if result.error
       raise HmisErrors::ApiError, result.error if result.error
 
       result
@@ -60,14 +61,7 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(
-        client_id: creds.client_id,
-        client_secret: creds.client_secret,
-        token_url: creds.token_url,
-        base_url: creds.base_url,
-        headers: creds.additional_headers,
-        scope: creds.oauth_scope,
-      )
+      @conn ||= HmisExternalApis::OauthClientConnection.new(creds)
     end
 
     # @param payload [Hash]

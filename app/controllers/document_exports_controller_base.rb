@@ -77,6 +77,8 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::DocumentExports::ProjectTypePerformanceExport',
       'CoreDemographicsReport::DocumentExports::CoreDemographicsExport',
       'CoreDemographicsReport::DocumentExports::CoreDemographicsExcelExport',
+      'CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExport',
+      'CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExcelExport',
       'ProjectPassFail::DocumentExports::ProjectPassFailExport',
       'GrdaWarehouse::DocumentExports::BasePerformanceExport',
       'Health::DocumentExports::HousingStatusChangesExport',
