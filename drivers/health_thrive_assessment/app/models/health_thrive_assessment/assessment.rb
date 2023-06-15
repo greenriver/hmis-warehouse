@@ -41,8 +41,8 @@ module HealthThriveAssessment
 
     def positive_sdoh?
       at_risk? || homeless? ||
-        sometimes_food_insecurity? || often_food_insecurity? ||
-        sometimes_food_worries? || often_food_worries? ||
+        food_insecurity_sometimes? || food_insecurity_often? ||
+        food_worries_sometimes? || food_worries_often? ||
         trouble_drug_cost == 'yes' ||
         trouble_medical_transportation == 'yes' ||
         trouble_utility_cost == 'yes' ||
