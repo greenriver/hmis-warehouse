@@ -7,6 +7,17 @@
       "field_name": "id"
     },
     {
+      "type": "DATE",
+      "link_id": "today",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$today"
+        }
+      ]
+    },
+    {
       "fragment": "#client_names"
     },
     {
