@@ -14,6 +14,7 @@ module HmisDataQualityTool::WarehouseReports
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
     before_action :set_report, only: [:show, :by_client, :destroy, :details, :items]
     before_action :set_pdf_export, only: [:show]
+    before_action :set_excel_export, only: [:show]
 
     def index
       @pagy, @reports = pagy(report_scope.diet.ordered)
@@ -117,6 +118,10 @@ module HmisDataQualityTool::WarehouseReports
 
     private def set_pdf_export
       @pdf_export = HmisDataQualityTool::DocumentExports::ReportExport.new
+    end
+
+    private def set_excel_export
+      @excel_export = HmisDataQualityTool::DocumentExports::ReportExcelExport.new
     end
 
     # Since this report uses the hud version of report instance, and it isn't STI
