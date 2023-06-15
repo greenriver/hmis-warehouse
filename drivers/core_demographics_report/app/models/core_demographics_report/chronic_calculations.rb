@@ -65,13 +65,14 @@ module
     private def chronic_clients
       @chronic_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
+          clients[:client] = Set.new
+          clients[:household] = Set.new
           report_scope.distinct.
             joins(enrollment: :ch_enrollment).
             merge(GrdaWarehouse::ChEnrollment.chronically_homeless).
             order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc
             pluck(:client_id, :first_date_in_program).
             each do |client_id, _|
-              clients[:client] ||= Set.new
               clients[:client] << client_id
             end
           hoh_scope.distinct.
@@ -80,7 +81,6 @@ module
             order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc
             pluck(:client_id, :first_date_in_program).
             each do |client_id, _|
-              clients[:household] ||= Set.new
               clients[:household] << client_id
             end
         end

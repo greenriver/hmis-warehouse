@@ -177,14 +177,7 @@ module HmisExternalApis::AcHmis
     private
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(
-        client_id: creds.client_id,
-        client_secret: creds.client_secret,
-        token_url: creds.token_url,
-        base_url: creds.base_url,
-        headers: creds.additional_headers,
-        scope: creds.oauth_scope,
-      )
+      @conn ||= HmisExternalApis::OauthClientConnection.new(creds)
     end
 
     def client_scope

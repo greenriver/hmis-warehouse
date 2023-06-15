@@ -22,5 +22,5 @@
             - id = :client
             %tr
               %th Unsheltered and Active in Street Outreach
-              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.chronic_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "chronic_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
-              %td= number_to_percentage(report.chronic_percentage(id), precision: 2)
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.unsheltered_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "unsheltered_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= number_to_percentage(report.unsheltered_percentage(id), precision: 2)
