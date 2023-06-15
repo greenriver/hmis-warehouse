@@ -35,8 +35,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
-  has_many :youth_education_statuses, **hmis_relation(:PersonalID, 'YouthEducationStatus'), dependent: :destroy
-  has_many :employment_educations, **hmis_relation(:PersonalID, 'EmploymentEducation'), dependent: :destroy
+  has_many :youth_education_statuses, through: :enrollments
+  has_many :employment_educations, through: :enrollments
   has_many :households, through: :enrollments
   has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
