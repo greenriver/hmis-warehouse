@@ -2551,8 +2551,8 @@ type Exit {
   subsidyInformation: SubsidyInformation
   telephone: NoYesMissing
   user: User
+  workPlaceViolenceThreats: NoYesReasonsForMissingData
   workplacePromiseDifference: NoYesReasonsForMissingData
-  workplaceViolenceThreats: NoYesReasonsForMissingData
 }
 
 """
