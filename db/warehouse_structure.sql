@@ -538,8 +538,7 @@ CREATE TABLE public."Client" (
     sexual_orientation character varying,
     health_housing_navigator_id bigint,
     encampment_decomissioned boolean DEFAULT false NOT NULL,
-    va_verified_veteran boolean DEFAULT false,
-    preferred_name character varying
+    va_verified_veteran boolean DEFAULT false
 );
 
 
