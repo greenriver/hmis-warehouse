@@ -36,7 +36,7 @@ module HealthThriveAssessment
     end
 
     def destroy
-      @patient.hrsn_screenings.find_by(instrument: @assessment).destroy
+      @patient.hrsn_screenings.find_by(instrument: @assessment)&.destroy
       @assessment.destroy
       respond_with @assessment, location: client_health_careplans_path(@client)
     end

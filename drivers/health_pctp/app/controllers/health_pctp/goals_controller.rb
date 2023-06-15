@@ -18,11 +18,11 @@ module HealthPctp
 
     def new
       @modal_size = :xxl
-      @goal = @careplan.care_goals.build
+      @goal = @careplan.care_goal_details.build
     end
 
     def create
-      @goal = @careplan.care_goals.create(goals_params)
+      @goal = @careplan.care_goal_details.create(goals_params)
     end
 
     def edit
@@ -62,7 +62,7 @@ module HealthPctp
     end
 
     private def set_goal
-      @goal = @careplan.care_goals.find(params[:id])
+      @goal = @careplan.care_goal_details.find(params[:id])
     end
   end
 end

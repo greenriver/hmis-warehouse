@@ -2850,7 +2850,7 @@ CREATE TABLE public.hca_assessments (
     contact_other character varying,
     message_ok character varying,
     internet_access character varying,
-    race character varying,
+    race jsonb,
     ethnicity character varying,
     language character varying,
     disabled character varying,
@@ -4398,7 +4398,7 @@ CREATE TABLE public.pctp_careplans (
     gender_other character varying,
     orientation character varying,
     orientation_other character varying,
-    race character varying,
+    race jsonb,
     ethnicity character varying,
     language character varying,
     contact character varying,
@@ -4443,7 +4443,8 @@ CREATE TABLE public.pctp_careplans (
     sent_to_pcp_by_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    initial_date date
 );
 
 
@@ -9104,6 +9105,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230612180417'),
 ('20230612200614'),
 ('20230613185511'),
-('20230613201311');
+('20230613201311'),
+('20230614191047'),
+('20230614194646');
 
 

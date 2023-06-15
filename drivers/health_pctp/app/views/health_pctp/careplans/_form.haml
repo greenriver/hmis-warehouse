@@ -1,5 +1,9 @@
 %h1 Care Plan / Patient-Centered Treatment Plan
-%h2 Identifying Information
+
+= f.input :initial_date, as: :date_picker, label: 'Initiation Date'
+= "By #{@careplan.user.name}"
+
+%h2.mt-4 Identifying Information
 .well
   = render 'field_section', f: f, fields: @careplan.identifying_information
 
@@ -25,7 +29,9 @@
 
 %h2 Demographic Information
 .well
-  = render 'field_section', f: f, fields: @careplan.demographic_information
+  = render 'field_section', f: f, fields: @careplan.demographic_information_1
+  = f.input :race, as: :select_two, collection: @careplan.race_responses, input_html: {multiple: true}
+  = render 'field_section', f: f, fields: @careplan.demographic_information_2
 
 %h2 Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
 .well
@@ -40,9 +46,9 @@
 
 %h2 Accessibility Requirements and Equipment Needs
 .well
-  = f.input :accessibility_needs, as: :pretty_boolean_group, collection: @careplan.yes_no
-  = f.input :accommodation_types, as: :pretty_boolean_group, collection:@careplan.accommodation_responses, multiple: true
-  = f.input :accessibility_equipment, as: :select_two, collection: @careplan.accessibility_equipment_responses, input_html: { multiple: true }
+  = f.input :accessibility_needs, as: :pretty_boolean_group, collection: @careplan.yes_no, label: 'Does the Enrollee have accessibility requirements including but not limited to communication, transportation, and equipment needs?'
+  = f.input :accommodation_types, as: :pretty_boolean_group, collection:@careplan.accommodation_responses, multiple: true, label: 'Accomodation Type'
+  = f.input :accessibility_equipment, as: :select_two, collection: @careplan.accessibility_equipment_responses, input_html: { multiple: true }, label: 'Equipment'
   = f.input :accessibility_equipment_notes, as: :text, label: 'Comments'
   = f.input :accessibility_equipment_start, as: :date_picker, label: 'Start Date'
   = f.input :accessibility_equipment_end, as: :date_picker, label: 'End Date'

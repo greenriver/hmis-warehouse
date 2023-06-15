@@ -70,7 +70,6 @@ module HealthComprehensiveAssessment
 
     def demographic_information
       {
-        race: ['Race', :select_two, race_responses],
         ethnicity: ['Ethnicity', :select_two, ethnicity_responses],
         language: ['Language', :select_two, language_responses],
         disabled: ['Disability Status', :pretty_boolean_group, yes_no],

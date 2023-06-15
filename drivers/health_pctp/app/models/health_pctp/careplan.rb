@@ -7,6 +7,7 @@
 module HealthPctp
   class Careplan < HealthBase
     include Rails.application.routes.url_helpers
+    include HealthPctp::PopulatePctpConcern
 
     acts_as_paranoid
 
@@ -16,6 +17,10 @@ module HealthPctp
 
     belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, optional: true
+
+    belongs_to :reviewed_by_ccm, optional: true, class_name: 'User'
+    belongs_to :reviewed_by_rn, optional: true, class_name: 'User'
+    belongs_to :sent_to_pcp_by, optional: true, class_name: 'User'
 
     has_many :needs, dependent: :destroy
     has_many :care_goal_details, class_name: 'CareGoal', dependent: :destroy
@@ -39,8 +44,17 @@ module HealthPctp
     scope :editable, -> { where(patient_signed_on: nil) }
 
     alias_attribute :completed_at, :patient_signed_on
-    alias_attribute :initial_date, :created_at
     alias_attribute :careplan_sent_on, :sent_to_pcp_on
+
+    attr_accessor :review_by_ccm_complete
+    attr_accessor :review_by_rn_complete
+    attr_accessor :was_sent_to_pcp
+
+    after_find do
+      self.review_by_ccm_complete = reviewed_by_ccm_on.present?
+      self.review_by_rn_complete = reviewed_by_rn_on.present?
+      self.was_sent_to_pcp = sent_to_pcp_on.present?
+    end
 
     def active?
       completed? && patient_signed_on >= 1.years.ago
@@ -109,14 +123,18 @@ module HealthPctp
         "Please also consider the Enrollee's ability to adhere to treatment plans."
     end
 
-    def demographic_information
+    def demographic_information_1
       {
         scribe: ['Person completing this care plan', :string, nil],
         update_reason: ['Reason for Update', :select_two, update_reason_responses],
         sex_at_birth: [['Sex at Birth', 'What sex were you assigned at birth?'], :select_two, sex_at_birth_responses],
         gender: [['Gender Identity', 'What is your current gender identity?'], :select_two, gender_responses],
         orientation: [['Sexual Orientation', 'Do you think of yourself as:'], :select_two, orientation_responses],
-        race: ['Race', :select_two, race_responses],
+      }
+    end
+
+    def demographic_information_2
+      {
         ethnicity: ['Ethnicity', :select_two, ethnicity_responses],
         language: ['Language', :select_two, language_responses],
         contact: ['Preferred method of contact', :select_two, contact_responses],

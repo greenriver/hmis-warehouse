@@ -16,7 +16,10 @@ module HealthPctp
       @careplan = if @patient.pctps.in_progress.exists?
         @patient.pctps.in_progress.first
       else
-        @patient.pctps.create!(user: current_user)
+        pctp = @patient.pctps.create!(user: current_user)
+        pctp.populate_from_ca(current_user)
+        @patient.pctp_careplans.create(instrument: pctp)
+        pctp
       end
       redirect_to edit_client_health_pctp_careplan_path(@client, @careplan)
     end
@@ -25,13 +28,16 @@ module HealthPctp
     end
 
     def update
+      old_ccm_status = @careplan.review_by_ccm_complete
+      old_rn_status = @careplan.review_by_rn_complete
+      old_delivered_status = @careplan.was_sent_to_pcp
       @careplan.assign_attributes(careplan_params)
-      ccm_reviewed = @careplan.reviewed_by_ccm_on.present? && @careplan.reviewed_by_ccm_on_changed?
-      rn_reviewed = @careplan.reviewed_by_rn_on.present? && @careplan.reviewed_by_rn_on_changed?
+
+      boolean_toggled(old_ccm_status, @careplan.review_by_ccm_complete, :reviewed_by_ccm)
+      boolean_toggled(old_rn_status, @careplan.review_by_rn_complete, :reviewed_by_rn)
+      boolean_toggled(old_delivered_status, @careplan.was_sent_to_pcp, :sent_to_pcp)
 
       @careplan.save
-      @careplan.update(reviewed_by_ccm_id: current_user.id) if ccm_reviewed
-      @careplan.update(reviewed_by_rn_id: current_user.id) if rn_reviewed
 
       @patient.current_qa_factory.complete_careplan(@careplan) if @careplan.completed?
       @patient.current_qa_factory.review_careplan(@careplan) if @careplan.reviewed?
@@ -43,18 +49,32 @@ module HealthPctp
     end
 
     def destroy
+      @patient.pctp_careplans.find_by(instrument: @careplan)&.destroy
       @careplan.destroy
       respond_with @careplan, location: client_health_careplans_path(@client)
     end
 
+    private def boolean_toggled(old_value, new_value, attr)
+      return unless new_value.present?
+
+      if new_value == '0' # when not checked, clear who and when
+        @careplan.assign_attributes("#{attr}_on" => nil, "#{attr}_by_id" => nil)
+      elsif new_value == '1' && ! old_value # if checked, and changed, set who and when
+        @careplan.assign_attributes("#{attr}_on" => Date.current, "#{attr}_by_id" => current_user.id)
+      end
+    end
+
     GROUP_PARAMS = [
+      :race,
       :accommodation_types,
       :accessibility_equipment,
     ].freeze
 
     private def careplan_params
       permitted_cols = ::HealthPctp::Careplan.column_names.map(&:to_sym) -
-        [:id, :user_id, :patient_id, :created_at, :updated_at] # Deny protected columns, be careful adding new columns!
+        GROUP_PARAMS -
+        [:id, :user_id, :patient_id, :created_at, :updated_at] + # Deny protected columns, be careful adding new columns!
+        [:review_by_ccm_complete, :review_by_rn_complete, :was_sent_to_pcp]
 
       permitted_cols -= [:reviewed_by_ccm_id, :reviewed_by_ccm_on] unless current_user.can_approve_cha?
       permitted_cols -= [:reviewed_by_rn_id, :reviewed_by_rn_on] unless current_user.can_approve_careplan?
