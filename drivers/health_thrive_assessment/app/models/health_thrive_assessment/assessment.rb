@@ -40,7 +40,15 @@ module HealthThriveAssessment
     end
 
     def positive_sdoh?
-      homeless?
+      at_risk? || homeless? ||
+        sometimes_food_insecurity? || often_food_insecurity? ||
+        sometimes_food_worries? || often_food_worries? ||
+        trouble_drug_cost == 'yes' ||
+        trouble_medical_transportation == 'yes' ||
+        trouble_utility_cost == 'yes' ||
+        trouble_caring_for_family == 'yes' ||
+        unemployed == 'yes' ||
+        interested_in_education == 'yes'
     end
 
     enum housing_status: {
