@@ -36,7 +36,7 @@ module Types
     hud_field :asked_or_forced_to_exchange_for_sex, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :asked_or_forced_to_exchange_for_sex_past_three_months, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     # R16
-    hud_field :workplace_violence_threats, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :work_place_violence_threats, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :workplace_promise_difference, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :coerced_to_continue_work, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :labor_exploit_past_three_months, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
