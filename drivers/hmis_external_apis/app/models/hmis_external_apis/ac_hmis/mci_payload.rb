@@ -18,8 +18,8 @@ module HmisExternalApis::AcHmis
         'middleName' => client.middle_name,
         'lastName' => client.last_name,
         'suffix' => client.name_suffix,
-        'ssn' => client.ssn,
-        # 'ssnAlias' => client.ssn,
+        # API only accepts full SSNs
+        'ssn' => client.ssn&.match?(/^\d{9}$/) ? client.ssn : nil,
         'birthDate' => client.dob.to_s(:db) + 'T00:00:00',
         'raceCodes' => MciMapping.mci_races(client),
         'ethnicityCode' => MciMapping.mci_ethnicity(client),
