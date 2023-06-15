@@ -20,6 +20,7 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
   def self.hmis_validate(record, options: {}, **_)
     errors = HmisErrors::Errors.new
     errors.add :dob, :out_of_range, severity: :error, message: future_message, **options if record.dob&.future?
+    errors.add :dob, :invalid, severity: :error, **options if record.dob && record.dob < (Date.current - 120.years)
     errors.errors
   end
 
