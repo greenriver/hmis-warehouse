@@ -10,6 +10,10 @@ module CohortColumns
     attribute :translation_key, String, lazy: true, default: 'Pathways V3 Assessment Date'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
+    def available_for_rules?
+      false
+    end
+
     def date_format
       'll'
     end
@@ -19,7 +23,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      GrdaWarehouse::Config.get(:cas_calculator).constantize.new.most_recent_assessment_for_destination(cohort_client.client)
+      GrdaWarehouse::Config.get(:cas_calculator).constantize.new.most_recent_pathways_assessment_for_destination(cohort_client.client)
     end
   end
 end

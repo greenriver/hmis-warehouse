@@ -40,6 +40,18 @@ module GrdaWarehouse::Hud
       where(AssessmentQuestion: :c_housing_assessment_name)
     end
 
+    scope :pathways, -> do
+      pathways_or_rrh.
+        joins(:lookup).
+        merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: 'Pathways'))
+    end
+
+    scope :transfer, -> do
+      pathways_or_rrh.
+        joins(:lookup).
+        merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: 'RRH-PSH Transfer'))
+    end
+
     # NOTE: you probably want to join/preload :lookup
     def human_readable
       lookup&.response_text || default_response_text(self.AssessmentAnswer) || self.AssessmentAnswer

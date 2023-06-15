@@ -516,14 +516,26 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   describe 'Form processing for Clients' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :CLIENT) }
+    let(:primary_name) do
+      {
+        primary: true,
+        first: 'Terry',
+        middle: 'Mid',
+        last: 'Breeze',
+        suffix: 'Jr',
+        nameDataQuality: 'FULL_NAME_REPORTED',
+      }
+    end
+    let(:secondary_name) do
+      {
+        primary: false,
+        first: 'Gerome',
+        nameDataQuality: 'PARTIAL_STREET_NAME_OR_CODE_NAME_REPORTED',
+      }
+    end
     let(:complete_hud_values) do
       {
-        'firstName' => 'First',
-        'middleName' => 'Middle',
-        'lastName' => 'Last',
-        'nameSuffix' => 'Sf',
-        'preferredName' => 'Pref',
-        'nameDataQuality' => 'FULL_NAME_REPORTED',
+        "names": [primary_name.stringify_keys, secondary_name.stringify_keys],
         'dob' => '2000-03-29',
         'dobDataQuality' => 'FULL_DOB_REPORTED',
         'ssn' => 'XXXXX1234',
@@ -547,7 +559,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
     let(:empty_hud_values) do
       empty = complete_hud_values.map { |k, _| [k, nil] }.to_h
-      empty['firstName'] = 'First' # First or last is required
+      empty['names'] = { first: 'first', primary: true }.stringify_keys
       empty
     end
 
@@ -558,16 +570,22 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       [existing_client, new_client].each do |client|
         custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
         custom_form.hud_values = complete_hud_values
-        custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
-        custom_form.owner.save!
+        custom_form.form_processor.run!(owner: client, user: hmis_user)
+        client.save!
         client.reload
 
-        expect(client.first_name).to eq('First')
-        expect(client.middle_name).to eq('Middle')
-        expect(client.last_name).to eq('Last')
-        expect(client.name_suffix).to eq('Sf')
-        expect(client.preferred_name).to eq('Pref')
+        # Ensure primary name is stored on Client
+        expect(client.first_name).to eq(primary_name[:first])
+        expect(client.middle_name).to eq(primary_name[:middle])
+        expect(client.last_name).to eq(primary_name[:last])
+        expect(client.name_suffix).to eq(primary_name[:suffix])
         expect(client.name_data_quality).to eq(1)
+        # Ensure all names persisted
+        expect(client.names.count).to eq(2)
+        expect(client.names.map(&:attributes)).to match([
+                                                          a_hash_including(primary_name.excluding(:nameDataQuality).stringify_keys),
+                                                          a_hash_including(secondary_name.excluding(:nameDataQuality).stringify_keys),
+                                                        ])
         expect(client.dob.strftime('%Y-%m-%d')).to eq('2000-03-29')
         expect(client.dob_data_quality).to eq(1)
         expect(client.ssn).to eq('XXXXX1234')
@@ -599,12 +617,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         custom_form.owner.save!
         client.reload
 
-        expect(client.first_name).to eq('First')
+        expect(client.first_name).to eq('first')
         expect(client.middle_name).to be nil
         expect(client.last_name).to be nil
         expect(client.name_suffix).to be nil
-        expect(client.preferred_name).to be nil
         expect(client.name_data_quality).to eq(99)
+        expect(client.names.size).to eq(1)
         expect(client.dob).to be nil
         expect(client.dob_data_quality).to eq(99)
         expect(client.ssn).to be nil
@@ -705,22 +723,246 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
     end
 
-    [
-      [
-        'fails if first and last are both nil',
-        ->(input) { input.merge('firstName' => nil, 'lastName' => nil) },
-      ],
-    ].each do |test_name, input_proc|
-      it test_name do
-        existing_record = c1
-        new_record = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
-        [existing_record, new_record].each do |record|
-          custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
-          custom_form.hud_values = input_proc.call(complete_hud_values)
-          custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
-          expect(custom_form.owner.valid?).to eq(false)
-        end
+    it 'updates, adds, and deletes CustomClientNames' do
+      # Give client some names
+      client = c1
+      old_primary_name = create(:hmis_hud_custom_client_name, client: client, first: 'Atticus', primary: true)
+      old_secondary_name = create(:hmis_hud_custom_client_name, client: client, first: 'Benjamin', primary: false)
+      client.update(names: [old_primary_name, old_secondary_name])
+      expect(client.names.size).to eq(2)
+
+      # Submit a form that changes the names
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'names' => [
+          # 1) Make the old primary name non-primary, _and_ update the name
+          {
+            id: old_primary_name.id,
+            primary: false,
+            first: 'Atticus Changed',
+            nameDataQuality: 'CLIENT_REFUSED',
+          }.stringify_keys,
+          # 2) Add a NEW primary name
+          {
+            primary: true,
+            first: 'Charlotte',
+            nameDataQuality: 'CLIENT_REFUSED',
+          }.stringify_keys,
+          # 3) Delete the old secondary name (by not including it)
+        ],
+      )
+      custom_form.form_processor.run!(owner: client, user: hmis_user)
+      client.save!
+      client.reload
+
+      # Ensure primary name is stored on Client
+      expect(client.first_name).to eq('Charlotte')
+      # Ensure all names persisted
+      expect(client.names.size).to eq(2)
+      expect(client.names.pluck(:id)).not_to include(old_secondary_name.id)
+      expect(client.names.map(&:attributes)).to match([
+                                                        a_hash_including({ first: 'Atticus Changed', primary: false, id: old_primary_name.id }.stringify_keys),
+                                                        a_hash_including({ first: 'Charlotte', primary: true }.stringify_keys),
+                                                      ])
+    end
+
+    it 'handles "deleting" primary name' do
+      client = c1
+      # Give client a primary names
+      old_primary_name = create(:hmis_hud_custom_client_name, client: c1, first: 'Atticus', primary: true)
+      expect(client.names.size).to eq(1)
+
+      # Submit a form that changes the primary  name but doesn't include the old ID
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'names' => [
+          {
+            primary: true,
+            first: 'Charlotte',
+            nameDataQuality: 'CLIENT_REFUSED',
+          }.stringify_keys,
+        ],
+      )
+      custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+      custom_form.owner.save!
+      client.reload
+
+      expect(client.names.primary_names.first.first).to eq('Charlotte')
+      expect(client.names.size).to eq(1)
+      # Even though ID was not specified, it is updated because client already had a primary
+      expect(client.names.first.id).not_to eq(old_primary_name.id)
+      expect(client.first_name).to eq('Charlotte')
+    end
+
+    it 'ignores nonexistent ids on names' do
+      client = c1
+      expect(client.names.size).to eq(0)
+
+      # Submit a form that changes the primary  name but doesn't include the old ID
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'names' => [
+          {
+            id: '0', # Gets ignored, a new record is created
+            primary: true,
+            first: 'Charlotte',
+            nameDataQuality: 'CLIENT_REFUSED',
+          }.stringify_keys,
+        ],
+      )
+      custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+      client.save!
+      client.reload
+
+      expect(client.names.size).to eq(1)
+      expect(client.names.primary_names.first.first).to eq('Charlotte')
+      expect(client.names.first.id).not_to eq(0)
+      expect(client.first_name).to eq('Charlotte')
+    end
+
+    it 'fails if First and Last are missing from primary' do
+      client = c1
+      create(:hmis_hud_custom_client_name, client: client, first: 'Atticus', primary: true)
+      expect(client.names.size).to eq(1)
+
+      # Submit a form that changes the primary  name but doesn't include the old ID
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'names' => [
+          {
+            id: client.primary_name.id,
+            primary: true,
+            first: nil,
+            last: nil,
+            nameDataQuality: 'CLIENT_REFUSED',
+          }.stringify_keys,
+        ],
+      )
+      custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+      expect(client.valid?).to eq(false)
+      errs = custom_form.form_processor.collect_active_record_errors
+      expect(errs.errors.map(&:full_message)).to contain_exactly(Hmis::Hud::CustomClientName.first_or_last_required_message)
+    end
+
+    it 'fails if no names are primary' do
+      existing_record = c1
+      new_record = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_record, new_record].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge('names' => [secondary_name.stringify_keys])
+        custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+        expect(custom_form.owner.valid?).to eq(false)
       end
+    end
+
+    it 'fails if two names are primary' do
+      existing_record = c1
+      new_record = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_record, new_record].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge('names' => [primary_name.stringify_keys, primary_name.stringify_keys])
+        custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+        expect(custom_form.owner.valid?).to eq(false)
+      end
+    end
+
+    it 'updates, adds, and deletes CustomClientAddresses' do
+      # Give client some addresses
+      client = c1
+      addr1 = create(:hmis_hud_custom_client_address, client: client)
+      addr2 = create(:hmis_hud_custom_client_address, client: client)
+      expect(client.addresses.size).to eq(2)
+
+      # Submit a form that changes the address
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'addresses' => [
+          # Update addr 1
+          {
+            id: addr1.id,
+            city: 'foo',
+          }.stringify_keys,
+          # Add a new addr
+          {
+            city: 'bar',
+          }.stringify_keys,
+          # Delete addr 2 (by not including it)
+        ],
+      )
+      custom_form.form_processor.run!(owner: client, user: hmis_user)
+      client.save!
+      client.reload
+
+      expect(client.addresses.size).to eq(2)
+      expect(client.addresses.pluck(:id)).to include(addr1.id)
+      expect(client.addresses.pluck(:id)).not_to include(addr2.id)
+      expect(client.addresses.pluck(:city)).to contain_exactly('foo', 'bar')
+    end
+
+    it 'updates, adds, and deletes client phone numbers' do
+      # Give client some contacts
+      client = c1
+      contact1 = create(:hmis_hud_custom_client_contact_point, client: client, system: :phone)
+      contact2 = create(:hmis_hud_custom_client_contact_point, client: client, system: :phone)
+      expect(client.contact_points.phones.size).to eq(2)
+
+      # Submit a form that changes the contacts
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'phoneNumbers' => [
+          # Update contact 1
+          {
+            id: contact1.id,
+            value: '8025550000',
+          }.stringify_keys,
+          # Add a new contact
+          {
+            value: '6031110000',
+          }.stringify_keys,
+          # Delete contact 2 (by not including it)
+        ],
+      )
+      custom_form.form_processor.run!(owner: client, user: hmis_user)
+      client.save!
+      client.reload
+
+      expect(client.contact_points.phones.size).to eq(2)
+      expect(client.contact_points.pluck(:id)).to include(contact1.id)
+      expect(client.contact_points.pluck(:id)).not_to include(contact2.id)
+      expect(client.contact_points.pluck(:value)).to contain_exactly('8025550000', '6031110000')
+    end
+
+    it 'updates, adds, and deletes client emails' do
+      # Give client some contacts
+      client = c1
+      contact1 = create(:hmis_hud_custom_client_contact_point, client: client, system: :email)
+      contact2 = create(:hmis_hud_custom_client_contact_point, client: client, system: :email)
+      expect(client.contact_points.emails.size).to eq(2)
+
+      # Submit a form that changes the contacts
+      custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+      custom_form.hud_values = complete_hud_values.merge(
+        'emailAddresses' => [
+          # Update contact 1
+          {
+            id: contact1.id,
+            value: 'foo@bar.com',
+          }.stringify_keys,
+          # Add a new contact
+          {
+            value: 'baz@boop.com',
+          }.stringify_keys,
+          # Delete contact 2 (by not including it)
+        ],
+      )
+      custom_form.form_processor.run!(owner: client, user: hmis_user)
+      client.save!
+      client.reload
+
+      expect(client.contact_points.emails.size).to eq(2)
+      expect(client.contact_points.pluck(:id)).to include(contact1.id)
+      expect(client.contact_points.pluck(:id)).not_to include(contact2.id)
+      expect(client.contact_points.pluck(:value)).to contain_exactly('foo@bar.com', 'baz@boop.com')
     end
   end
 
@@ -1222,48 +1464,75 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   describe 'Form processing for Service' do
     include_context 'hmis base setup'
     include_context 'hmis service setup'
-    let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: hmis_hud_user }
-    let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
+    # HUD Service: SSVF Financial Assistance (152), Child Care (10)
+    let!(:hud_service) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, record_type: 152, type_provided: 10 }
+    # Custom Service
+    let!(:custom_service) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1 }
 
     let(:definition) { Hmis::Form::Definition.find_by(role: :SERVICE) }
-    let(:complete_hud_values) do
+    let(:hud_service_values) do
       {
-        'typeProvided' => 'BED_NIGHT__BED_NIGHT',
-        'otherTypeProvided' => HIDDEN,
-        'movingOnOtherType' => HIDDEN,
-        'subTypeProvided' => HIDDEN,
-        'FAAmount' => HIDDEN,
-        'referralOutcome' => HIDDEN,
         'dateProvided' => '2023-03-13',
+        'faAmount' => 200,
       }
     end
 
-    it 'creates and updates all fields on HUD Service' do
-      existing_record = s1
+    let(:custom_service_values) do
+      {
+        'dateProvided' => '2023-03-13',
+        'faAmount' => 100,
+      }
+    end
+
+    it 'creates and updates all fields on a HUD Service' do
+      existing_record = Hmis::Hud::HmisService.find_by(owner: hud_service)
+      hud_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: hud_service.record_type, hud_type_provided: hud_service.type_provided)
       new_record = Hmis::Hud::HmisService.new(
-        data_source: ds,
-        user: hmis_hud_user,
+        data_source: ds1,
         enrollment_id: e1.enrollment_id,
         personal_id: e1.personal_id,
+        custom_service_type: hud_service_type,
       )
+
       [existing_record, new_record].each do |record|
         custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
-        custom_form.hud_values = complete_hud_values
+        custom_form.hud_values = hud_service_values
         custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
-
         hud_service = custom_form.owner.owner
         hud_service.save!
         hmis_service = Hmis::Hud::HmisService.find_by(owner: hud_service)
         expect(hmis_service.hud_service?).to eq(true)
         expect(hmis_service.custom_service?).to eq(false)
-        expect(hmis_service.service_type).to eq(Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200))
-        expect(hmis_service.record_type).to eq(200)
-        expect(hmis_service.type_provided).to eq(200)
-        expect(hmis_service.other_type_provided).to be nil
-        expect(hmis_service.moving_on_other_type).to be nil
-        expect(hmis_service.sub_type_provided).to be nil
-        expect(hmis_service.fa_amount).to be nil
-        expect(hmis_service.referral_outcome).to be nil
+        expect(hmis_service.service_type).to eq(hud_service_type)
+        expect(hmis_service.record_type).to eq(hud_service.record_type)
+        expect(hmis_service.type_provided).to eq(hud_service.type_provided)
+        expect(hmis_service.fa_amount).to eq(200)
+        expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
+      end
+    end
+
+    it 'creates and updates all fields on a Custom Service' do
+      existing_record = Hmis::Hud::HmisService.find_by(owner: custom_service)
+      new_record = Hmis::Hud::HmisService.new(
+        data_source: ds1,
+        enrollment_id: e1.enrollment_id,
+        personal_id: e1.personal_id,
+        custom_service_type: cst1,
+      )
+      [existing_record, new_record].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = custom_service_values
+        custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+        custom_service = custom_form.owner.owner
+        custom_service.save!
+
+        hmis_service = Hmis::Hud::HmisService.find_by(owner: custom_service)
+        expect(hmis_service.hud_service?).to eq(false)
+        expect(hmis_service.custom_service?).to eq(true)
+        expect(hmis_service.service_type).to eq(cst1)
+        expect(hmis_service.record_type).to be nil
+        expect(hmis_service.type_provided).to be nil
+        expect(hmis_service.fa_amount).to eq(100)
         expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
       end
     end

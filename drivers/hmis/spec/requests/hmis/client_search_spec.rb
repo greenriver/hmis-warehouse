@@ -109,7 +109,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         data_source: ds1,
         FirstName: 'William',
         LastName: 'Smith',
-        preferred_name: 'Bill',
         PersonalID: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
         # warehouse_id: '85e55698e335bdbcc3ead1b39828ee92',
         SSN: '123456789',
@@ -150,8 +149,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # TODO: Test nickname match
       # TODO: Test metaphone match
       ['wrong last name and not match', { last_name: 'Jones' }, false],
-      ['preferred name', { preferred_name: 'Bill' }, true],
-      ['wrong preferred name and not match', { preferred_name: 'Rich' }, false],
       ['last 4 of ssn', { ssn_serial: '6789' }, true],
       ['wrong last 4 of ssn and not match', { ssn_serial: '0000' }, false],
       ['dob d/m/yyyy', { dob: '1/12/1999' }, true],
@@ -161,6 +158,51 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # TODO: Organizations filter
     ].each do |desc, input, match|
       it "should search by #{desc}" do
+        response, result = post_graphql(input: input) { query }
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          clients = result.dig('data', 'clientSearch', 'nodes')
+          matcher = include({ 'id' => client.id.to_s })
+          match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
+        end
+      end
+    end
+  end
+
+  describe 'custom client names search tests' do
+    let!(:client) do
+      create(
+        :hmis_hud_client,
+        data_source: ds1,
+        FirstName: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
+        LastName: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
+        PersonalID: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
+        SSN: '123456789',
+        DOB: '1999-12-01',
+      )
+    end
+
+    before(:each) do
+      client.names.create!(
+        first: 'William',
+        last: 'Smith',
+        user_id: client.user_id,
+        data_source_id: client.data_source_id,
+      )
+    end
+
+    [
+      *[
+        ['text: first name', 'william', true],
+        ['text: last name', 'smith', true],
+        ['text: last, first', 'smith, william', true],
+        ['text: first last', 'william smith', true],
+        ['text: partial names', 'w s', true],
+      ].map { |desc, text, match| [desc, { text_search: text }, match] },
+      ['first name', { first_name: 'William' }, true],
+      ['last name', { last_name: 'Smith' }, true],
+    ].each do |desc, input, match|
+      it "should search custom client names by #{desc}" do
         response, result = post_graphql(input: input) { query }
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200

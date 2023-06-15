@@ -42,9 +42,15 @@ module HmisExternalApis::AcHmis
         .then { |r| handle_error(r) }
     end
 
+    def update_referral_posting_status(payload)
+      conn.patch('Referral/PostingStatus', format_payload(payload, id_variant: 'Id'))
+        .then { |r| handle_error(r) }
+    end
+
     protected
 
     def handle_error(result)
+      Sentry.capture_exception(result.error) if result.error
       raise HmisErrors::ApiError, result.error if result.error
 
       result
@@ -55,22 +61,17 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(
-        client_id: creds.client_id,
-        client_secret: creds.client_secret,
-        token_url: creds.token_url,
-        base_url: creds.base_url,
-        headers: creds.additional_headers,
-        scope: creds.oauth_scope,
-      )
+      @conn ||= HmisExternalApis::OauthClientConnection.new(creds)
     end
 
-    def format_payload(payload)
-      payload.transform_keys { |k| format_key_name(k) }
+    # @param payload [Hash]
+    # @param id_variant [String] account for inconsistent casing in external API (Id vs ID)
+    def format_payload(payload, id_variant: 'ID')
+      payload.transform_keys { |k| format_key_name(k, id_variant) }
     end
 
-    def format_key_name(key)
-      key.to_s.camelize(:lower).gsub(/Id\z/, 'ID')
+    def format_key_name(key, id_variant)
+      key.to_s.camelize(:lower).gsub(/Id\z/, id_variant)
     end
   end
 end

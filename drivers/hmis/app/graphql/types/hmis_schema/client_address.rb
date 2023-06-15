@@ -18,7 +18,7 @@ module Types
     field :postal_code, String, null: true
     field :notes, String, null: true
     field :use, HmisSchema::Enums::ClientAddressUse
-    field :type, HmisSchema::Enums::ClientAddressType
+    field :address_type, HmisSchema::Enums::ClientAddressType
     field :client, HmisSchema::Client, null: false
     field :user, HmisSchema::User, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false

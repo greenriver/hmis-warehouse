@@ -9,12 +9,19 @@
 module Types
   class HmisSchema::Household < Types::BaseObject
     description 'HUD Household'
-    field :id, ID, null: false
+    field :id, ID, null: false, method: :household_id
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
 
     # object is a Hmis::Hud::Household
+
+    available_filter_options do
+      arg :status, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
+      arg :open_on_date, GraphQL::Types::ISO8601Date
+      arg :hoh_age_range, HmisSchema::Enums::AgeRange
+      arg :search_term, String
+    end
 
     def household_clients
       object.enrollments.map do |enrollment|

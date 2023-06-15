@@ -20,7 +20,7 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
 
   belongs_to :owner, polymorphic: true, optional: false
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :custom_data_elements
   belongs_to :data_element_definition, class_name: 'Hmis::Hud::CustomDataElementDefinition', optional: false
   delegate :key, :label, :repeats, to: :data_element_definition
 
@@ -52,7 +52,7 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
     errors.add(:base, :invalid, full_message: "Found value for '#{values.keys.first}' but definition is for type '#{data_element_definition.field_type}") unless data_element_definition.field_type.to_s == field_type.to_s
   end
 
-  def ==(other)
+  def equal_for_merge?(other)
     columns = [:data_element_definition_id, *VALUE_COLUMNS]
 
     columns.all? do |col|

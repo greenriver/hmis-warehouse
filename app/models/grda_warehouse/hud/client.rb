@@ -53,6 +53,26 @@ module GrdaWarehouse::Hud
     end, **hud_assoc(:PersonalID, 'Assessment')
 
     # operates on source_clients only
+    has_one :most_recent_2023_pathways_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+        scope: pathways,
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
+    # operates on source_clients only
+    has_one :most_recent_2023_transfer_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+        scope: transfer,
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
+    # operates on source_clients only
     has_one :most_recent_current_living_situation, -> do
       one_for_column(
         :InformationDate,
@@ -375,26 +395,6 @@ module GrdaWarehouse::Hud
 
     scope :full_text_search, ->(text) do
       text_search(text, client_scope: current_scope)
-    end
-
-    scope :age_group, ->(start_age: 0, end_age: nil) do
-      start_age = 0 unless start_age.is_a?(Integer)
-      end_age   = nil unless end_age.is_a?(Integer)
-      if end_age.present?
-        where(DOB: end_age.years.ago..start_age.years.ago)
-      else
-        where(arel_table[:DOB].lteq(start_age.years.ago))
-      end
-    end
-
-    scope :age_group_within_range, ->(start_age: 0, end_age: nil, start_date: Date.current, end_date: Date.current) do
-      start_age = 0 unless start_age.is_a?(Integer)
-      end_age   = nil unless end_age.is_a?(Integer)
-      if end_age.present?
-        where(DOB: (start_date - end_age.years)..(end_date - start_age.years))
-      else
-        where(arel_table[:DOB].lteq(start_date - start_age.years))
-      end
     end
 
     scope :needs_history_pdf, -> do
@@ -1718,7 +1718,7 @@ module GrdaWarehouse::Hud
       visible_project_ids = user.visible_project_ids_enrollment_context
       contacts = JSON.parse(contacts)
 
-      contacts.sort_by { |c| c['date'] || '' }.reverse.map do |contact|
+      contacts.sort_by { |c| c['date']&.to_date || 5.years.ago }.reverse.map do |contact|
         project_id = contact['project_id']
         next if project_id.present? && !project_id.in?(visible_project_ids)
 

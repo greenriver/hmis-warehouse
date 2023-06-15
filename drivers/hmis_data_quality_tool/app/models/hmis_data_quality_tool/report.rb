@@ -394,6 +394,7 @@ module HmisDataQualityTool
           destination_issues: Enrollment,
           current_living_situation_issues: CurrentLivingSituation,
           unaccompanied_youth_issues: Enrollment,
+          future_entry_date_issues: Enrollment,
           future_exit_date_issues: Enrollment,
           move_in_prior_to_start_issues: Enrollment,
           move_in_post_exit_issues: Enrollment,
@@ -517,6 +518,8 @@ module HmisDataQualityTool
                   where(item_class.arel_table[:project_id].eq(project.id)).
                   count
               end
+              next if overall_count.zero?
+
               this_result[:projects][project.id] = {
                 project_name: project&.name(user) || 'unknown',
                 invalid_count: invalid_count,

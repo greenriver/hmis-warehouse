@@ -1,0 +1,23 @@
+wb = xlsx_package.workbook
+headers = @report.detail_headers_for_export(@key)
+scope = @report.detail_scope_from_key(@key)
+title = @report.support_title(@key).gsub(/[^-a-z0-9 ]/i, '')
+
+wb.add_worksheet name: title[0..30] do |sheet|
+  title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  summary = [
+    'Report Start Date:',
+    @filter.start.to_s,
+    'Report End Date:',
+    @filter.end.to_s,
+    title,
+  ]
+  sheet.add_row(summary, style: title_style)
+  sheet.add_row(headers, style: title_style)
+  scope.pluck(*@report.detail_columns_for_export(@key)).each do |row|
+    values = row.each_with_index.map do |col, i|
+      @report.detail_column_display(header: headers[i], column: col)
+    end
+    sheet.add_row values
+  end
+end

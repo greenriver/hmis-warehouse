@@ -10,6 +10,12 @@ module CohortColumns
       :integer
     end
 
+    def cast_value(val)
+      return nil unless val.present?
+
+      val.to_i
+    end
+
     def display_for(user)
       if display_as_editable?(user, cohort_client)
         text_field(form_group, column, value: display_read_only(user), size: 4, type: :number, style: 'max-width: 6em;', class: "form-control #{input_class}")

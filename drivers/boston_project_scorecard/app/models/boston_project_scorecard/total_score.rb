@@ -12,16 +12,15 @@ module BostonProjectScorecard
         [
           rrh_exits_to_ph_score,
           psh_stayers_or_to_ph_score,
-          increased_stayer_employment_income_score,
-          increased_stayer_other_income_score,
-          increased_leaver_employment_income_score,
-          increased_leaver_other_income_score,
+          increased_employment_income_score,
+          increased_other_income_score,
           days_to_lease_up_score,
+          utilization_rate_score,
         ].compact.sum
       end
 
       def project_performance_available
-        max = 48
+        max = 54
         max -= 24 unless rrh? || psh?
 
         max
@@ -57,17 +56,16 @@ module BostonProjectScorecard
 
       def financial_performance_score
         [
-          project_type_score,
-          invoicing_score,
+          invoicing_timeliness_score,
+          invoicing_accuracy_score,
           efficiency_score,
           required_match_score,
           returned_funds_score,
-          utilization_rate_score,
         ].compact.sum
       end
 
       def financial_performance_available
-        36
+        24
       end
 
       def financial_performance_weight
@@ -80,6 +78,7 @@ module BostonProjectScorecard
 
       def policy_alignment_score
         [
+          project_type_score,
           subpopulations_served_score,
           practices_housing_first_score,
           vulnerable_subpopulations_served_score,
@@ -87,7 +86,7 @@ module BostonProjectScorecard
       end
 
       def policy_alignment_available
-        18 + racial_equity_available
+        24 + racial_equity_available
       end
 
       def policy_alignment_weight

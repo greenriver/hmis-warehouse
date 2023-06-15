@@ -271,6 +271,15 @@ module HudUtility
     ::HudLists.project_type_brief_map.invert[type]
   end
 
+  def homeless_project_type_numbers
+    [
+      1, # ES
+      2, # TH
+      4, # SO
+      8, # SH
+    ].freeze
+  end
+
   # 2.02.C
   def tracking_method(id, reverse = false)
     map = tracking_methods
@@ -1909,5 +1918,18 @@ module HudUtility
   # This value indicates that the field is null if the column is non-nullable
   def ignored_enum_value
     999
+  end
+
+  # tranform up hud list for use as an enum
+  # {1 => 'Test (this)'} => {'test_this' => 1}
+  # @param name [Symbol] method on HudLists
+  def hud_list_map_as_enumerable(name)
+    original = ::HudLists.send(name)
+    keyed = original.invert.transform_keys do |key|
+      key.downcase.gsub(/[^a-z0-9]+/, ' ').strip.gsub(' ', '_')
+    end
+    raise "cannot key #{name}" if keyed.size != original.size
+
+    keyed
   end
 end

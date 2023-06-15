@@ -15,13 +15,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  self.ignored_columns = ['preferred_name']
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName')
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress')
-  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint')
-  has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName')
+  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
+  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client
+  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client
+  has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
 
   # Enrollments for this Client, including WIP Enrollments
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
@@ -42,11 +43,23 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :custom_data_elements, as: :owner
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+  accepts_nested_attributes_for :names, allow_destroy: true
+  accepts_nested_attributes_for :addresses, allow_destroy: true
+  accepts_nested_attributes_for :contact_points, allow_destroy: true
 
   # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
   has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
 
   validates_with Hmis::Hud::Validators::ClientValidator
+
+  CUSTOM_NAME_OPTIONS = {
+    association: :names,
+    klass: Hmis::Hud::CustomClientName,
+    field_map: {
+      FirstName: :first,
+      LastName: :last,
+    },
+  }.freeze
 
   attr_accessor :image_blob_id
   attr_accessor :create_mci_id
@@ -95,8 +108,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :matching_search_term, ->(text_search) do
-    text_searcher(text_search) do |where|
-      where(where).pluck(:id)
+    text_searcher(text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
+      left_outer_joins(:names).where(where).pluck(:id)
     rescue RangeError
       return none
     end
@@ -225,27 +238,34 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
     if input.text_search.present?
-      scope = text_searcher(input.text_search) do |where|
-        scope.where(where).pluck(:id)
+      scope = text_searcher(input.text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
+        scope.left_outer_joins(:names).where(where).pluck(:id)
       end
     end
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
+      ccn_query = ccn_t[:first].matches("#{input.first_name}%")
       query = nickname_search(query, input.first_name)
       query = metaphone_search(query, :FirstName, input.first_name)
-      scope = scope.where(query)
+      client_id_query = scope.left_outer_joins(:names).
+        where(query.or(ccn_query)).
+        pluck(:id)
+      scope = scope.where(id: client_id_query)
     end
 
     if input.last_name.present?
       query = c_t[:LastName].matches("#{input.last_name}%")
+      ccn_query = ccn_t[:last].matches("#{input.first_name}%")
       query = nickname_search(query, input.last_name)
       query = metaphone_search(query, :LastName, input.last_name)
-      scope = scope.where(query)
+      client_id_query = scope.left_outer_joins(:names).
+        where(query.or(ccn_query)).
+        pluck(:id)
+      scope = scope.where(id: client_id_query)
     end
 
     # TODO: nicks and/or metaphone searches?
-    scope = scope.where(c_t[:preferred_name].matches("#{input.preferred_name}%")) if input.preferred_name.present?
     scope = scope.where(c_t[:SSN].matches("%#{input.ssn_serial}")) if input.ssn_serial.present?
     scope = scope.where(c_t[:DOB].eq(Date.parse(input.dob))) if input.dob.present?
 
@@ -321,7 +341,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Mirrors `clientBriefName` in frontend
   def brief_name
-    preferred_name || [first_name, last_name].compact.join(' ')
+    [first_name, last_name].compact.join(' ')
   end
 
   include RailsDrivers::Extensions
