@@ -22,6 +22,7 @@ module PerformanceMeasurement
     acts_as_paranoid
 
     belongs_to :user
+    belongs_to :goal_configuration, class_name: 'PerformanceMeasurement::Goal'
     has_many :clients
     has_many :projects
     has_many :results
@@ -141,7 +142,14 @@ module PerformanceMeasurement
     end
 
     def goal_config
-      @goal_config ||= PerformanceMeasurement::Goal.for_coc(coc_code)
+      @goal_config ||= begin
+        update_goal_configuration! if persisted? && goal_configuration.blank?
+        goal_configuration
+      end
+    end
+
+    def update_goal_configuration!
+      update(goal_configuration_id: PerformanceMeasurement::Goal.for_coc(filter.coc_code)&.id)
     end
 
     private def reset_filter
