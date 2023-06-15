@@ -20,7 +20,8 @@ module Types
     field :client, HmisSchema::Client, null: false
     hud_field :information_date
     hud_field :current_living_situation, HmisSchema::Enums::Hud::LivingSituation
-    hud_field :cls_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    # TODO(2024) enable
+    # hud_field :cls_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :verified_by
     hud_field :leave_situation14_days, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :subsequent_residence, HmisSchema::Enums::Hud::NoYesReasonsForMissingData

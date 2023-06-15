@@ -20,7 +20,8 @@ module Types
     hud_field :exit_date, null: false
     # 3.12
     hud_field :destination, Types::HmisSchema::Enums::Hud::Destination, null: false
-    hud_field :destination_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    # TODO(2024) enable
+    # hud_field :destination_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :other_destination
     # W5
     hud_field :housing_assessment, Types::HmisSchema::Enums::Hud::HousingAssessmentAtExit
@@ -65,8 +66,6 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
-
-    # TODO: FPDE
 
     def enrollment
       load_ar_association(object, :enrollment)

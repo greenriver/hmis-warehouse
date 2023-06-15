@@ -59,7 +59,8 @@ module Types
     hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     # 3.917
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
-    hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    # TODO(2024) enable
+    # hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
     hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing

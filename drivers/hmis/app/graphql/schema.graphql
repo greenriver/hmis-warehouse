@@ -1175,7 +1175,6 @@ HUD Current Living Situation
 """
 type CurrentLivingSituation {
   client: Client!
-  clsSubsidyType: RentalSubsidyType
   currentLivingSituation: LivingSituation!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -2225,7 +2224,6 @@ type Enrollment {
   reasonNotEnrolled: ReasonNotEnrolled
   referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
-  rentalSubsidyType: RentalSubsidyType
   runawayYouth: NoYesReasonsForMissingData
   services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   sexualOrientation: SexualOrientation
@@ -2528,7 +2526,6 @@ type Exit {
   destination: Destination!
   destinationSafeClient: NoYesReasonsForMissingData
   destinationSafeWorker: WorkerResponse
-  destinationSubsidyType: RentalSubsidyType
   earlyExitReason: ExpelledReason
   emailSocialMedia: NoYesMissing
   enrollment: Enrollment!
@@ -5873,71 +5870,6 @@ enum RelationshipToHoH {
   (5) Unrelated household member
   """
   UNRELATED_HOUSEHOLD_MEMBER
-}
-
-"""
-HUD Rental Subsidy Types
-"""
-enum RentalSubsidyType {
-  """
-  Emergency Housing Voucher
-  """
-  EHV
-
-  """
-  Family Unification Program Voucher (FUP)
-  """
-  FUP
-
-  """
-  Foster Youth to Independence Initiative (FYI)
-  """
-  FYI
-
-  """
-  GPD TIP housing subsidy
-  """
-  GDP_TIP
-
-  """
-  HCV voucher (tenant or project based) (not dedicated)
-  """
-  HCV
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  Other permanent housing dedicated for formerly homeless persons
-  """
-  OTHER
-
-  """
-  Public housing unit
-  """
-  PHU
-
-  """
-  Permanent Supportive Housing
-  """
-  PSH
-
-  """
-  Rental by client, with other ongoing housing subsidy
-  """
-  RBC
-
-  """
-  RRH or equivalent subsidy
-  """
-  RRH
-
-  """
-  VASH housing subsidy
-  """
-  VASH
 }
 
 """
