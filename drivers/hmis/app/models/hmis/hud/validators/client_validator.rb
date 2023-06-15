@@ -17,6 +17,12 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
     Hmis::Hud::Client.hmis_configuration(version: '2022').except(*IGNORED)
   end
 
+  def self.hmis_validate(record, options: {}, **_)
+    errors = HmisErrors::Errors.new
+    errors.add :dob, :out_of_range, severity: :error, message: future_message, **options if record.dob&.future?
+    errors.errors
+  end
+
   def validate(record)
     super(record) do
       record.errors.add :gender, :required if !skipped_attributes(record).include?(:gender) && ::HudUtility.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
