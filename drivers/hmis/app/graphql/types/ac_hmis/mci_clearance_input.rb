@@ -17,7 +17,7 @@ module Types
 
     def to_client
       attributes = to_h.except(:gender)
-      hud_user = Hmis::Hud::User.system_user(data_source_id: GrdaWarehouse::DataSource.hmis.pluck(:id).first)
+      hud_user = Hmis::Hud::User.system_user(data_source_id: current_user.hmis_data_source_id)
       Hmis::Hud::Client.new(
         **attributes,
         **Hmis::Hud::Processors::ClientProcessor.gender_attributes(gender || []),

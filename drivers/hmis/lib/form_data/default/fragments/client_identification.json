@@ -27,6 +27,13 @@
           "operator": "EQUAL",
           "answer_boolean": true
         }
+      ],
+      "bounds": [
+        {
+          "id": "max-dob",
+          "type": "MAX",
+          "question": "today"
+        }
       ]
     },
     {
