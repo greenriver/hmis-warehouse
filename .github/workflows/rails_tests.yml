@@ -21,8 +21,8 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          - drivers/hmis
-          - spec/models/cohort_columns
+          - drivers
+          - spec
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
