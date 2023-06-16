@@ -56,16 +56,16 @@ jobs:
       sftp:
         image: justinhimself/sftp
 
-      # minio:
-      #   image: ghcr.io/greenriver/openpath-minio:1.0
-      #   credentials:
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-      #   env:
-      #     MINIO_ACCESS_KEY: local_access_key
-      #     MINIO_SECRET_KEY: local_secret_key
-      #   ports:
-      #     - '9000:9000'
+      minio:
+        image: ghcr.io/greenriver/openpath-minio:1.0
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          MINIO_ACCESS_KEY: local_access_key
+          MINIO_SECRET_KEY: local_secret_key
+        ports:
+          - '9000:9000'
 
     env:
       CLIENT: test
