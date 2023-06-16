@@ -12,21 +12,19 @@ module
       {}.tap do |hashes|
         available_no_recent_homelessness_types.invert.each do |key, title|
           # These need to use enrollment.id to capture age correctly
-          if key.to_sym.in?([:with_children, :with_children, :unaccompanied_youth])
-            hashes["no_recent_homelessness_#{key}"] = {
-              title: "No Recent Homelessness - #{title}",
-              headers: client_headers,
-              columns: client_columns,
-              scope: -> { report_scope.joins(:client, :enrollment).where(id: no_recent_homelessness_client_ids(key)).distinct },
-            }
+          id_field = if key.to_sym.in?([:with_children, :with_children, :unaccompanied_youth])
+            :id
           else
-            hashes["no_recent_homelessness_#{key}"] = {
-              title: "No Recent Homelessness - #{title}",
-              headers: client_headers,
-              columns: client_columns,
-              scope: -> { report_scope.joins(:client, :enrollment).where(client_id: no_recent_homelessness_client_ids(key)).distinct },
-            }
+            :client_id
           end
+           
+          hashes["no_recent_homelessness_#{key}"] = {
+            title: "No Recent Homelessness - #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client, :enrollment).where(id_field => no_recent_homelessness_client_ids(key)).distinct },
+          }
+        end
         end
       end
     end
