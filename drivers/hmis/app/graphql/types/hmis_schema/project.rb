@@ -109,9 +109,11 @@ module Types
       resolve_inventories(**args)
     end
 
+    # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
-      capacity = object.units.group(:unit_type_id).count
-      unoccupied = object.units.unoccupied_on.group(:unit_type_id).count
+      project_units = object.units.active
+      capacity = project_units.group(:unit_type_id).count
+      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
 
       object.units.map(&:unit_type).uniq.map do |unit_type|
         OpenStruct.new(
