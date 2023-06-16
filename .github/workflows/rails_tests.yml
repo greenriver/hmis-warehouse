@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          - drivers/hmis_external_apis
+          - drivers
           - spec
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
