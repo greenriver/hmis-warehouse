@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          - drivers/hmis
+          - drivers/hmis_external_apis
           - spec
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
@@ -201,6 +201,8 @@ jobs:
 
       - name: Run logging tests
         env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
           LOG_LEVEL: INFO
         run: |
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
