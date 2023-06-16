@@ -1140,6 +1140,7 @@ DEPENDENCIES
   rqrcode-rails3
   rserve-client
   rserve-simpler
+  rspec-core
   rspec-instafail
   rspec-mocks
   rspec-rails

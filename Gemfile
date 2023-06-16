@@ -293,6 +293,7 @@ group :test do
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
+  gem 'rspec-core'
   gem 'rails-controller-testing'
   gem 'rspec-instafail'
   # gem 'simplecov'
