@@ -12,7 +12,7 @@ on:
   #     - '**/*'
 concurrency:
   group: ${{ github.ref }}-tests
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   # Label of the container job
@@ -190,7 +190,7 @@ jobs:
           MAX_FAILURES: 20
           LOG_LEVEL: INFO
         run: |
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
+          bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{drivers}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
       - name: Run logging tests
