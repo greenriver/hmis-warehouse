@@ -155,7 +155,7 @@ module
     end
 
     private def expiration_length
-      return 30.seconds if Rails.env.development?
+      return 3.minutes if Rails.env.development?
 
       30.minutes
     end

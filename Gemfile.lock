@@ -1134,6 +1134,7 @@ DEPENDENCIES
   rqrcode-rails3
   rserve-client
   rserve-simpler
+  rspec-core
   rspec-mocks
   rspec-rails
   rubocop
