@@ -79,7 +79,7 @@ module Types
       when 'AVAILABLE_UNITS'
         return [] unless project.present?
 
-        project.units.unoccupied.order(:name, :id).map(&:to_pick_list_option)
+        project.units.unoccupied_on.order(:name, :id).map(&:to_pick_list_option)
       when 'AVAILABLE_FILE_TYPES'
         file_tag_picklist
       when 'CLIENT_ENROLLMENTS'
@@ -107,7 +107,7 @@ module Types
 
     def self.unit_types_for_project(project, available_only: false)
       units = project.units
-      units = units.unoccupied if available_only
+      units = units.unoccupied_on if available_only
 
       # Hash { unit type id => num unoccupied }
       unit_type_to_availability = units.group(:unit_type_id).count
