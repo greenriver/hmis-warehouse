@@ -73,7 +73,7 @@ module HmisExternalApis::AcHmis
     def create_mci_id(client)
       raise(Error, 'Client needs to be saved first') unless client.persisted?
 
-      external_id = client.mci_id
+      external_id = get_external_id(client)
 
       raise(Error, 'Client already has an MCI id') if external_id
 
@@ -106,7 +106,7 @@ module HmisExternalApis::AcHmis
     def update_client(client)
       raise(Error, 'Client needs to be saved first') unless client.persisted?
 
-      external_id = client.mci_id
+      external_id = get_external_id(client)
 
       raise(Error, 'Client must already have an MCI id') if external_id.nil?
 
@@ -175,6 +175,10 @@ module HmisExternalApis::AcHmis
     end
 
     private
+
+    def get_external_id(source)
+      source.ac_hmis_mci_ids.to_a.min_by(&:id)
+    end
 
     def conn
       @conn ||= HmisExternalApis::OauthClientConnection.new(creds)
