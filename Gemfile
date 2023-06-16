@@ -294,6 +294,7 @@ group :test do
   gem 'shoulda'
   gem 'timecop'
   gem 'rails-controller-testing'
+  gem 'rspec-instafail'
   # gem 'simplecov'
   # gem 'simplecov-console'
 end
