@@ -99,16 +99,8 @@ module
         @households[get_hh_id(enrollment)] << {
           client_id: enrollment.client_id,
           enrollment_id: enrollment.id,
-          # source_client_id: enrollment.enrollment.client.id,
-          # dob: enrollment.enrollment.client.DOB,
           age: age,
-          # veteran_status: enrollment.enrollment.client.VeteranStatus,
-          # chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
-          # chronic_detail: enrollment.enrollment.chronically_homeless_at_start,
           relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-          # Include dates for determining if someone was present at assessment date
-          # entry_date: enrollment.first_date_in_program,
-          # exit_date: enrollment.last_date_in_program,
         }.with_indifferent_access
       end
     end
