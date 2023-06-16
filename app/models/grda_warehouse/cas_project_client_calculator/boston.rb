@@ -250,7 +250,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days = client.processed_service_history&.days_homeless_last_three_years || 0
       return pre_calculated_days unless assessment.present?
 
-      pathways_days_homeless(assessment, client).presence || pre_calculated_days
+      pathways_days = pathways_days_homeless(assessment, client)
+      return pathways_days if pathways_days.positive?
+
+      pre_calculated_days
     end
 
     private def literally_homeless_last_three_years_cached(client)
@@ -258,7 +261,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days = client.processed_service_history&.literally_homeless_last_three_years || 0
       return pre_calculated_days unless assessment.present?
 
-      pathways_days_homeless(assessment, client).presence || pre_calculated_days
+      pathways_days = pathways_days_homeless(assessment, client)
+      return pathways_days if pathways_days.positive?
+
+      pre_calculated_days
     end
 
     private def pathways_days_homeless(assessment, client)
