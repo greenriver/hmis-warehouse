@@ -89,8 +89,6 @@ jobs:
       HOSTNAME: openpath.host
       MINIO_ENDPOINT: http://minio:9000
       USE_MINIO_ENDPOINT: true
-      AWS_ACCESS_KEY_ID: local_access_key
-      AWS_SECRET_ACCESS_KEY: local_secret_key
       PORT: 80
       RAILS_ENV: test
       REPORTING_DATABASE_ADAPTER: postgresql
