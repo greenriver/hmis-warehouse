@@ -61,8 +61,6 @@ module Mutations
       # * the referral came from link
       # * status has changed (status will be unchanged if user just updated note)
       send_update(posting) if posting.from_link? && posting_status_change.present?
-      posting.reload # reload as posting may have been updated from API response
-
       # resend original referral request
       if posting_status_change == ['denied_pending_status', 'denied_status'] && input.resend_referral_request
         raise unless posting.from_link?

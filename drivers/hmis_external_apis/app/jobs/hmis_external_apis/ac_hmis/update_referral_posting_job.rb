@@ -45,41 +45,13 @@ module HmisExternalApis::AcHmis
         posting_status_id: posting_status_id,
         referral_result_id: REFERRAL_RESULT_CODE_MAP[referral_result_id],
         denied_reason_id: denied_reason_id,
-        denial_note: denial_note,
+        denial_notes: denial_note,
         status_note: status_note,
-        contact_date: format_date(contact_date),
+        contact_date: format_datetime(contact_date),
         requested_by: format_requested_by(requested_by),
-      }.filter { |_, v| v.present? }
+      }.compact_blank
 
-      payload[:denied_reason_id] = denied_reason_id if denied_reason_id
-
-      response = link.update_referral_posting_status(payload)
-      posting_attrs = response.parsed_body.fetch('postings').map { |h| h.transform_keys(&:underscore) }
-      update_referral_postings(posting_attrs)
-    end
-
-    protected
-
-    # we may get references to postings that do not belong to the updated referral
-    def posting_scope
-      HmisExternalApis::AcHmis::ReferralPosting
-    end
-
-    def update_referral_postings(posting_attrs)
-      # build lookup tables for entities referenced in postings; avoid n+1 queries
-      postings_by_identifier = posting_attrs
-        .map { |h| h.fetch('posting_id') }
-        .compact_blank
-        .then do |ids|
-          posting_scope.where(identifier: ids).index_by(&:identifier)
-        end
-      posting_attrs.map do |attrs|
-        posting_id = attrs.fetch('posting_id')
-        posting = postings_by_identifier[posting_id]
-        posting.status = attrs.fetch('posting_status_id')
-        posting.save!
-        posting
-      end
+      link.update_referral_posting_status(payload)
     end
   end
 end
