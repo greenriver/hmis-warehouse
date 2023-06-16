@@ -246,19 +246,39 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     # NOTE: this is also used in cohorts
     def days_homeless_in_last_three_years_cached(client)
-      days = most_recent_pathways_or_transfer(client)&.
-        question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer
-      return days if days.present?
+      assessment = most_recent_pathways_or_transfer(client)
+      pre_calculated_days = client.processed_service_history&.days_homeless_last_three_years || 0
+      return pre_calculated_days unless assessment.present?
 
-      client.processed_service_history&.days_homeless_last_three_years
+      pathways_days_homeless(assessment, client).presence || pre_calculated_days
     end
 
     private def literally_homeless_last_three_years_cached(client)
-      days = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer
-      return days if days.present?
+      assessment = most_recent_pathways_or_transfer(client)
+      pre_calculated_days = client.processed_service_history&.literally_homeless_last_three_years || 0
+      return pre_calculated_days unless assessment.present?
 
-      client.processed_service_history&.literally_homeless_last_three_years
+      pathways_days_homeless(assessment, client).presence || pre_calculated_days
+    end
+
+    private def pathways_days_homeless(assessment, client)
+      unsheltered_days = assessment.question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
+      sheltered_days = assessment.question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
+      days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
+
+      warehouse_unsheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
+      warehouse_sheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
+
+      days += warehouse_unsheltered_days
+      days += warehouse_sheltered_days
+      days
+    end
+
+    private def max_extra_homeless_days(client)
+      start_date = GrdaWarehouse::Config.get(:self_report_start_date)
+      return 1096 if start_date.blank? || start_date.future? || ce_self_certification_client_ids.include?(client.id)
+
+      548
     end
 
     private def default_shelter_agency_contacts(client)
@@ -408,6 +428,12 @@ module GrdaWarehouse::CasProjectClientCalculator
       # The following is equivalent to, but hopefully much faster in batches
       # client.chronically_disabled? || client.disabling_condition?
       chronically_disabled_ids.include?(client.id) || disabled_client_ids.include?(client.id)
+    end
+
+    private def ce_self_certification_client_ids
+      @ce_self_certification_client_ids ||= GrdaWarehouse::ClientFile.
+        recent_ce_self_report_certification.
+        pluck(:client_id)
     end
   end
 end
