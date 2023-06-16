@@ -1,0 +1,81 @@
+wb = xlsx_package.workbook
+
+goal_config = @report.goal_config
+
+wb.add_worksheet(name: 'Summary') do |sheet|
+  overall_percent_invalid = @report.percent(@report.results.map(&:total).sum, @report.results.map(&:invalid_count).sum)
+  
+  overall_percent_valid = 100 - overall_percent_invalid
+  
+  if goal_config.present? && goal_config.active?
+    name = goal_config.name_for(overall_percent_valid.to_i)
+    sheet.add_row(['Overall', name, "#{overall_percent_valid}%"])
+  else
+    sheet.add_row(['Overall', "#{overall_percent_valid}%"])
+  end
+
+  @report.results.group_by(&:category).each do |category, results|
+    category_percent_valid = @report.category_percent_valid(results)
+
+    if goal_config.present? && goal_config.active?
+      name = goal_config.name_for(category_percent_valid.to_i)
+      if name.present?
+        sheet.add_row([category, name, "#{category_percent_valid}%"])
+      end
+    else
+      sheet.add_row([category, "#{categoroy_percent_valid}%"])
+    end
+  end
+end
+
+@report.results.group_by(&:category).each do |category, results|
+  wb.add_worksheet(name: category) do |sheet|
+    sheet.add_row(['Section', 'Description', 'Required for', 'Overall Number in Universe', 'Number of Invalid Values', 'Percent Valid'])
+
+    results.each do |result|
+      sheet.add_row([
+        result.title, 
+        result.description, 
+        result.required_for, 
+        number_with_delimiter(result.total), number_with_delimiter(result.invalid_count), "#{result.percent_valid}%"
+      ])
+    end
+  end
+end
+
+if goal_config.expose_ch_calculations
+  wb.add_worksheet(name: 'Informational') do |sheet|
+    sheet.add_row(['Title', 'Description', 'Value'])
+    info_table = HmisDataQualityTool::InformationalTable.new(@report)
+    info_table.rows.each do |row|
+      sheet.add_row([row[:title], row[:description], row[:value]])
+    end
+  end
+end
+
+wb.add_worksheet(name: 'Propjects') do |sheet|
+  sheet.add_row(['Project'] + @report.categories)
+  @report.per_project_results.each do |project_id, data|
+    project = @report.filter.effective_projects.detect { |p| p.id.to_s == project_id.to_s }
+    next unless project.present?
+    row = [project.name(current_user)]
+    @report.categories.each do |cat|
+      
+      valid_count = data[cat][:total] - data[cat][:invalid_count]
+      valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)
+      if goal_config.present? && goal_config.active?
+        name = goal_config.name_for(valid_percent.to_i)
+        if name.present?
+          row.push("#{valid_percent}%")
+        end
+      else
+        row.push("#{valid_percent}%")
+      end
+      
+    end
+    sheet.add_row(row)
+  end
+end
+
+
+

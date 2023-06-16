@@ -12,18 +12,14 @@ module HmisDataQualityTool::DocumentExports
     end
 
     protected def report
-      @report ||= report_class.new(filter)
+      @report ||= report_class.find(params['id'])
     end
 
     protected def view_assigns
-      comparison_filter = filter.to_comparison
-      comparison_report = report_class.new(comparison_filter) if report.include_comparison?
-
       {
         report: report,
         filter: filter,
-        comparison: comparison_report || report,
-        comparison_filter: comparison_filter,
+        title: _('HMIS Data Quality Tool'),
         pdf: false,
       }
     end
@@ -41,7 +37,7 @@ module HmisDataQualityTool::DocumentExports
 
         write_tmp_file(
           renderer.render(
-            action: :index,
+            action: :show,
             format: :xlsx,
             assigns: view_assigns,
           ),

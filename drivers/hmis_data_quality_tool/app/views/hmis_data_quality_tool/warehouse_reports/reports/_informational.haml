@@ -1,6 +1,23 @@
 - goal_config = @report.goal_config
 %h2 Informational
 - if goal_config.expose_ch_calculations
+  - info_table = HmisDataQualityTool::InformationalTable.new(@report)
+  .card.mb-6
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Title
+          %th Description
+          %th Value
+      %tbody
+        - info_table.rows.each do |row|
+          %tr
+            %th= row[:title]
+            %td= row[:description]
+            %td= link_to row[:value], row[:value_path]
+
+%h2 Informational Old
+- if goal_config.expose_ch_calculations
   .card.mb-6
     %table.table.table-striped
       %thead
