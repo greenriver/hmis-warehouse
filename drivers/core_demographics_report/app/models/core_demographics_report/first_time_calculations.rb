@@ -17,14 +17,13 @@ module
           else
             :client_id
           end
-           
+
           hashes["no_recent_homelessness_#{key}"] = {
             title: "No Recent Homelessness - #{title}",
             headers: client_headers,
             columns: client_columns,
             scope: -> { report_scope.joins(:client, :enrollment).where(id_field => no_recent_homelessness_client_ids(key)).distinct },
           }
-        end
         end
       end
     end
