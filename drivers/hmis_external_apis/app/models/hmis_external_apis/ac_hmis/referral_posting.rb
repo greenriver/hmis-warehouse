@@ -45,13 +45,15 @@ module HmisExternalApis::AcHmis
       referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_result_map),
     )
 
+    # Referrals in Denied Pending status can either be move to Denied (denial accepted) or to Assigned (denial rejected)
     DENIAL_STATUSES = ['assigned_status', 'denied_status', 'denied_pending_status'].freeze
-    ASSIGNED_STATUSES = ['assigned_status', 'accepted_pending_status', 'denied_pending_status'].freeze
+    # Referrals in Assigned status can either be move to Accepted Pending or Denied Pending
+    ASSIGNED_STATUSES = ['assigned_status', 'accepted_pending_status'].freeze
 
     validates :status, presence: true
     with_options on: :hmis_user_action do
       validates :status, inclusion: { in: ASSIGNED_STATUSES }
-      validates :status_note, length: { maximum: 4_000 }
+      validates :status_note, presence: true, length: { maximum: 4_000 }
       validates :denial_reason, presence: true, if: :denied_pending_status?
       validates :denial_note, length: { maximum: 2_000 }
     end

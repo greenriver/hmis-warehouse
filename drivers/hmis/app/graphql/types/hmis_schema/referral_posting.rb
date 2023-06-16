@@ -80,7 +80,7 @@ module Types
     end
 
     def referred_from
-      project&.project_name || 'Coordinated Entry'
+      enrollment_project&.project_name || 'Coordinated Entry'
     end
 
     def organization
@@ -113,12 +113,26 @@ module Types
       end
     end
 
+    # FIXME: use data source
     def project
       object.project
     end
 
+    # FIXME: use data source
     def referral
       object.referral
+    end
+
+    protected
+
+    # FIXME: use data source
+    def enrollment
+      referral.enrollment
+    end
+
+    # FIXME: use data source
+    def enrollment_project
+      enrollment&.project
     end
 
   end

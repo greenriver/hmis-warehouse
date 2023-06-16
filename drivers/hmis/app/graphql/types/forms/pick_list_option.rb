@@ -104,7 +104,6 @@ module Types
         label_map = {
           'assigned_status' => 'Send Back',
           'denied_status' => 'Approve Denial',
-          'denied_pending_status' => 'Denied Pending',
         }
         HmisExternalApis::AcHmis::ReferralPosting::DENIAL_STATUSES.map do |status|
           {
