@@ -14,7 +14,7 @@ module Api
     end
 
     def unfavorite
-      current_user.favorite_reports.where(id: params[:id].to_i).destroy_all
+      current_user.favorites.where(entity: params[:id].to_i, entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition').destroy_all
     end
   end
 end
