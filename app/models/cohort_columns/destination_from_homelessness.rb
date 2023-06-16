@@ -12,6 +12,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def value(cohort_client) # OK
+      # FIXME: this should have a hidden span with the most recent date, if that's possible
       cohort_client.destination_from_homelessness
     end
   end
