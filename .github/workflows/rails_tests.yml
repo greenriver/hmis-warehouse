@@ -18,6 +18,7 @@ jobs:
   # Label of the container job
   tests:
     strategy:
+      fail-fast: false
       matrix:
         test_group:
           - drivers/hmis
