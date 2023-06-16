@@ -17,8 +17,8 @@ module HealthComprehensiveAssessment
         @patient.comprehensive_assessments.in_progress.first
       else
         ca = @patient.comprehensive_assessments.create!(user: current_user)
-        ca.populate_from_patient
         @patient.ca_assessments.create(instrument: ca)
+        ca.populate_from_patient
         ca
       end
       redirect_to edit_client_health_comprehensive_assessment_assessment_path(@client, @assessment)
