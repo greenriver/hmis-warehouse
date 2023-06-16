@@ -46,6 +46,8 @@ module HealthQaFactory
     end
 
     private def create_hrsn_screening_qa(screener)
+      return unless screener.present?
+
       user = User.find(careplan.reviewed_by_ccm_id)
 
       qa = ::Health::QualifyingActivity.new(
@@ -75,6 +77,8 @@ module HealthQaFactory
     end
 
     private def create_ca_development_qa(assessment)
+      return unless assessment.present?
+
       user = User.find(assessment.user_id)
 
       ::Health::QualifyingActivity.create(
@@ -92,6 +96,8 @@ module HealthQaFactory
     end
 
     private def create_ca_completed_qa(assessment)
+      return unless assessment.present?
+
       user = User.find(careplan.reviewed_by_ccm_id)
 
       ::Health::QualifyingActivity.create(
@@ -109,6 +115,8 @@ module HealthQaFactory
     end
 
     private def create_careplan_development_qa(careplan)
+      return unless careplan.present?
+
       user = User.find(careplan.user_id)
 
       ::Health::QualifyingActivity.create(
@@ -126,6 +134,8 @@ module HealthQaFactory
     end
 
     private def create_careplan_completed_qa(careplan)
+      return unless careplan.present?
+
       user = User.find(careplan.reviewed_by_rn_id)
 
       ::Health::QualifyingActivity.create(
