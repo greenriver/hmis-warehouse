@@ -195,7 +195,7 @@ jobs:
           MAX_FAILURES: 20
           LOG_LEVEL: INFO
         run: |
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color --require rspec/instafail --format RSpec::Instafail --format p -P "{${{ matrix.test_group }}}/**/*_spec.rb"
+          bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{${{ matrix.test_group }}}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
       - name: Run logging tests
