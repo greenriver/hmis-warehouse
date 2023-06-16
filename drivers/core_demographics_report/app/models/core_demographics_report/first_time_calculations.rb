@@ -11,12 +11,22 @@ module
     def no_recent_homelessness_detail_hash
       {}.tap do |hashes|
         available_no_recent_homelessness_types.invert.each do |key, title|
-          hashes["no_recent_homelessness_#{key}"] = {
-            title: "No Recent Homelessness - #{title}",
-            headers: client_headers,
-            columns: client_columns,
-            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: no_recent_homelessness_client_ids(key)).distinct },
-          }
+          # These need to use enrollment.id to capture age correctly
+          if key.to_sym.in?([:with_children, :with_children, :unaccompanied_youth])
+            hashes["no_recent_homelessness_#{key}"] = {
+              title: "No Recent Homelessness - #{title}",
+              headers: client_headers,
+              columns: client_columns,
+              scope: -> { report_scope.joins(:client, :enrollment).where(id: no_recent_homelessness_client_ids(key)).distinct },
+            }
+          else
+            hashes["no_recent_homelessness_#{key}"] = {
+              title: "No Recent Homelessness - #{title}",
+              headers: client_headers,
+              columns: client_columns,
+              scope: -> { report_scope.joins(:client, :enrollment).where(client_id: no_recent_homelessness_client_ids(key)).distinct },
+            }
+          end
         end
       end
     end
@@ -123,13 +133,15 @@ module
               # Always add them to the clients category
               clients[:client] << client_id
               clients[:household] << client_id if hoh_client_ids.include?(enrollment_id)
-              clients[:adult_and_child] << client_id if adult_and_child_ids.include?(enrollment_id)
-              clients[:hoh_adult_and_child] << client_id if hoh_adult_and_child_ids.include?(enrollment_id)
-              clients[:unaccompanied_youth] << client_id if unaccompanied_youth_ids.include?(enrollment_id)
               clients[:chronic] << client_id if chronic_ids.include?(client_id)
               clients[:hoh_chronic] << client_id if hoh_chronic_ids.include?(client_id)
               clients[:high_acuity] << client_id if high_acuity_ids.include?(client_id)
               clients[:hoh_high_acuity] << client_id if hoh_high_acuity_ids.include?(client_id)
+
+              # These need to use enrollment.id to capture age correctly
+              clients[:adult_and_child] << enrollment_id if adult_and_child_ids.include?(enrollment_id)
+              clients[:hoh_adult_and_child] << enrollment_id if hoh_adult_and_child_ids.include?(enrollment_id)
+              clients[:unaccompanied_youth] << enrollment_id if unaccompanied_youth_ids.include?(enrollment_id)
             end
         end
       end
