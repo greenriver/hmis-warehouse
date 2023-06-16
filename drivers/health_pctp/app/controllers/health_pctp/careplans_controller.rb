@@ -33,9 +33,9 @@ module HealthPctp
       old_delivered_status = @careplan.was_sent_to_pcp
       @careplan.assign_attributes(careplan_params)
 
-      boolean_toggled(old_ccm_status, @careplan.review_by_ccm_complete, :reviewed_by_ccm)
-      boolean_toggled(old_rn_status, @careplan.review_by_rn_complete, :reviewed_by_rn)
-      boolean_toggled(old_delivered_status, @careplan.was_sent_to_pcp, :sent_to_pcp)
+      boolean_toggled(old_ccm_status, @careplan.review_by_ccm_complete, :reviewed_by_ccm_on, :reviewed_by_ccm_id)
+      boolean_toggled(old_rn_status, @careplan.review_by_rn_complete, :reviewed_by_rn_on, :reviewed_by_rn_id)
+      boolean_toggled(old_delivered_status, @careplan.was_sent_to_pcp, :sent_to_pcp_on, :sent_to_pcp_by_id)
 
       @careplan.save
 
@@ -54,13 +54,13 @@ module HealthPctp
       respond_with @careplan, location: client_health_careplans_path(@client)
     end
 
-    private def boolean_toggled(old_value, new_value, attr)
+    private def boolean_toggled(old_value, new_value, date_attr, who_attr)
       return unless new_value.present?
 
       if new_value == '0' # when not checked, clear who and when
-        @careplan.assign_attributes("#{attr}_on" => nil, "#{attr}_by_id" => nil)
+        @careplan.assign_attributes(date_attr => nil, who_attr => nil)
       elsif new_value == '1' && ! old_value # if checked, and changed, set who and when
-        @careplan.assign_attributes("#{attr}_on" => Date.current, "#{attr}_by_id" => current_user.id)
+        @careplan.assign_attributes(date_attr => Date.current, who_attr => current_user.id)
       end
     end
 
