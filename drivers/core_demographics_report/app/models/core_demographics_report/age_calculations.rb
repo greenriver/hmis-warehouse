@@ -353,12 +353,12 @@ module
       rows['_Children - No Single Gender'] += ['No Single Gender', nil, child_no_single_gender_count, average_child_no_single_gender_age, nil]
       rows['_Children - Unknown Gender'] ||= []
       rows['_Children - Unknown Gender'] += ['Unknown Gender', nil, child_unknown_gender_count, average_child_unknown_gender_age, nil]
-      rows['_Age Beakdowns Break'] ||= []
-      rows['*Age Beakdowns'] ||= []
-      rows['*Age Beakdowns'] += ['Age Range', nil, 'Count', 'Percentage']
+      rows['_Age Breakdowns Break'] ||= []
+      rows['*Age Breakdowns'] ||= []
+      rows['*Age Breakdowns'] += ['Age Range', nil, 'Count', 'Percentage']
       age_categories.each do |age_range, age_title|
-        rows["_Age Beakdowns_data_#{age_title}"] ||= []
-        rows["_Age Beakdowns_data_#{age_title}"] += [
+        rows["_Age Breakdowns_data_#{age_title}"] ||= []
+        rows["_Age Breakdowns_data_#{age_title}"] += [
           age_title,
           nil,
           age_count(age_range),

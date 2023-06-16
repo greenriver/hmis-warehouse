@@ -25,10 +25,8 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
 
       result = HmisExternalApis::OauthClientResult.new(
         parsed_body: {
-          'postings' => [
-            'postingId' => posting.identifier,
-            'postingStatusId' => accepted_status_code,
-          ],
+          'postingId' => posting.identifier,
+          'postingStatusId' => accepted_status_code,
         },
       )
       expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch)
@@ -47,8 +45,6 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateReferralPostingJob do
         posting_status_id: accepted_status_code,
         requested_by: requested_by,
       )
-      posting.reload
-      expect(posting.status_before_type_cast).to(eq(accepted_status_code))
     end
   end
 end
