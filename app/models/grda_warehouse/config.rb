@@ -141,7 +141,7 @@ module GrdaWarehouse
       {
         'Boston Pathways' => 'GrdaWarehouse::CasProjectClientCalculator::Boston',
         'Tarrant HAT' => 'GrdaWarehouse::CasProjectClientCalculator::TcHat',
-        'MDHA' => 'GrdaWarehouse::CasProjectClientCalculator::Mdha',
+        'Housing Forward' => 'GrdaWarehouse::CasProjectClientCalculator::Mdha',
         'Default' => 'GrdaWarehouse::CasProjectClientCalculator::Default',
       }
     end

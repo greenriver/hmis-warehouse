@@ -57,7 +57,7 @@ module GrdaWarehouse::Tasks
                 },
               ],
               cohort_clients: :cohort,
-              source_enrollments: [:income_benefits, :exit],
+              source_enrollments: [:income_benefits, :exit, :ch_enrollment],
             ]
             if RailsDrivers.loaded.include?(:eccovia_data) && EccoviaData::Fetch.exists?
               preloads += [
