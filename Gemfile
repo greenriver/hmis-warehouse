@@ -297,6 +297,7 @@ group :test do
   gem 'timecop'
   gem 'rspec-core'
   gem 'rails-controller-testing'
+  gem 'rspec-instafail'
   # gem 'simplecov'
   # gem 'simplecov-console'
 end
