@@ -34,6 +34,5 @@ module Types
     value 'REFERRAL_RESULT_TYPES', 'Referral Result '
     value 'ASSIGNED_REFERRAL_POSTING_STATUSES', 'Referral Posting Status'
     value 'DENIED_PENDING_REFERRAL_POSTING_STATUSES', 'Referral Posting Status'
-    value 'REFERRAL_POSTING_DENIAL_REASON_TYPES', 'Referral Posting Status'
   end
 end

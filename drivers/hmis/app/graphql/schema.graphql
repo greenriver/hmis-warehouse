@@ -4884,11 +4884,6 @@ enum PickListType {
   REFERRAL_OUTCOME
 
   """
-  Referral Posting Status
-  """
-  REFERRAL_POSTING_DENIAL_REASON_TYPES
-
-  """
   Referral Result 
   """
   REFERRAL_RESULT_TYPES
@@ -5550,7 +5545,7 @@ type ReferralPosting {
   assignedDate: ISO8601DateTime!
   chronic: Boolean
   denialNote: String
-  denialReason: String
+  denialReason: ReferralPostingDenialReasonType
   hohEnrollment: Enrollment
   hohMciId: ID
   hohName: String!
@@ -5579,10 +5574,50 @@ type ReferralPosting {
   unitType: UnitTypeObject!
 }
 
+"""
+Referral Posting Denial Reason
+"""
+enum ReferralPostingDenialReasonType {
+  """
+  Does not meet eligibility criteria
+  """
+  DoesNotMeetEligibilityCriteria
+
+  """
+  Enrolled, but declined HMIS data entry
+  """
+  EnrolledButDeclinedHMISDataEntry
+
+  """
+  Estimated vacancy no longer available
+  """
+  EstimatedVacancyNoLongerAvailable
+
+  """
+  HMIS user error
+  """
+  HMISUserError
+
+  """
+  Inability to complete intake
+  """
+  InabilityToCompleteIntake
+
+  """
+  No longer experiencing homelessness
+  """
+  NoLongerExperiencingHomelessness
+
+  """
+  No longer interested in this program
+  """
+  NoLongerInterestedInThisProgram
+}
+
 input ReferralPostingInput {
   denialNote: String
-  denialReason: ID
-  referralResult: ID
+  denialReason: ReferralPostingDenialReasonType
+  referralResult: ReferralResult
   resendReferralRequest: Boolean
   status: ID
   statusNote: String

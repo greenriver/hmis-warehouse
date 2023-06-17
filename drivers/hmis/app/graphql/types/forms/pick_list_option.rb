@@ -111,30 +111,11 @@ module Types
             label: label_map.fetch(status),
           }
         end
-      when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'
-        [
-          {
-            "code": '3',
-            "label": 'No Show',
-          },
-          {
-            "code": '17',
-            "label": 'Vacancy no longer exit-pending',
-          },
-          {
-            "code": '18',
-            "label": 'Household Enrolled but Refused HMIS',
-          },
-          {
-            "code": '19',
-            "label": 'Estimated vacancy no longer available',
-          },
-        ]
       when 'REFERRAL_RESULT_TYPES'
         # ::HudLists.referral_result_map
         [
-          { code: 'UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED', label: 'Client Rejected' },
-          { code: 'UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED', label: 'Provider Rejected' },
+          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(2), label: 'Client Rejected' },
+          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(3), label: 'Provider Rejected' },
         ]
       end
     end

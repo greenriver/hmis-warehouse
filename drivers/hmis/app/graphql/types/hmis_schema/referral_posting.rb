@@ -36,7 +36,7 @@ module Types
     field :status_note, String
     field :status_note_updated_at, GraphQL::Types::ISO8601DateTime
     field :status_note_updated_by, String
-    field :denial_reason, String
+    field :denial_reason, HmisSchema::Enums::ReferralPostingDenialReasonType
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult
     field :denial_note, String
     field :referred_from, String, null: false
