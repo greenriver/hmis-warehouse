@@ -34,6 +34,8 @@ module
     end
 
     def outcome_percentage(type)
+      return 'N/A' if type.to_s == 'average_los'
+
       total_count = total_client_count
       return 0 if total_count.zero?
 
@@ -49,11 +51,13 @@ module
       rows['*Outcome Type'] += ['Outcome Type', nil, 'Count', 'Percentage', nil]
       available_outcome_types.invert.each do |id, title|
         rows["_Outcome Type_data_#{title}"] ||= []
+        outcome_percentage = outcome_percentage(id)
+        outcome_percentage /= 100 unless id.to_s == 'average_los'
         rows["_Outcome Type_data_#{title}"] += [
           title,
           nil,
           outcome_count(id),
-          outcome_percentage(id) / 100,
+          outcome_percentage,
         ]
       end
       rows
@@ -135,7 +139,7 @@ module
     end
 
     private def outcome_clients
-      @outcome_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+      @outcome_clients ||= Rails.cache.fetch(outcome_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           # TODO: Average LOS - Unique days in homeless projects in the report scope
           clients[:average_los] = report_scope.distinct.in_project_type(homeless_project_type_codes).joins(:service_history_services).group(:client_id).count(:date).to_set
@@ -184,6 +188,10 @@ module
             end
         end
       end
+    end
+
+    private def outcome_cache_key
+      [self.class.name, cache_slug, 'outcome_clients']
     end
   end
 end

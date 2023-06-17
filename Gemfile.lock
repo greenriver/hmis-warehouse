@@ -759,11 +759,17 @@ GEM
     rserve-client (0.3.5)
     rserve-simpler (0.0.6)
       rserve-client (~> 0.3.0)
+    rspec (3.11.0)
+      rspec-core (~> 3.11.0)
+      rspec-expectations (~> 3.11.0)
+      rspec-mocks (~> 3.11.0)
     rspec-core (3.11.0)
       rspec-support (~> 3.11.0)
     rspec-expectations (3.11.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.11.0)
+    rspec-instafail (1.0.0)
+      rspec
     rspec-mocks (3.11.1)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.11.0)
@@ -1137,6 +1143,8 @@ DEPENDENCIES
   rqrcode-rails3
   rserve-client
   rserve-simpler
+  rspec-core
+  rspec-instafail
   rspec-mocks
   rspec-rails
   rubocop
