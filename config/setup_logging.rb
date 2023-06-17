@@ -101,6 +101,8 @@ class SetupLogging
   end
 
   def _development
+    return if ENV['RAILS_VANILLA_LOGGING'] == 'true'
+
     config.log_level = ENV.fetch('LOG_LEVEL') { 'debug' }.to_sym
 
     if ENV['RAILS_LOG_TO_STDOUT'] == 'true' || ENV['LOG_STD'] == 'true'
