@@ -40,7 +40,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(input) { query }
       expect(response.status).to eq 200
       project = result.dig('data', 'projects')
-      yield project
+      yield project if block_given?
     end
   end
 
@@ -57,6 +57,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'nodes' => contain_exactly(include('id' => p1.id.to_s), include('id' => p3.id.to_s)),
       )
     end
+  end
+
+  it 'is responsive' do
+    25.times do
+      create :hmis_hud_project, data_source: ds1, organization: o2, user: u1
+    end
+    expect do
+      search
+    end.to perform_under(100).ms
   end
 
   it 'should return projects correctly with project type filter' do

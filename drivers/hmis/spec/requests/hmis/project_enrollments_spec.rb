@@ -86,6 +86,36 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'is responsive' do
+      20.times do
+        user = create :hmis_hud_user, data_source: ds1
+        client = create :hmis_hud_client, data_source: ds1, user: user
+        create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: user
+      end
+      qq = <<~GRAPHQL
+      query GetProject($id: ID!) {
+        project(id: $id) {
+          id
+          enrollments(limit: 10, offset: 0) {
+            nodesCount
+            nodes {
+              id
+              client {
+                id
+              }
+              household {
+                id
+              }
+            }
+          }
+        }
+      }
+      GRAPHQL
+      expect do
+        post_graphql(id: p1.id) { qq }
+      end.to perform_under(50).ms.warmup(2).times.sample(10).times
+    end
+
     it 'applies WIP-only limit' do
       response, result = post_graphql(id: p1.id) { wip_only_query }
       aggregate_failures 'checking response' do

@@ -42,7 +42,7 @@ module Types
       private
 
       def scoped_enrollments(scope, sort_order: :most_recent, filters: nil)
-        scope = scope.viewable_by(current_user)
+        scope = scope.viewable_by(current_user) #25ms
         scope = scope.apply_filters(filters) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope

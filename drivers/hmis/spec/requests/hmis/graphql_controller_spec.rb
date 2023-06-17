@@ -19,6 +19,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:o2) { create :hmis_hud_organization, OrganizationName: 'XXX', data_source: ds1 }
   let!(:p3) { create :hmis_hud_project, ProjectName: 'DDD', data_source: ds1, organization: o2 }
   let!(:p4) { create :hmis_hud_project, ProjectName: 'CCC', data_source: ds1, organization: o2 }
+  let(:simple_query) do
+    <<~GRAPHQL
+      query {
+        projects {
+          nodes {
+            projectName
+          }
+        }
+      }
+    GRAPHQL
+  end
   let(:edit_access_group) do
     group = create :edit_access_group
     role = create(:hmis_role)
@@ -85,19 +96,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       delete destroy_hmis_user_session_path
       aggregate_failures 'checking response' do
         expect(response.status).to eq 204
-        response, body = post_graphql do
-          <<~GRAPHQL
-            query {
-              projects {
-                projectName
-              }
-            }
-          GRAPHQL
-        end
+        response, body = post_graphql { simple_query }
         expect(response.status).to eq 401
         expect(body.dig('error', 'type')).to eq 'unauthenticated'
       end
     end
+  end
+
+  it 'is responsive' do
+    expect do
+      post_graphql { simple_query }
+    end.to perform_under(100).ms
   end
 end
 
