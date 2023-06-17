@@ -50,11 +50,11 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
     end
 
     protected def report_class
-      CoreDemographicsReport::Core
+      CoreDemographicsReport::DemographicSummary::Report
     end
 
     private def controller_class
-      CoreDemographicsReport::WarehouseReports::CoreController
+      CoreDemographicsReport::WarehouseReports::DemographicSummaryController
     end
   end
 end

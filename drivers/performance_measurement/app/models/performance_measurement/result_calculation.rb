@@ -25,6 +25,7 @@ module PerformanceMeasurement::ResultCalculation
         progress <= - goal_value
       # less than or equal to goal
       when :time_time,
+        :time_time_homeless_and_ph,
         :time_stay,
         :time_move_in,
         :recidivism_6_months,
@@ -34,7 +35,10 @@ module PerformanceMeasurement::ResultCalculation
         progress.round <= goal_value # we display values in integers, if we're within the same integer, just say it passed
       # greater than or equal to goal
       when :capacity,
-        :destination
+        :destination,
+        :destination_so,
+        :destination_homeless_plus,
+        :destination_permanent
         progress = reporting_value
         progress.round >= goal_value # we display values in integers, if we're within the same integer, just say it passed
       else

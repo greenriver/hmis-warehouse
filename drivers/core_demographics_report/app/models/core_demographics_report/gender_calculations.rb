@@ -65,9 +65,9 @@ module
           nil,
         ]
       end
-      rows['_Gender/Age Beakdowns Break'] ||= []
-      rows['*Gender/Age Beakdowns'] ||= []
-      rows['*Gender/Age Beakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
+      rows['_Gender/Age Breakdowns Break'] ||= []
+      rows['*Gender/Age Breakdowns'] ||= []
+      rows['*Gender/Age Breakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
       HudUtility.genders.each do |gender, gender_title|
         age_categories.each do |age_range, age_title|
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] ||= []
