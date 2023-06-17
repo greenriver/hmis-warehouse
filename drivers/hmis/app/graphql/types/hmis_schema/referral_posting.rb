@@ -113,24 +113,24 @@ module Types
       end
     end
 
-    # FIXME: use data source
+    # FIXME: use graphql dataloader
     def project
       object.project
     end
 
-    # FIXME: use data source
+    # FIXME: use graphql dataloader
     def referral
       object.referral
     end
 
     protected
 
-    # FIXME: use data source
+    # FIXME: use graphql dataloader
     def enrollment
       referral.enrollment
     end
 
-    # FIXME: use data source
+    # FIXME: use graphql dataloader
     def enrollment_project
       enrollment&.project
     end
