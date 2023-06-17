@@ -11,11 +11,18 @@ module
     def no_recent_homelessness_detail_hash
       {}.tap do |hashes|
         available_no_recent_homelessness_types.invert.each do |key, title|
+          # These need to use enrollment.id to capture age correctly
+          id_field = if key.to_sym.in?([:with_children, :with_children, :unaccompanied_youth])
+            :id
+          else
+            :client_id
+          end
+
           hashes["no_recent_homelessness_#{key}"] = {
             title: "No Recent Homelessness - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: no_recent_homelessness_client_ids(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(id_field => no_recent_homelessness_client_ids(key)).distinct },
           }
         end
       end
@@ -90,12 +97,12 @@ module
     end
 
     private def no_recent_homelessness_clients
-      @no_recent_homelessness_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+      @no_recent_homelessness_clients ||= Rails.cache.fetch(no_recent_homelessness_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           # Get ids once from other calculations
-          adult_and_child_ids = client_ids_in_household_type(:with_children)
-          hoh_adult_and_child_ids = hoh_ids_in_household_type(:with_children)
-          unaccompanied_youth_ids = client_ids_in_household_type(:unaccompanied_youth)
+          adult_and_child_ids = enrollment_ids_in_household_type(:with_children)
+          hoh_adult_and_child_ids = hoh_enrollment_ids_in_household_type(:with_children)
+          unaccompanied_youth_ids = enrollment_ids_in_household_type(:unaccompanied_youth)
           chronic_ids = chronic_client_ids(:client)
           hoh_chronic_ids = chronic_client_ids(:household)
           high_acuity_ids = high_acuity_client_ids(:client)
@@ -116,23 +123,29 @@ module
           report_scope.distinct.
             entry_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
             order(first_date_in_program: :desc).
-            pluck(:client_id, :first_date_in_program).
-            each do |client_id, _|
+            pluck(:client_id, :id, :first_date_in_program).
+            each do |client_id, enrollment_id, _|
               next if client_ids_with_prior_homelessness.include?(client_id)
 
               # Always add them to the clients category
               clients[:client] << client_id
-              clients[:household] << client_id if hoh_client_ids.include?(client_id)
-              clients[:adult_and_child] << client_id if adult_and_child_ids.include?(client_id)
-              clients[:hoh_adult_and_child] << client_id if hoh_adult_and_child_ids.include?(client_id)
-              clients[:unaccompanied_youth] << client_id if unaccompanied_youth_ids.include?(client_id)
+              clients[:household] << client_id if hoh_client_ids.include?(enrollment_id)
               clients[:chronic] << client_id if chronic_ids.include?(client_id)
               clients[:hoh_chronic] << client_id if hoh_chronic_ids.include?(client_id)
               clients[:high_acuity] << client_id if high_acuity_ids.include?(client_id)
               clients[:hoh_high_acuity] << client_id if hoh_high_acuity_ids.include?(client_id)
+
+              # These need to use enrollment.id to capture age correctly
+              clients[:adult_and_child] << enrollment_id if adult_and_child_ids.include?(enrollment_id)
+              clients[:hoh_adult_and_child] << enrollment_id if hoh_adult_and_child_ids.include?(enrollment_id)
+              clients[:unaccompanied_youth] << enrollment_id if unaccompanied_youth_ids.include?(enrollment_id)
             end
         end
       end
+    end
+
+    private def no_recent_homelessness_cache_key
+      [self.class.name, cache_slug, 'no_recent_homelessness_clients']
     end
   end
 end
