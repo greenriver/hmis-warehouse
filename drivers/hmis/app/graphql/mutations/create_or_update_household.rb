@@ -29,7 +29,7 @@ module Mutations
         raise HmisErrors::ApiError, 'Household ID not found' unless existing_enrollments.exists?
         raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(existing_enrollments.first, :can_edit_enrollments)
         raise HmisErrors::ApiError, 'Client is already a member of this household' if existing_enrollments.joins(:client).where(c_t[:id].eq(client_id)).exists?
-        raise HmisErrors::ApiError, 'Mismatched Project ID' if existing_enrollments.first.project.id != project_id
+        raise HmisErrors::ApiError, 'Mismatched Project ID' if existing_enrollments.first.project.id != project.id
 
         has_hoh = existing_enrollments.heads_of_households.exists?
         errors.add :relationship_to_hoh, :invalid, full_message: 'Household already has a Head of Household' if has_hoh && is_hoh
