@@ -4835,6 +4835,10 @@ type PickListOption {
 }
 
 enum PickListType {
+  """
+  Referral Posting Status
+  """
+  ASSIGNED_REFERRAL_POSTING_STATUSES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
 
@@ -4854,6 +4858,11 @@ enum PickListType {
   CLIENT_ENROLLMENTS
   COC
   CURRENT_LIVING_SITUATION
+
+  """
+  Referral Posting Status
+  """
+  DENIED_PENDING_REFERRAL_POSTING_STATUSES
   DESTINATION
 
   """
@@ -4875,14 +4884,9 @@ enum PickListType {
   REFERRAL_OUTCOME
 
   """
-  Referral Posting Status
+  Referral Result 
   """
-  REFERRAL_POSTING_DENIAL_REASON_TYPES
-
-  """
-  Referral Posting Status
-  """
-  REFERRAL_POSTING_STATUSES
+  REFERRAL_RESULT_TYPES
   SERVICE_TYPE
   STATE
   SUB_TYPE_PROVIDED_3
@@ -4950,7 +4954,8 @@ type Project {
   residentialAffiliation: NoYesMissing
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
-  units(active: Boolean, limit: Int, occupied: Boolean, offset: Int): UnitsPaginated!
+  unitTypes: [UnitTypeCapacity!]!
+  units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   user: User
 }
 
@@ -5541,7 +5546,7 @@ type ReferralPosting {
   assignedDate: ISO8601DateTime!
   chronic: Boolean
   denialNote: String
-  denialReason: String
+  denialReason: ReferralPostingDenialReasonType
   hohEnrollment: Enrollment
   hohMciId: ID
   hohName: String!
@@ -5549,8 +5554,9 @@ type ReferralPosting {
   householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
-  organizationName: String
+  organization: Organization
   postingIdentifier: ID
+  project: Project
   referralDate: ISO8601DateTime!
   referralIdentifier: ID
   referralNotes: String
@@ -5569,9 +5575,51 @@ type ReferralPosting {
   unitType: UnitTypeObject!
 }
 
+"""
+Referral Posting Denial Reason
+"""
+enum ReferralPostingDenialReasonType {
+  """
+  Does not meet eligibility criteria
+  """
+  DoesNotMeetEligibilityCriteria
+
+  """
+  Enrolled, but declined HMIS data entry
+  """
+  EnrolledButDeclinedHMISDataEntry
+
+  """
+  Estimated vacancy no longer available
+  """
+  EstimatedVacancyNoLongerAvailable
+
+  """
+  HMIS user error
+  """
+  HMISUserError
+
+  """
+  Inability to complete intake
+  """
+  InabilityToCompleteIntake
+
+  """
+  No longer experiencing homelessness
+  """
+  NoLongerExperiencingHomelessness
+
+  """
+  No longer interested in this program
+  """
+  NoLongerInterestedInThisProgram
+}
+
 input ReferralPostingInput {
   denialNote: String
-  denialReason: ID
+  denialReason: ReferralPostingDenialReasonType
+  referralResult: ReferralResult
+  resendReferralRequest: Boolean
   status: ID
   statusNote: String
 }
@@ -7037,11 +7085,29 @@ type Unit {
   endDate: ISO8601Date
   id: ID!
   name: String
+  occupants: [Enrollment!]!
   project: Project
   startDate: ISO8601Date!
   unitSize: Int
   unitType: UnitTypeObject
   user: User!
+}
+
+enum UnitFilterOptionStatus {
+  """
+  Available
+  """
+  AVAILABLE
+
+  """
+  Filled
+  """
+  FILLED
+}
+
+input UnitFilterOptions {
+  status: [UnitFilterOptionStatus!]
+  unitType: [ID!]
 }
 
 input UnitInput {
@@ -7056,6 +7122,13 @@ input UnitInput {
   prefix: String
   projectId: ID!
   unitTypeId: ID
+}
+
+type UnitTypeCapacity {
+  availability: Int!
+  capacity: Int!
+  id: ID!
+  unitType: String!
 }
 
 type UnitTypeObject {
