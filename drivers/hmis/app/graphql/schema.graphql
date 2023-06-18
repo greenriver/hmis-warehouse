@@ -4961,7 +4961,8 @@ type Project {
   residentialAffiliation: NoYesMissing
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
-  units(active: Boolean, limit: Int, occupied: Boolean, offset: Int): UnitsPaginated!
+  unitTypes: [UnitTypeCapacity!]!
+  units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   user: User
 }
 
@@ -7096,11 +7097,29 @@ type Unit {
   endDate: ISO8601Date
   id: ID!
   name: String
+  occupants: [Enrollment!]!
   project: Project
   startDate: ISO8601Date!
   unitSize: Int
   unitType: UnitTypeObject
   user: User!
+}
+
+enum UnitFilterOptionStatus {
+  """
+  Available
+  """
+  AVAILABLE
+
+  """
+  Filled
+  """
+  FILLED
+}
+
+input UnitFilterOptions {
+  status: [UnitFilterOptionStatus!]
+  unitType: [ID!]
 }
 
 input UnitInput {
@@ -7115,6 +7134,13 @@ input UnitInput {
   prefix: String
   projectId: ID!
   unitTypeId: ID
+}
+
+type UnitTypeCapacity {
+  availability: Int!
+  capacity: Int!
+  id: ID!
+  unitType: String!
 }
 
 type UnitTypeObject {
