@@ -34,17 +34,20 @@ module HmisDataQualityTool
       {
         title: "Percent of Exits to Temporary Destinations",
         description: "The percentage of everyone with an exit date that was to a temporary destination.",
-        value_meth: :destination_temporary
+        value_meth: :destination_temporary,
+        xlsx_styles: {format_code: '0%'}
       },
       {
         title: "Percent of Exits to Other Destinations",
         description: "The percentage of everyone with an exit date that was to a destination in the category other.",
-        value_meth: :destination_other
+        value_meth: :destination_other,
+        xlsx_styles: {format_code: '0%'}
       }
     ]
 
-    def initialize(report)
+    def initialize(report, template_format)
       @report = report
+      @format = template_format
     end
 
     def rows
@@ -73,11 +76,13 @@ module HmisDataQualityTool
     end
 
     def destination_temporary
-      "#{number_with_delimiter(@report.destination_percent('destination_temporary'))}%"
+      v = @report.destination_percent('destination_temporary')
+      @format == :xlsx ? v/100.0 : "#{number_with_delimiter(v)}%"
     end
 
     def destination_other
-      "#{number_with_delimiter(@report.destination_percent('destination_other'))}%"
+      v = @report.destination_percent('destination_other')
+      @format == :xlsx ? v/100.0 : "#{number_with_delimiter(v)}%"
     end
 
     def value_path(key)

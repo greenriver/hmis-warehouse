@@ -7,6 +7,7 @@
       - if goal_config.present? && goal_config.active?
         -# !important for print -- bootstrap has an !important style that for some reason overrides inline styles
         - background_color = "background-color: #{goal_config.color_for(overall_percent_valid.to_i)} !important;"
+        
         - name = goal_config.name_for(overall_percent_valid.to_i)
         %tr
           %th Overall
