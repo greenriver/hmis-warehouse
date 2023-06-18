@@ -119,6 +119,7 @@ module Types
       can :view_any_confidential_client_files
     end
 
+    # FIXME: use graphql dataloader
     def external_ids
       object.external_identifiers.
         map do |key, vals|
@@ -193,7 +194,8 @@ module Types
     end
 
     def names
-      if object.names.empty?
+      names = load_ar_association(object, :names)
+      if names.empty?
         # If client has no CustomClientNames, construct one based on the HUD Client name fields
         return [
           object.names.new(
@@ -208,15 +210,23 @@ module Types
         ]
       end
 
-      object.names
+      names
+    end
+
+    def contact_points
+      load_ar_association(object, :contact_points)
     end
 
     def phone_numbers
-      object.contact_points.where(system: :phone)
+      load_ar_association(object, :contact_points).filter {|r| r.system == 'phone'}
     end
 
     def email_addresses
-      object.contact_points.where(system: :email)
+      load_ar_association(object, :contact_points).filter {|r| r.system == 'email'}
+    end
+
+    def addresses
+      load_ar_association(object, :addresses)
     end
   end
 end
