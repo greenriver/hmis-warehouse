@@ -166,14 +166,18 @@ module HmisExternalApis::AcHmis
       @creds ||= ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).first!
     end
 
-    private
-
-    def external_ids
+    def self.external_ids
       HmisExternalApis::ExternalId.where(namespace: SYSTEM_ID)
     end
 
+    def external_ids
+      self.class.external_ids
+    end
+
+    private
+
     def get_external_id(source)
-      external_ids.where(source: source).first
+      source.ac_hmis_mci_ids.to_a.min_by(&:id)
     end
 
     def conn
