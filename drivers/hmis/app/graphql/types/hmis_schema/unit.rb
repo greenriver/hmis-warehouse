@@ -8,6 +8,16 @@
 
 module Types
   class HmisSchema::Unit < Types::BaseObject
+    available_filter_options do
+      arg :unit_type, [ID]
+      arg :status, [
+        Types::BaseEnum.generate_enum('UnitFilterOptionStatus') do
+          value 'AVAILABLE', description: 'Available'
+          value 'FILLED', description: 'Filled'
+        end,
+      ]
+    end
+
     field :id, ID, null: false
     field :name, String, null: true
     field :start_date, GraphQL::Types::ISO8601Date, null: false
@@ -16,6 +26,7 @@ module Types
     field :project, Types::HmisSchema::Project, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :occupants, [HmisSchema::Enrollment], null: false
     field :user, HmisSchema::User, null: false
     field :unit_size, Integer, null: true
 
