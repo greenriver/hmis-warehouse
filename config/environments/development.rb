@@ -88,6 +88,8 @@ Rails.application.configure do
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
   config.assets.debug = false
+  # Ensure development server doesn't serve precompiled assets, even if they exist
+  config.assets.prefix = '/dev-assets'
   # config.action_controller.asset_host = ENV['FQDN']
 
   # Suppress logger output for asset requests.
