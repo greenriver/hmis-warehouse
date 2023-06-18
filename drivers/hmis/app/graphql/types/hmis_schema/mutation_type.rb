@@ -12,7 +12,7 @@ module Types
     field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :delete_client_file, mutation: Mutations::DeleteClientFile
     field :create_enrollment, mutation: Mutations::CreateEnrollment
-    field :add_household_members_to_enrollment, mutation: Mutations::AddHouseholdMembersToEnrollment
+    field :create_or_update_household, mutation: Mutations::CreateOrUpdateHousehold
     field :update_relationship_to_ho_h, mutation: Mutations::UpdateRelationshipToHoH
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :delete_organization, mutation: Mutations::DeleteOrganization
