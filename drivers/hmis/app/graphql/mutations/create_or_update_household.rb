@@ -20,19 +20,17 @@ module Mutations
     def resolve(project_id:, entry_date:, client_id:, relationship_to_hoh:, household_id: nil, confirmed: false)
       errors = HmisErrors::Errors.new
       is_hoh = relationship_to_hoh == 1
-
       client = Hmis::Hud::Client.viewable_by(current_user).find(client_id)
       project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
 
       if household_id.present?
         existing_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
         raise HmisErrors::ApiError, 'Household ID not found' unless existing_enrollments.exists?
-        raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(existing_enrollments.first, :can_edit_enrollments)
-        raise HmisErrors::ApiError, 'Client is already a member of this household' if existing_enrollments.joins(:client).where(c_t[:id].eq(client_id)).exists?
+        raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(project, :can_edit_enrollments)
         raise HmisErrors::ApiError, 'Mismatched Project ID' if existing_enrollments.first.project.id != project.id
+        raise HmisErrors::ApiError, 'Client is already a member of this household' if existing_enrollments.joins(:client).where(c_t[:id].eq(client_id)).exists?
 
-        has_hoh = existing_enrollments.heads_of_households.exists?
-        errors.add :relationship_to_hoh, :invalid, full_message: 'Household already has a Head of Household' if has_hoh && is_hoh
+        errors.add :relationship_to_hoh, :invalid, full_message: 'Household already has a Head of Household' if is_hoh && existing_enrollments.heads_of_households.exists?
       else
         raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(project, :can_enroll_clients)
 

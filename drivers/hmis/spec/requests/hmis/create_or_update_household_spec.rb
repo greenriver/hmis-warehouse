@@ -63,47 +63,43 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
+    def perform_mutation(input)
+      response, result = post_graphql(input: input) { mutation }
+      expect(response.status).to eq 200
+      household = result.dig('data', 'createOrUpdateHousehold', 'household')
+      errors = result.dig('data', 'createOrUpdateHousehold', 'errors')
+      [household, errors]
+    end
+
     it 'should add members to an enrollment correctly' do
-      response, result = post_graphql(input: test_input) { mutation }
+      household, errors = perform_mutation(test_input)
+      expect(errors).to be_empty
+      expect(household).to be_present
+      expect(household['householdSize']).to eq(2)
 
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        household = result.dig('data', 'createOrUpdateHousehold', 'household')
-        errors = result.dig('data', 'createOrUpdateHousehold', 'errors')
-        expect(errors).to be_empty
-        expect(household).to be_present
-        expect(household['householdSize']).to eq(2)
-
-        enrollments = Hmis::Hud::Enrollment.where(household_id: household_id)
-        expect(enrollments.count).to eq(2)
-        expect(enrollments.in_progress.count).to eq(1)
-        expect(enrollments.in_progress.first).to have_attributes(
-          enrollment_id: be_present,
-          household_id: household_id,
-          relationship_to_hoh: 2,
-          personal_id: c2.personal_id,
-          project_id: nil,
-        )
-      end
+      enrollments = Hmis::Hud::Enrollment.where(household_id: household_id)
+      expect(enrollments.count).to eq(2)
+      expect(enrollments.in_progress.count).to eq(1)
+      expect(enrollments.in_progress.first).to have_attributes(
+        enrollment_id: be_present,
+        household_id: household_id,
+        relationship_to_hoh: 2,
+        personal_id: c2.personal_id,
+        project_id: nil,
+      )
     end
 
     it 'should add members to an in-progress enrollment correctly' do
       enrollment.save_in_progress
 
-      response, result = post_graphql(input: test_input) { mutation }
+      household, errors = perform_mutation(test_input)
+      expect(errors).to be_empty
+      expect(household).to be_present
+      expect(household['householdSize']).to eq(2)
 
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        household = result.dig('data', 'createOrUpdateHousehold', 'household')
-        errors = result.dig('data', 'createOrUpdateHousehold', 'errors')
-        expect(errors).to be_empty
-        expect(household).to be_present
-        expect(household['householdSize']).to eq(2)
-
-        enrollments = Hmis::Hud::Enrollment.where(household_id: household_id)
-        expect(enrollments.count).to eq(2)
-        expect(enrollments.in_progress.count).to eq(2)
-      end
+      enrollments = Hmis::Hud::Enrollment.where(household_id: household_id)
+      expect(enrollments.count).to eq(2)
+      expect(enrollments.in_progress.count).to eq(2)
 
       # change enrollment back to non-WIP again
       enrollment.project = p1
@@ -112,27 +108,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should create a new household if household_id is omitted' do
       input = test_input.merge(household_id: nil, relationship_to_hoh: Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(1))
-      response, result = post_graphql(input: input) { mutation }
+      household, errors = perform_mutation(input)
 
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        household = result.dig('data', 'createOrUpdateHousehold', 'household')
-        errors = result.dig('data', 'createOrUpdateHousehold', 'errors')
-        expect(errors).to be_empty
-        expect(household).to be_present
-        expect(household['householdSize']).to eq(1)
-
-        enrollment_id = household['householdClients'][0]['enrollment']['id']
-        enrollment = Hmis::Hud::Enrollment.find(enrollment_id)
-        expect(enrollment).to have_attributes(
-          enrollment_id: be_present,
-          household_id: be_present,
-          relationship_to_hoh: 1,
-          personal_id: c2.personal_id,
-          project_id: nil,
-        )
-        expect(enrollment.project).to eq(p1)
-      end
+      expect(errors).to be_empty
+      expect(household).to be_present
+      expect(household['householdSize']).to eq(1)
+      enrollment_id = household['householdClients'][0]['enrollment']['id']
+      enrollment = Hmis::Hud::Enrollment.find(enrollment_id)
+      expect(enrollment).to have_attributes(
+        enrollment_id: be_present,
+        household_id: be_present,
+        relationship_to_hoh: 1,
+        personal_id: c2.personal_id,
+        project_id: nil,
+      )
+      expect(enrollment.project).to eq(p1)
     end
 
     it 'should throw error if unauthorized' do
@@ -174,18 +164,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ].each do |test_name, input_proc, error_attrs|
         it test_name do
           input = input_proc.call(test_input)
-          response, result = post_graphql(input: input) { mutation }
-
-          household = result.dig('data', 'createOrUpdateHousehold', 'household')
-          errors = result.dig('data', 'createOrUpdateHousehold', 'errors')
-
-          aggregate_failures 'checking response' do
-            expect(response.status).to eq 200
-            expect(household).to be_nil
-            expect(errors).to contain_exactly(
-              include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
-            )
-          end
+          household, errors = perform_mutation(input)
+          expect(household).to be_nil
+          expect(errors).to contain_exactly(
+            include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
+          )
         end
       end
     end
