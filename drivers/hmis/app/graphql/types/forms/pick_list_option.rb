@@ -93,15 +93,30 @@ module Types
           }
         end
 
-      when 'REFERRAL_POSTING_STATUSES'
-        HmisExternalApis::AcHmis::ReferralPosting::VALID_LOCAL_STATUSES.map do |status|
+      when 'ASSIGNED_REFERRAL_POSTING_STATUSES'
+        HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUSES.map do |status|
           {
             code: status,
             label: status.gsub(/_status\z/, '').humanize.titleize,
           }
         end
-      when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'
-        [] # tbd
+      when 'DENIED_PENDING_REFERRAL_POSTING_STATUSES'
+        label_map = {
+          'assigned_status' => 'Send Back',
+          'denied_status' => 'Approve Denial',
+        }
+        HmisExternalApis::AcHmis::ReferralPosting::DENIAL_STATUSES.map do |status|
+          {
+            code: status,
+            label: label_map.fetch(status),
+          }
+        end
+      when 'REFERRAL_RESULT_TYPES'
+        # ::HudLists.referral_result_map
+        [
+          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(2), label: 'Client Rejected' },
+          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(3), label: 'Provider Rejected' },
+        ]
       end
     end
 
