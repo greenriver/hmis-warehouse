@@ -5,7 +5,7 @@
 ###
 
 module Mutations
-  class CreateOrUpdateHousehold < BaseMutation
+  class AddToHousehold < BaseMutation
     include ::Hmis::Concerns::HmisArelHelper
 
     argument :household_id, ID, required: false, description: 'If omitted, a new household will be created'

@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
-  describe 'CreateOrUpdateHousehold mutation' do
+  describe 'AddToHousehold mutation' do
     before(:each) do
       assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
       hmis_login(user)
@@ -43,8 +43,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let(:mutation) do
       <<~GRAPHQL
-        mutation CreateOrUpdateHousehold($input: CreateOrUpdateHouseholdInput!) {
-          createOrUpdateHousehold(input: $input) {
+        mutation AddToHousehold($input: AddToHouseholdInput!) {
+          addToHousehold(input: $input) {
             household {
               id
               householdSize
@@ -66,8 +66,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     def perform_mutation(input)
       response, result = post_graphql(input: input) { mutation }
       expect(response.status).to eq 200
-      household = result.dig('data', 'createOrUpdateHousehold', 'household')
-      errors = result.dig('data', 'createOrUpdateHousehold', 'errors')
+      household = result.dig('data', 'addToHousehold', 'household')
+      errors = result.dig('data', 'addToHousehold', 'errors')
       [household, errors]
     end
 
