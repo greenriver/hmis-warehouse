@@ -160,8 +160,8 @@ services:
     container_name: s3
     image: minio/minio
     volumes:
-      - ~/minio/data:/data
-      - ~/.minio/certs:/certs
+      - ./dev/minio/data:/data
+      - ./dev/.minio/certs:/certs
     hostname: s3.dev.test
     environment:
       MINIO_ACCESS_KEY: local_access_key

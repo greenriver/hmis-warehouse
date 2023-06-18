@@ -66,6 +66,7 @@ untracked
 .vscode
 docker-compose.dev.yml
 yarn-error.log
+/dev/minio/*
 
 # docker deployment
 docker/deploy/REVISION
