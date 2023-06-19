@@ -93,19 +93,19 @@ module
         date = [enrollment.entry_date, filter.start_date].max
         age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
         en = {
-          client_id: enrollment.client_id,
-          enrollment_id: enrollment.id,
-          age: age,
-          relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
+          'client_id' => enrollment.client_id,
+          'enrollment_id' => enrollment.id,
+          'age' => age,
+          'relationship_to_hoh' => enrollment.enrollment.RelationshipToHoH,
         }
         @hoh_enrollments[get_hh_id(enrollment)] = en if enrollment.head_of_household?
         @households[get_hh_id(enrollment)] ||= []
-        @households[get_hh_id(enrollment)] << en.with_indifferent_access
+        @households[get_hh_id(enrollment)] << en
       end
     end
 
     private def get_hh_id(service_history_enrollment)
-      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
+      "#{service_history_enrollment.household_id}_#{service_history_enrollment.data_source_id}" || "#{service_history_enrollment.enrollment_group_id}_#{service_history_enrollment.data_source_id}*HH"
     end
 
     private def households
