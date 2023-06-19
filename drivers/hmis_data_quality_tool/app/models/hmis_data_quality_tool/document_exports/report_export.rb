@@ -27,7 +27,6 @@ module HmisDataQualityTool::DocumentExports
     def perform
       with_status_progression do
         template_file = 'hmis_data_quality_tool/warehouse_reports/reports/show_pdf'
-        # TODO not sure about the layout for this
         layout = 'layouts/performance_report'
         # https://stackoverflow.com/questions/55865582/set-dynamic-header-and-footer-data-on-pdf-generation-from-rails-grover-gem
 

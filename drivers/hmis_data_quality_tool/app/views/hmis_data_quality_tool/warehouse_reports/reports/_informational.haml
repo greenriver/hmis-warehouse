@@ -1,22 +1,23 @@
 - goal_config = @report.goal_config
-%h2 Informational
-- if goal_config.expose_ch_calculations
-  - info_table = HmisDataQualityTool::InformationalTable.new(@report, :html)
-  .card.mb-6
-    %table.table.table-striped
-      %thead
-        %tr
-          %th Title
-          %th Description
-          %th Value
-      %tbody
-        - info_table.rows.each do |row|
+.page-break-avoid
+  %h2 Informational
+  - if goal_config.expose_ch_calculations
+    - info_table = HmisDataQualityTool::InformationalTable.new(@report, :html)
+    .card.mb-6
+      %table.table.table-striped
+        %thead
           %tr
-            %th= row[:title]
-            %td= row[:description]
-            %td= link_to row[:value], row[:value_path]
+            %th Title
+            %th Description
+            %th Value
+        %tbody
+          - info_table.rows.each do |row|
+            %tr
+              %th= row[:title]
+              %td= row[:description]
+              %td= link_to row[:value], row[:value_path]
 
-.card.mb-6
+.card.mb-6.page-break-avoid
   %table.table.table-striped
     %thead
       %tr
@@ -41,7 +42,7 @@
             - else
               %td #{valid_percent}%
 
-.card.mb-6
+.card.mb-6.page-break-avoid
   %table.table.table-striped
     %thead
       %tr
