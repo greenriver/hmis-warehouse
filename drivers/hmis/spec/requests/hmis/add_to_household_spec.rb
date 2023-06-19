@@ -16,6 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:household_id) { Hmis::Hud::Base.generate_uuid }
   let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_hoh: 1, household_id: household_id }
+  let!(:access_control) { create_access_control(hmis_user, p1) }
 
   before(:all) do
     cleanup_test_environment
@@ -26,7 +27,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'AddToHousehold mutation' do
     before(:each) do
-      assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
       hmis_login(user)
     end
 
@@ -126,7 +126,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should throw error if unauthorized' do
-      remove_permissions(hmis_user, :can_edit_enrollments)
+      remove_permissions(access_control, :can_edit_enrollments)
       expect { post_graphql(input: test_input) { mutation } }.to raise_error(HmisErrors::ApiError)
     end
 

@@ -19,10 +19,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:ds2) { create :hmis_data_source, hmis: nil }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  let!(:access_control) { create_access_control(hmis_user, p1) }
 
   before(:each) do
     hmis_login(user)
-    create_access_control(hmis_user, p1)
   end
 
   let(:query) do
@@ -93,7 +93,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should return no clients if user does not have permission to view clients' do
-      remove_permissions(hmis_user, :can_view_clients)
+      remove_permissions(access_control, :can_view_clients)
       response, result = post_graphql(input: {}) { query }
       expect(response.status).to eq 200
       clients = result.dig('data', 'clientSearch', 'nodes')
