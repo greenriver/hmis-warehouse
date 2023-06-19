@@ -16,11 +16,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   before(:each) do
     hmis_login(user)
     assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
-    1.times do
-      user = create :hmis_hud_user, data_source: ds1
-      client = create :hmis_hud_client_complete, data_source: ds1, user: user, LastName: search_term
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: user
-    end
+    # 2.times do
+    user = create :hmis_hud_user, data_source: ds1
+    client = create :hmis_hud_client_complete, data_source: ds1, user: user, LastName: search_term
+    create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: user
+    # end
   end
 
   describe 'client search' do
@@ -244,8 +244,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
-    it 'is responsive' do
-      variables = {
+    let(:variables) do
+      {
         "sortOrder": 'LAST_NAME_A_TO_Z',
         "input": {
           "textSearch": search_term,
@@ -253,14 +253,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         "limit": 20,
         "offset": 0,
       }
+    end
+
+    it 'minimizes n+1 queries' do
       expect do
         response, _result = post_graphql(**variables) { query }
         expect(response.status).to eq 200
       end.to query_limit_lt(20)
+    end
+
+    it 'is responsive' do
       expect do
         response, _result = post_graphql(**variables) { query }
         expect(response.status).to eq 200
-      end.to perform_under(200).ms.warmup(2).times.sample(5).times
+      end.to perform_under(100).ms.warmup(2).times.sample(5).times
     end
   end
 end
