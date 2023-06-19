@@ -239,6 +239,52 @@ namespace :grda_warehouse do
     end
   end
 
+  # rake grda_warehouse:anonymize_data_source_clients[<data source id>]
+  desc 'Anonymize all Clients in a data source'
+  task :anonymize_data_source_clients, [:data_source_id] => [:environment, 'log:info_to_stdout'] do |_task, args|
+    raise 'Cannot be run in production' if Rails.env.production?
+    raise 'data_source_id is required' unless args.data_source_id.present?
+
+    data_source = GrdaWarehouse::DataSource.find(args.data_source_id)
+    client_scope = Hmis::Hud::Client.where(data_source: data_source)
+    puts "Anonymizing #{client_scope.count} clients in data source #{data_source.name}"
+    attribute_hash = {}
+    client_scope.each do |client|
+      fake_dob = if client.adult?
+        Faker::Date.birthday(min_age: 18, max_age: 80)
+      elsif client.child?
+        Faker::Date.birthday(min_age: 0, max_age: 18)
+      end
+      fake_ssn = [Faker::Date.number(digits: 9).to_s, "XXXXX#{Faker::Date.number(digits: 4)}"].sample if client.ssn.present?
+      attribute_hash[client.id] = {
+        first_name: Faker::Name.first_name,
+        middle_name: [Faker::Name.middle_name, nil, nil].sample,
+        last_name: Faker::Name.last_name,
+        name_suffix: [Faker::Name.suffix, nil, nil].sample,
+        dob: fake_dob,
+        ssn: fake_ssn,
+      }
+    end
+
+    client_scope.update(attribute_hash.keys, attribute_hash.values)
+  end
+
+  # rake grda_warehouse:titleize_client_names[<data source id>]
+  desc 'Titleize all Clients in a data source'
+  task :titleize_client_names, [:data_source_id] => [:environment, 'log:info_to_stdout'] do |_task, args|
+    raise 'data_source_id is required' unless args.data_source_id.present?
+
+    data_source = GrdaWarehouse::DataSource.find(args.data_source_id)
+    client_scope = Hmis::Hud::Client.where(data_source: data_source)
+    puts "Titleizing #{client_scope.count} clients in data source #{data_source.name}"
+    name_fields = [:first_name, :middle_name, :last_name, :name_suffix]
+    attribute_hash = {}
+    client_scope.each do |client|
+      attribute_hash[client.id] = client.slice(name_fields).compact_blank.transform_values(&:titleize)
+    end
+    client_scope.update(attribute_hash.keys, attribute_hash.values)
+  end
+
   desc 'Sanity Check Service History; defaults: n=50'
   task :sanity_check_service_history, [:n] => [:environment, 'log:info_to_stdout'] do |task, args|
     n = args.n
