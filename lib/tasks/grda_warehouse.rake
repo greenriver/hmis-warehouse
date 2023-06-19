@@ -223,11 +223,14 @@ namespace :grda_warehouse do
 
     path = args.path
     file = File.join(path, 'Client.csv')
-    CSV.open("#{file.gsub('.csv', '.anon.csv')}", 'wb') do |csv|
+    CSV.open(file.gsub('.csv', '.anon.csv').to_s, 'wb') do |csv|
       CSV.foreach(file, headers: true) do |row|
         csv << row.headers if $. == 2
-        row['FirstName'] = "First_#{row['PersonalID']}"
-        row['LastName'] = "Last_#{row['PersonalID']}"
+        row['FirstName'] = Faker::Name.first_name
+        row['MiddleName'] = [Faker::Name.middle_name, nil, nil].sample
+        row['LastName'] = Faker::Name.last_name
+        row['NameSuffix'] = [Faker::Name.suffix, nil, nil].sample
+        row['SSN'] = [Faker::Number.number(digits: 9).to_s, "XXXXX#{Faker::Number.number(digits: 4)}", nil, nil, nil].sample
 
         # Cleanup Excel's nasty dates
         unless row['DateCreated'].include?('-')
@@ -235,39 +238,20 @@ namespace :grda_warehouse do
           row['DateCreated'] = Date.strptime(row['DateCreated'], '%m/%d/%Y %k:%M')&.to_date&.strftime('%Y-%m-%d %H-%M-%S')
           row['DateUpdated'] = Date.strptime(row['DateUpdated'], '%m/%d/%Y %k:%M')&.to_date&.strftime('%Y-%m-%d %H-%M-%S')
         end
+
+        # Randomize DOB, maintaining child/adult status
+        current_dob = Date.parse(row['DOB'])
+        if current_dob.present?
+          current_age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: current_dob)
+          if current_age > 17
+            row['DOB'] = Faker::Date.birthday(min_age: 18, max_age: 80).strftime('%Y-%m-%d')
+          else
+            row['DOB'] = Faker::Date.birthday(min_age: 0, max_age: 17).strftime('%Y-%m-%d')
+          end
+        end
         csv << row
       end
     end
-  end
-
-  # rake grda_warehouse:anonymize_data_source_clients[<data source id>]
-  desc 'Anonymize all Clients in a data source'
-  task :anonymize_data_source_clients, [:data_source_id] => [:environment, 'log:info_to_stdout'] do |_task, args|
-    raise 'Cannot be run in production' if Rails.env.production?
-    raise 'data_source_id is required' unless args.data_source_id.present?
-
-    data_source = GrdaWarehouse::DataSource.find(args.data_source_id)
-    client_scope = Hmis::Hud::Client.where(data_source: data_source)
-    puts "Anonymizing #{client_scope.count} clients in data source #{data_source.name}"
-    attribute_hash = {}
-    client_scope.each do |client|
-      fake_dob = if client.adult?
-        Faker::Date.birthday(min_age: 18, max_age: 80)
-      elsif client.child?
-        Faker::Date.birthday(min_age: 0, max_age: 18)
-      end
-      fake_ssn = [Faker::Number.number(digits: 9).to_s, "XXXXX#{Faker::Number.number(digits: 4)}"].sample if client.ssn.present?
-      attribute_hash[client.id] = {
-        first_name: Faker::Name.first_name,
-        middle_name: [Faker::Name.middle_name, nil, nil].sample,
-        last_name: Faker::Name.last_name,
-        name_suffix: [Faker::Name.suffix, nil, nil].sample,
-        dob: fake_dob,
-        ssn: fake_ssn,
-      }
-    end
-
-    client_scope.update(attribute_hash.keys, attribute_hash.values)
   end
 
   # rake grda_warehouse:titleize_client_names[<data source id>]
