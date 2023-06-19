@@ -29,7 +29,11 @@ module
     end
 
     def no_recent_homelessness_count(type)
-      no_recent_homelessness_clients[type]&.count&.presence || 0
+      if type.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
+        no_recent_homelessness_clients[type]&.map(&:last)&.uniq&.count&.presence || 0
+      else
+        no_recent_homelessness_clients[type]&.count&.presence || 0
+      end
     end
 
     def no_recent_homelessness_percentage(type)
@@ -135,10 +139,10 @@ module
               clients[:high_acuity] << client_id if high_acuity_ids.include?(client_id)
               clients[:hoh_high_acuity] << client_id if hoh_high_acuity_ids.include?(client_id)
 
-              # These need to use enrollment.id to capture age correctly
-              clients[:adult_and_child] << enrollment_id if adult_and_child_ids.include?(enrollment_id)
-              clients[:hoh_adult_and_child] << enrollment_id if hoh_adult_and_child_ids.include?(enrollment_id)
-              clients[:unaccompanied_youth] << enrollment_id if unaccompanied_youth_ids.include?(enrollment_id)
+              # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
+              clients[:adult_and_child] << [enrollment_id, client_id] if adult_and_child_ids.include?(enrollment_id)
+              clients[:hoh_adult_and_child] << [enrollment_id, client_id] if hoh_adult_and_child_ids.include?(enrollment_id)
+              clients[:unaccompanied_youth] << [enrollment_id, client_id] if unaccompanied_youth_ids.include?(enrollment_id)
             end
         end
       end

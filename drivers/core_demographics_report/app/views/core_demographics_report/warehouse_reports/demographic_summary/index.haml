@@ -15,6 +15,7 @@
       .mb-4= render 'core_demographics_report/warehouse_reports/shared/hero_counts'
     .main-inner-prs1
       .text-right.mb-4
+        = render 'warehouse_reports/beta_warning'
         = render 'report_downloads/report_download', export: @pdf_export, excel_export: @excel_export, excel_download_path: nil
       - @report.class.available_section_types.each do |section|
         = render 'background_render', url: render_section_core_demographics_report_warehouse_reports_demographic_summary_index_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
