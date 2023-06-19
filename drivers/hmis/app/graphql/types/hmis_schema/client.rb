@@ -92,7 +92,9 @@ module Types
           result = result.merge(input_field => [old_value[input_field], new_value[input_field]])
         end
 
-        result = result.except('UserID', 'id', 'data_source_id', 'DateCreated')
+        # Drop excluded fields
+        excluded_fields = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted']
+        result.reject! { |k| k.underscore.end_with?('_id') || excluded_fields.include?(k) }
 
         result
       end,
