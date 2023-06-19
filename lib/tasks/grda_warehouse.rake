@@ -256,7 +256,7 @@ namespace :grda_warehouse do
       elsif client.child?
         Faker::Date.birthday(min_age: 0, max_age: 18)
       end
-      fake_ssn = [Faker::Date.number(digits: 9).to_s, "XXXXX#{Faker::Date.number(digits: 4)}"].sample if client.ssn.present?
+      fake_ssn = [Faker::Number.number(digits: 9).to_s, "XXXXX#{Faker::Number.number(digits: 4)}"].sample if client.ssn.present?
       attribute_hash[client.id] = {
         first_name: Faker::Name.first_name,
         middle_name: [Faker::Name.middle_name, nil, nil].sample,
