@@ -21,8 +21,15 @@ module Mutations
       handle_error('referral not found') unless posting
 
       errors = HmisErrors::Errors.new
-      allowed = current_user.can_manage_incoming_referrals_for?(posting.project)
-      handle_error('access denied') unless allowed
+
+      # check access based on status
+      validation_context = case posting.status
+      when 'assigned_status'
+        :hmis_user_action if current_user.can_manage_incoming_referrals_for?(posting.project)
+      when 'denied_pending_status'
+        :hmis_admin_action if current_user.can_manage_denied_referrals?
+      end
+      handle_error('access denied') unless validation_context
 
       posting.current_user = current_user
       posting.attributes = input.to_params
@@ -31,7 +38,7 @@ module Mutations
       posting_status_change = posting.changes['status']
 
       posting.transaction do
-        posting.save(context: :hmis_user_action) # context for validations
+        posting.save(context: validation_context) # context for validations
         errors.add_ar_errors(posting.errors.errors)
 
         if errors.empty? && posting_status_change == ['assigned_status', 'accepted_pending_status']
@@ -54,13 +61,21 @@ module Mutations
       # * the referral came from link
       # * status has changed (status will be unchanged if user just updated note)
       send_update(posting) if posting.from_link? && posting_status_change.present?
+      # resend original referral request
+      if posting_status_change == ['denied_pending_status', 'denied_status'] && input.resend_referral_request
+        raise unless posting.from_link?
+        raise unless posting.referral_request_id
+
+        new_request = posting.referral_request.dup
+        HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(new_request)
+      end
       { record: posting }
     end
 
     protected
 
     def send_update(posting)
-      # Contact date should only be present when chaing to AcceptedPending or DeniedPending
+      # Contact date should only be present when changing to AcceptedPending or DeniedPending
       contact_date = ['accepted_pending_status', 'denied_pending_status'].include?(posting.status) ? Time.current : nil
 
       HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(

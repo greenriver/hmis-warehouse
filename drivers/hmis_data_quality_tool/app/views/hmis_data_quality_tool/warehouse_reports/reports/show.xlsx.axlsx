@@ -1,0 +1,209 @@
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+goal_config = @report.goal_config
+
+wb.add_worksheet(name: 'Summary') do |sheet|
+  overall_percent_invalid = @report.percent(@report.results.map(&:total).sum, @report.results.map(&:invalid_count).sum)
+
+  overall_percent_valid = 100 - overall_percent_invalid
+
+  if goal_config.present? && goal_config.active?
+    background_color = goal_config.color_for(overall_percent_valid.to_i).to_s[1..]
+
+    name_cell_style = wb_styles.add_style(
+      {
+        bg_color: background_color,
+        border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top, :right] },
+      },
+    )
+    value_cell_style = wb_styles.add_style(
+      {
+        bg_color: background_color,
+        border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+        format_code: '0.0%',
+      },
+    )
+
+    name = goal_config.name_for(overall_percent_valid.to_i)
+    sheet.add_row(['Overall', name, overall_percent_valid / 100.0], style: [nil, name_cell_style, value_cell_style])
+  else
+    value_cell_style = wb_styles.add_style({ format_code: '0.0%' })
+
+    sheet.add_row(['Overall', overall_percent_valid / 100.0], style: [nil, value_cell_style])
+  end
+
+  @report.results.group_by(&:category).each do |category, results|
+    category_percent_valid = @report.category_percent_valid(results)
+
+    if goal_config.present? && goal_config.active?
+      name = goal_config.name_for(category_percent_valid.to_i)
+      if name.present?
+        background_color = goal_config.color_for(category_percent_valid.to_i).to_s[1..]
+
+        name_cell_style = wb_styles.add_style(
+          {
+            bg_color: background_color,
+            border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top, :right] },
+          },
+        )
+        value_cell_style = wb_styles.add_style(
+          {
+            bg_color: background_color,
+            border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+            format_code: '0.0%',
+          },
+        )
+
+        sheet.add_row([category, name, category_percent_valid / 100.0], style: [nil, name_cell_style, value_cell_style])
+      end
+    else
+      value_cell_style = wb_styles.add_style({ format_code: '0.0%' })
+
+      sheet.add_row([category, category_percent_valid / 100.0], style: [nil, value_cell_style])
+    end
+  end
+end
+
+@report.results.group_by(&:category).each do |category, results|
+  wb.add_worksheet(name: category) do |sheet|
+    sheet.add_row(['Section', 'Description', 'Required for', 'Overall Number in Universe', 'Number of Invalid Values', 'Percent Valid'])
+
+    results.each do |result|
+      value_cell_style = { format_code: '0.0%' }
+      if goal_config.present? && goal_config.active?
+        value_cell_style.merge!(
+          {
+            bg_color: goal_config.color_for(result.percent_valid.to_i).to_s[1..],
+            border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+          },
+        )
+      end
+      sheet.add_row(
+        [
+          result.title,
+          result.description,
+          result.required_for,
+          number_with_delimiter(result.total),
+          number_with_delimiter(result.invalid_count),
+          result.percent_valid / 100.0,
+        ], style: [nil, nil, nil, nil, nil, wb_styles.add_style(value_cell_style)]
+      )
+    end
+  end
+end
+
+if goal_config.expose_ch_calculations
+  wb.add_worksheet(name: 'Informational') do |sheet|
+    sheet.add_row(['Title', 'Description', 'Value'])
+    info_table = HmisDataQualityTool::InformationalTable.new(@report, :xlsx)
+    info_table.rows.each do |row|
+      if row[:xlsx_styles].present?
+        row_style = wb_styles.add_style(row[:xlsx_styles])
+        sheet.add_row([row[:title], row[:description], row[:value]], style: [nil, nil, row_style])
+      else
+        sheet.add_row([row[:title], row[:description], row[:value]])
+      end
+    end
+  end
+end
+
+wb.add_worksheet(name: 'Projects') do |sheet|
+  sheet.add_row(['Project'] + @report.categories)
+  @report.per_project_results.each do |project_id, data|
+    project = @report.filter.effective_projects.detect { |p| p.id.to_s == project_id.to_s }
+
+    next unless project.present?
+
+    row = [project.name(current_user)]
+    style = [nil]
+    @report.categories.each do |cat|
+      valid_count = data[cat][:total] - data[cat][:invalid_count]
+      valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)
+      background_color = goal_config.color_for(valid_percent.to_i).to_s[1..]
+
+      if goal_config.present? && goal_config.active?
+        name = goal_config.name_for(valid_percent.to_i)
+        if name.present?
+          row.push(valid_percent / 100.0)
+          style.push(
+            wb_styles.add_style(
+              {
+                bg_color: background_color,
+                border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top, :right] },
+                format_code: '0.0%',
+              },
+            ),
+          )
+        end
+      else
+        row.push(valid_percent / 100.0)
+        style.push(wb_styles.add_style({ format_code: '0.0%' }))
+      end
+    end
+    sheet.add_row(row, style: style)
+  end
+end
+
+wb.add_worksheet(name: 'Project Types') do |sheet|
+  sheet.add_row(['Project Types'] + @report.categories)
+  @report.per_project_type.each do |project_type_id, data|
+    project_type = HudUtility.project_type(project_type_id.to_s.to_i)
+
+    row = [project_type]
+    style = [nil]
+    @report.categories.each do |cat|
+      valid_count = data[cat][:total] - data[cat][:invalid_count]
+      valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)
+      background_color = goal_config.color_for(valid_percent.to_i).to_s[1..]
+
+      if goal_config.present? && goal_config.active?
+        name = goal_config.name_for(valid_percent.to_i)
+        if name.present?
+          row.push(valid_percent / 100)
+          style.push(
+            wb_styles.add_style(
+              {
+                bg_color: background_color,
+                border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top, :right] },
+                format_code: '0.0%',
+              },
+            ),
+          )
+        end
+      else
+        row.push(valid_percent / 100)
+        style.push(wb_styles.add_style({ format_code: '0.0%' }))
+      end
+    end
+    sheet.add_row(row, style: style)
+  end
+end
+
+header_style = wb_styles.add_style({ sz: 14 })
+th_style = wb_styles.add_style(
+  {
+    bg_color: '81adb9',
+    b: true,
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
+)
+
+wb.add_worksheet(name: 'Report Info') do |sheet|
+  sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(
+    [
+      'HMIS Data Quality Tool',
+    ],
+    style: header_style,
+  )
+  @filter.selected_params_for_display.each do |title, value|
+    value = value.join(', ') if value.is_a?(Array)
+    sheet.add_row(
+      [
+        "#{title}:",
+        value,
+      ],
+      style: [th_style, nil],
+    )
+  end
+end

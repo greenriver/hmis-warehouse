@@ -34,12 +34,14 @@ module Hmis
         update_client_id_foreign_keys
         delete_warehouse_clients
         update_personal_id_foreign_keys
+        merge_mci_ids
 
         client_to_retain.reload
-        dedup(:names, keepers: client_to_retain.names.where(primary: true))
-        dedup(:contact_points)
-        dedup(:addresses)
-        dedup(:custom_data_elements)
+        dedup(client_to_retain.names, keepers: dedup(client_to_retain.names.where(primary: true)))
+        dedup(client_to_retain.contact_points)
+        dedup(client_to_retain.addresses)
+        dedup(client_to_retain.custom_data_elements)
+        client_to_retain.reload
         destroy_merged_clients
       end
     end
@@ -108,29 +110,24 @@ module Hmis
 
         values = elements.sort_by(&:DateUpdated)
 
-        values[0..-2].each(&:destroy)
+        values[0..-2].each(&:destroy!)
       end
     end
 
-    def dedup(relation, keepers: [])
-      pairs = client_to_retain.send(relation).to_a.combination(2)
-
-      pairs.each do |pair|
-        equivalent = if pair[0].respond_to?(:equal_for_merge?)
-          pair[0].equal_for_merge?(pair[1])
+    def dedup(records, keepers: [])
+      keepers = keepers.to_a
+      records = records.to_a.sort_by(&:id) # fixup db dependent ordering
+      records -= keepers # don't check records we know we want to keep
+      records.each do |record|
+        kept = keepers.detect { |u| u.equal_for_merge?(record) }
+        if kept
+          Rails.logger.info "Removing #{record} which is a duplicate of #{kept}"
+          record.destroy!
         else
-          pair[0] == pair[1]
+          keepers.push(record)
         end
-
-        next unless equivalent
-        next if pair[1].in?(keepers)
-
-        Rails.logger.info "Removing #{pair[1]} which is a duplicate"
-        pair[1].destroy
-        client_to_retain.reload
-        dedup(relation)
-        break
       end
+      keepers
     end
 
     def update_client_id_foreign_keys
@@ -149,13 +146,23 @@ module Hmis
       end
     end
 
+    def merge_mci_ids
+      mci_ids = HmisExternalApis::AcHmis::Mci.external_ids
+      # merge ids
+      records_by_value = mci_ids.where(source: clients_needing_reference_updates)
+        .order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
+
+      mci_ids.where(id: records_by_value.values.map(&:id))
+        .update_all(source_id: client_to_retain.id)
+    end
+
     def delete_warehouse_clients
       Rails.logger.info 'Deleting warehouse clients of merged clients'
 
       # Very unsure I caught the desired behavior correctly here:
       GrdaWarehouse::WarehouseClient
         .where(source_id: clients_needing_reference_updates.map(&:id))
-        .destroy_all
+        .find_each(&:destroy!)
     end
 
     def update_personal_id_foreign_keys
@@ -195,7 +202,7 @@ module Hmis
 
     def destroy_merged_clients
       Rails.logger.info 'soft-deleting merged clients'
-      clients_needing_reference_updates.map(&:destroy)
+      clients_needing_reference_updates.map(&:destroy!)
     end
   end
 end
