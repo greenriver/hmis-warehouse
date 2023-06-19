@@ -843,6 +843,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: true,
           health: false,
         }
+        r_list['Operational'] << {
+          url: 'core_demographics_report/warehouse_reports/demographic_summary',
+          name: 'Demographic Summary',
+          description: 'Summary data for client demographics across an arbitrary universe with basic outcome and recidivisim sections.',
+          limitable: true,
+          health: false,
+        }
       end
       if RailsDrivers.loaded.include?(:boston_reports)
         r_list['Performance'] << {
@@ -1315,7 +1322,12 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
-      cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
+
+      unless RailsDrivers.loaded.include?(:core_demographics_report)
+        cleanup << 'core_demographics_report/warehouse_reports/core'
+        cleanup << 'core_demographics_report/warehouse_reports/demographic_summary'
+      end
+
       unless RailsDrivers.loaded.include?(:boston_reports)
         cleanup << 'boston_reports/warehouse_reports/street_to_homes'
         cleanup << 'boston_reports/warehouse_reports/configs'

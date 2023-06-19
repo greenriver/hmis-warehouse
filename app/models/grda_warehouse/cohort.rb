@@ -11,6 +11,7 @@ module GrdaWarehouse
     include ArelHelper
     include EntityAccess
     include Memery
+    include Rails.application.routes.url_helpers
 
     acts_as_paranoid
     validates_presence_of :name
@@ -20,6 +21,7 @@ module GrdaWarehouse
 
     after_create :maintain_system_group
 
+    has_many :cohort_tabs, dependent: :destroy
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :tags, class_name: 'CasAccess::Tag', optional: true
@@ -97,23 +99,24 @@ module GrdaWarehouse
       where(id: ids)
     end
 
+    private def active_tab(user, population)
+      tab = cohort_tabs.find_by(name: population)
+      return tab if tab&.show_for?(user)
+
+      cohort_tabs.find_by(name: 'Active Clients')
+    end
+
+    private def clients_for_tab(user, population, tab = nil)
+      active_tab = tab || active_tab(user, population)
+      cohort_clients.joins(:client).
+        send(active_tab.base_scope).
+        where(active_tab.cohort_client_filter)
+    end
+
     def search_clients(page: nil, per: nil, population: :active, user:)
       @client_search_scope = cohort_clients.joins(:client)
+      scope = clients_for_tab(user, population)
 
-      scope = case population&.to_sym
-      when :housed
-        housed_scope
-      when :active
-        active_scope.where(active: true)
-      when :ineligible
-        ineligible_scope
-      when :inactive
-        inactive_scope(user)
-      when :deleted
-        deleted_scope(user)
-      else # active
-        active_scope.where(active: true)
-      end
       scope = scope.order(id: :asc).page(page).per(per) if page.present? && per.present?
       @client_search_result = scope.preload(
         :cohort_client_changes,
@@ -130,6 +133,8 @@ module GrdaWarehouse
                 :most_recent_tc_hat,
                 :most_recent_current_living_situation,
                 :most_recent_pathways_or_rrh_assessment,
+                :most_recent_2023_pathways_assessment,
+                :most_recent_2023_transfer_assessment,
               ],
             },
           ],
@@ -137,72 +142,26 @@ module GrdaWarehouse
       )
     end
 
-    private def at
-      @at ||= GrdaWarehouse::CohortClient.arel_table
-    end
-
     def sanitized_name
       # See https://www.keynotesupport.com/excel-basics/worksheet-names-characters-allowed-prohibited.shtml
       name.gsub(/['\*\/\\\?\[\]\:]/, '-')
     end
 
-    def active_scope
-      @client_search_scope.where(
-        at[:housed_date].eq(nil).
-        or(at[:destination].eq(nil).
-        or(at[:destination].eq(''))),
-      ).where(ineligible: [nil, false])
-    end
+    def cohort_tabs_for_user(user)
+      cohort_tabs.order(order: :asc).map do |tab|
+        permission = tab.show_for?(user)
+        next unless permission
 
-    # only administrator should have access to the inactive clients
-    def inactive_scope user
-      return @client_search_scope.none unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
-
-      @client_search_scope.where(active: false)
-    end
-
-    def show_inactive user
-      return false unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
-
-      inactive_scope(user).exists?
-    end
-
-    def deleted_scope(user)
-      return @client_search_scope.none unless can_see_deleted_cohort_clients?(user)
-
-      @client_search_scope.only_deleted
-    end
-
-    def show_deleted user
-      return false unless can_see_deleted_cohort_clients?(user)
-
-      deleted_scope(user).exists?
-    end
-
-    private def can_see_deleted_cohort_clients?(user)
-      user.can_view_deleted_cohort_clients? || user.can_add_cohort_clients?
-    end
-
-    # should we show the housed option for the last `client_search`
-    def show_housed
-      housed_scope.exists?
-    end
-
-    def housed_scope
-      @client_search_scope.where.not(housed_date: nil).where.not(destination: [nil, ''])
-    end
-
-    # should we show the inactive option for the last `client_search`
-    def show_ineligible
-      ineligible_scope.exists?
-    end
-
-    def ineligible_scope
-      @client_search_scope.where(ineligible: true).where(
-        at[:housed_date].eq(nil).
-        or(at[:destination].eq(nil).
-        or(at[:destination].eq(''))),
-      )
+        count = clients_for_tab(user, tab.name, tab).count
+        [
+          cohort_path(self, population: tab.name),
+          {
+            title: tab.name,
+            permission: permission,
+            count: count,
+          },
+        ]
+      end.compact.to_h
     end
 
     # full un-paginated scope for the last `client_search`
@@ -369,6 +328,7 @@ module GrdaWarehouse
         ::CohortColumns::SchoolDistrict.new,
         ::CohortColumns::AssessmentScore.new,
         ::CohortColumns::PathwaysV3AssessmentDate.new,
+        ::CohortColumns::TransferV3AssessmentDate.new,
         ::CohortColumns::VispdatScoreManual.new,
         ::CohortColumns::DaysOnCohort.new,
         ::CohortColumns::CasVashEligible.new,

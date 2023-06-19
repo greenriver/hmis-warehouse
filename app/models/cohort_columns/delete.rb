@@ -10,6 +10,10 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :delete
     attribute :title, String, lazy: true, default: _('Delete')
 
+    def available_for_rules?
+      false
+    end
+
     def column_editable?
       false
     end

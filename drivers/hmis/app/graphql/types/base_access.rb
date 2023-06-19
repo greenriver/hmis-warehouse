@@ -29,9 +29,12 @@ module Types
 
         method_name ||= root ? "can_#{permission}?" : "can_#{permission}_for?"
         return false unless current_user.respond_to?(method_name)
-        return current_user.send(method_name) if root
 
-        current_user.send(method_name, object)
+        if root
+          current_user.send(method_name) || false
+        else
+          current_user.send(method_name, object) || false
+        end
       end
     end
   end

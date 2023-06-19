@@ -11,6 +11,12 @@ module Types
     include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasCustomDataElements
 
+    available_filter_options do
+      arg :type, [Types::Forms::Enums::AssessmentRole]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :project, [ID]
+    end
+
     description 'Custom Assessment'
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false

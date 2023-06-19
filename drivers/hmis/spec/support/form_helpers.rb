@@ -79,12 +79,6 @@ module FormHelpers
     },
     CLIENT: {
       values: {
-        'first-name' => 'First',
-        'middle-name' => 'Middle',
-        'last-name' => 'Last',
-        'name-suffix' => 'Sf',
-        'preferred-name' => 'Pref',
-        'name-dq' => 'FULL_NAME_REPORTED',
         'dob' => '2000-03-29T05:00:00.000Z',
         'dob-dq' => 'FULL_DOB_REPORTED',
         'ssn' => 'XXXXX1234',
@@ -97,12 +91,18 @@ module FormHelpers
         'image_blob_id' => nil,
       },
       hud_values: {
-        'firstName' => 'First',
-        'middleName' => 'Middle',
-        'lastName' => 'Last',
-        'nameSuffix' => 'Sf',
-        'preferredName' => 'Pref',
-        'nameDataQuality' => 'FULL_NAME_REPORTED',
+        "names": [
+          {
+            "first": 'First',
+            "middle": 'Middle',
+            "last": 'Last',
+            "suffix": 'Sf',
+            "nameDataQuality": 'FULL_NAME_REPORTED',
+            "use": nil,
+            "notes": nil,
+            "primary": true,
+          },
+        ],
         'dob' => '2000-03-29',
         'dobDataQuality' => 'FULL_DOB_REPORTED',
         'ssn' => 'XXXXX1234',
@@ -199,16 +199,14 @@ module FormHelpers
     },
     SERVICE: {
       values: {
-        'typeProvided' => 'MOVING_ON_ASSISTANCE__OTHER',
         'movingOnOtherType' => 'something',
         'dateProvided' => '2023-03-15',
       },
       hud_values: {
-        'typeProvided' => 'MOVING_ON_ASSISTANCE__OTHER',
         'otherTypeProvided' => '_HIDDEN',
         'movingOnOtherType' => 'something',
         'subTypeProvided' => '_HIDDEN',
-        'FAAmount' => '_HIDDEN',
+        'faAmount' => '_HIDDEN',
         'referralOutcome' => '_HIDDEN',
         'dateProvided' => '2023-03-15',
       },

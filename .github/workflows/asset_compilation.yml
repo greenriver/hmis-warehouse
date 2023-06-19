@@ -34,6 +34,7 @@ jobs:
           - gha_staging_load_15
           - gha_staging_load_16
           - gha_staging_load_17
+          - gha_staging_load_18
           - gha_production_load_1
           - gha_production_load_2
           - gha_production_load_3
@@ -49,9 +50,10 @@ jobs:
           - gha_production_load_13
           - gha_production_load_14
           - gha_production_load_15
+          - gha_production_load_16
 
     runs-on: ubuntu-20.04
-    container: ruby:3.1.3-alpine3.17
+    container: ruby:3.1.4-alpine3.18
 
     steps:
     - name: Checkout

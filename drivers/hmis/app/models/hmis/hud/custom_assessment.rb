@@ -51,6 +51,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     joins(:custom_form).merge(Hmis::Form::CustomForm.with_role(role))
   end
 
+  scope :with_project_type, ->(project_types) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project_type(project_types))
+  end
+
+  scope :with_project, ->(project_ids) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
+  end
+
   # Load project for WIP enrollment
   def project
     super || enrollment&.project
@@ -109,6 +117,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def exit?
     data_collection_stage == 3
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::AssessmentFilter.new(input).filter_scope(self)
   end
 
   def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date: nil)

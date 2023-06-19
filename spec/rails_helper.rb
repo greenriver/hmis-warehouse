@@ -66,6 +66,9 @@ RSpec.configure do |config|
   config.include HmisCsvFixtures
   config.include AccessControlSetup
 
+  require_relative 'support/s3_utils'
+  config.include S3Utils
+
   config.before(:suite) do
     Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
       FileUtils.rm(filename)

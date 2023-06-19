@@ -11,7 +11,7 @@
       %th Score
   %tbody
     %tr
-      %th.bg-info.align-middle.text-center{rowspan: 9} Project Performance
+      %th.bg-info.align-middle.text-center{rowspan: 7} Project Performance
       %td 1. Exits from RRH and retention in PSH
       %td See individual calculations for 1.a. and 1.b.
       %td.bg-info
@@ -35,7 +35,7 @@
         4 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %th.align-middle.text-center{rowspan: 8}
+      %th.align-middle.text-center{rowspan: 6}
         Weight
         %br
         #{@report.project_performance_weight}%
@@ -68,91 +68,80 @@
       %td
         2. % of clients who increased income through
         %b employment
-        (Stayers- measured from start and annual assessment)
+        %br
+        (Stayers and Leavers)
       %td
-        APR Table
+        APR Tables
+        %br
         = link_to_apr('Q19a1,', 'Question 19')
-        Cell J2
+        Cell J2 (Stayers)
+        %br
+        = link_to_apr('Q19a2,', 'Question 19')
+        Cell J2 (Leavers)
       %td
-        6 pts: 100-75%
+        12 pts: 100-75%
         %br
-        3 pts: 74-55%
+        6 pts: 74-55%
         %br
-        2 pts: 54-25%
+        4 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %td= @report.increased_stayer_employment_income_value
-      %td= @report.increased_stayer_employment_income_score
+      %td= @report.increased_employment_income_value
+      %td= @report.increased_employment_income_score
     %tr
       %td
-        3. % of clients who increased non-earned income
-        %b (ex. social benefits)
-        (Stayers- measured from start and annual assessment)
+        3. % of clients who increased n
+        %b on-earned income
+        (ex. social benefits)
+        %br
+        (Stayers and Leavers)
       %td
-        APR Table
+        APR Tables
+        %br
         = link_to_apr('Q19a1,', 'Question 19')
-        Cell J4
-      %td
-        6 pts: 100-75%
+        Cell J4 (Stayers)
         %br
-        3 pts: 74-55%
-        %br
-        2 pts: 54-25%
-        %br
-        0 pts: 24% - 0%
-      %td= @report.increased_stayer_other_income_value
-      %td= @report.increased_stayer_other_income_score
-    %tr
-      %td
-        4. % of Clients who increased income growth through
-        %b employment
-        (Leavers - measured from start and exit)
-      %td
-        APR Table
         = link_to_apr('Q19a2,', 'Question 19')
-        Cell J2
+        Cell J4 (Leavers)
       %td
-        6 pts: 100-75%
+        12 pts: 100-75%
         %br
-        3 pts: 74-55%
+        6 pts: 74-55%
         %br
-        2 pts: 54-25%
+        4 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %td= @report.increased_leaver_employment_income_value
-      %td= @report.increased_leaver_employment_income_score
+      %td= @report.increased_other_income_value
+      %td= @report.increased_other_income_score
     %tr
-      %td
-        5. % of clients who increased non-earned income
-        %b (ex. social benefits)
-        (Leavers - measured from start and exit)
-      %td
-        APR Table
-        = link_to_apr('Q19a2,', 'Question 19')
-        Cell J4
-      %td
-        6 pts: 100-75%
-        %br
-        3 pts: 74-55%
-        %br
-        2 pts: 54-25%
-        %br
-        0 pts: 24% - 0%
-      %td= @report.increased_leaver_other_income_value
-      %td= @report.increased_leaver_other_income_score
-    %tr
-      %td 6. Time to Lease Up; avg days from project admit date to date housed- project
+      %td 4. Time to Lease Up; Average days from project enrollment date to move-in date
       %td
         APR Table
         = link_to_apr('Q22c:', 'Question 22')
         Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing
       %td
-        12 pts: 30 day or less
+        12 pts: 1-30 days
         %br
         6 pts: 31-60 day
         %br
         4 pts: 61-180 days
         %br
-        0 pts: over 180 days
+        0 pts: over 180 days, or less than 1 day
       %td= @report.days_to_lease_up_value
       %td= @report.days_to_lease_up_score
+    %tr
+      %td 5. Project utilization rate from current project operating year
+      %td
+        APR (quarterly average for operating year)
+        %p
+          APR Table
+        = link_to_apr('Q8b', 'Question 8')
+        Average of cells B2, B3, B4, B5 / Total Number of Households Served
+      %td
+        6 pts: 85 -over 100%
+        %br
+        3 pt: 84 - 75%
+        %br
+        0 pts: under 74%
+      %td= @report.utilization_rate_value
+      %td= @report.utilization_rate_score

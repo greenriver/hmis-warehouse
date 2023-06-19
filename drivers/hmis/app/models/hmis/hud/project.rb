@@ -18,9 +18,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Enrollments in this Project, NOT including WIP Enrollments
   has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
   # WIP records representing Enrollments for this Project
-  has_many :enrollment_wips, -> { where(source_type: 'Hmis::Hud::Enrollment') }, class_name: 'Hmis::Wip'
+  has_many :enrollment_wips, -> { where(source_type: Hmis::Hud::Enrollment.sti_name) }, class_name: 'Hmis::Wip'
   # WIP Enrollments for this Project
-  has_many :wip_enrollments, class_name: 'Hmis::Hud::Enrollment', through: :enrollment_wips, source: :source, source_type: 'Hmis::Hud::Enrollment'
+  has_many :wip_enrollments, class_name: 'Hmis::Hud::Enrollment', through: :enrollment_wips, source: :source, source_type: Hmis::Hud::Enrollment.sti_name
 
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
@@ -64,6 +64,26 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(ProjectType: project_types)
   end
 
+  scope :with_funders, ->(funders) do
+    joins(:funders).where(f_t[:funder].in(funders))
+  end
+
+  scope :open_on_date, ->(date = Date.current) do
+    where(p_t[:operating_end_date].eq(nil).or(p_t[:operating_end_date].gteq(date)))
+  end
+
+  scope :closed_on_date, ->(date = Date.current) do
+    where(p_t[:operating_end_date].lt(date))
+  end
+
+  scope :with_statuses, ->(statuses) do
+    return self if statuses.include?('OPEN') && statuses.include?('CLOSED')
+    return open_on_date(Date.current) if statuses.include?('OPEN')
+    return closed_on_date(Date.current) if statuses.include?('CLOSED')
+
+    self
+  end
+
   scope :matching_search_term, ->(search_term) do
     return none unless search_term.present?
 
@@ -73,6 +93,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    organization_and_name: 'Organization and Name',
+    name: 'Name',
+  }.freeze
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
@@ -85,6 +110,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ProjectFilter.new(input).filter_scope(self)
   end
 
   def active

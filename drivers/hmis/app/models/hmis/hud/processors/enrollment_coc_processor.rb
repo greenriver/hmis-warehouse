@@ -10,8 +10,8 @@ module Hmis::Hud::Processors
       :enrollment_coc_factory
     end
 
-    def hud_type(_)
-      nil # No schema, so hud_type is always nil
+    def graphql_enum(_)
+      nil # No schema, so graphql_enum is always nil
     end
   end
 end

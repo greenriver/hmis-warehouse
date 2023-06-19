@@ -47,6 +47,14 @@ module GrdaWarehouse::Hud
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.pathways_or_rrh.select(:AssessmentID))
     end
 
+    scope :pathways, -> do
+      where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.pathways.select(:AssessmentID))
+    end
+
+    scope :transfer, -> do
+      where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.transfer.select(:AssessmentID))
+    end
+
     def question_matching_requirement(question, answer = nil)
       matching_question = assessment_questions.
         detect do |q|

@@ -7,11 +7,7 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Hud::CustomClientName, type: :model do
-  it "doesn't allow deletion of primary name" do
-    name = create(:hmis_hud_custom_client_name, primary: true)
-    name.destroy
-    expect(name).to_not be_destroyed
-  rescue Hmis::Hud::CustomClientName::CannotDestroyPrimaryNameException
-    expect(name.reload).to_not be_destroyed
+  it "doesn't allow primary name with empty first and last" do
+    expect { create(:hmis_hud_custom_client_name, primary: true, first: nil, last: nil) }.to raise_error(ActiveRecord::RecordInvalid)
   end
 end

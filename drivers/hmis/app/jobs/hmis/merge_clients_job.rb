@@ -116,7 +116,13 @@ module Hmis
       pairs = client_to_retain.send(relation).to_a.combination(2)
 
       pairs.each do |pair|
-        next unless pair[0] == pair[1]
+        equivalent = if pair[0].respond_to?(:equal_for_merge?)
+          pair[0].equal_for_merge?(pair[1])
+        else
+          pair[0] == pair[1]
+        end
+
+        next unless equivalent
         next if pair[1].in?(keepers)
 
         Rails.logger.info "Removing #{pair[1]} which is a duplicate"

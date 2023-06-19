@@ -9,422 +9,6 @@
 module ArelHelper
   extend ActiveSupport::Concern
 
-  # give these methods to instances
-  included do
-    # Call this like qualified_column(c_t[:Gender])
-    # to get back '"Client"."Gender"'
-    # that you can pass to Active Record count, etc.
-    # See config/initializers/arel_attributes_attribute.rb
-    # This has been re-implemented as to_sql
-    def qualified_column(arel_attribute, alias_name: nil)
-      table = arel_attribute.relation
-      connection = table.class.engine.connection
-      table_name = connection.quote_table_name table.table_name
-      column_name = connection.quote_column_name arel_attribute.name
-      return "#{table_name}.#{column_name}" unless alias_name.present?
-
-      return "#{table_name}.#{column_name} as #{alias_name}"
-    end
-
-    # NOTE: quoted_table_name must be quoted, use something like User.quoted_table_name
-    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
-      self.class.exists_sql(ar_query, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name)
-    end
-
-    # This will create a correlated exists clause and attach it to the relation it is called in
-    # it functions similar to a merge, but can be used when you need two merges with the same key
-    # Usage:
-    # User.joins(:role).correlated_exists(Role.health)
-    def self.correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
-      where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name, negated: negated))
-    end
-
-    def self.exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
-      sql = ar_query.select(column_name).to_sql.
-        gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
-        gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table
-      exists_type = if negated
-        'NOT EXISTS'
-      else
-        'EXISTS'
-      end
-      Arel.sql("#{exists_type} (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
-    end
-
-    # This method can be used to generate the select for a client's age at entry or start date (usually report start)
-    # It requires the query to include both Client and ServiceHistoryEnrollment to function
-    private def age_on_date(start_date)
-      cast(
-        datepart(
-          GrdaWarehouse::ServiceHistoryEnrollment,
-          'YEAR',
-          nf('AGE', [nf('GREATEST', [she_t[:first_date_in_program], start_date]), c_t[:DOB]]),
-        ),
-        'integer',
-      )
-    end
-
-    def qt(value)
-      self.class.qt value
-    end
-
-    def nf(*args)
-      self.class.nf(*args)
-    end
-
-    def unionize(*args)
-      self.class.unionize(*args)
-    end
-
-    def add_alias(aka, table)
-      self.class.add_alias aka, table
-    end
-
-    # create the COALESCE named function
-    def cl(*args)
-      nf('COALESCE', args)
-    end
-
-    def self.cl(*args)
-      nf('COALESCE', args)
-    end
-
-    # create the CONCAT named function
-    def ct(*args)
-      nf('CONCAT', args)
-    end
-
-    def self.ct(*args)
-      nf('CONCAT', args)
-    end
-
-    # create the GREATEST named function
-    def greatest(*args)
-      nf('GREATEST', args)
-    end
-
-    def self.greatest(*args)
-      nf('GREATEST', args)
-    end
-
-    def any(*args)
-      nf 'ANY', args
-    end
-
-    def array_agg(*args)
-      nf 'ARRAY_AGG', args
-    end
-
-    def sql_array(*args)
-      elements = args.map(&:to_sql)
-      lit("ARRAY [#{elements.join(', ')}]")
-    end
-
-    def lit(str)
-      self.class.lit str
-    end
-
-    def acase(conditions, elsewise: nil, quote: true)
-      self.class.acase conditions, elsewise: elsewise, quote: quote
-    end
-
-    def cast(exp, as)
-      self.class.cast exp, as
-    end
-
-    def datediff(*args)
-      self.class.datediff(*args)
-    end
-
-    def seconds_diff(*args)
-      self.class.seconds_diff(*args)
-    end
-
-    def datepart(*args)
-      self.class.datepart(*args)
-    end
-
-    def checksum(*args)
-      self.class.checksum(*args)
-    end
-
-    def confidentialized_project_name(column)
-      self.class.confidentialized_project_name column
-    end
-
-    def bool_or(*args)
-      self.class.bool_or(*args)
-    end
-
-    # Example
-    # Returns most-recently started enrollment that matches the scope (open in 2020) for each client
-    # GrdaWarehouse::ServiceHistoryEnrollment.entry.
-    #  one_for_column(
-    #   :first_date_in_program,
-    #   source_arel_table: she_t,
-    #   group_on: :client_id,
-    #   scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
-    #     start_date: '2020-01-01'.to_date,
-    #     end_date: '2020-12-31'.to_date,
-    #   ),
-    # )
-    # NOTE: group_on must all be in the same table
-    def self.one_for_column(column, source_arel_table:, group_on:, direction: :desc, scope: nil)
-      most_recent = source_arel_table.alias("most_recent_#{source_arel_table.name}_#{SecureRandom.alphanumeric}".downcase)
-
-      if scope
-        source = scope.arel
-        group_table = scope.arel_table
-      else
-        source = source_arel_table.project(source_arel_table[:id])
-        group_table = source_arel_table
-      end
-
-      direction = :desc unless direction.in?([:asc, :desc])
-      group_columns = Array.wrap(group_on).map { |c| group_table[c] }
-
-      max_by_group = source.distinct_on(group_columns).
-        order(*group_columns, source_arel_table[column].send(direction))
-
-      join = source_arel_table.create_join(
-        max_by_group.as(most_recent.name),
-        source_arel_table.create_on(source_arel_table[:id].eq(most_recent[:id])),
-      )
-
-      joins(join)
-    end
-  end
-
-  # Some shortcuts for arel tables
-  def r_t
-    Role.arel_table
-  end
-
-  def ag_t
-    AccessGroup.arel_table
-  end
-
-  def she_t
-    GrdaWarehouse::ServiceHistoryEnrollment.arel_table
-  end
-
-  def shs_t
-    GrdaWarehouse::ServiceHistoryService.arel_table
-  end
-
-  def shsm_t
-    GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
-  end
-
-  def s_t
-    GrdaWarehouse::Hud::Service.arel_table
-  end
-
-  def g_t
-    GrdaWarehouse::Hud::Geography.arel_table
-  end
-
-  def e_t
-    GrdaWarehouse::Hud::Enrollment.arel_table
-  end
-
-  def ec_t
-    GrdaWarehouse::Hud::EnrollmentCoc.arel_table
-  end
-
-  def ex_t
-    GrdaWarehouse::Hud::Exit.arel_table
-  end
-
-  def ds_t
-    GrdaWarehouse::DataSource.arel_table
-  end
-
-  def c_t
-    GrdaWarehouse::Hud::Client.arel_table
-  end
-
-  def cn_t
-    GrdaWarehouse::ClientNotes::Base.arel_table
-  end
-
-  def p_t
-    GrdaWarehouse::Hud::Project.arel_table
-  end
-
-  def pc_t
-    GrdaWarehouse::Hud::ProjectCoc.arel_table
-  end
-
-  def o_t
-    GrdaWarehouse::Hud::Organization.arel_table
-  end
-
-  def i_t
-    GrdaWarehouse::Hud::Inventory.arel_table
-  end
-
-  def af_t
-    GrdaWarehouse::Hud::Affiliation.arel_table
-  end
-
-  def as_t
-    GrdaWarehouse::Hud::Assessment.arel_table
-  end
-
-  def asq_t
-    GrdaWarehouse::Hud::AssessmentQuestion.arel_table
-  end
-
-  def ev_t
-    GrdaWarehouse::Hud::Event.arel_table
-  end
-
-  def ch_t
-    GrdaWarehouse::Chronic.arel_table
-  end
-
-  def hc_t
-    GrdaWarehouse::HudChronic.arel_table
-  end
-
-  def wc_t
-    GrdaWarehouse::WarehouseClient.arel_table
-  end
-
-  def wcp_t
-    GrdaWarehouse::WarehouseClientsProcessed.arel_table
-  end
-
-  def ib_t
-    GrdaWarehouse::Hud::IncomeBenefit.arel_table
-  end
-
-  def d_t
-    GrdaWarehouse::Hud::Disability.arel_table
-  end
-
-  def hdv_t
-    GrdaWarehouse::Hud::HealthAndDv.arel_table
-  end
-
-  def f_t
-    GrdaWarehouse::Hud::Funder.arel_table
-  end
-
-  def cls_t
-    GrdaWarehouse::Hud::CurrentLivingSituation.arel_table
-  end
-
-  def enx_t
-    GrdaWarehouse::EnrollmentExtra.arel_table
-  end
-
-  def hmis_form_t
-    GrdaWarehouse::HmisForm.arel_table
-  end
-
-  def hmis_c_t
-    GrdaWarehouse::HmisClient.arel_table
-  end
-
-  def c_client_t
-    GrdaWarehouse::CohortClient.arel_table
-  end
-
-  def c_c_change_t
-    GrdaWarehouse::CohortClientChange.arel_table
-  end
-
-  def yib_t
-    GrdaWarehouse::YouthIntake::Base.arel_table
-  end
-
-  def vispdat_t
-    GrdaWarehouse::Vispdat::Base.arel_table
-  end
-
-  def hp_t
-    Health::Patient.arel_table
-  end
-
-  def hpr_t
-    Health::PatientReferral.arel_table
-  end
-
-  def hapr_t
-    Health::AgencyPatientReferral.arel_table
-  end
-
-  def hqa_t
-    Health::QualifyingActivity.arel_table
-  end
-
-  def hpf_t
-    Health::ParticipationForm.arel_table
-  end
-
-  def hpff_t
-    Health::ParticipationFormFile.arel_table
-  end
-
-  def h_ssm_t
-    Health::SelfSufficiencyMatrixForm.arel_table
-  end
-
-  def h_epic_ssm_t
-    Health::EpicSsm.arel_table
-  end
-
-  def h_sdhcmn_t
-    Health::SdhCaseManagementNote.arel_table
-  end
-
-  def h_ehs_t
-    Health::EpicHousingStatus.arel_table
-  end
-
-  def h_ecn_t
-    Health::EpicCaseNote.arel_table
-  end
-
-  def h_cha_t
-    Health::ComprehensiveHealthAssessment.arel_table
-  end
-
-  def h_echa_t
-    Health::EpicCha.arel_table
-  end
-
-  def h_rf_t
-    Health::ReleaseForm.arel_table
-  end
-
-  def h_cp_t
-    Health::Careplan.arel_table
-  end
-
-  def htca_t
-    Health::Tracing::Case.arel_table
-  end
-
-  def htco_t
-    Health::Tracing::Contact.arel_table
-  end
-
-  def h_sd_t
-    Health::StatusDate.arel_table
-  end
-
-  def r_monthly_t
-    Reporting::MonthlyReports::Base.arel_table
-  end
-
-  def hr_ri_t
-    HudReports::ReportInstance.arel_table
-  end
-
-  # and to the class itself (so they can be used in scopes, for example)
   class_methods do
     # convert non-node into a node
     def qt(value)
@@ -473,6 +57,15 @@ module ArelHelper
 
     def cl(*args)
       nf 'COALESCE', args
+    end
+
+    def ct(*args)
+      nf('CONCAT', args)
+    end
+
+    # create the GREATEST named function
+    def greatest(*args)
+      nf('GREATEST', args)
     end
 
     # bonk out a SQL literal
@@ -569,6 +162,64 @@ module ArelHelper
         [field1.eq(true).or(field2.eq(true)), true],
       ]
       acase(conditions, elsewise: 'false')
+    end
+
+    # Example
+    # Returns most-recently started enrollment that matches the scope (open in 2020) for each client
+    # GrdaWarehouse::ServiceHistoryEnrollment.entry.
+    #  one_for_column(
+    #   :first_date_in_program,
+    #   source_arel_table: she_t,
+    #   group_on: :client_id,
+    #   scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+    #     start_date: '2020-01-01'.to_date,
+    #     end_date: '2020-12-31'.to_date,
+    #   ),
+    # )
+    # NOTE: group_on must all be in the same table
+    def one_for_column(column, source_arel_table:, group_on:, direction: :desc, scope: nil)
+      most_recent = source_arel_table.alias("most_recent_#{source_arel_table.name}_#{SecureRandom.alphanumeric}".downcase)
+
+      if scope
+        source = scope.arel
+        group_table = scope.arel_table
+      else
+        source = source_arel_table.project(source_arel_table[:id])
+        group_table = source_arel_table
+      end
+
+      direction = :desc unless direction.in?([:asc, :desc])
+      group_columns = Array.wrap(group_on).map { |c| group_table[c] }
+
+      max_by_group = source.distinct_on(group_columns).
+        order(*group_columns, source_arel_table[column].send(direction))
+
+      join = source_arel_table.create_join(
+        max_by_group.as(most_recent.name),
+        source_arel_table.create_on(source_arel_table[:id].eq(most_recent[:id])),
+      )
+
+      joins(join)
+    end
+
+    # This will create a correlated exists clause and attach it to the relation it is called in
+    # it functions similar to a merge, but can be used when you need two merges with the same key
+    # Usage:
+    # User.joins(:role).correlated_exists(Role.health)
+    def correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
+      where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name, negated: negated))
+    end
+
+    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
+      sql = ar_query.select(column_name).to_sql.
+        gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
+        gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table
+      exists_type = if negated
+        'NOT EXISTS'
+      else
+        'EXISTS'
+      end
+      Arel.sql("#{exists_type} (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
     end
 
     # Some shortcuts for arel tables
@@ -803,5 +454,59 @@ module ArelHelper
     def hr_ri_t
       HudReports::ReportInstance.arel_table
     end
+  end
+
+  included do
+    # Call this like qualified_column(c_t[:Gender])
+    # to get back '"Client"."Gender"'
+    # that you can pass to Active Record count, etc.
+    # See config/initializers/arel_attributes_attribute.rb
+    # This has been re-implemented as to_sql
+    def qualified_column(arel_attribute, alias_name: nil)
+      table = arel_attribute.relation
+      connection = table.class.engine.connection
+      table_name = connection.quote_table_name table.table_name
+      column_name = connection.quote_column_name arel_attribute.name
+      return "#{table_name}.#{column_name}" unless alias_name.present?
+
+      return "#{table_name}.#{column_name} as #{alias_name}"
+    end
+
+    # NOTE: quoted_table_name must be quoted, use something like User.quoted_table_name
+    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
+      self.class.exists_sql(ar_query, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name)
+    end
+
+    # This method can be used to generate the select for a client's age at entry or start date (usually report start)
+    # It requires the query to include both Client and ServiceHistoryEnrollment to function
+    private def age_on_date(start_date)
+      cast(
+        datepart(
+          GrdaWarehouse::ServiceHistoryEnrollment,
+          'YEAR',
+          nf('AGE', [nf('GREATEST', [she_t[:first_date_in_program], start_date]), c_t[:DOB]]),
+        ),
+        'integer',
+      )
+    end
+
+    def any(*args)
+      nf 'ANY', args
+    end
+
+    def array_agg(*args)
+      nf 'ARRAY_AGG', args
+    end
+
+    def sql_array(*args)
+      elements = args.map(&:to_sql)
+      lit("ARRAY [#{elements.join(', ')}]")
+    end
+
+    # Table calls
+    delegate :she_t, :shs_t, :shsm_t, :s_t, :g_t, :e_t, :ec_t, :ex_t, :ds_t, :c_t, :cn_t, :p_t, :pc_t, :o_t, :i_t, :af_t, :as_t, :asq_t, :ev_t, :ch_t, :hc_t, :wc_t, :wcp_t, :ib_t, :d_t, :hdv_t, :f_t, :cls_t, :enx_t, :hmis_form_t, :hmis_c_t, :c_client_t, :c_c_change_t, :yib_t, :vispdat_t, :hp_t, :hpr_t, :hapr_t, :hqa_t, :hpf_t, :hpff_t, :h_ssm_t, :h_epic_ssm_t, :h_sdhcmn_t, :h_ehs_t, :h_ecn_t, :h_cha_t, :h_echa_t, :h_rf_t, :h_cp_t, :htca_t, :htco_t, :h_sd_t, :r_monthly_t, :hr_ri_t, :r_t, :ag_t, to: 'self.class'
+
+    # Other methods
+    delegate :qt, :nf, :unionize, :add_alias, :cl, :ct, :greatest, :bool_or, :confidentialized_project_name, :checksum, :datepart, :seconds_diff, :datediff, :cast, :acase, :lit, to: 'self.class'
   end
 end
