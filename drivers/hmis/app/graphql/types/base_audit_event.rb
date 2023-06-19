@@ -9,7 +9,6 @@ module Types
     def self.build(node_class, field_permissions: nil, transform_changes: nil)
       Class.new(self) do
         graphql_name("#{node_class.graphql_name}AuditEvent")
-        field :item, node_class, null: false
 
         define_method(:schema_type) do
           node_class
