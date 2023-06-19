@@ -31,7 +31,8 @@ module Types
     value 'REFERRAL_OUTCOME'
     value 'AVAILABLE_FILE_TYPES'
     value 'CLIENT_ENROLLMENTS', 'All Enrollments, including WIP and exited, for the client.'
-    value 'REFERRAL_POSTING_STATUSES', 'Referral Posting Status'
-    value 'REFERRAL_POSTING_DENIAL_REASON_TYPES', 'Referral Posting Status'
+    value 'REFERRAL_RESULT_TYPES', 'Referral Result '
+    value 'ASSIGNED_REFERRAL_POSTING_STATUSES', 'Referral Posting Status'
+    value 'DENIED_PENDING_REFERRAL_POSTING_STATUSES', 'Referral Posting Status'
   end
 end

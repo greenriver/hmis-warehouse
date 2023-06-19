@@ -95,6 +95,9 @@ module Mutations
         record = nil
       end
 
+      # Reload to get changes from post_save actions, such as newly created MCI ID.
+      record&.reload
+
       {
         record: record,
         errors: errors,
