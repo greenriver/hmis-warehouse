@@ -12,16 +12,20 @@ module HmisExternalApis::AcHmis::Importers
     attr_accessor :bucket_name
     attr_accessor :prefix
     attr_accessor :importer_class
+    attr_accessor :remote_credential
     attr_accessor :skip_lambda
     attr_accessor :found_csvs
 
     MPER_SLUG = 'mper'.freeze
 
     def initialize(bucket_name:)
-      self.bucket_name = bucket_name
-      self.prefix = ''
       self.skip_lambda = ->(_s3_object) { false }
       self.found_csvs = []
+
+      creds = GrdaWarehouse::RemoteCredentials::S3.find_by(slug: MPER_SLUG)
+      self.remote_credential = creds
+      self.bucket_name = creds&.bucket || bucket_name
+      self.prefix = creds&.s3_prefix || ''
     end
 
     def self.run_mper?
@@ -29,10 +33,7 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def self.mper
-      creds = GrdaWarehouse::RemoteCredentials::S3.find_by(slug: MPER_SLUG)
-
-      s3_zip_files_importer = new(bucket_name: creds.bucket)
-      s3_zip_files_importer.prefix = creds.path
+      s3_zip_files_importer = new
       s3_zip_files_importer.importer_class = ProjectsImporter
       s3_zip_files_importer.skip_lambda = ->(s3_object) do
         ProjectsImportAttempt.given(s3_object).to_skip.any?
@@ -42,7 +43,7 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def run!
-      s3 = AwsS3.new(bucket_name: bucket_name)
+      s3 = remote_credential&.s3 || AwsS3.new(bucket_name: bucket_name)
 
       s3.list_objects(prefix: prefix).each do |s3_object|
         unless s3_object.key.match?(/.zip$/i)
