@@ -19,6 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   include_context 'hmis service setup'
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:c1) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
   let!(:e2_wip) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
@@ -37,7 +38,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
     e2_wip.save_in_progress
   end
 
@@ -215,7 +215,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Client lookup' do
     it 'should resolve no related records if user does not have view access' do
-      remove_permissions(hmis_user, :can_view_enrollment_details)
+      remove_permissions(access_control, :can_view_enrollment_details)
       response, result = post_graphql(id: c1.id) { client_query }
       expect(response.status).to eq 200
       client = result.dig('data', 'client')
@@ -271,7 +271,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Enrollment lookup' do
     it 'should return empty if user does not have view access' do
-      remove_permissions(hmis_user, :can_view_enrollment_details)
+      remove_permissions(access_control, :can_view_enrollment_details)
       response, result = post_graphql(id: e1.id) { enrollment_query }
       expect(response.status).to eq 200
       enrollment = result.dig('data', 'enrollment')

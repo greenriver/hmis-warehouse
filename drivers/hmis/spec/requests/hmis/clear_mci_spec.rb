@@ -15,7 +15,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
 
     # Stub MCI clearance method
     allow(HmisExternalApis::AcHmis::Mci).to receive(:new).and_return(stub_mci)

@@ -16,14 +16,6 @@ FactoryBot.define do
     name { 'Test Role' }
   end
 
-  factory :view_access_group, class: 'Hmis::AccessGroup' do
-    sequence(:name) { |n| "Group #{n}" }
-  end
-
-  factory :edit_access_group, class: 'Hmis::AccessGroup' do
-    sequence(:name) { |n| "Group #{n}" }
-  end
-
   factory :hmis_access_group, class: 'Hmis::AccessGroup' do
     sequence(:name) { |n| "Group #{n}" }
   end

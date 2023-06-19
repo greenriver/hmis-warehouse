@@ -14,6 +14,8 @@ def viewable_type(entity)
   return :organizations if entity.is_a? Hmis::Hud::Organization
   return :organizations if entity.is_a? GrdaWarehouse::Hud::Organization
   return :data_sources if entity.is_a? GrdaWarehouse::DataSource
+
+  raise "Unsupported entity type: #{entity.class.name}"
 end
 
 def viewable_hash(entities)
@@ -25,7 +27,7 @@ def viewable_hash(entities)
 end
 
 # Create a new Access Control and assign the user to it.
-# The specified entity or entities are included. They can be any type (proj, org, ds).
+# The specified entity or entities (Project/Org/Datasource) are included.
 # If "with_permission" passed, role will only include the permissions passed.
 # If "without_permission" passed, role will include all perms EXCEPT the permissions passed.
 # If neither permission arg passed, role will include all permission.
@@ -45,34 +47,25 @@ def create_access_control(user, entities, with_permission: nil, without_permissi
   access_control
 end
 
-def assign_viewable(access_group, viewable, user)
-  # TODO: This is to prevent having to change all the tests now that we have
-  # Hmis::GroupViewableEntity, which has different association types. We should
-  # change the tests once we finish that thought, but it felt like we should
-  # make a decision about it before changing all the tests
+def assign_viewable(access_control, viewable)
   viewable = Hmis::Hud::Project.find_by(id: viewable.id) if viewable.is_a? GrdaWarehouse::Hud::Project
   viewable = Hmis::Hud::Organization.find_by(id: viewable.id) if viewable.is_a? GrdaWarehouse::Hud::Organization
-  viewable = GrdaWarehouse::DataSource.find_by(id: viewable.id) if viewable.is_a? GrdaWarehouse::DataSource
 
-  access_group.add_viewable(viewable)
-  role = Hmis::Role.first || create(:hmis_role)
-  access_group.access_controls.create(role: role) if access_group.access_controls.empty?
-  access_group.access_controls.first.add(user)
+  access_control.access_group.add_viewable(viewable)
 end
 
-def remove_viewable(access_group, viewable, user)
-  access_group.remove_viewable(viewable)
-  access_group.access_controls&.first&.remove(user)
+def remove_viewable(access_control, viewable)
+  access_control.access_group.remove_viewable(viewable)
 end
 
-def set_permissions(user, value, *permissions)
-  user.roles.update_all(**permissions.map { |p| [p, value] }.to_h)
+def set_permissions(access_control, value, *permissions)
+  access_control.role.update(**permissions.map { |p| [p, value] }.to_h)
 end
 
-def add_permissions(user, *permissions)
-  set_permissions(user, true, *permissions)
+def add_permissions(access_control, *permissions)
+  set_permissions(access_control, true, *permissions)
 end
 
-def remove_permissions(user, *permissions)
-  set_permissions(user, false, *permissions)
+def remove_permissions(access_control, *permissions)
+  set_permissions(access_control, false, *permissions)
 end

@@ -17,7 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
-
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:assessment1) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
   let!(:assessment2) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
   let!(:assessment3) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
@@ -76,7 +76,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Intake household submission' do
     before(:each) do
       hmis_login(user)
-      assign_viewable(edit_access_group, ds1, hmis_user)
       setup_household(:INTAKE)
     end
 
@@ -108,7 +107,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Exit household submission' do
     before(:each) do
       hmis_login(user)
-      assign_viewable(edit_access_group, ds1, hmis_user)
       setup_household(:EXIT)
     end
 
