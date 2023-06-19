@@ -32,9 +32,8 @@ module Mutations
 
         errors.add :relationship_to_hoh, :invalid, full_message: 'Household already has a Head of Household' if is_hoh && existing_enrollments.heads_of_households.exists?
       else
+        relationship_to_hoh = 1
         raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(project, :can_enroll_clients)
-
-        errors.add :relationship_to_hoh, :invalid, full_message: 'Client must be the Head of Household' unless is_hoh
       end
 
       return { errors: errors } if errors.any?
@@ -48,6 +47,7 @@ module Mutations
         entry_date: entry_date,
         project_id: project.project_id,
         household_id: household_id,
+        # TODO auto-set enrollment_coc (if there is only 1 option)
       )
 
       # Validate entry date
