@@ -100,6 +100,10 @@ module
       user.can_access_some_version_of_clients?
     end
 
+    def self.clear_report_cache
+      Rails.cache.delete_matched("#{[name]}*")
+    end
+
     private def hoh_scope
       report_scope.where(she_t[:head_of_household].eq(true))
     end

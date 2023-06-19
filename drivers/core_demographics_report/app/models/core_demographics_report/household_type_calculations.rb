@@ -89,19 +89,18 @@ module
       @hoh_enrollments ||= {}
       @households ||= {}
 
-      report_scope.joins(enrollment: :client).preload(enrollment: :client).find_each(batch_size: 1_000) do |enrollment|
-        @hoh_enrollments[get_hh_id(enrollment)] = enrollment if enrollment.head_of_household?
-        next unless enrollment&.enrollment&.client.present?
-
+      report_scope.joins(enrollment: :client).preload(enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
         date = [enrollment.entry_date, filter.start_date].max
         age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
-        @households[get_hh_id(enrollment)] ||= []
-        @households[get_hh_id(enrollment)] << {
+        en = {
           client_id: enrollment.client_id,
           enrollment_id: enrollment.id,
           age: age,
           relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-        }.with_indifferent_access
+        }
+        @hoh_enrollments[get_hh_id(enrollment)] = en if enrollment.head_of_household?
+        @households[get_hh_id(enrollment)] ||= []
+        @households[get_hh_id(enrollment)] << en.with_indifferent_access
       end
     end
 
