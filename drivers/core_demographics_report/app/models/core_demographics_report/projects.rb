@@ -16,7 +16,7 @@ module
             title: project.organization_and_name(@filter.user),
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :project).merge(GrdaWarehouse::Hud::Project.where(id: id)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment, :project).merge(GrdaWarehouse::Hud::Project.where(id: id)).distinct },
           }
         end
       end

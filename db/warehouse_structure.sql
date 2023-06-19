@@ -1379,7 +1379,10 @@ CREATE TABLE public."CustomServices" (
     service_name character varying,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    "FAAmount" double precision,
+    "FAStartDate" date,
+    "FAEndDate" date
 );
 
 
@@ -2414,7 +2417,9 @@ CREATE TABLE public."Services" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "MovingOnOtherType" character varying
+    "MovingOnOtherType" character varying,
+    "FAStartDate" date,
+    "FAEndDate" date
 );
 
 
@@ -2549,6 +2554,60 @@ CREATE SEQUENCE public."YouthEducationStatus_id_seq"
 --
 
 ALTER SEQUENCE public."YouthEducationStatus_id_seq" OWNED BY public."YouthEducationStatus".id;
+
+
+--
+-- Name: ac_hmis_projects_import_attempts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ac_hmis_projects_import_attempts (
+    id bigint NOT NULL,
+    status character varying DEFAULT 'init'::character varying NOT NULL,
+    etag character varying NOT NULL,
+    key text NOT NULL,
+    result jsonb DEFAULT '{}'::jsonb NOT NULL,
+    attempted_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN ac_hmis_projects_import_attempts.etag; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.ac_hmis_projects_import_attempts.etag IS 'fingerprint of the file';
+
+
+--
+-- Name: COLUMN ac_hmis_projects_import_attempts.key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.ac_hmis_projects_import_attempts.key IS 'path in an s3 bucket to the file';
+
+
+--
+-- Name: COLUMN ac_hmis_projects_import_attempts.attempted_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.ac_hmis_projects_import_attempts.attempted_at IS 'last time an import was attempted';
+
+
+--
+-- Name: ac_hmis_projects_import_attempts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ac_hmis_projects_import_attempts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ac_hmis_projects_import_attempts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ac_hmis_projects_import_attempts_id_seq OWNED BY public.ac_hmis_projects_import_attempts.id;
 
 
 --
@@ -14513,7 +14572,8 @@ CREATE TABLE public.hmis_external_referral_household_members (
     updated_at timestamp(6) without time zone NOT NULL,
     relationship_to_hoh integer NOT NULL,
     referral_id bigint NOT NULL,
-    client_id bigint NOT NULL
+    client_id bigint NOT NULL,
+    mci_id character varying
 );
 
 
@@ -14550,16 +14610,17 @@ CREATE TABLE public.hmis_external_referral_postings (
     project_id bigint NOT NULL,
     referral_request_id bigint,
     unit_type_id bigint NOT NULL,
-    household_id character varying,
+    "HouseholdID" character varying,
     resource_coordinator_notes text,
     status_updated_at timestamp without time zone NOT NULL,
     status_updated_by_id bigint,
     status_note text,
-    status_note_updated_at text,
     status_note_updated_by_id bigint,
     denial_reason integer,
     referral_result integer,
-    denial_note text
+    denial_note text,
+    status_note_updated_at timestamp without time zone,
+    data_source_id integer NOT NULL
 );
 
 
@@ -14593,7 +14654,7 @@ CREATE TABLE public.hmis_external_referral_requests (
     identifier character varying,
     project_id bigint NOT NULL,
     unit_type_id bigint NOT NULL,
-    requested_on date NOT NULL,
+    requested_on timestamp without time zone NOT NULL,
     needed_by date NOT NULL,
     requested_by_id bigint,
     requestor_name character varying NOT NULL,
@@ -17721,7 +17782,14 @@ CREATE TABLE public.performance_measurement_goals (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    always_run_for_coc boolean DEFAULT false
+    always_run_for_coc boolean DEFAULT false,
+    recidivism_12_months integer DEFAULT 20 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    label character varying,
+    destination_so integer DEFAULT 85 NOT NULL,
+    destination_homeless_plus integer DEFAULT 85 NOT NULL,
+    destination_permanent integer DEFAULT 85 NOT NULL,
+    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL
 );
 
 
@@ -20659,7 +20727,8 @@ CREATE TABLE public.simple_report_instances (
     updated_at timestamp without time zone NOT NULL,
     started_at timestamp without time zone,
     completed_at timestamp without time zone,
-    failed_at timestamp without time zone
+    failed_at timestamp without time zone,
+    goal_configuration_id bigint
 );
 
 
@@ -22380,6 +22449,13 @@ ALTER TABLE ONLY public."User" ALTER COLUMN id SET DEFAULT nextval('public."User
 --
 
 ALTER TABLE ONLY public."YouthEducationStatus" ALTER COLUMN id SET DEFAULT nextval('public."YouthEducationStatus_id_seq"'::regclass);
+
+
+--
+-- Name: ac_hmis_projects_import_attempts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ac_hmis_projects_import_attempts ALTER COLUMN id SET DEFAULT nextval('public.ac_hmis_projects_import_attempts_id_seq'::regclass);
 
 
 --
@@ -25434,6 +25510,14 @@ ALTER TABLE ONLY public."User"
 
 ALTER TABLE ONLY public."YouthEducationStatus"
     ADD CONSTRAINT "YouthEducationStatus_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: ac_hmis_projects_import_attempts ac_hmis_projects_import_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ac_hmis_projects_import_attempts
+    ADD CONSTRAINT ac_hmis_projects_import_attempts_pkey PRIMARY KEY (id);
 
 
 --
@@ -42343,6 +42427,20 @@ CREATE INDEX "index_User_on_pending_date_deleted" ON public."User" USING btree (
 
 
 --
+-- Name: index_ac_hmis_projects_import_attempts_on_etag; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ac_hmis_projects_import_attempts_on_etag ON public.ac_hmis_projects_import_attempts USING btree (etag);
+
+
+--
+-- Name: index_ac_hmis_projects_import_attempts_on_key_and_etag; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ac_hmis_projects_import_attempts_on_key_and_etag ON public.ac_hmis_projects_import_attempts USING btree (key, etag);
+
+
+--
 -- Name: index_ad_hoc_batches_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49371,6 +49469,13 @@ CREATE INDEX index_simple_report_cells_on_report_instance_id ON public.simple_re
 
 
 --
+-- Name: index_simple_report_instances_on_goal_configuration_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_simple_report_instances_on_goal_configuration_id ON public.simple_report_instances USING btree (goal_configuration_id);
+
+
+--
 -- Name: index_simple_report_instances_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50165,7 +50270,7 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -53098,6 +53203,17 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230525193939'),
 ('20230525202043'),
 ('20230526173129'),
-('20230526191445');
+('20230526191445'),
+('20230604013712'),
+('20230606184316'),
+('20230608152942'),
+('20230608153225'),
+('20230611160741'),
+('20230612113450'),
+('20230612142203'),
+('20230612171240'),
+('20230612200730'),
+('20230613122940'),
+('20230614130627');
 
 

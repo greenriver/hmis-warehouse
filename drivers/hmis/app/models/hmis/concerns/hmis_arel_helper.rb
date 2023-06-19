@@ -52,6 +52,10 @@ module Hmis::Concerns::HmisArelHelper
     def cded_t
       Hmis::Hud::CustomDataElementDefinition.arel_table
     end
+
+    def ccn_t
+      Hmis::Hud::CustomClientName.arel_table
+    end
   end
 
   included do

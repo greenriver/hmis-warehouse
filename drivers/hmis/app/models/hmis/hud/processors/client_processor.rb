@@ -153,18 +153,23 @@ module Hmis::Hud::Processors
     # Custom handler for MCI field
     private def process_mci(value)
       return unless HmisExternalApis::AcHmis::Mci.enabled?
-      return if value.nil? # Shouldn't happen, but let the form validate it
+      return if value.nil? # Shouldn't happen, the form validation should ensure presence because it is required
 
       client = @processor.send(factory_name)
-      return unless client.is_a? Hmis::Hud::Client
+      current_mci_id = client.ac_hmis_mci_id&.value
+      # If MCI ID hasn't changed, do nothing.
+      return if current_mci_id.present? && current_mci_id == value
 
       # If field is hidden, that means that there was not enough information to clear MCI.
-      # Do nothing, which will create an "uncleared" client.
+      # Do nothing, which will create an "uncleared" client. If client is already cleared, nothing happens.
       return if value == Base::HIDDEN_FIELD_VALUE
 
       # If value is MCI_CREATE_MCI_ID_VALUE, that means the use explicitly chose NOT to link or create an MCI ID.
-      # Do nothing, which will create an "uncleared" client.
+      # Do nothing, which will create an "uncleared" client. If client is already cleared, nothing happens.
       return if value == MCI_CREATE_UNCLEARED_CLIENT_VALUE
+
+      # Changing MCI ID is not supported.
+      raise 'Client already has an MCI ID' if current_mci_id.present?
 
       # If value indicates that a new MCI ID should be created, do that.
       # Actual MCI ID creation happens in an after_save hook on Client.
@@ -173,8 +178,8 @@ module Hmis::Hud::Processors
         return
       end
 
-      # Value should be an MCI ID
-      return unless Float(value)
+      # MCI value should be numeric
+      raise 'Invalid MCI ID' unless Float(value)
 
       # Initialize an ExternalID with this MCI ID
       client.external_ids << HmisExternalApis::ExternalId.new(

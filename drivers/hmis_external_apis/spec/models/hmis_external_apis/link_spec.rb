@@ -12,12 +12,17 @@ require 'rails_helper'
 # our own implementation
 RSpec.describe 'LINK API', type: :model do
   if ENV['OAUTH_CREDENTIAL_TEST'] == 'true'
-    let(:base_url) { ENV.fetch('LINK_BASE_URL') + '/' }
-    let(:client_id) { ENV.fetch('LINK_CLIENT_ID') }
-    let(:client_secret) { ENV.fetch('LINK_CLIENT_SECRET') }
-    let(:token_url) { ENV.fetch('LINK_TOKEN_URL') }
-    let(:oauth_scope) { 'GREEN_RIVER' }
-    let(:ocp_apim_subscription_key) { ENV.fetch('LINK_OCP_APIM_SUBSCRIPTION_KEY') }
+    let(:creds) do
+      create(
+        :grda_remote_oauth_credential,
+        client_id: ENV.fetch('LINK_CLIENT_ID'),
+        client_secret: ENV.fetch('LINK_CLIENT_SECRET'),
+        token_url: ENV.fetch('LINK_TOKEN_URL'),
+        additional_headers: { 'Ocp-Apim-Subscription-Key' => ENV.fetch('LINK_OCP_APIM_SUBSCRIPTION_KEY') },
+        base_url: ENV.fetch('LINK_BASE_URL') + '/',
+        oauth_scope: 'GREEN_RIVER',
+      )
+    end
 
     let(:requested_by) { 'test@greenriver.com' }
     let(:now) { Time.now }
@@ -29,14 +34,7 @@ RSpec.describe 'LINK API', type: :model do
     end
 
     let(:subject) do
-      HmisExternalApis::OauthClientConnection.new(
-        client_id: client_id,
-        client_secret: client_secret,
-        token_url: token_url,
-        headers: { 'Ocp-Apim-Subscription-Key' => ocp_apim_subscription_key },
-        base_url: base_url,
-        scope: oauth_scope,
-      )
+      HmisExternalApis::OauthClientConnection.new(creds)
     end
 
     it 'creates referral request' do
