@@ -89,9 +89,10 @@ module
       @hoh_enrollments ||= {}
       @households ||= {}
 
-      report_scope.joins(enrollment: :client).preload(enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
+      # use she.client (destination client) for DOB/Age, sometimes QA has weird data
+      report_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
         date = [enrollment.entry_date, filter.start_date].max
-        age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.client.DOB&.to_date)
         en = {
           'client_id' => enrollment.client_id,
           'enrollment_id' => enrollment.id,
