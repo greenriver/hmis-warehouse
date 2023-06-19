@@ -17,14 +17,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   include_context 'hmis base setup'
 
-  # let!(:ds1) { create :hmis_data_source }
-  # let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let!(:ds2) { create :hmis_data_source, hmis: nil }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1, hmis_user)
+    create_access_control(hmis_user, p1)
   end
 
   let(:query) do
@@ -81,9 +79,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should exclude clients enrolled at a project without user view permission' do
-      assign_viewable(view_access_group, p2, hmis_user)
+      # Grant user access to p2, but without the ability to view clients
+      create_access_control(hmis_user, p2, without_permission: :can_view_clients)
+      # Enroll client3 in p2
       create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3, user: u1)
-      view_access_group.roles.first.update(can_view_clients: false)
 
       response, result = post_graphql(input: {}) { query }
       expect(response.status).to eq 200
