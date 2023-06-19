@@ -169,6 +169,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  it 'is responsive' do
+    expect do
+      post_graphql(input: { first_name: 'William'}) { query }
+    end.to perform_under(50).ms.warmup(2).times.sample(10).times
+  end
+
   describe 'custom client names search tests' do
     let!(:client) do
       create(

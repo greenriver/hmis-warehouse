@@ -25,6 +25,7 @@ require 'deprecation_helper'
 # Lazy way if we get many of these Dir[Rails.root.join('spec/support/**/*.rb')].sort.each { |f| require f }
 require Rails.root.join('spec/support/hmis_csv_fixtures')
 require Rails.root.join('spec/support/refresh_materialized_views')
+require Rails.root.join('spec/support/query_count_matcher')
 
 # Checks for pending migration and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove this line.

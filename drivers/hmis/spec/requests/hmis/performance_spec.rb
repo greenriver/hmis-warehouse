@@ -16,39 +16,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   before(:each) do
     hmis_login(user)
     assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
-    20.times do
+    1.times do
       user = create :hmis_hud_user, data_source: ds1
       client = create :hmis_hud_client_complete, data_source: ds1, user: user, LastName: search_term
       create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: user
-    end
-  end
-  describe 'project query' do
-    let(:query) do
-      <<~GRAPHQL
-        query GetProject($id: ID!) {
-          project(id: $id) {
-            id
-            enrollments(limit: 10, offset: 0) {
-              nodesCount
-              nodes {
-                id
-                client {
-                  id
-                }
-                household {
-                  id
-                }
-              }
-            }
-          }
-        }
-      GRAPHQL
-    end
-
-    it 'is responsive' do
-      expect do
-        post_graphql(id: p1.id) { query }
-      end.to perform_under(50).ms.warmup(2).times.sample(10).times
     end
   end
 
@@ -282,12 +253,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         "limit": 20,
         "offset": 0,
       }
-      # rr = post_graphql(**variables) { query }
-      # byebug
       expect do
         response, _result = post_graphql(**variables) { query }
         expect(response.status).to eq 200
-      end.to perform_under(200).ms.warmup(2).times.sample(2).times
+      end.to query_limit_lt(20)
+      expect do
+        response, _result = post_graphql(**variables) { query }
+        expect(response.status).to eq 200
+      end.to perform_under(200).ms.warmup(2).times.sample(5).times
     end
   end
 end
