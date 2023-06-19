@@ -90,7 +90,7 @@ module
       @households ||= {}
 
       report_scope.joins(enrollment: :client).preload(enrollment: :client).find_each(batch_size: 100) do |enrollment|
-        @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
+        @hoh_enrollments[enrollment.id] = enrollment if enrollment.head_of_household?
         next unless enrollment&.enrollment&.client.present?
 
         date = [enrollment.entry_date, filter.start_date].max
@@ -140,7 +140,7 @@ module
 
     private def unaccompanied_youth_households
       @unaccompanied_youth_households ||= households.select do |_, enrollments|
-        enrollments.all? { |en| en['age']&.between?(18, 24) }
+        enrollments.all? { |en| en['age']&.between?(18, 24) || false }
       end
     end
 
@@ -168,7 +168,7 @@ module
     private def hoh_households
       @hoh_households ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          clients[:all] = hoh_enrollments.map { |_, en| hoh_client_id_en_id_from_enrollments([en]) }.compact.group_by(&:shift)
+          clients[:all] = hoh_enrollments.values.map { |en| hoh_client_id_en_id_from_enrollments([en]) }.compact.group_by(&:shift)
           clients[:without_children] = adult_only_households.map { |_, ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
           clients[:with_children] = adult_and_child_households.map { |_, ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
           clients[:only_children] = child_only_households.map { |_, ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
