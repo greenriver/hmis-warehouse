@@ -224,8 +224,9 @@ namespace :grda_warehouse do
     path = args.path
     file = File.join(path, 'Client.csv')
     CSV.open(file.gsub('.csv', '.anon.csv').to_s, 'wb') do |csv|
-      CSV.foreach(file, headers: true) do |row|
-        csv << row.headers if $. == 2
+      client_file = CSV.open(file, 'r:ISO-8859-1', headers: true)
+      client_file.each do |row|
+        csv << row.headers if client_file.lineno == 2
         row['FirstName'] = Faker::Name.first_name
         row['MiddleName'] = [Faker::Name.middle_name, nil, nil].sample
         row['LastName'] = Faker::Name.last_name
@@ -240,7 +241,7 @@ namespace :grda_warehouse do
         end
 
         # Randomize DOB, maintaining child/adult status
-        current_dob = Date.parse(row['DOB'])
+        current_dob = Date.parse(row['DOB']) if row['DOB'].present?
         if current_dob.present?
           current_age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: current_dob)
           if current_age > 17
