@@ -116,6 +116,8 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     this.tableTarget.classList.remove('hide');
   }
 
+  // FIXME: this should take an event OR an HTML element
+  // then we can call it from a different controller
   loadChartData(event) {
     event.preventDefault();
     this.enableLoader();
