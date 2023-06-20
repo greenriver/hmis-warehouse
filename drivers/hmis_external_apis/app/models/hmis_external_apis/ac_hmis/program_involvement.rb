@@ -6,7 +6,7 @@
 
 module HmisExternalApis::AcHmis
   class ProgramInvolvement
-    include ArelHelper
+    include HmisArelHelper
 
     attr_accessor :end_date
     attr_accessor :program_ids
@@ -89,6 +89,13 @@ module HmisExternalApis::AcHmis
         .pluck(:source_id, :value) # i.e. client ID and mci ID
         .to_h
 
+      # Enrollment ID => Unit type ID
+      unit_type_lookup = Hmis::UnitOccupancy.where(enrollment: enrollments).joins(:unit).pluck(:enrollment_id, u_t[:unit_type_id]).to_h
+
+      # Unit type ID => MPER Unit Type ID
+      eid_t = HmisExternalApis::ExternalId.arel_table
+      unit_type_id_lookup = Hmis::UnitType.joins(:mper_id).pluck(ut_t[:id], eid_t[:value]).to_h
+
       enrollments.map do |en|
         {
           entry_date: en.entry_date,
@@ -101,6 +108,7 @@ module HmisExternalApis::AcHmis
           enrollment_id: en.enrollment_id,
           relationship_to_hoh: en.relationship_to_hoh,
           program_id: en.project_id,
+          unit_type_id: unit_type_id_lookup[unit_type_lookup[en.id]],
         }
       end
     end
