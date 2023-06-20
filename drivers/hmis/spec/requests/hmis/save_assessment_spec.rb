@@ -175,7 +175,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ].each do |test_name, input_proc|
       it test_name do
         input = input_proc.call(test_input)
-        expect { post_graphql(input: { input: input }) { mutation } }.to raise_error(HmisErrors::ApiError)
+        expect_gql_error post_graphql(input: { input: input }) { mutation }
       end
     end
 

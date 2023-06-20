@@ -194,7 +194,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should fail if user lacks permission' do
           remove_permissions(access_control, *Array(definition.record_editing_permission))
-          expect { post_graphql(input: { input: test_input }) { mutation } }.to raise_error(HmisErrors::ApiError)
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }
         end
 
         it 'should update user correctly' do
