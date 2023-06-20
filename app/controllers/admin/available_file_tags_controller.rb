@@ -70,6 +70,7 @@ module Admin
         :required_for,
         :coc_available,
         :full_release,
+        :ce_self_report_certification,
       )
     end
   end
