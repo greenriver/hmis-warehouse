@@ -85,6 +85,15 @@ module GrdaWarehouse
       end
     end
 
+    scope :cohort_search, ->(search_string) do
+      # If we searched for a number, assume it's a client_id
+      if search_string.to_i.to_s == search_string.to_s
+        where(id: GrdaWarehouse::CohortClient.where(client_id: search_string).select(:cohort_id))
+      else
+        where(arel_table[:name].matches("%#{search_string}%"))
+      end
+    end
+
     private def active_tab(user, population)
       tab = cohort_tabs.find_by(name: population)
       return tab if tab&.show_for?(user)
