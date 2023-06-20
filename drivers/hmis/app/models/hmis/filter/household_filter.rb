@@ -23,7 +23,7 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
 
         ids += scope.merge(Hmis::Hud::Enrollment.active).pluck(:id) if input.status.include?('ACTIVE')
         ids += scope.merge(Hmis::Hud::Enrollment.incomplete).pluck(:id) if input.status.include?('INCOMPLETE')
-        ids += scope.merge(Hmis::Hud::Enrollment.exited).pluck(:id) if input.status.include?('EXITED')
+        ids += scope.exited.pluck(:id) if input.status.include?('EXITED')
 
         return scope.where(id: ids)
       end

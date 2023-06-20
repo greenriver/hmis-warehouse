@@ -40,6 +40,10 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     where(latest_exit: nil)
   end
 
+  scope :exited, -> do
+    where.not(latest_exit: nil)
+  end
+
   scope :in_progress, -> do
     where(any_wip: true)
   end
