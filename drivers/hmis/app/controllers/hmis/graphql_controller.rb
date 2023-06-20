@@ -70,11 +70,17 @@ module Hmis
       Rails.logger.error err.message
       Rails.logger.error err.backtrace.join("\n")
 
+      Sentry.capture_exception_with_info(
+        err,
+        err.message,
+        { backtrace: err.backtrace.to_s },
+      )
+
       render status: 500, json: {
         errors: [
           {
-            message: err.message,
-            backtrace: err.backtrace,
+            message: Rails.env.development? ? err.message : 'An internal server error occurred.',
+            backtrace: Rails.env.development? ? err.backtrace : nil,
           },
         ],
         data: {},
