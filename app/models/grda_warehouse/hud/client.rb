@@ -689,7 +689,8 @@ module GrdaWarehouse::Hud
 
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
-    def cohorts_for_dashboard
+    def cohorts_for_dashboard(user)
+      viewable_cohort_ids = GrdaWarehouse::Cohort.viewable_by(user).pluck(:id)
       cohort_clients.map do |cc|
         cohort = cc.cohort
         meta = CohortColumns::Meta.new(cohort: cohort, cohort_client: cc)
@@ -701,6 +702,7 @@ module GrdaWarehouse::Hud
           name: cohort.name,
           active: cc.active?,
           recent_activity: ! meta.inactive,
+          link: viewable_cohort_ids.include?(cohort.id),
         )
       end.compact.uniq
     end
