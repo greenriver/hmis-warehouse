@@ -6,7 +6,7 @@
 
 module HmisExternalApis::AcHmis
   class ProgramInvolvement
-    include HmisArelHelper
+    include ::Hmis::Concerns::HmisArelHelper
 
     attr_accessor :end_date
     attr_accessor :program_ids
