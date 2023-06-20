@@ -37,7 +37,7 @@ module CoreDemographicsReport::DemographicSummary
       'core_demographics_report/warehouse_reports/demographic_summary'
     end
 
-    def self.available_section_types
+    def self.overall_section_types
       [
         'ages',
         'genders',
@@ -51,6 +51,16 @@ module CoreDemographicsReport::DemographicSummary
         'no_recent_homelessness',
         'outcome',
       ]
+    end
+
+    def self.detail_section_types
+      [
+        'details',
+      ]
+    end
+
+    def self.available_section_types
+      overall_section_types + detail_section_types
     end
 
     def section_ready?(section)

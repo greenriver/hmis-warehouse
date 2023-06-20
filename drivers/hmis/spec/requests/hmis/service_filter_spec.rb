@@ -27,6 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
   let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: u2 }
   let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
+  let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
     <<~GRAPHQL
@@ -44,7 +45,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
   def search(**input)

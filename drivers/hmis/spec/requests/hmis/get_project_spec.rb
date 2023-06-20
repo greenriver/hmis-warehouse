@@ -17,7 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
-
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:query) do
     <<~GRAPHQL
       query GetProject($id: ID!) {
@@ -34,7 +34,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'project query' do
     before(:each) do
       hmis_login(user)
-      assign_viewable(view_access_group, p1.as_warehouse, hmis_user)
     end
 
     it 'should resolve invalid enum values as INVALID enum' do
