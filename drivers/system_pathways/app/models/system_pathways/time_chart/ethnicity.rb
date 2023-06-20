@@ -76,7 +76,11 @@ module SystemPathways::TimeChart::Ethnicity
       data['colors'] = {}
       data['labels'] = { 'colors' => {}, 'centered' => true }
       data['columns'] = [['x', *time_groups]]
-
+      all_zero = {}
+      ['x', *time_groups].each do |g|
+        all_zero[g] = true
+      end
+      all_zero['x'] = false
       project_type_counts = ethnicity_counts[:project_type_counts]
       ph_counts = ethnicity_counts[:ph_counts]
       return_counts = ethnicity_counts[:return_counts]
@@ -91,6 +95,7 @@ module SystemPathways::TimeChart::Ethnicity
           data['colors'][ethnicity] = bg_color
           data['labels']['colors'][ethnicity] = config.foreground_color(bg_color)
           row << count
+          all_zero[ethnicity] = false if count.positive?
           data['columns'] << row
         end
         # Time before move-in
@@ -100,6 +105,7 @@ module SystemPathways::TimeChart::Ethnicity
           data['colors'][ethnicity] = bg_color
           data['labels']['colors'][ethnicity] = config.foreground_color(bg_color)
           row << count
+          all_zero[ethnicity] = false if count.positive?
           data['columns'] << row
         end
         count = return_counts[k]
@@ -107,6 +113,7 @@ module SystemPathways::TimeChart::Ethnicity
         data['colors'][ethnicity] = bg_color
         data['labels']['colors'][ethnicity] = config.foreground_color(bg_color)
         row << count
+        all_zero[ethnicity] = false if count.positive?
         data['columns'] << row
       end
     end

@@ -1,5 +1,5 @@
 - equity = SystemPathways::Equity.new(report: @report, filter: @filter, show_filter: show_filter)
-.equity.mt-4{ data: { controller: 'chart-loader', chart: 'document.equity' }}
+#equity-controller.equity.mt-4{ data: { controller: 'chart-loader', chart: 'document.equity' }}
   - url = URI(@report.chart_data_path('equity'))
   .d-flex.mb-6
     - chart_header = "#{@pathways_chart.client_word} by "
@@ -16,7 +16,7 @@
           - table_link = {}
           - table_link = { 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **show_filter.for_params.merge(chart: 'equity')) } if can_access_some_version_of_clients?
           - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}" }.merge(table_link)
-          - classes = ['dropdown-item']
+          - classes = ['dropdown-item', 'jChartLoaderItemEquity']
           = link_to(label, url.to_s, data: data, class: classes)
   #equity-chart-wrapper{ data: { 'chart-loader-target' => 'wrapper' }}
     #equity-chart.mb-6{ data: { 'chart-loader-target' => 'chart' }}

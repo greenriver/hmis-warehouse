@@ -16,7 +16,7 @@
           - table_link = {}
           - table_link = { 'table-link' => details_system_pathways_warehouse_reports_report_url(@report, **show_filter.for_params.merge(chart: 'time')) } if can_access_some_version_of_clients?
           - data = { action: 'click->chart-loader#loadChartData', 'chart-loader-target' => 'changer', 'menu-item' => key, 'table-name' => "Table - #{chart_header} #{label}" }.merge(table_link)
-          - classes = ['dropdown-item']
+          - classes = ['dropdown-item', 'jChartLoaderItemTime']
           = link_to(label, url.to_s, data: data, class: classes)
   #time-chart-wrapper{ data: { 'chart-loader-target' => 'wrapper' }}
     #time-chart.mb-6{ data: { 'chart-loader-target' => 'chart' }}
