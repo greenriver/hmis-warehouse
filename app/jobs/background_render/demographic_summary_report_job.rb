@@ -5,11 +5,10 @@
 ###
 
 class BackgroundRender::DemographicSummaryReportJob < BackgroundRenderJob
-  def render_html(partial:, filters:, user_id:, key:)
+  def render_html(partial:, filters:, user_id:)
     current_user = User.find(user_id)
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filters).with_indifferent_access)
     @comparison_filter = @filter.to_comparison
-    @key = key
     set_report
     @section = @report.class.available_section_types.detect do |m|
       m == partial
@@ -27,7 +26,6 @@ class BackgroundRender::DemographicSummaryReportJob < BackgroundRenderJob
         comparison: @comparison,
         comparison_filter: @comparison_filter,
         filter: @filter,
-        key: @key,
       },
       locals: {
         current_user: current_user,
