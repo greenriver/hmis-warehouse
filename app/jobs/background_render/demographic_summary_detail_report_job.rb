@@ -4,26 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class BackgroundRender::DemographicSummaryReportJob < BackgroundRenderJob
-  def render_html(partial:, filters:, user_id:, key:)
+class BackgroundRender::DemographicSummaryDetailReportJob < BackgroundRenderJob
+  def render_html(filters:, user_id:, key:)
     current_user = User.find(user_id)
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filters).with_indifferent_access)
     @comparison_filter = @filter.to_comparison
     @key = key
     set_report
-    @section = @report.class.available_section_types.detect do |m|
-      m == partial
-    end
-    @section = 'overall' if @section.blank? && params.require(:partial) == 'overall'
 
-    raise 'Rollup not in allowlist' unless @section.present?
-
-    @section = @report.section_subpath + @section
-    CoreDemographicsReport::WarehouseReports::DemographicSummaryController.render(
-      partial: @section,
+    html = CoreDemographicsReport::WarehouseReports::DemographicSummaryController.render(
+      partial: 'details',
       assigns: {
         report: @report,
-        section: @section,
         comparison: @comparison,
         comparison_filter: @comparison_filter,
         filter: @filter,
@@ -33,6 +25,8 @@ class BackgroundRender::DemographicSummaryReportJob < BackgroundRenderJob
         current_user: current_user,
       },
     )
+    puts html if Rails.env.development?
+    html
   end
 
   private def set_report
