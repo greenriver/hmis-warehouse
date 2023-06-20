@@ -690,10 +690,19 @@ module GrdaWarehouse::Hud
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
     def cohorts_for_dashboard
-      cohort_clients.select do |cc|
-        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
-        cc.active? && cc.cohort&.active? && cc.cohort&.show_on_client_dashboard? && ! meta.inactive
-      end.map(&:cohort).compact.uniq
+      cohort_clients.map do |cc|
+        cohort = cc.cohort
+        meta = CohortColumns::Meta.new(cohort: cohort, cohort_client: cc)
+        # cc.active? && cc.cohort&.active? && cc.cohort&.show_on_client_dashboard? && ! meta.inactive
+        next nil unless cohort&.active? && cohort&.show_on_client_dashboard?
+
+        OpenStruct.new(
+          id: cohort.id,
+          name: cohort.name,
+          active: cc.active?,
+          recent_activity: ! meta.inactive,
+        )
+      end.compact.uniq
     end
 
     def demographic_calculation_logic_description(attribute)
