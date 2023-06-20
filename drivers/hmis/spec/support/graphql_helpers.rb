@@ -61,7 +61,7 @@ module GraphqlHelpers
     ERRORS
   end
 
-  def to_gql_input_object(values, klass)
-    klass.new(nil, context: nil, defaults_used: Set.new, ruby_kwargs: values)
+  def to_gql_input_object(values, klass, current_user: nil)
+    klass.new(nil, context: { current_user: current_user }, defaults_used: Set.new, ruby_kwargs: values)
   end
 end

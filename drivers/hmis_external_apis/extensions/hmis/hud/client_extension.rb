@@ -14,7 +14,7 @@ module HmisExternalApis
         included do
           has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', as: :source
           has_many :external_referral_household_members, class_name: 'HmisExternalApis::AcHmis::ReferralHouseholdMember', dependent: :destroy, inverse_of: :client
-          has_one :ac_hmis_mci_id,
+          has_many :ac_hmis_mci_ids,
                   -> { where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID) },
                   class_name: 'HmisExternalApis::ExternalId',
                   as: :source

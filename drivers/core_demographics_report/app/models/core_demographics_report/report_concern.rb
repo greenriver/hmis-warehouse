@@ -38,7 +38,7 @@ module
       # Report range
       scope = report_scope_source
       scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope) unless include_date_range
+      scope = filter_for_range(scope) if include_date_range
       scope = filter_for_cocs(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_household_type(scope)
@@ -100,6 +100,10 @@ module
       user.can_access_some_version_of_clients?
     end
 
+    def self.clear_report_cache
+      Rails.cache.delete_matched("#{[name]}*")
+    end
+
     private def hoh_scope
       report_scope.where(she_t[:head_of_household].eq(true))
     end
@@ -155,7 +159,7 @@ module
     end
 
     private def expiration_length
-      return 30.seconds if Rails.env.development?
+      return 3.minutes if Rails.env.development?
 
       30.minutes
     end

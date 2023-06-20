@@ -139,10 +139,10 @@ module
     end
 
     private def outcome_clients
-      @outcome_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+      @outcome_clients ||= Rails.cache.fetch(outcome_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           # TODO: Average LOS - Unique days in homeless projects in the report scope
-          clients[:average_los] = report_scope.distinct.in_project_type(homeless_project_type_codes).joins(:service_history_services).group(:client_id).count(:date).to_set
+          clients[:average_los] = report_scope.distinct.in_project_type(homeless_project_type_codes).joins(:service_history_services).group(:client_id).count(shs_t[:date]).to_set
 
           # Exit destinations
           clients[:exit_counted] = Set.new
@@ -188,6 +188,10 @@ module
             end
         end
       end
+    end
+
+    private def outcome_cache_key
+      [self.class.name, cache_slug, 'outcome_clients']
     end
   end
 end

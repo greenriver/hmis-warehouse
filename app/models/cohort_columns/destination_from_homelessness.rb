@@ -12,6 +12,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def value(cohort_client) # OK
+      # This will return a hidden span with the most recent date for sorting as part of the display value
       cohort_client.destination_from_homelessness
     end
   end

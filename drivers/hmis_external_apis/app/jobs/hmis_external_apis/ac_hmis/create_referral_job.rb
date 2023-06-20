@@ -217,6 +217,7 @@ module HmisExternalApis::AcHmis
 
     def create_referral_household_members(referral)
       member_params = params.fetch(:household_members)
+      return error_out('Household must have exactly one HoH') if member_params.map { |m| m[:relationship_to_hoh] }.count(1) != 1
 
       member_params.map do |attrs|
         attrs => {mci_id:, relationship_to_hoh:}

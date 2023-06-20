@@ -37,7 +37,7 @@ module CoreDemographicsReport::DemographicSummary
       'core_demographics_report/warehouse_reports/demographic_summary'
     end
 
-    def self.available_section_types
+    def self.overall_section_types
       [
         'ages',
         'genders',
@@ -53,8 +53,18 @@ module CoreDemographicsReport::DemographicSummary
       ]
     end
 
+    def self.detail_section_types
+      [
+        'details',
+      ]
+    end
+
+    def self.available_section_types
+      overall_section_types + detail_section_types
+    end
+
     def section_ready?(section)
-      return true unless section.in?(['disabilities', 'races'])
+      return true unless section.in?(['disabilities', 'races', 'household_types', 'outcome', 'no_recent_homelessness'])
 
       Rails.cache.exist?(cache_key_for_section(section))
     end
@@ -79,6 +89,12 @@ module CoreDemographicsReport::DemographicSummary
         disabilities_cache_key
       when 'races'
         races_cache_key
+      when 'household_types'
+        household_types_cache_key
+      when 'outcome'
+        outcome_cache_key
+      when 'no_recent_homelessness'
+        no_recent_homelessness_cache_key
       end
     end
 

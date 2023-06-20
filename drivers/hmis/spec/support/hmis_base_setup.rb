@@ -17,20 +17,6 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   let!(:csc1) { create :hmis_custom_service_category, data_source: ds1, user: u1 }
   let!(:cst1) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: csc1, user: u1 }
 
-  let(:edit_access_group) do
-    group = create :edit_access_group
-    role = create(:hmis_role)
-    group.access_controls.create(role: role)
-    group
-  end
-
-  let(:view_access_group) do
-    group = create :view_access_group
-    role = create(:hmis_role_with_no_permissions, **Hmis::Role.permissions_with_descriptions.map { |k, v| v[:access] == [:viewable] ? k : nil }.compact.map { |p| [p, true] }.to_h)
-    group.access_controls.create(role: role)
-    group
-  end
-
   let(:form_item_fragment) do
     <<~GRAPHQL
       #{scalar_fields(Types::Forms::FormItem)}
