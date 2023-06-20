@@ -30,7 +30,7 @@ module
     end
 
     def household_type_hoh_count(type)
-      hoh_households[type]&.values&.flatten&.count&.presence || 0
+      hoh_households[type]&.keys&.count&.presence || 0
     end
 
     def household_type_hoh_percentage(type)
@@ -44,7 +44,7 @@ module
     end
 
     def household_type_client_count(type)
-      client_households[type]&.values&.flatten&.count&.presence || 0
+      client_households[type]&.keys&.count&.presence || 0
     end
 
     def household_type_client_percentage(type)
@@ -89,24 +89,24 @@ module
       @hoh_enrollments ||= {}
       @households ||= {}
 
-      report_scope.joins(enrollment: :client).preload(enrollment: :client).find_each(batch_size: 100) do |enrollment|
-        @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
-        next unless enrollment&.enrollment&.client.present?
-
+      # use she.client (destination client) for DOB/Age, sometimes QA has weird data
+      report_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
         date = [enrollment.entry_date, filter.start_date].max
-        age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.client.DOB&.to_date)
+        en = {
+          'client_id' => enrollment.client_id,
+          'enrollment_id' => enrollment.id,
+          'age' => age,
+          'relationship_to_hoh' => enrollment.enrollment.RelationshipToHoH,
+        }
+        @hoh_enrollments[get_hh_id(enrollment)] = en if enrollment.head_of_household?
         @households[get_hh_id(enrollment)] ||= []
-        @households[get_hh_id(enrollment)] << {
-          client_id: enrollment.client_id,
-          enrollment_id: enrollment.id,
-          age: age,
-          relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-        }.with_indifferent_access
+        @households[get_hh_id(enrollment)] << en
       end
     end
 
     private def get_hh_id(service_history_enrollment)
-      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
+      "#{service_history_enrollment.household_id}_#{service_history_enrollment.data_source_id}" || "#{service_history_enrollment.enrollment_group_id}_#{service_history_enrollment.data_source_id}*HH"
     end
 
     private def households
@@ -140,7 +140,7 @@ module
 
     private def unaccompanied_youth_households
       @unaccompanied_youth_households ||= households.select do |_, enrollments|
-        enrollments.all? { |en| en['age']&.between?(18, 24) }
+        enrollments.all? { |en| en['age']&.between?(18, 24) || false }
       end
     end
 
@@ -168,12 +168,12 @@ module
     private def hoh_households
       @hoh_households ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          clients[:all] = hoh_enrollments.map { |_, en| hoh_client_id_en_id_from_enrollments([en]) }.compact.group_by(&:shift)
-          clients[:without_children] = adult_only_households.map { |_, ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
-          clients[:with_children] = adult_and_child_households.map { |_, ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
-          clients[:only_children] = child_only_households.map { |_, ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
-          clients[:unaccompanied_youth] = unaccompanied_youth_households.map { |_, ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
-          clients[:unknown] = unknown_households.map { |_, ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
+          clients[:all] = hoh_enrollments.values.map { |en| hoh_client_id_en_id_from_enrollments([en]) }.compact.group_by(&:shift)
+          clients[:without_children] = adult_only_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
+          clients[:with_children] = adult_and_child_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
+          clients[:only_children] = child_only_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
+          clients[:unaccompanied_youth] = unaccompanied_youth_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
+          clients[:unknown] = unknown_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
         end
       end
     end
@@ -181,12 +181,12 @@ module
     private def client_households
       @client_households ||= Rails.cache.fetch(household_types_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
-          clients[:all] = households.values.map { |enrollments| enrollments&.flat_map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:without_children] = adult_only_households.values.map { |enrollments| enrollments&.flat_map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:with_children] = adult_and_child_households.values.map { |enrollments| enrollments&.flat_map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:only_children] = child_only_households.values.map { |enrollments| enrollments&.flat_map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:unaccompanied_youth] = unaccompanied_youth_households.values.map { |enrollments| enrollments&.flat_map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:unknown] = unknown_households.values.map { |enrollments| enrollments&.flat_map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
+          clients[:all] = households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
+          clients[:without_children] = adult_only_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
+          clients[:with_children] = adult_and_child_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
+          clients[:only_children] = child_only_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
+          clients[:unaccompanied_youth] = unaccompanied_youth_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
+          clients[:unknown] = unknown_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
         end
       end
     end
