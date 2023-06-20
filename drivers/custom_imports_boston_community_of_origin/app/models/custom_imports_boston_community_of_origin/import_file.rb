@@ -29,7 +29,6 @@ module CustomImportsBostonCommunityOfOrigin
 
       start_import
       fetch_and_load
-      post_process
     end
 
     # Override CSV load so that we can upsert.
@@ -42,6 +41,7 @@ module CustomImportsBostonCommunityOfOrigin
         loaded_rows += lines.count
         cleaned_headers = headers.reject { |h| h == 'do_not_import' }
         cleaned_rows = clean_rows(headers, lines)
+        cleaned_rows = cleaned_rows.map { |row| row << true } # Mark imported rows as dirty
         cleaned_rows = cleaned_rows.map { |row| ["#{row[0]}_#{row[2]}", row[1..]].flatten }
         rows.klass.import!(
           cleaned_headers,
@@ -59,6 +59,7 @@ module CustomImportsBostonCommunityOfOrigin
       headers[0] = 'row_number'
       headers << 'import_file_id'
       headers << 'data_source_id'
+      headers << 'dirty'
       headers.map do |h|
         header_lookup[h] || h
       end
@@ -85,9 +86,8 @@ module CustomImportsBostonCommunityOfOrigin
       }
     end
 
-    def post_process
-      update(status: 'processing')
-      # Records touched in this import
+    def self.process_locations
+      rows = Row.where(dirty: true)
       rows.preload(enrollment: :project, client: :destination_client).find_in_batches do |batch|
         location_batch = []
         batch.each do |row|
@@ -107,16 +107,10 @@ module CustomImportsBostonCommunityOfOrigin
         ::ClientLocationHistory::Location.import!(location_batch)
       end
 
-      update(status: 'complete', completed_at: Time.current)
-      delayed_enrollment_location_histories
+      rows.update_all(dirty: false)
     end
 
-    def delayed_enrollment_location_histories
-      ::GrdaWarehouse::Hud::Enrollment.delay.maintain_location_histories
-      Delayed::Worker.new.work_off if Rails.env.test?
-    end
-
-    def contact_date(row)
+    def self.contact_date(row)
       # We know that they were somewhere else before the enrollment, so use that date?
       row.enrollment.EntryDate
 
@@ -143,7 +137,7 @@ module CustomImportsBostonCommunityOfOrigin
     # Search order: provided geolocation, zip_code, city, and then state
     #
     # @return [Array<Float>] [latitude, longitude] if location found, nil otherwise
-    def location(row)
+    def self.location(row)
       if row.geolocation_location.present?
         # TODO decode geolocation_location
       end

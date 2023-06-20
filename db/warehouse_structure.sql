@@ -6345,7 +6345,8 @@ CREATE TABLE public.custom_imports_b_coo_rows (
     import_file_id bigint,
     data_source_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    dirty boolean DEFAULT false
 );
 
 
@@ -53243,6 +53244,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230612200730'),
 ('20230613122940'),
 ('20230614130627'),
-('20230615184216');
+('20230615184216'),
+('20230616184921');
 
 

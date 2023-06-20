@@ -89,6 +89,11 @@ tasks = [
     interruptable: true,
   },
   {
+    task: 'grda_warehouse:process_location_data',
+    frequency: 4.hours,
+    interruptable: true,
+  },
+  {
     task: 'reporting:lsa_shut_down',
     frequency: 3.hours,
     trigger: ENV['LSA_DB_HOST'].to_s != '',

@@ -300,6 +300,11 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
   end
 
+  desc 'Process location data'
+  task process_location_data: [:environment] do
+    GrdaWarehouse::Tasks::ProcessLocationData.new.run!
+  end
+
   namespace :secure_files do
     desc 'Remove expired secure files'
     task clean_expired: [:environment] do
