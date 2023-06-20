@@ -76,7 +76,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should throw error if unauthorized' do
     remove_permissions(access_control, :can_delete_enrollments)
-    expect { post_graphql(input: { id: e2.id }) { mutation } }.to raise_error(HmisErrors::ApiError)
+    expect_gql_error post_graphql(input: { id: e2.id }) { mutation }
   end
 end
 

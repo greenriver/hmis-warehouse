@@ -127,17 +127,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should throw error if unauthorized' do
       remove_permissions(access_control, :can_edit_enrollments)
-      expect { post_graphql(input: test_input) { mutation } }.to raise_error(HmisErrors::ApiError)
+      expect_gql_error post_graphql(input: test_input) { mutation }
     end
 
     it 'should error if client is already in the household' do
       input = test_input.merge(client_id: c1.id)
-      expect { post_graphql(input: input) { mutation } }.to raise_error(HmisErrors::ApiError)
+      expect_gql_error post_graphql(input: input) { mutation }
     end
 
     it 'should error if household doesnt exist' do
       input = test_input.merge(household_id: 'notreal')
-      expect { post_graphql(input: input) { mutation } }.to raise_error(HmisErrors::ApiError)
+      expect_gql_error post_graphql(input: input) { mutation }
     end
 
     describe 'Validity tests' do

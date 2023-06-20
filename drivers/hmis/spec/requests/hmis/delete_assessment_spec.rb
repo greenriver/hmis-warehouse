@@ -77,7 +77,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       remove_permissions(access_control, permission)
       action.call(a1)
 
-      expect { mutate(input: { id: a1.id }) }.to raise_error(HmisErrors::ApiError)
+      expect_gql_error post_graphql(input: { id: a1.id }) { mutation }
       expect(Hmis::Hud::CustomAssessment.all).to include(have_attributes(id: a1.id))
     end
   end
@@ -90,7 +90,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       fd1.update(role: 'INTAKE')
 
       if key == :submitted
-        expect { mutate(input: { id: a1.id }) }.to raise_error(HmisErrors::ApiError)
+        expect_gql_error post_graphql(input: { id: a1.id }) { mutation }
       else
         mutate(input: { id: a1.id }) do |assessment_id, errors|
           a1.reload
