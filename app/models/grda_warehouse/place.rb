@@ -10,7 +10,7 @@ module GrdaWarehouse
 
     def self.lookup_lat_lon(query: nil, city: nil, state: nil, postalcode: nil, country: 'us')
       place = lookup(query: query, city: city, state: state, postalcode: postalcode, country: country)&.lat_lon
-      [place.try(:[], 'lat'), place.try(:[], 'lon')]
+      [place.try(:[], 'lat'), place.try(:[], 'lon'), place.try(:[], 'bounds')]
     end
 
     def self.lookup(query: nil, city: nil, state: nil, postalcode: nil, country: 'us')
@@ -23,7 +23,7 @@ module GrdaWarehouse
         place = @places[key] = begin
           nr = nominatim_lookup(query, city, state, postalcode, country)
           if nr.present?
-            lat_lon = { lat: nr.lat, lon: nr.lon }.with_indifferent_access
+            lat_lon = { lat: nr.lat, lon: nr.lon, bounds: nr.boundingbox }.with_indifferent_access
             Place.create!(location: key, lat_lon: lat_lon) if nr.present?
           end
         end
