@@ -4,35 +4,13 @@
   = render 'time'
 = content_for :page_js do
   :javascript
-    $(document).ready(function(){
-      console.log(document.querySelector('#equity-controller').chartLoader.chart())
-    });
-    /*
     $('body').on('click', '.jChartLoaderItemTime', function(e) {
       let menu_item = $(e.target).data('menu-item');
-      console.log(menu_item, $(`.jChartLoaderItemEquity[data-menu-item=${menu_item}]`))
-      $(`.jChartLoaderItemEquity[data-menu-item=${menu_item}]`).trigger('click');
-
-      if (e.originalEvent === undefined) {
-        // not clicked by a human
-      }
-      else {
-        console.log(e.originalEvent)
-        console.log($(`.jChartLoaderItemEquity[data-menu-item=${menu_item}]`))
-        $(`.jChartLoaderItemEquity[data-menu-item=${menu_item}]`).trigger('click');
-      }
+      let other_element = $(`.jChartLoaderItemEquity[data-menu-item=${menu_item}]`);
+      document.querySelector('#equity-controller').chartLoader.loadChartData(other_element);
     });
     $('body').on('click', '.jChartLoaderItemEquity', function(e) {
-      $(`.jChartLoaderItemTime[data-menu-item="veteran_status"]`).trigger('click');
-
       let menu_item = $(e.target).data('menu-item');
-      if (e.originalEvent === undefined) {
-        // not clicked by a human
-      }
-      else {
-        console.log(e.originalEvent)
-        console.log($(`.jChartLoaderItemTime[data-menu-item=${menu_item}]`))
-        $(`.jChartLoaderItemTime[data-menu-item=${menu_item}]`).trigger('click');
-      }
+      let other_element = $(`.jChartLoaderItemTime[data-menu-item=${menu_item}]`);
+      document.querySelector('#time-controller').chartLoader.loadChartData(other_element);
     });
-    */
