@@ -13,15 +13,11 @@
       %i.icon.icon-download2
       Download Excel
 
-- scope = @report.detail_scope_from_key(@key)
-- unless scope.exists?
-  .none-found No records found.
-- else
-  #detailRollup
-    - @report.class.detail_section_types.each do |section|
-      = render 'background_render', url: render_detail_section_core_demographics_report_warehouse_reports_demographic_summary_index_path, fetch_params: { filters: @filter.for_params[:filters], key: params[:key] } do
-        .rollup
-          .rollup-container.well
+#detailRollup
+  - @report.class.detail_section_types.each do |section|
+    = render 'background_render', url: render_detail_section_core_demographics_report_warehouse_reports_demographic_summary_index_path, fetch_params: { filters: @filter.for_params[:filters], key: params[:key] } do
+      .rollup
+        .rollup-container.well
 
   = content_for :page_js do
     :javascript
