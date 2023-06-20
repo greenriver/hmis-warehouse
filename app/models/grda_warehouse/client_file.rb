@@ -128,6 +128,20 @@ module GrdaWarehouse
       where(id: verified_homeless_history_tagging_ids)
     end
 
+    scope :recent_ce_self_report_certification, -> do
+      # NOTE: tagged_with does not work correctly in testing
+      # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
+      ce_self_report_certification_tag_ids = ActsAsTaggableOn::Tag.where(
+        name: GrdaWarehouse::AvailableFileTag.ce_self_report_certification.pluck(:name),
+      ).pluck(:id)
+
+      ce_self_report_certification_tag_ids_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: ce_self_report_certification_tag_ids).
+        where(taggable_type: 'GrdaWarehouse::File').
+        pluck(:taggable_id)
+
+      where(id: ce_self_report_certification_tag_ids_tagging_ids, effective_date: 1.years.ago.to_date..)
+    end
+
     scope :confirmed, -> do
       where(consent_form_confirmed: true, consent_revoked_at: nil)
     end

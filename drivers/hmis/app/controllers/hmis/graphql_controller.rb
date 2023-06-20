@@ -40,9 +40,7 @@ module Hmis
       end
       render json: result
     rescue StandardError => e
-      raise e unless Rails.env.development?
-
-      handle_error_in_development(e)
+      handle_graphql_exception(e)
     end
 
     private
@@ -67,11 +65,26 @@ module Hmis
       end
     end
 
-    def handle_error_in_development(err)
+    # Return exception as an Apollo-formatted error response
+    def handle_graphql_exception(err)
       Rails.logger.error err.message
       Rails.logger.error err.backtrace.join("\n")
 
-      render json: { errors: [{ message: err.message, backtrace: err.backtrace }], data: {} }, status: 500
+      Sentry.capture_exception_with_info(
+        err,
+        err.message,
+        { backtrace: err.backtrace.to_s },
+      )
+
+      render status: 500, json: {
+        errors: [
+          {
+            message: Rails.env.development? ? err.message : 'An internal server error occurred.',
+            backtrace: Rails.env.development? ? err.backtrace : nil,
+          },
+        ],
+        data: {},
+      }
     end
   end
 end

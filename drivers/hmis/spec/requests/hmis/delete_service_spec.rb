@@ -68,12 +68,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should error if a service does not exist' do
-    expect { post_graphql(id: '123') { mutation } }.to raise_error(HmisErrors::ApiError)
+    expect_gql_error post_graphql(id: '123') { mutation }
   end
 
   it 'should error if not allowed to delete a service' do
     remove_permissions(access_control, :can_edit_enrollments)
-    expect { post_graphql(id: s1.id) { mutation } }.to raise_error(HmisErrors::ApiError)
+    expect_gql_error post_graphql(id: s1.id) { mutation }
   end
 end
 
