@@ -4843,6 +4843,9 @@ type PickListOption {
 }
 
 enum PickListType {
+  ALL_SERVICE_CATEGORIES
+  ALL_SERVICE_TYPES
+
   """
   Referral Posting Status
   """
@@ -4895,7 +4898,6 @@ enum PickListType {
   Referral Result 
   """
   REFERRAL_RESULT_TYPES
-  SERVICE_TYPE
   STATE
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
