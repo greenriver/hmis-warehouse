@@ -266,6 +266,7 @@ module HmisExternalApis::AcHmis
       attributes = mapping.keys.map do |k|
         [k, mapping[k]&.intersect?(codes) ? 1 : 0]
       end.to_h
+      attributes[:GenderNone] = attributes.values.sum.zero? ? 99 : nil
       attributes
     end
 
@@ -294,6 +295,7 @@ module HmisExternalApis::AcHmis
       attributes = mapping.keys.map do |k|
         [k, mapping[k]&.intersect?(codes) ? 1 : 0]
       end.to_h
+      attributes[:RaceNone] = attributes.values.sum.zero? ? 99 : nil
       attributes[:Ethnicity] = codes.include?(6) ? 1 : 0
       attributes
     end
