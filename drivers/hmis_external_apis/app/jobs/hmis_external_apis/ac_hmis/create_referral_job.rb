@@ -287,7 +287,7 @@ module HmisExternalApis::AcHmis
         AmIndAKNative: [1],
         Asian: [2],
         BlackAfAmerican: [3, 7],
-        NativeHIOtherPacific: [4],
+        NativeHIPacific: [4],
         White: [5],
       }
 
