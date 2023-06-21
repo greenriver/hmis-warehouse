@@ -148,12 +148,10 @@ module HmisExternalApis::AcHmis
       end
     end
 
+    # Add/update addresses
     def update_client_addresses(client)
-      # replace old addresses
-      client.addresses.destroy_all
-
-      client_address_attrs = params[:addresses].to_a.map do |values|
-        {
+      new_addreseses = params[:addresses].to_a.map do |values|
+        Hmis::Hud::CustomClientAddress.new(
           postal_code: values[:zip],
           district: values[:county],
           **values.slice(
@@ -165,35 +163,54 @@ module HmisExternalApis::AcHmis
           ),
           AddressID: Hmis::Hud::Base.generate_uuid,
           **common_client_attrs(client),
-        }
+        )
       end
-      Hmis::Hud::CustomClientAddress.import!(client_address_attrs)
+
+      # See if any values are equal to existing values. If so, update the existing value.
+      old_addresses = client.addresses
+      new_addreseses.each do |addy|
+        addy.id = old_addresses.find { |old| old.equal_for_merge?(addy) }&.id
+      end
+
+      Hmis::Hud::CustomClientAddress.import!(
+        new_addreseses,
+        on_duplicate_key_update: { conflict_target: [:id], columns: [:DateUpdated] },
+      )
     end
 
+    # Add/update phones and emails
     def update_client_contacts(client)
-      # replace old phones, and emails
-      client.contact_points.destroy_all
-
-      client_phone_attrs = params[:phone_numbers].to_a.map do |values|
-        {
+      new_contact_points = []
+      params[:phone_numbers].to_a.each do |values|
+        new_contact_points << Hmis::Hud::CustomClientContactPoint.new(
           system: :phone,
           value: values[:number],
-          **values.slice(:use, :notes),
+          use: values[:type],
+          notes: values[:notes],
           ContactPointID: Hmis::Hud::Base.generate_uuid,
           **common_client_attrs(client),
-        }
+        )
       end
-      Hmis::Hud::CustomClientContactPoint.import!(client_phone_attrs)
 
-      client_email_attrs = params[:email_address].to_a.map do |value|
-        {
+      params[:email_address].to_a.each do |value|
+        new_contact_points << Hmis::Hud::CustomClientContactPoint.new(
           system: :email,
           value: value,
           ContactPointID: Hmis::Hud::Base.generate_uuid,
           **common_client_attrs(client),
-        }
+        )
       end
-      Hmis::Hud::CustomClientContactPoint.import!(client_email_attrs)
+
+      # See if any values are equal to existing values. If so, update the existing value.
+      old_contact_points = client.contact_points
+      new_contact_points.each do |cp|
+        cp.id = old_contact_points.find { |old| old.equal_for_merge?(cp) }&.id
+      end
+
+      Hmis::Hud::CustomClientContactPoint.import!(
+        new_contact_points,
+        on_duplicate_key_update: { conflict_target: [:id], columns: [:notes, :DateUpdated] },
+      )
     end
 
     def common_client_attrs(client)
@@ -266,6 +283,7 @@ module HmisExternalApis::AcHmis
       attributes = mapping.keys.map do |k|
         [k, mapping[k]&.intersect?(codes) ? 1 : 0]
       end.to_h
+      attributes[:GenderNone] = attributes.values.sum.zero? ? 99 : nil
       attributes
     end
 
@@ -294,6 +312,7 @@ module HmisExternalApis::AcHmis
       attributes = mapping.keys.map do |k|
         [k, mapping[k]&.intersect?(codes) ? 1 : 0]
       end.to_h
+      attributes[:RaceNone] = attributes.values.sum.zero? ? 99 : nil
       attributes[:Ethnicity] = codes.include?(6) ? 1 : 0
       attributes
     end
