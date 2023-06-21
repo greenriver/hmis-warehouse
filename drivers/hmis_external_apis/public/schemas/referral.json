@@ -87,16 +87,16 @@
           "gender": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": ["Woman", "Man", "NonBinary", "CulturallySpecific", "Transgender", "Questioning", "DifferentIdentity"]
+              "type": "integer",
+              "enum": [0,1,2,3,4,5,6,8,9,99]
             }
           },
           "different_identity_text": { "type": "string" },
           "race": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": ["AmIndAKNative", "Asian", "BlackAfAmerican", "HispanicLatinaeo", "MidEastNAfrican", "NativeHIPacific", "White"]
+              "type": "integer",
+              "enum": [1,2,3,4,5,6,7,8,9,99]
             }
           },
           "additional_race_ethnicity": { "type": "string" }
