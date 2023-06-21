@@ -43,7 +43,6 @@ module Filters
       end
 
       if coc_codes.present?
-        # raise coc_codes.inspect
         @effective_project_ids = GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).
           joins(:project).
           where(p_t[:id].in(@effective_project_ids)).
