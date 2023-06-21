@@ -16,6 +16,8 @@ module HapReport
     attr_accessor :start_date, :end_date, :project_ids
     validates_presence_of :start_date, :end_date, :project_ids
 
+    has_many :eraps, foreign_key: :hap_report_id
+
     def run_and_save!
       start
       create_universe
@@ -102,7 +104,7 @@ module HapReport
             nights_in_shelter: [existing_client[:nights_in_shelter], nights_in_shelter].compact.sum,
           )
           new_client[:head_of_household_for] = if head_of_household
-            (Array.wrap(existing_client[:head_of_household_for])) << household_id
+            Array.wrap(existing_client[:head_of_household_for]) << household_id
           else
             existing_client[:head_of_household_for] || []
           end
