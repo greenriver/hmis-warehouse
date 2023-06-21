@@ -123,9 +123,9 @@ module Types
 
     def external_ids
       object.external_identifiers.
-        map do |key, vals|
+        map do |vals|
           {
-            id: [key, object.id].join(':'),
+            id: [vals[:type], object.id].join(':'),
             identifier: vals[:id],
             url: vals[:url],
             label: vals[:label],
