@@ -163,10 +163,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     "https://#{ENV['FQDN']}/clients/#{id}/from_source"
   end
 
-  # def mci_id
-  #   ac_hmis_mci_ids.to_a.min_by(&:id)&.value
-  # end
-
   private def clientview_url(mci_id_value = ac_hmis_mci_ids.to_a.min_by(&:id)&.value)
     link_base = HmisExternalApis::AcHmis::Clientview.link_base
     return unless link_base&.present? && mci_id&.present?
