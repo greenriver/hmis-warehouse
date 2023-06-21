@@ -2233,7 +2233,7 @@ type Enrollment {
   referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
   runawayYouth: NoYesReasonsForMissingData
-  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServicesForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   sexualOrientation: SexualOrientation
   sexualOrientationOther: String
   status: EnrollmentStatus!
@@ -6810,6 +6810,11 @@ enum ServiceTypeProvided {
   (1) Outreach services
   """
   SSVF_SERVICE__OUTREACH_SERVICES
+}
+
+input ServicesForEnrollmentFilterOptions {
+  serviceCategory: [ID!]
+  serviceType: [ID!]
 }
 
 type ServicesPaginated {
