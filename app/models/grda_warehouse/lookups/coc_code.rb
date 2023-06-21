@@ -16,22 +16,25 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
   # NOTE: this is only used for generating filters, it is not to be used when calculating
   # client visibility
   scope :viewable_by, ->(user) do
-    coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+    # any code the client could possibly have access to, and the project associated
+    visible_coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
       merge(GrdaWarehouse::Hud::Project.viewable_by(user)).distinct.
-      pluck(:CoCCode, :hud_coc_code).flatten.uniq.map(&:presence).compact
-    # Include CoCs where the user has access to a project that only operates in that CoC
-    inherited_coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, include_cocs: false)).
-      distinct.
-      pluck(p_t[:id], cl(pc_t[:hud_coc_code], pc_t[:CoCCode])).
+      pluck(p_t[:id], GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)
+    # Ideally we'll only show the CoC codes that the user obtained directly, or
+    # where a project only operates in one coc
+    coc_codes = visible_coc_codes.
       group_by(&:shift).
       transform_values(&:flatten).
       select { |_, codes| codes.count == 1 }.
       values.
       uniq.flatten
-    possible_cocs = inherited_coc_codes + user.coc_codes
-    coc_codes &= possible_cocs if possible_cocs.present?
-    active.where(coc_code: coc_codes)
+    # Sometimes a person may only have access to a few projects, and all of those projects
+    # operates in multiple CoCs.  This would leave us with no CoC Codes, which will break
+    # some reports.  In that case, just return the unique CoC Codes they have
+    coc_codes = visible_coc_codes.map(&:last).compact.uniq if coc_codes.blank? && user.coc_codes.blank?
+
+    possible_cocs = coc_codes + user.coc_codes
+    active.where(coc_code: possible_cocs)
   end
 
   def self.options_for_select(user:)
