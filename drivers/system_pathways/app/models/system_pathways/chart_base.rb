@@ -337,6 +337,27 @@ module SystemPathways::ChartBase
       end
     end
 
+    private def remove_all_zero_rows(columns)
+      all_zero = {}
+      columns.drop(1).each do |row|
+        row.each.with_index do |v, i|
+          if i.zero?
+            all_zero[i] = false
+            next
+          end
+
+          all_zero[i] = true if all_zero[i].nil?
+          all_zero[i] = false if v.positive?
+        end
+      end
+      zeros = all_zero.values
+      zero_columns = zeros.each_index.select { |i| zeros[i] == true }
+      columns.each do |row|
+        row.reject!.with_index { |_, i| i.in?(zero_columns) }
+      end
+      columns
+    end
+
     private def race_columns
       @report.race_col_lookup.map { |k, hud_k| [k, HudUtility.race(hud_k)] }.to_h
     end

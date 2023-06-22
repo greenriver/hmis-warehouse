@@ -138,7 +138,6 @@ module SystemPathways::TimeChart::Race
           data['colors'][race] = bg_color
           data['labels']['colors'][race] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
         # Time before move-in
         ph_projects.each_value do |p_label|
@@ -147,7 +146,6 @@ module SystemPathways::TimeChart::Race
           data['colors'][race] = bg_color
           data['labels']['colors'][race] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
         count = return_counts[race]
         bg_color = config["breakdown_3_color_#{i}"]
@@ -156,6 +154,7 @@ module SystemPathways::TimeChart::Race
         row << count
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 end

@@ -91,7 +91,6 @@ module SystemPathways::TimeChart::Veteran
           data['colors'][veteran_status] = bg_color
           data['labels']['colors'][veteran_status] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
         # Time before move-in
         ph_projects.each_value do |p_label|
@@ -100,7 +99,6 @@ module SystemPathways::TimeChart::Veteran
           data['colors'][veteran_status] = bg_color
           data['labels']['colors'][veteran_status] = config.foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
         count = return_counts[k]
         bg_color = config["breakdown_3_color_#{i}"]
@@ -109,6 +107,7 @@ module SystemPathways::TimeChart::Veteran
         row << count
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 end

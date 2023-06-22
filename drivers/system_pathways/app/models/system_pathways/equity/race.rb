@@ -78,6 +78,7 @@ module SystemPathways::Equity::Race
         data['labels']['colors'][race] = config.foreground_color(bg_color)
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 end

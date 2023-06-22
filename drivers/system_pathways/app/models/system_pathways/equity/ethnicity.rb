@@ -47,6 +47,7 @@ module SystemPathways::Equity::Ethnicity
         end
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 

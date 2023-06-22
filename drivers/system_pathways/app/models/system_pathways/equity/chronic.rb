@@ -61,6 +61,7 @@ module SystemPathways::Equity::Chronic
         end
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 end

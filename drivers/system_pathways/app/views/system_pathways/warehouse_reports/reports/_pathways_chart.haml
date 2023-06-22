@@ -23,7 +23,7 @@
       nodeWeights: nodeWeights,
       width: 1200,
       height: 600,
-      detail_path: '#{detail_path.html_safe}',
+      detail_path: '#{detail_path&.html_safe}',
       client_word: '#{@pathways_chart.client_word}',
     }
     let sankeyChart = new App.D3Chart.Sankey('#sankey', options);
