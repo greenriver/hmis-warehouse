@@ -32,6 +32,18 @@ module HapReport
       false
     end
 
+    def client_key
+      OpenStruct.new(first_name: first_name, last_name: last_name)
+    end
+
+    def client_data
+      {}.tap do |h|
+        DATA_MAPPING.each do |key, attr|
+          h[key] = send(attr)
+        end
+      end
+    end
+
     CSV_FORMAT = {
       personal_id: 'personal_id',
       mci_id: 'mci_id',
@@ -52,4 +64,19 @@ module HapReport
       nights_in_shelter: 'nights in shelter',
     }.invert.freeze
   end
+
+  DATA_MAPPING = {
+    personal_id: :personal_id,
+    mci_id: :mci_id,
+    age: :age,
+    head_of_household: :head_of_household,
+    emancipated: :emancipated,
+    veteran: :veteran,
+    mental_health: :mental_health_disorder,
+    substance_use_disorder: :substance_use_disorder,
+    domestic_violence: :survivor_of_domestic_violence,
+    income_at_start: :income_at_start,
+    income_at_exit: :income_at_exit,
+    homeless: :homeless,
+  }.freeze
 end

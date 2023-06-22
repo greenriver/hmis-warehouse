@@ -7707,7 +7707,9 @@ CREATE TABLE public.hap_report_clients (
     deleted_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    head_of_household_for character varying[]
+    head_of_household_for character varying[],
+    personal_id character varying,
+    mci_id character varying
 );
 
 
@@ -53316,6 +53318,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230614130627'),
 ('20230615184216'),
 ('20230616184921'),
-('20230620154423');
+('20230620154423'),
+('20230621190529');
 
 
