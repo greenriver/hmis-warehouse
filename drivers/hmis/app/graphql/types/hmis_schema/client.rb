@@ -125,10 +125,11 @@ module Types
       object.external_identifiers.
         map do |vals|
           {
-            id: [vals[:type], object.id].join(':'),
+            id: [vals[:type], vals[:id]].join(':'),
             identifier: vals[:id],
             url: vals[:url],
             label: vals[:label],
+            type: vals[:type],
           }
         end
     end

@@ -163,9 +163,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     "https://#{ENV['FQDN']}/clients/#{id}/from_source"
   end
 
-  private def clientview_url(mci_id_value = ac_hmis_mci_ids.to_a.min_by(&:id)&.value)
+  private def clientview_url(mci_id_value)
     link_base = HmisExternalApis::AcHmis::Clientview.link_base
-    return unless link_base&.present? && mci_id&.present?
+    return unless link_base&.present? && mci_id_value&.present?
 
     "#{link_base}/ClientInformation/Profile/#{mci_id_value}?aid=2"
   end
@@ -191,11 +191,20 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     ]
 
     if HmisExternalApis::AcHmis::Mci.enabled?
-      ac_hmis_mci_ids.to_a.each do |mci_id|
+      if ac_hmis_mci_ids.present?
+        ac_hmis_mci_ids.to_a.each do |mci_id|
+          external_identifiers << {
+            type: :mci_id,
+            id: mci_id.value,
+            url: clientview_url(mci_id.value),
+            label: 'MCI ID',
+          }
+        end
+      else
         external_identifiers << {
-          type: ['mci_id', mci_id.id].join('_'),
-          id: mci_id.value,
-          url: clientview_url(mci_id.value),
+          type: :mci_id,
+          id: nil,
+          url: nil,
           label: 'MCI ID',
         }
       end
