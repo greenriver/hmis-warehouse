@@ -1,4 +1,33 @@
 # Be sure to restart your server when you modify this file.
 
 # Configure sensitive parameters which will be filtered from the log file.
-Rails.application.config.filter_parameters += [:password, :password_confirmation, :otp_attempt]
+Rails.application.config.filter_parameters += [
+  :password,
+  :password_confirmation,
+  :otp_attempt,
+  :passw,
+  :secret,
+  :token,
+  :_key,
+  :crypt,
+  :salt,
+  :encrypted_otp_secret,
+  :encrypted_otp_secret_salt,
+  :encrypted_otp_secret_iv,
+  :certificate,
+  :otp,
+  :ssn,
+  :SSN,
+  :dob,
+  :date_of_birth,
+  :DOB,
+  :first_name,
+  :last_name,
+  :FirstName,
+  :LastName,
+  :alternate_names,
+  :medicaid_id,
+  :mass_health_id,
+  :aliases,
+  :birthdate,
+]
