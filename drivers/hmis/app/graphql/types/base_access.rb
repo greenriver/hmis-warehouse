@@ -33,7 +33,13 @@ module Types
         if root
           current_user.send(method_name) || false
         else
-          current_user.send(method_name, object) || false
+          loader = current_user.entity_access_loader(object)
+          if loader
+            dataloader.with(Sources::UserEntityAccessSource, loader).load([object, method_name])
+          else
+            # fallback
+            current_user.send(method_name, object) || false
+          end
         end
       end
     end

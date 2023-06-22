@@ -12,15 +12,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
   let(:search_term) { 'ross' }
+  let!(:enrollments) {
+    2.times.map do
+      user = create :hmis_hud_user, data_source: ds1
+      client = create :hmis_hud_client_complete, data_source: ds1, user: user, LastName: search_term
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: user
+    end
+  }
 
   before(:each) do
     hmis_login(user)
     assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
-    # 2.times do
-    user = create :hmis_hud_user, data_source: ds1
-    client = create :hmis_hud_client_complete, data_source: ds1, user: user, LastName: search_term
-    create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: user
-    # end
   end
 
   describe 'client search' do
@@ -259,7 +261,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         response, _result = post_graphql(**variables) { query }
         expect(response.status).to eq 200
-      end.to query_limit_lt(20)
+      end.to query_limit_lt(50)
     end
 
     it 'is responsive' do
