@@ -133,7 +133,7 @@ module
 
               # Always add them to the clients category
               clients[:client] << client_id
-              clients[:household] << client_id if hoh_client_ids.include?(enrollment_id)
+              clients[:household] << client_id if hoh_client_ids.include?(client_id)
               clients[:chronic] << client_id if chronic_ids.include?(client_id)
               clients[:hoh_chronic] << client_id if hoh_chronic_ids.include?(client_id)
               clients[:high_acuity] << client_id if high_acuity_ids.include?(client_id)
