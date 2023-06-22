@@ -130,11 +130,13 @@ module HapReport
           h[erap.client_key] ||= {}
           h[erap.client_key].merge!(erap.client_data)
           household_ids = (h[erap.client_key][:household_ids] || []) + [erap[:household_id]]
+          project_types = (h[erap.client_key][:project_types] || []) + [erap[:project_type]]
           head_of_household_for = h[erap.client_key][:head_of_household_for] || []
           head_of_household_for += [erap[:household_id]] if erap[:head_of_household]
           nights_in_shelter = (h[erap.client_key][:nights_in_shelter] || 0) + erap[:nights_in_shelter]
           h[erap.client_key].merge!(
             household_ids: household_ids,
+            project_types: project_types,
             head_of_household_for: head_of_household_for,
             nights_in_shelter: nights_in_shelter,
           )
