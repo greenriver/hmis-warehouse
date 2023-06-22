@@ -319,11 +319,13 @@ module SystemPathways
         report_enrollments = []
         enrollment_batch.group_by(&:client).each do |client, enrollments|
           served_by_ce = enrollments.any?(&:ce?)
-          ce_assessment = enrollments.assessments.map do |assessment|
-            next false if assessment.AssessmentDate.blank?
+          ce_assessment = enrollments.flat_map do |en|
+            en.enrollment.assessments.flat_map do |assessment|
+              next false if assessment.AssessmentDate.blank?
 
-            filter.range.include?(assessment.AssessmentDate)
-          end.any?
+              filter.range.include?(assessment.AssessmentDate)
+            end
+          end.flatten.any?
           involved_enrollments = enrollments.
             reject(&:ce?). # remove CE, we only use it for filtering
             # move the most-recently exited or open enrollments to the end
