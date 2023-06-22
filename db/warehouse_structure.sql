@@ -6072,6 +6072,9 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
+    "order" integer DEFAULT 0 NOT NULL,
+    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
+    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -11503,6 +11506,46 @@ ALTER SEQUENCE public.hmis_client_merge_audits_id_seq OWNED BY public.hmis_clien
 
 
 --
+-- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_wips (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date NOT NULL,
+    data jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_client_projects; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_client_projects AS
+ SELECT "Client".id AS client_id,
+    "Project".id AS project_id,
+    "Enrollment".id AS enrollment_id
+   FROM ((public."Client"
+     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
+  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client"."DateDeleted" IS NULL))
+UNION ALL
+ SELECT "Client".id AS client_id,
+    "Project".id AS project_id,
+    hmis_wips.client_id AS enrollment_id
+   FROM ((public.hmis_wips
+     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client"."DateDeleted" IS NULL) AND ("Client".id = hmis_wips.client_id))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))));
+
+
+--
 -- Name: hmis_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15229,25 +15272,6 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
-
-
---
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
 
 
 --
@@ -28764,13 +28788,6 @@ CREATE INDEX exit_p_id_ds_id ON public."Exit" USING btree ("PersonalID", data_so
 --
 
 CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
-
-
---
--- Name: external_ids_uniq_source_value; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX external_ids_uniq_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id);
 
 
 --
@@ -50267,7 +50284,14 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+
+
+--
+-- Name: uidx_external_ids_source_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE (((namespace)::text <> 'ac_hmis_mci'::text) OR (namespace IS NULL));
 
 
 --
@@ -51444,6 +51468,22 @@ CREATE STATISTICS public.stats_shs_2050_age_literally_homeless ON age, literally
 --
 
 CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless FROM public.service_history_services_2050;
+
+
+--
+-- Name: hmis_client_projects attempt_hmis_client_projects_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_client_projects_del AS
+    ON DELETE TO public.hmis_client_projects DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_client_projects attempt_hmis_client_projects_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_client_projects_up AS
+    ON UPDATE TO public.hmis_client_projects DO INSTEAD NOTHING;
 
 
 --
@@ -53211,6 +53251,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230612171240'),
 ('20230612200730'),
 ('20230613122940'),
-('20230614130627');
+('20230613190449'),
+('20230614130627'),
+('20230622171721');
 
 

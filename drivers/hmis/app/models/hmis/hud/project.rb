@@ -122,17 +122,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     operating_end_date >= Date.current
   end
 
-  def enrollments_including_wip
-    enrollment_ids = enrollments.pluck(:id)
-    wip_ids = wip_enrollments.pluck(:id)
-    Hmis::Hud::Enrollment.where(id: enrollment_ids + wip_ids)
-  end
-
-  def households_including_wip
-    household_ids = enrollments_including_wip.pluck(:household_id)
-
-    Hmis::Hud::Household.where(HouseholdID: household_ids, data_source_id: data_source_id)
-  end
+  has_many :client_projects
+  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
+  has_many :households_including_wip, through: :client_projects, source: :household
 
   def close_related_funders_and_inventory!
     funders.where(end_date: nil).update_all(end_date: operating_end_date)
