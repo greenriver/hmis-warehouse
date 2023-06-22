@@ -164,9 +164,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should catch and resolve errors' do
     allow(stub_mci).to receive(:clearance).and_raise(StandardError, 'Test error')
-    expect do
-      post_graphql(input: { input: input }) { mutation }
-    end.to raise_error(StandardError)
+    expect_gql_error(post_graphql(input: { input: input }) { mutation })
   end
 end
 

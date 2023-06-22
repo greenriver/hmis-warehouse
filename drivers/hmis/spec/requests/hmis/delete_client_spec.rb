@@ -106,7 +106,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     e2 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1', user: u1
     prev_hoh_value = e2.relationship_to_ho_h
 
-    expect { mutate(input: { id: c1.id }) }.to raise_error(HmisErrors::ApiError)
+    expect_gql_error post_graphql(input: { id: c1.id }) { mutation }
     expect(Hmis::Hud::Client.all).to include(have_attributes(id: c1.id))
     # Should NOT modify HoH of other enrollments if client is not deleted
     expect(e2.reload.relationship_to_ho_h).to eq(prev_hoh_value)
