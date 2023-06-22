@@ -244,6 +244,9 @@ module SystemPathways
         'Participated in Coordinated Entry' => ->(en) {
           yn(en.client.involves_ce)
         },
+        'Coordinated Entry Assessment' => ->(en) {
+          yn(en.client.ce_assessment)
+        },
       }
     end
 
@@ -316,6 +319,11 @@ module SystemPathways
         report_enrollments = []
         enrollment_batch.group_by(&:client).each do |client, enrollments|
           served_by_ce = enrollments.any?(&:ce?)
+          ce_assessment = enrollments.assessments.map do |assessment|
+            next false if assessment.AssessmentDate.blank?
+
+            filter.range.include?(assessment.AssessmentDate)
+          end.any?
           involved_enrollments = enrollments.
             reject(&:ce?). # remove CE, we only use it for filtering
             # move the most-recently exited or open enrollments to the end
@@ -365,6 +373,7 @@ module SystemPathways
             no_single_gender: client.no_single_gender == 1,
             veteran_status: client.veteran_status,
             involves_ce: served_by_ce,
+            ce_assessment: ce_assessment,
             destination: final_enrollment.destination,
             destination_homeless: HudUtility.destination_type(final_enrollment.destination) == 'Homeless',
             destination_temporary: HudUtility.destination_type(final_enrollment.destination) == 'Temporary',
@@ -517,7 +526,7 @@ module SystemPathways
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         in_project_type(self.class.available_project_types).
-        preload(:project, enrollment: [:client, :project, :disabilities_at_entry], client: :source_clients).
+        preload(:project, enrollment: [:client, :project, :disabilities_at_entry, :assessments], client: :source_clients).
         joins(:project, :enrollment).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
       filter.apply(scope, except: [:filter_for_enrollment_cocs])

@@ -181,9 +181,16 @@ module SystemPathways::ChartBase
     end
 
     private def filter_for_ce_involvement(scope)
-      scope = scope.where(involves_ce: filter.involves_ce) unless filter.involves_ce.nil?
-      scope = scope.where(involves_ce: show_filter&.involves_ce) unless show_filter&.involves_ce.nil?
-      scope = scope.where(involves_ce: details_filter&.involves_ce) unless details_filter&.involves_ce.nil?
+      scope = scope.where(involves_ce: true) if filter.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: true) if show_filter&.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: true) if details_filter&.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: false) if filter.involves_ce == 'No'
+      scope = scope.where(involves_ce: false) if show_filter&.involves_ce == 'No'
+      scope = scope.where(involves_ce: false) if details_filter&.involves_ce == 'No'
+      scope = scope.where(ce_assessment: true) if filter.involves_ce == 'With CE Assessment'
+      scope = scope.where(ce_assessment: true) if show_filter&.involves_ce == 'With CE Assessment'
+      scope = scope.where(ce_assessment: true) if details_filter&.involves_ce == 'With CE Assessment'
+
       scope
     end
 
