@@ -152,18 +152,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'returns grouped service type pick list' do
-    response, result = post_graphql(pick_list_type: 'SERVICE_TYPE', relationId: e1.id.to_s) { query }
+    response, result = post_graphql(pick_list_type: 'ALL_SERVICE_TYPES') { query }
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
-    expect(options.length).to eq(
-      Types::HmisSchema::Enums::ServiceTypeProvided.all_enum_value_definitions.reject { |item| item.value.is_a?(Integer) }.count,
-    )
+    expect(options.length).to eq(Hmis::Hud::CustomServiceType.count)
+    opt = Hmis::Hud::CustomServiceType.first.to_pick_list_option
     expect(options).to include(
       include(
-        'code' => 'PATH_SERVICE__RE_ENGAGEMENT',
-        'label' => 'Re-engagement',
-        'groupCode' => 'PATH_SERVICE',
-        'groupLabel' => 'PATH Service',
+        'code' => opt[:code],
+        'label' => opt[:label],
+        'groupCode' => opt[:group_code],
+        'groupLabel' => opt[:group_label],
+      ),
+    )
+  end
+
+  it 'returns service category pick list' do
+    response, result = post_graphql(pick_list_type: 'ALL_SERVICE_CATEGORIES') { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.count)
+    opt = Hmis::Hud::CustomServiceCategory.first.to_pick_list_option
+    expect(options).to include(
+      include(
+        'code' => opt[:code],
+        'label' => opt[:label],
       ),
     )
   end
