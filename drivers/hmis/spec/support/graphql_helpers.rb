@@ -61,7 +61,15 @@ module GraphqlHelpers
     ERRORS
   end
 
-  def to_gql_input_object(values, klass)
-    klass.new(nil, context: nil, defaults_used: Set.new, ruby_kwargs: values)
+  def to_gql_input_object(values, klass, current_user: nil)
+    klass.new(nil, context: { current_user: current_user }, defaults_used: Set.new, ruby_kwargs: values)
+  end
+
+  def expect_gql_error(arr, message: nil)
+    response, result = arr
+    error_message = result.dig('errors', 0, 'message')
+    expect(response.status).to eq 500
+    expect(error_message).to be_present
+    expect(error_message).to eq(message) if message.present?
   end
 end

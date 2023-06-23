@@ -9,7 +9,6 @@ module Types
     def self.build(node_class, field_permissions: nil, transform_changes: nil)
       Class.new(self) do
         graphql_name("#{node_class.graphql_name}AuditEvent")
-        field :item, node_class, null: false
 
         define_method(:schema_type) do
           node_class
@@ -30,10 +29,16 @@ module Types
     end
 
     field :id, ID, null: false
+    field :record_id, ID, null: false, method: :item_id
+    field :record_name, String, null: false
     field :event, HmisSchema::Enums::AuditEventType, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :user, Application::User, null: true
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
+
+    def record_name
+      object.item_type.demodulize.gsub(/^CustomClient/, '').underscore.humanize.titleize
+    end
 
     def user
       Hmis::User.find_by(id: object.whodunnit)

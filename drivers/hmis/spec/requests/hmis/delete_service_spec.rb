@@ -18,6 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
   include_context 'hmis service setup'
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
   let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
@@ -25,7 +26,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
   let(:mutation) do
@@ -68,12 +68,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should error if a service does not exist' do
-    expect { post_graphql(id: '123') { mutation } }.to raise_error(HmisErrors::ApiError)
+    expect_gql_error post_graphql(id: '123') { mutation }
   end
 
   it 'should error if not allowed to delete a service' do
-    remove_permissions(hmis_user, :can_edit_enrollments)
-    expect { post_graphql(id: s1.id) { mutation } }.to raise_error(HmisErrors::ApiError)
+    remove_permissions(access_control, :can_edit_enrollments)
+    expect_gql_error post_graphql(id: s1.id) { mutation }
   end
 end
 

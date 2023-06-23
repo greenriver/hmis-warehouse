@@ -22,6 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2000-01-01' }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, user: u1, end_date: nil }
@@ -38,8 +39,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
-    assign_viewable(view_access_group, ds1, hmis_user)
   end
 
   let(:mutation) do
@@ -194,8 +193,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         it 'should fail if user lacks permission' do
-          remove_permissions(hmis_user, *Array(definition.record_editing_permission))
-          expect { post_graphql(input: { input: test_input }) { mutation } }.to raise_error(HmisErrors::ApiError)
+          remove_permissions(access_control, *Array(definition.record_editing_permission))
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }
         end
 
         it 'should update user correctly' do

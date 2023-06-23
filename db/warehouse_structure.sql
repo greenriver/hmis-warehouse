@@ -2794,7 +2794,8 @@ CREATE TABLE public.available_file_tags (
     requires_expiration_date boolean DEFAULT false NOT NULL,
     required_for character varying,
     coc_available boolean DEFAULT false NOT NULL,
-    verified_homeless_history boolean DEFAULT false NOT NULL
+    verified_homeless_history boolean DEFAULT false NOT NULL,
+    ce_self_report_certification boolean DEFAULT false NOT NULL
 );
 
 
@@ -6188,7 +6189,8 @@ CREATE TABLE public.configs (
     chronic_tab_justifications boolean DEFAULT true,
     chronic_tab_roi boolean,
     filter_date_span_years integer DEFAULT 1 NOT NULL,
-    include_pii_in_detail_downloads boolean DEFAULT true
+    include_pii_in_detail_downloads boolean DEFAULT true,
+    self_report_start_date date
 );
 
 
@@ -28828,13 +28830,6 @@ CREATE INDEX export_export_id ON public."Export" USING btree ("ExportID");
 
 
 --
--- Name: external_ids_uniq_source_value; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX external_ids_uniq_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id);
-
-
---
 -- Name: fq_r_id_p; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50374,6 +50369,13 @@ CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree
 
 
 --
+-- Name: uidx_external_ids_source_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE (((namespace)::text <> 'ac_hmis_mci'::text) OR (namespace IS NULL));
+
+
+--
 -- Name: uidx_hmis_external_referral_hms_1; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53315,8 +53317,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230612171240'),
 ('20230612200730'),
 ('20230613122940'),
+('20230613190449'),
 ('20230614130627'),
 ('20230615184216'),
+('20230616163514'),
+('20230616164602'),
 ('20230616184921'),
 ('20230620154423'),
 ('20230621190529');
