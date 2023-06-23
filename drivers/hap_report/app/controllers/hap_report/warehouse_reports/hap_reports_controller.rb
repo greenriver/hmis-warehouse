@@ -34,7 +34,7 @@ module HapReport::WarehouseReports
         end
       end
 
-      flash[:error] = 'Error parsing eRAP data, is the file in CSV format?' unless erap_parsed
+      flash[:error] = 'Error parsing eRAP data, is the file in the expected CSV format?' unless erap_parsed
       @pagy, @reports = pagy(report_scope)
       render :index
     end
