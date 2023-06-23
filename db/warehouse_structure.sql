@@ -7754,68 +7754,6 @@ ALTER SEQUENCE public.group_viewable_entities_id_seq OWNED BY public.group_viewa
 
 
 --
--- Name: project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_groups (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    options jsonb DEFAULT '{}'::jsonb
-);
-
-
---
--- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_project_groups (
-    id integer NOT NULL,
-    project_group_id integer,
-    project_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: group_viewable_entity_projects; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.group_viewable_entity_projects AS
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
-    "Project".id AS project_id
-   FROM (public.group_viewable_entities
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = group_viewable_entities.entity_id))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (group_viewable_entities.deleted_at IS NULL))
-UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
-    "Project".id AS project_id
-   FROM ((public.group_viewable_entities
-     JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = group_viewable_entities.entity_id))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (group_viewable_entities.deleted_at IS NULL))
-UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
-    "Project".id AS project_id
-   FROM ((public.group_viewable_entities
-     JOIN public.data_sources ON (((data_sources.deleted_at IS NULL) AND (data_sources.id = group_viewable_entities.entity_id))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND (data_sources.id = "Project".data_source_id))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.deleted_at IS NULL))
-UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
-    "Project".id AS project_id
-   FROM (((public.group_viewable_entities
-     JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = group_viewable_entities.entity_id))))
-     JOIN public.project_project_groups ON ((project_project_groups.project_group_id = project_groups.id)))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = project_project_groups.project_id))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text) AND (group_viewable_entities.deleted_at IS NULL));
-
-
---
 -- Name: hap_report_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15049,6 +14987,68 @@ CREATE SEQUENCE public.hmis_forms_id_seq
 --
 
 ALTER SEQUENCE public.hmis_forms_id_seq OWNED BY public.hmis_forms.id;
+
+
+--
+-- Name: project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_groups (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    options jsonb DEFAULT '{}'::jsonb
+);
+
+
+--
+-- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_project_groups (
+    id integer NOT NULL,
+    project_group_id integer,
+    project_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_group_viewable_entity_projects; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_group_viewable_entity_projects AS
+ SELECT group_viewable_entities.id AS group_viewable_entity_id,
+    "Project".id AS project_id
+   FROM (public.group_viewable_entities
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = group_viewable_entities.entity_id))))
+  WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (group_viewable_entities.deleted_at IS NULL))
+UNION
+ SELECT group_viewable_entities.id AS group_viewable_entity_id,
+    "Project".id AS project_id
+   FROM ((public.group_viewable_entities
+     JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = group_viewable_entities.entity_id))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+  WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (group_viewable_entities.deleted_at IS NULL))
+UNION
+ SELECT group_viewable_entities.id AS group_viewable_entity_id,
+    "Project".id AS project_id
+   FROM ((public.group_viewable_entities
+     JOIN public.data_sources ON (((data_sources.deleted_at IS NULL) AND (data_sources.id = group_viewable_entities.entity_id))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND (data_sources.id = "Project".data_source_id))))
+  WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.deleted_at IS NULL))
+UNION
+ SELECT group_viewable_entities.id AS group_viewable_entity_id,
+    "Project".id AS project_id
+   FROM (((public.group_viewable_entities
+     JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = group_viewable_entities.entity_id))))
+     JOIN public.project_project_groups ON ((project_project_groups.project_group_id = project_groups.id)))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = project_project_groups.project_id))))
+  WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text) AND (group_viewable_entities.deleted_at IS NULL));
 
 
 --
@@ -51505,22 +51505,6 @@ CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless
 
 
 --
--- Name: group_viewable_entity_projects attempt_group_viewable_entity_projects_del; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_group_viewable_entity_projects_del AS
-    ON DELETE TO public.group_viewable_entity_projects DO INSTEAD NOTHING;
-
-
---
--- Name: group_viewable_entity_projects attempt_group_viewable_entity_projects_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_group_viewable_entity_projects_up AS
-    ON UPDATE TO public.group_viewable_entity_projects DO INSTEAD NOTHING;
-
-
---
 -- Name: hmis_client_projects attempt_hmis_client_projects_del; Type: RULE; Schema: public; Owner: -
 --
 
@@ -51534,6 +51518,22 @@ CREATE RULE attempt_hmis_client_projects_del AS
 
 CREATE RULE attempt_hmis_client_projects_up AS
     ON UPDATE TO public.hmis_client_projects DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_group_viewable_entity_projects attempt_hmis_group_viewable_entity_projects_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_group_viewable_entity_projects_del AS
+    ON DELETE TO public.hmis_group_viewable_entity_projects DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_group_viewable_entity_projects attempt_hmis_group_viewable_entity_projects_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_group_viewable_entity_projects_up AS
+    ON UPDATE TO public.hmis_group_viewable_entity_projects DO INSTEAD NOTHING;
 
 
 --

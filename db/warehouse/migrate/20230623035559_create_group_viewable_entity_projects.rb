@@ -1,6 +1,6 @@
 class CreateGroupViewableEntityProjects < ActiveRecord::Migration[6.1]
   def change
-    view_name = :group_viewable_entity_projects
+    view_name = :hmis_group_viewable_entity_projects
     create_view view_name
     reversible do |dir|
       dir.up do
