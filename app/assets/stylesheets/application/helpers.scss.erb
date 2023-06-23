@@ -12,6 +12,20 @@
 @import "./_custom/<%=ENV['CLIENT']%>";
 <% end %>
 <%
+  # If we've defined further overrides in the theme
+  theme = Rails.cache.fetch('active_theme', expires_in: 1.minutes) do
+    GrdaWarehouse::Theme.first
+  end
+  if theme
+    sheet = Rails.root.join(theme.scss_file_path, theme.scss_file_name)
+    if File.exist?(sheet)
+%>
+@import "./_custom/theme/<%=theme.scss_file_name%>";
+<%
+    end
+  end
+%>
+<%
   sheet = Rails.root.join('app', 'assets', 'stylesheets', 'application', '_custom', 'env', "#{ENV['RAILS_ENV']}.scss")
   if ENV['RAILS_ENV'].present? && File.exist?(sheet)
 %>

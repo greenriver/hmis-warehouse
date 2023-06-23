@@ -769,7 +769,7 @@ Rails.application.routes.draw do
       resources :users, only: [:create, :destroy], controller: 'groups/users'
     end
     resources :agencies
-    resources :glacier, only: [:index]
+    resource :theme, only: [:edit, :update]
     namespace :dashboard do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
