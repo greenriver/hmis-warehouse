@@ -7,10 +7,12 @@
 module HealthPctp
   class CareplansController < IndividualPatientController
     include AjaxModalRails::Controller
+    include HealthFileController
 
     before_action :set_client
     before_action :set_hpc_patient
-    before_action :set_careplan, only: [:edit, :update, :show, :destroy]
+    before_action :set_careplan, only: [:edit, :update, :show, :destroy, :download, :remove_file]
+    before_action :set_upload_object, only: [:edit, :update, :download, :remove_file]
 
     def new
       @careplan = if @patient.pctps.in_progress.exists?
@@ -32,6 +34,9 @@ module HealthPctp
       old_rn_status = @careplan.review_by_rn_complete
       old_delivered_status = @careplan.was_sent_to_pcp
       @careplan.assign_attributes(careplan_params)
+
+      set_upload_object
+      @careplan.health_file.set_calculated!(current_user.id, @client.id) if @careplan.health_file.present?
 
       boolean_toggled(old_ccm_status, @careplan.review_by_ccm_complete, :reviewed_by_ccm_on, :reviewed_by_ccm_id)
       boolean_toggled(old_rn_status, @careplan.review_by_rn_complete, :reviewed_by_rn_on, :reviewed_by_rn_id)
@@ -80,11 +85,28 @@ module HealthPctp
       permitted_cols -= [:reviewed_by_rn_id, :reviewed_by_rn_on] unless current_user.can_approve_careplan?
 
       permitted_group_cols = GROUP_PARAMS.map { |key| [key, []] }.to_h
-      params.require(:health_pctp_careplan).permit(permitted_cols, **permitted_group_cols)
+      params.require(:health_pctp_careplan).permit(
+        permitted_cols,
+        **permitted_group_cols,
+        health_file_attributes: [
+          :id,
+          :file,
+          :file_cache,
+        ],
+      )
     end
 
     private def set_careplan
       @careplan = @patient.pctps.find(params[:id])
+    end
+
+    def set_upload_object
+      # edit_client_health_pctp_careplan_path
+      @upload_object = @careplan
+      @location = edit_client_health_pctp_careplan_path(client_id: @client.id, id: @careplan.id)
+      @download_path = @upload_object.downloadable? ? download_client_health_pctp_careplan_path(client_id: @client.id, id: @careplan.id) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : { confirm: 'Form errors must be fixed before you can download this file.' }
+      @remove_path = @upload_object.downloadable? ? remove_file_client_health_pctp_careplan_path(client_id: @client.id, id: @careplan.id) : '#'
     end
 
     private def careplan_source

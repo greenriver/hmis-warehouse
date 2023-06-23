@@ -34,7 +34,7 @@
                     -#     %i.icon-copy.mr-2
                     -#     Make Copy
                     .w-100
-                      = link_to instrument.edit_path do
+                      = link_to instrument.edit_path(anchor: 'complete') do
                         %i.icon-pencil.mr-2
                         Update Signature Dates
               %td= instrument.initial_date&.to_date

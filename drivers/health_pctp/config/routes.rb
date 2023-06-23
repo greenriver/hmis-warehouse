@@ -4,6 +4,11 @@ BostonHmis::Application.routes.draw do
       resources :careplans do
         resources :needs
         resources :goals
+        member do
+          delete :remove_file
+          get :download
+          patch :upload
+        end
       end
     end
   end
