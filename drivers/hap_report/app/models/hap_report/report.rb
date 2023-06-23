@@ -125,6 +125,7 @@ module HapReport
     private def create_universe_from_eraps
       clients = {}.tap do |h|
         eraps.find_each do |erap|
+          # Prefer HMIS clients, if we have a duplicate already coming from HMIS, use that data and ignore the erap client
           next if duplicate_client?(erap)
 
           h[erap.client_key] ||= {}
