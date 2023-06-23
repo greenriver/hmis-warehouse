@@ -30,13 +30,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     GRAPHQL
   end
-  let(:edit_access_group) do
-    group = create :edit_access_group
-    role = create(:hmis_role)
-    group.access_controls.create(role: role)
-    group
-  end
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:all) do
     cleanup_test_environment
   end
@@ -46,7 +41,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
   end
 
   describe 'Projects query' do

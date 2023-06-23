@@ -68,6 +68,14 @@ module Types
       Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
     end
 
+    field :household, Types::HmisSchema::Household, 'Household lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def household(id:)
+      Hmis::Hud::Household.viewable_by(current_user).find_by(household_id: id, data_source_id: current_user.hmis_data_source_id)
+    end
+
     field :organization, Types::HmisSchema::Organization, 'Organization lookup', null: true do
       argument :id, ID, required: true
     end

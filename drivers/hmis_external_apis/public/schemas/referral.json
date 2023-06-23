@@ -80,13 +80,26 @@
           "last_name": { "type": "string" },
           "middle_name": { "type": "string" },
           "suffix": { "type": "string" },
-          "gender": { "type": "string" },
           "dob": { "type": "string", "format": "date" },
           "veteran_status": { "type": "string" },
           "discharge_status": { "type": "string" },
           "ssn": { "type": "string", "pattern": "^\\d{3}-?\\d{2}-?\\d{4}$" },
-          "race": { "type": "string" },
-          "ethnicity": { "type": "string" }
+          "gender": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "enum": [0,1,2,3,4,5,6,8,9,99]
+            }
+          },
+          "different_identity_text": { "type": "string" },
+          "race": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "enum": [1,2,3,4,5,6,7,8,9,99]
+            }
+          },
+          "additional_race_ethnicity": { "type": "string" }
         }
       }
     }

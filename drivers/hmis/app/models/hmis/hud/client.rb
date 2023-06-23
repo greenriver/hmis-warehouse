@@ -158,7 +158,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def mci_id
-    ac_hmis_mci_id&.value
+    ac_hmis_mci_ids.to_a.min_by(&:id)&.value
   end
 
   private def clientview_url

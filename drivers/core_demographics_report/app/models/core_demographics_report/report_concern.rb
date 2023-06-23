@@ -8,14 +8,6 @@ module
   CoreDemographicsReport::ReportConcern
   extend ActiveSupport::Concern
   included do
-    def self.comparison_patterns
-      {
-        no_comparison_period: 'None',
-        prior_year: 'Same period, prior year',
-        prior_period: 'Prior Period',
-      }.invert.freeze
-    end
-
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?
@@ -38,7 +30,7 @@ module
       # Report range
       scope = report_scope_source
       scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope) unless include_date_range
+      scope = filter_for_range(scope) if include_date_range
       scope = filter_for_cocs(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_household_type(scope)
@@ -98,6 +90,10 @@ module
 
     def can_see_client_details?(user)
       user.can_access_some_version_of_clients?
+    end
+
+    def self.clear_report_cache
+      Rails.cache.delete_matched("#{[name]}*")
     end
 
     private def hoh_scope

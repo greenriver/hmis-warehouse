@@ -15,7 +15,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
 
     # Stub MCI clearance method
     allow(HmisExternalApis::AcHmis::Mci).to receive(:new).and_return(stub_mci)
@@ -165,9 +164,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should catch and resolve errors' do
     allow(stub_mci).to receive(:clearance).and_raise(StandardError, 'Test error')
-    expect do
-      post_graphql(input: { input: input }) { mutation }
-    end.to raise_error(StandardError)
+    expect_gql_error(post_graphql(input: { input: input }) { mutation })
   end
 end
 
