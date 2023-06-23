@@ -59,9 +59,10 @@ module SystemPathways::Equity::InvolvesCe
         node_names.each do |label|
           count = involves_ce_counts[label][k] || 0
 
-          bg_color = config["breakdown_4_color_#{i}"]
+          color = config.color_for('ce', i)
+          bg_color = color.background_color
           data['colors'][involves_ce] = bg_color
-          data['labels']['colors'][involves_ce] = config.foreground_color(bg_color)
+          data['labels']['colors'][involves_ce] = color.calculated_foreground_color(bg_color)
           row << count
         end
         data['columns'] << row

@@ -134,23 +134,26 @@ module SystemPathways::TimeChart::Race
         project_type_node_names.each do |label|
           count = project_type_counts[label][race]
 
-          bg_color = config["breakdown_3_color_#{i}"]
+          color = config.color_for('race', i)
+          bg_color = color.background_color
           data['colors'][race] = bg_color
-          data['labels']['colors'][race] = config.foreground_color(bg_color)
+          data['labels']['colors'][race] = color.calculated_foreground_color(bg_color)
           row << count
         end
         # Time before move-in
         ph_projects.each_value do |p_label|
           count = ph_counts[p_label][race]
-          bg_color = config["breakdown_3_color_#{i}"]
+          color = config.color_for('race', i)
+          bg_color = color.background_color
           data['colors'][race] = bg_color
-          data['labels']['colors'][race] = config.foreground_color(bg_color)
+          data['labels']['colors'][race] = color.calculated_foreground_color(bg_color)
           row << count
         end
         count = return_counts[race]
-        bg_color = config["breakdown_3_color_#{i}"]
+        color = config.color_for('race', i)
+        bg_color = color.background_color
         data['colors'][race] = bg_color
-        data['labels']['colors'][race] = config.foreground_color(bg_color)
+        data['labels']['colors'][race] = color.calculated_foreground_color(bg_color)
         row << count
         data['columns'] << row
       end

@@ -404,6 +404,7 @@ class SeedMaker
     maintain_system_groups
     maintain_zip_code_shapes
     populate_internal_system_choices
+    GrdaWarehouse::SystemColor.ensure_colors
 
     # for the most recent 50 reports, re-calculate results (which will move the cache to the DB)
     # Remove this if release-59 has been merged to production

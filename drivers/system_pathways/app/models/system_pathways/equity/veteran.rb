@@ -57,9 +57,10 @@ module SystemPathways::Equity::Veteran
         node_names.each do |label|
           count = veteran_status_counts[label][k] || 0
 
-          bg_color = config["breakdown_4_color_#{i}"]
+          color = config.color_for('veteran-status', i)
+          bg_color = color.background_color
           data['colors'][veteran_status] = bg_color
-          data['labels']['colors'][veteran_status] = config.foreground_color(bg_color)
+          data['labels']['colors'][veteran_status] = color.calculated_foreground_color(bg_color)
           row << count
         end
         data['columns'] << row
