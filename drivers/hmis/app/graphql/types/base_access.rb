@@ -36,12 +36,13 @@ module Types
         return false unless current_user&.present?
 
         loader = current_user.entity_access_loader(object)
-        if loader
-          dataloader.with(Sources::UserEntityAccessSource, current_user, loader).load([object, :"can_#{permission}"])
-        else
-          # fallback
-          current_user.send("can_#{permission}_for?", object) || false
+        if loader.nil?
+          project = object.class.reflect_on_association(:project) && load_ar_association(object, :project)
+          loader = current_user.entity_access_loader(project)
         end
+        raise "missing loader for #{object.class}" unless loader
+
+        dataloader.with(Sources::UserEntityAccessSource, current_user, loader).load([object, :"can_#{permission}"])
       end
     end
   end

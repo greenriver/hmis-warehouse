@@ -18,4 +18,21 @@ class Hmis::BaseAccessLoader
   def batch_loader_id
     "#{self.class.name}#{user.id}"
   end
+
+  def roles_by_access_group_id
+    @roles_by_access_group_id ||= user.roles
+      .joins(:access_controls)
+      .select('hmis_roles.*, hmis_access_controls.access_group_id AS access_group_id')
+      .group_by(&:access_group_id)
+  end
+
+  # @param access_group_ids [Array<ID>, string]
+  def access_groups_grant_permission?(access_group_ids, permission)
+    access_group_ids.detect do |access_group_id|
+      (roles_by_access_group_id[access_group_id] || []).detect do |role|
+        role.grants?(permission)
+      end
+    end
+  end
+
 end

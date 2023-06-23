@@ -7,8 +7,8 @@
 class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
   # permissions check for a collection of tuples of [entity, permission]
   # note the same entity could appear more than once in items with different permissions
-  # @param items Array<Array<Hmis::Hud::Client, String>>
-  # @return Array<Boolean>
+  # @param items [Array<Array<Hmis::Hud::Client, String>>]
+  # @return [Array<Boolean>]
   def fetch(items)
     client_ids = items.map { |i| i.first.id }
 
@@ -24,24 +24,15 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
       .group_by(&:first)
       .transform_values(&:last)
 
-    roles_by_access_group_id = user.roles
-      .joins(:access_controls)
-      .select('hmis_roles.*, hmis_access_controls.access_group_id AS access_group_id')
-      .group_by(&:access_group_id)
-
     orphan_client_ids = orphan_client_ids.to_set
     items.each do |item|
       client, permission = item
       if client.id.in?(orphan_client_ids)
-        # client is not associated with a project
-        true
+        # client is not associated with a project, grant permission
+        user.permission?(permission)
       else
-        access_group_ids = access_group_ids_by_client_id[client.id]
-        access_group_ids.detect do |access_group_id|
-          (roles_by_access_group_id[access_group_id] || []).detect do |role|
-            role.grants?(permission)
-          end
-        end
+        access_group_ids = access_group_ids_by_client_id[client.id] || []
+        access_groups_grant_permission?(access_group_ids, permission)
       end
     end
   end

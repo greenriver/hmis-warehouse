@@ -83,6 +83,8 @@ class Hmis::User < ApplicationRecord
       Hmis::Hud::ClientAccessLoader.new(self)
     when Hmis::Hud::Project
       Hmis::Hud::ProjectAccessLoader.new(self)
+    when Hmis::Hud::Organization
+      Hmis::Hud::OrganizationAccessLoader.new(self)
     end
   end
 
