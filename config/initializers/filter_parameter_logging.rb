@@ -32,4 +32,6 @@ Rails.application.config.filter_parameters += [
   :phone,
   :email,
   :zip
+  :aliases,
+  :birthdate,
 ]
