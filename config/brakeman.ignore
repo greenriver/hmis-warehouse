@@ -24,6 +24,28 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "01cec9c5ab9ca358575143a983d74c98a0316ee2bfa87a65f3c5d7c458e3367a",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "drivers/core_demographics_report/app/views/core_demographics_report/warehouse_reports/core/section.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => \"core_demographics_report/warehouse_reports/shared/#{params[:partial]}\", {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "core_demographics_report/warehouse_reports/core/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "Medium",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "023c724508b4c341ebb8aae1c407e91e113c05bccffe0dca58702f276fbe1dd0",
@@ -76,7 +98,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 369,
+      "line": 387,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -300,6 +322,40 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "194ffcfbbfb5dad65d6c2cd5fc8e010479f66a6251142ec091dc5436f8205abe",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/imports/show.haml",
+      "line": 1,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => import_scope.find(params.require(:id)), {})",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "ImportsController",
+          "method": "show",
+          "line": 23,
+          "file": "app/controllers/imports_controller.rb",
+          "rendered": {
+            "name": "imports/show",
+            "file": "app/views/imports/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "imports/show"
+      },
+      "user_input": "params.require(:id)",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "19b0be47dc59be902eb1e0500e9fba29ccf43752f0eb56a2180a222af552ceb0",
@@ -484,6 +540,29 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "2d623554a40303f5a1021893522708da7b77359904ba1f0673a6f13b00c39d94",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/project.rb",
+      "line": 373,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Project",
+        "method": null
+      },
+      "user_input": "access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "2d9e2650f0d201448eb48c3fe30e82042060f478c362cd5c9addce551f8707f2",
@@ -503,6 +582,28 @@
       "confidence": "Medium",
       "cwe_id": [
         77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "2e16f45ec183ad1ea6f792c533e77535a7542d5c57e2a3987b2653445fa404fd",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "drivers/boston_reports/app/views/boston_reports/warehouse_reports/street_to_homes/section.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => params[:partial], {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "boston_reports/warehouse_reports/street_to_homes/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "High",
+      "cwe_id": [
+        22
       ],
       "note": ""
     },
@@ -560,6 +661,29 @@
       "confidence": "Weak",
       "cwe_id": [
         79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "39fbe5b21264364680753579cfb9bbfa2a05b5af5e3646dbe3bdcd6c65579db5",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/controllers/data_quality_reports_controller.rb",
+      "line": 27,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => report_scope.where(:project_id => params[:project_id].to_i).find(params[:id].to_i).model_name.element.to_sym, {})",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataQualityReportsController",
+        "method": "show"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
       ],
       "note": ""
     },
@@ -658,34 +782,11 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "488929247f57a052483960e34ae2e99819be0cc9ed762545be1803490a90c853",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/concerns/arel_helper.rb",
-      "line": 51,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"#{(\"NOT EXISTS\" or \"EXISTS\")} (#{ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"#{column_name}\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ArelHelper",
-        "method": "ArelHelper.exists_sql"
-      },
-      "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "4a796237555b5c06d7a008fb5b55bce0a0c6666a643b6432a8ae45039c597573",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 123,
+      "line": 128,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(:period => period, :for_question => field).where.not(:project_id => nil)).group(:project_id).sum(\"#{period}_#{field}\")",
       "render_path": null,
@@ -700,29 +801,6 @@
         89
       ],
       "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "4d5a9118f61ed4fb1acf4027e0b7bccb7ecd0a7db8519ad0b98190eeb28ef3c2",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hmis/app/jobs/hmis/merge_clients_job.rb",
-      "line": 117,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.exec_query(\"UPDATE \\\"#{candidate}\\\"\\nSET client_id = #{client_to_retain.id}\\nWHERE client_id::bigint IN (#{clients_needing_reference_updates.map(&:id).join(\",\")})\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Hmis::MergeClientsJob",
-        "method": "update_client_id_foreign_keys"
-      },
-      "user_input": "candidate",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": "Internally sourced injection"
     },
     {
       "warning_type": "SQL Injection",
@@ -862,6 +940,28 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "5e218500963e50340c098eba0301ff524fef605cfe646cc30739c101b587d0af",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "drivers/disability_summary/app/views/disability_summary/warehouse_reports/disability_summary/section.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => params[:partial], {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "disability_summary/warehouse_reports/disability_summary/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "High",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "5f663e1330e1986e8d398745960c0bc7d3b81ecec41fbb3da180f7eed7495c70",
@@ -906,6 +1006,40 @@
         77
       ],
       "note": "Injection from internal sources"
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "6012356b03eb94bac6208d03adf39acd1db517d644ec8c52e503b7efef462571",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/health/goals/edit.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => ::Health::Goal::Hpc.find(params[:id].to_i), { :readonly => false })",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::GoalsController",
+          "method": "edit",
+          "line": 34,
+          "file": "app/controllers/concerns/health_goal.rb",
+          "rendered": {
+            "name": "health/goals/edit",
+            "file": "app/views/health/goals/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/goals/edit"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
     },
     {
       "warning_type": "Command Injection",
@@ -1419,7 +1553,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "drivers/hmis/app/graphql/mutations/submit_form.rb",
-      "line": 25,
+      "line": 21,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name.constantize",
       "render_path": null,
@@ -1664,29 +1798,6 @@
         89
       ],
       "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "939e681ac683b93b797ae92577fa07ddba84dca673b596cf50f0bd54adc07638",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hmis/app/jobs/hmis/merge_clients_job.rb",
-      "line": 160,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.exec_query(\"UPDATE \\\"#{candidate}\\\"\\nSET \\\"PersonalID\\\" = #{client_to_retain.personal_id}\\nWHERE\\n  \\\"PersonalID\\\" IN ('#{clients_needing_reference_updates.map(&:personal_id).join(\"','\")}')\\n  AND data_source_id = '#{data_source_id}'\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Hmis::MergeClientsJob",
-        "method": "update_personal_id_foreign_keys"
-      },
-      "user_input": "candidate",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": "Internally sourced injection"
     },
     {
       "warning_type": "Dangerous Send",
@@ -2068,6 +2179,50 @@
       "note": "Injected value is from the environment"
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "b943aeb098e1d298b0a93b87df96a6d51af156941a6a8263d4dd96b2add2a5c4",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/admin/health/scheduled_documents/_form.haml",
+      "line": 25,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => scheduled_document_source.find(params[:id]), { :f => f })",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Admin::Health::ScheduledDocumentsController",
+          "method": "edit",
+          "line": 39,
+          "file": "app/controllers/admin/health/scheduled_documents_controller.rb",
+          "rendered": {
+            "name": "admin/health/scheduled_documents/edit",
+            "file": "app/views/admin/health/scheduled_documents/edit.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "admin/health/scheduled_documents/edit",
+          "line": 6,
+          "file": "app/views/admin/health/scheduled_documents/edit.haml",
+          "rendered": {
+            "name": "admin/health/scheduled_documents/_form",
+            "file": "app/views/admin/health/scheduled_documents/_form.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/health/scheduled_documents/_form"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "ba8ebc9d6a0ba16b9729b36fec201710ab5e28db8ca0266ba8df0cc2a56454f1",
@@ -2133,6 +2288,28 @@
       "confidence": "High",
       "cwe_id": [
         601
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "c0005570a238c0588abb23ceeeca1435585d73471894496817a57ba389867107",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/dashboards/base/section.html.haml",
+      "line": 2,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => (\"dashboards/base/\" + params[:partial]), {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "dashboards/base/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
       ],
       "note": ""
     },
@@ -2245,7 +2422,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 138,
+      "line": 143,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "projects.joins(:hud_project).merge(GrdaWarehouse::Hud::Project.send(project_type)).group(:project_id).sum(\"#{period}_#{field}\")",
       "render_path": null,
@@ -2406,7 +2583,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 134,
+      "line": 139,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "projects.joins(:hud_project).merge(GrdaWarehouse::Hud::Project.send(project_type)).where(:project_id => client_projects.for_question(\"days_in_#{project_type}_bed_in_period\").where(:period => period).distinct.pluck(:project_id)).sum(\"#{period}_#{field}\")",
       "render_path": null,
@@ -2465,6 +2642,28 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "db896aac42f010e67b8aa6019c51d80cad8620b1c8a04cfbdad693b190fd3231",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "drivers/core_demographics_report/app/views/core_demographics_report/warehouse_reports/demographic_summary/section.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => \"core_demographics_report/warehouse_reports/shared/#{params[:partial]}\", {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "core_demographics_report/warehouse_reports/demographic_summary/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "Medium",
+      "cwe_id": [
+        22
       ],
       "note": ""
     },
@@ -2705,7 +2904,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/result_calculation.rb",
-      "line": 117,
+      "line": 122,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(:period => period, :for_question => field)).sum(\"#{period}_#{field}\")",
       "render_path": null,
@@ -2861,6 +3060,28 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "fde02e1709a167801d237e080ec6ee9c281c0a4aaaef4e81a09c70c01613e32d",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/clients/rollup.haml",
+      "line": 2,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => (\"clients/rollup/\" + params[:partial]), {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "clients/rollup"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "fe7de455d82a4e3fef770c1272e861fb8f1d73042b2f82f1b417753f2d17bec7",
@@ -2907,6 +3128,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-05-16 16:29:52 +0000",
+  "updated": "2023-06-21 15:48:20 +0000",
   "brakeman_version": "5.4.1"
 }
