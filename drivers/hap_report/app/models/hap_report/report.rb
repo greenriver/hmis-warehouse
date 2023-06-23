@@ -93,7 +93,7 @@ module HapReport
 
           existing_client = hap_clients[processed_enrollment.client] || HapClient.new
           new_client = HapClient.new(
-            personal_id: existing_client[:personal_id] || processed_client.client.personal_id,
+            personal_id: existing_client[:personal_id] || processed_enrollment.client.personal_id,
             client_id: existing_client[:client_id] || processed_enrollment.client_id,
             age: existing_client[:age] || client.age([@start_date, processed_enrollment.first_date_in_program].max),
             emancipated: false,
