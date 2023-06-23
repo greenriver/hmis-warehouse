@@ -10,6 +10,9 @@
     .row
       .col
         = f.input :erap_csv, as: :file, label: 'Optional eRAP Data CSV'
+    .row
+      .col
+        = render 'erap_file_format'
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']
 
