@@ -1396,7 +1396,7 @@ module Filters
       when :prior_fiscal_year
         # find the 9/30 that precedes the end date
         prior_end = Date.new(end_date.year, 9, 30)
-        prior_end -= 1.years if prior_end > end_date
+        prior_end -= 1.years if prior_end >= end_date
         prior_start = Date.new(prior_end.year - 1, 10, 1)
         [prior_start, prior_end]
       else
