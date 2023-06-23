@@ -81,6 +81,8 @@ class Hmis::User < ApplicationRecord
     case entity
     when Hmis::Hud::Client
       Hmis::Hud::ClientAccessLoader.new(self)
+    when Hmis::Hud::Project
+      Hmis::Hud::ProjectAccessLoader.new(self)
     end
   end
 

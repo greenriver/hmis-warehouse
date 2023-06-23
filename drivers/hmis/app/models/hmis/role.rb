@@ -40,6 +40,14 @@ class Hmis::Role < ::ApplicationRecord
     false
   end
 
+  def grants?(permission)
+    if self.class.permissions_with_descriptions.has_key?(permission)
+      send(permission) || false
+    else
+      raise "unknown permission #{permission}"
+    end
+  end
+
   def self.description_for(permission:)
     permissions_with_descriptions[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
   end

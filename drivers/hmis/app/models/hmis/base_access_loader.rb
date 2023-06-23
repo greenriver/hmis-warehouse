@@ -11,7 +11,7 @@ class Hmis::BaseAccessLoader
   end
 
   def fetch_one(entity, permission)
-    fetch([entity, permission]).first
+    fetch([[entity, permission]]).first
   end
 
   # graphql's batch data loader identity. See Dataloader.batch_key_for

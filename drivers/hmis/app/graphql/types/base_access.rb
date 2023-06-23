@@ -19,7 +19,15 @@ module Types
       end
     end
 
-    def self.can(permission, field_name: nil, method_name: nil, root: false, **field_attrs)
+    def self.root_can(permission, **field_attrs)
+      field permission, Boolean, null: false, **field_attrs
+      define_method(permission) do
+        current_user.send(permission) || false
+      end
+    end
+
+    # @param permission [String]  can_administer_hmis
+    def self.can(permission, field_name: nil, **field_attrs)
       field_name ||= "can_#{permission}"
 
       field field_name, Boolean, null: false, **field_attrs
@@ -27,19 +35,12 @@ module Types
       define_method(field_name) do
         return false unless current_user&.present?
 
-        method_name ||= root ? "can_#{permission}?" : "can_#{permission}_for?"
-        return false unless current_user.respond_to?(method_name)
-
-        if root
-          current_user.send(method_name) || false
+        loader = current_user.entity_access_loader(object)
+        if loader
+          dataloader.with(Sources::UserEntityAccessSource, current_user, loader).load([object, :"can_#{permission}"])
         else
-          loader = current_user.entity_access_loader(object)
-          if loader
-            dataloader.with(Sources::UserEntityAccessSource, loader).load([object, method_name])
-          else
-            # fallback
-            current_user.send(method_name, object) || false
-          end
+          # fallback
+          current_user.send("can_#{permission}_for?", object) || false
         end
       end
     end

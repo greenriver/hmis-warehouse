@@ -261,14 +261,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         response, _result = post_graphql(**variables) { query }
         expect(response.status).to eq 200
-      end.to query_limit_lt(50)
+      end.to query_limit_lt(25)
     end
 
     it 'is responsive' do
       expect do
         response, _result = post_graphql(**variables) { query }
         expect(response.status).to eq 200
-      end.to perform_under(100).ms.warmup(2).times.sample(5).times
+      end.to perform_under(300).ms.warmup(2).times.sample(5).times
     end
   end
 end

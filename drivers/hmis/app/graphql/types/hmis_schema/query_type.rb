@@ -177,7 +177,7 @@ module Types
 
     access_field do
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
-        can perm, field_name: perm, method_name: perm, root: true
+        root_can perm
       end
     end
 

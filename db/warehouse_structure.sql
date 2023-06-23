@@ -50325,7 +50325,7 @@ CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree
 -- Name: uidx_external_ids_source_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE (((namespace)::text <> 'ac_hmis_mci'::text) OR (namespace IS NULL));
+CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
 
 
 --

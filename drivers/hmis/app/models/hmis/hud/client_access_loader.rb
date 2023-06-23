@@ -5,69 +5,44 @@
 ###
 
 class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
+  # permissions check for a collection of tuples of [entity, permission]
+  # note the same entity could appear more than once in items with different permissions
+  # @param items Array<Array<Hmis::Hud::Client, String>>
+  # @return Array<Boolean>
   def fetch(items)
-    resolved = {}
+    client_ids = items.map { |i| i.first.id }
 
-    client_ids = items.map { |a| a.first.id }
+    orphan_client_ids = access_group_ids_by_client_id = Hmis::Hud::Project
+      .joins(:clients_including_wip)
+      .where.not(client_projects: { client_id: client_ids })
+      .pluck(Arel.sql('Client.id'))
 
-    access_groups_by_client_id = Hmis::Hud::Project
+    access_group_ids_by_client_id = Hmis::Hud::Project
       .joins(:client_projects, :group_viewable_entities)
-      .where(client_projects: {client_id: client_ids})
-      .select('Client.id, group_viewable_entities.access_group_id')
+      .where(client_projects: { client_id: client_ids - orphan_client_ids })
+      .pluck('client_projects.client_id', 'group_viewable_entities.access_group_id')
+      .group_by(&:first)
+      .transform_values(&:last)
 
-    # user roles by access group id
-    roles_by_access_group_id = user.roles.group_by('access_groups.id')
+    roles_by_access_group_id = user.roles
+      .joins(:access_controls)
+      .select('hmis_roles.*, hmis_access_controls.access_group_id AS access_group_id')
+      .group_by(&:access_group_id)
 
-    roles_by_group_id = Hmis::Role
-      .joins(project: :client)
-      .where('Client.id in ?', client_ids - resolved.keys)
-      .group('Client.id')
-
+    orphan_client_ids = orphan_client_ids.to_set
     items.each do |item|
-      client, permission_method = item
-
-      access_groups = access_groups_by_client_id[client.id]
-      next if access_groups.blank?
-
-      roles = access_groups.map { |g| roles_by_group_id[g.id] }.compact
-
-      resolved[client.id] = roles.any? do |role|
-        role[permission_method]
+      client, permission = item
+      if client.id.in?(orphan_client_ids)
+        # client is not associated with a project
+        true
+      else
+        access_group_ids = access_group_ids_by_client_id[client.id]
+        access_group_ids.detect do |access_group_id|
+          (roles_by_access_group_id[access_group_id] || []).detect do |role|
+            role.grants?(permission)
+          end
+        end
       end
     end
-
-    client_ids.map { |id| !!resolved[id] }
   end
-
-    # enrollments_by_client = Hmis::Hud::Client.joins(:enrollments)
-    #   .group('Client.id')
-    #   .where(id: client_ids)
-
-    # items.each do |item|
-    #   client, permission_method = item
-
-    #   if user.send(permission_method)
-    #     enrollments = enrollments_by_client[client.id]
-    #     # clients that have no enrollments have global access
-    #     resolved[client.id] = true if enrollments.empty?
-    #   else
-    #     resolved[client.id] = false
-    #   end
-    # end
-
-    # projects = Hmis::Hud::Project.joins(:client)
-    # projects = Hmis::Wip.enrollments.where(client: client_ids).select()to_sql
-    # access_group_ids = Hmis::GroupViewableEntity.includes_entities(projects).pluck(:access_group_id)
-
-  #def get_projects_by_client_id(client_ids)
-
-  #  #wip_enrollment_projects = Hmis::Wip.enrollments
-  #  #  .where(client_id: client_ids)
-  #  #  .pluck(:project_id, :client_id)
-
-  #  #@Hmis::Hud::Project.joins(:client)
-  #  #@  .where('Client.id in ?', client_ids)
-  #  #@  .group('Client.id')
-  #end
-
 end
