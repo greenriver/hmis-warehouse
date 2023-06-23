@@ -31,7 +31,7 @@ Rails.application.config.filter_parameters += [
   :cell,
   :phone,
   :email,
-  :zip
+  :zip,
   :aliases,
   :birthdate,
 ]
