@@ -11,6 +11,9 @@ module Hmis
     belongs_to :access_group, class_name: '::Hmis::AccessGroup', inverse_of: :group_viewable_entities
     belongs_to :entity, polymorphic: true
 
+    has_many :group_viewable_entity_projects
+    has_many :projects, through: :group_viewable_entity_projects, source: :project
+
     scope :projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
     scope :organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
     scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }

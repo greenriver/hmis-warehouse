@@ -28,6 +28,12 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :units, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 
+  has_many :client_projects
+  has_many :clients_including_wip, through: :client_projects, source: :client
+  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
+  has_many :households_including_wip, through: :client_projects, source: :household
+
+
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   # Households in this Project, NOT including WIP Enrollments
@@ -121,10 +127,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
     operating_end_date >= Date.current
   end
-
-  has_many :client_projects
-  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
-  has_many :households_including_wip, through: :client_projects, source: :household
 
   def close_related_funders_and_inventory!
     funders.where(end_date: nil).update_all(end_date: operating_end_date)

@@ -11,8 +11,8 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
     client_ids = items.map { |a| a.first.id }
 
     access_groups_by_client_id = Hmis::Hud::Project
-      .joins(:client, :group_viewable_entities)
-      .where('Client.id in ?', client_ids)
+      .joins(:client_projects, :group_viewable_entities)
+      .where(client_projects: {client_id: client_ids})
       .select('Client.id, group_viewable_entities.access_group_id')
 
     # user roles by access group id
