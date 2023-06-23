@@ -22,7 +22,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
   describe 'client search' do

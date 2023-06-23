@@ -12,9 +12,10 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
   def fetch(items)
     client_ids = items.map { |i| i.first.id }
 
-    orphan_client_ids = access_group_ids_by_client_id = Hmis::Hud::Project
-      .joins(:clients_including_wip)
-      .where.not(client_projects: { client_id: client_ids })
+    orphan_client_ids = access_group_ids_by_client_id = Hmis::Hud::Client
+      .left_outer_joins(:client_projects)
+      .where(id: client_ids)
+      .where(client_projects: {project_id: nil})
       .pluck(Arel.sql('Client.id'))
 
     access_group_ids_by_client_id = Hmis::Hud::Project
