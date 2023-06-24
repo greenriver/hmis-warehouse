@@ -5,7 +5,7 @@
 
 .d-flex.mb-2
   %h1= content_for :title
-
+  .ml-auto= render 'report_downloads/report_download', export: @pdf_export, excel_export: nil, excel_download_path: nil
 .well.mb-4
   .report-parameters
     = @report.describe_filter_as_html(@report.known_params)
