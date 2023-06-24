@@ -15,14 +15,13 @@ class Hmis::Hud::ProjectAccessLoader < Hmis::BaseAccessLoader
     access_group_ids_by_project_id = Hmis::Hud::Project
       .joins(:group_viewable_entities)
       .where(id: project_ids)
-      .pluck('Project.id', 'group_viewable_entities.access_group_id')
-      .group_by(&:first)
-      .transform_values(&:last)
+      .pluck(arel.p_t[:id], 'group_viewable_entities.access_group_id')
+      .group_by(&:shift).transform_values(&:flatten)
 
-    items.each do |item|
+    items.map do |item|
       project, permission = item
       access_group_ids = access_group_ids_by_project_id[project.id] || []
-      access_groups_grant_permission?(access_group_ids, permission)
+      user_access_groups_grant_permission?(access_group_ids, permission)
     end
   end
 end

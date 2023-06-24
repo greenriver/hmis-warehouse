@@ -36,9 +36,9 @@ module Types
         return false unless current_user&.present?
 
         loader = current_user.entity_access_loader(object)
-        if loader.nil?
-          project = object.class.reflect_on_association(:project) && load_ar_association(object, :project)
-          loader = current_user.entity_access_loader(project)
+        if loader.is_a?(Symbol)
+          # loader is an alias
+          loader = current_user.entity_access_loader(load_ar_association(object, loader))
         end
         raise "missing loader for #{object.class}" unless loader
 

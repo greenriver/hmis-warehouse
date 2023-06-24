@@ -10,26 +10,39 @@ class Hmis::BaseAccessLoader
     self.user = user
   end
 
+  # helper object to prevent pollution
+  def arel
+    @arel ||= Hmis::BaseAccessLoader::ArelHelper.new
+  end
+
+  class Hmis::BaseAccessLoader::ArelHelper
+    include Hmis::Concerns::HmisArelHelper
+  end
+
   def fetch_one(entity, permission)
     fetch([[entity, permission]]).first
   end
 
   # graphql's batch data loader identity. See Dataloader.batch_key_for
   def batch_loader_id
-    "#{self.class.name}#{user.id}"
+    "#{self.class.name}:#{user.id}"
   end
 
-  def roles_by_access_group_id
-    @roles_by_access_group_id ||= user.roles
+  # the user roles grouped by the role's access_group_id
+  # @return [Hash{access_group_id, Array<Hmis::Role>}]]
+  def user_roles_by_access_group_id
+    @user_roles_by_access_group_id ||= user.roles
       .joins(:access_controls)
       .select('hmis_roles.*, hmis_access_controls.access_group_id AS access_group_id')
       .group_by(&:access_group_id)
   end
 
-  # @param access_group_ids [Array<ID>, string]
-  def access_groups_grant_permission?(access_group_ids, permission)
+  # find the intersection the user roles, access_groups, and a permission
+  # @param access_group_ids [Array<ID>] the access groups for an entity
+  # @param permission [PermissionId]
+  def user_access_groups_grant_permission?(access_group_ids, permission)
     access_group_ids.detect do |access_group_id|
-      (roles_by_access_group_id[access_group_id] || []).detect do |role|
+      (user_roles_by_access_group_id[access_group_id] || []).detect do |role|
         role.grants?(permission)
       end
     end

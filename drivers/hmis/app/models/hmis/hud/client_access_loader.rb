@@ -15,25 +15,24 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
     orphan_client_ids = access_group_ids_by_client_id = Hmis::Hud::Client
       .left_outer_joins(:client_projects)
       .where(id: client_ids)
-      .where(client_projects: {project_id: nil})
-      .pluck(Arel.sql('Client.id'))
+      .where(client_projects: { project_id: nil })
+      .pluck(arel.c_t[:id])
 
     access_group_ids_by_client_id = Hmis::Hud::Project
       .joins(:client_projects, :group_viewable_entities)
       .where(client_projects: { client_id: client_ids - orphan_client_ids })
       .pluck('client_projects.client_id', 'group_viewable_entities.access_group_id')
-      .group_by(&:first)
-      .transform_values(&:last)
+      .group_by(&:shift).transform_values(&:flatten)
 
     orphan_client_ids = orphan_client_ids.to_set
-    items.each do |item|
+    items.map do |item|
       client, permission = item
       if client.id.in?(orphan_client_ids)
         # client is not associated with a project, grant permission
         user.permission?(permission)
       else
         access_group_ids = access_group_ids_by_client_id[client.id] || []
-        access_groups_grant_permission?(access_group_ids, permission)
+        user_access_groups_grant_permission?(access_group_ids, permission)
       end
     end
   end

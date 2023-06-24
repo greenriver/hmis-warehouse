@@ -15,14 +15,13 @@ class Hmis::Hud::OrganizationAccessLoader < Hmis::BaseAccessLoader
     access_group_ids_by_organization_id = Hmis::Hud::Organization
       .where(id: organization_ids)
       .joins(:group_viewable_entities)
-      .pluck('Organization.id', 'group_viewable_entities.access_group_id')
-      .group_by(&:first)
-      .transform_values(&:last)
+      .pluck(arel.o_t[:id], 'group_viewable_entities.access_group_id')
+      .group_by(&:shift).transform_values(&:flatten)
 
-    items.each do |item|
+    items.map do |item|
       organization, permission = item
       access_group_ids = access_group_ids_by_organization_id[organization.id] || []
-      access_groups_grant_permission?(access_group_ids, permission)
+      user_access_groups_grant_permission?(access_group_ids, permission)
     end
   end
 end
