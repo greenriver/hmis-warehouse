@@ -61,13 +61,12 @@ class Hmis::User < ApplicationRecord
       # Just return false if we don't have this permission at all for anything
       return false unless send("#{permission}?")
 
-      loader = entity_access_loader(entity)
-      if loader.is_a?(Symbol)
-        # loader is an alias
-        entity = entity.send(loader)
-        loader = entity_access_loader(entity)
+      loader, subject = entity_access_loader(entity) do |record, association|
+        record.send(association)
       end
-      loader.fetch_one(entity, permission)
+      raise "missing loader for #{entity.class.name}##{entity.id}" unless loader
+
+      loader.fetch_one(subject, permission)
     end
 
     # Provide a scope for each permission to get any user who qualifies
@@ -82,23 +81,47 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  # The access loader for an entity, or an alias to an association on the entity
-  # @return [Hmis::BaseLoader, Symbol, nil]
-  def entity_access_loader(entity)
-    case entity
-    when Hmis::Hud::Client
-      Hmis::Hud::ClientAccessLoader.new(self)
-    when Hmis::Hud::Project
-      Hmis::Hud::ProjectAccessLoader.new(self)
-    when Hmis::Hud::Organization
-      Hmis::Hud::OrganizationAccessLoader.new(self)
+  # follow the association chain
+  # @param entity [#entity_record] active record entity
+  # @param safety [Integer] recursive-call safety counter
+  protected def alias_access_loader(entity, safety: 0, &block)
+    raise if (safety += 1) > 10
+
+    resolved = case entity
+    when Hmis::Organization
+      block.call(entity, :data_source)
+    when Hmis::Project
+      block.call(entity, entity.organization_id ? :organization : :data_source)
     when Hmis::File
       # carry logic from previous implementation.
       # not sure if the distinction between enrollment matters
-      entity.enrollment_id ? :enrollment : :client
+      block.call(entity, entity.enrollment_id ? :enrollment : :client)
     else
-      entity.class.reflect_on_association(:project) ? :project : nil
+      entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
     end
+    resolved ? entity_access_loader(resolved, safety: safety, &block) : nil
+  end
+
+  # The access loader for an entity
+  # @param entity [#entity_record] active record entity
+  # @param safety [Integer] recursive-call safety counter
+  # @return [Array<Hmis::BaseLoader, #entity>]
+  def entity_access_loader(entity, safety: 0, &block)
+    raise if (safety += 1) > 10
+
+    loader = nil
+    if entity.persisted?
+      loader = case entity
+      when Hmis::Hud::Client
+        Hmis::Hud::ClientAccessLoader.new(self)
+      when Hmis::Hud::Project
+        Hmis::Hud::ProjectAccessLoader.new(self)
+      when Hmis::Hud::Organization
+        Hmis::Hud::OrganizationAccessLoader.new(self)
+      end
+    end
+    loader ||= alias_access_loader(entity, safety: safety, &block)
+    loader ? [loader, entity] : nil
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)

@@ -36,14 +36,13 @@ module Types
       define_method(field_name) do
         return false unless current_user&.present?
 
-        loader = current_user.entity_access_loader(object)
-        subject = entity
-        if loader.is_a?(Symbol)
-          # loader is an alias
-          subject = load_ar_association(object, loader)
-          loader = current_user.entity_access_loader(subject)
+        # Just return false if we don't have this permission at all for anything
+        return false unless send("#{permission}?")
+
+        loader, subject = current_user.entity_access_loader(object) do |record, association|
+          load_ar_association(record, association)
         end
-        raise "missing loader for #{object.class}" unless loader
+        raise "missing loader for #{object.class.name}##{object.id}" unless loader
 
         dataloader.with(Sources::UserEntityAccessSource, current_user, loader).load([subject, :"can_#{permission}"])
       end
