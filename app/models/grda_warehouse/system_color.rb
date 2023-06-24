@@ -17,7 +17,7 @@ module GrdaWarehouse
     def self.as_css
       css = all.map do |color|
         color_css = ".#{color.slug} { background-color: #{color.background_color}; "
-        color_css += "color: #{color.foreground_color}; " if color.foreground_color.present?
+        color_css += "color: #{color.calculated_foreground_color(color.background_color)}; "
         color_css + '}'
       end
       css.join("\n")

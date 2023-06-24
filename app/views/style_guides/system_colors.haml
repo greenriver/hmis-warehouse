@@ -1,0 +1,8 @@
+%h1 System Colors
+%p The following are available via:
+%code GrdaWarehouse::SystemColor.color_for(slug, id)
+- colors = GrdaWarehouse::SystemColor.all.index_by(&:slug)
+- GrdaWarehouse::SystemColor.default_colors.each do |section, colors|
+  - colors.each do |i, color|
+    - slug = "#{section}-#{i}"
+    .mb-4.p-4{ class: slug } .#{slug}
