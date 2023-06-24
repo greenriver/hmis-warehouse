@@ -15075,12 +15075,14 @@ CREATE TABLE public.project_project_groups (
 
 CREATE VIEW public.hmis_group_viewable_entity_projects AS
  SELECT group_viewable_entities.id AS group_viewable_entity_id,
+    NULL::integer AS organization_id,
     "Project".id AS project_id
    FROM (public.group_viewable_entities
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = group_viewable_entities.entity_id))))
   WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (group_viewable_entities.deleted_at IS NULL))
 UNION
  SELECT group_viewable_entities.id AS group_viewable_entity_id,
+    "Organization".id AS organization_id,
     "Project".id AS project_id
    FROM ((public.group_viewable_entities
      JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = group_viewable_entities.entity_id))))
@@ -15088,13 +15090,16 @@ UNION
   WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (group_viewable_entities.deleted_at IS NULL))
 UNION
  SELECT group_viewable_entities.id AS group_viewable_entity_id,
+    "Organization".id AS organization_id,
     "Project".id AS project_id
-   FROM ((public.group_viewable_entities
+   FROM (((public.group_viewable_entities
      JOIN public.data_sources ON (((data_sources.deleted_at IS NULL) AND (data_sources.id = group_viewable_entities.entity_id))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND (data_sources.id = "Project".data_source_id))))
+     LEFT JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND (data_sources.id = "Project".data_source_id))))
+     LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND (data_sources.id = "Organization".data_source_id))))
   WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.deleted_at IS NULL))
 UNION
  SELECT group_viewable_entities.id AS group_viewable_entity_id,
+    NULL::integer AS organization_id,
     "Project".id AS project_id
    FROM (((public.group_viewable_entities
      JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = group_viewable_entities.entity_id))))

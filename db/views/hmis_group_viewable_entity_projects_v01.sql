@@ -2,6 +2,7 @@
   -- projects
   SELECT
     "group_viewable_entities"."id" AS group_viewable_entity_id,
+    NULL as organization_id,
     "Project"."id" AS project_id
   FROM
     "group_viewable_entities"
@@ -16,6 +17,7 @@ UNION
   -- projects through organization
   SELECT
     "group_viewable_entities"."id" AS group_viewable_entity_id,
+    "Organization"."id" AS organization_id,
     "Project"."id" AS project_id
   FROM
     "group_viewable_entities"
@@ -30,16 +32,19 @@ UNION
 )
 UNION
 (
-  -- projects through data_source
+  -- projects and organization through data_source
   SELECT
     "group_viewable_entities"."id" AS group_viewable_entity_id,
+    "Organization"."id" as organization_id,
     "Project"."id" AS project_id
   FROM
     "group_viewable_entities"
     INNER JOIN "data_sources" ON "data_sources"."deleted_at" IS NULL
     AND "data_sources"."id" = "group_viewable_entities"."entity_id"
-    INNER JOIN "Project" ON "Project"."DateDeleted" IS NULL
+    LEFT JOIN "Project" ON "Project"."DateDeleted" IS NULL
     AND "data_sources"."id" = "Project"."data_source_id"
+    LEFT JOIN "Organization" ON "Organization"."DateDeleted" IS NULL
+    AND "data_sources"."id" = "Organization"."data_source_id"
   WHERE
     "group_viewable_entities"."entity_type" = 'GrdaWarehouse::DataSource'
     AND "group_viewable_entities"."deleted_at" IS NULL
@@ -49,6 +54,7 @@ UNION
   -- projects through project_groups
   SELECT
     "group_viewable_entities"."id" AS group_viewable_entity_id,
+    NULL as organization_id,
     "Project"."id" AS project_id
   FROM
     "group_viewable_entities"

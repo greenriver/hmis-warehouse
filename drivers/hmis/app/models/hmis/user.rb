@@ -85,12 +85,12 @@ class Hmis::User < ApplicationRecord
   # @param entity [#entity_record] active record entity
   # @param safety [Integer] recursive-call safety counter
   protected def alias_access_loader(entity, safety: 0, &block)
-    raise if (safety += 1) > 10
+    raise if (safety += 1) > 5
 
     resolved = case entity
-    when Hmis::Organization
+    when Hmis::Hud::Organization
       block.call(entity, :data_source)
-    when Hmis::Project
+    when Hmis::Hud::Project
       block.call(entity, entity.organization_id ? :organization : :data_source)
     when Hmis::File
       # carry logic from previous implementation.
@@ -107,7 +107,7 @@ class Hmis::User < ApplicationRecord
   # @param safety [Integer] recursive-call safety counter
   # @return [Array<Hmis::BaseLoader, #entity>]
   def entity_access_loader(entity, safety: 0, &block)
-    raise if (safety += 1) > 10
+    raise if (safety += 1) > 5
 
     loader = nil
     if entity.persisted?
@@ -120,8 +120,11 @@ class Hmis::User < ApplicationRecord
         Hmis::Hud::OrganizationAccessLoader.new(self)
       end
     end
-    loader ||= alias_access_loader(entity, safety: safety, &block)
-    loader ? [loader, entity] : nil
+    if loader
+      [loader, entity]
+    else
+      alias_access_loader(entity, safety: safety, &block)
+    end
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)

@@ -34,6 +34,7 @@ module Mutations
 
       # Check permission
       allowed = true
+      # FIXME: double check logic here. This permissions check is ignored if there's an "allowed_proc" defined
       allowed = current_user.permissions_for?(record, *Array(definition.record_editing_permission)) if definition.record_editing_permission.present?
       allowed = definition.allowed_proc.call(record, current_user) if definition.allowed_proc.present?
       raise HmisErrors::ApiError, 'Access Denied' unless allowed
