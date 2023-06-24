@@ -13,7 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:search_term) { 'ross' }
   let!(:enrollments) {
-    2.times.map do
+    5.times.map do
       user = create :hmis_hud_user, data_source: ds1
       client = create :hmis_hud_client_complete, data_source: ds1, user: user, LastName: search_term
       create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: user

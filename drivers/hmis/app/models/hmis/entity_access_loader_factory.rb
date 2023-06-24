@@ -37,7 +37,9 @@ class Hmis::EntityAccessLoaderFactory
     when Hmis::Hud::Project
       Hmis::Hud::ProjectAccessLoader if entity.persisted?
     when Hmis::Hud::Organization
-      Hmis::Hud::OrganizationAccessLoader
+      Hmis::Hud::OrganizationAccessLoader if entity.persisted?
+    when GrdaWarehouse::DataSource
+      Hmis::DataSourceAccessLoader if entity.persisted?
     end
     if loader
       @safety = nil
@@ -54,14 +56,14 @@ class Hmis::EntityAccessLoaderFactory
     check_safety
 
     resolved = case entity
-    when Hmis::Hud::Project
-      block.call(entity, :organization)
+    when Hmis::File
+      entity.new_record? ? entity.client : block.call(entity, :client)
     when Hmis::Hud::HmisService
       block.call(entity, :enrollment)
-    when Hmis::File
-      # carry logic from previous implementation.
-      # not sure if the distinction between enrollment matters
-      block.call(entity, entity.enrollment_id ? :enrollment : :client)
+    when Hmis::Hud::Project
+      entity.organization if entity.new_record?
+    when Hmis::Hud::Organization
+      entity.data_source if entity.new_record?
     else
       entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
     end
