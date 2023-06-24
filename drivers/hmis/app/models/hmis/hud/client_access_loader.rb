@@ -10,7 +10,8 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
   # @param items [Array<Array<Hmis::Hud::Client, String>>]
   # @return [Array<Boolean>]
   def fetch(items)
-    client_ids = items.map { |i| i.first.id }
+    validate_items(items, Hmis::Hud::Client)
+    client_ids = items.map { |i| i.first.id }.uniq
 
     orphan_client_ids = access_group_ids_by_client_id = Hmis::Hud::Client
       .left_outer_joins(:client_projects)

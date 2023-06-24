@@ -10,7 +10,8 @@ class Hmis::Hud::OrganizationAccessLoader < Hmis::BaseAccessLoader
   # @param items [Array<Array<Hmis::Hud::Organization, String>>]
   # @return [Array<Boolean>]
   def fetch(items)
-    organization_ids = items.map { |i| i.first.id }
+    validate_items(items, Hmis::Hud::Organization)
+    organization_ids = items.map { |i| i.first.id }.uniq
 
     access_group_ids_by_organization_id = Hmis::Hud::Organization
       .where(id: organization_ids)

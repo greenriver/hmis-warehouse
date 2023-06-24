@@ -26,7 +26,8 @@ module Types
       end
     end
 
-    # @param permission [String]  can_administer_hmis
+    # @param permission [Symbol] permission name, i.e :can_administer_hmis
+    # @param field_name [Symbol] graphql field name
     def self.can(permission, field_name: nil, **field_attrs)
       field_name ||= "can_#{permission}"
 
@@ -36,13 +37,15 @@ module Types
         return false unless current_user&.present?
 
         loader = current_user.entity_access_loader(object)
+        subject = entity
         if loader.is_a?(Symbol)
           # loader is an alias
-          loader = current_user.entity_access_loader(load_ar_association(object, loader))
+          subject = load_ar_association(object, loader)
+          loader = current_user.entity_access_loader(subject)
         end
         raise "missing loader for #{object.class}" unless loader
 
-        dataloader.with(Sources::UserEntityAccessSource, current_user, loader).load([object, :"can_#{permission}"])
+        dataloader.with(Sources::UserEntityAccessSource, current_user, loader).load([subject, :"can_#{permission}"])
       end
     end
   end

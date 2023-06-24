@@ -10,7 +10,8 @@ class Hmis::Hud::ProjectAccessLoader < Hmis::BaseAccessLoader
   # @param items [Array<Array<Hmis::Hud::Project, String>>]
   # @return [Array<Boolean>]
   def fetch(items)
-    project_ids = items.map { |i| i.first.id }
+    validate_items(items, Hmis::Hud::Project)
+    project_ids = items.map { |i| i.first.id }.uniq
 
     access_group_ids_by_project_id = Hmis::Hud::Project
       .joins(:group_viewable_entities)

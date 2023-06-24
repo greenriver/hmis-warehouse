@@ -64,7 +64,8 @@ class Hmis::User < ApplicationRecord
       loader = entity_access_loader(entity)
       if loader.is_a?(Symbol)
         # loader is an alias
-        loader = entity_access_loader(entity.send(loader))
+        entity = entity.send(loader)
+        loader = entity_access_loader(entity)
       end
       loader.fetch_one(entity, permission)
     end
@@ -81,8 +82,7 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  # The access loader for an entity, or an alias on entity
-  # that should be called
+  # The access loader for an entity, or an alias to an association on the entity
   # @return [Hmis::BaseLoader, Symbol, nil]
   def entity_access_loader(entity)
     case entity
@@ -93,7 +93,9 @@ class Hmis::User < ApplicationRecord
     when Hmis::Hud::Organization
       Hmis::Hud::OrganizationAccessLoader.new(self)
     when Hmis::File
-      :client
+      # carry logic from previous implementation.
+      # not sure if the distinction between enrollment matters
+      entity.enrollment_id ? :enrollment : :client
     else
       entity.class.reflect_on_association(:project) ? :project : nil
     end
