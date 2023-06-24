@@ -31,7 +31,6 @@ class Hmis::BaseAccessLoader
   def validate_items(items, expected_type)
     items.each do |record, _|
       raise "unexpected #{record.class.name}, expected #{expected_type}" unless record.is_a?(expected_type)
-      raise "unexpected unsaved #{record.class.name}" unless record.persisted?
     end
   end
 

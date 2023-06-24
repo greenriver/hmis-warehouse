@@ -31,21 +31,19 @@ class Hmis::EntityAccessLoaderFactory
     @safety ||= 0
     check_safety
 
-    loader = nil
-    if entity.persisted?
-      loader = case entity
-      when Hmis::Hud::Client
-        Hmis::Hud::ClientAccessLoader
-      when Hmis::Hud::Project
-        Hmis::Hud::ProjectAccessLoader
-      when Hmis::Hud::Organization
-        Hmis::Hud::OrganizationAccessLoader
-      end
+    loader = case entity
+    when Hmis::Hud::Client
+      Hmis::Hud::ClientAccessLoader
+    when Hmis::Hud::Project
+      Hmis::Hud::ProjectAccessLoader if entity.persisted?
+    when Hmis::Hud::Organization
+      Hmis::Hud::OrganizationAccessLoader
     end
     if loader
       @safety = nil
       [loader.new(@user), entity]
     else
+      # recurse
       resolve_association(entity, &block)
     end
   end
@@ -56,16 +54,10 @@ class Hmis::EntityAccessLoaderFactory
     check_safety
 
     resolved = case entity
-    when Hmis::Hud::Client
-      set = block.call(entity, :projects)
-      byebug
-      raise if set.many?
-
-      set.first
-    when Hmis::Hud::Organization
-      block.call(entity, :data_source)
     when Hmis::Hud::Project
-      block.call(entity, entity.organization_id ? :organization : :data_source)
+      block.call(entity, :organization)
+    when Hmis::Hud::HmisService
+      block.call(entity, :enrollment)
     when Hmis::File
       # carry logic from previous implementation.
       # not sure if the distinction between enrollment matters

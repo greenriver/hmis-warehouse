@@ -11,9 +11,9 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
   # @return [Array<Boolean>]
   def fetch(items)
     validate_items(items, Hmis::Hud::Client)
-    client_ids = items.map { |i| i.first.id }.uniq
+    client_ids = items.map { |i| i.first.id }.compact.uniq
 
-    orphan_client_ids = access_group_ids_by_client_id = Hmis::Hud::Client
+    orphan_client_ids = Hmis::Hud::Client
       .left_outer_joins(:client_projects)
       .where(id: client_ids)
       .where(client_projects: { project_id: nil })
@@ -28,7 +28,7 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
     orphan_client_ids = orphan_client_ids.to_set
     items.map do |item|
       client, permission = item
-      if client.id.in?(orphan_client_ids)
+      if client.persisted? ? client.id.in?(orphan_client_ids) : client.enrollments.empty?
         # client is not associated with a project, grant permission
         user.permission?(permission)
       else

@@ -11,7 +11,7 @@ class Hmis::Hud::OrganizationAccessLoader < Hmis::BaseAccessLoader
   # @return [Array<Boolean>]
   def fetch(items)
     validate_items(items, Hmis::Hud::Organization)
-    organization_ids = items.map { |i| i.first.id }.uniq
+    organization_ids = items.map { |i| i.first.id }.compact.uniq
 
     access_group_ids_by_organization_id = Hmis::Hud::Organization
       .where(id: organization_ids)
@@ -21,8 +21,12 @@ class Hmis::Hud::OrganizationAccessLoader < Hmis::BaseAccessLoader
 
     items.map do |item|
       organization, permission = item
-      access_group_ids = access_group_ids_by_organization_id[organization.id] || []
-      user_access_groups_grant_permission?(access_group_ids, permission)
+      if organization.persisted?
+        access_group_ids = access_group_ids_by_organization_id[organization.id] || []
+        user_access_groups_grant_permission?(access_group_ids, permission)
+      else
+        false
+      end
     end
   end
 end
