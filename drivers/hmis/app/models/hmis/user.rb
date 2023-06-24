@@ -61,7 +61,7 @@ class Hmis::User < ApplicationRecord
       # Just return false if we don't have this permission at all for anything
       return false unless send("#{permission}?")
 
-      loader, subject = entity_access_loader(entity) do |record, association|
+      loader, subject = entity_access_loader_factory(entity) do |record, association|
         record.send(association)
       end
       raise "missing loader for #{entity.class.name}##{entity.id}" unless loader
@@ -81,50 +81,9 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  # follow the association chain
-  # @param entity [#entity_record] active record entity
-  # @param safety [Integer] recursive-call safety counter
-  protected def alias_access_loader(entity, safety: 0, &block)
-    raise if (safety += 1) > 5
-
-    resolved = case entity
-    when Hmis::Hud::Organization
-      block.call(entity, :data_source)
-    when Hmis::Hud::Project
-      block.call(entity, entity.organization_id ? :organization : :data_source)
-    when Hmis::File
-      # carry logic from previous implementation.
-      # not sure if the distinction between enrollment matters
-      block.call(entity, entity.enrollment_id ? :enrollment : :client)
-    else
-      entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
-    end
-    resolved ? entity_access_loader(resolved, safety: safety, &block) : nil
-  end
-
-  # The access loader for an entity
-  # @param entity [#entity_record] active record entity
-  # @param safety [Integer] recursive-call safety counter
-  # @return [Array<Hmis::BaseLoader, #entity>]
-  def entity_access_loader(entity, safety: 0, &block)
-    raise if (safety += 1) > 5
-
-    loader = nil
-    if entity.persisted?
-      loader = case entity
-      when Hmis::Hud::Client
-        Hmis::Hud::ClientAccessLoader.new(self)
-      when Hmis::Hud::Project
-        Hmis::Hud::ProjectAccessLoader.new(self)
-      when Hmis::Hud::Organization
-        Hmis::Hud::OrganizationAccessLoader.new(self)
-      end
-    end
-    if loader
-      [loader, entity]
-    else
-      alias_access_loader(entity, safety: safety, &block)
-    end
+  def entity_access_loader_factory(...)
+    @entity_access_loader_factory ||= Hmis::EntityAccessLoaderFactory.new(self)
+    @entity_access_loader_factory.perform(...)
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)

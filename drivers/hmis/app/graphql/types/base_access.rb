@@ -39,7 +39,7 @@ module Types
         # Just return false if we don't have this permission at all for anything
         return false unless send("#{permission}?")
 
-        loader, subject = current_user.entity_access_loader(object) do |record, association|
+        loader, subject = current_user.entity_access_loader_factory(object) do |record, association|
           load_ar_association(record, association)
         end
         raise "missing loader for #{object.class.name}##{object.id}" unless loader
