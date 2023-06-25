@@ -4,7 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ##
 
-# Factory returning the user access loader for a given entity
+# Factory to resolve the user access loader for a given entity. It also resolves
+# the entity that should be passed to the loader. This facilitates batch access checks
 #
 # @example
 #   factory = Hmis::EntityAccessLoaderFactory.new(user)
@@ -22,10 +23,12 @@ class Hmis::EntityAccessLoaderFactory
     @safety = nil
   end
 
-  # Given an entity, return a tuple of the loader and the entity to resolve
+  # Given an entity, return a tuple of the loader and the entity call it against
+  #
   # @param entity [#entity_record] active record entity
-  # # @yieldparam [#entity_record] record
-  # # @yieldparam [Symbol] assocation name
+  # @yieldparam [#entity_record] record
+  # @yieldparam [Symbol] association name
+  # @yieldreturn [#resolved, nil] the association (record.association)
   # @return [Array<Hmis::BaseLoader, #entity>]
   def perform(entity, &block)
     @safety ||= 0
@@ -33,6 +36,7 @@ class Hmis::EntityAccessLoaderFactory
 
     loader = case entity
     when Hmis::Hud::Client
+      # The client access loader can handle new clients directly
       Hmis::Hud::ClientAccessLoader
     when Hmis::Hud::Project
       Hmis::Hud::ProjectAccessLoader if entity.persisted?
@@ -57,13 +61,19 @@ class Hmis::EntityAccessLoaderFactory
 
     resolved = case entity
     when Hmis::File
-      entity.new_record? ? entity.client : block.call(entity, :client)
+      # regardless of if it's a new record, use the file's client
+      # FIXME: this used to use the optional file.enrollment, confirm this doesn't matter
+      block.call(entity, :client)
     when Hmis::Hud::HmisService, Hmis::Hud::Service
+      # This will cascade to enrollment.project. We go through enrollment since
+      # service. project is just a method on these models
       block.call(entity, :enrollment)
     when Hmis::Hud::Project
-      entity.organization if entity.new_record?
+      # for new projects, check the organization
+      block.call(entity, :organization) if entity.new_record?
     when Hmis::Hud::Organization
-      entity.data_source if entity.new_record?
+      # for new organizations, check the data_source
+      block.call(entity, :data_source) if entity.new_record?
     else
       entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
     end
