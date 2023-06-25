@@ -4,21 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Access Loaders implement th DataLoader pattern for our GraphQL API. This allows
+# the efficient loading and caching of a user's permissions for a collection of
+# entities.
+
 class Hmis::BaseAccessLoader
   attr_accessor :user
   def initialize(user)
     self.user = user
   end
 
-  # helper object to prevent pollution
-  def arel
-    @arel ||= Hmis::BaseAccessLoader::ArelHelper.new
-  end
-
-  class Hmis::BaseAccessLoader::ArelHelper
-    include Hmis::Concerns::HmisArelHelper
-  end
-
+  # convenience method for singleton checks
   def fetch_one(entity, permission)
     fetch([[entity, permission]]).first
   end
@@ -28,8 +24,17 @@ class Hmis::BaseAccessLoader
     "#{self.class.name}:#{user.id}"
   end
 
+  protected
+
+  # helper arel object for table quoting
+  def arel
+    Hmis::ArelHelper.instance
+  end
+
+  # safety check to make sure the collection's items are as expected
   def validate_items(items, expected_type)
     items.each do |record, _|
+      # maybe should check the permission here too
       raise "unexpected #{record.class.name}, expected #{expected_type}" unless record.is_a?(expected_type)
     end
   end

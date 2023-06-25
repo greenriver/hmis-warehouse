@@ -3,11 +3,9 @@
   SELECT
     "group_viewable_entities"."id" AS group_viewable_entity_id,
     NULL as organization_id,
-    "Project"."id" AS project_id
+    "group_viewable_entities"."entity_id" AS project_id
   FROM
     "group_viewable_entities"
-    INNER JOIN "Project" ON "Project"."DateDeleted" IS NULL
-    AND "Project"."id" = "group_viewable_entities"."entity_id"
   WHERE
     "group_viewable_entities"."entity_type" = 'Hmis::Hud::Project'
     AND "group_viewable_entities"."deleted_at" IS NULL

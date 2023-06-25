@@ -57,6 +57,7 @@ module Types
     end
 
     def load_ar_association(object, association, scope: nil)
+      # raise unless object.class.reflect_on_association(association)
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
     end
 

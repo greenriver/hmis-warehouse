@@ -11589,12 +11589,10 @@ CREATE VIEW public.hmis_client_projects AS
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
   WHERE ("Client"."DateDeleted" IS NULL)
 UNION
- SELECT "Client".id AS client_id,
-    "Project".id AS project_id,
-    hmis_wips.client_id AS enrollment_id
-   FROM ((public.hmis_wips
-     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = hmis_wips.client_id))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))));
+ SELECT hmis_wips.client_id,
+    hmis_wips.project_id,
+    hmis_wips.enrollment_id
+   FROM public.hmis_wips;
 
 
 --
@@ -15076,9 +15074,8 @@ CREATE TABLE public.project_project_groups (
 CREATE VIEW public.hmis_group_viewable_entity_projects AS
  SELECT group_viewable_entities.id AS group_viewable_entity_id,
     NULL::integer AS organization_id,
-    "Project".id AS project_id
-   FROM (public.group_viewable_entities
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = group_viewable_entities.entity_id))))
+    group_viewable_entities.entity_id AS project_id
+   FROM public.group_viewable_entities
   WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (group_viewable_entities.deleted_at IS NULL))
 UNION
  SELECT group_viewable_entities.id AS group_viewable_entity_id,
@@ -50404,7 +50401,7 @@ CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree
 -- Name: uidx_external_ids_source_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
+CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE (((namespace)::text <> 'ac_hmis_mci'::text) OR (namespace IS NULL));
 
 
 --
