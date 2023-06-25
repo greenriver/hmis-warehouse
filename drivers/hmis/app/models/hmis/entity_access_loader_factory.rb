@@ -20,7 +20,6 @@ class Hmis::EntityAccessLoaderFactory
   # @param user [Hmis::User]
   def initialize(user)
     @user = user
-    @safety = nil
   end
 
   # Given an entity, return a tuple of the loader and the entity call it against
@@ -30,9 +29,8 @@ class Hmis::EntityAccessLoaderFactory
   # @yieldparam [Symbol] association name
   # @yieldreturn [#resolved, nil] the association (record.association)
   # @return [Array<Hmis::BaseLoader, #entity>]
-  def perform(entity, &block)
-    @safety ||= 0
-    check_safety
+  def perform(entity, safety: 0, &block)
+    check_safety(safety)
 
     loader = case entity
     when Hmis::Hud::Client
@@ -46,18 +44,17 @@ class Hmis::EntityAccessLoaderFactory
       Hmis::DataSourceAccessLoader if entity.persisted?
     end
     if loader
-      @safety = nil
       [loader.new(@user), entity]
     else
       # recurse
-      resolve_association(entity, &block)
+      resolve_association(entity, safety: safety + 1, &block)
     end
   end
 
   # follow the association chain for entities that don't have their own data loader
   # or for entities that are not yet persisted
-  protected def resolve_association(entity, &block)
-    check_safety
+  def resolve_association(entity, safety:, &block)
+    check_safety(safety)
 
     resolved = case entity
     when Hmis::File
@@ -77,11 +74,10 @@ class Hmis::EntityAccessLoaderFactory
     else
       entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
     end
-    resolved ? perform(resolved, &block) : nil
+    resolved ? perform(resolved, safety: safety + 1, &block) : nil
   end
 
-  protected def check_safety
-    @safety += 1
-    raise 'safety count exceeded' if @safety > 5
+  protected def check_safety(safety)
+    raise "safety count exceeded" if safety > 5
   end
 end
