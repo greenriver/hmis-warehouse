@@ -11591,8 +11591,9 @@ CREATE VIEW public.hmis_client_projects AS
 UNION
  SELECT hmis_wips.client_id,
     hmis_wips.project_id,
-    hmis_wips.enrollment_id
-   FROM public.hmis_wips;
+    hmis_wips.source_id AS enrollment_id
+   FROM public.hmis_wips
+  WHERE ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text);
 
 
 --
@@ -50401,7 +50402,7 @@ CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree
 -- Name: uidx_external_ids_source_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE (((namespace)::text <> 'ac_hmis_mci'::text) OR (namespace IS NULL));
+CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
 
 
 --
