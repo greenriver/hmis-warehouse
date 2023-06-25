@@ -19,13 +19,11 @@ UNION
 (
   -- client related to project through wip
   SELECT
-    "Client"."id" AS client_id,
-    "Project"."id" AS project_id,
-    "hmis_wips"."client_id" AS enrollment_id
+    "hmis_wips"."client_id" AS client_id,
+    "hmis_wips"."project_id" AS project_id,
+    "hmis_wips"."enrollment_id" AS enrollment_id
   FROM
     "hmis_wips"
-    INNER JOIN "Client" ON "Client"."DateDeleted" IS NULL
-    AND "Client"."id" = "hmis_wips"."client_id"
-    INNER JOIN "Project" ON "Project"."DateDeleted" IS NULL
-    AND "Project"."id" = "hmis_wips"."project_id"
+  WHERE
+    "hmis_wips.deleted_at" IS NULL
 )
