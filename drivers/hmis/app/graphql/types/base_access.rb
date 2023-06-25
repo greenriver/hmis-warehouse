@@ -37,7 +37,7 @@ module Types
         return false unless current_user&.present?
 
         # Just return false if we don't have this permission at all for anything
-        return false unless send("#{permission}?")
+        return false unless current_user.send("can_#{permission}?")
 
         loader, subject = current_user.entity_access_loader_factory(object) do |record, association|
           load_ar_association(record, association)

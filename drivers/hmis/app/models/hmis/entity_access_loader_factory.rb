@@ -58,7 +58,7 @@ class Hmis::EntityAccessLoaderFactory
     resolved = case entity
     when Hmis::File
       entity.new_record? ? entity.client : block.call(entity, :client)
-    when Hmis::Hud::HmisService
+    when Hmis::Hud::HmisService, Hmis::Hud::Service
       block.call(entity, :enrollment)
     when Hmis::Hud::Project
       entity.organization if entity.new_record?

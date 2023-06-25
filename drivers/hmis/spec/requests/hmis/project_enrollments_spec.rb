@@ -21,7 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:c2) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:e2_wip) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+  let!(:e2_wip) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2 }
 
   describe 'project query' do
     before(:each) do
