@@ -12,4 +12,4 @@
       = link_to label, target, class: ['nav-link', active], style: "border-bottom: 8px solid #{bg_color};", role: :tab, aria: { controls: target, selected: selected }, data: {toggle: :tab, target: target }
 .tab-content.well.mt-0.bt-0
   - pathways.project_type_node_names_with_data.each.with_index do |label, i|
-    = render 'node', label: label, i: i
+    = render 'node', label: label, i: i, pathways: pathways
