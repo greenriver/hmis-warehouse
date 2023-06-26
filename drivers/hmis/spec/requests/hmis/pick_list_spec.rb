@@ -18,12 +18,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, o1) }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'MA-500' }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, o1.as_warehouse, hmis_user)
   end
 
   let(:query) do
@@ -67,9 +67,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'with enrollable project' do
+  describe 'ENROLLABLE_PROJECTS lost' do
     it 'should return no projects if no permission' do
-      remove_permissions(hmis_user, :can_enroll_clients)
+      remove_permissions(access_control, :can_enroll_clients)
       response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
@@ -78,9 +78,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'should only return viewable projects with this permission' do
+    it 'should exclude projects without can_enroll_clients permission' do
       o2 = create(:hmis_hud_organization, data_source: ds1, user: u1)
-      assign_viewable(view_access_group, o2.as_warehouse, hmis_user)
+      create_access_control(hmis_user, o2, without_permission: :can_enroll_clients)
+
       # Viewable but doesn't have enroll permissions, so should not be in pick list
       p2 = create(:hmis_hud_project, organization: o2, data_source: ds1, user: u1)
       # Not viewable at all, so should not be in pick list

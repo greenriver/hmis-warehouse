@@ -1,5 +1,6 @@
 - goal_config = @report.goal_config
-- background_color = if goal_config.present? then "background-color: #{goal_config.color_for(result.percent_valid.to_i)};" else '' end
+-# !important for print -- bootstrap has an !important style that for some reason overrides inline styles
+- background_color = if goal_config.present? then "background-color: #{goal_config.color_for(result.percent_valid.to_i)} !important;" else '' end
 %tr
   %th= result.title
   %td= result.description

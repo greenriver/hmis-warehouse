@@ -92,7 +92,9 @@ module Types
           result = result.merge(input_field => [old_value[input_field], new_value[input_field]])
         end
 
-        result = result.except('UserID', 'id', 'data_source_id', 'DateCreated')
+        # Drop excluded fields
+        excluded_fields = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted']
+        result.reject! { |k| k.underscore.end_with?('_id') || excluded_fields.include?(k) }
 
         result
       end,
@@ -217,6 +219,23 @@ module Types
 
     def email_addresses
       object.contact_points.where(system: :email)
+    end
+
+    def resolve_audit_history
+      address_ids = object.addresses.with_deleted.pluck(:id)
+      name_ids = object.names.with_deleted.pluck(:id)
+      contact_ids = object.contact_points.with_deleted.pluck(:id)
+
+      v_t = GrPaperTrail::Version.arel_table
+      client_changes = v_t[:item_id].eq(object.id).and(v_t[:item_type].in(['Hmis::Hud::Client', 'GrdaWarehouse::Hud::Client']))
+      address_changes = v_t[:item_id].in(address_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientAddress'))
+      name_changes = v_t[:item_id].in(name_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientName'))
+      contact_changes = v_t[:item_id].in(contact_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientContactPoint'))
+
+      GrPaperTrail::Version.where(client_changes.or(address_changes).or(name_changes).or(contact_changes)).
+        where.not(object_changes: nil, event: 'update').
+        unscope(:order).
+        order(created_at: :desc)
     end
   end
 end

@@ -17,6 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
@@ -31,7 +32,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
   let(:mutation) do

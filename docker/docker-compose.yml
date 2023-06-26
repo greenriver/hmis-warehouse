@@ -116,7 +116,7 @@ services:
       - minio
 
   db:
-    image: postgis/postgis:12-3.1-alpine
+    image: postgis/postgis:13-3.3-alpine
     container_name: hmis-warehouse-db
     environment:
       POSTGRES_PASSWORD: postgres

@@ -20,12 +20,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
 
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
   let(:test_input) do
