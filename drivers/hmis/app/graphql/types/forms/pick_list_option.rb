@@ -42,8 +42,6 @@ module Types
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType4, '144:4')
       when 'SUB_TYPE_PROVIDED_5'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType5, '144:5')
-      when 'REFERRAL_OUTCOME'
-        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::PATHReferralOutcome)
       when 'CURRENT_LIVING_SITUATION'
         living_situation_picklist(as: :current)
       when 'DESTINATION'
@@ -81,7 +79,7 @@ module Types
       when 'AVAILABLE_UNITS'
         return [] unless project.present?
 
-        project.units.unoccupied.order(:name, :id).map(&:to_pick_list_option)
+        project.units.unoccupied_on.order(:name, :id).map(&:to_pick_list_option)
       when 'AVAILABLE_FILE_TYPES'
         file_tag_picklist
       when 'CLIENT_ENROLLMENTS'
@@ -94,12 +92,37 @@ module Types
             label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
           }
         end
+
+      when 'ASSIGNED_REFERRAL_POSTING_STATUSES'
+        HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUSES.map do |status|
+          {
+            code: status,
+            label: status.gsub(/_status\z/, '').humanize.titleize,
+          }
+        end
+      when 'DENIED_PENDING_REFERRAL_POSTING_STATUSES'
+        label_map = {
+          'assigned_status' => 'Send Back',
+          'denied_status' => 'Approve Denial',
+        }
+        HmisExternalApis::AcHmis::ReferralPosting::DENIAL_STATUSES.map do |status|
+          {
+            code: status,
+            label: label_map.fetch(status),
+          }
+        end
+      when 'REFERRAL_RESULT_TYPES'
+        # ::HudLists.referral_result_map
+        [
+          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(2), label: 'Client Rejected' },
+          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(3), label: 'Provider Rejected' },
+        ]
       end
     end
 
     def self.unit_types_for_project(project, available_only: false)
       units = project.units
-      units = units.unoccupied if available_only
+      units = units.unoccupied_on if available_only
 
       # Hash { unit type id => num unoccupied }
       unit_type_to_availability = units.group(:unit_type_id).count

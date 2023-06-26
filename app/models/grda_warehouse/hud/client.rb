@@ -53,6 +53,26 @@ module GrdaWarehouse::Hud
     end, **hud_assoc(:PersonalID, 'Assessment')
 
     # operates on source_clients only
+    has_one :most_recent_2023_pathways_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+        scope: pathways,
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
+    # operates on source_clients only
+    has_one :most_recent_2023_transfer_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+        scope: transfer,
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
+    # operates on source_clients only
     has_one :most_recent_current_living_situation, -> do
       one_for_column(
         :InformationDate,
@@ -377,26 +397,6 @@ module GrdaWarehouse::Hud
       text_search(text, client_scope: current_scope)
     end
 
-    scope :age_group, ->(start_age: 0, end_age: nil) do
-      start_age = 0 unless start_age.is_a?(Integer)
-      end_age   = nil unless end_age.is_a?(Integer)
-      if end_age.present?
-        where(DOB: end_age.years.ago..start_age.years.ago)
-      else
-        where(arel_table[:DOB].lteq(start_age.years.ago))
-      end
-    end
-
-    scope :age_group_within_range, ->(start_age: 0, end_age: nil, start_date: Date.current, end_date: Date.current) do
-      start_age = 0 unless start_age.is_a?(Integer)
-      end_age   = nil unless end_age.is_a?(Integer)
-      if end_age.present?
-        where(DOB: (start_date - end_age.years)..(end_date - start_age.years))
-      else
-        where(arel_table[:DOB].lteq(start_date - start_age.years))
-      end
-    end
-
     scope :needs_history_pdf, -> do
       destination.where(generate_history_pdf: true)
     end
@@ -689,11 +689,22 @@ module GrdaWarehouse::Hud
 
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
-    def cohorts_for_dashboard
-      cohort_clients.select do |cc|
-        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
-        cc.active? && cc.cohort&.active? && cc.cohort&.show_on_client_dashboard? && ! meta.inactive
-      end.map(&:cohort).compact.uniq
+    def cohorts_for_dashboard(user)
+      viewable_cohort_ids = GrdaWarehouse::Cohort.viewable_by(user).pluck(:id)
+      cohort_clients.map do |cc|
+        cohort = cc.cohort
+        meta = CohortColumns::Meta.new(cohort: cohort, cohort_client: cc)
+        # cc.active? && cc.cohort&.active? && cc.cohort&.show_on_client_dashboard? && ! meta.inactive
+        next nil unless cohort&.active? && cohort&.show_on_client_dashboard?
+
+        OpenStruct.new(
+          id: cohort.id,
+          name: cohort.name,
+          active: cc.active?,
+          recent_activity: ! meta.inactive,
+          link: viewable_cohort_ids.include?(cohort.id),
+        )
+      end.compact.uniq
     end
 
     def demographic_calculation_logic_description(attribute)

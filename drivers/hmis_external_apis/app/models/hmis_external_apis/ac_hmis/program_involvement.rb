@@ -6,28 +6,26 @@
 
 module HmisExternalApis::AcHmis
   class ProgramInvolvement
-    include ArelHelper
+    include ::Hmis::Concerns::HmisArelHelper
 
     attr_accessor :end_date
-    attr_accessor :program_id
-    attr_accessor :project
+    attr_accessor :program_ids
+    attr_accessor :projects
     attr_accessor :start_date
     attr_accessor :status_message
 
     def initialize(params)
       self.end_date = params[:end_date]
-      self.program_id = params[:program_id]
+      self.program_ids = params[:program_ids]
       self.start_date = params[:start_date]
     end
 
     def validate_request!
       message = []
 
-      message << 'program_id not provided.' if program_id.blank?
+      message << 'program_ids not provided.' if program_ids.blank?
       message << 'start_date not provided.' if start_date.blank?
       message << 'end_date not provided.' if end_date.blank?
-
-      message << 'must only provide a single program_id.' if program_id.is_a?(Array)
 
       begin
         self.start_date = Date.strptime(start_date, '%Y-%m-%d') if start_date.present?
@@ -41,8 +39,13 @@ module HmisExternalApis::AcHmis
         message << 'end_date was not formatted correctly.'
       end
 
-      self.project = Hmis::Hud::Project.find_by(project_id: program_id, data_source_id: data_source.id)
-      message << 'program not found.' if project.blank?
+      unless program_ids.blank?
+        self.projects = Hmis::Hud::Project.where(project_id: program_ids, data_source_id: data_source.id)
+        if projects.size != program_ids.size
+          not_found_ids = program_ids - projects.pluck(:project_id)
+          message << "programs not found: #{not_found_ids}"
+        end
+      end
 
       if message.present?
         self.status_message = message.join(' ')
@@ -73,7 +76,7 @@ module HmisExternalApis::AcHmis
 
       return [] unless ok?
 
-      enrollments = Hmis::Hud::Enrollment.in_project(project.id)
+      enrollments = Hmis::Hud::Enrollment.in_project(projects.pluck(:id))
         .open_during_range(start_date..end_date)
 
       personal_ids = enrollments.map(&:personal_id)
@@ -86,6 +89,13 @@ module HmisExternalApis::AcHmis
         .pluck(:source_id, :value) # i.e. client ID and mci ID
         .to_h
 
+      # Enrollment ID => Unit type ID
+      unit_type_lookup = Hmis::UnitOccupancy.where(enrollment: enrollments).joins(:unit).pluck(:enrollment_id, u_t[:unit_type_id]).to_h
+
+      # Unit type ID => MPER Unit Type ID
+      eid_t = HmisExternalApis::ExternalId.arel_table
+      unit_type_id_lookup = Hmis::UnitType.joins(:mper_id).pluck(ut_t[:id], eid_t[:value]).to_h
+
       enrollments.map do |en|
         {
           entry_date: en.entry_date,
@@ -97,6 +107,8 @@ module HmisExternalApis::AcHmis
           household_id: en.household_id,
           enrollment_id: en.enrollment_id,
           relationship_to_hoh: en.relationship_to_hoh,
+          program_id: en.project_id,
+          unit_type_id: unit_type_id_lookup[unit_type_lookup[en.id]],
         }
       end
     end

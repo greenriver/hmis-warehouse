@@ -40,6 +40,7 @@ module PerformanceMeasurement::WarehouseReports
       )
       @report.filter = @filter
       @report.save
+      @report.update_goal_configuration!
       ::WarehouseReports::GenericReportJob.perform_later(
         user_id: current_user.id,
         report_class: @report.class.name,

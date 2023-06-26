@@ -18,6 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:c1) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, disabling_condition: 1 }
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, disabling_condition: 0 }
@@ -38,7 +39,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
   end
 
   let(:client_query) do
@@ -62,7 +62,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Client lookup with disabilityGroups' do
     it 'should resolve no related records if user does not have view access' do
-      remove_permissions(hmis_user, :can_view_enrollment_details)
+      remove_permissions(access_control, :can_view_enrollment_details)
       response, result = post_graphql(id: c1.id) { client_query }
       expect(response.status).to eq 200
       client = result.dig('data', 'client')
@@ -71,7 +71,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'groups disabilities correctly' do
-      assign_viewable(view_access_group, p1.as_warehouse, hmis_user)
       response, result = post_graphql(id: c1.id) { client_query }
       expect(response.status).to eq 200
       client = result.dig('data', 'client')

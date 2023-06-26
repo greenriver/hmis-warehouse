@@ -26,14 +26,14 @@ module HmisExternalApis::AcHmis
       project = record.project
       unit_type = record.unit_type
       {
-        requested_date: format_date(record.requested_on),
+        requested_date: format_datetime(record.requested_on),
         program_id: project.project_id,
         unit_type_id: mper.identify_source(unit_type),
         estimated_date: format_date(record.needed_by),
         requested_by: record.requested_by.email,
         requestor_name: record.requestor_name,
         requestor_phone_number: record.requestor_phone,
-        requestor_email: record.requestor_email,
+        requestor_email: format_requested_by(record.requestor_email),
       }
     end
   end

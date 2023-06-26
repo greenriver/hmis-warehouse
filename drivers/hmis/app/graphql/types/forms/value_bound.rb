@@ -13,6 +13,7 @@ module Types
     field :id, String, 'Unique identifier for this bound', null: true
     field :severity, Types::HmisSchema::Enums::ValidationSeverity, 'Severity of bound. If error, user will be unable to submit a value that does not meet this condition.', null: false
     field :type, Forms::Enums::BoundType, null: false
+    field :offset, Integer, 'Value to offset the comparison value. Can be positive or negative. If date, offset is applied as number of days.', null: true
 
     # Note: only one of the below attributes should be specified
     field :value_number, Integer, null: true

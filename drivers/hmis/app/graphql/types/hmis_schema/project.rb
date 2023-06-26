@@ -22,6 +22,18 @@ module Types
       Hmis::Hud::Project.hmis_configuration(version: '2022')
     end
 
+    available_filter_options do
+      arg :status, [
+        Types::BaseEnum.generate_enum('ProjectFilterOptionStatus') do
+          value 'OPEN', description: 'Open'
+          value 'CLOSED', description: 'Closed'
+        end,
+      ]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :funder, [HmisSchema::Enums::Hud::FundingSource]
+      arg :search_term, String
+    end
+
     hud_field :id, ID, null: false
     field :hud_id, ID, null: false
     hud_field :project_name
@@ -48,7 +60,7 @@ module Types
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
-    enrollments_field without_args: [:project_types]
+    enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
     referral_requests_field :referral_requests
     referral_postings_field :incoming_referral_postings
@@ -68,6 +80,7 @@ module Types
       can :manage_outgoing_referrals
       can :manage_denied_referrals
     end
+    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
 
     def hud_id
       object.project_id
@@ -94,6 +107,22 @@ module Types
 
     def inventories(**args)
       resolve_inventories(**args)
+    end
+
+    # Build OpenStructs to resolve as UnitTypeCapacity
+    def unit_types
+      project_units = object.units.active
+      capacity = project_units.group(:unit_type_id).count
+      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
+
+      object.units.map(&:unit_type).uniq.map do |unit_type|
+        OpenStruct.new(
+          id: unit_type.id,
+          unit_type: unit_type.description,
+          capacity: capacity[unit_type.id] || 0,
+          availability: unoccupied[unit_type.id] || 0,
+        )
+      end
     end
 
     def units(**args)

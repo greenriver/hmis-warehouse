@@ -12,7 +12,7 @@ module Types
     field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :delete_client_file, mutation: Mutations::DeleteClientFile
     field :create_enrollment, mutation: Mutations::CreateEnrollment
-    field :add_household_members_to_enrollment, mutation: Mutations::AddHouseholdMembersToEnrollment
+    field :add_to_household, mutation: Mutations::AddToHousehold
     field :update_relationship_to_ho_h, mutation: Mutations::UpdateRelationshipToHoH
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :delete_organization, mutation: Mutations::DeleteOrganization
@@ -27,7 +27,6 @@ module Types
     field :delete_units, mutation: Mutations::DeleteUnits
 
     field :create_service, mutation: Mutations::CreateService
-    field :update_service, mutation: Mutations::UpdateService
     field :delete_service, mutation: Mutations::DeleteService
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
@@ -41,5 +40,6 @@ module Types
 
     field :clear_mci, mutation: Mutations::AcHmis::ClearMci
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
+    field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
   end
 end

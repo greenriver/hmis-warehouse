@@ -22,6 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2000-01-01' }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, user: u1, end_date: nil }
@@ -29,13 +30,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1, user: u1 }
-  let!(:hmis_hud_service1) { Hmis::Hud::HmisService.find_by(owner: s1) }
+  let!(:hmis_hud_service1) do
+    hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
+    hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
+    hmis_service
+  end
   let!(:file1) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
-    assign_viewable(view_access_group, ds1, hmis_user)
   end
 
   let(:mutation) do
@@ -93,6 +96,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             organization_id: o1.id,
             project_id: p1.id,
             enrollment_id: e1.id,
+            service_type_id: hmis_hud_service1.custom_service_type_id,
             client_id: c1.id,
             confirmed: true, # ignore warnings, they are tested separately
             **completed_form_values_for_role(role) do |values|
@@ -189,8 +193,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         it 'should fail if user lacks permission' do
-          remove_permissions(hmis_user, *Array(definition.record_editing_permission))
-          expect { post_graphql(input: { input: test_input }) { mutation } }.to raise_error(HmisErrors::ApiError)
+          remove_permissions(access_control, *Array(definition.record_editing_permission))
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }
         end
 
         it 'should update user correctly' do

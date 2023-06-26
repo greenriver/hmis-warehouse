@@ -135,6 +135,20 @@ module CasClientData
         max_by(&:AssessmentDate)
     end
 
+    def most_recent_pathways_assessment_for_destination
+      @most_recent_pathways_assessment_for_destination ||= source_clients.map(&:most_recent_2023_pathways_assessment).
+        compact.
+        select { |a| a.AssessmentDate.present? }.
+        max_by(&:AssessmentDate)
+    end
+
+    def most_recent_transfer_assessment_for_destination
+      @most_recent_transfer_assessment_for_destination ||= source_clients.map(&:most_recent_2023_transfer_assessment).
+        compact.
+        select { |a| a.AssessmentDate.present? }.
+        max_by(&:AssessmentDate)
+    end
+
     def most_recent_cls
       @most_recent_cls ||= source_clients.map(&:most_recent_current_living_situation).
         compact.

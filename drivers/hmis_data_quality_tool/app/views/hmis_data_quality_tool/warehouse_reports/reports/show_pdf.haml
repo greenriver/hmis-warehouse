@@ -1,0 +1,5 @@
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+.well.report-listing.warehouse-reports__completed.mb-0
+  .d-flex
+    = @report.describe_filter_as_html(@report.known_params)
+= render 'by_category'

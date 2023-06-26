@@ -21,13 +21,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1, hmis_user)
     c1.update({ dob: Date.today - 18.years, ssn: '123456789' })
   end
 
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+  let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
     <<~GRAPHQL
@@ -45,6 +45,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           files {
             nodes {
               id
+              name
+              confidential
+              redacted
+              fileBlobId
+              tags
+              updatedBy {
+                id
+              }
+              uploadedBy {
+                id
+              }
+              url
             }
           }
         }
@@ -113,7 +125,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should return no client if not viewable due to no permissions' do
-    remove_permissions(hmis_user, :can_view_clients)
+    remove_permissions(access_control, :can_view_clients)
     response, result = post_graphql(id: c1.id) { query }
     expect(response.status).to eq 200
     expect(result.dig('data', 'client')).to be_nil
@@ -125,37 +137,54 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should return null DOB if not allowed to see DOB' do
-    remove_permissions(hmis_user, :can_view_dob)
+    remove_permissions(access_control, :can_view_dob)
     _response, result = post_graphql(id: c1.id) { query }
     expect(result.dig('data', 'client')).to include('dob' => nil, 'age' => c1.age)
   end
 
   it 'should return null SSN if not allowed to see SSN' do
-    remove_permissions(hmis_user, :can_view_full_ssn, :can_view_partial_ssn)
+    remove_permissions(access_control, :can_view_full_ssn, :can_view_partial_ssn)
     _response, result = post_graphql(id: c1.id) { query }
     expect(result.dig('data', 'client')).to include('ssn' => nil)
   end
 
   it 'should return null SSN if not allowed to see SSN' do
-    remove_permissions(hmis_user, :can_view_full_ssn)
+    remove_permissions(access_control, :can_view_full_ssn)
     _response, result = post_graphql(id: c1.id) { query }
     expect(result.dig('data', 'client')).to include('ssn' => 'XXXXX6789')
   end
 
   it 'should return no files if not allowed to see any' do
-    remove_permissions(hmis_user, :can_manage_own_client_files, :can_view_any_confidential_client_files, :can_view_any_nonconfidential_client_files)
+    remove_permissions(access_control, :can_manage_own_client_files, :can_view_any_confidential_client_files, :can_view_any_nonconfidential_client_files)
     _response, result = post_graphql(id: c1.id) { query }
     expect(result.dig('data', 'client')).to include('files' => { 'nodes' => be_empty })
   end
 
   it 'should return only non-confidential files if not allowed to see confidential' do
-    remove_permissions(hmis_user, :can_manage_own_client_files, :can_view_any_confidential_client_files)
+    remove_permissions(access_control, :can_manage_own_client_files, :can_view_any_confidential_client_files)
     _response, result = post_graphql(id: c1.id) { query }
-    expect(result.dig('data', 'client')).to include('files' => { 'nodes' => contain_exactly(include('id' => f1.id.to_s)) })
+    expect(result.dig('data', 'client')).to include(
+      'files' => {
+        'nodes' => contain_exactly(
+          include('id' => f1.id.to_s),
+          include(
+            'id' => f2.id.to_s,
+            'redacted' => true,
+            'name' => 'Confidential File',
+            'confidential' => true,
+            'fileBlobId' => nil,
+            'tags' => [],
+            'updatedBy' => nil,
+            'uploadedBy' => nil,
+            'url' => nil,
+          ),
+        ),
+      },
+    )
   end
 
   it 'should return user\' own files if allowed to manage own files, regardless of any view permissions' do
-    remove_permissions(hmis_user, :can_view_any_confidential_client_files, :can_view_any_nonconfidential_client_files)
+    remove_permissions(access_control, :can_view_any_confidential_client_files, :can_view_any_nonconfidential_client_files)
     create :file, client: c1, blob: blob, user: nil, tags: [tag]
     expect(Hmis::File.count).to eq(3)
     _response, result = post_graphql(id: c1.id) { query }
@@ -163,8 +192,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'permissions base tests' do
-    before(:each) do
-      assign_viewable(view_access_group, ds1, hmis_user)
+    # Grant a few viewing permission to the whole data source
+    let!(:ds_access_control) do
+      create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_enrollment_details])
     end
 
     def expected_hash_from_role(role)
@@ -189,23 +219,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
 
-    it 'should have global permissions for an unenrolled client' do
+    it 'should have max permissions for an unenrolled client' do
       e1.destroy!
       _response, result = post_graphql(id: c1.id) { permissions_query }
-      check_client_access_with_role(result.dig('data', 'client', 'access'), edit_access_group.roles.first)
+      # Perms should match `access_control` which has all permissions enabled.
+      check_client_access_with_role(result.dig('data', 'client', 'access'), access_control.role)
     end
 
-    it 'should have edit permissions for a client enrolled at a project with user edit access' do
+    it 'should have permissions according to project where the client is enrolled' do
       _response, result = post_graphql(id: c1.id) { permissions_query }
-      check_client_access_with_role(result.dig('data', 'client', 'access'), edit_access_group.roles.first)
+      check_client_access_with_role(result.dig('data', 'client', 'access'), access_control.role)
     end
 
-    it 'should only have view permissions for a client enrolled at a project without user edit access' do
+    it 'should only have data source permissions for a client enrolled at a project without user edit access' do
       e1.destroy!
       p2 = create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1)
       create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: c1, user: u1)
       _response, result = post_graphql(id: c1.id) { permissions_query }
-      check_client_access_with_role(result.dig('data', 'client', 'access'), view_access_group.roles.first)
+      check_client_access_with_role(result.dig('data', 'client', 'access'), ds_access_control.role)
     end
   end
 end

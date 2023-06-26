@@ -18,6 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
   let!(:fd1) { create :hmis_form_definition, role: 'UPDATE' }
@@ -25,7 +26,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:cf1) { create :hmis_form_custom_form, definition: fd1, owner: a1 }
 
   before(:each) do
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
     hmis_login(user)
   end
 
@@ -74,10 +74,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # Permissions tests
   wip_and_submitted.each do |_key, name, action, permission|
     it "should not delete a #{name} assessment if not allowed due to permissions" do
-      remove_permissions(hmis_user, permission)
+      remove_permissions(access_control, permission)
       action.call(a1)
 
-      expect { mutate(input: { id: a1.id }) }.to raise_error(HmisErrors::ApiError)
+      expect_gql_error post_graphql(input: { id: a1.id }) { mutation }
       expect(Hmis::Hud::CustomAssessment.all).to include(have_attributes(id: a1.id))
     end
   end
@@ -85,12 +85,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # Deleting non-wip intakes should require enrollment deletion permissions
   wip_and_submitted.each do |key, name, action|
     it "should handle deleting #{name} intake assessment based on whether user can delete enrollments" do
-      remove_permissions(hmis_user, :can_delete_enrollments)
+      remove_permissions(access_control, :can_delete_enrollments)
       action.call(a1)
       fd1.update(role: 'INTAKE')
 
       if key == :submitted
-        expect { mutate(input: { id: a1.id }) }.to raise_error(HmisErrors::ApiError)
+        expect_gql_error post_graphql(input: { id: a1.id }) { mutation }
       else
         mutate(input: { id: a1.id }) do |assessment_id, errors|
           a1.reload

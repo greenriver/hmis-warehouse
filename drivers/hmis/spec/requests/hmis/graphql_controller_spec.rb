@@ -19,13 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:o2) { create :hmis_hud_organization, OrganizationName: 'XXX', data_source: ds1 }
   let!(:p3) { create :hmis_hud_project, ProjectName: 'DDD', data_source: ds1, organization: o2 }
   let!(:p4) { create :hmis_hud_project, ProjectName: 'CCC', data_source: ds1, organization: o2 }
-  let(:edit_access_group) do
-    group = create :edit_access_group
-    role = create(:hmis_role)
-    group.access_controls.create(role: role)
-    group
-  end
-
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:all) do
     cleanup_test_environment
   end
@@ -35,7 +29,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
   end
 
   describe 'Projects query' do
