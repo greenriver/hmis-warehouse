@@ -77,6 +77,7 @@ RUN chown -R app:app tmp
 RUN chown -R app:app node_modules
 RUN chown -R app:app /usr/local/bundle
 RUN chown app:app /etc/timezone
+RUN yarn build
 
 RUN touch config/database.yml
 RUN chown app:app config/database.yml
