@@ -64,7 +64,7 @@ module Health
           cp_last_contact_date: most_recent_qualifying_activity&.date_of_activity,
           cp_last_contact_face: client_recent_face_to_face(most_recent_qualifying_activity),
           cp_contact_face: any_face_to_face_for_patient_in_range(patient),
-          cp_participation_form_date: patient&.participation_forms&.maximum(:signature_on),
+          cp_participation_form_date: participation_form_date(patient),
           cp_care_plan_sent_pcp_date: care_plan_sent_to_provider_date(patient&.id),
           cp_care_plan_returned_pcp_date: care_plan_provider_signed_date(patient&.id),
           key_contact_name_first: sender_cp.key_contact_first_name,
@@ -150,6 +150,13 @@ module Health
       elsif qa.present?
         'N'
       end
+    end
+
+    def participation_form_date(patient)
+      [
+        patient&.participation_forms&.maximum(:signature_on),
+        patient&.release_forms&.maximum(:participation_signature_on),
+      ].compact.max
     end
 
     def patient_referrals
