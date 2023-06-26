@@ -101,7 +101,6 @@ module HealthPctp
     end
 
     def set_upload_object
-      # edit_client_health_pctp_careplan_path
       @upload_object = @careplan
       @location = edit_client_health_pctp_careplan_path(client_id: @client.id, id: @careplan.id)
       @download_path = @upload_object.downloadable? ? download_client_health_pctp_careplan_path(client_id: @client.id, id: @careplan.id) : 'javascript:void(0)'
