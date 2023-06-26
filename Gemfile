@@ -297,6 +297,7 @@ group :test do
   gem 'rails-controller-testing'
   gem 'rspec-instafail'
   gem 'rspec-benchmark'
+  gem 'db-query-matchers'
   # gem 'simplecov'
   # gem 'simplecov-console'
 end

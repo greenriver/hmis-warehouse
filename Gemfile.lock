@@ -352,6 +352,9 @@ GEM
     curb (0.9.11)
     daemons (1.4.1)
     date (3.3.3)
+    db-query-matchers (0.11.0)
+      activesupport (>= 4.0, < 7.1)
+      rspec (>= 3.0)
     dead_end (2.0.1)
     delayed_job (4.1.11)
       activesupport (>= 3.0, < 8.0)
@@ -1045,6 +1048,7 @@ DEPENDENCIES
   composite_primary_keys (= 13.0.3)
   curb
   daemons
+  db-query-matchers
   delayed_job
   delayed_job_active_record
   deprecation_toolkit

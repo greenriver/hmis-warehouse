@@ -135,6 +135,11 @@ RSpec.configure do |config|
   end
 end
 
+DBQueryMatchers.configure do |config|
+  config.schemaless = true # ignore schema queries
+end
+
+
 RSpec::Benchmark.configure do |config|
   config.samples = 10
 end
