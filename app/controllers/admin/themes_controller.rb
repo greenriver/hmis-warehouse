@@ -19,6 +19,9 @@ module Admin
       # If these end up taking too long, we can background them
       @theme.store_remote_css_file
       @theme.store_remote_scss_file
+      # background assets:precompile
+      AssetCompiler.new(target_group_name: ENV.fetch('ASSETS_PREFIX')).delay.run!
+
       respond_with(@theme, location: edit_admin_theme_path)
     end
 
