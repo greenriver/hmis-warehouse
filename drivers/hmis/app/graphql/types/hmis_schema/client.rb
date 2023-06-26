@@ -172,7 +172,7 @@ module Types
 
     def race
       selected_races = ::HudUtility.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
-      selected_races << object.RaceNone if object.RaceNone
+      selected_races << object.RaceNone if object.RaceNone && selected_races.empty?
       selected_races
     end
 
