@@ -34,7 +34,7 @@ module Types
       field field_name, Boolean, null: false, **field_attrs
 
       define_method(field_name) do
-        current_permission?(permission: "can_#{permission}", entity: object)
+        current_permission?(permission: :"can_#{permission}", entity: object)
       end
     end
   end

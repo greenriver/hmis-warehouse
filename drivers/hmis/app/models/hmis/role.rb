@@ -43,7 +43,7 @@ class Hmis::Role < ::ApplicationRecord
   # @param permission [Symbol]
   # @return [Boolean]
   def grants?(permission)
-    raise "unknown permission #{permission}" unless self.class.permissions_with_descriptions.has_key?(permission)
+    raise "unknown permission #{permission.inspect}" unless self.class.permissions_with_descriptions.has_key?(permission)
 
     send(permission) || false
   end

@@ -99,7 +99,7 @@ module Types
       }.freeze
     end
 
-    # Does the current user the given permission on entity?
+    # Does the current user have the given permission on entity?
     # @param permission [Symbol] :can_do_foo
     # @param entity [#record] Client, project, etc
     def current_permission?(permission:, entity:)
