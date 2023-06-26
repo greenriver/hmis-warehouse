@@ -59,7 +59,7 @@ module Types
     end
 
     def client_id
-      object.client.personal_id
+      object.client.id
     end
 
     def client_dob

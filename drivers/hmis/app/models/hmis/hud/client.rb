@@ -117,6 +117,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  scope :older_than, ->(age, or_equal: false) do
+    target_dob = Date.today - (age + 1).years
+    target_dob = Date.today - age.years if or_equal == true
+
+    where(c_t[:dob].lt(target_dob))
+  end
+
+  scope :adults, -> { older_than(18, or_equal: true) }
+
   # Clients that have no Enrollments (WIP or otherwise)
   scope :unenrolled, -> do
     # Clients that have no projects, AND no wip enrollments

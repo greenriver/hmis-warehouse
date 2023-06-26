@@ -220,8 +220,7 @@ module Types
       cst = Hmis::Hud::CustomServiceType.where(name: 'ESG Funding Assistance').first!
       raise 'error' unless cst.present?
 
-      clients = Hmis::Hud::Client.viewable_by(current_user).where(id: client_ids)
-      # TODO: filter clients to exclude individuals under 18yo
+      clients = Hmis::Hud::Client.adults.viewable_by(current_user).where(id: client_ids)
 
       # NOTE: Purposefully does not call `viewable_by`, as the report must include the full service history
       Hmis::Hud::CustomService.joins(:client).merge(clients).where(custom_service_type: cst, data_source_id: current_user.hmis_data_source_id)
