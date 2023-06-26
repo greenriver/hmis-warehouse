@@ -86,7 +86,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
     end
   end
-  after_save :update_mci_client
+  after_save do
+    if update_mci_attributes && HmisExternalApis::AcHmis::Mci.enabled?
+      self.update_mci_attributes = nil
+      update_mci_client
+    end
+  end
 
   scope :with_access, ->(user, *permissions, **kwargs) do
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
@@ -165,7 +170,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def update_mci_client
-    return unless ac_hmis_mci_ids.exists?
     return unless [
       'FirstName',
       'LastName',
