@@ -1,0 +1,61 @@
+{
+  "item": [
+    {
+      "type": "STRING",
+      "link_id": "enrollment-id",
+      "hidden": true,
+      "field_name": "id"
+    },
+    {
+      "type": "STRING",
+      "link_id": "household-id",
+      "hidden": true,
+      "field_name": "householdId",
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$householdId"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "today",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$today"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "1",
+      "item": [
+        {
+          "type": "DATE",
+          "link_id": "entry-date",
+          "text": "Entry Date",
+          "field_name": "entryDate",
+          "required": true
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "relationship-to-hoh",
+          "text": "Relationship to HoH",
+          "field_name": "relationshipToHoH",
+          "pick_list_reference": "RelationshipToHoH",
+          "required": true
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "unit",
+          "text": "Select unit",
+          "pick_list_reference": "AVAILABLE_UNITS",
+          "_comment": "initial is current fam unit? or some special pick list that defaults to initial being same?"
+        }
+      ]
+    }
+  ]
+}

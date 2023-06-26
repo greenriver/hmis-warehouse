@@ -44,7 +44,11 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
 
   def self.hmis_validate(record, role: nil, **_)
     errors = HmisErrors::Errors.new
-    errors.push(*validate_entry_date(record)) if role == :INTAKE
+    errors.push(*validate_entry_date(record)) if [:INTAKE, :ENROLLMENT].include?(role)
+
+    # Do the below, based on role. shoudl only validate this enrollment against the household
+    # TODO: validate household membership?
+    # TODO: validate single HOH?
     errors.errors
   end
 
