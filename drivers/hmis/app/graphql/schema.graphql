@@ -2357,7 +2357,7 @@ type EsgFundingReport {
 AC ESG Funding Service
 """
 type EsgFundingService {
-  client: Client!
+  clientDob: ISO8601Date
   clientId: ID!
   customDataElements: [CustomDataElement!]!
   dateProvided: ISO8601Date!

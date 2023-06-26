@@ -17,7 +17,7 @@ module Types
 
     field :id, ID, null: false
     field :client_id, ID, null: false
-    field :client, HmisSchema::Client, null: false
+    field :client_dob, GraphQL::Types::ISO8601Date, null: true
     field :mci_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     field :first_name, String, null: true
     field :last_name, String, null: true
@@ -43,7 +43,7 @@ module Types
     end
 
     def project_id
-      object.project.id
+      object.project.project_id
     end
 
     def project_name
@@ -51,7 +51,7 @@ module Types
     end
 
     def organization_id
-      object.project.organization.id
+      object.project.organization.organization_id
     end
 
     def organization_name
@@ -59,7 +59,11 @@ module Types
     end
 
     def client_id
-      object.client.id
+      object.client.personal_id
+    end
+
+    def client_dob
+      object.client.dob
     end
 
     def first_name
