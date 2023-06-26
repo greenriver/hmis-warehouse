@@ -31,10 +31,6 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
     lat, lon, bound = Place.lookup_lat_lon(postalcode: last_permanent_zip)
     return { address: address, lat: lat, lon: lon, boundingbox: bound } if bound.present?
-  rescue StandardError
-    setup_notifier('NominatimWarning')
-    @notifier.ping("Error contacting the OSM Nominatim API. Looking address for HmisClient id: #{id}") if @send_notifications
-    nil
   end
 
   def last_permanent_zip

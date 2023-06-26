@@ -6,6 +6,8 @@
 
 module GrdaWarehouse
   class Place < GrdaWarehouseBase
+    include NotifierConfig
+
     NominatimApiPaused = Class.new(StandardError)
 
     def self.lookup_lat_lon(query: nil, city: nil, state: nil, postalcode: nil, country: 'us')
@@ -31,6 +33,10 @@ module GrdaWarehouse
       place
     rescue NominatimApiPaused
       return nil
+    rescue StandardError
+      setup_notifier('NominatimWarning')
+      @notifier.ping('Error contacting the OSM Nominatim API.') if @send_notifications
+      nil
     end
 
     def self.nominatim_lookup(query, city, state, postalcode, country)

@@ -48,7 +48,7 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
               collected_by: enrollment&.project&.name,
             )
           end
-        ensure # Aways save any locations that we got
+        ensure # Always save any locations that we got
           ClientLocationHistory::Location.import!(locations)
         end
       end

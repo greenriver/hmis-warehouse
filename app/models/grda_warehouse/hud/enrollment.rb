@@ -263,17 +263,11 @@ module GrdaWarehouse::Hud
       end
     end
 
-    NominatimApiPaused = Class.new(StandardError)
-
     def address_lat_lon
       return unless address.present?
 
       lat, lon, bound = Place.lookup_lat_lon(query: address)
       return { address: address, lat: lat, lon: lon, boundingbox: bound } if bound.present?
-    rescue StandardError
-      setup_notifier('NominatimWarning')
-      @notifier.ping("Error contacting the OSM Nominatim API. Looking address for enrollment id: #{id}") if @send_notifications
-      nil
     end
 
     # Removed 8/14/2019
