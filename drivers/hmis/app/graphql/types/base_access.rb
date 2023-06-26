@@ -34,17 +34,7 @@ module Types
       field field_name, Boolean, null: false, **field_attrs
 
       define_method(field_name) do
-        return false unless current_user&.present?
-
-        # Just return false if we don't have this permission at all for anything
-        return false unless current_user.send("can_#{permission}?")
-
-        loader, subject = current_user.entity_access_loader_factory(object) do |record, association|
-          load_ar_association(record, association)
-        end
-        raise "missing loader for #{object.class.name}##{object.id}" unless loader
-
-        dataloader.with(Sources::UserEntityAccessSource, current_user, loader).load([subject, :"can_#{permission}"])
+        current_permission?(permission: "can_#{permission}", entity: object)
       end
     end
   end

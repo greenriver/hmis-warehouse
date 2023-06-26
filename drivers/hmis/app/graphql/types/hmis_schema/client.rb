@@ -187,12 +187,12 @@ module Types
     end
 
     def ssn
-      return object.ssn if current_user.can_view_full_ssn_for?(object)
-      return object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1') if current_user.can_view_partial_ssn_for?(object)
+      object.ssn if current_permission?(permission: :can_view_full_ssn, entity: object)
+      object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1') if current_permission?(permission: :can_view_partial_ssn, entity: object)
     end
 
     def dob
-      object.safe_dob(current_user)
+      object.dob if current_permission?(permission: :can_view_dob, entity: object)
     end
 
     def names
