@@ -770,6 +770,7 @@ Rails.application.routes.draw do
     end
     resources :agencies
     resource :theme, only: [:edit, :update]
+    resource :color, only: [:edit, :update]
     namespace :dashboard do
       resources :imports, only: [:index]
       resources :debug, only: [:index]

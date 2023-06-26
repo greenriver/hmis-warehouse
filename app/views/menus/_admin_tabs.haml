@@ -26,6 +26,8 @@
     - if can_edit_theme?
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(edit_admin_theme_path))}
         = link_to 'Theme', edit_admin_theme_path, class: 'nav-link'
+      %li.nav-item{role: 'presentation', class: ('active' if current_page?(edit_admin_color_path))}
+        = link_to 'Colors', edit_admin_color_path, class: 'nav-link'
     - if can_manage_auto_client_de_duplication?
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_de_duplication_index_path))}
         = link_to 'Client De-Duplication', admin_de_duplication_index_path, class: 'nav-link'
