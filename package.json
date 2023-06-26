@@ -20,6 +20,7 @@
     "d3-sankey": "^0.12.3",
     "d3-scale-chromatic": "3.0.0",
     "esbuild": "^0.17.19",
+    "glob-expand": "^0.2.1",
     "inputmask": "3.3.8",
     "leaflet": "1.7.1",
     "leaflet.markercluster": "^1.5.3",
@@ -41,7 +42,8 @@
   "scripts": {
     "lint": "eslint app/assets/javascripts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=assets"
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=assets",
+    "dev": "node dev-js-build.js"
   },
   "repository": {
     "type": "git",
