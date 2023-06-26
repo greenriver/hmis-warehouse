@@ -24,10 +24,10 @@ module Types
     end
 
     def household_clients
-      object.enrollments.map do |enrollment|
+      enrollments = load_ar_association(object, :enrollments)
+      enrollments.map do |enrollment|
         {
           relationship_to_ho_h: enrollment.relationship_to_ho_h,
-          client: enrollment.client,
           enrollment: enrollment,
         }
       end
