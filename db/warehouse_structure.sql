@@ -7775,7 +7775,9 @@ CREATE TABLE public.hap_report_clients (
     deleted_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    head_of_household_for character varying[]
+    head_of_household_for character varying[],
+    personal_id character varying,
+    mci_id character varying
 );
 
 
@@ -7796,6 +7798,54 @@ CREATE SEQUENCE public.hap_report_clients_id_seq
 --
 
 ALTER SEQUENCE public.hap_report_clients_id_seq OWNED BY public.hap_report_clients.id;
+
+
+--
+-- Name: hap_report_eraps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hap_report_eraps (
+    id bigint NOT NULL,
+    hap_report_id bigint,
+    personal_id character varying NOT NULL,
+    mci_id character varying NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    age integer,
+    household_id character varying,
+    head_of_household boolean,
+    emancipated boolean,
+    project_type integer,
+    veteran boolean,
+    mental_health_disorder boolean,
+    substance_use_disorder boolean,
+    survivor_of_domestic_violence boolean,
+    income_at_start integer,
+    income_at_exit integer,
+    homeless boolean,
+    nights_in_shelter integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hap_report_eraps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hap_report_eraps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hap_report_eraps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hap_report_eraps_id_seq OWNED BY public.hap_report_eraps.id;
 
 
 --
@@ -20898,6 +20948,39 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_colors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_colors (
+    id bigint NOT NULL,
+    slug character varying NOT NULL,
+    background_color character varying NOT NULL,
+    foreground_color character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: system_colors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_colors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_colors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_colors_id_seq OWNED BY public.system_colors.id;
+
+
+--
 -- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23057,6 +23140,13 @@ ALTER TABLE ONLY public.hap_report_clients ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: hap_report_eraps id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hap_report_eraps ALTER COLUMN id SET DEFAULT nextval('public.hap_report_eraps_id_seq'::regclass);
+
+
+--
 -- Name: health_emergency_ama_restrictions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25017,6 +25107,13 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_colors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_colors ALTER COLUMN id SET DEFAULT nextval('public.system_colors_id_seq'::regclass);
+
+
+--
 -- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26209,6 +26306,14 @@ ALTER TABLE ONLY public.group_viewable_entities
 
 ALTER TABLE ONLY public.hap_report_clients
     ADD CONSTRAINT hap_report_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hap_report_eraps hap_report_eraps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hap_report_eraps
+    ADD CONSTRAINT hap_report_eraps_pkey PRIMARY KEY (id);
 
 
 --
@@ -28041,6 +28146,14 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_colors system_colors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_colors
+    ADD CONSTRAINT system_colors_pkey PRIMARY KEY (id);
 
 
 --
@@ -43606,6 +43719,13 @@ CREATE INDEX index_hap_report_clients_on_client_id ON public.hap_report_clients 
 
 
 --
+-- Name: index_hap_report_eraps_on_hap_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hap_report_eraps_on_hap_report_id ON public.hap_report_eraps USING btree (hap_report_id);
+
+
+--
 -- Name: index_health_emergency_ama_restrictions_on_agency_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53228,7 +53348,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230614130627'),
 ('20230616163514'),
 ('20230616164602'),
+('20230620154423'),
+('20230621190529'),
 ('20230622202122'),
-('20230623124456');
+('20230623124456'),
+('20230623200215');
 
 

@@ -14,8 +14,7 @@ module SystemPathways::ChartBase
       self.filter = filter
       self.show_filter = show_filter
       self.details_filter = details_filter
-      # TODO: this config should be moved to a more general Report config
-      self.config = BostonReports::Config.first_or_create(&:default_colors)
+      self.config = GrdaWarehouse::SystemColor.first
     end
 
     def clients

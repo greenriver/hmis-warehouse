@@ -87,23 +87,26 @@ module SystemPathways::TimeChart::InvolvesCe
         project_type_node_names.each do |label|
           count = project_type_counts[label][k]
 
-          bg_color = config["breakdown_3_color_#{i}"]
+          color = config.color_for('ce', i)
+          bg_color = color.background_color
           data['colors'][involves_ce] = bg_color
-          data['labels']['colors'][involves_ce] = config.foreground_color(bg_color)
+          data['labels']['colors'][involves_ce] = color.calculated_foreground_color(bg_color)
           row << count
         end
         # Time before move-in
         ph_projects.each_value do |p_label|
           count = ph_counts[p_label][k]
-          bg_color = config["breakdown_3_color_#{i}"]
+          color = config.color_for('ce', i)
+          bg_color = color.background_color
           data['colors'][involves_ce] = bg_color
-          data['labels']['colors'][involves_ce] = config.foreground_color(bg_color)
+          data['labels']['colors'][involves_ce] = color.calculated_foreground_color(bg_color)
           row << count
         end
         count = return_counts[k]
-        bg_color = config["breakdown_3_color_#{i}"]
+        color = config.color_for('ce', i)
+        bg_color = color.background_color
         data['colors'][involves_ce] = bg_color
-        data['labels']['colors'][involves_ce] = config.foreground_color(bg_color)
+        data['labels']['colors'][involves_ce] = color.calculated_foreground_color(bg_color)
         row << count
         data['columns'] << row
       end
