@@ -280,6 +280,21 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ClientCleanup.new(( max_allowed || 50 ).to_i).run!
   end
 
+  desc 'Combined tasks to reduce the number of cron jobs'
+  task every_four_hours: [:environment] do
+    begin
+      Rake::Task['grda_warehouse:save_service_history_snapshots'].invoke
+    rescue StandardError => e
+      puts e.message
+    end
+
+    begin
+      Rake::Task['grda_warehouse:process_location_data'].invoke
+    rescue StandardError => e
+      puts e.message
+    end
+  end
+
   desc 'Save Service History Snapshots'
   task :save_service_history_snapshots, [] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Hud::Client.needs_history_pdf.each do |client|

@@ -8,3 +8,4 @@ RailsDrivers.loaded << :custom_imports_boston_community_of_origin
 
 Rails.application.config.custom_imports << 'CustomImportsBostonCommunityOfOrigin::ImportFile'
 Rails.application.config.location_processors << 'CustomImportsBostonCommunityOfOrigin::ProcessLocationDataJob'
+Rails.application.config.location_processors << 'CustomImportsBostonCommunityOfOrigin::MaintainLocationHistoryJob'

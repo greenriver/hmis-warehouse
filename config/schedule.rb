@@ -83,13 +83,18 @@ tasks = [
     trigger: ENV['ECS'] == 'true',
     interruptable: true,
   },
+  # {
+  #   task: 'grda_warehouse:save_service_history_snapshots',
+  #   frequency: 4.hours,
+  #   interruptable: true,
+  # },
+  # {
+  #   task: 'grda_warehouse:process_location_data',
+  #   frequency: 4.hours,
+  #   interruptable: true,
+  # },
   {
-    task: 'grda_warehouse:save_service_history_snapshots',
-    frequency: 4.hours,
-    interruptable: true,
-  },
-  {
-    task: 'grda_warehouse:process_location_data',
+    task: 'grda_warehouse:every_four_hours',
     frequency: 4.hours,
     interruptable: true,
   },

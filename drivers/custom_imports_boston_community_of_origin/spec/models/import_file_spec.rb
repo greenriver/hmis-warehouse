@@ -23,6 +23,7 @@ RSpec.describe CustomImportsBostonCommunityOfOrigin::ImportFile, type: :model do
   describe 'with context' do
     let!(:wc) { create :fixed_warehouse_client }
     let!(:e1) { create :hud_enrollment, personal_id: wc.source.personal_id, enrollment_id: 'E-1', data_source_id: wc.source.data_source_id }
+    let!(:e2) { create :hud_enrollment, personal_id: wc.source.personal_id, enrollment_id: 'E-2', data_source_id: wc.source.data_source_id, last_permanent_zip: '05301' }
 
     it 'creates locations' do
       c1 = wc.source
@@ -31,9 +32,11 @@ RSpec.describe CustomImportsBostonCommunityOfOrigin::ImportFile, type: :model do
       import(importer, 'locations.csv')
       VCR.use_cassette('nominatim') do
         importer.class.process_locations
+        GrdaWarehouse::Hud::Enrollment.maintain_location_histories
       end
 
       expect(importer.rows.first.client_location).to be_present
+      expect(e2.client_location).to be_present
     end
   end
 

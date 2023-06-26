@@ -29,7 +29,6 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
           id: ClientLocationHistory::Location.where(source_type: 'GrdaWarehouse::Hud::Enrollment').
             select(:source_id),
         ).pluck(:id)
-        cached_zips = {} # Number of zips is bounded, store location data for them to avoid repeated queries
         # :client_location, is included to avoid an N+1 in build_client_location
         where(id: new_enrollment_ids).includes(:client_location, project: :organization, client: :destination_client).find_in_batches do |batch|
           locations = []
@@ -39,11 +38,8 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
             zip = enrollment.LastPermanentZIP
             next unless zip.present?
 
-            place = cached_zips[zip] ||= Nominatim.search.country('us').postalcode(zip).first
-            next unless place # Nominatim didn't return anything
+            lat, lon = ::GrdaWarehouse::Place.lookup_lat_lon(postalcode: zip)
 
-            lat = place.lat
-            lon = place.lon
             locations << enrollment.build_client_location(
               client_id: enrollment.client.destination_client.id,
               located_on: enrollment.EntryDate,
@@ -55,8 +51,6 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
         ensure # Aways save any locations that we got
           ClientLocationHistory::Location.import!(locations)
         end
-      rescue Faraday::ConnectionFailed
-        # We have overheated the API, so, give up
       end
     end
   end

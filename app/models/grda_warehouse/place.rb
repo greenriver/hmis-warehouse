@@ -18,8 +18,8 @@ module GrdaWarehouse
 
       @places ||= {}
       place = @places[key] # Look in memory cache
-      place = @places[key] = Place.find_by(location: key) unless place.present? # Look in database
-      unless place.present?
+      place = @places[key] = Place.find_by(location: key) if place.blank? # Look in database
+      if place.blank?
         place = @places[key] = begin
           nr = nominatim_lookup(query, city, state, postalcode, country)
           if nr.present?
