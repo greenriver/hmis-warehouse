@@ -4,9 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Access Loaders implement th DataLoader pattern for our GraphQL API. This allows
-# the efficient loading and caching of a user's permissions for a collection of
-# entities.
+# Access Loaders allow the efficient loading and caching of a user's permissions for
+# a collection of entities. This is most useful for graphql data loaders
 
 class Hmis::BaseAccessLoader
   attr_accessor :user

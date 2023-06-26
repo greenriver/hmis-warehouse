@@ -91,7 +91,7 @@ module Types
 
       # Apply the enrollment limit before we pass it in, to avoid doing an unnecessary join to the WIP table
       scope = if args[:enrollment_limit] == 'NON_WIP_ONLY'
-        object.enrollments_including_wips
+        object.enrollments
       elsif args[:enrollment_limit] == 'WIP_ONLY'
         object.wip_enrollments
       else

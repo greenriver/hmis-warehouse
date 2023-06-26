@@ -42,6 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   def mutate(**kwargs)
     response, result = post_graphql(**kwargs) { mutation }
+
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
       assessment_id = result.dig('data', 'deleteAssessment', 'assessmentId')

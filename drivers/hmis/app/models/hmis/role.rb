@@ -40,12 +40,12 @@ class Hmis::Role < ::ApplicationRecord
     false
   end
 
+  # @param permission [Symbol]
+  # @return [Boolean]
   def grants?(permission)
-    if self.class.permissions_with_descriptions.has_key?(permission)
-      send(permission) || false
-    else
-      raise "unknown permission #{permission}"
-    end
+    raise "unknown permission #{permission}" unless self.class.permissions_with_descriptions.has_key?(permission)
+
+    send(permission) || false
   end
 
   def self.description_for(permission:)

@@ -5,7 +5,12 @@
 ##
 
 # Factory to resolve the user access loader for a given entity. It also resolves
-# the entity that should be passed to the loader. This facilitates batch access checks
+# the entity that should be passed to the loader. A resolver blocker is used to
+# traverse associations as, in the case of graphql, another data loader would be
+# used to resolve the association.
+#
+# It's up to the caller to actually invoke the loader with the resolved entity to
+# perform the access check.
 #
 # @example
 #   factory = Hmis::EntityAccessLoaderFactory.new(user)
@@ -22,7 +27,7 @@ class Hmis::EntityAccessLoaderFactory
     @user = user
   end
 
-  # Given an entity, return a tuple of the loader and the entity call it against
+  # Given an entity, return a tuple of the loader and the entity to check against
   #
   # @param entity [#entity_record] active record entity
   # @yieldparam [#entity_record] record
@@ -63,7 +68,7 @@ class Hmis::EntityAccessLoaderFactory
       block.call(entity, :client)
     when Hmis::Hud::HmisService, Hmis::Hud::Service
       # This will cascade to enrollment.project. We go through enrollment since
-      # service. project is just a method on these models
+      # service.project is just a method on these models
       block.call(entity, :enrollment)
     when Hmis::Hud::Project
       # for new projects, check the organization
