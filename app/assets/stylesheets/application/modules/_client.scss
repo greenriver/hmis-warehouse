@@ -46,21 +46,49 @@
 }
 .client__calendar-date
 {
-  font-weight: bold;
-  background-color: $gray-015;
   padding: 0.2em;
+}
+.client__calendar-date__previous-month {
+  color: rgba(0, 0, 0, 0.30);
 }
 .client__month_of_service-table
 {
   width: 100%;
 }
-.client__month_of_service-table td
+.client__month_of_service-table td,
+.client__month_of_service-table th
 {
   vertical-align: top;
-  border-left: 1px solid $body-bg;
-  border-right: 1px solid $body-bg;
+  // border-left: 1px solid $body-bg;
+  // border-right: 1px solid $body-bg;
+  padding: 0px;
+  
 }
 
+.client__month_of_service-table th {
+  background-color: transparent;
+}
+
+.client__month_of_service-table td {
+  height: 170px;
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.client__calendar-week {
+  display: flex;
+  position: relative;
+}
+
+.client__calendar-day {
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 8px;
+}
+
+// .client__calendar-project {
+//   border-radius: 6px;
+// }
 
 .client__service_type_1 {
   /* border-bottom: 1px solid #0074D9; */

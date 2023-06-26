@@ -24,6 +24,7 @@ module ClientAccessControl
         [date.year, date.month]
       end.
         uniq
+      @month_index = params[:month_index].present? ? (params[:month_index].to_i || 0) : nil
     end
 
     def queue
@@ -139,6 +140,7 @@ module ClientAccessControl
           @dates[enrollment.date] << record
           enrollment.service_history_services.each do |service|
             @dates[service.date] ||= []
+            next unless enrollment.project.night_by_night?
             @dates[service.date] << {
               date: service.date,
               record_type: service.record_type,
