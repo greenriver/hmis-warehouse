@@ -101,7 +101,7 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'driver:hmis_external_apis:import:remote_data',
+    task: 'import:remote_data',
     frequency: 1.day,
     at: '6:04 am',
     interruptable: false,

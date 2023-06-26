@@ -2617,7 +2617,33 @@ type ExternalIdentifier {
   """
   identifier: ID
   label: String!
+  type: ExternalIdentifierType!
   url: String
+}
+
+"""
+External Identifier Type
+"""
+enum ExternalIdentifierType {
+  """
+  HMIS ID
+  """
+  CLIENT_ID
+
+  """
+  MCI ID
+  """
+  MCI_ID
+
+  """
+  Personal ID
+  """
+  PERSONAL_ID
+
+  """
+  Warehouse ID
+  """
+  WAREHOUSE_ID
 }
 
 """
