@@ -31,7 +31,7 @@ module Types
             client = client_association ? object.send(client_association) : object
 
             selected_genders = ::HudUtility.gender_field_name_to_id.except(:GenderNone).select { |f| client.send(f).to_i == 1 }.values
-            selected_genders << client.GenderNone if client.GenderNone
+            selected_genders << client.GenderNone if client.GenderNone && selected_genders.empty?
             selected_genders
           end
         end
