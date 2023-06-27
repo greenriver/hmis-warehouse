@@ -218,7 +218,7 @@ module Types
 
     def esg_funding_report(client_ids:)
       cst = Hmis::Hud::CustomServiceType.where(name: 'ESG Funding Assistance').first!
-      raise 'error' unless cst.present?
+      raise HmisErrors::ApiError, 'ESG Funding Assistance service not configured' unless cst.present?
 
       clients = Hmis::Hud::Client.adults.viewable_by(current_user).where(id: client_ids)
 
