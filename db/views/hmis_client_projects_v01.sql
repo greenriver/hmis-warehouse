@@ -3,7 +3,9 @@
   SELECT
     "Client"."id" AS client_id,
     "Project"."id" AS project_id,
-    "Enrollment"."id" AS enrollment_id
+    "Enrollment"."id" AS enrollment_id,
+    "Enrollment"."EnrollmentID",
+    "Enrollment"."data_source_id"
   FROM
     "Client"
     INNER JOIN "Enrollment" ON "Enrollment"."DateDeleted" IS NULL
@@ -21,9 +23,13 @@ UNION
   SELECT
     "hmis_wips"."client_id" AS client_id,
     "hmis_wips"."project_id" AS project_id,
-    "hmis_wips"."source_id" AS enrollment_id
+    "Enrollment"."id" AS enrollment_id,
+    "Enrollment"."EnrollmentID",
+    "Enrollment"."data_source_id"
   FROM
     "hmis_wips"
+    INNER JOIN "Enrollment" ON "Enrollment"."DateDeleted" IS NULL
+    AND "Enrollment"."id" = "hmis_wips"."source_id"
   WHERE
     "hmis_wips"."source_type" = 'Hmis::Hud::Enrollment'
 )

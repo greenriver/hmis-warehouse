@@ -11682,7 +11682,9 @@ CREATE TABLE public.hmis_wips (
 CREATE VIEW public.hmis_client_projects AS
  SELECT "Client".id AS client_id,
     "Project".id AS project_id,
-    "Enrollment".id AS enrollment_id
+    "Enrollment".id AS enrollment_id,
+    "Enrollment"."EnrollmentID",
+    "Enrollment".data_source_id
    FROM ((public."Client"
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
@@ -11690,8 +11692,11 @@ CREATE VIEW public.hmis_client_projects AS
 UNION
  SELECT hmis_wips.client_id,
     hmis_wips.project_id,
-    hmis_wips.source_id AS enrollment_id
-   FROM public.hmis_wips
+    "Enrollment".id AS enrollment_id,
+    "Enrollment"."EnrollmentID",
+    "Enrollment".data_source_id
+   FROM (public.hmis_wips
+     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".id = hmis_wips.source_id))))
   WHERE ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text);
 
 
@@ -50620,7 +50625,7 @@ CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree
 -- Name: uidx_external_ids_source_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE ((namespace)::text <> 'ac_hmis_mci'::text);
+CREATE UNIQUE INDEX uidx_external_ids_source_value ON public.external_ids USING btree (source_id, source_type, remote_credential_id) WHERE (((namespace)::text <> 'ac_hmis_mci'::text) OR (namespace IS NULL));
 
 
 --

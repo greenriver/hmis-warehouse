@@ -65,10 +65,6 @@ class Hmis::EntityAccessLoaderFactory
     when Hmis::File
       # Files are always linked to a client, and optionally link to a specific enrollment. If the file is linked to an enrollment, access to the file should be limited based on access to that enrollment.
       entity.enrollment_id ? block.call(entity, :enrollment) : block.call(entity, :client)
-    when Hmis::Hud::HmisService, Hmis::Hud::Service
-      # This will cascade to enrollment.project. We go through enrollment since
-      # service.project is just a method on these models
-      block.call(entity, :enrollment)
     when Hmis::Hud::Project
       # for new projects, check the organization
       block.call(entity, :organization) if entity.new_record?

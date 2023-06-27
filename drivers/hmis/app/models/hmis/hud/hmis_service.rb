@@ -8,7 +8,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   self.table_name = :hmis_services
   self.primary_key = :id
 
-  include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
@@ -68,11 +68,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   def readonly?
     true
-  end
-
-  # Use method instead of has_one so that projects for WIP enrollments are resolved
-  def project
-    enrollment.project
   end
 
   private def initialize_owner
