@@ -33,7 +33,7 @@ module HmisExternalApis::AcHmis
         requested_by: record.requested_by.email,
         requestor_name: record.requestor_name,
         requestor_phone_number: record.requestor_phone,
-        requestor_email: format_requested_by(record.requestor_email),
+        requestor_email: record.requestor_email,
       }
     end
   end

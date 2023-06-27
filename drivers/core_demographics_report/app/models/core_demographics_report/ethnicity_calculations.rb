@@ -15,7 +15,7 @@ module
             title: "Ethnicity - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_ethnicity(key)).distinct },
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_ethnicity(key)).distinct },
           }
         end
       end
@@ -38,14 +38,14 @@ module
     def ethnicity_data_for_export(rows)
       rows['_Ethnicity Break'] ||= []
       rows['*Ethnicity'] ||= []
-      rows['*Ethnicity'] += ['Ethnicity', nil, 'Count', 'Percentage', nil]
+      rows['*Ethnicity'] += ['Ethnicity', 'Count', 'Percentage', nil, nil]
       ::HudUtility.ethnicities.each do |id, title|
         rows["_Ethnicity_data_#{title}"] ||= []
         rows["_Ethnicity_data_#{title}"] += [
           title,
-          nil,
           ethnicity_count(id),
           ethnicity_percentage(id) / 100,
+          nil,
         ]
       end
       rows

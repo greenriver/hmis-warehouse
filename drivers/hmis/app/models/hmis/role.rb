@@ -110,7 +110,7 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
       can_manage_inventory: {
-        description: 'Ability to manage bed and unit capacity in the project',
+        description: 'Ability to manage Inventory and Unit records in the project',
         administrative: false,
         access: [:editable],
         categories: [

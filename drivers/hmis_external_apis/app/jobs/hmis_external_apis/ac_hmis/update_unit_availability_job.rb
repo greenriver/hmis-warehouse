@@ -35,7 +35,7 @@ module HmisExternalApis::AcHmis
         program_id: project_mper_id,
         unit_type_id: unit_type_mper_id,
         available_units: available,
-        requested_by: format_requested_by(requested_by),
+        requested_by: requested_by,
       }
       link.update_unit_capacity(payload)
     end

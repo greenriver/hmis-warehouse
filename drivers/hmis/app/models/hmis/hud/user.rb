@@ -18,7 +18,6 @@ class Hmis::Hud::User < Hmis::Hud::Base
   has_many :services, **hmis_relation(:UserID, 'Service')
   has_many :assessments, **hmis_relation(:UserID, 'Assessment')
   has_many :events, **hmis_relation(:UserID, 'Event')
-  has_many :custom_data_elements, **hmis_relation(:UserID, 'CustomDataElement')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   def self.from_user(user)

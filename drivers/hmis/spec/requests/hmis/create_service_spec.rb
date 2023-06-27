@@ -30,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       sub_type_provided: Types::HmisSchema::Enums::ServiceSubTypeProvided.enum_member_for_value('144:3:1').first,
       other_type_provided: 'Other Type',
       moving_on_other_type: 'Moving On Other Type',
-      fa_amount: 1.5,
+      'FAAmount' => 1.5,
       referral_outcome: Types::HmisSchema::Enums::Hud::PATHReferralOutcome.enum_member_for_value(1).first,
     }
   end

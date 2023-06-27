@@ -6,11 +6,10 @@ $('.panel-collapsible .panel-collapse').on('show.bs.collapse hide.bs.collapse', 
     .find('.j-toggle-arrow')
     .removeClass()
     .addClass(arrow_icon + '-' + state + ' j-toggle-arrow')
-  // Removing this temporarily as it is causing an infinite loop
-  // $parent
-  //   .find('input')
-  //   .first()
-  //   .focus()
+  $parent
+    .find('input')
+    .first()
+    .focus()
   $parent
     .find('.j-toggle-text')
     .toggleClass(['hide', 'show'])

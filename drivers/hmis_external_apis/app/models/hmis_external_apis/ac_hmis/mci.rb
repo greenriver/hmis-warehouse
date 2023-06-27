@@ -48,6 +48,8 @@ module HmisExternalApis::AcHmis
       }
       result = conn.post('clients/v1/api/clients/clearance', payload)
 
+      save_log!(result, payload)
+
       raise(Error, result.error) if result.error
 
       Rails.logger.info "Did clearance for client #{client.id}"
@@ -83,6 +85,8 @@ module HmisExternalApis::AcHmis
       result = conn.post(endpoint, payload)
 
       if result.error
+        save_log!(result, payload)
+
         raise(Error, result.error['detail']) if result.error
       else
         # Store MCI ID for client
@@ -90,7 +94,7 @@ module HmisExternalApis::AcHmis
         external_id = create_external_id(
           source: client,
           value: result.parsed_body,
-          external_request_log: result.request_log,
+          external_request_log: save_log!(result, payload),
         )
       end
 
@@ -113,6 +117,8 @@ module HmisExternalApis::AcHmis
       payload = MciPayload.from_client(client, mci_id: external_id.value)
 
       result = conn.post('clients/v1/api/clients/updateclient', payload)
+
+      save_log!(result, payload)
 
       raise(Error, result.error) if result.error
 
@@ -172,12 +178,33 @@ module HmisExternalApis::AcHmis
       HmisExternalApis::ExternalId.where(namespace: SYSTEM_ID)
     end
 
+    def save_log!(result, payload)
+      HmisExternalApis::ExternalRequestLog.create!(
+        initiator: creds,
+        content_type: result.content_type,
+        http_method: result.http_method,
+        ip: result.ip,
+        request_headers: result.request_headers,
+        request: payload,
+        response: result.body,
+        requested_at: Time.now,
+        url: result.url,
+      )
+    end
+
     def get_external_id(source)
       external_ids.where(source: source).first
     end
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(creds)
+      @conn ||= HmisExternalApis::OauthClientConnection.new(
+        client_id: creds.client_id,
+        client_secret: creds.client_secret,
+        token_url: creds.token_url,
+        base_url: creds.base_url,
+        headers: creds.additional_headers,
+        scope: creds.oauth_scope,
+      )
     end
 
     def client_scope

@@ -101,7 +101,7 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'import:remote_data',
+    task: 'eto:import:demographics_and_touch_points',
     frequency: 1.day,
     at: '6:04 am',
     interruptable: false,

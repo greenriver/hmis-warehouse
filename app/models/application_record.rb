@@ -8,7 +8,6 @@ class ApplicationRecord < ActiveRecord::Base
   include Efind
   include ArelHelper
   self.abstract_class = true
-  self.filter_attributes = Rails.application.config.filter_parameters
 
   connects_to database: { writing: :primary, reading: :primary }
 

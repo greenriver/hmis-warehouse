@@ -20,8 +20,6 @@ module Types
     argument :client_id, ID, required: false
     # Needed for Funder/ProjectCoC/etc creation
     argument :project_id, ID, required: false
-    # Needed for Service creation
-    argument :service_type_id, ID, required: false
     # Raw form state as JSON
     argument :values, Types::JsonObject, required: false
     # Transformed HUD values as JSON

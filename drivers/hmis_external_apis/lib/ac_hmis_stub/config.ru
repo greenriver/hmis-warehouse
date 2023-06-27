@@ -1,3 +1,4 @@
+
 require 'json'
 
 # stand-alone rack app to stub out external apis. To run:
@@ -28,10 +29,8 @@ class AcHmisStubApplication
       end
     when 'PATCH'
       case path
-      when /\/api\/Referral\/ReferralRequest\/[-a-z0-9]+/
+      when %r{/api/Referral/ReferralRequest/[-a-z0-9]+}
         return update_referral_request
-      when /\/api\/Referral\/PostingStatus/
-        return update_referral_posting_status
       end
     when 'GET'
       case path
@@ -53,12 +52,8 @@ class AcHmisStubApplication
     [200, json_headers, [body.to_json]]
   end
 
-  def update_referral_posting_status
-    [201, json_headers, [{ postings: [] }.to_json]]
-  end
-
   def update_referral_request
-    [201, json_headers, [{ success: true }.to_json]]
+    [201, json_headers, [{ success: true}.to_json]]
   end
 
   def create_referral_request

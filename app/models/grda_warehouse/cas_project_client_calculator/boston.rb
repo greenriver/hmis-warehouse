@@ -130,18 +130,6 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.most_recent_pathways_or_rrh_assessment_for_destination&.AssessmentDate&.to_date&.to_s
     end
 
-    def most_recent_pathways_assessment_for_destination(client)
-      return unless client.present?
-
-      client.most_recent_pathways_assessment_for_destination&.AssessmentDate&.to_date&.to_s
-    end
-
-    def most_recent_transfer_assessment_for_destination(client)
-      return unless client.present?
-
-      client.most_recent_transfer_assessment_for_destination&.AssessmentDate&.to_date&.to_s
-    end
-
     private def most_recent_pathways_or_transfer(client)
       client.most_recent_pathways_or_rrh_assessment_for_destination
     end

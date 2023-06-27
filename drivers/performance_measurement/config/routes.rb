@@ -13,7 +13,6 @@ BostonHmis::Application.routes.draw do
       end
       resources :goal_configs, except: [:show] do
         resources :pit_counts, only: [:new, :create, :destroy]
-        post :duplicate, on: :member
       end
     end
   end

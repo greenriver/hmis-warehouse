@@ -21,7 +21,7 @@ module Mutations
       )
 
       # Return the HmisService object
-      result[:service] = hmis_service
+      result[:service] = hmis_service.reload if result[:service].present?
 
       result
     end

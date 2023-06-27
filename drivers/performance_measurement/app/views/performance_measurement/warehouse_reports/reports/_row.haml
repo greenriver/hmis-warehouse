@@ -38,9 +38,7 @@
         .font-size-sm.ml-auto
           = link_to('View more details', performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank, class: 'j-click-row-source')
 - else
-  .row.m-0.mb-4
-    .col-12
-      %p
-        Unable to display the
-        %strong #{key}
-        section. Usually this means the report structure has changed since you ran this report.  Run a new report to confirm.
+  %tr
+    %td
+      Error displaying:
+      = key

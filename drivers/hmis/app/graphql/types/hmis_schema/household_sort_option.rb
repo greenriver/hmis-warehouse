@@ -12,7 +12,7 @@ module Types
     graphql_name 'HouseholdSortOption'
 
     Hmis::Hud::Household::SORT_OPTIONS.each do |opt|
-      value opt.to_s.upcase, value: opt, description: Hmis::Hud::Household::SORT_OPTION_DESCRIPTIONS[opt]
+      value opt.to_s.upcase, value: opt
     end
   end
 end

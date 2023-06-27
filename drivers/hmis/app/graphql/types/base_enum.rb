@@ -8,18 +8,6 @@ module Types
   class BaseEnum < GraphQL::Schema::Enum
     INVALID_VALUE = -999999
 
-    def self.build(name, &block)
-      Class.new(self) do
-        graphql_name(name)
-        instance_eval(&block)
-      end
-    end
-
-    def self.generate_enum(name, &block)
-      @generated_enums = {} unless @generated_enums.present?
-      @generated_enums[name] ||= build(name, &block)
-    end
-
     def self.to_enum_key(value)
       key = value.to_s.underscore.upcase.gsub(/\W+/, '_').gsub(/_+/, '_').gsub(/_$/, '').gsub(/^_/, '')
       key = "NUM_#{key}" if key.match(/^[0-9]/)

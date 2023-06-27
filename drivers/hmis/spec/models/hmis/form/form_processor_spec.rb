@@ -1464,75 +1464,48 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   describe 'Form processing for Service' do
     include_context 'hmis base setup'
     include_context 'hmis service setup'
-    # HUD Service: SSVF Financial Assistance (152), Child Care (10)
-    let!(:hud_service) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, record_type: 152, type_provided: 10 }
-    # Custom Service
-    let!(:custom_service) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1 }
+    let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: hmis_hud_user }
+    let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
 
     let(:definition) { Hmis::Form::Definition.find_by(role: :SERVICE) }
-    let(:hud_service_values) do
+    let(:complete_hud_values) do
       {
+        'typeProvided' => 'BED_NIGHT__BED_NIGHT',
+        'otherTypeProvided' => HIDDEN,
+        'movingOnOtherType' => HIDDEN,
+        'subTypeProvided' => HIDDEN,
+        'FAAmount' => HIDDEN,
+        'referralOutcome' => HIDDEN,
         'dateProvided' => '2023-03-13',
-        'faAmount' => 200,
       }
     end
 
-    let(:custom_service_values) do
-      {
-        'dateProvided' => '2023-03-13',
-        'faAmount' => 100,
-      }
-    end
-
-    it 'creates and updates all fields on a HUD Service' do
-      existing_record = Hmis::Hud::HmisService.find_by(owner: hud_service)
-      hud_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: hud_service.record_type, hud_type_provided: hud_service.type_provided)
+    it 'creates and updates all fields on HUD Service' do
+      existing_record = s1
       new_record = Hmis::Hud::HmisService.new(
-        data_source: ds1,
+        data_source: ds,
+        user: hmis_hud_user,
         enrollment_id: e1.enrollment_id,
         personal_id: e1.personal_id,
-        custom_service_type: hud_service_type,
       )
-
       [existing_record, new_record].each do |record|
         custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
-        custom_form.hud_values = hud_service_values
+        custom_form.hud_values = complete_hud_values
         custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
+
         hud_service = custom_form.owner.owner
         hud_service.save!
         hmis_service = Hmis::Hud::HmisService.find_by(owner: hud_service)
         expect(hmis_service.hud_service?).to eq(true)
         expect(hmis_service.custom_service?).to eq(false)
-        expect(hmis_service.service_type).to eq(hud_service_type)
-        expect(hmis_service.record_type).to eq(hud_service.record_type)
-        expect(hmis_service.type_provided).to eq(hud_service.type_provided)
-        expect(hmis_service.fa_amount).to eq(200)
-        expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
-      end
-    end
-
-    it 'creates and updates all fields on a Custom Service' do
-      existing_record = Hmis::Hud::HmisService.find_by(owner: custom_service)
-      new_record = Hmis::Hud::HmisService.new(
-        data_source: ds1,
-        enrollment_id: e1.enrollment_id,
-        personal_id: e1.personal_id,
-        custom_service_type: cst1,
-      )
-      [existing_record, new_record].each do |record|
-        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
-        custom_form.hud_values = custom_service_values
-        custom_form.form_processor.run!(owner: custom_form.owner, user: hmis_user)
-        custom_service = custom_form.owner.owner
-        custom_service.save!
-
-        hmis_service = Hmis::Hud::HmisService.find_by(owner: custom_service)
-        expect(hmis_service.hud_service?).to eq(false)
-        expect(hmis_service.custom_service?).to eq(true)
-        expect(hmis_service.service_type).to eq(cst1)
-        expect(hmis_service.record_type).to be nil
-        expect(hmis_service.type_provided).to be nil
-        expect(hmis_service.fa_amount).to eq(100)
+        expect(hmis_service.service_type).to eq(Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200))
+        expect(hmis_service.record_type).to eq(200)
+        expect(hmis_service.type_provided).to eq(200)
+        expect(hmis_service.other_type_provided).to be nil
+        expect(hmis_service.moving_on_other_type).to be nil
+        expect(hmis_service.sub_type_provided).to be nil
+        expect(hmis_service.fa_amount).to be nil
+        expect(hmis_service.referral_outcome).to be nil
         expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
       end
     end

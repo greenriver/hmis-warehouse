@@ -44,10 +44,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
             }
             dateProvided
+            recordType
+            typeProvided
             subTypeProvided
             otherTypeProvided
             movingOnOtherType
-            faAmount
+            FAAmount
             referralOutcome
           }
           #{error_fields}

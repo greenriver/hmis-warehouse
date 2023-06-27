@@ -29,7 +29,7 @@ module HmisExternalApis::AcHmis
     end
 
     def program_params
-      params.permit(:start_date, :end_date, program_ids: [])
+      params.permit(:program_id, :start_date, :end_date)
     end
 
     def client_params

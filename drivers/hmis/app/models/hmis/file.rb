@@ -36,7 +36,7 @@ class Hmis::File < GrdaWarehouse::File
 
   scope :viewable_by, ->(user) do
     view_scope = where(client_id: Hmis::Hud::Client.with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files))
-    # view_scope = view_scope.nonconfidential unless user.can_view_any_confidential_client_files?
+    view_scope = view_scope.nonconfidential unless user.can_view_any_confidential_client_files?
     edit_scope = user.can_manage_own_client_files? ? where(user_id: user.id) : none
 
     view_scope.or(edit_scope)

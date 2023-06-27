@@ -8,9 +8,7 @@ require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request do
   let(:headers) do
-    internal_system = HmisExternalApis::InternalSystem.find_by(name: 'Involvements')
-    internal_system ||= create(:internal_system, :involvements)
-    conf = create(:inbound_api_configuration, internal_system: internal_system)
+    conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :involvements))
     { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
   end
 
@@ -40,7 +38,7 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
 
   describe 'program involvement' do
     it 'works minimally' do
-      api_get(:program, { start_date: '2000-01-01', end_date: '2000-01-10', program_ids: [project.project_id] })
+      api_get(:program, { start_date: '2000-01-01', end_date: '2000-01-10', program_id: project.project_id })
 
       expect(response.status).to eq 200
       expect(JSON.parse(response.body)['involvements']).to eq []

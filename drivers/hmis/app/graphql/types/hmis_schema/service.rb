@@ -15,35 +15,22 @@ module Types
       Hmis::Hud::Service.hmis_configuration(version: '2022')
     end
 
-    available_filter_options do
-      arg :service_category, [ID]
-      arg :service_type, [ID]
-      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
-      arg :project, [ID]
-    end
-
-    field :id, ID, null: false
-    field :enrollment, Types::HmisSchema::Enrollment, null: false
-    field :client, HmisSchema::Client, null: false
-    field :service_type, HmisSchema::ServiceType, null: false
-    field :date_provided, GraphQL::Types::ISO8601Date, null: false
-    field :fa_amount, Float, null: true
-    field :fa_start_date, GraphQL::Types::ISO8601Date, null: true
-    field :fa_end_date, GraphQL::Types::ISO8601Date, null: true
-
-    custom_data_elements_field
-
-    # HUD fields
+    hud_field :id, ID, null: false
+    hud_field :enrollment, Types::HmisSchema::Enrollment, null: false
+    hud_field :client, HmisSchema::Client, null: false
+    hud_field :date_provided
+    hud_field :record_type, HmisSchema::Enums::Hud::RecordType, null: true
+    hud_field :type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
     hud_field :other_type_provided
     hud_field :moving_on_other_type
     hud_field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided
+    field 'FAAmount', Float, null: true
     hud_field :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome
-
-    # Metadata
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
     hud_field :user, HmisSchema::User, null: true
+    custom_data_elements_field
 
     def user
       load_ar_association(object, :user)
@@ -57,10 +44,6 @@ module Types
       return nil unless object.sub_type_provided.present?
 
       [type_provided, object.sub_type_provided].join(':')
-    end
-
-    def service_type
-      load_ar_association(object, :custom_service_type)
     end
 
     # Custom data elements are linked to the underlying record (Hmis::Hud::Service or Hmis::Hud::CustomService)

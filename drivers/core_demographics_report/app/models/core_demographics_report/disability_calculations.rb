@@ -15,7 +15,7 @@ module
             title: "Disability #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_disability(key)).distinct },
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_disability(key)).distinct },
           }
         end
       end
@@ -66,29 +66,29 @@ module
     def disability_data_for_export(rows)
       rows['_Disability Break'] ||= []
       rows['*Indefinite and Impairing Disabilities'] ||= []
-      rows['*Indefinite and Impairing Disabilities'] += ['Disability', nil, 'Count', 'Percentage', nil]
+      rows['*Indefinite and Impairing Disabilities'] += ['Disability', 'Count', 'Percentage', nil, nil]
       ::HudUtility.disability_types.each do |id, title|
         rows["_Disabilities_data_#{title}"] ||= []
         rows["_Disabilities_data_#{title}"] += [
           title,
-          nil,
           disability_count(id),
           disability_percentage(id) / 100,
+          nil,
         ]
       end
       rows['_At Least One Disability_data_'] ||= []
       rows['_At Least One Disability_data_'] += [
         'At Least One Disability',
-        nil,
         yes_disability_count,
         yes_disability_percentage / 100,
+        nil,
       ]
       rows['_No Disability_data_'] ||= []
       rows['_No Disability_data_'] += [
         'No Disability',
-        nil,
         no_disability_count,
         no_disability_percentage / 100,
+        nil,
       ]
       rows
     end

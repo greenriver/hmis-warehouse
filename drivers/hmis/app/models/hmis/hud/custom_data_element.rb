@@ -20,7 +20,7 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
 
   belongs_to :owner, polymorphic: true, optional: false
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :custom_data_elements
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   belongs_to :data_element_definition, class_name: 'Hmis::Hud::CustomDataElementDefinition', optional: false
   delegate :key, :label, :repeats, to: :data_element_definition
 

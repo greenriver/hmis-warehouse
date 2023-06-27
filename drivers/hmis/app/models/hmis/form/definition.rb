@@ -35,15 +35,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     REFERRAL_REQUEST: 'Referral Request',
   }.freeze
 
-  validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
-
   FORM_ROLE_CONFIG = {
     SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
     PROJECT: { class_name: 'Hmis::Hud::Project', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Project' },
     ORGANIZATION: { class_name: 'Hmis::Hud::Organization', permission: :can_edit_organization, resolve_as: 'Types::HmisSchema::Organization' },
     CLIENT: { class_name: 'Hmis::Hud::Client', permission: :can_edit_clients, resolve_as: 'Types::HmisSchema::Client' },
     FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
-    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
+    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_manage_inventory, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
     FILE: {
       class_name: 'Hmis::File',
@@ -73,9 +71,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
-  scope :for_project, ->(project:, role:) do
-    # Consider all instances for this role
-    base_scope = Hmis::Form::Instance.joins(:definition).merge(Hmis::Form::Definition.with_role(role))
+  scope :for_project, ->(project) do
+    base_scope = Hmis::Form::Instance.joins(:definition)
 
     # Choose the first scope that has any records. Prefer more specific instances.
     instance_scope = [
@@ -102,19 +99,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.find_definition_for_role(role, project: nil, version: nil)
-    if project.present?
-      scope = Hmis::Form::Definition.for_project(project: project, role: role)
-    else
-      scope = Hmis::Form::Definition.with_role(role)
-    end
-
+    scope = Hmis::Form::Definition.with_role(role)
+    scope = scope.for_project(project) if project.present?
     scope = scope.where(version: version) if version.present?
     scope.order(version: :desc).first
   end
 
   def self.find_definition_for_service_type(service_type, project:)
-    Hmis::Form::Definition.
-      for_project(project: project, role: :SERVICE).
+    Hmis::Form::Definition.with_role(:SERVICE).
+      for_project(project).
       for_service_type(service_type).
       order(version: :desc).first
   end

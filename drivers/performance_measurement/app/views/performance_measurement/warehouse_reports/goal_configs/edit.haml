@@ -5,25 +5,11 @@
 = content_for :crumbs do
   = link_to performance_measurement_warehouse_reports_goal_configs_path do
     &laquo; #{_('CoC Performance Measurement Dashboard')} Configurator
-.d-flex
-  %h1.mb-5= title
-  = link_to duplicate_performance_measurement_warehouse_reports_goal_config_path(@goal), method: :post, class: 'btn btn-secondary ml-auto mb-auto', data: { toggle: :tooltip, title: 'Duplicating this goal will make it inactive and create a duplicate for future reporting.', confirm: 'Duplicating this goal will make it inactive and create a duplicate for future reporting.  Reports associated with this report will continue to be measured against this goal.  Are you sure you want to create a new goal for this CoC?' } do
-    %i.icon-copy
-    Duplicate Goal
+%h1.mb-5= title
 
 = simple_form_for @goal, url: performance_measurement_warehouse_reports_goal_config_path(@goal), as: :goal do |f|
-  .well
-    .row
-      .col-sm-6
-        = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs(current_user), as: :select_two, include_blank: 'Default'
-        = f.input :label, hint: 'Provide a short note about this particular goal'
-        = f.input :active, as: :pretty_boolean, label: 'Active Goal?', hint: 'If this box is checked, future reports will run against this goal configuration.'
-    .d-flex
-      .ml-auto.mt-4= f.submit 'Update Goal'
-  %h2 PIT Counts
-  .well
-    = render 'pit_counts'
-  %h2 Specific Goals
+  = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two, include_blank: 'Default'
+  = render 'pit_counts'
   .card
     %table.table.c-table--indicator.mb-0
       %tbody

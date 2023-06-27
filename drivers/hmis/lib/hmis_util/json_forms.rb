@@ -69,7 +69,7 @@ module HmisUtil
     def self.seed_record_form_definitions
       record_forms.each do |identifier, form_definition|
         role = identifier.upcase.to_sym
-        next unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+        raise "unrecognized role #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
 
         definition = Hmis::Form::Definition.find_or_create_by(
           identifier: identifier,
@@ -90,23 +90,6 @@ module HmisUtil
       end
 
       puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
-    end
-
-    def self.load_definition(identifier, role:)
-      form_definition = record_forms[identifier.to_s]
-      raise "Not found: #{identifier}" unless form_definition.present?
-      raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role.to_sym)
-
-      form_definition['item'] = form_definition['item'].map { |item| apply_fragment(item) }
-      Hmis::Form::Definition.validate_json(form_definition)
-      record = Hmis::Form::Definition.where(
-        identifier: identifier,
-        role: role,
-        version: 0,
-        status: 'draft',
-      ).first_or_create!
-      record.definition = form_definition.to_json
-      record.save!
     end
 
     # Load form definitions for HUD assessments

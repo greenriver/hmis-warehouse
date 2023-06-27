@@ -13,7 +13,7 @@ module
     end
 
     def section_subpath
-      'core_demographics_report/warehouse_reports/shared/'
+      "#{self.class.url}/"
     end
 
     def detail_path_array
@@ -84,10 +84,6 @@ module
         HudUtility.coc_name(column)
       when 'Female', 'Male', 'No Single Gender', 'Transgender', 'Questioning', 'Unknown Gender'
         HudUtility.no_yes_reasons_for_missing_data(column)
-      when 'Relationship To HoH'
-        HudUtility.relationship_to_hoh(column)
-      when 'Destination'
-        HudUtility.destination(column)
       else
         column
       end
@@ -96,21 +92,16 @@ module
     def client_headers
       [
         'Client ID',
-        'Personal ID',
         'First Name',
         'Last Name',
         'DOB',
         'Reporting Age',
-        'Relationship To HoH',
         'Female',
         'Male',
         'No Single Gender',
         'Transgender',
         'Questioning',
         'Unknown Gender',
-        'Entry Date',
-        'Exit Date',
-        'Destination',
       ]
     end
 
@@ -133,21 +124,16 @@ module
     def client_columns
       [
         c_t[:id],
-        e_t[:PersonalID],
         c_t[:FirstName],
         c_t[:LastName],
         c_t[:DOB],
         age_calculation,
-        e_t[:RelationshipToHoH],
         c_t[:Female],
         c_t[:Male],
         c_t[:NoSingleGender],
         c_t[:Transgender],
         c_t[:Questioning],
         c_t[:GenderNone],
-        e_t[:EntryDate],
-        she_t[:exit_date],
-        she_t[:destination],
       ]
     end
   end

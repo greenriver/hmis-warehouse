@@ -1,0 +1,58 @@
+- reports = [@report]
+- column_class = 'col-sm-8'
+- if @report.include_comparison?
+  - reports << @comparison
+  - column_class = 'col-sm-6'
+.row
+  - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
+    %div{class: column_class}
+      %h3 Number of Times on the Streets, ES, or SH in The Past 3 Years
+      %p Data comes from the HUD Entry Assessment of most recent enrollment within the date range for each client.
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th Response
+              %th Count
+              %th Percentage
+          %tbody
+            - ::HudUtility.times_homeless_options.each do |id, title|
+              %tr
+                %th= title
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.times_on_street_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "prior_times_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= number_to_percentage(report.times_on_street_percentage(id), precision: 2)
+
+      %h3 Number of Months on the Streets, ES, or SH in The Past 3 Years
+      %p Data comes from the HUD Entry Assessment of most recent enrollment within the date range for each client.
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th Response
+              %th Count
+              %th Percentage
+          %tbody
+            - ::HudUtility.month_categories.each do |id, title|
+              %tr
+                %th= title
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.months_on_street_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "prior_months_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= number_to_percentage(report.months_on_street_percentage(id), precision: 2)
+
+      %h3 Prior Living Situation
+      %p Data comes from the HUD Entry Assessment of most recent enrollment within the date range for each client.
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th Response
+              %th Count
+              %th Percentage
+          %tbody
+            - ::HudUtility.living_situations.each do |id, title|
+              %tr
+                %th= title
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.prior_living_situations_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "prior_situation_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= number_to_percentage(report.prior_living_situations_percentage(id), precision: 2)

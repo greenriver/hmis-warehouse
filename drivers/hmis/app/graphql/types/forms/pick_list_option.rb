@@ -42,6 +42,8 @@ module Types
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType4, '144:4')
       when 'SUB_TYPE_PROVIDED_5'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType5, '144:5')
+      when 'REFERRAL_OUTCOME'
+        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::PATHReferralOutcome)
       when 'CURRENT_LIVING_SITUATION'
         living_situation_picklist(as: :current)
       when 'DESTINATION'
@@ -92,16 +94,6 @@ module Types
             label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
           }
         end
-
-      when 'REFERRAL_POSTING_STATUSES'
-        HmisExternalApis::AcHmis::ReferralPosting::VALID_LOCAL_STATUSES.map do |status|
-          {
-            code: status,
-            label: status.gsub(/_status\z/, '').humanize.titleize,
-          }
-        end
-      when 'REFERRAL_POSTING_DENIAL_REASON_TYPES'
-        [] # tbd
       end
     end
 

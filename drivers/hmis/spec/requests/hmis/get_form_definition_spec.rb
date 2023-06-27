@@ -52,8 +52,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     include_context 'hmis service setup'
     let(:service_query) do
       <<~GRAPHQL
-        query GetServiceFormDefinition($serviceTypeId: ID!, $projectId: ID!) {
-          getServiceFormDefinition(serviceTypeId: $serviceTypeId, projectId: $projectId) {
+        query GetServiceFormDefinition($customServiceTypeId: ID!, $projectId: ID!) {
+          getServiceFormDefinition(customServiceTypeId: $customServiceTypeId, projectId: $projectId) {
             #{form_definition_fragment}
           }
         }
@@ -64,7 +64,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should find no definitions if there are no service-specific instances' do
-      response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
+      response, result = post_graphql({ project_id: p1.id.to_s, custom_service_type_id: cst1.id.to_s }) { service_query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         form_definition = result.dig('data', 'getServiceFormDefinition')
@@ -81,7 +81,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         custom_service_type_id: cst1.id,
       )
 
-      response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
+      response, result = post_graphql({ project_id: p1.id.to_s, custom_service_type_id: cst1.id.to_s }) { service_query }
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
@@ -99,7 +99,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         custom_service_category_id: csc1.id,
       )
 
-      response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
+      response, result = post_graphql({ project_id: p1.id.to_s, custom_service_type_id: cst1.id.to_s }) { service_query }
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200

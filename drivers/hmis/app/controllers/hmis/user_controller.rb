@@ -24,7 +24,6 @@ class Hmis::UserController < Hmis::BaseController
     render json: {
       name: current_hmis_user.name,
       email: current_hmis_user.email,
-      phone: current_hmis_user.phone,
     }
   end
 

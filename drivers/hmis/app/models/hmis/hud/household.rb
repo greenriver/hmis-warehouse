@@ -13,7 +13,6 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   has_many :enrollments, **hmis_relation(:HouseholdID, 'Enrollment')
   has_many :clients, through: :enrollments
-  alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do
     viewable_households = joins(:enrollments).
@@ -54,18 +53,10 @@ class Hmis::Hud::Household < Hmis::Hud::Base
 
   TRIMMED_HOUSEHOLD_ID_LENGTH = 6
   def short_id
-    return household_id unless household_id.length == 32
-
-    household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
+    id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
   end
 
-  SORT_OPTIONS = [
-    :most_recent,
-  ].freeze
-
-  SORT_OPTION_DESCRIPTIONS = {
-    most_recent: 'Most Recent',
-  }.freeze
+  SORT_OPTIONS = [:most_recent].freeze
 
   def readonly?
     true
@@ -84,9 +75,5 @@ class Hmis::Hud::Household < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
-  end
-
-  def self.apply_filters(input)
-    Hmis::Filter::HouseholdFilter.new(input).filter_scope(self)
   end
 end

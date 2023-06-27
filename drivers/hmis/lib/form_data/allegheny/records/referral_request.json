@@ -2,20 +2,16 @@
   "name": "referral-request",
   "item": [
     {
-      "type": "DATE",
-      "link_id": "today",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$today"
-        }
-      ]
-    },
-    {
       "type": "GROUP",
       "link_id": "1",
       "item": [
+        {
+          "type": "DATE",
+          "required": true,
+          "link_id": "requestedOn",
+          "text": "Requested Date",
+          "field_name": "requestedOn"
+        },
         {
           "type": "CHOICE",
           "required": true,
@@ -29,60 +25,28 @@
           "required": true,
           "link_id": "neededBy",
           "text": "Estimated Date Needed",
-          "field_name": "neededBy",
-          "bounds": [
-            {
-              "id": "min-needed-by-lax",
-              "type": "MIN",
-              "question": "today",
-              "offset": 1
-            },
-            {
-              "id": "max-needed-by",
-              "type": "MAX",
-              "question": "today",
-              "offset": 15
-            }
-          ]
+          "field_name": "neededBy"
         },
         {
           "type": "STRING",
           "required": true,
           "link_id": "requestorName",
           "text": "Requestor Name",
-          "field_name": "requestorName",
-          "initial": [
-            {
-              "initial_behavior": "IF_EMPTY",
-              "value_local_constant": "$userName"
-            }
-          ]
+          "field_name": "requestorName"
         },
         {
           "type": "STRING",
           "required": true,
           "link_id": "requestorPhone",
           "text": "Requestor Phone",
-          "field_name": "requestorPhone",
-          "initial": [
-            {
-              "initial_behavior": "IF_EMPTY",
-              "value_local_constant": "$userPhone"
-            }
-          ]
+          "field_name": "requestorPhone"
         },
         {
           "type": "STRING",
           "required": true,
           "link_id": "requestorEmail",
           "text": "Requestor Email",
-          "field_name": "requestorEmail",
-          "initial": [
-            {
-              "initial_behavior": "IF_EMPTY",
-              "value_local_constant": "$userEmail"
-            }
-          ]
+          "field_name": "requestorEmail"
         }
       ]
     }

@@ -12,7 +12,7 @@ module Types
     graphql_name 'EnrollmentSortOption'
 
     Hmis::Hud::Enrollment::SORT_OPTIONS.each do |opt|
-      value opt.to_s.upcase, value: opt, description: Hmis::Hud::Enrollment::SORT_OPTION_DESCRIPTIONS[opt]
+      value opt.to_s.upcase, value: opt
     end
   end
 end

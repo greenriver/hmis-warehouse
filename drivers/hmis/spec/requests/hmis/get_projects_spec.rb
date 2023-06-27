@@ -25,7 +25,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:query) do
     <<~GRAPHQL
       query GetProject($projectTypes: [ProjectType!], $searchTerm: String, $sortOrder: ProjectSortOption, $offset: Int = 0, $limit: Int = 5) {
-        projects(filters: { projectType: $projectTypes, searchTerm: $searchTerm }, sortOrder: $sortOrder, offset: $offset, limit: $limit) {
+        projects(projectTypes: $projectTypes, searchTerm: $searchTerm, sortOrder: $sortOrder, offset: $offset, limit: $limit) {
           nodesCount
           nodes {
             #{scalar_fields(Types::HmisSchema::Project)}

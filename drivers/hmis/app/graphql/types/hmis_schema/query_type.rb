@@ -15,7 +15,6 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
-    include Types::HmisSchema::HasReferralPostings
     include ::Hmis::Concerns::HmisArelHelper
 
     projects_field :projects
@@ -119,15 +118,9 @@ module Types
     field :service, Types::HmisSchema::Service, 'Service lookup', null: true do
       argument :id, ID, required: true
     end
+
     def service(id:)
       Hmis::Hud::HmisService.viewable_by(current_user).find_by(id: id)
-    end
-
-    field :service_type, Types::HmisSchema::ServiceType, 'Service type lookup', null: true do
-      argument :id, ID, required: true
-    end
-    def service_type(id:)
-      Hmis::Hud::CustomServiceType.find_by(id: id)
     end
 
     field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
@@ -152,14 +145,14 @@ module Types
     end
 
     field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
-      argument :service_type_id, ID, required: true
+      argument :custom_service_type_id, ID, required: true
       argument :project_id, ID, required: true
     end
-    def get_service_form_definition(service_type_id:, project_id:)
+    def get_service_form_definition(custom_service_type_id:, project_id:)
       project = Hmis::Hud::Project.find_by(id: project_id)
       raise HmisErrors::ApiError, 'Project not found' unless project.present?
 
-      service_type = Hmis::Hud::CustomServiceType.find_by(id: service_type_id)
+      service_type = Hmis::Hud::CustomServiceType.find_by(id: custom_service_type_id)
       raise HmisErrors::ApiError, 'Service type not found' unless service_type.present?
 
       Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
@@ -183,23 +176,6 @@ module Types
 
     def access
       {}
-    end
-
-    field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do
-      argument :id, ID, required: true
-    end
-
-    def referral_posting(id:)
-      HmisExternalApis::AcHmis::ReferralPosting.viewable_by(current_user).find_by(id: id)
-    end
-
-    referral_postings_field :denied_pending_referral_postings
-    def denied_pending_referral_postings(**args)
-      return [] unless current_user.can_manage_denied_referrals?
-
-      postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
-
-      scoped_referral_postings(postings, **args)
     end
   end
 end

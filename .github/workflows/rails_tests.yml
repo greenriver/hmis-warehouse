@@ -17,19 +17,12 @@ concurrency:
 jobs:
   # Label of the container job
   tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        test_group:
-          - drivers/{a,b,c,d,e,f,g}*
-          - drivers/{h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
-          - spec
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:3.1.4-alpine3.18
+    container: ruby:3.1.3-alpine3.17
 
     # Service containers to run with job
     services:
@@ -57,17 +50,6 @@ jobs:
       sftp:
         image: justinhimself/sftp
 
-      minio:
-        image: ghcr.io/greenriver/openpath-minio:1.0
-        credentials:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          MINIO_ACCESS_KEY: local_access_key
-          MINIO_SECRET_KEY: local_secret_key
-        ports:
-          - '9000:9000'
-
     env:
       CLIENT: test
       DATABASE_ADAPTER: postgresql
@@ -88,8 +70,6 @@ jobs:
       HEALTH_DATABASE_USER: postgres
       HEALTH_FROM: greenriver.testing@mailinator.com
       HOSTNAME: openpath.host
-      MINIO_ENDPOINT: http://minio:9000
-      USE_MINIO_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
       REPORTING_DATABASE_ADAPTER: postgresql
@@ -188,22 +168,18 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
+
       - name: Run tests
         env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
           GROVER_NO_SANDBOX: true
           CHROMIUM_PATH: /usr/bin/chromium-browser
           MAX_FAILURES: 20
           LOG_LEVEL: INFO
         run: |
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "${{ matrix.test_group }}/**/*_spec.rb"
+          bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
-
       - name: Run logging tests
         env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
           LOG_LEVEL: INFO
         run: |
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
