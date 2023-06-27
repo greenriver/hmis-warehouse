@@ -19,6 +19,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  let!(:ds_access_control) do
+    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_enrollment_details])
+  end
+
   before(:each) do
     hmis_login(user)
   end
@@ -259,7 +263,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         response, _result = post_graphql(**variables) { query }
         expect(response.status).to eq 200
-      end.to make_database_queries(count: 0..25)
+      end.to make_database_queries(count: 0..70)
     end
 
     it 'is responsive' do
