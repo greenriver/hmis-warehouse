@@ -304,14 +304,6 @@ module PerformanceMetrics
       @comparison_pattern ||= filter.comparison_pattern
     end
 
-    def self.comparison_patterns
-      {
-        no_comparison_period: 'None',
-        prior_year: 'Same period, prior year',
-        prior_period: 'Prior Period',
-      }.invert.freeze
-    end
-
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?

@@ -23,6 +23,8 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
+      return unless GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Boston'
+
       GrdaWarehouse::Config.get(:cas_calculator).constantize.new.most_recent_transfer_assessment_for_destination(cohort_client.client)
     end
   end
