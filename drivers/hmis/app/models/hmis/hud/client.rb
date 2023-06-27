@@ -35,6 +35,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
+  has_many :youth_education_statuses, through: :enrollments
+  has_many :employment_educations, through: :enrollments
   has_many :households, through: :enrollments
   has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
@@ -161,40 +163,51 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     "https://#{ENV['FQDN']}/clients/#{id}/from_source"
   end
 
-  def mci_id
-    ac_hmis_mci_id&.value
-  end
-
-  private def clientview_url
+  private def clientview_url(mci_id_value)
     link_base = HmisExternalApis::AcHmis::Clientview.link_base
-    return unless link_base&.present? && mci_id&.present?
+    return unless link_base&.present? && mci_id_value&.present?
 
-    "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
+    "#{link_base}/ClientInformation/Profile/#{mci_id_value}?aid=2"
   end
 
   def external_identifiers
-    external_identifiers = {
-      client_id: {
+    external_identifiers = [
+      {
+        type: :client_id,
         id: id,
         label: 'HMIS ID',
       },
-      personal_id: {
+      {
+        type: :personal_id,
         id: personal_id,
         label: 'Personal ID',
       },
-      warehouse_id: {
+      {
+        type: :warehouse_id,
         id: warehouse_id,
         url: warehouse_url,
         label: 'Warehouse ID',
       },
-    }
+    ]
 
     if HmisExternalApis::AcHmis::Mci.enabled?
-      external_identifiers[:mci_id] = {
-        id: mci_id,
-        url: clientview_url,
-        label: 'MCI ID',
-      }
+      if ac_hmis_mci_ids.present?
+        ac_hmis_mci_ids.to_a.each do |mci_id|
+          external_identifiers << {
+            type: :mci_id,
+            id: mci_id.value,
+            url: clientview_url(mci_id.value),
+            label: 'MCI ID',
+          }
+        end
+      else
+        external_identifiers << {
+          type: :mci_id,
+          id: nil,
+          url: nil,
+          label: 'MCI ID',
+        }
+      end
     end
 
     external_identifiers

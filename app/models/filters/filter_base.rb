@@ -821,6 +821,7 @@ module Filters
         no_comparison_period: 'None',
         prior_year: 'Same period, prior year',
         prior_period: 'Prior Period',
+        prior_fiscal_year: 'Prior Federal Fiscal Year',
       }.invert.freeze
     end
 
@@ -830,13 +831,9 @@ module Filters
 
     def available_coc_codes
       @available_coc_codes ||= begin
-        cocs = GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
-        return cocs if user.system_user?
+        return GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce) if user.system_user?
 
-        # If a user has coc code limits assigned, enforce them
-        cocs &= user&.coc_codes if user&.coc_codes.present?
-
-        cocs
+        GrdaWarehouse::Lookups::CocCode.viewable_by(user).distinct.pluck(:coc_code)
       end
     end
 
@@ -1391,6 +1388,12 @@ module Filters
       when :prior_year
         prior_end = end_date - 1.years
         prior_start = start_date - 1.years
+        [prior_start, prior_end]
+      when :prior_fiscal_year
+        # find the 9/30 that precedes the end date
+        prior_end = Date.new(end_date.year, 9, 30)
+        prior_end -= 1.years if prior_end >= end_date
+        prior_start = Date.new(prior_end.year - 1, 10, 1)
         [prior_start, prior_end]
       else
         [start_date, end_date]

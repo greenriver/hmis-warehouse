@@ -16,12 +16,12 @@ namespace :grda_warehouse do
       ORDER BY indexstats.avg_fragmentation_in_percent DESC
     SQL
 
-    GrdaWarehouse::Hud::Base.connection.select_rows(sql_fragged_report).each do |table_name, index_name, index_type, percent_fragged|
+    GrdaWarehouse::Hud::Base.connection.select_rows(sql_fragged_report).each do |table_name, index_name, _index_type, percent_fragged|
       next unless index_name.present?
+
       puts "Reorganizing #{index_name} on #{table_name}. #{percent_fragged.round(2)}%) fragmented."
       GrdaWarehouse::Hud::Base.connection.execute("ALTER INDEX [#{index_name}] ON [#{table_name}] REORGANIZE")
     end
-
   end
 
   desc 'Empty the GRDA warehouse'
@@ -59,7 +59,6 @@ namespace :grda_warehouse do
       bphc.short_name = 'BPHC'
       bphc.munged_personal_id = true
       bphc.save
-
 
       dnd_warehouse = GrdaWarehouse::DataSource.where(name: 'DND Warehouse').first_or_create
       dnd_warehouse.short_name = 'Warehouse'
@@ -195,15 +194,16 @@ namespace :grda_warehouse do
   end
 
   desc 'Calculate chronic homelessness [\'2017-01-15\']; defaults: date=Date.current'
-  task :calculate_chronic_homelessness, [:date] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :calculate_chronic_homelessness, [:date] => [:environment, 'log:info_to_stdout'] do |_task, args|
     date = (args.date || Date.current).to_date
     GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
     GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
   end
 
   desc 'Calculate chronic homelessness [\'2015-01-15, 2017-01-15, 1, month\']; defaults: interval=1, unit=month'
-  task :calculate_chronic_for_interval, [:start, :end, :interval, :unit] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :calculate_chronic_for_interval, [:start, :end, :interval, :unit] => [:environment, 'log:info_to_stdout'] do |_task, args|
     raise 'dates required' unless args.start.present? && args.end.present?
+
     start_date = args.start.to_date
     end_date = args.end.to_date
     interval = (args.interval || 1).to_i
@@ -218,15 +218,20 @@ namespace :grda_warehouse do
 
   # rake grda_warehouse:anonymize_client_names['var/data/IL504']
   desc 'Anonymize all client names in Client.csv'
-  task :anonymize_client_names, [:path] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :anonymize_client_names, [:path] => [:environment, 'log:info_to_stdout'] do |_task, args|
     raise 'path is required' unless args.path.present?
+
     path = args.path
     file = File.join(path, 'Client.csv')
-    CSV.open("#{file.gsub('.csv', '.anon.csv')}", 'wb') do |csv|
-      CSV.foreach(file, headers: true) do |row|
-        csv << row.headers() if $. == 2
-        row['FirstName'] = "First_#{row['PersonalID']}"
-        row['LastName'] = "Last_#{row['PersonalID']}"
+    CSV.open(file.gsub('.csv', '.anon.csv').to_s, 'wb') do |csv|
+      client_file = CSV.open(file, 'r:ISO-8859-1', headers: true)
+      client_file.each do |row|
+        csv << row.headers if client_file.lineno == 2
+        row['FirstName'] = Faker::Name.first_name
+        row['MiddleName'] = [Faker::Name.middle_name, nil, nil].sample
+        row['LastName'] = Faker::Name.last_name
+        row['NameSuffix'] = [Faker::Name.suffix, nil, nil].sample
+        row['SSN'] = [Faker::Number.number(digits: 9).to_s, "XXXXX#{Faker::Number.number(digits: 4)}", nil, nil, nil].sample
 
         # Cleanup Excel's nasty dates
         unless row['DateCreated'].include?('-')
@@ -234,15 +239,42 @@ namespace :grda_warehouse do
           row['DateCreated'] = Date.strptime(row['DateCreated'], '%m/%d/%Y %k:%M')&.to_date&.strftime('%Y-%m-%d %H-%M-%S')
           row['DateUpdated'] = Date.strptime(row['DateUpdated'], '%m/%d/%Y %k:%M')&.to_date&.strftime('%Y-%m-%d %H-%M-%S')
         end
+
+        # Randomize DOB, maintaining child/adult status
+        current_dob = Date.parse(row['DOB']) if row['DOB'].present?
+        if current_dob.present?
+          current_age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: current_dob)
+          if current_age > 17
+            row['DOB'] = Faker::Date.birthday(min_age: 18, max_age: 80).strftime('%Y-%m-%d')
+          else
+            row['DOB'] = Faker::Date.birthday(min_age: 0, max_age: 17).strftime('%Y-%m-%d')
+          end
+        end
         csv << row
       end
     end
   end
 
+  # rake grda_warehouse:titleize_client_names[<data source id>]
+  desc 'Titleize all Clients in a data source'
+  task :titleize_client_names, [:data_source_id] => [:environment, 'log:info_to_stdout'] do |_task, args|
+    raise 'data_source_id is required' unless args.data_source_id.present?
+
+    data_source = GrdaWarehouse::DataSource.find(args.data_source_id)
+    client_scope = Hmis::Hud::Client.where(data_source: data_source)
+    puts "Titleizing #{client_scope.count} clients in data source #{data_source.name}"
+    name_fields = [:first_name, :middle_name, :last_name, :name_suffix]
+    attribute_hash = {}
+    client_scope.each do |client|
+      attribute_hash[client.id] = client.slice(name_fields).compact_blank.transform_values(&:titleize)
+    end
+    client_scope.update(attribute_hash.keys, attribute_hash.values)
+  end
+
   desc 'Sanity Check Service History; defaults: n=50'
-  task :sanity_check_service_history, [:n] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :sanity_check_service_history, [:n] => [:environment, 'log:info_to_stdout'] do |_task, args|
     n = args.n
-    GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(sample_size: ( n || 50 ).to_i).run!
+    GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(sample_size: (n || 50).to_i).run!
   end
 
   desc 'Full import routine'
@@ -270,14 +302,14 @@ namespace :grda_warehouse do
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
-  task :first_residential_record, [:reset] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :first_residential_record, [:reset] => [:environment, 'log:info_to_stdout'] do |_task, args|
     GrdaWarehouse::Tasks::EarliestResidentialService.new(args.reset).run!
   end
 
   desc 'Clean destination clients with no sources; defaults: max_allowed=50'
-  task :clean_clients, [:max_allowed] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :clean_clients, [:max_allowed] => [:environment, 'log:info_to_stdout'] do |_task, args|
     max_allowed = args.max_allowed
-    GrdaWarehouse::Tasks::ClientCleanup.new(( max_allowed || 50 ).to_i).run!
+    GrdaWarehouse::Tasks::ClientCleanup.new((max_allowed || 50).to_i).run!
   end
 
   desc 'Combined tasks to reduce the number of cron jobs'
@@ -296,7 +328,7 @@ namespace :grda_warehouse do
   end
 
   desc 'Save Service History Snapshots'
-  task :save_service_history_snapshots, [] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :save_service_history_snapshots, [] => [:environment, 'log:info_to_stdout'] do |_task, _args|
     GrdaWarehouse::Hud::Client.needs_history_pdf.each do |client|
       ServiceHistory::ChronicVerificationJob.perform_later(
         client_id: client.id,
@@ -328,7 +360,7 @@ namespace :grda_warehouse do
   end
 
   desc 'Remove data based on import'
-  task :remove_import_data, [:import_id] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :remove_import_data, [:import_id] => [:environment, 'log:info_to_stdout'] do |_task, args|
     import_id = args.import_id.to_i
     next unless import_id.present? && import_id.to_s == args.import_id
 
@@ -336,7 +368,7 @@ namespace :grda_warehouse do
   end
 
   desc 'Cleanup fake CoC Codes'
-  task :fake_coc_cleanup, [] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :fake_coc_cleanup, [] => [:environment, 'log:info_to_stdout'] do |_task, _args|
     GrdaWarehouse::FakeData.find_each do |fake|
       next unless fake.map['CoCCode']
 
@@ -362,7 +394,7 @@ namespace :grda_warehouse do
   end
 
   desc 'Force rebuild for homeless enrollments'
-  task :force_rebuild_for_homeless_enrollments, [] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :force_rebuild_for_homeless_enrollments, [] => [:environment, 'log:info_to_stdout'] do |_task, _args|
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.invalidate_processing!
 
@@ -371,7 +403,7 @@ namespace :grda_warehouse do
   end
 
   desc 'Send Health Emergency Notifications'
-  task :send_health_emergency_notifications, [] => [:environment, 'log:info_to_stdout'] do |task, args|
+  task :send_health_emergency_notifications, [] => [:environment, 'log:info_to_stdout'] do |_task, _args|
     next unless GrdaWarehouse::Config.get(:health_emergency)
 
     WarehouseReports::HealthEmergencyBatchNotifierJob.perform_now

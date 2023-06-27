@@ -80,6 +80,7 @@ module Types
       can :manage_outgoing_referrals
       can :manage_denied_referrals
     end
+    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
 
     def hud_id
       object.project_id
@@ -106,6 +107,22 @@ module Types
 
     def inventories(**args)
       resolve_inventories(**args)
+    end
+
+    # Build OpenStructs to resolve as UnitTypeCapacity
+    def unit_types
+      project_units = object.units.active
+      capacity = project_units.group(:unit_type_id).count
+      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
+
+      object.units.map(&:unit_type).uniq.map do |unit_type|
+        OpenStruct.new(
+          id: unit_type.id,
+          unit_type: unit_type.description,
+          capacity: capacity[unit_type.id] || 0,
+          availability: unoccupied[unit_type.id] || 0,
+        )
+      end
     end
 
     def units(**args)

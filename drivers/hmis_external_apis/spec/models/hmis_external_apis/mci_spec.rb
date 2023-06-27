@@ -35,7 +35,7 @@ RSpec.describe 'MCI API', type: :model do
 
     it 'handles errors' do
       result = subject.get('clients/v1/api/not-a-thing')
-      expect(result.http_status).to be_nil
+      expect(result.http_status).to eq(404)
       expect(result.parsed_body).to be_nil
       expect(result.error_type).to eq('OAuth2::Error')
     end
