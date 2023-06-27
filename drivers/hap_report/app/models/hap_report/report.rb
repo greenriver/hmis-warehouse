@@ -16,6 +16,8 @@ module HapReport
     attr_accessor :start_date, :end_date, :project_ids
     validates_presence_of :start_date, :end_date, :project_ids
 
+    has_many :eraps, foreign_key: :hap_report_id
+
     def run_and_save!
       start
       create_universe
@@ -57,6 +59,11 @@ module HapReport
     end
 
     private def create_universe
+      create_universe_from_warehouse
+      create_universe_from_eraps if eraps.exists?
+    end
+
+    private def create_universe_from_warehouse
       enrollment_scope.find_in_batches do |batch|
         hap_clients = {}
         batch.each do |processed_enrollment|
@@ -86,6 +93,7 @@ module HapReport
 
           existing_client = hap_clients[processed_enrollment.client] || HapClient.new
           new_client = HapClient.new(
+            personal_id: existing_client[:personal_id] || processed_enrollment.client.personal_id,
             client_id: existing_client[:client_id] || processed_enrollment.client_id,
             age: existing_client[:age] || client.age([@start_date, processed_enrollment.first_date_in_program].max),
             emancipated: false,
@@ -102,7 +110,7 @@ module HapReport
             nights_in_shelter: [existing_client[:nights_in_shelter], nights_in_shelter].compact.sum,
           )
           new_client[:head_of_household_for] = if head_of_household
-            (Array.wrap(existing_client[:head_of_household_for])) << household_id
+            Array.wrap(existing_client[:head_of_household_for]) << household_id
           else
             existing_client[:head_of_household_for] || []
           end
@@ -112,6 +120,50 @@ module HapReport
         HapClient.import(hap_clients.values)
         universe.add_universe_members(hap_clients)
       end
+    end
+
+    private def create_universe_from_eraps
+      clients = {}.tap do |h|
+        eraps.find_each do |erap|
+          # Prefer HMIS clients, if we have a duplicate already coming from HMIS, use that data and ignore the erap client
+          next if duplicate_client?(erap)
+
+          h[erap.client_key] ||= {}
+          h[erap.client_key].merge!(erap.client_data)
+          household_ids = (h[erap.client_key][:household_ids] || []) + [erap[:household_id]]
+          project_types = (h[erap.client_key][:project_types] || []) + [erap[:project_type]]
+          head_of_household_for = h[erap.client_key][:head_of_household_for] || []
+          head_of_household_for += [erap[:household_id]] if erap[:head_of_household]
+          nights_in_shelter = (h[erap.client_key][:nights_in_shelter] || 0) + erap[:nights_in_shelter]
+          h[erap.client_key].merge!(
+            household_ids: household_ids,
+            project_types: project_types,
+            head_of_household_for: head_of_household_for,
+            nights_in_shelter: nights_in_shelter,
+          )
+        end
+      end
+      clients.transform_values! { |hash| HapClient.new(**hash) }
+      HapClient.import(clients.values)
+      universe.add_universe_members(clients)
+    end
+
+    private def duplicate_client?(erap)
+      if @existing_clients_by_pii.nil?
+        @existing_clients_by_personal_id = Set.new
+        @existing_clients_by_pii = Set.new
+        universe.members.find_each do |member|
+          @existing_clients_by_personal_id << member.universe_membership.personal_id
+          @existing_clients_by_pii << [
+            member.first_name.strip.downcase,
+            member.last_name.strip.downcase,
+            member.universe_membership.age,
+          ]
+        end
+      end
+
+      @existing_clients_by_personal_id.include?(erap.personal_id) ||
+        @existing_clients_by_pii.include?([erap.first_name.strip.downcase, erap.last_name.strip.downcase, erap.age])
     end
 
     def members_of_households_with_children

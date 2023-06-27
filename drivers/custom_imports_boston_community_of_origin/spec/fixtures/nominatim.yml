@@ -1,0 +1,85 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://nominatim.openstreetmap.org/search/search?country=us&format=json&postalcode=02134
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Nominatim Ruby Gem 0.0.7
+      Accept-Language:
+      - en
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 24 May 2023 18:05:33 GMT
+      Content-Type:
+      - application/json; charset=UTF-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Keep-Alive:
+      - timeout=20
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Allow-Methods:
+      - OPTIONS,GET
+    body:
+      encoding: ASCII-8BIT
+      string: !binary |-
+        W3sicGxhY2VfaWQiOjMwMjU3NDgzOCwibGljZW5jZSI6IkRhdGEgwqkgT3BlblN0cmVldE1hcCBjb250cmlidXRvcnMsIE9EYkwgMS4wLiBodHRwczovL29zbS5vcmcvY29weXJpZ2h0IiwiYm91bmRpbmdib3giOlsiNDIuMTk2NTk0Njg2MjYxIiwiNDIuNTE2NTk0Njg2MjYxIiwiLTcxLjI5MDg3NDg3MzQyMyIsIi03MC45NzA4NzQ4NzM0MjMiXSwibGF0IjoiNDIuMzU2NTk0Njg2MjYxMjYiLCJsb24iOiItNzEuMTMwODc0ODczNDIzNDIiLCJkaXNwbGF5X25hbWUiOiJBbGxzdG9uLCBCb3N0b24sIFN1ZmZvbGsgQ291bnR5LCBNYXNzYWNodXNldHRzLCAwMjEzNCwgVW5pdGVkIFN0YXRlcyIsImNsYXNzIjoicGxhY2UiLCJ0eXBlIjoicG9zdGNvZGUiLCJpbXBvcnRhbmNlIjowLjQzNX1d
+  recorded_at: Wed, 24 May 2023 18:05:33 GMT
+- request:
+    method: get
+    uri: https://nominatim.openstreetmap.org/search/search?country=us&format=json&postalcode=05301
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Nominatim Ruby Gem 0.0.7
+      Accept-Language:
+      - en
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 24 May 2023 18:05:35 GMT
+      Content-Type:
+      - application/json; charset=UTF-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Keep-Alive:
+      - timeout=20
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Allow-Methods:
+      - OPTIONS,GET
+    body:
+      encoding: ASCII-8BIT
+      string: !binary |-
+        W3sicGxhY2VfaWQiOjMwMjU3NTkzMCwibGljZW5jZSI6IkRhdGEgwqkgT3BlblN0cmVldE1hcCBjb250cmlidXRvcnMsIE9EYkwgMS4wLiBodHRwczovL29zbS5vcmcvY29weXJpZ2h0IiwiYm91bmRpbmdib3giOlsiNDIuNjkyOTcxNTI3OTYiLCI0My4wMTI5NzE1Mjc5NiIsIi03Mi44MDE2MzgzOTUwOTMiLCItNzIuNDgxNjM4Mzk1MDkzIl0sImxhdCI6IjQyLjg1Mjk3MTUyNzk1OTUwNCIsImxvbiI6Ii03Mi42NDE2MzgzOTUwOTM0NSIsImRpc3BsYXlfbmFtZSI6IkJyYXR0bGVib3JvLCBXaW5kaGFtIENvdW50eSwgVmVybW9udCwgMDUzMDEsIFVuaXRlZCBTdGF0ZXMiLCJjbGFzcyI6InBsYWNlIiwidHlwZSI6InBvc3Rjb2RlIiwiaW1wb3J0YW5jZSI6MC4zMzQ5OTk5OTk5OTk5OTk5Nn1d
+  recorded_at: Wed, 24 May 2023 18:05:35 GMT
+recorded_with: VCR 6.1.0
