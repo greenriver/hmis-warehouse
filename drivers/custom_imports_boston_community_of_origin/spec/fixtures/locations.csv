@@ -1,0 +1,4 @@
+,Unique Identifier,Personal ID,Client Full Name,Enrollment ID,Project Start Date,Project Exit Date,Program ID,Name,City,State,Zip Code,How long has it been since you stayed in that community?,Reporting Period Start Date,Reporting Period End Date,Client geolocation Location
+1,L-1,100,Client 1,E-1,2023-01-01,,P-1,Project Name,Boston,MA,02134,About 1 month ago,2023-04-01,2023-04-30,
+2,L-1,200,Client 2,E-2,2023-01-01,,P-1,Project Name,Boston,MA,02134,About 1 month ago,2023-04-01,2023-04-30,
+3,L-2,300,Client 3,E-3,2023-01-01,,P-1,Project Name,Boston,MA,02134,About 1 month ago,2023-04-01,2023-04-30,

@@ -124,12 +124,13 @@ module Types
     # FIXME: use graphql dataloader
     def external_ids
       object.external_identifiers.
-        map do |key, vals|
+        map do |vals|
           {
-            id: [key, object.id].join(':'),
+            id: [vals[:type], vals[:id]].join(':'),
             identifier: vals[:id],
             url: vals[:url],
             label: vals[:label],
+            type: vals[:type],
           }
         end
     end
