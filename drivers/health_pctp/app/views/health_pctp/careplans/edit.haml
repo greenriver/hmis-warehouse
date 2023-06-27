@@ -1,8 +1,13 @@
 = simple_form_for @careplan, url: client_health_pctp_careplan_path(@client, @careplan), html: { class: :jCareplanForm } do |f|
   = render 'form', f: f
 
-  .form__actions.form__actions--right.mb-6
-    = f.submit 'Save', class: 'btn btn-primary'
+  .form__actions.mt-6.mb-8
+    .c-btn-group
+      = link_to client_health_pctp_careplan_path(@client, @careplan), method: :delete, class: 'btn btn-danger', data: {confirm: "Would you really like to delete the Care Plan?"} do
+        %i.icon-cross
+        Delete Care Plan
+    .c-btn-group.ml-auto
+      = f.submit 'Save Care Plan', class: 'btn btn-primary'
 
 - content_for :page_js do
   :javascript
