@@ -266,7 +266,7 @@ module GrdaWarehouse::Hud
     def address_lat_lon
       return unless address.present?
 
-      lat, lon, bound = Place.lookup_lat_lon(query: address)
+      lat, lon, bound = ::GrdaWarehouse::Place.lookup_lat_lon(query: address)
       return { address: address, lat: lat, lon: lon, boundingbox: bound } if bound.present?
     end
 
