@@ -91,5 +91,6 @@ module BostonHmis
     config.custom_imports = []
     config.supplemental_enrollment_importers = {}
     config.help_links = []
+    config.location_processors = []
   end
 end
