@@ -115,9 +115,11 @@ services:
       - mailhog
       - minio
 
-  db:
-    image: postgis/postgis:13-3.3-alpine
-    container_name: hmis-warehouse-db
+  # To transition from pg12 to pg13, run ./bin/upgrade.pg12.to.pg13
+  pg12:
+    build:
+      context: docker/pg12
+    container_name: pg12
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -126,6 +128,26 @@ services:
       PGUSER: postgres
     volumes:
       - dbdata:/var/lib/postgresql/data
+    ports:
+      - 5432
+    expose:
+      - 5432
+
+  # This should no longer need to be overridden for ARM
+  # processors
+  db:
+    build:
+      context: docker/pg13
+    container_name: hmis-warehouse-db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+      PGPASSWORD: postgres
+      PGUSER: postgres
+    volumes:
+      - dbdata_pg13:/var/lib/postgresql/data
+      - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432
     expose:
@@ -150,9 +172,12 @@ services:
 
   sftp:
     container_name: hmis-warehouse-sftp
+    # https://hub.docker.com/r/justinhimself/sftp
     image: justinhimself/sftp
     volumes:
-      - ./tmp/sftp_spec:/home/user/sftp
+      # I took this out because it has the wrong permissions and I couldn't
+      # upload anything, and the one spec file that uses it seems disabled.
+      #- ./tmp/sftp_spec:/home/user/sftp
       - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
   # See config/storage.yml for setup
@@ -181,6 +206,7 @@ volumes:
   node_modules_alpine:
   rails_cache_alpine:
   dbdata:
+  dbdata_pg13:
   redis:
 
 networks:
