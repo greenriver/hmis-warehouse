@@ -47,7 +47,7 @@ module
             title: "Ages - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { send(key) },
+            scope: -> { send(key).joins(:client, :enrollment).distinct },
           }
         end
         age_categories.each do |key, title|
@@ -55,7 +55,7 @@ module
             title: title,
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_age_range(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_age_range(key)).distinct },
           }
         end
         age_categories.each do |age_key, age_title|
@@ -64,7 +64,7 @@ module
               title: "Age - #{age_title} #{gender_title}",
               headers: client_headers,
               columns: client_columns,
-              scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_gender_age(gender, age_key)).distinct },
+              scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_gender_age(gender, age_key)).distinct },
             }
           end
         end
@@ -320,49 +320,49 @@ module
     def age_data_for_export(rows)
       rows['_Adults Break'] ||= []
       rows['*Adults'] ||= []
-      rows['*Adults'] += ['Gender', 'Count', 'Average Age', nil, nil]
+      rows['*Adults'] += ['Gender', nil, 'Count', 'Average Age', nil]
       rows['_Adults - All'] ||= []
-      rows['_Adults - All'] += ['All', adult_count, average_adult_age, nil, nil]
+      rows['_Adults - All'] += ['All', nil, adult_count, average_adult_age, nil]
       rows['_Adults - Female'] ||= []
-      rows['_Adults - Female'] += ['Female', adult_female_count, average_adult_female_age, nil, nil]
+      rows['_Adults - Female'] += ['Female', nil, adult_female_count, average_adult_female_age, nil]
       rows['_Adults - Male'] ||= []
-      rows['_Adults - Male'] += ['Male', adult_male_count, average_adult_male_age, nil, nil]
+      rows['_Adults - Male'] += ['Male', nil, adult_male_count, average_adult_male_age, nil]
       rows['_Adults - Transgender'] ||= []
-      rows['_Adults - Transgender'] += ['Transgender', adult_trans_count, average_adult_trans_age, nil, nil]
+      rows['_Adults - Transgender'] += ['Transgender', nil, adult_trans_count, average_adult_trans_age, nil]
       rows['_Adults - Questioning'] ||= []
-      rows['_Adults - Questioning'] += ['Questioning', adult_questioning_count, average_adult_questioning_age, nil, nil]
+      rows['_Adults - Questioning'] += ['Questioning', nil, adult_questioning_count, average_adult_questioning_age, nil]
       rows['_Adults - No Single Gender'] ||= []
-      rows['_Adults - No Single Gender'] += ['No Single Gender', adult_no_single_gender_count, average_adult_no_single_gender_age, nil, nil]
+      rows['_Adults - No Single Gender'] += ['No Single Gender', nil, adult_no_single_gender_count, average_adult_no_single_gender_age, nil]
       rows['_Adults - Unknown Gender'] ||= []
-      rows['_Adults - Unknown Gender'] += ['Unknown Gender', adult_unknown_gender_count, average_adult_unknown_gender_age, nil, nil]
+      rows['_Adults - Unknown Gender'] += ['Unknown Gender', nil, adult_unknown_gender_count, average_adult_unknown_gender_age, nil]
 
       rows['_Children Break'] ||= []
       rows['*Children'] ||= []
-      rows['*Children'] += ['Gender', 'Count', 'Average Age', nil, nil]
+      rows['*Children'] += ['Gender', nil, 'Count', 'Average Age', nil]
       rows['_Children - All'] ||= []
-      rows['_Children - All'] += ['All', child_count, average_child_age, nil, nil]
+      rows['_Children - All'] += ['All', nil, child_count, average_child_age, nil]
       rows['_Children - Female'] ||= []
-      rows['_Children - Female'] += ['Female', child_female_count, average_child_female_age, nil, nil]
+      rows['_Children - Female'] += ['Female', nil, child_female_count, average_child_female_age, nil]
       rows['_Children - Male'] ||= []
-      rows['_Children - Male'] += ['Male', child_male_count, average_child_male_age, nil, nil]
+      rows['_Children - Male'] += ['Male', nil, child_male_count, average_child_male_age, nil]
       rows['_Children - Transgender'] ||= []
-      rows['_Children - Transgender'] += ['Transgender', child_trans_count, average_child_trans_age, nil, nil]
+      rows['_Children - Transgender'] += ['Transgender', nil, child_trans_count, average_child_trans_age, nil]
       rows['_Children - Questioning'] ||= []
-      rows['_Children - Questioning'] += ['Questioning', child_questioning_count, average_child_questioning_age, nil, nil]
+      rows['_Children - Questioning'] += ['Questioning', nil, child_questioning_count, average_child_questioning_age, nil]
       rows['_Children - No Single Gender'] ||= []
-      rows['_Children - No Single Gender'] += ['No Single Gender', child_no_single_gender_count, average_child_no_single_gender_age, nil, nil]
+      rows['_Children - No Single Gender'] += ['No Single Gender', nil, child_no_single_gender_count, average_child_no_single_gender_age, nil]
       rows['_Children - Unknown Gender'] ||= []
-      rows['_Children - Unknown Gender'] += ['Unknown Gender', child_unknown_gender_count, average_child_unknown_gender_age, nil, nil]
-      rows['_Age Beakdowns Break'] ||= []
-      rows['*Age Beakdowns'] ||= []
-      rows['*Age Beakdowns'] += ['Age Range', 'Count', 'Percentage', nil]
+      rows['_Children - Unknown Gender'] += ['Unknown Gender', nil, child_unknown_gender_count, average_child_unknown_gender_age, nil]
+      rows['_Age Breakdowns Break'] ||= []
+      rows['*Age Breakdowns'] ||= []
+      rows['*Age Breakdowns'] += ['Age Range', nil, 'Count', 'Percentage']
       age_categories.each do |age_range, age_title|
-        rows["_Age Beakdowns_data_#{age_title}"] ||= []
-        rows["_Age Beakdowns_data_#{age_title}"] += [
+        rows["_Age Breakdowns_data_#{age_title}"] ||= []
+        rows["_Age Breakdowns_data_#{age_title}"] += [
           age_title,
+          nil,
           age_count(age_range),
           age_percentage(age_range) / 100,
-          nil,
         ]
       end
       rows

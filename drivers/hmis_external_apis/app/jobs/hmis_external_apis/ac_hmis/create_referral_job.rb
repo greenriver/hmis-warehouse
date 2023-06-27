@@ -75,6 +75,7 @@ module HmisExternalApis::AcHmis
       posting.unit_type = mper.find_unit_type_by_mper(unit_type_id)
       return error_out('Unit Type not found') unless posting.unit_type
 
+      posting.data_source = data_source
       posting.status = 'assigned_status'
       posting.save!
       posting
@@ -226,6 +227,7 @@ module HmisExternalApis::AcHmis
 
         member = referral.household_members.where(client: client).first_or_initialize
         member.relationship_to_hoh = relationship_to_hoh
+        member.mci_id = mci_id
         member.save!
       end
     end

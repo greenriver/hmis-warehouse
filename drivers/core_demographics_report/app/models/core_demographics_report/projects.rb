@@ -10,13 +10,13 @@ module
   included do
     def enrollment_detail_hash
       {}.tap do |hashes|
-        report_scope.distinct.pluck(p_t[:id]).each do |id|
-          project = GrdaWarehouse::Hud::Project.joins(:organization).find(id)
-          hashes["project_#{id}"] = {
+        project_ids = report_scope.distinct.pluck(p_t[:id])
+        GrdaWarehouse::Hud::Project.joins(:organization).preload(:organization).where(id: project_ids).find_each do |project|
+          hashes["project_#{project.id}"] = {
             title: project.organization_and_name(@filter.user),
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :project).merge(GrdaWarehouse::Hud::Project.where(id: id)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment, :project).merge(GrdaWarehouse::Hud::Project.where(id: id)).distinct },
           }
         end
       end

@@ -10,7 +10,7 @@
       "repeats": true,
       "link_id": "addresses",
       "field_name": "addresses",
-      "text": "Addresses"
+      "text": "Address"
     },
     {
       "type": "OBJECT",
@@ -18,7 +18,7 @@
       "repeats": true,
       "link_id": "phones",
       "field_name": "phoneNumbers",
-      "text": "Phone Numbers"
+      "text": "Phone"
     },
     {
       "type": "OBJECT",
@@ -26,7 +26,7 @@
       "repeats": true,
       "link_id": "emails",
       "field_name": "emailAddresses",
-      "text": "Emails"
+      "text": "Email"
     }
   ]
 }

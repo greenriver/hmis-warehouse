@@ -23,7 +23,7 @@ class Hmis::Filter::BaseFilter
 
   private
 
-  def with_filter(scope, input, filter)
+  def with_filter(scope, filter)
     return scope unless input.respond_to?(filter) && input.send(filter)&.present?
 
     yield

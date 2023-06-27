@@ -22,6 +22,13 @@ module Types
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
     end
 
+    available_filter_options do
+      arg :status, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
+      arg :open_on_date, GraphQL::Types::ISO8601Date
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :search_term, String
+    end
+
     description 'HUD Enrollment'
     field :id, ID, null: false
     field :project, Types::HmisSchema::Project, null: false
@@ -40,15 +47,55 @@ module Types
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
+    field :enrollment_coc, String, null: true
     hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
+    # 3.08
+    hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    # 3.917
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
+    # TODO(2024): field :rental_subsidy_type, 3.12.A list
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
     hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :date_to_street_essh
     hud_field :times_homeless_past_three_years, HmisSchema::Enums::Hud::TimesHomelessPastThreeYears
     hud_field :months_homeless_past_three_years, HmisSchema::Enums::Hud::MonthsHomelessPastThreeYears
-    hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    # P3
+    field :date_of_path_status, GraphQL::Types::ISO8601Date, null: true
+    field :client_enrolled_in_path, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :reason_not_enrolled, HmisSchema::Enums::Hud::ReasonNotEnrolled, null: true
+    # R3
+    # V4
+    field :percent_ami, HmisSchema::Enums::Hud::PercentAMI, null: true
+    # R1
+    field :referral_source, HmisSchema::Enums::Hud::ReferralSource, null: true
+    field :count_outreach_referral_approaches, Integer, null: true
+    # R2
+    field :date_of_bcp_status, GraphQL::Types::ISO8601Date, null: true
+    field :eligible_for_rhy, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :reason_no_services, HmisSchema::Enums::Hud::ReasonNoServices, null: true
+    field :runaway_youth, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    # R3
+    field :sexual_orientation, HmisSchema::Enums::Hud::SexualOrientation, null: true
+    field :sexual_orientation_other, String, null: true
+    # R11
+    field :former_ward_child_welfare, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :child_welfare_years, HmisSchema::Enums::Hud::RHYNumberofYears, null: true
+    field :child_welfare_months, Integer, null: true
+    # R12
+    field :former_ward_juvenile_justice, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :juvenile_justice_years, HmisSchema::Enums::Hud::RHYNumberofYears, null: true
+    field :juvenile_justice_months, Integer, null: true
+    # R13
+    field :unemployment_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :mental_health_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :physical_disability_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :alcohol_drug_use_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    # TODO(2024): C4 with preferred language list
+    # field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    # field :preferred_language, Integer, null: true
+    # field :preferred_language_different, String, null: true
+
     field :in_progress, Boolean, null: false
     hud_field :date_updated
     hud_field :date_created
@@ -71,6 +118,11 @@ module Types
 
     def exit
       load_ar_association(object, :exit)
+    end
+
+    # TODO(2024): remove once 2024 enrollmentcoc column is added
+    def enrollment_coc
+      object.enrollment_cocs.first&.coc_code
     end
 
     def status
