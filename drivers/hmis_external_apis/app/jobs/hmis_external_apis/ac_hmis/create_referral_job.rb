@@ -210,8 +210,8 @@ module HmisExternalApis::AcHmis
       dup = old_records.find { |old| old.equal_for_merge?(new_record) }
       return false unless dup.present?
 
-      dup.update!(**new_record.attributes.compact_blank)
-      dup.touch
+      dup.assign_attributes(new_record.attributes.compact_blank)
+      dup.save!
     end
 
     def assign_default_common_client_attrs(client, record)
