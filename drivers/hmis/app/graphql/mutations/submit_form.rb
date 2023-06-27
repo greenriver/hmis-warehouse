@@ -132,9 +132,11 @@ module Mutations
         }
       when 'Hmis::Hud::HmisService'
         enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)
+        custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id)
         {
           enrollment_id: enrollment&.EnrollmentID,
           personal_id: enrollment&.PersonalID,
+          custom_service_type_id: custom_service_type&.id,
         }
       when 'Hmis::File'
         {

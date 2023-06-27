@@ -37,6 +37,66 @@ input AddRecentItemInput {
 }
 
 """
+HUD Age Ranges
+"""
+enum AgeRange {
+  """
+  62+
+  """
+  Age62Plus
+
+  """
+  65+
+  """
+  Age65Plus
+
+  """
+  13-17
+  """
+  Ages13to17
+
+  """
+  18-24
+  """
+  Ages18to24
+
+  """
+  25-34
+  """
+  Ages25to34
+
+  """
+  35-44
+  """
+  Ages35to44
+
+  """
+  45-54
+  """
+  Ages45to54
+
+  """
+  55-61
+  """
+  Ages55to61
+
+  """
+  55-64
+  """
+  Ages55to64
+
+  """
+  5-12
+  """
+  Ages5to12
+
+  """
+  Under 5
+  """
+  Under5
+}
+
+"""
 User account for a user of the system
 """
 type ApplicationUser {
@@ -79,7 +139,9 @@ type AssessmentAccess {
 }
 
 input AssessmentFilterOptions {
-  roles: [AssessmentRole!]
+  project: [ID!]
+  projectType: [ProjectType!]
+  type: [AssessmentRole!]
 }
 
 input AssessmentInput {
@@ -400,7 +462,7 @@ type Client {
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   emailAddresses: [ClientContactPoint!]!
-  enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(filters: EnrollmentsForClientFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
@@ -419,7 +481,7 @@ type Client {
   phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
-  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: User
@@ -1782,21 +1844,32 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
+  alcoholDrugUseDisorderFam: NoYesMissing
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
+  childWelfareMonths: Int
+  childWelfareYears: RHYNumberofYears
   client: Client!
+  clientEnrolledInPath: NoYesMissing
+  countOutreachReferralApproaches: Int
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
+  dateOfBcpStatus: ISO8601Date
+  dateOfPathStatus: ISO8601Date
   dateToStreetEssh: ISO8601Date
   dateUpdated: ISO8601DateTime!
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   disabilityGroups: [DisabilityGroup!]!
   disablingCondition: NoYesReasonsForMissingData
+  eligibleForRhy: NoYesMissing
+  enrollmentCoc: String
   entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitAssessment: Assessment
   exitDate: ISO8601Date
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
+  formerWardChildWelfare: NoYesReasonsForMissingData
+  formerWardJuvenileJustice: NoYesReasonsForMissingData
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   household: Household!
   householdSize: Int!
@@ -1804,16 +1877,28 @@ type Enrollment {
   inProgress: Boolean!
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   intakeAssessment: Assessment
+  juvenileJusticeMonths: Int
+  juvenileJusticeYears: RHYNumberofYears
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
   losUnderThreshold: NoYesMissing
+  mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
+  percentAmi: PercentAMI
+  physicalDisabilityFam: NoYesMissing
   previousStreetEssh: NoYesMissing
   project: Project!
+  reasonNoServices: ReasonNoServices
+  reasonNotEnrolled: ReasonNotEnrolled
+  referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
-  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  runawayYouth: NoYesReasonsForMissingData
+  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  sexualOrientation: SexualOrientation
+  sexualOrientationOther: String
   status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
+  unemploymentFam: NoYesMissing
   user: User
 }
 
@@ -1821,6 +1906,23 @@ type EnrollmentAccess {
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
   id: ID!
+}
+
+enum EnrollmentFilterOptionStatus {
+  """
+  Active
+  """
+  ACTIVE
+
+  """
+  Exited
+  """
+  EXITED
+
+  """
+  Incomplete
+  """
+  INCOMPLETE
 }
 
 """
@@ -1831,16 +1933,18 @@ input EnrollmentHouseholdMemberInput {
   relationshipToHoH: RelationshipToHoH!
 }
 
-enum EnrollmentLimit {
-  NON_WIP_ONLY
-  WIP_ONLY
-}
-
 """
 HUD Enrollment Sorting Options
 """
 enum EnrollmentSortOption {
+  """
+  Household ID
+  """
   HOUSEHOLD_ID
+
+  """
+  Most Recent
+  """
   MOST_RECENT
 }
 
@@ -1877,6 +1981,18 @@ enum EnrollmentStatus {
   Exit Incomplete
   """
   OWN_EXIT_INCOMPLETE
+}
+
+input EnrollmentsForClientFilterOptions {
+  openOnDate: ISO8601Date
+  projectType: [ProjectType!]
+  status: [EnrollmentFilterOptionStatus!]
+}
+
+input EnrollmentsForProjectFilterOptions {
+  openOnDate: ISO8601Date
+  searchTerm: String
+  status: [EnrollmentFilterOptionStatus!]
 }
 
 type EnrollmentsPaginated {
@@ -2153,14 +2269,15 @@ type File {
   enrollment: Enrollment
   enrollmentId: ID
   expirationDate: ISO8601Date
-  fileBlobId: ID!
+  fileBlobId: ID
   id: ID!
   name: String!
   ownFile: Boolean!
+  redacted: Boolean!
   tags: [String!]!
   updatedBy: ApplicationUser
   uploadedBy: ApplicationUser
-  url: String!
+  url: String
   user: User
 }
 
@@ -2210,6 +2327,7 @@ input FormInput {
   organizationId: ID
   projectId: ID
   recordId: ID
+  serviceTypeId: ID
   values: JsonObject
 }
 
@@ -2954,6 +3072,23 @@ type HouseholdClient {
   enrollment: Enrollment!
   id: ID!
   relationshipToHoH: RelationshipToHoH!
+}
+
+input HouseholdFilterOptions {
+  hohAgeRange: AgeRange
+  openOnDate: ISO8601Date
+  searchTerm: String
+  status: [EnrollmentFilterOptionStatus!]
+}
+
+"""
+HUD Household Sorting Options
+"""
+enum HouseholdSortOption {
+  """
+  Most Recent
+  """
+  MOST_RECENT
 }
 
 """
@@ -3754,18 +3889,17 @@ type Mutation {
     """
     input: UpdateClientImageInput!
   ): UpdateClientImagePayload
+
+  """
+  Update a referral posting
+  """
+  updateReferralPosting(id: ID!, input: ReferralPostingInput): UpdateReferralPostingPayload
   updateRelationshipToHoH(
     """
     Parameters for UpdateRelationshipToHoH
     """
     input: UpdateRelationshipToHoHInput!
   ): UpdateRelationshipToHoHPayload
-  updateService(
-    """
-    Parameters for UpdateService
-    """
-    input: UpdateServiceInput!
-  ): UpdateServicePayload
   updateUnits(
     """
     Parameters for UpdateUnits
@@ -3935,7 +4069,7 @@ type Organization {
   hudId: ID!
   id: ID!
   organizationName: String!
-  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+  projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
   user: User
   victimServiceProvider: NoYesMissing!
 }
@@ -3986,6 +4120,36 @@ enum PATHReferralOutcome {
   (3) Unknown
   """
   UNKNOWN
+}
+
+"""
+V4.1
+"""
+enum PercentAMI {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (3) Greater than 50%
+  """
+  GREATER_THAN_50
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Less than 30%
+  """
+  LESS_THAN_30
+
+  """
+  (2) 30% to 50%
+  """
+  NUM_30_TO_50
 }
 
 type PickListOption {
@@ -4059,6 +4223,16 @@ enum PickListType {
   """
   PROJECT
   REFERRAL_OUTCOME
+
+  """
+  Referral Posting Status
+  """
+  REFERRAL_POSTING_DENIAL_REASON_TYPES
+
+  """
+  Referral Posting Status
+  """
+  REFERRAL_POSTING_STATUSES
   SERVICE_TYPE
   STATE
   SUB_TYPE_PROVIDED_3
@@ -4108,9 +4282,9 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
-  enrollments(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
-  households(enrollmentLimit: EnrollmentLimit, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): HouseholdsPaginated!
+  households(filters: HouseholdFilterOptions, limit: Int, offset: Int, sortOrder: HouseholdSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!
   id: ID!
@@ -4175,11 +4349,37 @@ type ProjectCocsPaginated {
   pagesCount: Int!
 }
 
+enum ProjectFilterOptionStatus {
+  """
+  Closed
+  """
+  CLOSED
+
+  """
+  Open
+  """
+  OPEN
+}
+
+input ProjectFilterOptions {
+  funder: [FundingSource!]
+  projectType: [ProjectType!]
+  searchTerm: String
+  status: [ProjectFilterOptionStatus!]
+}
+
 """
 HUD Project Sorting Options
 """
 enum ProjectSortOption {
+  """
+  Name
+  """
   NAME
+
+  """
+  Organization and Name
+  """
   ORGANIZATION_AND_NAME
 }
 
@@ -4300,6 +4500,7 @@ type Query {
   """
   clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
   currentUser: ApplicationUser
+  deniedPendingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
 
   """
   Enrollment lookup
@@ -4320,7 +4521,7 @@ type Query {
   """
   Get most relevant form definition for the specified service type
   """
-  getServiceFormDefinition(customServiceTypeId: ID!, projectId: ID!): FormDefinition
+  getServiceFormDefinition(projectId: ID!, serviceTypeId: ID!): FormDefinition
 
   """
   Inventory lookup
@@ -4347,12 +4548,18 @@ type Query {
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc
-  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+  projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
+  referralPosting(id: ID!): ReferralPosting
 
   """
   Service lookup
   """
   service(id: ID!): Service
+
+  """
+  Service type lookup
+  """
+  serviceType(id: ID!): ServiceType
 }
 
 type QueryAccess {
@@ -4383,6 +4590,36 @@ type QueryAccess {
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
   id: ID!
+}
+
+"""
+R11.A
+"""
+enum RHYNumberofYears {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Less than one year
+  """
+  LESS_THAN_ONE_YEAR
+
+  """
+  (2) 1 to 2 years
+  """
+  NUM_1_TO_2_YEARS
+
+  """
+  (3) 3 to 5 or more years
+  """
+  NUM_3_TO_5_OR_MORE_YEARS
 }
 
 """
@@ -4428,6 +4665,61 @@ enum Race {
   (White) White
   """
   WHITE
+}
+
+"""
+R2.A
+"""
+enum ReasonNoServices {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (4) Other
+  """
+  OTHER
+
+  """
+  (1) Out of age range
+  """
+  OUT_OF_AGE_RANGE
+
+  """
+  (3) Ward of the criminal justice system
+  """
+  WARD_OF_THE_CRIMINAL_JUSTICE_SYSTEM
+
+  """
+  (2) Ward of the state
+  """
+  WARD_OF_THE_STATE
+}
+
+"""
+P3.A
+"""
+enum ReasonNotEnrolled {
+  """
+  (1) Client was found ineligible for PATH
+  """
+  CLIENT_WAS_FOUND_INELIGIBLE_FOR_PATH
+
+  """
+  (2) Client was not enrolled for other reason(s)
+  """
+  CLIENT_WAS_NOT_ENROLLED_FOR_OTHER_REASON_S
+
+  """
+  Invalid Value
+  """
+  INVALID
 }
 
 """
@@ -4558,17 +4850,33 @@ enum RecordType {
   SSVF_SERVICE
 }
 
+"""
+HUD Client within a Referral Household
+"""
+type ReferralHouseholdMember {
+  client: Client!
+  id: ID!
+  relationshipToHoH: RelationshipToHoH!
+}
+
+"""
+A referral for a household of one or more clients
+"""
 type ReferralPosting {
-  assignedDate: ISO8601Date!
+  assignedDate: ISO8601DateTime!
   chronic: Boolean
   denialNote: String
   denialReason: String
+  hohEnrollment: Enrollment
+  hohMciId: ID
   hohName: String!
+  householdMembers: [ReferralHouseholdMember!]!
   householdSize: Int!
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
+  organizationName: String
   postingIdentifier: ID
-  referralDate: ISO8601Date!
+  referralDate: ISO8601DateTime!
   referralIdentifier: ID
   referralNotes: String
   referralRequest: ReferralRequest
@@ -4579,10 +4887,18 @@ type ReferralPosting {
   score: Int
   status: ReferralPostingStatus!
   statusNote: String
-  statusNoteUpdatedAt: ISO8601Date
+  statusNoteUpdatedAt: ISO8601DateTime
   statusNoteUpdatedBy: String
-  statusUpdatedAt: ISO8601Date
+  statusUpdatedAt: ISO8601DateTime
   statusUpdatedBy: String
+  unitType: UnitTypeObject!
+}
+
+input ReferralPostingInput {
+  denialNote: String
+  denialReason: ID
+  status: ID
+  statusNote: String
 }
 
 """
@@ -4657,8 +4973,9 @@ type ReferralPostingsPaginated {
 
 type ReferralRequest {
   id: ID!
-  neededBy: String!
-  requestedOn: String!
+  identifier: ID!
+  neededBy: ISO8601Date!
+  requestedOn: ISO8601DateTime!
   requestorEmail: String!
   requestorName: String!
   requestorPhone: String!
@@ -4698,6 +5015,96 @@ enum ReferralResult {
   (3) Unsuccessful referral: provider rejected
   """
   UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED
+}
+
+"""
+R1.1
+"""
+enum ReferralSource {
+  """
+  (30) Child Welfare/CPS
+  """
+  CHILD_WELFARE_CPS
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (28) Hotline
+  """
+  HOTLINE
+
+  """
+  (2) Individual: Parent/Guardian/Relative/Friend/Foster Parent/Other Individual
+  """
+  INDIVIDUAL_PARENT_GUARDIAN_RELATIVE_FRIEND_FOSTER_PARENT_OTHER_INDIVIDUAL
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (34) Juvenile Justice
+  """
+  JUVENILE_JUSTICE
+
+  """
+  (35) Law Enforcement/ Police
+  """
+  LAW_ENFORCEMENT_POLICE
+
+  """
+  (37) Mental Hospital
+  """
+  MENTAL_HOSPITAL
+
+  """
+  (39) Other organization
+  """
+  OTHER_ORGANIZATION
+
+  """
+  (7) Outreach Project
+  """
+  OUTREACH_PROJECT
+
+  """
+  (10) Outreach project: other
+  """
+  OUTREACH_PROJECT_OTHER
+
+  """
+  (18) Residential Project
+  """
+  RESIDENTIAL_PROJECT
+
+  """
+  (38) School
+  """
+  SCHOOL
+
+  """
+  (1) Self-referral
+  """
+  SELF_REFERRAL
+
+  """
+  (11) Temporary Shelter
+  """
+  TEMPORARY_SHELTER
 }
 
 """
@@ -4908,7 +5315,6 @@ type SaveAssessmentPayload {
 HUD or Custom Service rendered
 """
 type Service {
-  FAAmount: Float
   client: Client!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
@@ -4916,13 +5322,15 @@ type Service {
   dateProvided: ISO8601Date!
   dateUpdated: ISO8601DateTime!
   enrollment: Enrollment!
+  faAmount: Float
+  faEndDate: ISO8601Date
+  faStartDate: ISO8601Date
   id: ID!
   movingOnOtherType: String
   otherTypeProvided: String
-  recordType: RecordType
   referralOutcome: PATHReferralOutcome
+  serviceType: ServiceType!
   subTypeProvided: ServiceSubTypeProvided
-  typeProvided: ServiceTypeProvided
   user: User
 }
 
@@ -4931,13 +5339,20 @@ enum ServiceDetailType {
   CLIENT
 }
 
+input ServiceFilterOptions {
+  project: [ID!]
+  projectType: [ProjectType!]
+  serviceCategory: [ID!]
+  serviceType: [ID!]
+}
+
 """
 HUD Service Input
 """
 input ServiceInput {
-  FAAmount: Float
   dateProvided: ISO8601Date
   enrollmentId: ID
+  faAmount: Float
   movingOnOtherType: String
   otherTypeProvided: String
   recordType: RecordType
@@ -5101,6 +5516,17 @@ enum ServiceSubTypeProvided {
   (2) Transportation services
   """
   SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__TRANSPORTATION_SERVICES
+}
+
+type ServiceType {
+  category: String!
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  hudRecordType: RecordType
+  hudTypeProvided: ServiceTypeProvided
+  id: ID!
+  name: String!
+  user: User
 }
 
 """
@@ -5599,6 +6025,61 @@ type ServicesPaginated {
 }
 
 """
+R3.1
+"""
+enum SexualOrientation {
+  """
+  (4) Bisexual
+  """
+  BISEXUAL
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (2) Gay
+  """
+  GAY
+
+  """
+  (1) Heterosexual
+  """
+  HETEROSEXUAL
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (3) Lesbian
+  """
+  LESBIAN
+
+  """
+  (6) Other
+  """
+  OTHER
+
+  """
+  (5) Questioning / unsure
+  """
+  QUESTIONING_UNSURE
+}
+
+"""
 Autogenerated input type of SubmitAssessment
 """
 input SubmitAssessmentInput {
@@ -5848,6 +6329,14 @@ type UpdateClientImagePayload {
 }
 
 """
+Autogenerated return type of UpdateReferralPosting.
+"""
+type UpdateReferralPostingPayload {
+  errors: [ValidationError!]!
+  record: ReferralPosting
+}
+
+"""
 Autogenerated input type of UpdateRelationshipToHoH
 """
 input UpdateRelationshipToHoHInput {
@@ -5874,30 +6363,6 @@ type UpdateRelationshipToHoHPayload {
   clientMutationId: String
   enrollment: Enrollment
   errors: [ValidationError!]!
-}
-
-"""
-Autogenerated input type of UpdateService
-"""
-input UpdateServiceInput {
-  """
-  A unique identifier for the client performing the mutation.
-  """
-  clientMutationId: String
-  id: ID!
-  input: ServiceInput!
-}
-
-"""
-Autogenerated return type of UpdateService.
-"""
-type UpdateServicePayload {
-  """
-  A unique identifier for the client performing the mutation.
-  """
-  clientMutationId: String
-  errors: [ValidationError!]!
-  service: Service
 }
 
 """
@@ -5986,6 +6451,11 @@ type ValueBound {
   Unique identifier for this bound
   """
   id: String
+
+  """
+  Value to offset the comparison value. Can be positive or negative. If date, offset is applied as number of days.
+  """
+  offset: Int
 
   """
   Link ID of dependent question, if this items value should be compared to another items value

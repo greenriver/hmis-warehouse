@@ -7,6 +7,18 @@
       "field_name": "id"
     },
     {
+      "type": "OBJECT",
+      "link_id": "current-mci-id",
+      "repeats": false,
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$mciId"
+        }
+      ]
+    },
+    {
       "fragment": "#client_names"
     },
     {
