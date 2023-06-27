@@ -23,7 +23,7 @@ jobs:
           - gha_staging_load_4
           - gha_staging_load_5
           - gha_staging_load_6
-          - gha_staging_load_7
+          # client removed - gha_staging_load_7
           - gha_staging_load_8
           - gha_staging_load_9
           - gha_staging_load_10
