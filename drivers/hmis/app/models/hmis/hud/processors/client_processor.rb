@@ -159,7 +159,7 @@ module Hmis::Hud::Processors
       current_mci_ids = client.ac_hmis_mci_ids
       # If MCI ID hasn't changed, do nothing.
       if current_mci_ids.present? && value.in?(current_mci_ids.map(&:value))
-        client.update_mci_attributes = false
+        client.update_mci_attributes = true
         return
       end
 

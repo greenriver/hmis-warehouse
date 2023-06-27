@@ -65,6 +65,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   attr_accessor :image_blob_id
   attr_accessor :create_mci_id
+  attr_accessor :update_mci_attributes
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
