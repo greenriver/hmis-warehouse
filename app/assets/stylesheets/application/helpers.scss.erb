@@ -14,7 +14,7 @@
 <%
   # If we've defined further overrides in the theme
   theme = Rails.cache.fetch('active_theme', expires_in: 1.minutes) do
-    GrdaWarehouse::Theme.first
+    GrdaWarehouse::Theme.find_by(client: ENV['CLIENT'])
   end
   if theme
     sheet = Rails.root.join(theme.scss_file_path, theme.scss_file_name)

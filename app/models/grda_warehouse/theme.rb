@@ -75,6 +75,9 @@ module GrdaWarehouse
     def store_remote_css_file
       return unless remote_credential
 
+      # Write the local file for dev environments
+      ::File.open("#{css_file_path}/#{css_file_name}", 'w') { |f| f.write(css_file_contents) } if Rails.env.development?
+      # store the S3 version
       s3.store(content: css_file_contents, name: remote_css_full_file_path)
     end
 
@@ -117,6 +120,9 @@ module GrdaWarehouse
     def store_remote_scss_file
       return unless remote_credential
 
+      # Write the local file for dev environments
+      ::File.open("#{scss_file_path}/#{scss_file_name}", 'w') { |f| f.write(scss_file_contents) } if Rails.env.development?
+      # store the S3 version
       s3.store(content: scss_file_contents, name: remote_scss_full_file_path)
     end
 
