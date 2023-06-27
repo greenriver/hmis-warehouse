@@ -64,18 +64,6 @@ module Hmis::Concerns::HmisArelHelper
     def ut_t
       Hmis::UnitType.arel_table
     end
-
-    def c_t
-      Hmis::Hud::Client.arel_table
-    end
-
-    def p_t
-      Hmis::Hud::Project.arel_table
-    end
-
-    def o_t
-      Hmis::Hud::Organization.arel_table
-    end
   end
 
   included do

@@ -63,9 +63,8 @@ class Hmis::EntityAccessLoaderFactory
 
     resolved = case entity
     when Hmis::File
-      # regardless of if it's a new record, use the file's client
-      # FIXME: this used to use the optional file.enrollment, confirm this doesn't matter
-      block.call(entity, :client)
+      # Files are always linked to a client, and optionally link to a specific enrollment. If the file is linked to an enrollment, access to the file should be limited based on access to that enrollment.
+      entity.enrollment_id ? block.call(entity, :enrollment) : block.call(entity, :client)
     when Hmis::Hud::HmisService, Hmis::Hud::Service
       # This will cascade to enrollment.project. We go through enrollment since
       # service.project is just a method on these models
