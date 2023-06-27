@@ -7,9 +7,9 @@ class AssetCompiler
   THEME_ASSETS_BUCKET = 'openpath-ecs-assets'.freeze
   COMPILED_ASSETS_BUCKET = 'openpath-precompiled-assets'.freeze
 
-  def initialize(*args)
-    @target_group_name = args[0][:target_group_name].gsub(/[^0-9A-Za-z\_\-]/, '') # Sanitize for cli.
-    @secret_arn = args[0][:secrets_arn].gsub(/[^0-9A-Za-z\_\-\:\/]/, '') # Sanitize for cli.
+  def initialize(target_group_name:, secret_arn: nil)
+    @target_group_name = target_group_name
+    @secret_arn = secret_arn
   end
 
   def time_me(name: '<unnamed>', &block)
@@ -47,16 +47,25 @@ class AssetCompiler
       return
     end
 
-    time_me name: 'Secrets download' do
-      system(`SECRET_ARN=#{@secret_arn.shellescape} bin/download_secrets.rb > .env`)
+    if @secret_arn.present?
+      time_me name: 'Secrets download' do
+        system(`SECRET_ARN=#{@secret_arn.shellescape} bin/download_secrets.rb > .env`)
+      end
     end
 
     Dotenv.load('.env')
 
+    recompile!
+    push_to_s3!(checksum)
+  end
+
+  def recompile!
     time_me name: 'Compiling assets' do
       system('source .env; bundle exec rails --quiet assets:precompile > /dev/null 2>&1') # TODO: don't call out to rake like this, it's inefficient
     end
+  end
 
+  def push_to_s3!(checksum)
     time_me name: 'Uploading compiled assets' do
       system("aws s3 cp --recursive public/assets s3://#{self.class.compiled_assets_s3_path(@target_group_name, checksum).shellescape} >/dev/null")
     end
