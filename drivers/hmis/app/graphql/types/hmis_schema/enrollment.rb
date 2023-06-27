@@ -150,7 +150,7 @@ module Types
     end
 
     def household_size
-      household&.household_size
+      load_ar_association(household, :enrollments).size
     end
 
     def in_progress

@@ -24,7 +24,6 @@ module Types
     end
 
     def household_clients
-      enrollments = load_ar_association(object, :enrollments)
       enrollments.map do |enrollment|
         {
           relationship_to_ho_h: enrollment.relationship_to_ho_h,
@@ -32,5 +31,14 @@ module Types
         }
       end
     end
+
+    def household_size
+      enrollments.size
+    end
+
+    def enrollments
+      load_ar_association(object, :enrollments)
+    end
+
   end
 end
