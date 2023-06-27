@@ -67,8 +67,9 @@ module GrdaWarehouse::SystemCohorts
       @households ||= {}.tap do |hh|
         enrollments = GrdaWarehouse::Hud::Enrollment.residential.open_on_date
         enrollments = enrollments.heads_of_households if hoh_only
-        enrollments.preload(:destination_client).find_in_batches(batch_size: 250) do |batch|
-          batch.each do |enrollment|
+        enrollment_ids = enrollments.pluck(:id)
+        enrollment_ids.each_slice(5_000) do |ids|
+          GrdaWarehouse::Hud::Enrollment.where(id: ids).preload(:destination_client).find_each(batch_size: 5_000) do |enrollment|
             next unless enrollment.destination_client
 
             hh[get_hh_id(enrollment)] ||= []

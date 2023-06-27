@@ -121,7 +121,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     if (event.target) event.preventDefault();
     this.enableLoader();
     this.hideChartAndTable();
-    let target = target = this.activeTarget(event)
+    let target = this.activeTarget(event)
     let url = target.href;
     fetch(url)
       .then(response => response.json())
