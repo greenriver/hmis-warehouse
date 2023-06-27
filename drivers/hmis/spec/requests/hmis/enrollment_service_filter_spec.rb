@@ -31,7 +31,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query EnrollmentServices($id: ID!, $filters: ServiceFilterOptions!) {
+      query EnrollmentServices($id: ID!, $filters: ServicesForEnrollmentFilterOptions!) {
         enrollment(id: $id) {
           services(filters: $filters) {
             nodes {
@@ -78,31 +78,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(services).to be_empty
     end
     search(id: e1.id.to_s, filters: { service_type: ['0', service_type_id] }) do |services|
-      expect(services).to contain_exactly(include('id' => s1.id.to_s))
-    end
-  end
-
-  it 'should filter correctly by project type' do
-    project_type = Types::HmisSchema::Enums::ProjectType.key_for(p1.ProjectType)
-    search(id: e1.id.to_s, filters: { project_type: [project_type] }) do |services|
-      expect(services).to contain_exactly(include('id' => s1.id.to_s))
-    end
-    search(id: e1.id.to_s, filters: { project_type: ['INVALID'] }) do |services|
-      expect(services).to be_empty
-    end
-    search(id: e1.id.to_s, filters: { project_type: ['INVALID', project_type] }) do |services|
-      expect(services).to contain_exactly(include('id' => s1.id.to_s))
-    end
-  end
-
-  it 'should filter correctly by project' do
-    search(id: e1.id.to_s, filters: { project: [p1.id.to_s] }) do |services|
-      expect(services).to contain_exactly(include('id' => s1.id.to_s))
-    end
-    search(id: e1.id.to_s, filters: { project: ['0'] }) do |services|
-      expect(services).to be_empty
-    end
-    search(id: e1.id.to_s, filters: { project: ['0', p1.id.to_s] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
   end
