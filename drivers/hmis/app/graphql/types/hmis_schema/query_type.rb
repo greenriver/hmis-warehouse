@@ -212,7 +212,7 @@ module Types
 
     # AC HMIS Queries
 
-    field :esg_funding_report, Types::AcHmis::EsgFundingReport, null: false do
+    field :esg_funding_report, [Types::AcHmis::EsgFundingService], null: false do
       argument :client_ids, [ID], required: true
     end
 
@@ -223,7 +223,11 @@ module Types
       clients = Hmis::Hud::Client.adults.viewable_by(current_user).where(id: client_ids)
 
       # NOTE: Purposefully does not call `viewable_by`, as the report must include the full service history
-      Hmis::Hud::CustomService.joins(:client).merge(clients).where(custom_service_type: cst, data_source_id: current_user.hmis_data_source_id)
+      Hmis::Hud::CustomService.
+        joins(:client).
+        merge(clients).
+        where(custom_service_type: cst, data_source_id: current_user.hmis_data_source_id).
+        preload(:project, :client, :organization)
     end
   end
 end

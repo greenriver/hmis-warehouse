@@ -9,13 +9,12 @@
 module Types
   class AcHmis::EsgFundingReport < Types::BaseObject
     description 'AC ESG Funding Report'
-
     field :esg_funding_services, [Types::AcHmis::EsgFundingService], null: false
 
     # object is a scope on Hmis::Hud::CustomService
 
     def esg_funding_services
-      object.preload(:client, :enrollment)
+      object&.preload(:project, :client, :organization) || []
     end
   end
 end

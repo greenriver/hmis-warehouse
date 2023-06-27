@@ -65,5 +65,7 @@ module HudConcerns::Client
         where(arel_table[:DOB].lteq(start_date - start_age.years))
       end
     end
+
+    scope :adults, -> { age_group(start_age: 18) }
   end
 end

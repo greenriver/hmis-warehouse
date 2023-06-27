@@ -11,10 +11,6 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
     description 'AC ESG Funding Service'
 
-    def self.configuration
-      Hmis::Hud::Service.hmis_configuration(version: '2022')
-    end
-
     field :id, ID, null: false
     field :client_id, ID, null: false
     field :client_dob, GraphQL::Types::ISO8601Date, null: true
@@ -32,8 +28,6 @@ module Types
 
     custom_data_elements_field
 
-    # Custom data elements are linked to the underlying record (Hmis::Hud::Service or Hmis::Hud::CustomService)
-    # So we pass the record to the resolver.
     def custom_data_elements
       definition_scope = Hmis::Hud::CustomDataElementDefinition.
         for_type(object.class.name).
@@ -75,13 +69,7 @@ module Types
     end
 
     def mci_ids
-      object.client.ac_hmis_mci_ids.map do |identifier|
-        external_identifiers[:mci_id] = {
-          id: [:mci_id, identifier.value].join('_'),
-          url: object.clientview_url(identifier.value),
-          label: 'MCI ID',
-        }
-      end
+      object.client.external_identifiers.select { |identifier| identifier[:type] == :mci_id }
     end
   end
 end

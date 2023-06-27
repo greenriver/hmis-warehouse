@@ -2347,13 +2347,6 @@ type EnrollmentsPaginated {
 }
 
 """
-AC ESG Funding Report
-"""
-type EsgFundingReport {
-  esgFundingServices: [EsgFundingService!]!
-}
-
-"""
 AC ESG Funding Service
 """
 type EsgFundingService {
@@ -5248,7 +5241,7 @@ type Query {
   Enrollment lookup
   """
   enrollment(id: ID!): Enrollment
-  esgFundingReport(clientIds: [ID!]!): EsgFundingReport!
+  esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
 
   """

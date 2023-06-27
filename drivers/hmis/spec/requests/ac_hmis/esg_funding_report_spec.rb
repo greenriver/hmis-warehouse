@@ -44,50 +44,48 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     <<~GRAPHQL
       query GetEsgFundingReport($clientIds: [ID!]!) {
         esgFundingReport(clientIds: $clientIds) {
-          esgFundingServices {
+          id
+          clientId
+          clientDob
+          mciIds {
             id
-            clientId
-            clientDob
-            mciIds {
+            identifier
+            label
+            url
+          }
+          firstName
+          lastName
+          projectId
+          projectName
+          organizationId
+          organizationName
+          faAmount
+          faStartDate
+          faEndDate
+          customDataElements {
+            id
+            key
+            label
+            repeats
+            value {
               id
-              identifier
-              label
-              url
+              valueBoolean
+              valueDate
+              valueFloat
+              valueInteger
+              valueJson
+              valueString
+              valueText
             }
-            firstName
-            lastName
-            projectId
-            projectName
-            organizationId
-            organizationName
-            faAmount
-            faStartDate
-            faEndDate
-            customDataElements {
+            values {
               id
-              key
-              label
-              repeats
-              value {
-                id
-                valueBoolean
-                valueDate
-                valueFloat
-                valueInteger
-                valueJson
-                valueString
-                valueText
-              }
-              values {
-                id
-                valueBoolean
-                valueDate
-                valueFloat
-                valueInteger
-                valueJson
-                valueString
-                valueText
-              }
+              valueBoolean
+              valueDate
+              valueFloat
+              valueInteger
+              valueJson
+              valueString
+              valueText
             }
           }
         }
@@ -113,7 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     aggregate_failures 'checking response' do
       response, result = post_graphql({ client_ids: [c1.id.to_s, c2.id.to_s] }) { query }
       expect(response.status).to eq 200
-      expect(result.dig('data', 'esgFundingReport', 'esgFundingServices')).to contain_exactly(
+      expect(result.dig('data', 'esgFundingReport')).to contain_exactly(
         # show cs1: viewable, is the right custom service type, and 18+
         include('id' => cs1.id.to_s, 'clientId' => c1.id.to_s, 'projectId' => p1.project_id),
         # show cs2: not viewable, is right service type, and is 18+
