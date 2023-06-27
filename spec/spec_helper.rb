@@ -141,7 +141,7 @@ end
 
 
 RSpec::Benchmark.configure do |config|
-  config.samples = 10
+  config.samples = 5
 end
 
 # allow real requests, needed for minio

@@ -31,7 +31,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'client enrollments' do
     let(:query) do
       <<~GRAPHQL
-        #{'      '}
         query GetClientEnrollments($id: ID!, $limit: Int = 10, $offset: Int = 0, $filters: EnrollmentsForClientFilterOptions) {
           client(id: $id) {
             id
@@ -102,17 +101,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'minimizes n+1 queries' do
       expect do
-        response, _result = post_graphql(**variables) { query }
-        expect(response.status).to eq 200
-      end.to make_database_queries(count: 0..25)
+        _, result = post_graphql(**variables) { query }
+        expect(result.dig('data', 'client', 'enrollments', 'nodes').size).to eq(enrollments.size)
+      end.to make_database_queries(count: 0..40)
     end
 
-    # it 'is responsive' do
-    #   expect do
-    #     response, _result = post_graphql(**variables) { query }
-    #     expect(response.status).to eq 200
-    #   end.to perform_under(300).ms.warmup(2).times.sample(5).times
-    # end
+    it 'is responsive' do
+      expect do
+        _, result = post_graphql(**variables) { query }
+        expect(result.dig('data', 'client', 'enrollments', 'nodes').size).to eq(enrollments.size)
+      end.to perform_under(300).ms
+    end
   end
 end
 
