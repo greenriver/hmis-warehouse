@@ -196,8 +196,8 @@ module Health
 
     # End Scope
 
-    def edit_path
-      edit_client_health_careplan_path(patient.client, id)
+    def edit_path(anchor: nil)
+      edit_client_health_careplan_path(patient.client, id, anchor: anchor)
     end
 
     def show_path

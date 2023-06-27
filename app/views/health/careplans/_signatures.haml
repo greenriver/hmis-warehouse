@@ -6,7 +6,7 @@
     .signature-date
       (#{careplan.patient_signed_on&.to_date})
   - elsif careplan.id == @careplan.id
-    = link_to careplan.edit_path, class: 'btn btn-sm btn-secondary' do
+    = link_to careplan.edit_path(anchor: 'complete'), class: 'btn btn-sm btn-secondary' do
       Enter Patient Signature
 .pctp__signature
   - if careplan.careplan_sent_on.present?

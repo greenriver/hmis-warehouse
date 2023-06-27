@@ -25,6 +25,14 @@ module HealthPctp
     has_many :needs, dependent: :destroy
     has_many :care_goal_details, class_name: 'CareGoal', dependent: :destroy
 
+    has_one :health_file, class_name: 'SignatureFile', foreign_key: :parent_id, dependent: :destroy
+    include HealthFiles
+
+    validates_presence_of :patient_signed_on, if: :completed_option?
+    def completed_option?
+      health_file.present? || verbal_approval?
+    end
+
     scope :in_progress, -> { where(patient_signed_on: nil) }
     scope :completed_within, ->(range) { where(patient_signed_on: range) }
 
@@ -84,8 +92,8 @@ module HealthPctp
       true
     end
 
-    def edit_path
-      edit_client_health_pctp_careplan_path(patient.client, id)
+    def edit_path(anchor: nil)
+      edit_client_health_pctp_careplan_path(patient.client, id, anchor: anchor)
     end
 
     def show_path

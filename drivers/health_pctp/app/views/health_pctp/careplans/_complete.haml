@@ -3,9 +3,15 @@
     .col
       = f.input :patient_signed_on, as: :date_picker, label: 'Patient signed on'
     .col
-      .mt-6= f.input :verbal_approval, as: :pretty_boolean, label: 'Patient unable to sign – verbal approval received'
+      .mt-6= f.input :verbal_approval, as: :pretty_boolean, label: 'Patient unable to sign – verbal approval received', input_html: { class: :jVerbalApproval }
   - if @careplan.verbal_approval?
     = f.input :verbal_approval_followup, as: :pretty_boolean, label: 'The Care Plan was signed by the Assigned or Engaged Enrollee (or authorized representative) within 90 days of verbal approval.'
+
+%h3 Upload Signature Page
+.well
+  .row
+    .col
+      = render 'upload', f: f
 
 %h3 BH Document Review
 .well
@@ -43,3 +49,14 @@
   = f.input :was_sent_to_pcp, as: :pretty_boolean, label: 'The careplan was sent to the PCP'
   - if @careplan.was_sent_to_pcp
     = "Sent by #{@careplan.sent_to_pcp_by.name} on #{@careplan.sent_to_pcp_on}"
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jVerbalApproval').on('change', function(e) {
+        console.log($(e.target).is(':checked'));
+        if($(e.target).is(':checked')) {
+          $('#health_pctp_careplan_patient_signed_on').datepicker('setDate', Date());
+        };
+      });
+    });
