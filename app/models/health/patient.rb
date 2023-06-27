@@ -1306,15 +1306,15 @@ module Health
       # Explicitly search for only last, first if there's a comma in the search
       if text.include?(',')
         last, first = text.split(',').map(&:strip)
-        where = patient_t[:first_name].lower.matches("#{first.downcase}%").
-          and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
-      # Explicity search for "first last"
+        where = patient_t[:first_name].lower.matches("#{first&.downcase}%").
+          and(patient_t[:last_name].lower.matches("#{last&.downcase}%"))
+      # Explicitly search for "first last" if there is a space in the search
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
-        where = patient_t[:first_name].lower.matches("#{first.downcase}%").
-          and(patient_t[:last_name].lower.matches("#{last.downcase}%"))
-      else
-        query = "%#{text.downcase}%"
+        where = patient_t[:first_name].lower.matches("#{first&.downcase}%").
+          and(patient_t[:last_name].lower.matches("#{last&.downcase}%"))
+      else # Search in name and ID
+        query = "%#{text&.downcase}%"
 
         where = patient_t[:last_name].lower.matches(query).
           or(patient_t[:first_name].lower.matches(query)).
