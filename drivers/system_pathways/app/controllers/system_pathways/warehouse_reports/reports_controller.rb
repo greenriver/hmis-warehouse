@@ -13,6 +13,8 @@ module SystemPathways::WarehouseReports
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
     before_action :set_report, only: [:show, :destroy, :details, :chart_data]
     before_action :show_filter, only: [:show, :details, :chart_data]
+    before_action :set_pdf_export, only: [:show]
+    before_action :set_excel_export, only: [:show]
 
     def index
       @pagy, @reports = pagy(report_scope.diet.ordered)
@@ -230,6 +232,14 @@ module SystemPathways::WarehouseReports
       cell
     end
     helper_method :formatted_cell
+
+    private def set_pdf_export
+      @pdf_export = SystemPathways::DocumentExports::ReportExport.new
+    end
+
+    private def set_excel_export
+      @excel_export = SystemPathways::DocumentExports::ReportExcelExport.new
+    end
 
     def report_class
       SystemPathways::Report

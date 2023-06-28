@@ -14,8 +14,7 @@ module SystemPathways::ChartBase
       self.filter = filter
       self.show_filter = show_filter
       self.details_filter = details_filter
-      # TODO: this config should be moved to a more general Report config
-      self.config = BostonReports::Config.first_or_create(&:default_colors)
+      self.config = GrdaWarehouse::SystemColor.first
     end
 
     def clients
@@ -181,9 +180,16 @@ module SystemPathways::ChartBase
     end
 
     private def filter_for_ce_involvement(scope)
-      scope = scope.where(involves_ce: filter.involves_ce) unless filter.involves_ce.nil?
-      scope = scope.where(involves_ce: show_filter&.involves_ce) unless show_filter&.involves_ce.nil?
-      scope = scope.where(involves_ce: details_filter&.involves_ce) unless details_filter&.involves_ce.nil?
+      scope = scope.where(involves_ce: true) if filter.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: true) if show_filter&.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: true) if details_filter&.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: false) if filter.involves_ce == 'No'
+      scope = scope.where(involves_ce: false) if show_filter&.involves_ce == 'No'
+      scope = scope.where(involves_ce: false) if details_filter&.involves_ce == 'No'
+      scope = scope.where(ce_assessment: true) if filter.involves_ce == 'With CE Assessment'
+      scope = scope.where(ce_assessment: true) if show_filter&.involves_ce == 'With CE Assessment'
+      scope = scope.where(ce_assessment: true) if details_filter&.involves_ce == 'With CE Assessment'
+
       scope
     end
 
@@ -335,6 +341,27 @@ module SystemPathways::ChartBase
           table << [k] + values.values
         end
       end
+    end
+
+    private def remove_all_zero_rows(columns)
+      all_zero = {}
+      columns.drop(1).each do |row|
+        row.each.with_index do |v, i|
+          if i.zero?
+            all_zero[i] = false
+            next
+          end
+
+          all_zero[i] = true if all_zero[i].nil?
+          all_zero[i] = false if v.positive?
+        end
+      end
+      zeros = all_zero.values
+      zero_columns = zeros.each_index.select { |i| zeros[i] == true }
+      columns.each do |row|
+        row.reject!.with_index { |_, i| i.in?(zero_columns) }
+      end
+      columns
     end
 
     private def race_columns

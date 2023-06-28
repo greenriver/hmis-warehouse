@@ -123,115 +123,225 @@ CREATE TYPE public.record_type AS ENUM (
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
+
       BEGIN
+
       IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+
             INSERT INTO service_history_services_2050 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+
             INSERT INTO service_history_services_2049 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+
             INSERT INTO service_history_services_2048 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+
             INSERT INTO service_history_services_2047 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+
             INSERT INTO service_history_services_2046 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+
             INSERT INTO service_history_services_2045 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+
             INSERT INTO service_history_services_2044 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+
             INSERT INTO service_history_services_2043 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+
             INSERT INTO service_history_services_2042 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+
             INSERT INTO service_history_services_2041 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+
             INSERT INTO service_history_services_2040 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+
             INSERT INTO service_history_services_2039 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+
             INSERT INTO service_history_services_2038 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+
             INSERT INTO service_history_services_2037 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+
             INSERT INTO service_history_services_2036 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+
             INSERT INTO service_history_services_2035 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+
             INSERT INTO service_history_services_2034 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+
             INSERT INTO service_history_services_2033 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+
             INSERT INTO service_history_services_2032 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+
             INSERT INTO service_history_services_2031 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+
             INSERT INTO service_history_services_2030 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+
             INSERT INTO service_history_services_2029 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+
             INSERT INTO service_history_services_2028 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+
             INSERT INTO service_history_services_2027 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+
             INSERT INTO service_history_services_2026 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+
             INSERT INTO service_history_services_2025 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+
             INSERT INTO service_history_services_2024 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+
             INSERT INTO service_history_services_2023 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+
             INSERT INTO service_history_services_2022 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+
             INSERT INTO service_history_services_2021 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+
             INSERT INTO service_history_services_2020 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+
             INSERT INTO service_history_services_2019 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+
             INSERT INTO service_history_services_2018 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+
             INSERT INTO service_history_services_2017 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+
             INSERT INTO service_history_services_2016 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+
             INSERT INTO service_history_services_2015 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+
             INSERT INTO service_history_services_2014 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+
             INSERT INTO service_history_services_2013 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+
             INSERT INTO service_history_services_2012 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+
             INSERT INTO service_history_services_2011 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+
             INSERT INTO service_history_services_2010 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+
             INSERT INTO service_history_services_2009 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+
             INSERT INTO service_history_services_2008 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+
             INSERT INTO service_history_services_2007 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+
             INSERT INTO service_history_services_2006 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+
             INSERT INTO service_history_services_2005 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+
             INSERT INTO service_history_services_2004 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+
             INSERT INTO service_history_services_2003 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+
             INSERT INTO service_history_services_2002 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
+
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
+
+
       ELSE
+
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
+
         END IF;
+
         RETURN NULL;
+
     END;
+
     $$;
 
 
@@ -6020,9 +6130,6 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
-    "order" integer DEFAULT 0 NOT NULL,
-    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
-    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -6239,8 +6346,8 @@ CREATE TABLE public.configs (
     roi_model character varying DEFAULT 'explicit'::character varying,
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
-    verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
     supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
+    verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
     youth_hoh_cohort boolean DEFAULT false NOT NULL,
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
@@ -6384,6 +6491,48 @@ CREATE SEQUENCE public.custom_imports_b_contacts_rows_id_seq
 --
 
 ALTER SEQUENCE public.custom_imports_b_contacts_rows_id_seq OWNED BY public.custom_imports_b_contacts_rows.id;
+
+
+--
+-- Name: custom_imports_b_coo_rows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_b_coo_rows (
+    id bigint NOT NULL,
+    unique_id character varying NOT NULL,
+    personal_id character varying,
+    enrollment_id character varying,
+    city character varying,
+    state character varying,
+    zip_code character varying,
+    length_of_time character varying,
+    geolocation_location character varying,
+    collected_on date,
+    import_file_id bigint,
+    data_source_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    dirty boolean DEFAULT false
+);
+
+
+--
+-- Name: custom_imports_b_coo_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_b_coo_rows_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_b_coo_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_b_coo_rows_id_seq OWNED BY public.custom_imports_b_coo_rows.id;
 
 
 --
@@ -7289,10 +7438,10 @@ CREATE TABLE public.external_request_logs (
     request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
     request text NOT NULL,
     response text NOT NULL,
+    http_status integer,
     requested_at timestamp without time zone NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    http_status integer
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -15874,8 +16023,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    personal_id character varying,
-    client_created_at timestamp without time zone
+    client_created_at timestamp without time zone,
+    personal_id character varying
 );
 
 
@@ -17885,6 +18034,38 @@ ALTER SEQUENCE public.performance_metrics_clients_id_seq OWNED BY public.perform
 
 
 --
+-- Name: places; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.places (
+    id bigint NOT NULL,
+    location character varying NOT NULL,
+    lat_lon jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: places_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.places_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: places_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.places_id_seq OWNED BY public.places.id;
+
+
+--
 -- Name: pm_client_projects; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18968,6 +19149,34 @@ CREATE TABLE public.recent_report_enrollments (
     "HOHLeaseholder" integer,
     demographic_id integer,
     client_id integer
+);
+
+
+--
+-- Name: recent_service_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.recent_service_history (
+    id bigint,
+    client_id integer,
+    data_source_id integer,
+    date date,
+    first_date_in_program date,
+    last_date_in_program date,
+    enrollment_group_id character varying(50),
+    age smallint,
+    destination integer,
+    head_of_household_id character varying(50),
+    household_id character varying(50),
+    project_id integer,
+    project_type smallint,
+    project_tracking_method integer,
+    organization_id integer,
+    housing_status_at_entry integer,
+    housing_status_at_exit integer,
+    service_type smallint,
+    computed_project_type smallint,
+    presented_as_individual boolean
 );
 
 
@@ -20870,6 +21079,39 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_colors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_colors (
+    id bigint NOT NULL,
+    slug character varying NOT NULL,
+    background_color character varying NOT NULL,
+    foreground_color character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: system_colors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_colors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_colors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_colors_id_seq OWNED BY public.system_colors.id;
+
+
+--
 -- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20911,7 +21153,8 @@ CREATE TABLE public.system_pathways_clients (
     returned_project_project_id bigint,
     report_id bigint,
     deleted_at timestamp without time zone,
-    days_to_return integer
+    days_to_return integer,
+    ce_assessment boolean DEFAULT false NOT NULL
 );
 
 
@@ -21253,7 +21496,10 @@ CREATE TABLE public.themes (
     hmis_origin character varying,
     hmis_value jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    remote_credential_id bigint,
+    css_file_contents text,
+    scss_file_contents text
 );
 
 
@@ -22791,6 +23037,13 @@ ALTER TABLE ONLY public.custom_imports_b_al_rows ALTER COLUMN id SET DEFAULT nex
 --
 
 ALTER TABLE ONLY public.custom_imports_b_contacts_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_contacts_rows_id_seq'::regclass);
+
+
+--
+-- Name: custom_imports_b_coo_rows id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_coo_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_coo_rows_id_seq'::regclass);
 
 
 --
@@ -24369,6 +24622,13 @@ ALTER TABLE ONLY public.performance_metrics_clients ALTER COLUMN id SET DEFAULT 
 
 
 --
+-- Name: places id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.places ALTER COLUMN id SET DEFAULT nextval('public.places_id_seq'::regclass);
+
+
+--
 -- Name: pm_client_projects id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24996,6 +25256,13 @@ ALTER TABLE ONLY public.synthetic_events ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.synthetic_youth_education_statuses_id_seq'::regclass);
+
+
+--
+-- Name: system_colors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_colors ALTER COLUMN id SET DEFAULT nextval('public.system_colors_id_seq'::regclass);
 
 
 --
@@ -25927,6 +26194,14 @@ ALTER TABLE ONLY public.custom_imports_b_al_rows
 
 ALTER TABLE ONLY public.custom_imports_b_contacts_rows
     ADD CONSTRAINT custom_imports_b_contacts_rows_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_imports_b_coo_rows custom_imports_b_coo_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_coo_rows
+    ADD CONSTRAINT custom_imports_b_coo_rows_pkey PRIMARY KEY (id);
 
 
 --
@@ -27730,6 +28005,14 @@ ALTER TABLE ONLY public.performance_metrics_clients
 
 
 --
+-- Name: places places_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.places
+    ADD CONSTRAINT places_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: pm_client_projects pm_client_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -28039,6 +28322,14 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_colors system_colors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_colors
+    ADD CONSTRAINT system_colors_pkey PRIMARY KEY (id);
 
 
 --
@@ -28449,6 +28740,20 @@ CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResul
 
 
 --
+-- Name: c_r_system_pathways_clients_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_clients_idx ON public.system_pathways_clients USING btree (client_id, report_id);
+
+
+--
+-- Name: c_r_system_pathways_enrollments_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX c_r_system_pathways_enrollments_idx ON public.system_pathways_enrollments USING btree (client_id, report_id);
+
+
+--
 -- Name: ch_enrollments_e_id_ch; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28498,6 +28803,13 @@ CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree
 
 
 --
+-- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_id_rsh_index ON public.recent_service_history USING btree (client_id);
+
+
+--
 -- Name: client_last_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -28509,6 +28821,13 @@ CREATE INDEX client_last_name ON public."Client" USING btree ("LastName");
 --
 
 CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
+
+
+--
+-- Name: computed_project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX computed_project_type_rsh_index ON public.recent_service_history USING btree (computed_project_type);
 
 
 --
@@ -28530,6 +28849,13 @@ CREATE INDEX cur_liv_sit_p_id_en_id_ds_id_cur_id ON public."CurrentLivingSituati
 --
 
 CREATE UNIQUE INDEX cur_liv_sit_sit_id_ds_id ON public."CurrentLivingSituation" USING btree ("CurrentLivingSitID", data_source_id);
+
+
+--
+-- Name: date_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX date_rsh_index ON public.recent_service_history USING btree (date);
 
 
 --
@@ -41189,6 +41515,13 @@ CREATE INDEX "hmiscsv2022youtheducationstatuses_xGU1" ON public.hmis_csv_2022_yo
 
 
 --
+-- Name: household_id_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree (household_id);
+
+
+--
 -- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -41242,6 +41575,13 @@ CREATE UNIQUE INDEX hud_report_hic_projects_uniqueness_constraint ON public.hud_
 --
 
 CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
+
+
+--
+-- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX id_rsh_index ON public.recent_service_history USING btree (id);
 
 
 --
@@ -43142,6 +43482,27 @@ CREATE INDEX index_custom_imports_b_contacts_rows_on_updated_at ON public.custom
 
 
 --
+-- Name: index_custom_imports_b_coo_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_coo_rows_on_data_source_id ON public.custom_imports_b_coo_rows USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_b_coo_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_coo_rows_on_import_file_id ON public.custom_imports_b_coo_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_coo_rows_on_unique_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_custom_imports_b_coo_rows_on_unique_id ON public.custom_imports_b_coo_rows USING btree (unique_id);
+
+
+--
 -- Name: index_custom_imports_b_services_rows_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43454,13 +43815,6 @@ CREATE INDEX index_external_ids_on_external_request_log_id ON public.external_id
 --
 
 CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids USING btree (remote_credential_id);
-
-
---
--- Name: index_external_ids_on_source_id_and_source_type_and_value; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_external_ids_on_source_id_and_source_type_and_value ON public.external_ids USING btree (source_id, source_type, value);
 
 
 --
@@ -45722,6 +46076,13 @@ CREATE INDEX index_performance_metrics_clients_on_report_id ON public.performanc
 --
 
 CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performance_metrics_clients USING btree (updated_at);
+
+
+--
+-- Name: index_places_on_location; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_places_on_location ON public.places USING btree (location);
 
 
 --
@@ -49547,27 +49908,6 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
--- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
-
-
---
--- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
-
-
---
 -- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49579,13 +49919,6 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
-
-
---
--- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -49719,6 +50052,13 @@ CREATE INDEX index_text_message_topics_on_title ON public.text_message_topics US
 --
 
 CREATE INDEX index_text_message_topics_on_updated_at ON public.text_message_topics USING btree (updated_at);
+
+
+--
+-- Name: index_themes_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_themes_on_remote_credential_id ON public.themes USING btree (remote_credential_id);
 
 
 --
@@ -50156,6 +50496,20 @@ CREATE INDEX project_project_override_index ON public."Project" USING btree (COA
 
 
 --
+-- Name: project_tracking_method_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX project_tracking_method_rsh_index ON public.recent_service_history USING btree (project_tracking_method);
+
+
+--
+-- Name: project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX project_type_rsh_index ON public.recent_service_history USING btree (project_type);
+
+
+--
 -- Name: services_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50257,7 +50611,7 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -53150,6 +53504,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230406154235'),
 ('20230406183420'),
 ('20230407164611'),
+('20230410202101'),
 ('20230411193836'),
 ('20230412163545'),
 ('20230412191455'),
@@ -53210,10 +53565,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230613122940'),
 ('20230613190449'),
 ('20230614130627'),
+('20230615184216'),
 ('20230616163514'),
 ('20230616164602'),
+('20230616184921'),
 ('20230620154423'),
 ('20230621190529'),
+('20230622202122'),
+('20230623124456'),
+('20230623200215'),
 ('20230626005404'),
 ('20230626012029');
 

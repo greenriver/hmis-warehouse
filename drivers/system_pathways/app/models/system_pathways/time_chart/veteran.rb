@@ -87,28 +87,30 @@ module SystemPathways::TimeChart::Veteran
         project_type_node_names.each do |label|
           count = project_type_counts[label][k]
 
-          bg_color = config["breakdown_3_color_#{i}"]
+          color = config.color_for('veteran-status', i)
+          bg_color = color.background_color
           data['colors'][veteran_status] = bg_color
-          data['labels']['colors'][veteran_status] = config.foreground_color(bg_color)
+          data['labels']['colors'][veteran_status] = color.calculated_foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
         # Time before move-in
         ph_projects.each_value do |p_label|
           count = ph_counts[p_label][k]
-          bg_color = config["breakdown_3_color_#{i}"]
+          color = config.color_for('veteran-status', i)
+          bg_color = color.background_color
           data['colors'][veteran_status] = bg_color
-          data['labels']['colors'][veteran_status] = config.foreground_color(bg_color)
+          data['labels']['colors'][veteran_status] = color.calculated_foreground_color(bg_color)
           row << count
-          data['columns'] << row
         end
         count = return_counts[k]
-        bg_color = config["breakdown_3_color_#{i}"]
+        color = config.color_for('veteran-status', i)
+        bg_color = color.background_color
         data['colors'][veteran_status] = bg_color
-        data['labels']['colors'][veteran_status] = config.foreground_color(bg_color)
+        data['labels']['colors'][veteran_status] = color.calculated_foreground_color(bg_color)
         row << count
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 end
