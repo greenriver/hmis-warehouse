@@ -1,8 +1,6 @@
 :ruby
   excel_download_tooltip ||= ''
   filter_params = {}
-  params ||= {}
-  params = params.to_unsafe_h if params&.is_a?(ActionController::Parameters)
 
   (params['filters'] || params['filter'] || {}).each_pair do |key, value|
     if value.is_a?(Array)

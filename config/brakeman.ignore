@@ -2554,6 +2554,29 @@
       "note": ""
     },
     {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "d30f188ab49432871db858350d45e406393f128db844569fd725478c9a189a8a",
+      "check_name": "MassAssignment",
+      "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
+      "file": "drivers/system_pathways/app/controllers/system_pathways/warehouse_reports/reports_controller.rb",
+      "line": 31,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "SystemPathways::WarehouseReports::ReportsController",
+        "method": "show"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "d4a7eb345da17652caa7292362ee998634c49e1031ea96c1fdf59c44abb4f6b6",
@@ -3105,6 +3128,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-06-28 20:08:48 +0000",
+  "updated": "2023-06-28 23:15:05 +0000",
   "brakeman_version": "5.4.1"
 }
