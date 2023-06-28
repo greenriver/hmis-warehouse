@@ -7,18 +7,16 @@
 module HmisExternalApis::AcHmis
   class InvolvementsController < HmisExternalApis::BaseController
     def client
+      # TODO write ExternalRequestLog
       involvement = ClientInvolvement.new(client_params)
-
       involvement.validate_request!
-
       render json: involvement.to_json, status: (involvement.ok? ? :ok : :bad_request)
     end
 
     def program
+      # TODO write ExternalRequestLog
       involvement = ProgramInvolvement.new(program_params)
-
       involvement.validate_request!
-
       render json: involvement.to_json, status: (involvement.ok? ? :ok : :bad_request)
     end
 

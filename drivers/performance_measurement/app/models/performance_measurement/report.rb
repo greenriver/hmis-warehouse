@@ -89,13 +89,17 @@ module PerformanceMeasurement
       [
         :start,
         :end,
-        :comparison_period,
+        :comparison_pattern,
         :coc_code,
         :project_type_codes,
         :project_ids,
         :project_group_ids,
         :data_source_ids,
       ]
+    end
+
+    def comparison_patterns
+      filter.comparison_patterns.except('None', 'Same period, prior year')
     end
 
     def filter=(filter_object)
@@ -110,8 +114,8 @@ module PerformanceMeasurement
 
     def filter
       @filter ||= begin
-        f = ::Filters::HudFilterBase.new(user_id: filter_user_id)
-        f.update((options || {}).merge(comparison_pattern: :prior_year).with_indifferent_access)
+        f = ::Filters::HudFilterBase.new(user_id: filter_user_id, comparison_pattern: :prior_fiscal_year)
+        f.update((options || {}).with_indifferent_access)
         f.update(start: f.end - 1.years + 1.days)
         f
       end
@@ -764,8 +768,8 @@ module PerformanceMeasurement
         },
         comparison: {
           options: {
-            start: filter.start - 1.years,
-            end: filter.end - 1.years,
+            start: filter.comparison_range.first,
+            end: filter.comparison_range.end,
           },
         },
       }

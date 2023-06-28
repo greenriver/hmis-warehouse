@@ -73,7 +73,7 @@ module Filters
     attribute :report_version, Symbol
     attribute :inactivity_days, Integer, default: 365 * 2
     attribute :lsa_scope, Integer, default: nil
-    attribute :involves_ce, Boolean, default: nil
+    attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
 
     validates_presence_of :start, :end
@@ -144,7 +144,7 @@ module Filters
       self.rrh_move_in = filters.dig(:rrh_move_in).in?(['1', 'true', true]) unless filters.dig(:rrh_move_in).nil?
       self.psh_move_in = filters.dig(:psh_move_in).in?(['1', 'true', true]) unless filters.dig(:psh_move_in).nil?
       self.first_time_homeless = filters.dig(:first_time_homeless).in?(['1', 'true', true]) unless filters.dig(:first_time_homeless).nil?
-      self.involves_ce = filters.dig(:involves_ce).in?(['1', 'true', true]) unless filters.dig(:involves_ce).nil? || filters.dig(:involves_ce) == ''
+      self.involves_ce = filters.dig(:involves_ce).presence || involves_ce
       self.disabling_condition = filters.dig(:disabling_condition).in?(['1', 'true', true]) unless filters.dig(:disabling_condition).nil? || filters.dig(:disabling_condition) == ''
       self.returned_to_homelessness_from_permanent_destination = filters.dig(:returned_to_homelessness_from_permanent_destination).in?(['1', 'true', true]) unless filters.dig(:returned_to_homelessness_from_permanent_destination).nil?
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true]) unless filters.dig(:coordinated_assessment_living_situation_homeless).nil?
@@ -327,7 +327,7 @@ module Filters
         opts['With RRH Move-in'] = 'Yes' if rrh_move_in
         opts['With PSH Move-in'] = 'Yes' if psh_move_in
         opts['First Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
-        opts['Involves CE'] = 'Yes' if involves_ce
+        opts['Involves CE'] = involves_ce if involves_ce.present?
         opts['Disabling Condition'] = 'Yes' if disabling_condition
         opts['Returned to Homelessness from Permanent Destination'] = 'Yes' if returned_to_homelessness_from_permanent_destination
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
@@ -739,6 +739,14 @@ module Filters
       AvailableSubPopulations.available_sub_populations
     end
 
+    def ce_options
+      {
+        'Yes' => 'Yes',
+        'No' => 'No',
+        'With CE Assessment' => 'With CE Assessment',
+      }
+    end
+
     def available_age_ranges
       {
         zero_to_four: '0 - 4',
@@ -821,6 +829,7 @@ module Filters
         no_comparison_period: 'None',
         prior_year: 'Same period, prior year',
         prior_period: 'Prior Period',
+        prior_fiscal_year: 'Prior Federal Fiscal Year',
       }.invert.freeze
     end
 
@@ -1082,10 +1091,12 @@ module Filters
         end
       when :involves_ce
         case involves_ce
-        when true
+        when 'Yes'
           'Yes'
-        when false
+        when 'No'
           'No'
+        when 'With CE Assessment'
+          'With CE Assessment'
         end
       else
         val = send(key)
@@ -1387,6 +1398,12 @@ module Filters
       when :prior_year
         prior_end = end_date - 1.years
         prior_start = start_date - 1.years
+        [prior_start, prior_end]
+      when :prior_fiscal_year
+        # find the 9/30 that precedes the end date
+        prior_end = Date.new(end_date.year, 9, 30)
+        prior_end -= 1.years if prior_end >= end_date
+        prior_start = Date.new(prior_end.year - 1, 10, 1)
         [prior_start, prior_end]
       else
         [start_date, end_date]
