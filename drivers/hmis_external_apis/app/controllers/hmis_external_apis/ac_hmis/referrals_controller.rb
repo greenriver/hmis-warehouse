@@ -8,10 +8,14 @@ module HmisExternalApis::AcHmis
   class ReferralsController < HmisExternalApis::BaseController
     MAX_SIZE = 1_024_000
     def create
+      # Create request log
+      request_log
+
       # Unfortunately the referral isn't contained in top-level object
       # so get the params before rails pollutes it
       if request.raw_post.bytesize > MAX_SIZE
         msg = "Request is too large, maximum is #{MAX_SIZE.to_s(:human_size)}"
+        request_log.update!(request: 'too large') # Don't store large request
         return respond_with_errors([msg])
       end
       unsafe_params = JSON.parse(request.raw_post)
@@ -21,7 +25,9 @@ module HmisExternalApis::AcHmis
       (referral, errors) = HmisExternalApis::AcHmis::CreateReferralJob.perform_now(params: unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
-      render json: { message: 'Referral Created', id: referral.identifier }
+      json = { message: 'Referral Created', id: referral.identifier }
+      request_log.update!(response: json, http_status: 200)
+      render json: json
     rescue JSON::ParserError => e
       return respond_with_errors(e.message)
     end
