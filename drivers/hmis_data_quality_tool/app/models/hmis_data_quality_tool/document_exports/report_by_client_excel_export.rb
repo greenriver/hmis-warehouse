@@ -43,7 +43,7 @@ module HmisDataQualityTool::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "HMIS Data Quality Tool - #{Time.current.to_s(:db)}",
+          "HMIS Data Quality Tool - By-Client - #{Time.current.to_s(:db)}",
         ) do |io|
           self.downloadable_file = io
         end
