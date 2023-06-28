@@ -11,6 +11,7 @@
   can be updated here, but note that two things must happen before you'll see changes.
 %ol
   %li After you save this page, a background job will run that will recompile the assets and push them to S3.
+  %li You'll need to make a commit to the repo to trigger re-compilation of the assets.
   %li Then you must redeploy the application so that the new files are pulled down to all the web servers, and the servers restarted.
 
 = simple_form_for @theme, as: :theme, url: admin_theme_path do |f|

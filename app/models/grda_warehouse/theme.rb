@@ -105,12 +105,28 @@ module GrdaWarehouse
       "#{remote_credential.s3_prefix}/#{scss_file_path}"
     end
 
-    def scss_file_path
+    def self.scss_file_full_path
+      "#{scss_file_path}/#{scss_file_name}"
+    end
+
+    def self.scss_file_path
       'app/assets/stylesheets/application/_custom/theme'
     end
 
-    def scss_file_name
+    def self.scss_file_import_path
+      "./_custom/theme/#{scss_file_name}"
+    end
+
+    def scss_file_path
+      self.class.scss_file_path
+    end
+
+    def self.scss_file_name
       "#{ENV.fetch('CLIENT', 'client')}.scss"
+    end
+
+    def scss_file_name
+      self.class.scss_file_name
     end
 
     private def remote_scss_full_file_path

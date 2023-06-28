@@ -12,20 +12,12 @@
 @import "./_custom/<%=ENV['CLIENT']%>";
 <% end %>
 <%
-  # TODO: disabling this for now, we need a better mechanism to precompile sinc the database isn't available at precompilation time
-  if false
-    # If we've defined further overrides in the theme
-    theme = Rails.cache.fetch('active_theme', expires_in: 1.minutes) do
-      GrdaWarehouse::Theme.find_by(client: ENV['CLIENT'])
-    end
-    if theme
-      sheet = Rails.root.join(theme.scss_file_path, theme.scss_file_name)
-      if File.exist?(sheet)
+  # If we've defined further overrides in the theme
+  sheet = GrdaWarehouse::Theme.scss_file_full_path
+  if File.exist?(sheet)
 %>
-@import "./_custom/theme/<%=theme.scss_file_name%>";
+@import "<%=GrdaWarehouse::Theme.scss_file_import_path%>";
 <%
-      end
-    end
   end
 %>
 <%
