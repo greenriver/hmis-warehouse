@@ -303,6 +303,7 @@ module GrdaWarehouse
         :chronic_tab_roi,
         :filter_date_span_years,
         :include_pii_in_detail_downloads,
+        :self_report_start_date,
         client_details: [],
       ]
     end
