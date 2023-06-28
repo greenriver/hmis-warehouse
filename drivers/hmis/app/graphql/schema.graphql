@@ -2233,7 +2233,7 @@ type Enrollment {
   referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
   runawayYouth: NoYesReasonsForMissingData
-  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServicesForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   sexualOrientation: SexualOrientation
   sexualOrientationOther: String
   status: EnrollmentStatus!
@@ -4890,6 +4890,9 @@ type PickListOption {
 }
 
 enum PickListType {
+  ALL_SERVICE_CATEGORIES
+  ALL_SERVICE_TYPES
+
   """
   Referral Posting Status
   """
@@ -4942,7 +4945,6 @@ enum PickListType {
   Referral Result 
   """
   REFERRAL_RESULT_TYPES
-  SERVICE_TYPE
   STATE
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
@@ -6856,6 +6858,11 @@ enum ServiceTypeProvided {
   (1) Outreach services
   """
   SSVF_SERVICE__OUTREACH_SERVICES
+}
+
+input ServicesForEnrollmentFilterOptions {
+  serviceCategory: [ID!]
+  serviceType: [ID!]
 }
 
 type ServicesPaginated {
