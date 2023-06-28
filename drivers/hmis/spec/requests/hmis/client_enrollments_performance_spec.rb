@@ -15,7 +15,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create :hmis_hud_client_complete, data_source: ds1, user: u1
   end
   let!(:enrollments) do
-    3.times.map do
+    10.times.map do
       project = create :hmis_hud_project, data_source: ds1, organization: o1, user: u1
       create(:hmis_hud_enrollment, data_source: ds1, project: project, client: client, user: u1)
     end
