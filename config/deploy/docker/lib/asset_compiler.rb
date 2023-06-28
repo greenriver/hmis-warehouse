@@ -61,8 +61,7 @@ class AssetCompiler
 
   def recompile!
     time_me name: 'Compiling assets' do
-      # system('source .env; bundle exec rails --quiet assets:precompile > /dev/null 2>&1') # TODO: don't call out to rake like this, it's inefficient
-      system('source .env; bundle exec rails assets:precompile') # TODO: don't call out to rake like this, it's inefficient
+      system('source .env; bundle exec rails --quiet assets:precompile > /dev/null 2>&1') # TODO: don't call out to rake like this, it's inefficient
     end
   end
 
