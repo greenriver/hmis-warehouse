@@ -9,6 +9,7 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   include ::HmisStructure::Service
   include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')

@@ -8,6 +8,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   self.table_name = :hmis_services
   self.primary_key = :id
 
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
