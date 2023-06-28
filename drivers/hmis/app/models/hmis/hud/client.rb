@@ -80,17 +80,25 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       file.client_file.attach(current_image_blob)
       file.save!
     end
+  end
 
-    # Post-save action to create a new MCI ID if specified by the ClientProcessor
-    if create_mci_id && HmisExternalApis::AcHmis::Mci.enabled?
+  after_save do
+    return unless HmisExternalApis::AcHmis::Mci.enabled?
+
+    # Create a new MCI ID if specified by the ClientProcessor
+    if create_mci_id
       self.create_mci_id = nil
       HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
     end
-  end
-  after_save do
-    if update_mci_attributes && HmisExternalApis::AcHmis::Mci.enabled?
+
+    # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
+    # 'update_mci_attributes' attr is specified by the ClientProcessor
+    if update_mci_attributes
       self.update_mci_attributes = nil
-      update_mci_client
+      trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
+      return unless trigger_columns.any? { |field| previous_changes&.[](field) }
+
+      HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id)
     end
   end
 
@@ -170,22 +178,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     "https://#{ENV['FQDN']}/clients/#{id}/from_source"
   end
 
-  def update_mci_client
-    return unless [
-      'FirstName',
-      'LastName',
-      'MiddleName',
-      'DOB',
-      'SSN',
-      'Gender',
-      'GenderNone',
-      'GenderOther',
-    ].any? { |field| previous_changes&.[](field) }
-
-    HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id)
-  end
-
-  private def clientview_url
+  private def clientview_url(mci_id_value)
     link_base = HmisExternalApis::AcHmis::Clientview.link_base
     return unless link_base&.present? && mci_id_value&.present?
 
