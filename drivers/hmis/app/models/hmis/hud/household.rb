@@ -36,20 +36,28 @@ class Hmis::Hud::Household < Hmis::Hud::Base
       where(hh_t[:latest_exit].eq(nil).or(hh_t[:latest_exit].gteq(date)))
   end
 
+  # Households where ANY enrollment is open
   scope :active, -> do
     where(latest_exit: nil)
   end
 
+  # Households where ALL enrollments are exited
   scope :exited, -> do
     where.not(latest_exit: nil)
   end
 
+  # Households where ANY enrollment is WIP
   scope :in_progress, -> do
     where(any_wip: true)
   end
 
+  # Households where NO enrollments are WIP
   scope :not_in_progress, -> do
     where(any_wip: false)
+  end
+
+  scope :with_project_type, ->(project_types) do
+    joins(:project).merge(Hmis::Hud::Project.with_project_type(project_types))
   end
 
   def household_size
