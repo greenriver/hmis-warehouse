@@ -98,7 +98,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 387,
+      "line": 369,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -536,29 +536,6 @@
       "confidence": "Medium",
       "cwe_id": [
         77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "2d623554a40303f5a1021893522708da7b77359904ba1f0673a6f13b00c39d94",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 373,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Project",
-        "method": null
-      },
-      "user_input": "access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
       ],
       "note": ""
     },
@@ -3128,6 +3105,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-06-21 15:48:20 +0000",
+  "updated": "2023-06-28 20:08:48 +0000",
   "brakeman_version": "5.4.1"
 }
