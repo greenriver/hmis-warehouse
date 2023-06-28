@@ -82,6 +82,7 @@ module Health
     end
 
     def destroy
+      @patient.pctp_careplans.find_by(instrument: @careplan)&.destroy
       @careplan.destroy
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end
