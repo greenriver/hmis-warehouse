@@ -2347,6 +2347,27 @@ type EnrollmentsPaginated {
 }
 
 """
+AC ESG Funding Service
+"""
+type EsgFundingService {
+  clientDob: ISO8601Date
+  clientId: ID!
+  customDataElements: [CustomDataElement!]!
+  dateProvided: ISO8601Date!
+  faAmount: Float
+  faEndDate: ISO8601Date
+  faStartDate: ISO8601Date
+  firstName: String
+  id: ID!
+  lastName: String
+  mciIds: [ExternalIdentifier!]!
+  organizationId: ID!
+  organizationName: String!
+  projectId: ID!
+  projectName: String!
+}
+
+"""
 3.05.1
 """
 enum Ethnicity {
@@ -5222,6 +5243,7 @@ type Query {
   Enrollment lookup
   """
   enrollment(id: ID!): Enrollment
+  esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
 
   """
