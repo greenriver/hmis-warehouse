@@ -85,7 +85,7 @@ class Hmis::EntityAccessLoaderFactory
       # optimization for persisted records only
       block.call(entity, :project)
     else
-      entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
+      resolve_through_project(entity, &block)
     end
 
     return nil unless resolved
@@ -104,10 +104,10 @@ class Hmis::EntityAccessLoaderFactory
   def resolve_new_record(entity, safety:, &block)
     check_safety(safety)
 
+    # The client access loader can handle new records directly
+    return [Hmis::Hud::ClientAccessLoader.new(@user), entity] if entity.is_a?(Hmis::Hud::Client)
+
     resolved = case entity
-    when Hmis::Hud::Client
-      # The client access loader can handle new clients directly
-      Hmis::Hud::ClientAccessLoader
     when Hmis::File
       # Files are always linked to a client, and optionally link to a specific
       # enrollment. If the file is linked to an enrollment, access to the file
@@ -131,9 +131,15 @@ class Hmis::EntityAccessLoaderFactory
       # for new organizations, check the data_source
       block.call(entity, :data_source)
     else
-      entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
+      resolve_through_project(entity, &block)
     end
     resolved ? resolve_entity(resolved, safety: safety + 1, &block) : nil
+  end
+
+  def resolve_through_project(entity, &block)
+    return unless entity.is_a?(ApplicationRecord)
+
+    entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
   end
 
   def check_safety(safety)
