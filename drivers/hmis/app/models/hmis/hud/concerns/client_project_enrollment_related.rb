@@ -14,7 +14,7 @@ module Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
     # hide previous declaration of :viewable_by, we'll use this one
     replace_scope :viewable_by, ->(user) do
-      joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
+      joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
     end
   end
 end
