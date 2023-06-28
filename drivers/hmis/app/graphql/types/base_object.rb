@@ -113,7 +113,7 @@ module Types
       end
       raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader
 
-      dataloader.with(Sources::UserEntityAccessSource, current_user, loader).load([subject, permission])
+      dataloader.with(Sources::UserEntityAccessSource, loader).load([subject, permission])
     end
   end
 end

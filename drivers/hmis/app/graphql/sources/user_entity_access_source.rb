@@ -6,9 +6,8 @@
 
 # Thin graphql dataloader wrapper around access loaders (Hmis::BaseAccessLoader)
 class Sources::UserEntityAccessSource < GraphQL::Dataloader::Source
-  attr_accessor :user, :loader
-  def initialize(user, loader)
-    self.user = user
+  attr_accessor :loader
+  def initialize(loader)
     self.loader = loader
   end
 
