@@ -76,8 +76,11 @@ class Hmis::EntityAccessLoaderFactory
       # should be limited based on access to that enrollment.
       entity.enrollment_id ? block.call(entity, :enrollment) : block.call(entity, :client)
     when Hmis::Hud::Enrollment
-      # optimization for persisted records only
-      block.call(entity, :project_with_wip)
+      if entity.in_progress?
+        block.call(entity, :wip)
+      else
+        block.call(entity, :project)
+      end
     when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService
       # optimization for persisted records only
       block.call(entity, :project)
@@ -113,8 +116,11 @@ class Hmis::EntityAccessLoaderFactory
     when Hmis::Hud::Enrollment
       # on new enrollments, we check both direct project assoc and wip
       # to eventually arrive at the project
-      project = block.call(entity, :project)
-      project || block.call(entity, :wip)
+      if entity.in_progress?
+        block.call(entity, :wip)
+      else
+        block.call(entity, :project)
+      end
     when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService
       # This will cascade to enrollment.project
       block.call(entity, :enrollment)

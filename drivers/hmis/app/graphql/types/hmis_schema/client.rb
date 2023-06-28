@@ -188,8 +188,11 @@ module Types
     end
 
     def ssn
-      object.ssn if current_permission?(permission: :can_view_full_ssn, entity: object)
-      object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1') if current_permission?(permission: :can_view_partial_ssn, entity: object)
+      if current_permission?(permission: :can_view_full_ssn, entity: object)
+        object.ssn
+      elsif current_permission?(permission: :can_view_partial_ssn, entity: object)
+        object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1')
+      end
     end
 
     def dob

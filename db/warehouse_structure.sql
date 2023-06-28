@@ -21145,6 +21145,39 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_colors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_colors (
+    id bigint NOT NULL,
+    slug character varying NOT NULL,
+    background_color character varying NOT NULL,
+    foreground_color character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: system_colors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_colors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_colors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_colors_id_seq OWNED BY public.system_colors.id;
+
+
+--
 -- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -21186,7 +21219,8 @@ CREATE TABLE public.system_pathways_clients (
     returned_project_project_id bigint,
     report_id bigint,
     deleted_at timestamp without time zone,
-    days_to_return integer
+    days_to_return integer,
+    ce_assessment boolean DEFAULT false NOT NULL
 );
 
 
@@ -21528,7 +21562,10 @@ CREATE TABLE public.themes (
     hmis_origin character varying,
     hmis_value jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    remote_credential_id bigint,
+    css_file_contents text,
+    scss_file_contents text
 );
 
 
@@ -25288,6 +25325,13 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_colors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_colors ALTER COLUMN id SET DEFAULT nextval('public.system_colors_id_seq'::regclass);
+
+
+--
 -- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -28344,6 +28388,14 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_colors system_colors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_colors
+    ADD CONSTRAINT system_colors_pkey PRIMARY KEY (id);
 
 
 --
@@ -50069,6 +50121,13 @@ CREATE INDEX index_text_message_topics_on_updated_at ON public.text_message_topi
 
 
 --
+-- Name: index_themes_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_themes_on_remote_credential_id ON public.themes USING btree (remote_credential_id);
+
+
+--
 -- Name: index_tx_research_exports_on_export_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53611,7 +53670,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230620154423'),
 ('20230621190529'),
 ('20230622171721'),
+('20230622202122'),
 ('20230623035559'),
+('20230623124456'),
+('20230623200215'),
 ('20230626005404'),
 ('20230626012029');
 
