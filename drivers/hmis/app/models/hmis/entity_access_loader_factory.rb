@@ -34,19 +34,28 @@ class Hmis::EntityAccessLoaderFactory
   # @yieldparam [Symbol] association name
   # @yieldreturn [#resolved, nil] the association (record.association)
   # @return [Array<Hmis::BaseLoader, #entity>]
-  def perform(entity, safety: 0, &block)
+  def perform(entity, &block)
+    if entity.new_record?
+      resolve_new_record(entity, safety: 0, &block)
+    else
+      resolve_entity(entity, safety: 0, &block)
+    end
+  end
+
+  protected
+
+  def resolve_entity(entity, safety:, &block)
     check_safety(safety)
 
     loader = case entity
     when Hmis::Hud::Client
-      # The client access loader can handle new clients directly
       Hmis::Hud::ClientAccessLoader
     when Hmis::Hud::Project
-      Hmis::Hud::ProjectAccessLoader if entity.persisted?
+      Hmis::Hud::ProjectAccessLoader
     when Hmis::Hud::Organization
-      Hmis::Hud::OrganizationAccessLoader if entity.persisted?
+      Hmis::Hud::OrganizationAccessLoader
     when GrdaWarehouse::DataSource
-      Hmis::DataSourceAccessLoader if entity.persisted?
+      Hmis::DataSourceAccessLoader
     end
     if loader
       [loader.new(@user), entity]
@@ -67,36 +76,61 @@ class Hmis::EntityAccessLoaderFactory
       # should be limited based on access to that enrollment.
       entity.enrollment_id ? block.call(entity, :enrollment) : block.call(entity, :client)
     when Hmis::Hud::Enrollment
-      if entity.new_record?
-        # on new enrollments, we check both direct project assoc and wip
-        # to eventually arrive at the project
-        project = block.call(entity, :project)
-        project || block.call(entity, :wip)
-      else
-        # optimization for persisted records only
-        block.call(entity, :project_with_wip)
-      end
+      # optimization for persisted records only
+      block.call(entity, :project_with_wip)
     when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService
-      if entity.new_record?
-        # This will cascade to enrollment.project
-        block.call(entity, :enrollment)
-      else
-        # optimization for persisted records only
-        block.call(entity, :project)
-      end
-    when Hmis::Hud::Project
-      # for new projects, check the organization
-      block.call(entity, :organization) if entity.new_record?
-    when Hmis::Hud::Organization
-      # for new organizations, check the data_source
-      block.call(entity, :data_source) if entity.new_record?
+      # optimization for persisted records only
+      block.call(entity, :project)
     else
       entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
     end
-    resolved ? perform(resolved, safety: safety + 1, &block) : nil
+
+    return nil unless resolved
+
+    if resolved.new_record?
+      resolve_new_record(resolved, safety: safety + 1, &block)
+    else
+      resolve_entity(resolved, safety: safety + 1, &block)
+    end
   end
 
-  protected def check_safety(safety)
+  # For new records we rely on the caller pre-populating specific associations for
+  # us to check
+  # FIXME: This is fragile. A more robust approach would be for the caller to check
+  # the permissions on the associations directly
+  def resolve_new_record(entity, safety:, &block)
+    check_safety(safety)
+
+    resolved = case entity
+    when Hmis::Hud::Client
+      # The client access loader can handle new clients directly
+      Hmis::Hud::ClientAccessLoader
+    when Hmis::File
+      # Files are always linked to a client, and optionally link to a specific
+      # enrollment. If the file is linked to an enrollment, access to the file
+      # should be limited based on access to that enrollment.
+      entity.enrollment_id ? block.call(entity, :enrollment) : block.call(entity, :client)
+    when Hmis::Hud::Enrollment
+      # on new enrollments, we check both direct project assoc and wip
+      # to eventually arrive at the project
+      project = block.call(entity, :project)
+      project || block.call(entity, :wip)
+    when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService
+      # This will cascade to enrollment.project
+      block.call(entity, :enrollment)
+    when Hmis::Hud::Project
+      # for new projects, check the organization
+      block.call(entity, :organization)
+    when Hmis::Hud::Organization
+      # for new organizations, check the data_source
+      block.call(entity, :data_source)
+    else
+      entity.class.reflect_on_association(:project) ? block.call(entity, :project) : nil
+    end
+    resolved ? resolve_entity(resolved, safety: safety + 1, &block) : nil
+  end
+
+  def check_safety(safety)
     raise 'safety count exceeded' if safety > 5
   end
 end
