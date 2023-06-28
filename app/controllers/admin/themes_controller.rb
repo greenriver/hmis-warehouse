@@ -3,7 +3,6 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-require_relative '/app/config/deploy/docker/lib/asset_compiler'
 
 module Admin
   class ThemesController < ApplicationController
@@ -21,7 +20,7 @@ module Admin
       @theme.store_remote_css_file
       @theme.store_remote_scss_file
       # background assets:precompile
-      ::AssetCompiler.new(target_group_name: ENV.fetch('ASSETS_PREFIX')).delay.run! if ENV['ASSETS_PREFIX']
+      RunAssetCompilerJob.perform_later
 
       respond_with(@theme, location: edit_admin_theme_path)
     end
