@@ -8,6 +8,17 @@
 
 module HmisExternalApis::AcHmis
   class UpdateMciClientJob < ApplicationJob
+    MCI_CLIENT_COLS = [
+      'FirstName',
+      'LastName',
+      'MiddleName',
+      'DOB',
+      'SSN',
+      'Gender',
+      'GenderNone',
+      'GenderOther',
+    ].freeze
+
     # @param clent_id [Integer] Hmis::Hud::Client ID
     def perform(client_id:)
       return unless HmisExternalApis::AcHmis::Mci.enabled?
