@@ -83,22 +83,21 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   after_save do
-    return unless HmisExternalApis::AcHmis::Mci.enabled?
+    if HmisExternalApis::AcHmis::Mci.enabled?
+      # Create a new MCI ID if specified by the ClientProcessor
+      if create_mci_id
+        self.create_mci_id = nil
+        HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
+      end
 
-    # Create a new MCI ID if specified by the ClientProcessor
-    if create_mci_id
-      self.create_mci_id = nil
-      HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
-    end
-
-    # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
-    # 'update_mci_attributes' attr is specified by the ClientProcessor
-    if update_mci_attributes
-      self.update_mci_attributes = nil
-      trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
-      return unless trigger_columns.any? { |field| previous_changes&.[](field) }
-
-      HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id)
+      # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
+      # 'update_mci_attributes' attr is specified by the ClientProcessor
+      if update_mci_attributes
+        self.update_mci_attributes = nil
+        trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
+        relevant_fields_changed = trigger_columns.any? { |field| previous_changes&.[](field) }
+        HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id) if relevant_fields_changed
+      end
     end
   end
 
