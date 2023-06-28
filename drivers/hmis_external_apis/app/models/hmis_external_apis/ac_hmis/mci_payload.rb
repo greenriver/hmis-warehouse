@@ -12,8 +12,7 @@ module HmisExternalApis::AcHmis
       raise(Error, 'DOB is required') unless client.dob.present?
 
       {
-        # TODO: pass Okta User ID
-        # 'userID' => 'string',
+        'userID' => client.user&.user_email || 'greenriver',
         'firstName' => client.first_name,
         'middleName' => client.middle_name,
         'lastName' => client.last_name,
@@ -25,6 +24,9 @@ module HmisExternalApis::AcHmis
         'ethnicityCode' => MciMapping.mci_ethnicity(client),
         'genderCode' => MciMapping.mci_gender(client),
         'mciId' => mci_id,
+        # TODO: confirm before setting these
+        # 'sourceSystemId' => HmisExternalApis::AcHmis::DataWarehouseApi.new.src_sys_key
+        # 'sourceSystemClientId' => client.personal_id
       }.compact_blank
     end
 
