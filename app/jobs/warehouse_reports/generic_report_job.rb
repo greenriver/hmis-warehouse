@@ -70,6 +70,7 @@ module WarehouseReports
       reports['MaYyaReport::Report'] = MaYyaReport::Report if RailsDrivers.loaded.include?(:ma_yya_report)
       reports['MaReports::MonthlyPerformance::Report'] = MaReports::MonthlyPerformance::Report if RailsDrivers.loaded.include?(:ma_reports)
       reports['SystemPathways::Report'] = SystemPathways::Report if RailsDrivers.loaded.include?(:system_pathways)
+      reports['AllNeighborsSystemDashboard::Report'] = AllNeighborsSystemDashboard::Report if RailsDrivers.loaded.include?(:all_neighbors_system_dashboard)
 
       reports
     end

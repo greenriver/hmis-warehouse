@@ -22,22 +22,54 @@ module AllNeighborsSystemDashboard::WarehouseReports
       filters
     end
 
-    def filter_params
-      site_coc_codes = GrdaWarehouse::Config.get(:site_coc_codes).presence&.split(/,\s*/)
-      default_options = {
-        sub_population: :clients,
-        coc_codes: site_coc_codes,
-        comparison_pattern: :prior_year,
-      }
-      return { filters: default_options } unless params[:filters].present?
+    def create
+      @report = report_class.new(
+        user_id: current_user.id,
+      )
+      @report.filter = @filter
 
+      if @filter.valid?
+        @report.save
+        ::WarehouseReports::GenericReportJob.perform_later(
+          user_id: current_user.id,
+          report_class: @report.class.name,
+          report_id: @report.id,
+        )
+        # Make sure the form will work
+        filters
+        respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboards_path)
+      else
+        @pagy, @reports = pagy(report_scope.ordered)
+        filters
+        render :index
+      end
+    end
+
+    def show
+      respond_to do |format|
+        # format.html {}
+        format.xlsx do
+          filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
+    end
+
+    def destroy
+      @report.destroy
+      respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboards_path)
+    end
+
+    def filter_params
       filters = params.permit(filters: @filter.known_params)
-      filters[:filters][:coc_codes] ||= site_coc_codes
-      # Enforce comparison
-      filters[:filters][:comparison_pattern] = :prior_year
+
       filters
     end
     helper_method :filter_params
+
+    private def flash_interpolation_options
+      { resource_name: @report.title }
+    end
 
     private def report_scope
       report_class.visible_to(current_user)

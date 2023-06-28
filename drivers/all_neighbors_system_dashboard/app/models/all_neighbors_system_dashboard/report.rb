@@ -23,6 +23,8 @@ module AllNeighborsSystemDashboard
       order(updated_at: :desc)
     end
 
+    # View configuration
+
     def title
       _('All Neighbors System Dashboard')
     end
@@ -47,6 +49,13 @@ module AllNeighborsSystemDashboard
       true
     end
 
+    def filter=(filter_object)
+      self.options = filter_object.to_h
+      # force reset the filter cache
+      @filter = nil
+      filter
+    end
+
     def filter
       @filter ||= begin
         f = ::Filters::FilterBase.new(
@@ -58,8 +67,57 @@ module AllNeighborsSystemDashboard
       end
     end
 
+    def describe_filter_as_html(keys = nil, inline: false)
+      keys ||= [
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
+      filter.describe_filter_as_html(keys, inline: inline)
+    end
+
+    def known_params
+      [
+        :start,
+        :end,
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
+    end
+
     private def build_control_sections
       []
+    end
+
+    # Report creation
+
+    def run_and_save!
+      start
+      begin
+        populate_universe
+        calculate_results
+      rescue Exception => e
+        update(failed_at: Time.current)
+        raise e
+      end
+      complete
+    end
+
+    def start
+      update(started_at: Time.current)
+    end
+
+    def complete
+      update(completed_at: Time.current)
+    end
+
+    def populate_universe
+    end
+
+    def calculate_results
     end
   end
 end
