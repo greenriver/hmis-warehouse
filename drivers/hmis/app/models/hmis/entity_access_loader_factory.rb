@@ -57,14 +57,33 @@ class Hmis::EntityAccessLoaderFactory
   end
 
   # follow the association chain for entities that don't have their own data loader
-  # or for entities that are not yet persisted
   def resolve_association(entity, safety:, &block)
     check_safety(safety)
 
     resolved = case entity
     when Hmis::File
-      # Files are always linked to a client, and optionally link to a specific enrollment. If the file is linked to an enrollment, access to the file should be limited based on access to that enrollment.
+      # Files are always linked to a client, and optionally link to a specific
+      # enrollment. If the file is linked to an enrollment, access to the file
+      # should be limited based on access to that enrollment.
       entity.enrollment_id ? block.call(entity, :enrollment) : block.call(entity, :client)
+    when Hmis::Hud::Enrollment
+      if entity.new_record?
+        # on new enrollments, we check both direct project assoc and wip
+        # to eventually arrive at the project
+        project = block.call(entity, :project)
+        project || block.call(entity, :wip)
+      else
+        # optimization for persisted records only
+        block.call(entity, :project_with_wip)
+      end
+    when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService
+      if entity.new_record?
+        # This will cascade to enrollment.project
+        block.call(entity, :enrollment)
+      else
+        # optimization for persisted records only
+        block.call(entity, :project)
+      end
     when Hmis::Hud::Project
       # for new projects, check the organization
       block.call(entity, :organization) if entity.new_record?
@@ -78,6 +97,6 @@ class Hmis::EntityAccessLoaderFactory
   end
 
   protected def check_safety(safety)
-    raise "safety count exceeded" if safety > 5
+    raise 'safety count exceeded' if safety > 5
   end
 end

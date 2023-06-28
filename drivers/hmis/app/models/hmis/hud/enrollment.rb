@@ -18,7 +18,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   delegate :exit_date, to: :exit, allow_nil: true
 
+  # CAUTION: enrollment.project accessor is overridden below
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
+  has_one :client_project
+  has_one :project_with_wip, through: :client_project, source: :project
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
 
   # HUD services
