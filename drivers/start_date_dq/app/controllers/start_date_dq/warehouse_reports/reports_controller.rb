@@ -23,8 +23,7 @@ module StartDateDq::WarehouseReports
           end
         end
         format.xlsx do
-          @enrollments = @report.data
-          headers['Content-Disposition'] = "attachment; filename=#{@report.title} Data Quality Report.xlsx"
+          # See drivers/start_date_dq/app/models/start_date_dq/document_exports/start_date_dq_excel_export.rb
         end
       end
     end
@@ -38,6 +37,7 @@ module StartDateDq::WarehouseReports
         user_id: current_user.id,
         default_start: Date.current - 3.months,
         default_end: Date.current,
+        dates_to_compare: :date_to_street_to_entry,
       ).set_from_params(filter_params)
       @report = report_class.new(current_user.id, @filter)
     end
