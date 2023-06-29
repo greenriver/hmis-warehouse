@@ -81,9 +81,6 @@ class Hmis::EntityAccessLoaderFactory
       else
         block.call(entity, :project)
       end
-    when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService
-      # optimization for persisted records only
-      block.call(entity, :project)
     else
       resolve_through_project(entity, &block)
     end
