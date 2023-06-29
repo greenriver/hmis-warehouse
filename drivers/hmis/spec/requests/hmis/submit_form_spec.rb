@@ -380,12 +380,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input.merge(hud_values: input[:hud_values].merge(*args))
     end
 
-    def expect_error_message(input, msg)
+    def expect_error_message(input, **expected_error)
       response, result = post_graphql(input: { input: input }) { mutation }
       errors = result.dig('data', 'submitForm', 'errors')
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
-        expect(errors).to contain_exactly(include('fullMessage' => Hmis::Hud::Validators::EnrollmentValidator.send(msg)))
+        expect(errors).to contain_exactly(include(expected_error.stringify_keys))
       end
     end
 
@@ -394,7 +394,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         test_input,
         'householdId' => e1.household_id,
       )
-      expect_error_message(input, :one_hoh_full_message)
+      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.one_hoh_full_message)
     end
 
     it 'should error if creating household without hoh' do
@@ -402,7 +402,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         test_input,
         'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
-      expect_error_message(input, :first_member_hoh_full_message)
+      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.first_member_hoh_full_message)
     end
 
     it 'should error if adding duplicate member to household' do
@@ -411,14 +411,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'householdId' => e1.household_id,
         'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
-      expect_error_message(input, :duplicate_member_full_message)
+      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
     end
 
     it 'should warn if client already enrolled' do
       input = merge_hud_values(
         test_input.merge(client_id: e1.client.id),
       )
-      expect_error_message(input, :already_enrolled_full_message)
+      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message)
+    end
+
+    it 'should error if entry date is in the future' do
+      input = merge_hud_values(
+        test_input,
+        'entryDate' => Date.tomorrow.strftime('%Y-%m-%d'),
+      )
+      expect_error_message(input, message: Hmis::Hud::Validators::EnrollmentValidator.future_message)
     end
   end
 end
