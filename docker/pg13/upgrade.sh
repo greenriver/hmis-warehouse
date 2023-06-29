@@ -19,29 +19,29 @@ EOF
   exit
 fi
 
-docker compose stop db_previous db
+docker-compose stop db_previous db
 
-docker compose up -d db_previous db
+docker-compose up -d db_previous db
 
 sleep 3
 
-docker compose logs db_previous db
+docker-compose logs db_previous db
 
 export FILENAME=db_previous.dumpall.sql
 
-# docker compose exec db_previous pg_dumpall --help
+# docker-compose exec db_previous pg_dumpall --help
 
 mkdir -p tmp/dumps
 
 echo Dumping old database
-docker compose exec \
+docker-compose exec \
   db_previous pg_dumpall \
   --exclude-database=template\* \
   --exclude-database=postgres \
   > tmp/dumps/$FILENAME
 
 echo Importing to new database
-docker compose exec \
+docker-compose exec \
   db psql -c "\i /tmp/dumps/$FILENAME"
 
-docker compose stop db_previous
+docker-compose stop db_previous
