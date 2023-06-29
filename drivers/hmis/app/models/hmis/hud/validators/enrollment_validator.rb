@@ -77,7 +77,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
 
       # Warning: client is already enrolled in this project
       # NOTE: only warns if there are eixisting active enrollments, not WIP enrollments
-      already_enrolled = Hmis::Hud::Enrollment.where(**record.slice(:project_id, :personal_id, :data_source_id)).open_on_date(record.entry_date).exists?
+      already_enrolled = record.entry_date.present? && Hmis::Hud::Enrollment.where(**record.slice(:project_id, :personal_id, :data_source_id)).open_on_date(record.entry_date).exists?
       errors.add :base, :information, severity: :warning, full_message: already_enrolled_full_message if already_enrolled
     end
 

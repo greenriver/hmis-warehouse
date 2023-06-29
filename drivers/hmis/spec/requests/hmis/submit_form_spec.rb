@@ -70,6 +70,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on File {
               id
             }
+            ... on Enrollment {
+              id
+            }
           }
           #{error_fields}
         }
@@ -87,6 +90,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :CLIENT,
       :SERVICE,
       :FILE,
+      :ENROLLMENT,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -140,6 +144,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               hmis_hud_service1.id
             when :FILE
               file1.id
+            when :ENROLLMENT
+              e1.id
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))
