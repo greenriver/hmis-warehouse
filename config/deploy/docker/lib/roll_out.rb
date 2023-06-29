@@ -316,18 +316,17 @@ class RollOut
 
     minimum, maximum = _get_min_max_from_desired(dj_options['container_count'])
 
-    service_registries =
-      if service_registry_arns['dj']
-        [
-          {
-            container_name: name,
-            container_port: 9394,
-            registry_arn: service_registry_arns['dj'],
-          },
-        ]
-      else
-        []
-      end
+    # service_registries =
+    #   if service_registry_arns['dj']
+    #     {
+    #       container_name: name,
+    #       container_port: 9394,
+    #       registry_arn: service_registry_arns['dj'],
+    #     }
+    #   else
+    #     []
+    #   end
+    service_registries = []
 
     _start_service!(
       name: name,
