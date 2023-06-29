@@ -19,7 +19,6 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   belongs_to :custom_service_type
   alias_attribute :service_type, :custom_service_type
   has_many :custom_data_elements, as: :owner
-  has_one :project, through: :enrollment
   has_one :organization, through: :project
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
