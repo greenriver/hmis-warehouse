@@ -34,7 +34,7 @@ class RollOut
   attr_accessor :task_arn
   attr_accessor :web_options
   attr_accessor :only_check_ram
-  attr_accessor :web_service_registry_arn
+  attr_accessor :service_registry_arns
 
   include SharedLogic
   include AwsSdkHelpers::Helpers
@@ -52,7 +52,7 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
-  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:, web_service_registry_arn:)
+  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:, service_registry_arns:)
     self.cluster                  = _cluster_name
     self.image_base               = image_base
     self.secrets_arn              = secrets_arn
@@ -64,13 +64,12 @@ class RollOut
     self.web_options              = web_options
     self.status_uri               = URI("https://#{fqdn}/system_status/details")
     self.only_check_ram           = false
-    self.web_service_registry_arn = web_service_registry_arn
+    self.service_registry_arns    = service_registry_arns
     @capacity_providers           = capacity_providers
 
-    if web_service_registry_arn.nil?
-      puts '[ERROR] You must specify a web_service_registry_arn value for service discovery (Cloud Map)'
-      exit
-    end
+    puts '[WARN] You should specify a web service registry ARN value for service discovery (Cloud Map)' if service_registry_arns['web'].nil?
+
+    puts '[WARN] You should specify a DJ service registry ARN value for service discovery (Cloud Map)' if service_registry_arns['dj'].nil?
 
     if task_role.nil? || task_role.match(/^\s*$/)
       puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
@@ -264,13 +263,18 @@ class RollOut
 
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
-    service_registries = [
-      {
-        container_name: name,
-        container_port: 9394,
-        registry_arn: web_service_registry_arn,
-      },
-    ]
+    service_registries =
+      if service_registry_arns['web']
+        [
+          {
+            container_name: name,
+            container_port: 9394,
+            registry_arn: service_registry_arns['web'],
+          },
+        ]
+      else
+        []
+      end
 
     # Keep production web containers on long-term providers
     _start_service!(
@@ -312,12 +316,26 @@ class RollOut
 
     minimum, maximum = _get_min_max_from_desired(dj_options['container_count'])
 
+    service_registries =
+      if service_registry_arns['dj']
+        [
+          {
+            container_name: name,
+            container_port: 9394,
+            registry_arn: service_registry_arns['dj'],
+          },
+        ]
+      else
+        []
+      end
+
     _start_service!(
       name: name,
       capacity_provider: _long_term_capacity_provider_name,
       desired_count: dj_options['container_count'] || 1,
       maximum_percent: maximum,
       minimum_healthy_percent: minimum,
+      service_registries: service_registries,
     )
   end
 

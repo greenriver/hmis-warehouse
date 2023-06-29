@@ -50,10 +50,10 @@ class Deployer
 
   attr_accessor :cluster
 
-  attr_accessor :web_service_registry_arn
+  attr_accessor :service_registry_arns
 
-  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:, web_service_registry_arn:)
-    self.web_service_registry_arn = web_service_registry_arn
+  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:, service_registry_arns:)
+    self.service_registry_arns    = service_registry_arns
     self.cluster                  = _cluster_name
     self.target_group_name        = target_group_name
     self.assume_ci_build          = assume_ci_build
@@ -134,7 +134,7 @@ class Deployer
         task_role: task_role,
         web_options: web_options,
         capacity_providers: _capacity_providers,
-        web_service_registry_arn: web_service_registry_arn,
+        service_registry_arns: service_registry_arns,
       )
   end
 
