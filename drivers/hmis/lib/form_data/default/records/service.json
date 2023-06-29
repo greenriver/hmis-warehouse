@@ -122,7 +122,7 @@
       "required": true,
       "text": "Date Provided",
       "field_name": "dateProvided",
-      "bounds": [
+      "_DISABLED_bounds": [
         {
           "id": "min-start-date",
           "type": "MIN",
