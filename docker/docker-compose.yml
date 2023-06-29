@@ -115,11 +115,11 @@ services:
       - mailhog
       - minio
 
-  # To transition from pg12 to pg13, run ./bin/upgrade.pg12.to.pg13
-  pg12:
+  # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
+  db_previous:
     build:
       context: docker/pg12
-    container_name: pg12
+    container_name: db_previous
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -146,6 +146,7 @@ services:
       PGPASSWORD: postgres
       PGUSER: postgres
     volumes:
+      # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
       - dbdata_pg13:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
     ports:
