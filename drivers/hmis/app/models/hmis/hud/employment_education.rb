@@ -8,6 +8,8 @@ class Hmis::Hud::EmploymentEducation < Hmis::Hud::Base
   include ::HmisStructure::EmploymentEducation
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
+
   self.table_name = 'EmploymentEducation'
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

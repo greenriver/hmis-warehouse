@@ -10,6 +10,7 @@ class Hmis::Hud::YouthEducationStatus < Hmis::Hud::Base
   include ::HmisStructure::YouthEducationStatus
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
