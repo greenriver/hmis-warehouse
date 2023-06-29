@@ -8,6 +8,8 @@ module HmisExternalApis::AcHmis
   class UploadClientsJob < ApplicationJob
     include NotifierConfig
 
+    attr_accessor :state
+
     def perform
       setup_notifier('HMIS Upload Clients')
 
@@ -25,10 +27,14 @@ module HmisExternalApis::AcHmis
         )
 
         uploader.run!
+        self.state = :success
       else
+        self.state = :not_run
         Rails.logger.info 'Not running client upload due to lack of credentials'
       end
     rescue StandardError => e
+      puts e.message
+      self.state = :failed
       @notifier.ping('Failure in upload clients job', { exception: e })
       Rails.logger.fatal e.message
     end

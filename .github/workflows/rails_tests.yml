@@ -54,8 +54,13 @@ jobs:
         ports:
           - 6379:6379
 
-      sftp:
-        image: justinhimself/sftp
+      hmis-warehouse-sftp:
+        image: ghcr.io/greenriver/openpath-sftp:1.0
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        ports:
+          - '22:22'
 
       minio:
         image: ghcr.io/greenriver/openpath-minio:1.0
@@ -187,6 +192,17 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
+
+      - name: Run My tests WIP
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          GROVER_NO_SANDBOX: true
+          CHROMIUM_PATH: /usr/bin/chromium-browser
+          MAX_FAILURES: 20
+          LOG_LEVEL: INFO
+        run: |
+          bundle exec rspec drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/exporters drivers/hmis_external_apis/spec/jobs/hmis_external_apis/ac_hmis/upload_clients_job_spec.rb
 
       - name: Run tests
         env:
