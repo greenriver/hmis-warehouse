@@ -119,6 +119,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  scope :older_than, ->(age, or_equal: false) do
+    target_dob = Date.today - (age + 1).years
+    target_dob = Date.today - age.years if or_equal == true
+
+    where(c_t[:dob].lt(target_dob))
+  end
+
   # Clients that have no Enrollments (WIP or otherwise)
   scope :unenrolled, -> do
     # Clients that have no projects, AND no wip enrollments
@@ -168,17 +175,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     external_identifiers = [
       {
         type: :client_id,
-        id: id,
+        identifier: id,
         label: 'HMIS ID',
       },
       {
         type: :personal_id,
-        id: personal_id,
+        identifier: personal_id,
         label: 'Personal ID',
       },
       {
         type: :warehouse_id,
-        id: warehouse_id,
+        identifier: warehouse_id,
         url: warehouse_url,
         label: 'Warehouse ID',
       },
@@ -189,7 +196,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
         ac_hmis_mci_ids.to_a.each do |mci_id|
           external_identifiers << {
             type: :mci_id,
-            id: mci_id.value,
+            identifier: mci_id.value,
             url: clientview_url(mci_id.value),
             label: 'MCI ID',
           }
@@ -197,7 +204,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       else
         external_identifiers << {
           type: :mci_id,
-          id: nil,
+          identifier: nil,
           url: nil,
           label: 'MCI ID',
         }

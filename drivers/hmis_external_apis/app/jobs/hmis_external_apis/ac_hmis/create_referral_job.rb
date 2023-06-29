@@ -23,7 +23,7 @@ module HmisExternalApis::AcHmis
 
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
 
-        raise ActiveRecord::Rollback unless create_referral_household_members(referral)
+        raise ActiveRecord::Rollback unless create_or_update_referral_household_members(referral)
 
         record = referral
       end
@@ -37,7 +37,6 @@ module HmisExternalApis::AcHmis
         .where(identifier: params.fetch(:referral_id))
         .first_or_initialize
       return error_out('Referral still has active postings') unless referral.postings_inactive?
-      return error_out('Referral already linked to household') unless referral.household_members.empty?
 
       referral_params = params.slice(
         :referral_date,
@@ -210,7 +209,7 @@ module HmisExternalApis::AcHmis
       end
     end
 
-    def create_referral_household_members(referral)
+    def create_or_update_referral_household_members(referral)
       member_params = params.fetch(:household_members)
       return error_out('Household must have exactly one HoH') if member_params.map { |m| m[:relationship_to_hoh] }.count(1) != 1
 

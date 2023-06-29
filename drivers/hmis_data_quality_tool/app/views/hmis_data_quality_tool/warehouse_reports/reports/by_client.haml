@@ -7,6 +7,7 @@
     %a.nav-link.active{href: '#by_client', role: "presentation", data: {toggle: :tab}, aria: {controls:"by-client", selected:"true"}}
       By Client
 
-.tab-content
+.tab-content.mt-4
   .tab-pane.show.active.fade#by_category{role: 'tabpanel', aria: {labelledby: 'by-client'}}
+    .pull-right= render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
     = render 'by_client'

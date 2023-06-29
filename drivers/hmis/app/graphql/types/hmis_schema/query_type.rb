@@ -209,5 +209,25 @@ module Types
 
       scoped_referral_postings(postings, **args)
     end
+
+    # AC HMIS Queries
+
+    field :esg_funding_report, [Types::AcHmis::EsgFundingService], null: false do
+      argument :client_ids, [ID], required: true
+    end
+
+    def esg_funding_report(client_ids:)
+      cst = Hmis::Hud::CustomServiceType.where(name: 'ESG Funding Assistance').first!
+      raise HmisErrors::ApiError, 'ESG Funding Assistance service not configured' unless cst.present?
+
+      clients = Hmis::Hud::Client.adults.viewable_by(current_user).where(id: client_ids)
+
+      # NOTE: Purposefully does not call `viewable_by`, as the report must include the full service history
+      Hmis::Hud::CustomService.
+        joins(:client).
+        merge(clients).
+        where(custom_service_type: cst, data_source_id: current_user.hmis_data_source_id).
+        preload(:project, :client, :organization)
+    end
   end
 end

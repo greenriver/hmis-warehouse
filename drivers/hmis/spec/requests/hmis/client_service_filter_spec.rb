@@ -31,8 +31,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query EnrollmentServices($id: ID!, $filters: ServiceFilterOptions!) {
-        enrollment(id: $id) {
+      query ClientServices($id: ID!, $filters: ServiceFilterOptions!) {
+        client(id: $id) {
           services(filters: $filters) {
             nodes {
               #{scalar_fields(Types::HmisSchema::Service)}
@@ -51,58 +51,58 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     aggregate_failures 'checking response' do
       response, result = post_graphql(input) { query }
       expect(response.status).to eq 200
-      services = result.dig('data', 'enrollment', 'services', 'nodes')
+      services = result.dig('data', 'client', 'services', 'nodes')
       yield services
     end
   end
 
   it 'should filter correctly by service category' do
     category_id = s1.custom_service_type.category.id.to_s
-    search(id: e1.id.to_s, filters: { service_category: [category_id] }) do |services|
+    search(id: c1.id.to_s, filters: { service_category: [category_id] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
-    search(id: e1.id.to_s, filters: { service_category: ['0'] }) do |services|
+    search(id: c1.id.to_s, filters: { service_category: ['0'] }) do |services|
       expect(services).to be_empty
     end
-    search(id: e1.id.to_s, filters: { service_category: ['0', category_id] }) do |services|
+    search(id: c1.id.to_s, filters: { service_category: ['0', category_id] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
   end
 
   it 'should filter correctly by service type' do
     service_type_id = s1.custom_service_type.id.to_s
-    search(id: e1.id.to_s, filters: { service_type: [service_type_id] }) do |services|
+    search(id: c1.id.to_s, filters: { service_type: [service_type_id] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
-    search(id: e1.id.to_s, filters: { service_type: ['0'] }) do |services|
+    search(id: c1.id.to_s, filters: { service_type: ['0'] }) do |services|
       expect(services).to be_empty
     end
-    search(id: e1.id.to_s, filters: { service_type: ['0', service_type_id] }) do |services|
+    search(id: c1.id.to_s, filters: { service_type: ['0', service_type_id] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
   end
 
   it 'should filter correctly by project type' do
     project_type = Types::HmisSchema::Enums::ProjectType.key_for(p1.ProjectType)
-    search(id: e1.id.to_s, filters: { project_type: [project_type] }) do |services|
+    search(id: c1.id.to_s, filters: { project_type: [project_type] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
-    search(id: e1.id.to_s, filters: { project_type: ['INVALID'] }) do |services|
+    search(id: c1.id.to_s, filters: { project_type: ['INVALID'] }) do |services|
       expect(services).to be_empty
     end
-    search(id: e1.id.to_s, filters: { project_type: ['INVALID', project_type] }) do |services|
+    search(id: c1.id.to_s, filters: { project_type: ['INVALID', project_type] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
   end
 
   it 'should filter correctly by project' do
-    search(id: e1.id.to_s, filters: { project: [p1.id.to_s] }) do |services|
+    search(id: c1.id.to_s, filters: { project: [p1.id.to_s] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
-    search(id: e1.id.to_s, filters: { project: ['0'] }) do |services|
+    search(id: c1.id.to_s, filters: { project: ['0'] }) do |services|
       expect(services).to be_empty
     end
-    search(id: e1.id.to_s, filters: { project: ['0', p1.id.to_s] }) do |services|
+    search(id: c1.id.to_s, filters: { project: ['0', p1.id.to_s] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
   end
