@@ -39,12 +39,24 @@ module HmisExternalApis
       end
     end
 
+    def request_log
+      @request_log ||= HmisExternalApis::ExternalRequestLog.create!(
+        initiator: internal_system,
+        url: request.original_url,
+        http_method: request.method,
+        request: request.raw_post,
+        requested_at: Time.current,
+        response: 'pending', # can't be null
+      )
+    end
+
     # render a 400 with error messages
     def respond_with_errors(errors)
       json = {
         message: 'error',
         errors: errors,
       }
+      request_log.update!(response: json, http_status: 400)
       render(status: :bad_request, json: json)
     end
   end

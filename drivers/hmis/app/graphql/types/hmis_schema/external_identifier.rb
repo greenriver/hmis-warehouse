@@ -13,7 +13,12 @@ module Types
     field :identifier, ID, 'The identifier value', null: true
     field :url, String, null: true
     field :label, String, null: false
+    field :type, HmisSchema::Enums::ExternalIdentifierType, null: false
 
     # Object is a hash with keys matching the field names
+
+    def id
+      [object[:type], object[:identifier]].join(':')
+    end
   end
 end

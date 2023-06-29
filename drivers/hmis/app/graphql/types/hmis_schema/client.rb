@@ -122,15 +122,7 @@ module Types
     end
 
     def external_ids
-      object.external_identifiers.
-        map do |key, vals|
-          {
-            id: [key, object.id].join(':'),
-            identifier: vals[:id],
-            url: vals[:url],
-            label: vals[:label],
-          }
-        end
+      object.external_identifiers
     end
 
     def enrollments(**args)
@@ -171,7 +163,7 @@ module Types
 
     def race
       selected_races = ::HudUtility.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
-      selected_races << object.RaceNone if object.RaceNone
+      selected_races << object.RaceNone if object.RaceNone && selected_races.empty?
       selected_races
     end
 

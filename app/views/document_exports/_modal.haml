@@ -1,4 +1,7 @@
-- data = { url: @pdf_export&.data_url, status: 'pending' }
+- if @pdf_export.nil? && @excel_export.present?
+  - data = { url: @excel_export&.data_url, status: 'pending' }
+- else
+  - data = { url: @pdf_export&.data_url, status: 'pending' }
 .hide.j-document-export-title Download File
 .hide.j-document-export-body{data: data}
   .doc-export-part.pending

@@ -12,7 +12,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       when :match_group
         match_group(client)
       when :chronically_homeless_for_cas
-        client.source_enrollments.map(&:ch_enrollment).map(&:chronically_homeless_at_entry).any?
+        client.source_enrollments.map { |en| en&.ch_enrollment&.chronically_homeless_at_entry }.any?
       when *eccovia_columns
         send(column, client)
       end

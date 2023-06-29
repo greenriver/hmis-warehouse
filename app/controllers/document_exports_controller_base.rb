@@ -97,7 +97,10 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport',
       'BostonReports::DocumentExports::StreetToHomePdfExport',
       'HmisDataQualityTool::DocumentExports::ReportExport',
-      'HmisDataQualityTool::DocumentExports::ReportExcelExport'
+      'HmisDataQualityTool::DocumentExports::ReportExcelExport',
+      'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
+      'SystemPathways::DocumentExports::ReportExport',
+      'SystemPathways::DocumentExports::ReportExcelExport',
     ]
   end
 end

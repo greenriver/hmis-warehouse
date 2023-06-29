@@ -2233,7 +2233,7 @@ type Enrollment {
   referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
   runawayYouth: NoYesReasonsForMissingData
-  services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(filters: ServicesForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   sexualOrientation: SexualOrientation
   sexualOrientationOther: String
   status: EnrollmentStatus!
@@ -2344,6 +2344,27 @@ type EnrollmentsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+AC ESG Funding Service
+"""
+type EsgFundingService {
+  clientDob: ISO8601Date
+  clientId: ID!
+  customDataElements: [CustomDataElement!]!
+  dateProvided: ISO8601Date!
+  faAmount: Float
+  faEndDate: ISO8601Date
+  faStartDate: ISO8601Date
+  firstName: String
+  id: ID!
+  lastName: String
+  mciIds: [ExternalIdentifier!]!
+  organizationId: ID!
+  organizationName: String!
+  projectId: ID!
+  projectName: String!
 }
 
 """
@@ -2617,7 +2638,33 @@ type ExternalIdentifier {
   """
   identifier: ID
   label: String!
+  type: ExternalIdentifierType!
   url: String
+}
+
+"""
+External Identifier Type
+"""
+enum ExternalIdentifierType {
+  """
+  HMIS ID
+  """
+  CLIENT_ID
+
+  """
+  MCI ID
+  """
+  MCI_ID
+
+  """
+  Personal ID
+  """
+  PERSONAL_ID
+
+  """
+  Warehouse ID
+  """
+  WAREHOUSE_ID
 }
 
 """
@@ -4843,6 +4890,9 @@ type PickListOption {
 }
 
 enum PickListType {
+  ALL_SERVICE_CATEGORIES
+  ALL_SERVICE_TYPES
+
   """
   Referral Posting Status
   """
@@ -4895,7 +4945,6 @@ enum PickListType {
   Referral Result 
   """
   REFERRAL_RESULT_TYPES
-  SERVICE_TYPE
   STATE
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
@@ -5194,6 +5243,7 @@ type Query {
   Enrollment lookup
   """
   enrollment(id: ID!): Enrollment
+  esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
 
   """
@@ -6808,6 +6858,11 @@ enum ServiceTypeProvided {
   (1) Outreach services
   """
   SSVF_SERVICE__OUTREACH_SERVICES
+}
+
+input ServicesForEnrollmentFilterOptions {
+  serviceCategory: [ID!]
+  serviceType: [ID!]
 }
 
 type ServicesPaginated {
