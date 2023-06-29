@@ -25,7 +25,7 @@
     %h4 By approving this record, you agree that the above information is true to the best of your knowledge
     = f.input :review_by_ccm_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager'
   - if @careplan.review_by_ccm_complete
-    = "Reviewed by #{@careplan.reviewed_by_ccm.name} on #{@careplan.reviewed_by_ccm_on}"
+    = "Reviewed by #{@careplan.reviewed_by_ccm&.name} on #{@careplan.reviewed_by_ccm_on}"
 
 %h3 Enrollee Rights
 .well
@@ -41,14 +41,14 @@
   - if current_user.can_approve_careplan
     = f.input :review_by_rn_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)'
   - if @careplan.review_by_rn_complete
-    = "Reviewed by #{@careplan.reviewed_by_rn.name} on #{@careplan.reviewed_by_rn_on}"
+    = "Reviewed by #{@careplan.reviewed_by_rn&.name} on #{@careplan.reviewed_by_rn_on}"
 
 %h3 Document delivery
 .well
   = f.input :provided_to_patient, as: :pretty_boolean, label: 'The Enrollee was provided a copy of the plan'
   = f.input :was_sent_to_pcp, as: :pretty_boolean, label: 'The careplan was sent to the PCP'
   - if @careplan.was_sent_to_pcp
-    = "Sent by #{@careplan.sent_to_pcp_by.name} on #{@careplan.sent_to_pcp_on}"
+    = "Sent by #{@careplan.sent_to_pcp_by&.name} on #{@careplan.sent_to_pcp_on}"
 
 - content_for :page_js do
   :javascript
