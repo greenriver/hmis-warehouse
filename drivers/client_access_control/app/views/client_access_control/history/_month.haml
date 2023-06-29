@@ -50,34 +50,23 @@
     }
 
     var getProjectBorderRaius = function(days, date) {
-      return days.includes(date) ? '8px' : '0px'
+      return days.includes(date) ? '6px' : '0px'
     }
 
     data.forEach(function(weekData, i) {
       console.log('weekData', weekData)
       var month = weekData.month
       var dayDomain = weekData.days
-      var projectDomain = weekData.projects.map(function(d){return d.project_name})
-      var minHeight = 170
-      var height = 30*projectDomain.length
-      if(height < minHeight) {
-        height = minHeight
-      }
       
       var dayScale = d3.scaleBand()
         .domain(dayDomain)
         .range([0,100])
-      var projectScale = d3.scaleBand()
-        .domain(projectDomain)
-        .range([0, height])
-        .paddingInner(0.25)
-        .paddingOuter(0.5)
 
       var container = d3.select('.d3-calendar')
 
       var week = container.append('div')
         .attr('class', 'client__calendar-week')
-        .style('height', height+'px')
+        .style('min-height', '170px')
 
       var days = week.selectAll('.client__calendar-day')
         .data(dayDomain)
@@ -85,6 +74,9 @@
         .append('div')
           .attr('class', function(d) {
             return 'client__calendar-day day-'+d
+          })
+          .style('left', function(d, i) {
+            return(dayScale.bandwidth()*i)+'%'
           })
           .style('width', dayScale.bandwidth()+'%')
           .append('span')
@@ -100,12 +92,10 @@
         .data(weekData.projects)
         .enter()
         .append('div')
-          .attr('class', 'client__calendar-project')
-          .style('position', 'absolute')
-          .style('top', function(d){
-            return projectScale(d.project_name)+'px'
+          .attr('class', function(d) {
+            return 'client__calendar-project service-type__program-type client__service_type_'+d.project_type
           })
-          .style('left', function(d) {
+          .style('margin-left', function(d) {
             var entryDate = dayScale(d.entry_date) >= 0 ? dayScale(d.entry_date) : 0
             return entryDate+'%'
           })
@@ -115,8 +105,7 @@
             var width = exitDate-entryDate >= 0 ? exitDate-entryDate : 0
             return width+'%'
           })
-          .style('height', projectScale.bandwidth()+'px')
-          .style('background-color', 'red')
+          .style('height', '30px')
           .style('border-top-left-radius', function(d){
             return getProjectBorderRaius(weekData.days, d.entry_date)
           })
@@ -130,9 +119,11 @@
             return getProjectBorderRaius(weekData.days, d.exit_date)
           })
       
-      projects.append('span').text(function(d) {
-        return d.project_name
-      })
+      projects.append('div')
+        .attr('class', 'client__calendar-project_name')
+        .text(function(d) {
+          return d.project_name
+        })
 
 
           

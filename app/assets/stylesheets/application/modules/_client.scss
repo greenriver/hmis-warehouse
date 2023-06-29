@@ -36,9 +36,9 @@
   color: black;
 }
 .service-type__program-type {
-  background-color: #E6E6E6;
-  @include tag-pill;
-  color: black;
+  // background-color: #E6E6E6;
+  // @include tag-pill;
+  // color: black;
 }
 .client__client_unique_id
 {
@@ -76,94 +76,122 @@
 }
 
 .client__calendar-week {
-  display: flex;
+  // display: flex;
   position: relative;
+  padding-top: 38px;
 }
 
 .client__calendar-day {
   background-color: white;
   border: 1px solid rgba(0, 0, 0, 0.12);
   padding: 8px;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  z-index: 0;
 }
 
-// .client__calendar-project {
-//   border-radius: 6px;
-// }
+.client__calendar-project {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 8px;
+}
+
+.client__calendar-project_name {
+  font-weight: bold;
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  margin-top: -10px;
+}
 
 .client__service_type_1 {
   /* border-bottom: 1px solid #0074D9; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #80C3FF;
   }
 }
 .client__service_type_2 {
   /* border-bottom: 1px solid #3c84b7; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #8EE698;
   }
 }
 .client__service_type_3 {
   /* border-bottom: 1px solid #299b9b; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #4ACFCF;
   }
 }
 .client__service_type_4 {
   /* border-bottom: 1px solid #3D9970; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #7FCCAB;
   }
 }
 .client__service_type_6 {
   /* border-bottom: 1px solid #8e7a30; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFE380;
   }
 }
 .client__service_type_7 {
   /* border-bottom: 1px solid #d36e15; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #DEDEDE;
   }
 }
 .client__service_type_8 {
   /* border-bottom: 1px solid #FF4136; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #FF9994;
   }
 }
 .client__service_type_9 {
   /* border-bottom: 1px solid #85144b; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #EF9AC1;
   }
 }
 .client__service_type_10 {
   /* border-bottom: 1px solid #ce0ea3; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFA680;
   }
 }
 .client__service_type_11 {
   /* border-bottom: 1px solid #B10DC9; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFDBF7;
   }
 }
 .client__service_type_12 {
   /* border-bottom: 1px solid #21992f; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #B2CDE1;
   }
 }
 .client__service_type_13 {
   /* border-bottom: 1px solid #00b750; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #9EFFC5;
   }
 }
 .client__service_type_14 {
   /* border-bottom: 1px solid #001f3f; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #C7E4FF;
   }

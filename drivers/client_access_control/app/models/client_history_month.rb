@@ -28,10 +28,13 @@ class ClientHistoryMonth
             project_name: 'Project B',
             entry_date: '2023-02-03',
             exit_date: nil,
-            project_type: 1,
+            project_type: 3,
             bed_nights: [
               '2023-02-03',
             ],
+            custom: [
+              {date: '', label: ''}
+            ]
           },
         ]
       },
@@ -56,7 +59,7 @@ class ClientHistoryMonth
             project_name: 'Project B',
             entry_date: '2023-02-03',
             exit_date: nil,
-            project_type: 1,
+            project_type: 3,
             bed_nights: [
               '2023-02-10',
             ],
@@ -71,7 +74,7 @@ class ClientHistoryMonth
             project_name: 'Project B',
             entry_date: '2023-02-03',
             exit_date: nil,
-            project_type: 1,
+            project_type: 3,
           },
           {
             project_name: 'RRH Project C',
@@ -90,7 +93,7 @@ class ClientHistoryMonth
             project_name: 'Project B',
             entry_date: '2023-02-03',
             exit_date: '2023-02-19',
-            project_type: 1,
+            project_type: 3,
           },
         ]
       },
