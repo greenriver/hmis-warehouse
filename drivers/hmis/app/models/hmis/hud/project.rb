@@ -31,7 +31,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :client_projects
   has_many :clients_including_wip, through: :client_projects, source: :client
   has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
-  has_many :households_including_wip, through: :client_projects, source: :household
+  has_many :households_including_wip, -> { distinct }, through: :client_projects, source: :household
 
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
