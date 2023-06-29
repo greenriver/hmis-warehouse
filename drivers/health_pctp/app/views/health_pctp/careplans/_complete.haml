@@ -3,7 +3,7 @@
     .col
       = f.input :patient_signed_on, as: :date_picker, label: 'Patient signed on'
     .col
-      .mt-6= f.input :verbal_approval, as: :pretty_boolean, label: 'Patient unable to sign – verbal approval received', input_html: { class: :jVerbalApproval }
+      .mt-6= f.input :verbal_approval, as: :pretty_boolean, label: 'Patient unable to sign – verbal approval received - signature is required within 90 days', input_html: { class: :jVerbalApproval }
   - if @careplan.verbal_approval?
     = f.input :verbal_approval_followup, as: :pretty_boolean, label: 'The Care Plan was signed by the Assigned or Engaged Enrollee (or authorized representative) within 90 days of verbal approval.'
 
@@ -54,9 +54,11 @@
   :javascript
     $(document).ready(function() {
       $('.jVerbalApproval').on('change', function(e) {
-        console.log($(e.target).is(':checked'));
         if($(e.target).is(':checked')) {
-          $('#health_pctp_careplan_patient_signed_on').datepicker('setDate', Date());
+          signature_date = $('#health_pctp_careplan_patient_signed_on')
+          if(signature_date.val() == '') {
+            $('#health_pctp_careplan_patient_signed_on').datepicker('setDate', Date());
+          }
         };
       });
     });

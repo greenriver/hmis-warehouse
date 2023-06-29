@@ -1,2 +1,13 @@
 .jUploadSignatureForm
   = render 'health/health_files/form_fields', f: f, include_submit: false, include_note: false
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jUploadSignatureForm').on('change', function(e) {
+        signature_date = $('#health_pctp_careplan_patient_signed_on')
+        if(signature_date.val() == '') {
+          $('#health_pctp_careplan_patient_signed_on').datepicker('setDate', Date());
+        }
+      });
+    });
