@@ -120,6 +120,8 @@ services:
     build:
       context: docker/pg12
     container_name: db_previous
+    profiles:
+      - manual
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
