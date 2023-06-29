@@ -8,7 +8,7 @@ wb.add_worksheet(name: @report.title[0, 30]) do |sheet|
     ] + @report.column_names,
     style: title,
   )
-  @enrollments.each do |row|
+  @report.data.each do |row|
     client = row.client
     sheet.add_row([
       client.id,

@@ -12,6 +12,7 @@ module StartDateDq::WarehouseReports
     include Filter::FilterScopes
 
     before_action :set_report
+    before_action :set_excel_export
 
     def index
       respond_to do |format|
@@ -26,6 +27,10 @@ module StartDateDq::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{@report.title} Data Quality Report.xlsx"
         end
       end
+    end
+
+    private def set_excel_export
+      @excel_export = StartDateDq::DocumentExports::StartDateDqExcelExport.new
     end
 
     private def set_report
