@@ -362,6 +362,65 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'SubmitForm for Enrollment creation' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
+    let(:c2) { create :hmis_hud_client, data_source: ds1 }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **completed_form_values_for_role(:ENROLLMENT),
+        project_id: p1.id,
+        client_id: c2.id,
+        confirmed: false,
+      }
+    end
+
+    def merge_hud_values(input, *args)
+      input.merge(hud_values: input[:hud_values].merge(*args))
+    end
+
+    def expect_error_message(input, msg)
+      response, result = post_graphql(input: { input: input }) { mutation }
+      errors = result.dig('data', 'submitForm', 'errors')
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to contain_exactly(include('fullMessage' => Hmis::Hud::Validators::EnrollmentValidator.send(msg)))
+      end
+    end
+
+    it 'should error if adding second HoH to existing household' do
+      input = merge_hud_values(
+        test_input,
+        'householdId' => e1.household_id,
+      )
+      expect_error_message(input, :one_hoh_full_message)
+    end
+
+    it 'should error if creating household without hoh' do
+      input = merge_hud_values(
+        test_input,
+        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+      )
+      expect_error_message(input, :first_member_hoh_full_message)
+    end
+
+    it 'should error if adding duplicate member to household' do
+      input = merge_hud_values(
+        test_input.merge(client_id: e1.client.id),
+        'householdId' => e1.household_id,
+        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+      )
+      expect_error_message(input, :duplicate_member_full_message)
+    end
+
+    it 'should warn if client already enrolled' do
+      input = merge_hud_values(
+        test_input.merge(client_id: e1.client.id),
+      )
+      expect_error_message(input, :already_enrolled_full_message)
+    end
+  end
 end
 
 RSpec.configure do |c|
