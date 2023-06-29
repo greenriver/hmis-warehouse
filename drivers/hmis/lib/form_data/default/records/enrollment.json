@@ -38,7 +38,20 @@
           "link_id": "entry-date",
           "text": "Entry Date",
           "field_name": "entryDate",
-          "required": true
+          "required": true,
+          "initial": [
+            {
+              "initial_behavior": "OVERWRITE",
+              "value_local_constant": "$today"
+            }
+          ],
+          "bounds": [
+            {
+              "id": "max-entry-date",
+              "type": "MAX",
+              "question": "today"
+            }
+          ]
         },
         {
           "type": "CHOICE",
@@ -46,14 +59,26 @@
           "text": "Relationship to HoH",
           "field_name": "relationshipToHoH",
           "pick_list_reference": "RelationshipToHoH",
-          "required": true
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "unit",
-          "text": "Select unit",
-          "pick_list_reference": "AVAILABLE_UNITS",
-          "_comment": "initial is current fam unit? or some special pick list that defaults to initial being same?"
+          "required": false,
+          "autofill_values": [
+            {
+              "value_code": "SELF_HEAD_OF_HOUSEHOLD",
+              "autofill_behavior": "ALL",
+              "_comment": "set to HoH if this is a new enrollment in a new household",
+              "autofill_when": [
+                {
+                  "question": "household-id",
+                  "operator": "EXISTS",
+                  "answer_boolean": false
+                },
+                {
+                  "question": "enrollment-id",
+                  "operator": "EXISTS",
+                  "answer_boolean": false
+                }
+              ]
+            }
+          ]
         }
       ]
     }
