@@ -23,6 +23,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_one :project, through: :enrollment
   has_many :custom_data_elements, as: :owner
+  has_one :definition, through: :custom_form
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 

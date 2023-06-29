@@ -10,7 +10,7 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   self.table_name = :CustomForms
 
   belongs_to :owner, polymorphic: true, optional: false
-  belongs_to :definition, optional: false
+  belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: false
   belongs_to :form_processor, dependent: :destroy, autosave: true
   validate :form_processor_is_valid
 

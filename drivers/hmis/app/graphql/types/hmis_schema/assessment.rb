@@ -25,7 +25,6 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :custom_form, HmisSchema::CustomForm, null: true
     field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
@@ -39,7 +38,19 @@ module Types
     field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
     field :exit, Types::HmisSchema::Exit, null: true
     field :disability_group, Types::HmisSchema::DisabilityGroup, null: true
+    # TODO add youth edu status and others
     custom_data_elements_field
+
+    field :values, JsonObject, null: true
+    field :definition, Forms::FormDefinition, null: false
+
+    def values
+      load_ar_association(object, :custom_form)&.values
+    end
+
+    def definition
+      load_ar_association(object, :definition)
+    end
 
     def in_progress
       object.in_progress?

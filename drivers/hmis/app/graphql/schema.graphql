@@ -148,11 +148,11 @@ type Assessment {
   assessmentDate: ISO8601Date!
   client: Client!
   customDataElements: [CustomDataElement!]!
-  customForm: CustomForm
   dataCollectionStage: DataCollectionStage
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  definition: FormDefinition!
   disabilityGroup: DisabilityGroup
   enrollment: Enrollment!
   exit: Exit
@@ -161,6 +161,7 @@ type Assessment {
   inProgress: Boolean!
   incomeBenefit: IncomeBenefit
   user: User
+  values: JsonObject
 }
 
 type AssessmentAccess {
@@ -1271,16 +1272,6 @@ type CustomDataElementValue {
   valueJson: JsonObject
   valueString: String
   valueText: String
-}
-
-"""
-CustomForm
-"""
-type CustomForm {
-  assessment: Assessment!
-  definition: FormDefinition!
-  id: ID!
-  values: JsonObject
 }
 
 """
