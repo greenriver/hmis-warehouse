@@ -23,7 +23,7 @@ module HmisExternalApis::AcHmis
 
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
 
-        raise ActiveRecord::Rollback unless create_referral_household_members(referral)
+        raise ActiveRecord::Rollback unless create_or_update_referral_household_members(referral)
 
         record = referral
       end
@@ -37,7 +37,6 @@ module HmisExternalApis::AcHmis
         .where(identifier: params.fetch(:referral_id))
         .first_or_initialize
       return error_out('Referral still has active postings') unless referral.postings_inactive?
-      return error_out('Referral already linked to household') unless referral.household_members.empty?
 
       referral_params = params.slice(
         :referral_date,
@@ -148,12 +147,12 @@ module HmisExternalApis::AcHmis
       end
     end
 
+    # Add/update addresses
     def update_client_addresses(client)
-      # replace old addresses
-      client.addresses.destroy_all
-
-      client_address_attrs = params[:addresses].to_a.map do |values|
-        {
+      old_addresses = client.addresses
+      new_addresses = []
+      params[:addresses].to_a.each do |values|
+        address = Hmis::Hud::CustomClientAddress.new(
           postal_code: values[:zip],
           district: values[:county],
           **values.slice(
@@ -163,45 +162,55 @@ module HmisExternalApis::AcHmis
             :state,
             :use,
           ),
-          AddressID: Hmis::Hud::Base.generate_uuid,
           **common_client_attrs(client),
-        }
+        )
+        new_addresses << address unless update_duplicate_record!(old_addresses, address)
       end
-      Hmis::Hud::CustomClientAddress.import!(client_address_attrs)
+
+      Hmis::Hud::CustomClientAddress.import!(new_addresses)
     end
 
+    # Add/update phones and emails
     def update_client_contacts(client)
-      # replace old phones, and emails
-      client.contact_points.destroy_all
-
-      client_phone_attrs = params[:phone_numbers].to_a.map do |values|
-        {
+      old_contact_points = client.contact_points
+      new_contact_points = []
+      params[:phone_numbers].to_a.each do |values|
+        phone = Hmis::Hud::CustomClientContactPoint.new(
           system: :phone,
           value: values[:number],
-          **values.slice(:use, :notes),
-          ContactPointID: Hmis::Hud::Base.generate_uuid,
+          use: values[:type],
+          notes: values[:notes],
           **common_client_attrs(client),
-        }
+        )
+        new_contact_points << phone unless update_duplicate_record!(old_contact_points, phone)
       end
-      Hmis::Hud::CustomClientContactPoint.import!(client_phone_attrs)
 
-      client_email_attrs = params[:email_address].to_a.map do |value|
-        {
+      params[:email_address].to_a.each do |value|
+        email = Hmis::Hud::CustomClientContactPoint.new(
           system: :email,
           value: value,
-          ContactPointID: Hmis::Hud::Base.generate_uuid,
           **common_client_attrs(client),
-        }
+        )
+        new_contact_points << email unless update_duplicate_record!(old_contact_points, email)
       end
-      Hmis::Hud::CustomClientContactPoint.import!(client_email_attrs)
+
+      Hmis::Hud::CustomClientContactPoint.import!(new_contact_points)
     end
 
     def common_client_attrs(client)
       {
         PersonalID: client.PersonalID,
-        UserID: client.UserID,
+        UserID: system_user.UserID,
         data_source_id: client.data_source_id,
       }
+    end
+
+    def update_duplicate_record!(old_records, new_record)
+      dup = old_records.find { |old| old.equal_for_merge?(new_record) }
+      return false unless dup.present?
+
+      dup.assign_attributes(new_record.attributes.compact_blank)
+      dup.save!
     end
 
     def assign_default_common_client_attrs(client, record)
@@ -210,7 +219,7 @@ module HmisExternalApis::AcHmis
       end
     end
 
-    def create_referral_household_members(referral)
+    def create_or_update_referral_household_members(referral)
       member_params = params.fetch(:household_members)
       return error_out('Household must have exactly one HoH') if member_params.map { |m| m[:relationship_to_hoh] }.count(1) != 1
 

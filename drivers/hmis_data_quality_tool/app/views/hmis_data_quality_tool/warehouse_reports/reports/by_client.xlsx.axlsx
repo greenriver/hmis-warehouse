@@ -1,0 +1,67 @@
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+
+wb.add_worksheet(name: 'test') do |sheet|
+  groups = [
+    ['','','','']
+  ]
+  merges = [
+    [0, 3]
+  ]
+  @pivot_details.groups.each_with_index do |(title, group), index|
+    group = Array.new(group.size).map.with_index do |g, i|
+      i == 0 ? title : ''
+    end
+    merge_index_start = merges.last.last + 1
+    merge_index_end = merge_index_start + group.size - 1
+    merges.push([merge_index_start, merge_index_end])
+    groups.push(group)
+  end
+  sheet.add_row(groups.flatten)
+
+  letters = ('A'..'Z').to_a
+  letter_size = letters.size
+  merges = merges.map do |merge|
+    merge.map do |i|
+      if i < letter_size
+        "#{letters[i]}1"
+      else
+        "#{letters[(i/letter_size) - 1]}#{letters[(i%letter_size)]}1"
+      end
+    end
+  end
+
+  merges.each do |merge|
+    sheet.merge_cells(merge.join(':'))
+  end
+
+  header = [
+    '',
+    'Personal ID',
+    'Last Name',
+    'First Name',
+  ]
+  @pivot_details.groups.values.map(&:keys).flatten.each do |key|
+    header.push(@pivot_details.lookup[key])
+  end
+  sheet.add_row(header)
+
+  @clients.each do |client|
+    row = []
+    if @pivot_details.clients_with_flags.include?([client.personal_id, client.data_source_id])
+      row.push('⚠')
+    else
+      row.push('')
+    end
+    row = row + [client.personal_id, client.last_name, client.first_name]
+    @pivot_details.groups.values.map(&:keys).flatten.each do |key|
+      marked = @pivot_details.flags[@pivot_details.lookup[key]].include?([client.personal_id, client.data_source_id])
+      if marked
+        row.push('✕')
+      else
+        row.push('')
+      end
+    end
+    sheet.add_row(row)
+  end
+end

@@ -40,7 +40,7 @@ module Types
     field :status, HmisSchema::Enums::EnrollmentStatus, null: false
     assessments_field
     events_field
-    services_field
+    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
     files_field
     ce_assessments_field
     income_benefits_field
