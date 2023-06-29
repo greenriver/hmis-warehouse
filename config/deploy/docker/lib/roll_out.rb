@@ -64,7 +64,7 @@ class RollOut
     self.web_options              = web_options
     self.status_uri               = URI("https://#{fqdn}/system_status/details")
     self.only_check_ram           = false
-    self.service_registry_arns    = service_registry_arns
+    self.service_registry_arns    = service_registry_arns || {}
     @capacity_providers           = capacity_providers
 
     puts '[WARN] You should specify a web service registry ARN value for service discovery (Cloud Map)' if service_registry_arns['web'].nil?
