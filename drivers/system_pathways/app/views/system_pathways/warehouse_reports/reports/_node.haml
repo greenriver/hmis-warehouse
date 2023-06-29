@@ -1,0 +1,66 @@
+- data = pathways.combinations_for(label)
+- target = "#{label.to_s.parameterize.underscore}-content"
+- active = ''
+- bg_color = pathways.bg_color(label)
+- if i.zero?
+  - active = 'show active'
+.tab-pane{ class: active, id: target, role: :tabpanel, aria: { labelledby: label.to_s.parameterize.underscore}}
+  - style = ''
+  - if @pdf
+    - style = "border-bottom: 6px solid #{bg_color};"
+  %h3.mr-6{ style: style }= pathways.long_project_type(label)
+  .d-flex.font-size-md
+    .household-count.d-flex.mr-6.justify-content-sm-between.mb-4
+      .item-label.mr-2 #{pathways.client_word}:
+      .value
+        %strong= number_with_delimiter(data.enrolled)
+    - if pathways.uses_move_in?(label)
+      .days-pre-move-in.text-center.d-flex.mr-6
+        .item-label.mr-2 Average Days Pre-Move-In:
+        .value
+          %strong= number_with_delimiter data.days_before_move_in
+      .days-post-move-in.text-center.d-flex.mr-6
+        .item-label.mr-2 Average Days Post-Move-In:
+        .value
+          %strong= number_with_delimiter data.days_after_move_in_to_exit
+    - else
+      .days-enrolled.text-center.d-flex
+        .item-label.mr-2 Average Days Enrolled:
+        .value
+          %strong= number_with_delimiter data.days_enrolled
+    .ml-auto
+      = link_to_if can_access_some_version_of_clients? && !@pdf, 'Client Details', details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(node: label)), class: 'btn btn-sm btn-secondary'
+  .d-flex
+    .incoming.mr-4.table-responsive
+      %table.table.table-striped.w-100
+        %thead
+          %tr
+            %th Entering From
+            %th Count
+            %th Percent
+        %tbody
+          - data.incoming.sort_by { |m| pathways.node_columns[m[:source]] }.each do |row|
+            - next if row[:value].zero?
+
+            %tr
+              %td= row[:source]
+              %td
+                = link_to_if can_access_some_version_of_clients?, number_with_delimiter(row[:value]), details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(source: row[:source], target: row[:target]))
+              %td #{percentage(row[:value]/data.enrolled.to_f * 100)}%
+
+    .outgoing.ml-4.table-responsive
+      %table.table.table-striped.w-100
+        %thead
+          %tr
+            %th Exiting To
+            %th Count
+            %th Percent
+        %tbody
+          - data.outgoing.sort_by { |m| pathways.node_columns[m[:target]] }.each do |row|
+            - next if row[:value].zero?
+
+            %tr
+              %td= row[:target]
+              %td
+                = link_to_if can_access_some_version_of_clients?, number_with_delimiter(row[:value]), details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params.merge(source: row[:source], target: row[:target]))
+              %td #{percentage(row[:value]/data.enrolled.to_f * 100)}%

@@ -122,15 +122,7 @@ module Types
     end
 
     def external_ids
-      object.external_identifiers.
-        map do |key, vals|
-          {
-            id: [key, object.id].join(':'),
-            identifier: vals[:id],
-            url: vals[:url],
-            label: vals[:label],
-          }
-        end
+      object.external_identifiers
     end
 
     def enrollments(**args)

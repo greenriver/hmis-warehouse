@@ -56,7 +56,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   end
 
   def equal_for_merge?(other)
-    columns = [:system, :use, :value]
+    columns = [:system, :value]
 
     columns.all? do |col|
       send(col)&.strip&.downcase == other.send(col)&.strip&.downcase

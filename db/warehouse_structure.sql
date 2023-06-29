@@ -648,7 +648,16 @@ CREATE TABLE public."Client" (
     sexual_orientation character varying,
     health_housing_navigator_id bigint,
     encampment_decomissioned boolean DEFAULT false NOT NULL,
-    va_verified_veteran boolean DEFAULT false
+    va_verified_veteran boolean DEFAULT false,
+    "HispanicLatinaeo" integer,
+    "MidEastNAfrican" integer,
+    "AdditionalRaceEthnicity" character varying,
+    "Woman" integer,
+    "Man" integer,
+    "NonBinary" integer,
+    "CulturallySpecific" integer,
+    "DifferentIdentity" integer,
+    "DifferentIdentityText" character varying
 );
 
 
@@ -815,7 +824,8 @@ CREATE TABLE public."CurrentLivingSituation" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    "CLSSubsidyType" integer
 );
 
 
@@ -1655,7 +1665,12 @@ CREATE TABLE public."Enrollment" (
     "CurrentPregnant" integer,
     "CoCPrioritized" integer,
     "TargetScreenReqd" integer,
-    "HOHLeaseholder" integer
+    "HOHLeaseholder" integer,
+    "EnrollmentCoC" character varying,
+    "RentalSubsidyType" integer,
+    "TranslationNeeded" integer,
+    "PreferredLanguage" integer,
+    "PreferredLanguageDifferent" character varying
 );
 
 
@@ -1833,7 +1848,8 @@ CREATE TABLE public."Exit" (
     "InPersonGroup" integer,
     "CMExitReason" integer,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    "DestinationSubsidyType" integer
 );
 
 
@@ -2001,6 +2017,45 @@ ALTER SEQUENCE public."Geography_id_seq" OWNED BY public."Geography".id;
 
 
 --
+-- Name: HMISParticipation; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."HMISParticipation" (
+    id bigint NOT NULL,
+    "HMISParticipationID" character varying NOT NULL,
+    "ProjectID" character varying NOT NULL,
+    "HMISParticipationType" integer NOT NULL,
+    "HMISParticipationStatusStartDate" date NOT NULL,
+    "HMISParticipationStatusEndDate" date,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "UserID" character varying NOT NULL,
+    "ExportID" character varying NOT NULL,
+    data_source_id integer
+);
+
+
+--
+-- Name: HMISParticipation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."HMISParticipation_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: HMISParticipation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."HMISParticipation_id_seq" OWNED BY public."HMISParticipation".id;
+
+
+--
 -- Name: HealthAndDV; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2030,7 +2085,8 @@ CREATE TABLE public."HealthAndDV" (
     "LifeValue" integer,
     "SupportFromOthers" integer,
     "BounceBack" integer,
-    "FeelingFrequency" integer
+    "FeelingFrequency" integer,
+    "DomesticViolenceSurvivor" integer
 );
 
 
@@ -2319,7 +2375,8 @@ CREATE TABLE public."Project" (
     operating_end_date_override date,
     "HOPWAMedAssistedLivingFac" integer,
     description character varying,
-    contact_information character varying
+    contact_information character varying,
+    "RRHSubType" integer
 );
 
 
@@ -6434,6 +6491,48 @@ CREATE SEQUENCE public.custom_imports_b_contacts_rows_id_seq
 --
 
 ALTER SEQUENCE public.custom_imports_b_contacts_rows_id_seq OWNED BY public.custom_imports_b_contacts_rows.id;
+
+
+--
+-- Name: custom_imports_b_coo_rows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.custom_imports_b_coo_rows (
+    id bigint NOT NULL,
+    unique_id character varying NOT NULL,
+    personal_id character varying,
+    enrollment_id character varying,
+    city character varying,
+    state character varying,
+    zip_code character varying,
+    length_of_time character varying,
+    geolocation_location character varying,
+    collected_on date,
+    import_file_id bigint,
+    data_source_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    dirty boolean DEFAULT false
+);
+
+
+--
+-- Name: custom_imports_b_coo_rows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.custom_imports_b_coo_rows_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: custom_imports_b_coo_rows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.custom_imports_b_coo_rows_id_seq OWNED BY public.custom_imports_b_coo_rows.id;
 
 
 --
@@ -17935,6 +18034,38 @@ ALTER SEQUENCE public.performance_metrics_clients_id_seq OWNED BY public.perform
 
 
 --
+-- Name: places; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.places (
+    id bigint NOT NULL,
+    location character varying NOT NULL,
+    lat_lon jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: places_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.places_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: places_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.places_id_seq OWNED BY public.places.id;
+
+
+--
 -- Name: pm_client_projects; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20948,6 +21079,39 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_colors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_colors (
+    id bigint NOT NULL,
+    slug character varying NOT NULL,
+    background_color character varying NOT NULL,
+    foreground_color character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: system_colors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_colors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_colors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_colors_id_seq OWNED BY public.system_colors.id;
+
+
+--
 -- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -22442,6 +22606,13 @@ ALTER TABLE ONLY public."Geography" ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: HMISParticipation id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."HMISParticipation" ALTER COLUMN id SET DEFAULT nextval('public."HMISParticipation_id_seq"'::regclass);
+
+
+--
 -- Name: HealthAndDV id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22866,6 +23037,13 @@ ALTER TABLE ONLY public.custom_imports_b_al_rows ALTER COLUMN id SET DEFAULT nex
 --
 
 ALTER TABLE ONLY public.custom_imports_b_contacts_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_contacts_rows_id_seq'::regclass);
+
+
+--
+-- Name: custom_imports_b_coo_rows id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_coo_rows ALTER COLUMN id SET DEFAULT nextval('public.custom_imports_b_coo_rows_id_seq'::regclass);
 
 
 --
@@ -24444,6 +24622,13 @@ ALTER TABLE ONLY public.performance_metrics_clients ALTER COLUMN id SET DEFAULT 
 
 
 --
+-- Name: places id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.places ALTER COLUMN id SET DEFAULT nextval('public.places_id_seq'::regclass);
+
+
+--
 -- Name: pm_client_projects id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25074,6 +25259,13 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_colors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_colors ALTER COLUMN id SET DEFAULT nextval('public.system_colors_id_seq'::regclass);
+
+
+--
 -- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25498,6 +25690,14 @@ ALTER TABLE ONLY public."Funder"
 
 ALTER TABLE ONLY public."Geography"
     ADD CONSTRAINT "Geography_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: HMISParticipation HMISParticipation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."HMISParticipation"
+    ADD CONSTRAINT "HMISParticipation_pkey" PRIMARY KEY (id);
 
 
 --
@@ -25994,6 +26194,14 @@ ALTER TABLE ONLY public.custom_imports_b_al_rows
 
 ALTER TABLE ONLY public.custom_imports_b_contacts_rows
     ADD CONSTRAINT custom_imports_b_contacts_rows_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_imports_b_coo_rows custom_imports_b_coo_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.custom_imports_b_coo_rows
+    ADD CONSTRAINT custom_imports_b_coo_rows_pkey PRIMARY KEY (id);
 
 
 --
@@ -27797,6 +28005,14 @@ ALTER TABLE ONLY public.performance_metrics_clients
 
 
 --
+-- Name: places places_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.places
+    ADD CONSTRAINT places_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: pm_client_projects pm_client_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -28106,6 +28322,14 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_colors system_colors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_colors
+    ADD CONSTRAINT system_colors_pkey PRIMARY KEY (id);
 
 
 --
@@ -42194,6 +42418,20 @@ CREATE INDEX "index_Geography_on_pending_date_deleted" ON public."Geography" USI
 
 
 --
+-- Name: index_HMISParticipation_on_HMISParticipationID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_HMISParticipation_on_HMISParticipationID" ON public."HMISParticipation" USING btree ("HMISParticipationID");
+
+
+--
+-- Name: index_HMISParticipation_on_ProjectID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_HMISParticipation_on_ProjectID" ON public."HMISParticipation" USING btree ("ProjectID");
+
+
+--
 -- Name: index_HealthAndDV_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43241,6 +43479,27 @@ CREATE INDEX index_custom_imports_b_contacts_rows_on_import_file_id ON public.cu
 --
 
 CREATE INDEX index_custom_imports_b_contacts_rows_on_updated_at ON public.custom_imports_b_contacts_rows USING btree (updated_at);
+
+
+--
+-- Name: index_custom_imports_b_coo_rows_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_coo_rows_on_data_source_id ON public.custom_imports_b_coo_rows USING btree (data_source_id);
+
+
+--
+-- Name: index_custom_imports_b_coo_rows_on_import_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_custom_imports_b_coo_rows_on_import_file_id ON public.custom_imports_b_coo_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_coo_rows_on_unique_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_custom_imports_b_coo_rows_on_unique_id ON public.custom_imports_b_coo_rows USING btree (unique_id);
 
 
 --
@@ -45817,6 +46076,13 @@ CREATE INDEX index_performance_metrics_clients_on_report_id ON public.performanc
 --
 
 CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performance_metrics_clients USING btree (updated_at);
+
+
+--
+-- Name: index_places_on_location; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_places_on_location ON public.places USING btree (location);
 
 
 --
@@ -53238,6 +53504,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230406154235'),
 ('20230406183420'),
 ('20230407164611'),
+('20230410202101'),
 ('20230411193836'),
 ('20230412163545'),
 ('20230412191455'),
@@ -53298,11 +53565,16 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230613122940'),
 ('20230613190449'),
 ('20230614130627'),
+('20230615184216'),
 ('20230616163514'),
 ('20230616164602'),
+('20230616184921'),
 ('20230620154423'),
 ('20230621190529'),
 ('20230622202122'),
-('20230623124456');
+('20230623124456'),
+('20230623200215'),
+('20230626005404'),
+('20230626012029');
 
 

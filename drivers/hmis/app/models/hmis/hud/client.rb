@@ -65,6 +65,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   attr_accessor :image_blob_id
   attr_accessor :create_mci_id
+  attr_accessor :update_mci_attributes
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -79,11 +80,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       file.client_file.attach(current_image_blob)
       file.save!
     end
+  end
 
-    # Post-save action to create a new MCI ID if specified by the ClientProcessor
-    if create_mci_id && HmisExternalApis::AcHmis::Mci.enabled?
-      self.create_mci_id = nil
-      HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
+  after_save do
+    if HmisExternalApis::AcHmis::Mci.enabled?
+      # Create a new MCI ID if specified by the ClientProcessor
+      if create_mci_id
+        self.create_mci_id = nil
+        HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
+      end
+
+      # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
+      # 'update_mci_attributes' attr is specified by the ClientProcessor
+      if update_mci_attributes
+        self.update_mci_attributes = nil
+        trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
+        relevant_fields_changed = trigger_columns.any? { |field| previous_changes&.[](field) }
+        HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id) if relevant_fields_changed
+      end
     end
   end
 
@@ -115,6 +129,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     rescue RangeError
       return none
     end
+  end
+
+  scope :older_than, ->(age, or_equal: false) do
+    target_dob = Date.today - (age + 1).years
+    target_dob = Date.today - age.years if or_equal == true
+
+    where(c_t[:dob].lt(target_dob))
   end
 
   # Clients that have no Enrollments (WIP or otherwise)
@@ -163,40 +184,51 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     "https://#{ENV['FQDN']}/clients/#{id}/from_source"
   end
 
-  def mci_id
-    ac_hmis_mci_ids.to_a.min_by(&:id)&.value
-  end
-
-  private def clientview_url
+  private def clientview_url(mci_id_value)
     link_base = HmisExternalApis::AcHmis::Clientview.link_base
-    return unless link_base&.present? && mci_id&.present?
+    return unless link_base&.present? && mci_id_value&.present?
 
-    "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
+    "#{link_base}/ClientInformation/Profile/#{mci_id_value}?aid=2"
   end
 
   def external_identifiers
-    external_identifiers = {
-      client_id: {
-        id: id,
+    external_identifiers = [
+      {
+        type: :client_id,
+        identifier: id,
         label: 'HMIS ID',
       },
-      personal_id: {
-        id: personal_id,
+      {
+        type: :personal_id,
+        identifier: personal_id,
         label: 'Personal ID',
       },
-      warehouse_id: {
-        id: warehouse_id,
+      {
+        type: :warehouse_id,
+        identifier: warehouse_id,
         url: warehouse_url,
         label: 'Warehouse ID',
       },
-    }
+    ]
 
     if HmisExternalApis::AcHmis::Mci.enabled?
-      external_identifiers[:mci_id] = {
-        id: mci_id,
-        url: clientview_url,
-        label: 'MCI ID',
-      }
+      if ac_hmis_mci_ids.present?
+        ac_hmis_mci_ids.to_a.each do |mci_id|
+          external_identifiers << {
+            type: :mci_id,
+            identifier: mci_id.value,
+            url: clientview_url(mci_id.value),
+            label: 'MCI ID',
+          }
+        end
+      else
+        external_identifiers << {
+          type: :mci_id,
+          identifier: nil,
+          url: nil,
+          label: 'MCI ID',
+        }
+      end
     end
 
     external_identifiers
