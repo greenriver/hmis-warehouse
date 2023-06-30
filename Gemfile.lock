@@ -254,6 +254,9 @@ GEM
     bcrypt (3.1.18)
     bcrypt_pbkdf (1.1.0)
     benchmark-ips (2.10.0)
+    benchmark-malloc (0.2.0)
+    benchmark-perf (0.6.0)
+    benchmark-trend (0.4.0)
     bindex (0.8.1)
     bootsnap (1.9.1)
       msgpack (~> 1.0)
@@ -349,6 +352,9 @@ GEM
     curb (0.9.11)
     daemons (1.4.1)
     date (3.3.3)
+    db-query-matchers (0.11.0)
+      activesupport (>= 4.0, < 7.1)
+      rspec (>= 3.0)
     dead_end (2.0.1)
     delayed_job (4.1.11)
       activesupport (>= 3.0, < 8.0)
@@ -765,6 +771,11 @@ GEM
       rspec-core (~> 3.11.0)
       rspec-expectations (~> 3.11.0)
       rspec-mocks (~> 3.11.0)
+    rspec-benchmark (0.6.0)
+      benchmark-malloc (~> 0.2)
+      benchmark-perf (~> 0.6)
+      benchmark-trend (~> 0.4)
+      rspec (>= 3.0)
     rspec-core (3.11.0)
       rspec-support (~> 3.11.0)
     rspec-expectations (3.11.0)
@@ -1037,6 +1048,7 @@ DEPENDENCIES
   composite_primary_keys (= 13.0.3)
   curb
   daemons
+  db-query-matchers
   delayed_job
   delayed_job_active_record
   deprecation_toolkit
@@ -1140,6 +1152,7 @@ DEPENDENCIES
   rqrcode-rails3
   rserve-client
   rserve-simpler
+  rspec-benchmark
   rspec-core
   rspec-instafail
   rspec-mocks
