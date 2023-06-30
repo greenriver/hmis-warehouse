@@ -171,7 +171,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           next unless required_item.present?
 
           input = test_input.merge(
-            values: test_input[:values].merge(required_item.mapping.link_id => nil),
+            values: test_input[:values].merge(required_item.link_id => nil),
             hud_values: test_input[:hud_values].merge(required_item.mapping.field_name => nil),
           )
           response, result = post_graphql(input: { input: input }) { mutation }
