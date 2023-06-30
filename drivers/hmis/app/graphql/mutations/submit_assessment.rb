@@ -78,6 +78,8 @@ module Mutations
       return { assessments: assessments, errors: [] } if input.validate_only
 
       if is_valid
+        # Empty values, they are not used once an assessment is submitted
+        assessment.custom_form.assign_attributes(values: nil, hud_values: nil)
         # Save CustomForm to save related records
         assessment.custom_form.save!
         # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
