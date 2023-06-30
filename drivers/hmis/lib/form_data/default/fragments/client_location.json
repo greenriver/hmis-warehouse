@@ -3,7 +3,6 @@
   "link_id": "location",
   "text": "Client Location",
   "data_collected_about": "HOH",
-  "record_type": "ENROLLMENT_COC",
   "item": [
     {
       "type": "CHOICE",
@@ -12,7 +11,7 @@
       "text": "CoC Code for Client Location",
       "required": false,
       "warn_if_empty": true,
-      "mapping": { "field_name": "cocCode" },
+      "mapping": { "record_type": "ENROLLMENT_COC", "field_name": "cocCode" },
       "brief_text": "Location",
       "pick_list_reference": "COC"
     }

@@ -5,7 +5,6 @@
   "item": [
     {
       "data_collected_about": "ALL_CLIENTS",
-      "record_type": "ENROLLMENT",
       "type": "DATE",
       "link_id": "entry-date",
       "text": "Entry Date",
@@ -21,14 +20,13 @@
     },
     {
       "data_collected_about": "HOH",
-      "record_type": "ENROLLMENT_COC",
       "type": "CHOICE",
       "link_id": "3.16",
       "prefix": "3.16",
       "text": "CoC Code for Client Location",
       "required": false,
       "warn_if_empty": true,
-      "mapping": { "record_type": "ENROLLMENT",  "field_name": "cocCode" },
+      "mapping": { "record_type": "ENROLLMENT_COC",  "field_name": "cocCode" },
       "brief_text": "Location",
       "pick_list_reference": "COC"
     }
