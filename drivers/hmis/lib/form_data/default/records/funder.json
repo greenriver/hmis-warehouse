@@ -34,14 +34,14 @@
           "link_id": "funder",
           "text": "Funding Source",
           "pick_list_reference": "FundingSource",
-          "field_name": "funder"
+          "mapping": { "field_name": "funder" }
         },
         {
           "type": "STRING",
           "required": true,
           "link_id": "other",
           "text": "Other Funder",
-          "field_name": "otherFunder",
+          "mapping": { "field_name": "otherFunder" },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -56,7 +56,7 @@
           "required": true,
           "link_id": "grant-id",
           "text": "Grant Identifier",
-          "field_name": "grantId"
+          "mapping": { "field_name": "grantId" }
         },
         {
           "type": "DISPLAY",
@@ -88,7 +88,7 @@
           "required": true,
           "link_id": "start",
           "text": "Start Date",
-          "field_name": "startDate",
+          "mapping": { "field_name": "startDate" },
           "bounds": [
             {
               "type": "MAX",
@@ -101,7 +101,7 @@
           "required": false,
           "link_id": "end",
           "text": "End Date",
-          "field_name": "endDate",
+          "mapping": { "field_name": "endDate" },
           "bounds": [
             {
               "type": "MIN",

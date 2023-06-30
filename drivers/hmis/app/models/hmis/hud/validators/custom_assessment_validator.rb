@@ -32,7 +32,7 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
       options = {
         readable_attribute: item.brief_text || item.text,
         link_id: item.link_id,
-        attribute: item.field_name.to_sym,
+        attribute: item.mapping&.field_name&.to_sym,
         **options,
       }
     end

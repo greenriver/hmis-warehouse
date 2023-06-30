@@ -152,7 +152,8 @@ type Assessment {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
-  definition: FormDefinition!
+  definition: FormDefinitionJson!
+  definitionId: ID!
   disabilityGroup: DisabilityGroup
   enrollment: Enrollment!
   exit: Exit
@@ -160,8 +161,9 @@ type Assessment {
   id: ID!
   inProgress: Boolean!
   incomeBenefit: IncomeBenefit
+  role: AssessmentRole!
   user: User
-  values: JsonObject
+  wipValues: JsonObject
 }
 
 type AssessmentAccess {
@@ -2182,6 +2184,7 @@ type Enrollment {
   clientEnrolledInPath: NoYesMissing
   countOutreachReferralApproaches: Int
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date
@@ -2708,6 +2711,23 @@ enum FeelingFrequency {
   SEVERAL_TIMES_A_WEEK
 }
 
+type FieldMapping {
+  """
+  Key of CustomDataElement where field is stored
+  """
+  customFieldKey: String
+
+  """
+  Field name that this field is stored as
+  """
+  fieldName: String
+
+  """
+  Type of record that this field is tied to
+  """
+  recordType: RelatedRecordType
+}
+
 """
 File
 """
@@ -2813,11 +2833,6 @@ type FormItem {
   component: Component
 
   """
-  Key of CustomDataElement to save record as. Use record_type to specify type.
-  """
-  customFieldKey: String
-
-  """
   Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout
@@ -2828,12 +2843,6 @@ type FormItem {
   disabledDisplay: DisabledDisplay
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
-
-  """
-  Name of the field on the record (or on the query input type). Used for record
-  creation/update forms, for assessment population, and for assessment extraction.
-  """
-  fieldName: String
 
   """
   Include this item only for the listed funders
@@ -2864,6 +2873,7 @@ type FormItem {
   Unique identifier for item
   """
   linkId: String!
+  mapping: FieldMapping
 
   """
   Permitted answers, for choice items
@@ -2876,10 +2886,9 @@ type FormItem {
   pickListReference: String
 
   """
-  Whether to allow pre-filling section from recent records. Should only be
-  enabled in conjunction with record_type and for top-level group items.
+  Whether to allow pre-filling section from a recent records
   """
-  prefill: Boolean
+  prefill: RelatedRecordType
 
   """
   Prefix for the item label
@@ -2905,11 +2914,6 @@ type FormItem {
   Text to use for the item when displayed in read-only view
   """
   readonlyText: String
-
-  """
-  Record type to use for population and extraction
-  """
-  recordType: RelatedRecordType
 
   """
   Whether the item may repeat (for choice types, this means multiple choice)
@@ -5888,6 +5892,11 @@ enum ReferralSource {
 Related record type for a group of questions in an assessment
 """
 enum RelatedRecordType {
+  """
+  Assessment
+  """
+  ASSESSMENT
+
   """
   CurrentLivingSituation
   """

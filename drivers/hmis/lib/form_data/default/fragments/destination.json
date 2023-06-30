@@ -9,7 +9,7 @@
       "type": "DATE",
       "link_id": "exit-date",
       "text": "Exit Date",
-      "field_name": "exitDate",
+      "mapping": { "field_name": "exitDate" },
       "required": true,
       "assessment_date": true,
       "initial": [
@@ -28,7 +28,7 @@
       "link_id": "3.12",
       "text": "Exit Destination",
       "pick_list_reference": "DESTINATION",
-      "field_name": "destination",
+      "mapping": { "field_name": "destination" },
       "required": false,
       "warn_if_empty": true
     },
@@ -36,7 +36,7 @@
       "type": "STRING",
       "link_id": "3.12.A ",
       "text": "Other destination",
-      "field_name": "otherDestination",
+      "mapping": { "field_name": "otherDestination" },
       "enable_behavior": "ALL",
       "required": true,
       "enable_when": [

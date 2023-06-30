@@ -20,6 +20,7 @@ module Types
     include Types::HmisSchema::HasYouthEducationStatuses
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
+    include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
@@ -114,6 +115,7 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
     end
+    custom_data_elements_field
 
     def project
       load_ar_association(object.in_progress? ? object.wip : object, :project)

@@ -6,14 +6,14 @@
       "link_id": "date-provided",
       "required": true,
       "text": "Date Provided",
-      "field_name": "dateProvided"
+      "mapping": { "field_name": "dateProvided" }
     },
     {
       "type": "CURRENCY",
       "required": false,
       "link_id": "amount",
       "text": "Amount",
-      "field_name": "faAmount",
+      "mapping": { "field_name": "faAmount" },
       "enable_behavior": "ANY",
       "service_detail_type": "CLIENT"
     },
@@ -22,21 +22,21 @@
       "link_id": "fa-start-date",
       "required": true,
       "text": "Payment Start Date",
-      "field_name": "faStartDate"
+      "mapping": { "field_name": "faStartDate" }
     },
     {
       "type": "DATE",
       "link_id": "fa-end-date",
       "required": true,
       "text": "Payment End Date",
-      "field_name": "faEndDate"
+      "mapping": { "field_name": "faEndDate" }
     },
     {
       "type": "CHOICE",
       "required": true,
       "link_id": "funding-source",
       "text": "Funding Source",
-      "custom_field_key": "funding_source",
+      "mapping": { "custom_field_key": "funding_source" },
       "pick_list_options": [
         {
           "code": "Funder 1"
@@ -52,7 +52,7 @@
       "warn_if_empty": true,
       "link_id": "payment-type",
       "text": "Payment Type",
-      "custom_field_key": "payment_type",
+      "mapping": { "custom_field_key": "payment_type" },
       "pick_list_options": [
         {
           "code": "Arrears"

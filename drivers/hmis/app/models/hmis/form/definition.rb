@@ -191,16 +191,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       }
 
       is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
-
+      field_name = item.mapping&.field_name
       # Validate required status
       if item.required && is_missing
-        errors.add item.field_name || :base, :required, **error_context
+        errors.add field_name || :base, :required, **error_context
       elsif item.warn_if_empty && is_missing
-        errors.add item.field_name || :base, :data_not_collected, severity: :warning, **error_context
+        errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
       # Additional validations for currency
-      errors.add item.field_name, :out_of_range, **error_context, message: 'must be positive' if item.type == 'CURRENCY' && value&.negative?
+      errors.add field_name, :out_of_range, **error_context, message: 'must be positive' if item.type == 'CURRENCY' && value&.negative?
 
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
       # TODO(##184402463): Add support for RequiredWhen
@@ -212,30 +212,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     end
 
     errors.errors
-  end
-
-  # Unused
-  def key_by_field_name(hud_values)
-    result = {}
-    recur_fill = lambda do |items, current_record_type|
-      items.each do |item|
-        if item.item
-          record_type = Types::Forms::Enums::RelatedRecordType.values[item.record_type]&.description if item.record_type.present?
-          recur_fill.call(item.item, record_type || current_record_type)
-        end
-
-        next unless item.field_name.present?
-        next unless hud_values.key?(item.link_id)
-
-        key = item.field_name
-        key = "#{current_record_type}.#{key}" if current_record_type.present?
-
-        result[key] = hud_values[item.link_id]
-      end
-    end
-
-    recur_fill.call(definition_struct.item, nil)
-    result
   end
 
   private def definition_struct

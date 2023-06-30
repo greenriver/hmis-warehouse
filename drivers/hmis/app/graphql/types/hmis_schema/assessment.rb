@@ -41,15 +41,30 @@ module Types
     # TODO add youth edu status and others
     custom_data_elements_field
 
-    field :values, JsonObject, null: true
-    field :definition, Forms::FormDefinition, null: false
+    field :role, Types::Forms::Enums::AssessmentRole, null: false
+    field :definition_id, ID, null: false
+    field :definition, Forms::FormDefinitionJson, null: false
+    field :wip_values, JsonObject, null: true
 
-    def values
+    def wip_values
+      return unless object.in_progress?
+
       load_ar_association(object, :custom_form)&.values
     end
 
+    def role
+      load_ar_association(object, :definition)&.role
+    end
+
+    def definition_id
+      load_ar_association(object, :custom_form)&.definition_id
+    end
+
     def definition
-      load_ar_association(object, :definition)
+      definition_json = load_ar_association(object, :definition)&.definition
+      return unless definition_json.present?
+
+      JSON.parse(definition_json)
     end
 
     def in_progress

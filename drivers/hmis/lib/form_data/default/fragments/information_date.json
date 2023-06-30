@@ -8,7 +8,7 @@
       "type": "DATE",
       "link_id": "information-date-input",
       "text": "Date Collected",
-      "field_name": "informationDate",
+      "mapping": { "field_name": "informationDate" },
       "required": true,
       "warn_if_empty": false,
       "assessment_date": true

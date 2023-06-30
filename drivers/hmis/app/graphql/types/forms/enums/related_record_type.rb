@@ -11,6 +11,7 @@ module Types
     description 'Related record type for a group of questions in an assessment'
     graphql_name 'RelatedRecordType'
 
+    value 'ASSESSMENT', 'Assessment'
     value 'ENROLLMENT', 'Enrollment'
     value 'ENROLLMENT_COC', 'EnrollmentCoc'
     value 'INCOME_BENEFIT', 'IncomeBenefit'
