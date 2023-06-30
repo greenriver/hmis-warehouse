@@ -18,14 +18,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
   include_context 'hmis service setup'
-  let(:u2) do
-    user2 = create(:user).tap { |u| u.add_viewable(ds1) }
-    hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
-    Hmis::Hud::User.from_user(hmis_user2)
-  end
-  let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
-  let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: u2 }
+  let!(:c1) { create :hmis_hud_client, data_source: ds1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1 }
+  let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week }
   let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
