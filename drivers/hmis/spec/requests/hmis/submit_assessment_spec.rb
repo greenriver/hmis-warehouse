@@ -52,12 +52,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            customForm {
-              #{scalar_fields(Types::HmisSchema::CustomForm)}
-              definition {
-                id
-              }
-            }
           }
           #{error_fields}
         }
@@ -79,9 +73,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Hud::CustomAssessment.count).to eq(1)
         expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
         expect(Hmis::Hud::CustomAssessment.first.enrollment_id).to eq(e1.enrollment_id)
-        details = Hmis::Hud::CustomAssessment.first.custom_form
-        expect(details.values).to include(test_input[:values])
-        expect(details.hud_values).to include(test_input[:hud_values])
       end
     end
   end
@@ -112,9 +103,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment['assessmentDate']).to eq(new_information_date)
         expect(Hmis::Hud::CustomAssessment.count).to eq(1)
         expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
-        details = Hmis::Hud::CustomAssessment.first.custom_form
-        expect(details.values).to include(input[:values])
-        expect(details.hud_values).to include(input[:hud_values])
       end
     end
   end

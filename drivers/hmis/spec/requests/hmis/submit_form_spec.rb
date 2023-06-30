@@ -171,15 +171,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           next unless required_item.present?
 
           input = test_input.merge(
-            values: test_input[:values].merge(required_item.link_id => nil),
-            hud_values: test_input[:hud_values].merge(required_item.field_name => nil),
+            values: test_input[:values].merge(required_item.mapping.link_id => nil),
+            hud_values: test_input[:hud_values].merge(required_item.mapping.field_name => nil),
           )
           response, result = post_graphql(input: { input: input }) { mutation }
           record = result.dig('data', 'submitForm', 'record')
           errors = result.dig('data', 'submitForm', 'errors')
           expected_error = {
             type: :required,
-            attribute: required_item.field_name,
+            attribute: required_item.mapping.field_name,
             severity: :error,
           }
 

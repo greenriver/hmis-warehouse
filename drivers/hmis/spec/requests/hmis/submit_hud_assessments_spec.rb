@@ -63,12 +63,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             disabilityGroup {
               #{scalar_fields(Types::HmisSchema::DisabilityGroup)}
             }
-            customForm {
-              #{scalar_fields(Types::HmisSchema::CustomForm)}
-              definition {
-                id
-              }
-            }
           }
           #{error_fields}
         }
@@ -90,12 +84,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             }
             client {
               id
-            }
-            customForm {
-              #{scalar_fields(Types::HmisSchema::CustomForm)}
-              definition {
-                id
-              }
             }
           }
           #{error_fields}

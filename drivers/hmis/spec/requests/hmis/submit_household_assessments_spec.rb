@@ -49,12 +49,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            customForm {
-              #{scalar_fields(Types::HmisSchema::CustomForm)}
-              definition {
-                id
-              }
-            }
           }
           #{error_fields}
         }
