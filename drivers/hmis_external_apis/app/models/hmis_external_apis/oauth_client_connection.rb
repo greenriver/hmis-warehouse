@@ -7,16 +7,17 @@
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
   class OauthClientConnection
-    attr_accessor :creds, :client_id, :scope, :headers, :base_url
+    attr_accessor :creds, :client_id, :scope, :headers, :base_url, :connection_timeout
 
     # @param creds [::GrdaWarehouse::RemoteCredential]
-    def initialize(creds)
+    def initialize(creds, connection_timeout: 5)
       self.creds = creds
       self.client_id = creds.client_id
       self.scope = creds.oauth_scope
       # normalized base_url
       self.base_url = creds.base_url.strip.gsub(%r{/*\z}, '')
       self.headers = creds.additional_headers
+      self.connection_timeout = connection_timeout
     end
 
     def get(path)
@@ -139,7 +140,15 @@ module HmisExternalApis
     end
 
     def client
-      OAuth2::Client.new(client_id, creds.client_secret, token_url: creds.token_url)
+      OAuth2::Client.new(
+        client_id, creds.client_secret, token_url: creds.token_url,
+        connection_build: -> (builder) {
+          # https://gitlab.com/oauth-xx/oauth2/-/blob/main/lib/oauth2/client.rb#L81
+          builder.options.timeout = connection_timeout
+          builder.request :url_encoded
+          builder.adapter Faraday.default_adapter
+        }
+      )
     end
   end
 end
