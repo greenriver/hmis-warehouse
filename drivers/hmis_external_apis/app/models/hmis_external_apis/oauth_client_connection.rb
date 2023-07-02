@@ -140,14 +140,17 @@ module HmisExternalApis
     end
 
     def client
+      connection_build = ->(builder) {
+        # https://gitlab.com/oauth-xx/oauth2/-/blob/main/lib/oauth2/client.rb#L81
+        builder.options.timeout = connection_timeout
+        builder.request :url_encoded
+        builder.adapter Faraday.default_adapter
+      }
       OAuth2::Client.new(
-        client_id, creds.client_secret, token_url: creds.token_url,
-        connection_build: -> (builder) {
-          # https://gitlab.com/oauth-xx/oauth2/-/blob/main/lib/oauth2/client.rb#L81
-          builder.options.timeout = connection_timeout
-          builder.request :url_encoded
-          builder.adapter Faraday.default_adapter
-        }
+        client_id,
+        creds.client_secret,
+        token_url: creds.token_url,
+        connection_build: connection_build,
       )
     end
   end
