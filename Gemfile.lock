@@ -912,7 +912,7 @@ GEM
       unf_ext
     unf_ext (0.0.8)
     unicode-display_width (2.2.0)
-    uri (0.12.1)
+    uri (0.12.2)
     uri_template (0.7.0)
     validate_url (1.0.13)
       activemodel (>= 3.0.0)
