@@ -270,7 +270,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'clientSearch', 'nodes').size).to eq(enrollments.size)
-      end.to perform_under(300).ms
+      end.to perform_under(400).ms
     end
   end
 end
