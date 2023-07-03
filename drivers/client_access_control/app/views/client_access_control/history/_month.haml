@@ -9,33 +9,6 @@
 %button.btn.btn-light Prev
 %button.btn.btn-light Next
 -#
-%div= @dates.inspect
-
-- date_range.each_slice(7) do |week|
-  - week_days = week.map{|d| [d, []]}.to_h
-  - week.each do |day|
-    - if @dates[day].present?
-      - week_days[day] = @dates[day]
-      
-  - week_days.each do |date, services|
-    %div=date.day
-    - services.each do |service|
-      %div= service.inspect
-    %div =================================
-%div
-  = date_range.each_slice(7) do |week|
-    .d-flex
-      - week_days = week.map{|d| [d, []]}.to_h
-      - week_days.each do |date, services|
-        %div(style="width: 14.23%; height: 140px;")
-          - if start_of_month == date.beginning_of_month
-            .client__calendar-date
-              = date.day
-          - else
-            .client__calendar-date.client__calendar-date__previous-month
-              = date.day
-
-
 
 .d3-calendar.client__calendar{style: 'margin-top:40px;'}
 
@@ -44,90 +17,7 @@
   :javascript
     var data = #{fakeData.weeks_data.to_json.html_safe}
 
-    var getDateFromString = function(dateString) {
-      var parts = dateString.split('-')
-      return new Date(parts[0], parts[1]-1, parts[2])
-    }
-
-    var getProjectBorderRaius = function(days, date) {
-      return days.includes(date) ? '6px' : '0px'
-    }
-
-    data.forEach(function(weekData, i) {
-      console.log('weekData', weekData)
-      var month = weekData.month
-      var dayDomain = weekData.days
-      
-      var dayScale = d3.scaleBand()
-        .domain(dayDomain)
-        .range([0,100])
-
-      var container = d3.select('.d3-calendar')
-
-      var week = container.append('div')
-        .attr('class', 'client__calendar-week')
-        .style('min-height', '170px')
-
-      var days = week.selectAll('.client__calendar-day')
-        .data(dayDomain)
-        .enter()
-        .append('div')
-          .attr('class', function(d) {
-            return 'client__calendar-day day-'+d
-          })
-          .style('left', function(d, i) {
-            return(dayScale.bandwidth()*i)+'%'
-          })
-          .style('width', dayScale.bandwidth()+'%')
-          .append('span')
-            .text(function(d) {
-              return getDateFromString(d).getDate()
-            })
-            .attr('class', function(d){
-              var date = getDateFromString(d)
-              return date.getMonth() === month ? "client__calendar-date" : "client__calendar-date client__calendar-date__previous-month"
-            })
-
-      var projects = week.selectAll('.client__calendar-project')
-        .data(weekData.projects)
-        .enter()
-        .append('div')
-          .attr('class', function(d) {
-            return 'client__calendar-project service-type__program-type client__service_type_'+d.project_type
-          })
-          .style('margin-left', function(d) {
-            var entryDate = dayScale(d.entry_date) >= 0 ? dayScale(d.entry_date) : 0
-            return entryDate+'%'
-          })
-          .style('width', function(d) {
-            var entryDate = dayScale(d.entry_date) >= 0 ? dayScale(d.entry_date) : 0
-            var exitDate = dayScale(d.exit_date) > 0 ? dayScale(d.exit_date) : 100
-            var width = exitDate-entryDate >= 0 ? exitDate-entryDate : 0
-            return width+'%'
-          })
-          .style('height', '30px')
-          .style('border-top-left-radius', function(d){
-            return getProjectBorderRaius(weekData.days, d.entry_date)
-          })
-          .style('border-bottom-left-radius', function(d){
-            return getProjectBorderRaius(weekData.days, d.entry_date)
-          })
-          .style('border-top-right-radius', function(d){
-            return getProjectBorderRaius(weekData.days, d.exit_date)
-          })
-          .style('border-bottom-right-radius', function(d){
-            return getProjectBorderRaius(weekData.days, d.exit_date)
-          })
-      
-      projects.append('div')
-        .attr('class', 'client__calendar-project_name')
-        .text(function(d) {
-          return d.project_name
-        })
-
-
-          
-    })
+    var calendar = App.ClientHistoryCalendar(data, '.d3-calendar')
     
 
 
