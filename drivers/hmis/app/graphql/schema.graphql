@@ -5019,6 +5019,7 @@ type Project {
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date!
   organization: Organization!
+  outgoingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
   projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
   projectName: String!
   projectType: ProjectType
