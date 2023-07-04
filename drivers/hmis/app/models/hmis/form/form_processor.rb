@@ -32,17 +32,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   attr_accessor :owner, :hud_user, :current_user
 
-  # Pull out the Assessment Date from the values hash
-  def find_assessment_date_from_values
-    item = definition&.assessment_date_item
-    return nil unless item.present? && values.present?
-
-    date_string = values[item.link_id]
-    return nil unless date_string.present?
-
-    HmisUtil::Dates.safe_parse_date(date_string: date_string)
-  end
-
   def run!(owner:, user:)
     # Owner is the "base" record for the form, which could be an assessment, client, project, etc.
     self.owner = owner
@@ -278,6 +267,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
       record
     end.compact.uniq
+  end
+
+  # Pull out the Assessment Date from the values hash
+  def find_assessment_date_from_values
+    item = definition&.assessment_date_item
+    return nil unless item.present? && values.present?
+
+    date_string = values[item.link_id]
+    return nil unless date_string.present?
+
+    HmisUtil::Dates.safe_parse_date(date_string: date_string)
   end
 
   # Get HmisError::Errors object containing related record AR errors that can be resolved
