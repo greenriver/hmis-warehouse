@@ -42,6 +42,7 @@ module Types
     custom_data_elements_field
 
     field :role, Types::Forms::Enums::AssessmentRole, null: false
+
     field :definition_id, ID, null: false
     field :definition, Forms::FormDefinitionJson, null: false
     field :wip_values, JsonObject, null: true
@@ -53,20 +54,24 @@ module Types
     end
 
     def role
-      form_processor = load_ar_association(object, :form_processor)
-      load_ar_association(form_processor, :definition)&.role
+      Hmis::Form::Definition.FORM_DATA_COLLECTION_STAGES[object.data_collection_stage]
     end
 
     def definition_id
       load_ar_association(object, :form_processor)&.definition_id
     end
 
+    # EXPENSIVE! Do not use in batch
     def definition
+      # If definition is stored on form processor, return that
+      # TODO: check if form is retired?
       form_processor = load_ar_association(object, :form_processor)
       definition_json = load_ar_association(form_processor, :definition)&.definition
-      return unless definition_json.present?
+      return JSON.parse(definition_json) if definition_json.present?
 
-      JSON.parse(definition_json)
+      # If there was no definition, find the appropriate definition to use
+      project = load_ar_association(object, :project)
+      Hmis::Form::Definition.find_definition_for_role(role, project: project)
     end
 
     def in_progress
