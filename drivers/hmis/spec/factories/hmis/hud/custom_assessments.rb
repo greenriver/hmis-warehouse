@@ -34,8 +34,8 @@ FactoryBot.define do
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
     transient do
-      values {}
-      hud_values {}
+      values { {} }
+      hud_values { {} }
     end
     after(:create) do |assessment, evaluator|
       assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
