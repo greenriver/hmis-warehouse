@@ -65,7 +65,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     if record.new_record?
       household_members = record.household_members
       is_hoh = record.head_of_household?
-      has_hoh = household_members.find(&:head_of_household?).present?
+      has_hoh = household_members.any?(&:head_of_household?)
       # Error: client is already a member of this household
       already_in_household = household_members.where(personal_id: record.personal_id).exists?
       errors.add :base, :invalid, full_message: duplicate_member_full_message if already_in_household
