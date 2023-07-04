@@ -11,6 +11,8 @@ module Mutations
     argument :assessment_ids, [ID], required: true
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
     argument :validate_only, Boolean, 'Validate assessments but don\'t submit them', required: false
+    # TODO: this should accept a Form Definition ID, to ensure that forms are validated against the
+    # form that is currently being used
 
     field :assessments, [Types::HmisSchema::Assessment], null: true
 

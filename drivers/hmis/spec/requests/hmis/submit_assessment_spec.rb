@@ -27,7 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let(:test_assessment_date) { 1.week.ago.strftime('%Y-%m-%d') }
+  let(:test_assessment_date) { e1.entry_date.strftime('%Y-%m-%d') }
   let(:test_input) do
     {
       enrollment_id: e1.id.to_s,
@@ -70,26 +70,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
         expect(assessment['id']).to be_present
         expect(assessment['assessmentDate']).to eq(test_assessment_date)
-        expect(Hmis::Hud::CustomAssessment.count).to eq(1)
-        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
-        expect(Hmis::Hud::CustomAssessment.first.enrollment_id).to eq(e1.enrollment_id)
+        expect(e1.custom_assessments.count).to eq(1)
+        expect(e1.custom_assessments_including_wip.in_progress.count).to eq(0)
+        expect(e1.custom_assessments.first.enrollment_id).to eq(e1.enrollment_id)
       end
     end
   end
 
   describe 'Re-Submitting a form that has already been submitted' do
-    before(:each) do
-      # create the initial submitted assessment
-      _resp, result = post_graphql(input: { input: test_input }) { mutation }
-      id = result.dig('data', 'submitAssessment', 'assessment', 'id')
-      @assessment = Hmis::Hud::CustomAssessment.find(id)
-    end
+    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date }
 
     it 'should update assessment successfully' do
+      expect(e1.custom_assessments.count).to eq(1)
+
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
-        # FIXME: form def should be required to pass every time, it oculd be different
-        assessment_id: @assessment.id,
+        assessment_id: a1.id,
+        form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
       }
@@ -102,38 +99,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
         expect(assessment['id']).to be_present
         expect(assessment['assessmentDate']).to eq(new_information_date)
-        expect(Hmis::Hud::CustomAssessment.count).to eq(1)
-        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
+        expect(e1.custom_assessments.count).to eq(1)
+        expect(e1.custom_assessments.in_progress.count).to eq(0)
       end
     end
   end
 
   describe 'Submitting a form that was previously saved as WIP' do
-    let(:save_wip_mutation) do
-      <<~GRAPHQL
-        mutation SaveAssessment($input: SaveAssessmentInput!) {
-          saveAssessment(input: $input) {
-            assessment {
-              id
-            }
-            #{error_fields}
-          }
-        }
-      GRAPHQL
-    end
-
-    before(:each) do
-      # create the initial WIP assessment
-      _resp, result = post_graphql(input: { input: test_input }) { save_wip_mutation }
-      @assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
-    end
-
     it 'should update and submit assessment successfully' do
-      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
+      a1_wip = create(:hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date)
+      expect(e1.custom_assessments_including_wip.in_progress.count).to eq(1)
 
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
-        assessment_id: @assessment_id,
+        assessment_id: a1_wip.id,
+        form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
       }
@@ -148,22 +128,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment['enrollment']).to be_present
         expect(assessment['assessmentDate']).to eq(new_information_date)
         expect(assessment['inProgress']).to eq(false)
-        expect(Hmis::Hud::CustomAssessment.count).to eq(1)
-        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
-        expect(Hmis::Hud::CustomAssessment.where(enrollment_id: Hmis::Hud::CustomAssessment::WIP_ID).count).to eq(0)
-        expect(Hmis::Wip.count).to eq(0)
-
-        record = Hmis::Hud::CustomAssessment.find(@assessment_id)
-        expect(record.in_progress?).to eq(false)
+        expect(e1.custom_assessments.count).to eq(1)
+        expect(e1.custom_assessments_including_wip.count).to eq(1)
+        expect(e1.custom_assessments_including_wip.in_progress.count).to eq(0)
       end
     end
 
     it 'should not save if there were unconfirmed warnings' do
-      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
+      a1_wip = create(:hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date)
+      expect(e1.custom_assessments_including_wip.in_progress.count).to eq(1)
 
       new_information_date = (e1.entry_date + 5.days).strftime('%Y-%m-%d')
       input = {
-        assessment_id: @assessment_id,
+        assessment_id: a1_wip.id,
+        form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date, 'linkid-choice' => nil },
         hud_values: { 'informationDate' => new_information_date, 'linkid-choice' => nil },
       }
@@ -176,12 +154,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to match([a_hash_including('severity' => 'warning', 'type' => 'data_not_collected')])
         expect(assessment).to be_nil
 
-        record = Hmis::Hud::CustomAssessment.find(@assessment_id)
         # It is still WIP, and fields should NOT have been updated
-        expect(record.in_progress?).to eq(true)
-        expect(record.assessment_date).not_to eq(Date.parse(new_information_date))
-        expect(record.form_processor.wip_values).not_to include(**input[:values])
-        expect(record.form_processor.wip_hud_values).not_to include(**input[:hud_values])
+        a1_wip.reload
+        expect(a1_wip.in_progress?).to eq(true)
+        expect(a1_wip.assessment_date).not_to eq(Date.parse(new_information_date))
+        expect(a1_wip.form_processor.wip_values).not_to include(**input[:values])
+        expect(a1_wip.form_processor.wip_hud_values).not_to include(**input[:hud_values])
       end
     end
   end

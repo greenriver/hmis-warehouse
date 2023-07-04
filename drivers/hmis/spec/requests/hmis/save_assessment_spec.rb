@@ -120,11 +120,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     # Subsequent request should update the existing WIP assessment
     new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
-    input = {
-      assessment_id: assessment_id,
-      values: { 'linkid-date' => new_information_date },
-      hud_values: { 'informationDate' => new_information_date },
-    }
+    input = test_input.merge({
+                               assessment_id: assessment_id,
+                               values: { 'linkid-date' => new_information_date },
+                               hud_values: { 'informationDate' => new_information_date },
+                             })
 
     response, result = post_graphql(input: { input: input }) { mutation }
     assessment = result.dig('data', 'saveAssessment', 'assessment')

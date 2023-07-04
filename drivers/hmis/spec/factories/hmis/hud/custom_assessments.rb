@@ -8,8 +8,6 @@ FactoryBot.define do
   factory :hmis_form_processor, class: 'Hmis::Form::FormProcessor' do
     definition { association :hmis_form_definition }
     custom_assessment { association :hmis_custom_assessment }
-    # wip_values { {} }
-    # wip_hud_values { {} }
   end
 
   factory :hmis_custom_assessment, class: 'Hmis::Hud::CustomAssessment' do
@@ -36,7 +34,7 @@ FactoryBot.define do
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
     after(:create) do |assessment|
-      assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment)
+      assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, wip_values: {}, wip_hud_values: {})
       assessment.build_wip(
         enrollment: assessment.enrollment,
         client: assessment.enrollment.client,
