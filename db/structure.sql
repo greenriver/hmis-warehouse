@@ -56,6 +56,7 @@ CREATE TABLE public.access_controls (
     id bigint NOT NULL,
     access_group_id bigint,
     role_id bigint,
+    user_group_id bigint,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -316,6 +317,7 @@ CREATE TABLE public.activity_logs (
 --
 
 CREATE SEQUENCE public.activity_logs_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -358,6 +360,7 @@ CREATE TABLE public.agencies_consent_limits (
 --
 
 CREATE SEQUENCE public.agencies_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -382,90 +385,6 @@ CREATE TABLE public.ar_internal_metadata (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
-
-
---
--- Name: building_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.building_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: building_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.building_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: buildings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.buildings_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: client_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.client_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: client_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.client_notes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: client_opportunity_match_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.client_opportunity_match_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: client_opportunity_matches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.client_opportunity_matches_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -498,18 +417,6 @@ CREATE TABLE public.client_service_history (
 
 
 --
--- Name: clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
 -- Name: clients_unduplicated; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -539,18 +446,6 @@ CREATE SEQUENCE public.clients_unduplicated_id_seq
 --
 
 ALTER SEQUENCE public.clients_unduplicated_id_seq OWNED BY public.clients_unduplicated.id;
-
-
---
--- Name: configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.configs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -588,54 +483,6 @@ ALTER SEQUENCE public.consent_limits_id_seq OWNED BY public.consent_limits.id;
 
 
 --
--- Name: contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: data_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.data_sources_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: date_of_birth_quality_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.date_of_birth_quality_codes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: deidentified_clients_xlsxes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.deidentified_clients_xlsxes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
 -- Name: delayed_jobs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -660,6 +507,7 @@ CREATE TABLE public.delayed_jobs (
 --
 
 CREATE SEQUENCE public.delayed_jobs_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -672,114 +520,6 @@ CREATE SEQUENCE public.delayed_jobs_id_seq
 --
 
 ALTER SEQUENCE public.delayed_jobs_id_seq OWNED BY public.delayed_jobs.id;
-
-
---
--- Name: disabling_conditions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.disabling_conditions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: discharge_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.discharge_statuses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: domestic_violence_survivors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.domestic_violence_survivors_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: entity_view_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.entity_view_permissions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ethnicities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.ethnicities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: external_referrals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.external_referrals_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: file_tags_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.file_tags_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: funding_source_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.funding_source_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: funding_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.funding_sources_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -859,42 +599,6 @@ CREATE SEQUENCE public.glacier_vaults_id_seq
 --
 
 ALTER SEQUENCE public.glacier_vaults_id_seq OWNED BY public.glacier_vaults.id;
-
-
---
--- Name: has_developmental_disabilities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.has_developmental_disabilities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: has_hivaids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.has_hivaids_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: has_mental_health_problems_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.has_mental_health_problems_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -990,10 +694,10 @@ CREATE TABLE public.hmis_roles (
     can_manage_own_client_files boolean DEFAULT false NOT NULL,
     can_view_any_nonconfidential_client_files boolean DEFAULT false NOT NULL,
     can_view_any_confidential_client_files boolean DEFAULT false NOT NULL,
-    can_manage_client_files boolean DEFAULT false NOT NULL,
     can_audit_clients boolean DEFAULT false NOT NULL,
     can_delete_clients boolean DEFAULT false NOT NULL,
-    can_delete_assessments boolean DEFAULT false,
+    can_delete_assessments boolean DEFAULT false NOT NULL,
+    can_view_unenrolled_clients boolean DEFAULT false,
     can_manage_inventory boolean DEFAULT false,
     can_manage_incoming_referrals boolean DEFAULT false,
     can_manage_outgoing_referrals boolean DEFAULT false,
@@ -1055,42 +759,6 @@ ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user
 
 
 --
--- Name: housing_attributes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.housing_attributes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: housing_media_links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.housing_media_links_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: imported_clients_csvs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.imported_clients_csvs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
 -- Name: imports; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1145,6 +813,7 @@ CREATE TABLE public.letsencrypt_plugin_challenges (
 --
 
 CREATE SEQUENCE public.letsencrypt_plugin_challenges_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1176,6 +845,7 @@ CREATE TABLE public.letsencrypt_plugin_settings (
 --
 
 CREATE SEQUENCE public.letsencrypt_plugin_settings_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1269,102 +939,6 @@ ALTER SEQUENCE public.login_activities_id_seq OWNED BY public.login_activities.i
 
 
 --
--- Name: match_census_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.match_census_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: match_decision_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.match_decision_reasons_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: match_decisions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.match_decisions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: match_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.match_events_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: match_mitigation_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.match_mitigation_reasons_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: match_prioritizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.match_prioritizations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: match_progress_updates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.match_progress_updates_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: match_routes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.match_routes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
 -- Name: messages; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1387,6 +961,7 @@ CREATE TABLE public.messages (
 --
 
 CREATE SEQUENCE public.messages_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1399,54 +974,6 @@ CREATE SEQUENCE public.messages_id_seq
 --
 
 ALTER SEQUENCE public.messages_id_seq OWNED BY public.messages.id;
-
-
---
--- Name: mitigation_reasons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.mitigation_reasons_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: name_quality_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.name_quality_codes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: neighborhood_interests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.neighborhood_interests_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: neighborhoods_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.neighborhoods_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -1478,42 +1005,6 @@ CREATE SEQUENCE public.nicknames_id_seq
 --
 
 ALTER SEQUENCE public.nicknames_id_seq OWNED BY public.nicknames.id;
-
-
---
--- Name: non_hmis_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.non_hmis_assessments_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: non_hmis_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.non_hmis_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.notifications_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -1582,162 +1073,6 @@ CREATE SEQUENCE public.old_passwords_id_seq
 --
 
 ALTER SEQUENCE public.old_passwords_id_seq OWNED BY public.old_passwords.id;
-
-
---
--- Name: opportunities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.opportunities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: opportunity_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.opportunity_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: opportunity_properties_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.opportunity_properties_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: outreach_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.outreach_histories_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: physical_disabilities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.physical_disabilities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: program_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.program_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: program_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.program_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: programs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.programs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: project_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.project_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: project_programs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.project_programs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: reissue_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.reissue_requests_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: rejected_matches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.rejected_matches_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: report_definitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.report_definitions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -1822,18 +1157,6 @@ ALTER SEQUENCE public.report_results_summaries_id_seq OWNED BY public.report_res
 
 
 --
--- Name: reporting_decisions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.reporting_decisions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
 -- Name: reports; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1867,18 +1190,6 @@ CREATE SEQUENCE public.reports_id_seq
 --
 
 ALTER SEQUENCE public.reports_id_seq OWNED BY public.reports.id;
-
-
---
--- Name: requirements_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.requirements_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -2031,9 +1342,8 @@ CREATE TABLE public.roles (
     can_search_own_clients boolean DEFAULT false,
     can_view_confidential_project_names boolean DEFAULT false,
     can_report_on_confidential_projects boolean DEFAULT false,
-    can_edit_assigned_project_groups boolean DEFAULT false,
     can_view_chronic_tab boolean DEFAULT false,
-    can_view_confidential_enrollment_details boolean DEFAULT false,
+    can_edit_assigned_project_groups boolean DEFAULT false,
     can_configure_cohorts boolean DEFAULT false,
     can_add_cohort_clients boolean DEFAULT false,
     can_manage_cohort_data boolean DEFAULT false,
@@ -2043,9 +1353,12 @@ CREATE TABLE public.roles (
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
+    can_view_client_enrollments_with_roi boolean DEFAULT false,
+    can_search_clients_with_roi boolean DEFAULT false,
+    can_see_confidential_files boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false
 );
 
@@ -2055,6 +1368,7 @@ CREATE TABLE public.roles (
 --
 
 CREATE SEQUENCE public.roles_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2070,60 +1384,12 @@ ALTER SEQUENCE public.roles_id_seq OWNED BY public.roles.id;
 
 
 --
--- Name: rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
-
-
---
--- Name: service_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.service_rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: shelter_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.shelter_histories_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -2161,90 +1427,6 @@ CREATE SEQUENCE public.similarity_metrics_id_seq
 --
 
 ALTER SEQUENCE public.similarity_metrics_id_seq OWNED BY public.similarity_metrics.id;
-
-
---
--- Name: social_security_number_quality_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.social_security_number_quality_codes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: stalled_responses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.stalled_responses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: sub_program_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.sub_program_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: sub_programs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.sub_programs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: subgrantee_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.subgrantee_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: subgrantee_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.subgrantee_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: subgrantees_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.subgrantees_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -2299,6 +1481,7 @@ CREATE TABLE public.tags (
 --
 
 CREATE SEQUENCE public.tags_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2450,18 +1633,6 @@ ALTER SEQUENCE public.two_factors_memorized_devices_id_seq OWNED BY public.two_f
 
 
 --
--- Name: unavailable_as_candidate_fors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.unavailable_as_candidate_fors_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
 -- Name: unique_names; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2490,18 +1661,6 @@ CREATE SEQUENCE public.unique_names_id_seq
 --
 
 ALTER SEQUENCE public.unique_names_id_seq OWNED BY public.unique_names.id;
-
-
---
--- Name: units_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.units_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -2547,12 +1706,12 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
--- Name: user_access_controls; Type: TABLE; Schema: public; Owner: -
+-- Name: user_group_members; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.user_access_controls (
+CREATE TABLE public.user_group_members (
     id bigint NOT NULL,
-    access_control_id bigint,
+    user_group_id bigint,
     user_id bigint,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
@@ -2561,10 +1720,10 @@ CREATE TABLE public.user_access_controls (
 
 
 --
--- Name: user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: user_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.user_access_controls_id_seq
+CREATE SEQUENCE public.user_group_members_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2573,10 +1732,43 @@ CREATE SEQUENCE public.user_access_controls_id_seq
 
 
 --
--- Name: user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: user_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.user_access_controls_id_seq OWNED BY public.user_access_controls.id;
+ALTER SEQUENCE public.user_group_members_id_seq OWNED BY public.user_group_members.id;
+
+
+--
+-- Name: user_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_groups (
+    id bigint NOT NULL,
+    name character varying,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    system boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_groups_id_seq OWNED BY public.user_groups.id;
 
 
 --
@@ -2598,6 +1790,7 @@ CREATE TABLE public.user_roles (
 --
 
 CREATE SEQUENCE public.user_roles_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2687,6 +1880,7 @@ CREATE TABLE public.users (
 --
 
 CREATE SEQUENCE public.users_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2727,6 +1921,7 @@ CREATE TABLE public.versions (
 --
 
 CREATE SEQUENCE public.versions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2739,30 +1934,6 @@ CREATE SEQUENCE public.versions_id_seq
 --
 
 ALTER SEQUENCE public.versions_id_seq OWNED BY public.versions.id;
-
-
---
--- Name: veteran_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.veteran_statuses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: vouchers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.vouchers_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -2797,18 +1968,6 @@ CREATE SEQUENCE public.warehouse_alerts_id_seq
 --
 
 ALTER SEQUENCE public.warehouse_alerts_id_seq OWNED BY public.warehouse_alerts.id;
-
-
---
--- Name: weighting_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.weighting_rules_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 
 --
@@ -3092,10 +2251,17 @@ ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uplo
 
 
 --
--- Name: user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: user_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.user_access_controls_id_seq'::regclass);
+ALTER TABLE ONLY public.user_group_members ALTER COLUMN id SET DEFAULT nextval('public.user_group_members_id_seq'::regclass);
+
+
+--
+-- Name: user_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_groups ALTER COLUMN id SET DEFAULT nextval('public.user_groups_id_seq'::regclass);
 
 
 --
@@ -3463,11 +2629,19 @@ ALTER TABLE ONLY public.uploads
 
 
 --
--- Name: user_access_controls user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: user_group_members user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_access_controls
-    ADD CONSTRAINT user_access_controls_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.user_group_members
+    ADD CONSTRAINT user_group_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_groups user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_groups
+    ADD CONSTRAINT user_groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -3528,6 +2702,13 @@ CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls 
 --
 
 CREATE INDEX index_access_controls_on_role_id ON public.access_controls USING btree (role_id);
+
+
+--
+-- Name: index_access_controls_on_user_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_access_controls_on_user_group_id ON public.access_controls USING btree (user_group_id);
 
 
 --
@@ -3874,17 +3055,17 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
--- Name: index_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_access_controls_on_access_control_id ON public.user_access_controls USING btree (access_control_id);
+CREATE INDEX index_user_group_members_on_user_group_id ON public.user_group_members USING btree (user_group_id);
 
 
 --
--- Name: index_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_user_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_access_controls_on_user_id ON public.user_access_controls USING btree (user_id);
+CREATE INDEX index_user_group_members_on_user_id ON public.user_group_members USING btree (user_id);
 
 
 --
@@ -4056,9 +3237,260 @@ ALTER TABLE ONLY public.report_results
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20160615125048'),
+('20160616140826'),
+('20160628182622'),
+('20160701172807'),
+('20160705145733'),
+('20160708134220'),
+('20160708140847'),
+('20160708172039'),
+('20160708174624'),
+('20160708180500'),
+('20160711124428'),
+('20160711132731'),
+('20160711143807'),
+('20160711144914'),
+('20160722162801'),
+('20160725151439'),
+('20160726210214'),
+('20160829142445'),
+('20160829155417'),
+('20160906154014'),
+('20160907123023'),
+('20160907185535'),
+('20160921165937'),
+('20161005204310'),
+('20161006160330'),
+('20161012152230'),
+('20161012161240'),
+('20161103123424'),
+('20161107160154'),
+('20161111151851'),
+('20161111181757'),
+('20161111205317'),
+('20161119003439'),
+('20161213140009'),
+('20161214144658'),
+('20161215163027'),
+('20161216003217'),
+('20161219184752'),
+('20170505132237'),
+('20170517200539'),
+('20170619210146'),
+('20170619235354'),
+('20170627154145'),
+('20170627182531'),
+('20170703125950'),
+('20170705123919'),
+('20170721143408'),
+('20170721143409'),
+('20170726141503'),
+('20170731202132'),
+('20170801194526'),
+('20170815161947'),
+('20170830180506'),
+('20170830223244'),
+('20170901153110'),
+('20170922130841'),
+('20170922183847'),
+('20170927131448'),
+('20170928194909'),
+('20171004172953'),
+('20171023174425'),
+('20171024183915'),
+('20171025122843'),
+('20171026201120'),
+('20171026203139'),
+('20171027124054'),
+('20171027192753'),
+('20171102123227'),
+('20171108145620'),
+('20171108184341'),
+('20171115185203'),
+('20171121011445'),
+('20171204133242'),
+('20171204164243'),
+('20180203234329'),
+('20180211172808'),
+('20180226145540'),
+('20180301214751'),
+('20180403182327'),
+('20180410152130'),
+('20180413221626'),
+('20180416160927'),
+('20180416213522'),
+('20180419165841'),
+('20180504140026'),
+('20180511004923'),
+('20180521172429'),
+('20180521190108'),
+('20180530200118'),
+('20180601185917'),
+('20180612175806'),
+('20180613133940'),
+('20180627165639'),
+('20180629134948'),
+('20180629135738'),
+('20180629145712'),
+('20180710174713'),
+('20180716141934'),
+('20180716181011'),
+('20180722112728'),
+('20180801164521'),
+('20180810210623'),
+('20181001172617'),
+('20181012132645'),
+('20181024200910'),
+('20181024231159'),
+('20181025123951'),
+('20181025135153'),
+('20181030144345'),
+('20181030203357'),
+('20181031172440'),
+('20181105154441'),
+('20181128180134'),
+('20181211174411'),
+('20190129210815'),
+('20190327174142'),
+('20190327192234'),
+('20190417142558'),
+('20190717133521'),
+('20190717134445'),
+('20190717164100'),
+('20190717185326'),
+('20190801193258'),
+('20190802144446'),
+('20190802150742'),
+('20190813124815'),
+('20190821125609'),
+('20190828190416'),
+('20190911124324'),
+('20190916190551'),
+('20191008130933'),
+('20191008132105'),
+('20191008163710'),
+('20191011122814'),
+('20191012175639'),
+('20191012223328'),
+('20191014153813'),
+('20191015142006'),
+('20191017230529'),
+('20191021191814'),
+('20191021194633'),
+('20191022140448'),
+('20191022181527'),
+('20191104165453'),
+('20191104165454'),
+('20191104165455'),
+('20191104165456'),
+('20191104165457'),
+('20191104165458'),
+('20191105181656'),
+('20191115192256'),
+('20191124135043'),
+('20191124135304'),
+('20191227161954'),
+('20191230140045'),
+('20200104160008'),
+('20200207133048'),
+('20200212135100'),
+('20200212142604'),
+('20200212152652'),
+('20200217163759'),
+('20200217164324'),
+('20200219145902'),
+('20200325201541'),
+('20200327222948'),
+('20200328122429'),
+('20200330180135'),
+('20200401161139'),
+('20200402002149'),
+('20200410003006'),
+('20200612150045'),
+('20200709125338'),
+('20200716133200'),
+('20200720151331'),
+('20200720221319'),
+('20200724181711'),
+('20200728185654'),
+('20201105132926'),
+('20201216141634'),
+('20201217155258'),
+('20201221141550'),
+('20201221183603'),
+('20210105183208'),
+('20210203195412'),
+('20210205193320'),
+('20210206022724'),
+('20210301141302'),
+('20210315191809'),
+('20210315200648'),
+('20210317190501'),
+('20210317215206'),
+('20210402181911'),
+('20210419203457'),
+('20210506185609'),
+('20210506185752'),
+('20210507151459'),
+('20210518132857'),
+('20210607135335'),
+('20210616141644'),
+('20210616142134'),
+('20210617140852'),
+('20210618123018'),
+('20210622204223'),
+('20210719143827'),
+('20210819132153'),
+('20220127152605'),
+('20220216174239'),
+('20220309140327'),
+('20220314183405'),
+('20220518143528'),
+('20220609133835'),
+('20220613211706'),
+('20220613212850'),
+('20220615155458'),
+('20220621144511'),
+('20220714144937'),
+('20220822134957'),
+('20220914124822'),
+('20221028165550'),
+('20221101155734'),
+('20221101182012'),
+('20221102141424'),
+('20221103165106'),
+('20221103165625'),
+('20221130180430'),
+('20230130213746'),
+('20230130215326'),
+('20230217151359'),
+('20230217151360'),
+('20230217201904'),
+('20230223204644'),
+('20230227221846'),
+('20230313152950'),
+('20230321123918'),
+('20230322195141'),
+('20230322204908'),
+('20230328150855'),
+('20230329102609'),
+('20230329112926'),
+('20230329112954'),
+('20230330161305'),
+('20230412142430'),
+('20230418170053'),
 ('20230420195221'),
+('20230426170051'),
+('20230509131056'),
 ('20230511132156'),
 ('20230511152438'),
+('20230512175436'),
+('20230513203001'),
+('20230514123118'),
+('20230516131951'),
+('20230522111726'),
+('20230525153134'),
 ('20230623113136');
 
 
