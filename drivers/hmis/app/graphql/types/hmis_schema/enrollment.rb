@@ -116,7 +116,12 @@ module Types
     end
 
     def project
-      load_ar_association(object.in_progress? ? object.wip : object, :project)
+      if object.in_progress?
+        wip = load_ar_association(object, :wip)
+        load_ar_association(wip, :project)
+      else
+        load_ar_association(object, :project)
+      end
     end
 
     def exit_date
@@ -136,8 +141,16 @@ module Types
       Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(object)
     end
 
+    def client
+      load_ar_association(object, :client)
+    end
+
+    def household
+      load_ar_association(object, :household)
+    end
+
     def household_size
-      load_ar_association(object, :household)&.household_size
+      load_ar_association(household, :enrollments).size
     end
 
     def in_progress

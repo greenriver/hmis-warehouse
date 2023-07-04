@@ -138,11 +138,11 @@ module SystemPathways::ChartBase
       end
       # Include anyone who has more than one race listed, anded with any previous alternatives
       race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if race_filter.races.include?('MultiRacial')
+      race_scope = race_scope.where(id: multi_racial_clients(scope).select(:id)) if race_filter.races.include?('MultiRacial')
       scope.merge(race_scope)
     end
 
-    private def multi_racial_clients
+    private def multi_racial_clients(scope)
       # Looking at all races with responses of 1, where we have a sum > 1
       a_t = SystemPathways::Client.arel_table
       columns = [

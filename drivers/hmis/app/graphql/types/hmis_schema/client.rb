@@ -121,6 +121,7 @@ module Types
       can :view_any_confidential_client_files
     end
 
+    # FIXME: use graphql dataloader
     def external_ids
       object.external_identifiers
     end
@@ -178,16 +179,20 @@ module Types
     end
 
     def ssn
-      return object.ssn if current_user.can_view_full_ssn_for?(object)
-      return object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1') if current_user.can_view_partial_ssn_for?(object)
+      if current_permission?(permission: :can_view_full_ssn, entity: object)
+        object.ssn
+      elsif current_permission?(permission: :can_view_partial_ssn, entity: object)
+        object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1')
+      end
     end
 
     def dob
-      object.safe_dob(current_user)
+      object.dob if current_permission?(permission: :can_view_dob, entity: object)
     end
 
     def names
-      if object.names.empty?
+      names = load_ar_association(object, :names)
+      if names.empty?
         # If client has no CustomClientNames, construct one based on the HUD Client name fields
         return [
           object.names.new(
@@ -202,15 +207,23 @@ module Types
         ]
       end
 
-      object.names
+      names
+    end
+
+    def contact_points
+      load_ar_association(object, :contact_points)
     end
 
     def phone_numbers
-      object.contact_points.where(system: :phone)
+      load_ar_association(object, :contact_points).filter {|r| r.system == 'phone'}
     end
 
     def email_addresses
-      object.contact_points.where(system: :email)
+      load_ar_association(object, :contact_points).filter {|r| r.system == 'email'}
+    end
+
+    def addresses
+      load_ar_association(object, :addresses)
     end
 
     def resolve_audit_history
