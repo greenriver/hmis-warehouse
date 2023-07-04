@@ -1,6 +1,17 @@
 {
   "item": [
     {
+      "type": "DATE",
+      "link_id": "entry-date",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$entryDate"
+        }
+      ]
+    },
+    {
       "type": "STRING",
       "link_id": "hud-record-type",
       "hidden": true,
@@ -27,7 +38,7 @@
       "required": true,
       "link_id": "otherTypeProvided",
       "text": "Describe service",
-      "mapping": { "field_name": "otherTypeProvided" },
+      "field_name": "otherTypeProvided",
       "enable_behavior": "ANY",
       "enable_when": [
         {
@@ -47,7 +58,7 @@
       "required": true,
       "link_id": "movingOnOtherType",
       "text": "Describe service",
-      "mapping": { "field_name": "movingOnOtherType" },
+      "field_name": "movingOnOtherType",
       "enable_behavior": "ANY",
       "enable_when": [
         {
@@ -63,7 +74,7 @@
       "required": false,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_3",
-      "mapping": { "field_name": "subTypeProvided" },
+      "field_name": "subTypeProvided",
       "enable_behavior": "ANY",
       "enable_when": [
         {
@@ -79,7 +90,7 @@
       "required": false,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_4",
-      "mapping": { "field_name": "subTypeProvided" },
+      "field_name": "subTypeProvided",
       "enable_behavior": "ANY",
       "enable_when": [
         {
@@ -95,7 +106,7 @@
       "required": false,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_5",
-      "mapping": { "field_name": "subTypeProvided" },
+      "field_name": "subTypeProvided",
       "enable_behavior": "ANY",
       "enable_when": [
         {
@@ -106,11 +117,25 @@
       ]
     },
     {
+      "type": "DATE",
+      "link_id": "dateProvided",
+      "required": true,
+      "text": "Date Provided",
+      "field_name": "dateProvided",
+      "_DISABLED_bounds": [
+        {
+          "id": "min-start-date",
+          "type": "MIN",
+          "question": "entry-date"
+        }
+      ]
+    },
+    {
       "type": "CURRENCY",
       "required": false,
       "link_id": "faAmount",
       "text": "Financial Assistance",
-      "mapping": { "field_name": "faAmount" },
+      "field_name": "faAmount",
       "enable_behavior": "ANY",
       "service_detail_type": "CLIENT",
       "enable_when": [
@@ -137,7 +162,7 @@
       "required": false,
       "text": "Referral Outcome",
       "pick_list_reference": "PATHReferralOutcome",
-      "mapping": { "field_name": "referralOutcome" },
+      "field_name": "referralOutcome",
       "enable_behavior": "ANY",
       "enable_when": [
         {
@@ -146,13 +171,6 @@
           "answer_code": "PATH_REFERRAL"
         }
       ]
-    },
-    {
-      "type": "DATE",
-      "link_id": "dateProvided",
-      "required": true,
-      "text": "Date Provided",
-      "mapping": { "field_name": "dateProvided" }
     }
   ]
 }

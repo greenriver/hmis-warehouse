@@ -12,6 +12,7 @@
       "mapping": { "field_name": "operatingStartDate" },
       "bounds": [
         {
+          "id": "max-start-date",
           "type": "MAX",
           "question": "2.02.4"
         }
@@ -25,6 +26,7 @@
       "mapping": { "field_name": "operatingEndDate" },
       "bounds": [
         {
+          "id": "min-end-date",
           "type": "MIN",
           "question": "2.02.3"
         }
