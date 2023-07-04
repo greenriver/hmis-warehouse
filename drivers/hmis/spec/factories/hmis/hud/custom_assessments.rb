@@ -33,8 +33,12 @@ FactoryBot.define do
     DataCollectionStage { 1 }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    after(:create) do |assessment|
-      assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, values: {}, hud_values: {})
+    transient do
+      values {}
+      hud_values {}
+    end
+    after(:create) do |assessment, evaluator|
+      assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
       assessment.build_wip(
         enrollment: assessment.enrollment,
         client: assessment.enrollment.client,

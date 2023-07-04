@@ -54,7 +54,7 @@ module Types
     end
 
     def role
-      Hmis::Form::Definition.FORM_DATA_COLLECTION_STAGES[object.data_collection_stage]
+      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.invert[object.data_collection_stage]&.to_s
     end
 
     def definition_id
