@@ -88,6 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should update assessment successfully' do
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
+        # FIXME: form def should be required to pass every time, it oculd be different
         assessment_id: @assessment.id,
         values: { 'linkid-date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
@@ -179,8 +180,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # It is still WIP, and fields should NOT have been updated
         expect(record.in_progress?).to eq(true)
         expect(record.assessment_date).not_to eq(Date.parse(new_information_date))
-        expect(record.custom_form.values).not_to include(**input[:values])
-        expect(record.custom_form.hud_values).not_to include(**input[:hud_values])
+        expect(record.form_processor.wip_values).not_to include(**input[:values])
+        expect(record.form_processor.wip_hud_values).not_to include(**input[:hud_values])
       end
     end
   end

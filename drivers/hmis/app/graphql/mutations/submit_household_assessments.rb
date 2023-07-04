@@ -17,7 +17,7 @@ module Mutations
     def resolve(assessment_ids:, confirmed:, validate_only: false)
       assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
         where(id: assessment_ids).
-        preload(:enrollment, :custom_form)
+        preload(:enrollment, :form_processor)
 
       enrollments = assessments.map(&:enrollment)
 
@@ -71,14 +71,16 @@ module Mutations
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
-        form_validations = assessment.custom_form.collect_form_validations
+        definition = assessment.form_processor.definition
+        wip_values = assessment.form_processor.wip_values
+        form_validations = definition.validate_form_values(wip_values)
         errors.add_with_record_id(form_validations, assessment.id)
       end
 
       # Run form processor on each assessment to create/update related records
       assessments.each do |assessment|
         assessment.assign_attributes(user_id: hmis_user.user_id)
-        assessment.custom_form.form_processor.run!(owner: assessment, user: current_user)
+        assessment.form_processor.run!(owner: assessment, user: current_user)
       end
 
       # Collect validations (hmis_validate and AR validation)
@@ -86,8 +88,8 @@ module Mutations
       household_members = assessments.map(&:enrollment) # Enrollments with unsaved changes to Entry dates
       assessments.each do |assessment|
         all_valid = false unless assessment.valid?
-        all_valid = false unless assessment.custom_form.valid?
-        record_validations = assessment.custom_form.collect_record_validations(
+        all_valid = false unless assessment.form_processor.valid?
+        record_validations = assessment.form_processor.collect_record_validations(
           user: current_user,
           household_members: household_members,
         )
@@ -103,7 +105,7 @@ module Mutations
 
       unless all_valid
         assessments.each do |assessment|
-          errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+          errors.add_ar_errors(assessment.form_processor&.errors&.errors)
           errors.add_ar_errors(assessment.errors&.errors)
         end
         return { errors: errors }
@@ -112,10 +114,8 @@ module Mutations
       # Save all assessments and related records
       Hmis::Hud::CustomAssessment.transaction do
         assessments.each do |assessment|
-          # Empty values, they are not used once an assessment is submitted
-          assessment.custom_form.assign_attributes(values: nil, hud_values: nil)
-          # Save CustomForm to save related records
-          assessment.custom_form.save!
+          # Save FormProcessor to save related records
+          assessment.form_processor.save!
           # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
           assessment.enrollment.save!
           # Save the assessment as non-WIP

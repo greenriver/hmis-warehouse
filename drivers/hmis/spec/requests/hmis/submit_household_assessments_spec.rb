@@ -116,7 +116,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(@wip_assessment_ids.size).to eq(3)
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
-      Hmis::Hud::CustomAssessment.first.custom_form.update(values: incomplete_values)
+      Hmis::Hud::CustomAssessment.first.form_processor.update(wip_values: incomplete_values)
 
       input = {
         assessment_ids: @wip_assessment_ids,
@@ -138,7 +138,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(@wip_assessment_ids.size).to eq(3)
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
-      Hmis::Hud::CustomAssessment.last.custom_form.update(values: incomplete_values)
+      Hmis::Hud::CustomAssessment.last.form_processor.update(wip_values: incomplete_values)
 
       input = {
         assessment_ids: @wip_assessment_ids,
@@ -196,9 +196,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_ho_h: 1 }
     let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 8 }
     let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 8 }
-    let!(:a1) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e1, data_collection_stage: 1 }
-    let!(:a2) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e2, data_collection_stage: 1 }
-    let!(:a3) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e3, data_collection_stage: 1 }
+    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 1 }
+    let!(:a2) { create :hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 1 }
+    let!(:a3) { create :hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 1 }
     let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
     let(:input) do
       {
@@ -210,7 +210,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     before(:each) do
       [a1, a2, a3].each do |assessment|
         assessment.update(assessment_date: 1.week.ago)
-        assessment.custom_form.update(
+        assessment.form_processor.update(
           definition: definition,
           **build_minimum_values(definition, assessment_date: 1.week.ago.strftime('%Y-%m-%d')),
         )
@@ -230,7 +230,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should warn if HoH entry date is later than other members' do
       a1.update(assessment_date: 2.days.ago)
-      a1.custom_form.update(**build_minimum_values(definition, assessment_date: 2.days.ago.strftime('%Y-%m-%d')))
+      a1.form_processor.update(**build_minimum_values(definition, assessment_date: 2.days.ago.strftime('%Y-%m-%d')))
 
       response, result = post_graphql(input: input.merge(confirmed: false)) { mutation }
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
@@ -252,9 +252,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_ho_h: 1 }
     let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 8 }
     let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 8 }
-    let!(:a1) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e1, data_collection_stage: 3 }
-    let!(:a2) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e2, data_collection_stage: 3 }
-    let!(:a3) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e3, data_collection_stage: 3 }
+    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 3 }
+    let!(:a2) { create :hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 3 }
+    let!(:a3) { create :hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 3 }
     let(:definition) { Hmis::Form::Definition.find_by(role: :EXIT) }
     let(:input) do
       {
@@ -266,7 +266,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     before(:each) do
       [a1, a2, a3].each do |assessment|
         assessment.update(assessment_date: 2.days.ago)
-        assessment.custom_form.update(
+        assessment.form_processor.update(
           definition: definition,
           **build_minimum_values(definition, assessment_date: 2.days.ago.strftime('%Y-%m-%d')),
         )
@@ -286,7 +286,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should warn if HoH exit date is earlier than other members' do
       a1.update(assessment_date: 1.week.ago)
-      a1.custom_form.update(**build_minimum_values(definition, assessment_date: 1.week.ago.strftime('%Y-%m-%d')))
+      a1.form_processor.update(**build_minimum_values(definition, assessment_date: 1.week.ago.strftime('%Y-%m-%d')))
 
       response, result = post_graphql(input: input.merge(confirmed: false)) { mutation }
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')

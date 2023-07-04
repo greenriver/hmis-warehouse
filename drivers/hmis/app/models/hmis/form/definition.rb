@@ -11,7 +11,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   include Hmis::Hud::Concerns::HasEnums
 
   has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier
-  has_many :custom_forms
+  has_many :form_processors
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
   FORM_ROLES = {

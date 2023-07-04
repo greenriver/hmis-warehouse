@@ -10,6 +10,7 @@ module Types
   class HmisSchema::AssessmentInput < Types::BaseInputObject
     argument :assessment_id, ID, 'Required if updating an existing assessment', required: false
     argument :enrollment_id, ID, 'Required if saving a new assessment', required: false
+    # FIXME
     argument :form_definition_id, ID, 'Required if saving a new assessment', required: false
     argument :values, Types::JsonObject, 'Raw form state as JSON', required: false
     argument :hud_values, Types::JsonObject, 'Transformed HUD values as JSON', required: false
@@ -43,12 +44,13 @@ module Types
         return [nil, errors.errors] if errors.any?
       end
 
-      # Create new Assessment (and CustomForm) if one doesn't exist already
+      # Create new Assessment (and FormProcessor) if one doesn't exist already
       assessment ||= Hmis::Hud::CustomAssessment.new_with_defaults(
         enrollment: enrollment,
         user: Hmis::Hud::User.from_user(current_user),
         form_definition: form_definition,
       )
+      # assessment.reload
 
       [assessment, []]
     end

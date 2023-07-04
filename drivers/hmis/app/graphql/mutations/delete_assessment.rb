@@ -15,7 +15,7 @@ module Mutations
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
       record.transaction do
-        role = record.custom_form.definition.role
+        role = record.form_processor&.definition&.role
         is_wip = record.in_progress?
 
         result = default_delete_record(

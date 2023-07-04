@@ -47,28 +47,28 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Update values
-      assessment.custom_form.assign_attributes(
-        values: input.values,
-        hud_values: input.hud_values,
+      assessment.form_processor.assign_attributes(
+        wip_values: input.values,
+        wip_hud_values: input.hud_values,
       )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
-        assessment_date: assessment.custom_form.find_assessment_date_from_values,
+        assessment_date: assessment.form_processor.find_assessment_date_from_values,
       )
 
       # Validate form values based on FormDefinition
-      form_validations = assessment.custom_form.collect_form_validations
+      form_validations = assessment.form_processor.definition.validate_form_values(input.values)
       errors.push(*form_validations)
 
       # Run processor to create/update related records
-      assessment.custom_form.form_processor.run!(owner: assessment, user: current_user)
+      assessment.form_processor.run!(owner: assessment, user: current_user)
 
       # Run both validations
       is_valid = assessment.valid?
-      is_valid = assessment.custom_form.valid? && is_valid
+      is_valid = assessment.form_processor.valid? && is_valid
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = assessment.custom_form.collect_record_validations(user: current_user)
+      record_validations = assessment.form_processor.collect_record_validations(user: current_user)
       errors.push(*record_validations)
 
       errors.drop_warnings! if input.confirmed
@@ -78,10 +78,8 @@ module Mutations
       return { assessments: assessments, errors: [] } if input.validate_only
 
       if is_valid
-        # Empty values, they are not used once an assessment is submitted
-        assessment.custom_form.assign_attributes(values: nil, hud_values: nil)
-        # Save CustomForm to save related records
-        assessment.custom_form.save!
+        # Save FormProcessor to save related records
+        assessment.form_processor.save!
         # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
         assessment.enrollment.save!
         # Save the assessment as non-WIP
@@ -93,7 +91,7 @@ module Mutations
       else
         # These are potentially unfixable errors. Maybe should be server error instead.
         # For now, return them all because they are useful in development.
-        errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+        errors.add_ar_errors(assessment.form_processor&.errors&.errors)
         errors.add_ar_errors(assessment.errors&.errors)
         assessment = nil
       end

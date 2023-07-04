@@ -25,16 +25,6 @@ module FormHelpers
     }
   end
 
-  def custom_form_attributes(role, assessment_date)
-    definition = Hmis::Form::Definition.find_by(role: role)
-    raise "No definition for role #{role}" unless definition.present?
-
-    {
-      definition: definition,
-      **build_minimum_values(definition, assessment_date: assessment_date),
-    }
-  end
-
   def find_required_item(definition)
     definition.link_id_item_hash.find { |_link_id, item| item.required && item.mapping&.field_name&.present? }&.last
   end

@@ -49,19 +49,21 @@ module Types
     def wip_values
       return unless object.in_progress?
 
-      load_ar_association(object, :custom_form)&.values
+      load_ar_association(object, :form_processor)&.wip_values
     end
 
     def role
-      load_ar_association(object, :definition)&.role
+      form_processor = load_ar_association(object, :form_processor)
+      load_ar_association(form_processor, :definition)&.role
     end
 
     def definition_id
-      load_ar_association(object, :custom_form)&.definition_id
+      load_ar_association(object, :form_processor)&.definition_id
     end
 
     def definition
-      definition_json = load_ar_association(object, :definition)&.definition
+      form_processor = load_ar_association(object, :form_processor)
+      definition_json = load_ar_association(form_processor, :definition)&.definition
       return unless definition_json.present?
 
       JSON.parse(definition_json)
@@ -72,19 +74,28 @@ module Types
     end
 
     def income_benefit
-      object.custom_form&.form_processor&.income_benefit
+      form_processor = load_ar_association(object, :form_processor)
+      return unless form_processor.present?
+
+      load_ar_association(form_processor, :income_benefit)
     end
 
     def health_and_dv
-      object.custom_form&.form_processor&.health_and_dv
+      form_processor = load_ar_association(object, :form_processor)
+      return unless form_processor.present?
+
+      load_ar_association(form_processor, :health_and_dv)
     end
 
     def exit
-      object.custom_form&.form_processor&.exit
+      form_processor = load_ar_association(object, :form_processor)
+      return unless form_processor.present?
+
+      load_ar_association(form_processor, :exit)
     end
 
     def disability_group
-      form_processor = object.custom_form&.form_processor
+      form_processor = load_ar_association(object, :form_processor)
       return unless form_processor.present?
 
       # Construct AR scope if Disability records to use for the group
@@ -110,10 +121,6 @@ module Types
 
     def enrollment
       load_ar_association(object, :enrollment)
-    end
-
-    def custom_form
-      load_ar_association(object, :custom_form)
     end
 
     def user

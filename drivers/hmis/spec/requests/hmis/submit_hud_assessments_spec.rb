@@ -98,7 +98,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expected_exit_date = Date.parse(expected_exit_date) if expected_exit_date.is_a?(String)
 
     expect(assessment).to be_present
-    expect(assessment.custom_form.form_processor).to be_present
+    expect(assessment.form_processor).to be_present
     expect(assessment.assessment_date).to eq(expected_assessment_date)
     expect(assessment.enrollment.entry_date).to eq(expected_entry_date) if expected_entry_date.present?
     expect(assessment.enrollment.exit&.exit_date).to eq(expected_exit_date) if expected_exit_date.present?
