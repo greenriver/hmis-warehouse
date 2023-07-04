@@ -116,7 +116,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(@wip_assessment_ids.size).to eq(3)
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
-      Hmis::Hud::CustomAssessment.first.form_processor.update(wip_values: incomplete_values)
+      Hmis::Hud::CustomAssessment.first.form_processor.update(values: incomplete_values)
 
       input = {
         assessment_ids: @wip_assessment_ids,
@@ -138,7 +138,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(@wip_assessment_ids.size).to eq(3)
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
-      Hmis::Hud::CustomAssessment.last.form_processor.update(wip_values: incomplete_values)
+      Hmis::Hud::CustomAssessment.last.form_processor.update(values: incomplete_values)
 
       input = {
         assessment_ids: @wip_assessment_ids,

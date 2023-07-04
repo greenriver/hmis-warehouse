@@ -74,8 +74,8 @@ module Mutations
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
         definition = assessment.form_processor.definition
-        wip_values = assessment.form_processor.wip_values
-        form_validations = definition.validate_form_values(wip_values)
+        values = assessment.form_processor.values
+        form_validations = definition.validate_form_values(values)
         errors.add_with_record_id(form_validations, assessment.id)
       end
 

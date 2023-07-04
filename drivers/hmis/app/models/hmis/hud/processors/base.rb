@@ -10,7 +10,7 @@ class Hmis::Hud::Processors::Base
 
   def initialize(processor)
     @processor = processor
-    @hud_values = processor.wip_hud_values
+    @hud_values = processor.hud_values
   end
 
   def process(field, value)

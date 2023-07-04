@@ -34,7 +34,7 @@ FactoryBot.define do
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
     after(:create) do |assessment|
-      assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, wip_values: {}, wip_hud_values: {})
+      assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, values: {}, hud_values: {})
       assessment.build_wip(
         enrollment: assessment.enrollment,
         client: assessment.enrollment.client,

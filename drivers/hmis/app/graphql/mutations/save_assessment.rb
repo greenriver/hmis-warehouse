@@ -18,8 +18,8 @@ module Mutations
 
       # Update values
       assessment.form_processor.assign_attributes(
-        wip_values: input.values,
-        wip_hud_values: input.hud_values,
+        values: input.values,
+        hud_values: input.hud_values,
       )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,

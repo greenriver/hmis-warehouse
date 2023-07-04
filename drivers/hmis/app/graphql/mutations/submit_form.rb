@@ -42,8 +42,8 @@ module Mutations
       # It wont be persisted, but it handles validation and updating the relevant record(s)
       form_processor = Hmis::Form::FormProcessor.new(
         definition: definition,
-        wip_values: input.values,
-        wip_hud_values: input.hud_values,
+        values: input.values,
+        hud_values: input.hud_values,
       )
 
       # Validate based on FormDefinition

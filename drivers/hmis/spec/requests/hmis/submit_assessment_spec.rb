@@ -158,8 +158,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         a1_wip.reload
         expect(a1_wip.in_progress?).to eq(true)
         expect(a1_wip.assessment_date).not_to eq(Date.parse(new_information_date))
-        expect(a1_wip.form_processor.wip_values).not_to include(**input[:values])
-        expect(a1_wip.form_processor.wip_hud_values).not_to include(**input[:hud_values])
+        expect(a1_wip.form_processor.values).not_to include(**input[:values])
+        expect(a1_wip.form_processor.hud_values).not_to include(**input[:hud_values])
       end
     end
   end

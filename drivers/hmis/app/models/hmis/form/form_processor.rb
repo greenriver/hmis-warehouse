@@ -7,10 +7,6 @@
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
 
-  # values (only if wip)
-  # wip_hud_values (only if wip)
-  # definition_id (form used to save this assmt, most recently)
-
   # The assessment that was processed with this processor.
   # If processor is being used as in-memory processor for records, this will be empty.
   belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment', optional: false
@@ -33,17 +29,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :current_living_situation, class_name: 'Hmis::Hud::CurrentLivingSituation', optional: true, autosave: true
 
   validate :hmis_records_are_valid
-  alias_attribute :values, :wip_values
-  alias_attribute :hud_values, :wip_hud_values
 
   attr_accessor :owner, :hud_user, :current_user
 
   # Pull out the Assessment Date from the values hash
   def find_assessment_date_from_values
     item = definition&.assessment_date_item
-    return nil unless item.present? && wip_values.present?
+    return nil unless item.present? && values.present?
 
-    date_string = wip_values[item.link_id]
+    date_string = values[item.link_id]
     return nil unless date_string.present?
 
     HmisUtil::Dates.safe_parse_date(date_string: date_string)
@@ -56,10 +50,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     self.current_user = user
     self.hud_user = Hmis::Hud::User.from_user(user)
 
-    return unless wip_hud_values.present?
+    return unless hud_values.present?
 
     # Iterate through each hud_value, processing field-by-field
-    wip_hud_values.each do |key, value|
+    hud_values.each do |key, value|
       container, field = parse_key(key)
       # If this key can be identified as a CustomDataElement, set it and continue
       next if container_processor(container)&.process_custom_field(field, value)
@@ -73,7 +67,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     # Iterate through each used processor to apply metadata and information dates
-    relevant_container_names = wip_hud_values.keys.map { |k| parse_key(k)&.first }.compact.uniq
+    relevant_container_names = hud_values.keys.map { |k| parse_key(k)&.first }.compact.uniq
     relevant_container_names.each do |container|
       container_processor(container)&.assign_metadata
       container_processor(container)&.information_date(custom_assessment.assessment_date) if custom_assessment.present?

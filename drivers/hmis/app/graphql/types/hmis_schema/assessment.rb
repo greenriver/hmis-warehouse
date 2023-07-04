@@ -49,7 +49,7 @@ module Types
     def wip_values
       return unless object.in_progress?
 
-      load_ar_association(object, :form_processor)&.wip_values
+      load_ar_association(object, :form_processor)&.values
     end
 
     def role
