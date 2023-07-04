@@ -520,7 +520,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'creates and updates all fields' do
       existing_enrollment = e1
       existing_enrollment.update(entry_date: 1.month.ago, relationship_to_hoh: 99)
-      new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds, user: hmis_hud_user, client: c1, project: p1)
+      new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, client: c1, project: p1)
       [existing_enrollment, new_enrollment].each do |enrollment|
         custom_form = Hmis::Form::CustomForm.new(owner: enrollment, definition: definition)
         custom_form.hud_values = complete_hud_values
