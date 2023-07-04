@@ -43,6 +43,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
   has_many :custom_data_elements, as: :owner
+  has_many :client_projects
+  has_many :projects_including_wip, through: :client_projects, source: :project
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
@@ -151,14 +153,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
 
     Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
-  end
-
-  # All Projects that this Client has Enrollments at, including WIP Enrollments
-  def projects_including_wip
-    wip_enrollment_projects = Hmis::Wip.enrollments.where(client: self).pluck(:project_id).compact
-    non_wip_enrollment_projects = projects.pluck(:id)
-
-    Hmis::Hud::Project.where(id: wip_enrollment_projects + non_wip_enrollment_projects)
   end
 
   def enrolled?
@@ -356,12 +350,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
-  end
-
-  def safe_dob(user)
-    return nil unless user.present?
-
-    dob if user.can_view_dob_for?(self)
   end
 
   def image

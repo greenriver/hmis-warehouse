@@ -11,16 +11,16 @@ module Hmis
     belongs_to :access_group, class_name: '::Hmis::AccessGroup', inverse_of: :group_viewable_entities
     belongs_to :entity, polymorphic: true
 
+    has_many :group_viewable_entity_projects
+    has_many :projects, through: :group_viewable_entity_projects, source: :project
+
     scope :projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
     scope :organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
     scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }
     scope :project_access_groups, -> { where(entity_type: GrdaWarehouse::ProjectAccessGroup.sti_name) }
 
     scope :includes_project, ->(project) do
-      where(entity_type: project.class.sti_name, entity_id: project.id).
-        or(includes_data_source(project.data_source)).
-        or(includes_organization(project.organization)).
-        or(includes_project_access_groups(project.project_groups))
+      joins(:projects).where(project: project)
     end
 
     scope :includes_project_access_group, ->(pag) do
