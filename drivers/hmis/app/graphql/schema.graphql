@@ -352,6 +352,11 @@ type AutofillValue {
   Value to autofill if condition is met
   """
   valueNumber: Int
+
+  """
+  Link ID whos value to autofill if condition is met
+  """
+  valueQuestion: String
 }
 
 """
@@ -948,6 +953,11 @@ enum Component {
   Specialized component for rendering disabilities in a table
   """
   DISABILITY_TABLE
+
+  """
+  Render a choice input item as a dropdown
+  """
+  DROPDOWN
 
   """
   Email address input for ContactPoint
@@ -7366,7 +7376,7 @@ type ValueBound {
   """
   Unique identifier for this bound
   """
-  id: String
+  id: String!
 
   """
   Value to offset the comparison value. Can be positive or negative. If date, offset is applied as number of days.

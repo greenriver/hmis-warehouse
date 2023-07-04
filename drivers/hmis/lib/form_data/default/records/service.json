@@ -1,6 +1,17 @@
 {
   "item": [
     {
+      "type": "DATE",
+      "link_id": "entry-date",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$entryDate"
+        }
+      ]
+    },
+    {
       "type": "STRING",
       "link_id": "hud-record-type",
       "hidden": true,
@@ -106,6 +117,20 @@
       ]
     },
     {
+      "type": "DATE",
+      "link_id": "dateProvided",
+      "required": true,
+      "text": "Date Provided",
+      "field_name": "dateProvided",
+      "_DISABLED_bounds": [
+        {
+          "id": "min-start-date",
+          "type": "MIN",
+          "question": "entry-date"
+        }
+      ]
+    },
+    {
       "type": "CURRENCY",
       "required": false,
       "link_id": "faAmount",
@@ -146,13 +171,6 @@
           "answer_code": "PATH_REFERRAL"
         }
       ]
-    },
-    {
-      "type": "DATE",
-      "link_id": "dateProvided",
-      "required": true,
-      "text": "Date Provided",
-      "field_name": "dateProvided"
     }
   ]
 }
