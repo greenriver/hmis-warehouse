@@ -196,14 +196,14 @@ input AssessmentInput {
   enrollmentId: ID
 
   """
-  Required if saving a new assessment
+  Form Definition that was used to perform this assessment
   """
-  formDefinitionId: ID
+  formDefinitionId: ID!
 
   """
   Transformed HUD values as JSON
   """
-  hudValues: JsonObject
+  hudValues: JsonObject!
 
   """
   Validate assessment but don't submit it
@@ -213,7 +213,7 @@ input AssessmentInput {
   """
   Raw form state as JSON
   """
-  values: JsonObject
+  values: JsonObject!
 }
 
 """
