@@ -14989,11 +14989,11 @@ CREATE TABLE public.hmis_form_processors (
     exit_id bigint,
     custom_assessment_id integer NOT NULL,
     definition_id integer,
-    wip_values jsonb,
+    "values" jsonb,
+    hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer,
-    wip_hud_values jsonb
+    current_living_situation_id integer
 );
 
 
@@ -50611,7 +50611,7 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -53610,7 +53610,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230623200215'),
 ('20230626005404'),
 ('20230626012029'),
-('20230630203515'),
-('20230630210050');
+('20230630203515');
 
 
