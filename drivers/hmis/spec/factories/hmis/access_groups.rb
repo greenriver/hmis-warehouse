@@ -16,11 +16,17 @@ FactoryBot.define do
     name { 'Test Role' }
   end
 
-  factory :view_access_group, class: 'Hmis::AccessGroup' do
+  factory :hmis_access_group, class: 'Hmis::AccessGroup' do
     sequence(:name) { |n| "Group #{n}" }
   end
 
-  factory :edit_access_group, class: 'Hmis::AccessGroup' do
-    sequence(:name) { |n| "Group #{n}" }
+  factory :hmis_access_control, class: 'Hmis::AccessControl' do
+    role { association :hmis_role }
+    access_group { association :hmis_access_group }
+  end
+
+  factory :hmis_user_access_control, class: 'Hmis::UserAccessControl' do
+    user { association :hmis_user }
+    access_control { association :hmis_access_control }
   end
 end

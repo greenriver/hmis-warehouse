@@ -12,23 +12,20 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def units_field(name = :units, description = nil, **override_options, &block)
+        def units_field(name = :units, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = { type: HmisSchema::Unit.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
-            argument :active, GraphQL::Types::Boolean, required: false
-            argument :occupied, GraphQL::Types::Boolean, required: false
+            filters_argument HmisSchema::Unit, **filter_args
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_units(scope = object.units, active: nil, occupied: nil)
-        scope = scope.order(created_at: :desc, name: :asc)
-        scope = scope.active if active == true
-        scope = scope.inactive if active == false
-        scope = scope.occupied_on(Date.current) if occupied
-        scope
+      def resolve_units(scope = object.units, filters: nil)
+        scope = scope.active
+        scope = scope.apply_filters(filters) if filters.present?
+        scope.order(created_at: :desc)
       end
     end
   end

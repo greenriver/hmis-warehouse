@@ -17,6 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
   let!(:fd1) { create :hmis_form_definition }
@@ -24,7 +25,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
   let(:test_assessment_date) { 1.week.ago.strftime('%Y-%m-%d') }
@@ -202,7 +202,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     before(:each) { e1_exit.update(exit_date: 3.days.ago) }
 
     it 'should error if assessment doesn\'t exist' do
-      expect { post_graphql(input: { input: test_input.merge(assessment_id: '999') }) { mutation } }.to raise_error(HmisErrors::ApiError)
+      expect_gql_error post_graphql(input: { input: test_input.merge(assessment_id: '999') }) { mutation }
     end
 
     [
