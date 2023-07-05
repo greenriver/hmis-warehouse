@@ -82,7 +82,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
-    case owner
+    @enrollment_factory ||= case owner
     when Hmis::Hud::CustomAssessment
       owner.enrollment
     when Hmis::Hud::Enrollment
