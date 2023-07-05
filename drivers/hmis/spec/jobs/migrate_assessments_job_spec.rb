@@ -35,6 +35,7 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         records << create(:hmis_health_and_dv, **shared_attributes)
         records << create(:hmis_youth_education_status, **shared_attributes)
         records << create(:hmis_employment_education, **shared_attributes)
+        records << create(:hmis_enrollment_coc, **shared_attributes)
         HudLists.disability_type_map.keys.each do |typ|
           records << create(:hmis_disability, disability_type: typ, **shared_attributes)
         end
@@ -51,9 +52,9 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
     end
 
     describe 'happy path' do
-      before { Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id) }
-
       it 'creates new assessments correctly when all records are available' do
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+
         expect(e1.custom_assessments.count).to eq(3)
         expect(e1.custom_assessments.map(&:data_collection_stage).sort).to eq([1, 2, 3])
         [1, 2, 3].each do |dcs|
@@ -79,28 +80,34 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
             assessment.send(rec)
           end.uniq.compact
 
-          expect(related_records.size).to eq(expected_records.size)
-          expect(related_records.uniq.compact).to include(*expected_records)
+          expect(related_records.size).to eq(expected_records.size), "Data collection stage #{dcs}"
+          expect(related_records).to include(*expected_records), "Data collection stage #{dcs}"
         end
       end
-    end
 
-    it 'does nothing if assessment exists' do
-    end
+      it 'does nothing if assessment exists' do
+        entry_assessment = create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: 1.month.ago, enrollment: e1, data_source: ds1, client: c1)
+        old_form_processor = entry_assessment.form_processor
+        expect(e1.custom_assessments.count).to eq(1)
 
-    it 'exit records' do
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+
+        expect(e1.custom_assessments.count).to eq(3)
+        expect(e1.custom_assessments).to include(entry_assessment)
+        expect(e1.custom_assessments.intakes.first.form_processor).to eq(old_form_processor)
+      end
     end
 
     describe 'bad data' do
       # Not handled yet, job should probably be made more robust in dealing with bad data
-      # it 'doesnt create a second intake assessment' do
-      #   # Create a second IncomeBenefit record at Entry that has a different information date
-      #   create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 1, information_date: 1.week.ago)
+      xit 'doesnt create a second intake assessment' do
+        # Create a second IncomeBenefit record at Entry that has a different information date
+        create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 1, information_date: 1.week.ago)
 
-      #   Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
 
-      #   expect(e1.custom_assessments.intakes.count).to eq(1)
-      # end
+        expect(e1.custom_assessments.intakes.count).to eq(1)
+      end
     end
   end
 end
