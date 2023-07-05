@@ -32,9 +32,19 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
   has_one :definition, through: :form_processor
-  has_one :income_benefit, through: :form_processor
   has_one :health_and_dv, through: :form_processor
+  has_one :income_benefit, through: :form_processor
+  has_one :enrollment_coc, through: :form_processor
+  has_one :physical_disability, through: :form_processor
+  has_one :developmental_disability, through: :form_processor
+  has_one :chronic_health_condition, through: :form_processor
+  has_one :hiv_aids, through: :form_processor
+  has_one :mental_health_disorder, through: :form_processor
+  has_one :substance_use_disorder, through: :form_processor
   has_one :exit, through: :form_processor
+  has_one :youth_education_status, through: :form_processor
+  has_one :employment_education, through: :form_processor
+  has_one :current_living_situation, through: :form_processor
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 

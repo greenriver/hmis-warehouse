@@ -38,11 +38,11 @@ module Types
     field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
     field :exit, Types::HmisSchema::Exit, null: true
     field :disability_group, Types::HmisSchema::DisabilityGroup, null: true
-    # TODO add youth edu status and others
+    field :youth_education_status, Types::HmisSchema::YouthEducationStatus, null: true
+    field :employment_education, Types::HmisSchema::EmploymentEducation, null: true
     custom_data_elements_field
 
     field :role, Types::Forms::Enums::AssessmentRole, null: false
-
     field :definition_id, ID, null: false
     field :definition, Forms::FormDefinitionJson, null: false
     field :wip_values, JsonObject, null: true
