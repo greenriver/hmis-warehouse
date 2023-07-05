@@ -23,7 +23,7 @@ module Hmis
 
       key_fields = [:enrollment_id, :personal_id, :data_collection_stage, :information_date]
 
-      scope.in_batches(of: 5_000) do |enrollment_batch|
+      scope.in_batches(of: 10_000) do |enrollment_batch|
         # Build scope of assessments that already exist for this set of enrollments
         keys_matching_existing_assessments = Hmis::Hud::CustomAssessment.joins(:enrollment).
           merge(enrollment_batch).
