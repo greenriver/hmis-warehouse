@@ -33,6 +33,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT_COC: 'Project CoC',
     FILE: 'File',
     REFERRAL_REQUEST: 'Referral Request',
+    ENROLLMENT: 'Enrollment',
   }.freeze
 
   validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
@@ -56,6 +57,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: :can_manage_incoming_referrals,
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
+    ENROLLMENT: { class_name: 'Hmis::Hud::Enrollment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Enrollment' },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {

@@ -215,5 +215,15 @@ module FormHelpers
         'expirationDate' => nil,
       },
     },
+    ENROLLMENT: {
+      values: {
+        'entry-date' => Date.yesterday.strftime('%Y-%m-%d'),
+        'relationship-to-hoh' => 'SELF_HEAD_OF_HOUSEHOLD',
+      },
+      hud_values: {
+        'entryDate' => Date.yesterday.strftime('%Y-%m-%d'),
+        'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+      },
+    },
   }.freeze
 end
