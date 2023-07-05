@@ -1,0 +1,11 @@
+wb = xlsx_package.workbook
+@sheets.each do |title, (metadata, data)|
+  wb.add_worksheet name: title do |sheet|
+    title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+    sheet.add_row(metadata.values, style: title_style)
+
+    data.each do |row|
+      sheet.add_row(metadata.keys.map { |column| row[column] })
+    end
+  end
+end

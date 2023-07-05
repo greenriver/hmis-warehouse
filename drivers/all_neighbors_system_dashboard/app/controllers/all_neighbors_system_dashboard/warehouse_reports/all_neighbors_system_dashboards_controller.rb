@@ -49,6 +49,7 @@ module AllNeighborsSystemDashboard::WarehouseReports
       respond_to do |format|
         # format.html {}
         format.xlsx do
+          @sheets = @report.sheets
           filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end

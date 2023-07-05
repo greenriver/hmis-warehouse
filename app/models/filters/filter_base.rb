@@ -75,6 +75,7 @@ module Filters
     attribute :lsa_scope, Integer, default: nil
     attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
+    attribute :secondary_project_ids, Array, default: []
 
     validates_presence_of :start, :end
 
@@ -157,6 +158,7 @@ module Filters
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
+      self.secondary_project_ids = filters.dig(:secondary_project_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_ids
 
       ensure_dates_work if valid?
       self
@@ -218,6 +220,7 @@ module Filters
           creator_id: creator_id,
           inactivity_days: inactivity_days,
           lsa_scope: lsa_scope,
+          secondary_project_ids: secondary_project_ids,
         },
       }
     end
@@ -283,6 +286,7 @@ module Filters
         prior_living_situation_ids: [],
         length_of_times: [],
         times_homeless_in_last_three_years: [],
+        secondary_project_ids: [],
       ]
     end
 
@@ -290,7 +294,7 @@ module Filters
       known_params.map { |k| if k.is_a?(Hash) then k.keys else k end }.flatten
     end
 
-    def selected_params_for_display(single_date: false)
+    def selected_params_for_display(single_date: false, secondary_projects_label: 'Secondary Projects')
       {}.tap do |opts|
         if single_date
           opts['On Date'] = on
@@ -304,7 +308,7 @@ module Filters
         opts['Sub-Population'] = chosen_sub_population
         opts['Data Sources'] = data_source_names if data_source_ids.any?
         opts['Organizations'] = organization_names if organization_ids.any?
-        opts['Projects'] = project_names if project_ids.any?
+        opts['Projects'] = project_names(project_ids) if project_ids.any?
         opts['Project Groups'] = project_groups if project_group_ids.any?
         opts['Funders'] = funder_names if funder_ids.any?
         opts['Heads of Household only?'] = 'Yes' if hoh_only
@@ -335,6 +339,7 @@ module Filters
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
         opts['Require Service During Range'] = 'Yes' if require_service_during_range
+        opts[secondary_projects_label] = project_names(secondary_project_ids) if secondary_project_ids.any?
       end
     end
 
@@ -496,6 +501,10 @@ module Filters
 
     def project_ids
       @project_ids.reject(&:blank?)
+    end
+
+    def secondary_project_ids
+      @secondary_project_ids.reject(&:blank?)
     end
 
     def coc_codes
@@ -880,8 +889,8 @@ module Filters
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
-    def describe_filter_as_html(keys = nil, limited: true, inline: false)
-      describe_filter(keys).uniq.map do |(k, v)|
+    def describe_filter_as_html(keys = nil, limited: true, inline: false, secondary_projects_label: 'Secondary Projects')
+      describe_filter(keys, secondary_projects_label: secondary_projects_label).uniq.map do |(k, v)|
         wrapper_classes = ['report-parameters__parameter']
         label_text = k
         if inline
@@ -905,7 +914,7 @@ module Filters
       end.join.html_safe
     end
 
-    def describe_filter(keys = nil)
+    def describe_filter(keys = nil, secondary_projects_label: 'Secondary Projects')
       [].tap do |descriptions|
         # only show "on" if explicitly chosen
         display_keys = for_params[:filters]
@@ -913,12 +922,12 @@ module Filters
         display_keys.each_key do |key|
           next if keys.present? && ! keys.include?(key)
 
-          descriptions << describe(key)
+          descriptions << describe(key, secondary_projects_label: secondary_projects_label)
         end
       end.compact
     end
 
-    def describe(key, value = chosen(key))
+    def describe(key, value = chosen(key), secondary_projects_label: 'Secondary Projects')
       title = case key
       when :start
         'Report Range'
@@ -997,6 +1006,8 @@ module Filters
         'Chronic at Entry'
       when :involves_ce
         'Participated in CE'
+      when :secondary_project_ids
+        secondary_projects_label
       else
         key.to_s.titleize
       end
@@ -1261,12 +1272,12 @@ module Filters
         end&.map(&:first)
     end
 
-    def project_names
+    def project_names(ids = project_ids)
       project_options_for_select(user: user).
         values.
         flatten(1).
         select do |_, id|
-          project_ids.include?(id)
+          ids.include?(id)
         end&.map(&:first)
     end
 
