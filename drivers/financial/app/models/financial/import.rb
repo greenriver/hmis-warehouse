@@ -7,10 +7,10 @@
 require 'zip'
 
 # Setup notes:
-# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::Import.import_prefix}/", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::Import', user: User.system_user, import_hour: 6)
-# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::TransactionImport.import_prefix}/", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::TransactionImport', user: User.system_user, import_hour: 7)
-# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::ClientImport.import_prefix}/" data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::ClientImport', user: User.system_user, import_hour: 7)
-# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::ProviderImport.import_prefix}/", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::ProviderImport', user: User.system_user, import_hour: 7)
+# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::Import.import_prefix}/", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::Import', user: User.system_user, import_hour: 6, s3_access_key_id: 'local_access_key', s3_secret_access_key: 'local_secret_key')
+# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::TransactionImport.import_prefix}/", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::TransactionImport', user: User.system_user, import_hour: 7, s3_access_key_id: 'local_access_key', s3_secret_access_key: 'local_secret_key')
+# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::ClientImport.import_prefix}/", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::ClientImport', user: User.system_user, import_hour: 7, s3_access_key_id: 'local_access_key', s3_secret_access_key: 'local_secret_key')
+# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::ProviderImport.import_prefix}/", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::ProviderImport', user: User.system_user, import_hour: 7, s3_access_key_id: 'local_access_key', s3_secret_access_key: 'local_secret_key')
 module Financial
   class Import < ::GrdaWarehouse::CustomImports::ImportFile
     def self.description
@@ -60,7 +60,7 @@ module Financial
 
         update(
           file: file,
-          contents: File.read(target_path),
+          content: File.read(target_path),
           content_type: content_type,
           status: 'loading',
         )
@@ -71,9 +71,10 @@ module Financial
             local_csv_file = File.join([extract_path, csv_name])
             raise "Missing expected file #{csv_name}" unless File.exist?(local_csv_file)
 
-            csv_config = config.class.active.find_by(import_type: klass)
+            self.summary << csv_name # rubocop:disable Style/RedundantSelf
+            csv_config = config.class.active.find_by(import_type: klass.name)
             destination = "#{csv_config.s3_prefix}/#{Time.current.to_s(:db)}-#{csv_name}"
-            csv_config.s3.store(content: File.read(local_csv_file), name: destination)
+            csv_config.s3.store(content: StringIO.new(File.read(local_csv_file)), name: destination)
           end
         end
       end
@@ -81,7 +82,7 @@ module Financial
 
     private def expand(file_path:, extract_path:)
       Rails.logger.info "Expanding #{file_path}"
-      ZipFile.open(file_path) do |zipped_file|
+      Zip::File.open(file_path) do |zipped_file|
         zipped_file.each do |entry|
           Rails.logger.info entry.name
           entry.extract([extract_path, File.basename(entry.name)].join('/'))

@@ -6,5 +6,8 @@
 
 module Financial
   class ClientImport < ::GrdaWarehouse::CustomImports::ImportFile
+    def self.import_prefix
+      'client'
+    end
   end
 end

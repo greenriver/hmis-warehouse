@@ -1,0 +1,2 @@
+transaction_status    ,transaction_date ,paid_date  ,transaction_id ,client_id ,provider_id ,created_at          ,updated_at          ,deleted_at
+Payment Info Received ,2023/06/19       ,2023/06/19 ,             1 ,        1 ,          1 ,2023-06-19 21:50:00 ,2023-06-19 21:50:00
