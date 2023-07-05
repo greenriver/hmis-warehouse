@@ -19,7 +19,7 @@ RSpec.describe 'Report Favorite', type: :request do
     get warehouse_reports_path
     expect(response.body).to include 'Core Demographics'
   end
-  it 'Trigger favorite/unfavoriate' do
+  it 'Trigger favorite/unfavorite' do
     put favorite_api_report_path(report)
     expect(Favorite.count).to eq 1
     expect(report.reload.deleted_at).to eq(nil)
