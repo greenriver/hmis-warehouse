@@ -78,14 +78,14 @@ module Hmis
               else
                 # Transform Hmis::Hud::HealthAndDv => health_and_dv_id
                 colname = form_processor_column_name(klass)
+                Rails.logger.warn "More than 1 #{klass.name} for key. IDs: #{values[:id]}" if values[:id].size > 1
                 record_id = values[:id].last
-                puts "WARNING: more than 1 #{klass.name} for key. IDs: #{values[:id]}" if values[:id].size > 1
                 assessment_records.deep_merge!({ hash_key => { user_id: user_id, colname => record_id } })
               end
             end
         end
 
-        puts "Skipped #{skipped_records} records. Creating #{assessment_records.keys.size} assessments..."
+        Rails.logger.info "Skipped #{skipped_records} records. Creating #{assessment_records.keys.size} assessments..."
 
         # For each grouping of Enrollment+InformationDate+DataCollectionStage,
         # create a CustomAssessment and a FormProcessor that references the related records

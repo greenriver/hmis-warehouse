@@ -57,7 +57,7 @@ module Mutations
       )
 
       # Validate form values based on FormDefinition
-      form_validations = assessment.form_processor.definition.validate_form_values(input.values)
+      form_validations = assessment.form_processor.collect_form_validations
       errors.push(*form_validations)
 
       # Run processor to create/update related records

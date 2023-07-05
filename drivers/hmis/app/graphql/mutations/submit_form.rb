@@ -54,13 +54,13 @@ module Mutations
 
       # Validate based on FormDefinition
       errors = HmisErrors::Errors.new
-      form_validations = definition.validate_form_values(input.values)
+      form_validations = form_processor.collect_form_validations
       errors.push(*form_validations)
 
       # Run processor to create/update record(s)
       form_processor.run!(owner: record, user: current_user)
 
-      # Validate record (TODO what about related records?)
+      # Validate record
       is_valid = record.valid?
 
       # Collect validations and warnings from AR Validator classes

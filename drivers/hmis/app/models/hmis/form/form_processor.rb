@@ -302,6 +302,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     errors
   end
 
+  # Validate `values` purely based on FormDefinition validation requirements
+  # @return [HmisError::Error] an array errors
+  def collect_form_validations
+    definition.validate_form_values(values)
+  end
+
   # Validate related records using custom AR Validators
   # @return [HmisError::Error] an array errors
   def collect_record_validations(user: nil, household_members: nil)
