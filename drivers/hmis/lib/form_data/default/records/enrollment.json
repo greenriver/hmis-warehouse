@@ -79,6 +79,14 @@
               ]
             }
           ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "unit",
+          "text": "Unit",
+          "_temp_field_name": "unitId",
+          "pick_list_reference": "AVAILABLE_UNITS",
+          "required": false
         }
       ]
     }

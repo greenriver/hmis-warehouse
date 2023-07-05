@@ -81,6 +81,8 @@ class Hmis::Unit < Hmis::HmisBase
   end
 
   def to_pick_list_option
-    { code: id, label: name, secondary_label: unit_type&.description }
+    label = "Unit #{id}"
+    label = "#{label}   (#{unit_type&.description})" if unit_type&.description.present?
+    { code: id, label: label }
   end
 end

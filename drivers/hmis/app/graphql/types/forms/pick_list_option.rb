@@ -77,11 +77,11 @@ module Types
       when 'UNITS'
         return [] unless project.present?
 
-        project.units.order(:name, :id).map(&:to_pick_list_option)
+        project.units.order(:unit_type_id, :id).map(&:to_pick_list_option)
       when 'AVAILABLE_UNITS'
         return [] unless project.present?
 
-        project.units.unoccupied_on.order(:name, :id).map(&:to_pick_list_option)
+        project.units.unoccupied_on.order(:unit_type_id, :id).map(&:to_pick_list_option)
       when 'AVAILABLE_FILE_TYPES'
         file_tag_picklist
       when 'CLIENT_ENROLLMENTS'
