@@ -64,7 +64,8 @@ module Types
     # EXPENSIVE! Do not use in batch
     def definition
       # If definition is stored on form processor, return that
-      # TODO: check if form is retired?
+      # TODO: check if form is retired? For non-WIP assessments, we should
+      # really be choosing the "latest" form, which may not be the one on the FormProcessor.
       form_processor = load_ar_association(object, :form_processor)
       definition_json = load_ar_association(form_processor, :definition)&.definition
       return JSON.parse(definition_json) if definition_json.present?

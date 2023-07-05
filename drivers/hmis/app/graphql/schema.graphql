@@ -155,6 +155,7 @@ type Assessment {
   definition: FormDefinitionJson!
   definitionId: ID!
   disabilityGroup: DisabilityGroup
+  employmentEducation: EmploymentEducation
   enrollment: Enrollment!
   exit: Exit
   healthAndDv: HealthAndDv
@@ -164,6 +165,7 @@ type Assessment {
   role: AssessmentRole!
   user: User
   wipValues: JsonObject
+  youthEducationStatus: YouthEducationStatus
 }
 
 type AssessmentAccess {
