@@ -44,9 +44,6 @@ module HmisExternalApis::AcHmis
         .pluck(:source_id, :value) # i.e. client ID and mci ID
         .to_h
 
-      # Is this an error condition or not?
-      # message << 'no clients found' if mci_lookup.blank?
-
       if message.present?
         self.status_message = message.join(' ')
       else

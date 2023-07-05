@@ -98,6 +98,9 @@ class DocumentExportsControllerBase < ApplicationController
       'BostonReports::DocumentExports::StreetToHomePdfExport',
       'HmisDataQualityTool::DocumentExports::ReportExport',
       'HmisDataQualityTool::DocumentExports::ReportExcelExport',
+      'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
+      'SystemPathways::DocumentExports::ReportExport',
+      'SystemPathways::DocumentExports::ReportExcelExport',
     ]
   end
 end

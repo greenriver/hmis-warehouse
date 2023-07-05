@@ -18,7 +18,7 @@ module HmisExternalApis::AcHmis::Importers
 
     MPER_SLUG = 'mper'.freeze
 
-    def initialize(bucket_name:)
+    def initialize(bucket_name: nil)
       self.skip_lambda = ->(_s3_object) { false }
       self.found_csvs = []
 

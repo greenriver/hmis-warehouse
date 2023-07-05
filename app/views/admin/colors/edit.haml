@@ -1,0 +1,17 @@
+- title = 'Warehouse Colors'
+- content_for :title, title
+%h1= title
+= render 'menus/admin_tabs'
+
+= simple_form_for :colors, as: :theme, url: admin_color_path, method: :patch do |f|
+  .row.mt-6
+    - GrdaWarehouse::SystemColor.default_colors.each do |section, colors|
+      .col-sm-6
+        %h2= section
+        .well
+          - colors.each do |i, _|
+            - slug = "#{section}-#{i}"
+            - color = @colors[slug]
+            = f.simple_fields_for color do |c|
+              = c.input :background_color, input_html: { class: 'colorpicker', name: "colors[#{slug}]" }, label: color.slug
+  = f.button :submit
