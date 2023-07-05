@@ -35,7 +35,7 @@ classDiagram
 
 # Permissions Base
 
-When checking if a user has permission on a given entity, each type of entity refers to a permissions base that must be a type of entity referenced by `GroupViewableEntity`. The logic for determining the permissions base is defined in  [Hmis::User#permissions_base_for_entity](https://github.com/greenriver/hmis-warehouse/blob/0323d1fdf86ea39b0dfa45ba5fab3da4220c75ec/drivers/hmis/app/models/hmis/user.rb#L87). These are the entity types allowed as permissions bases:
+When checking if a user has permission on a given entity, each type of entity refers to a permissions base that must be a type of entity referenced by `GroupViewableEntity`. The logic for determining the permissions base is defined in  ` Hmis::EntityAccessLoaderFactory`. These are the entity types allowed as permissions bases:
 
 - `Hmis::Hud::Project`
 - `Hmis::Hud::Organization`

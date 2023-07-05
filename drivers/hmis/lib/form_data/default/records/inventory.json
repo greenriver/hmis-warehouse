@@ -74,14 +74,17 @@
           "field_name": "inventoryStartDate",
           "bounds": [
             {
+              "id": "min-start-date",
               "type": "MIN",
               "question": "project-start"
             },
             {
+              "id": "max-start-date-project-end",
               "type": "MAX",
               "question": "project-end"
             },
             {
+              "id": "max-start-date-inventory-end",
               "type": "MAX",
               "question": "2.07.2"
             }
@@ -95,14 +98,17 @@
           "field_name": "inventoryEndDate",
           "bounds": [
             {
+              "id": "min-end-date",
               "type": "MIN",
               "question": "project-start"
             },
             {
+              "id": "max-end-date-project-end",
               "type": "MAX",
               "question": "project-end"
             },
             {
+              "id": "max-end-date-inventory-start",
               "type": "MIN",
               "question": "2.07.1"
             }

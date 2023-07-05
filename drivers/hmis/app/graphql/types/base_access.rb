@@ -19,22 +19,22 @@ module Types
       end
     end
 
-    def self.can(permission, field_name: nil, method_name: nil, root: false, **field_attrs)
+    def self.root_can(permission, **field_attrs)
+      field permission, Boolean, null: false, **field_attrs
+      define_method(permission) do
+        current_user.send(permission) || false
+      end
+    end
+
+    # @param permission [Symbol] permission name, i.e :can_administer_hmis
+    # @param field_name [Symbol] graphql field name
+    def self.can(permission, field_name: nil, **field_attrs)
       field_name ||= "can_#{permission}"
 
       field field_name, Boolean, null: false, **field_attrs
 
       define_method(field_name) do
-        return false unless current_user&.present?
-
-        method_name ||= root ? "can_#{permission}?" : "can_#{permission}_for?"
-        return false unless current_user.respond_to?(method_name)
-
-        if root
-          current_user.send(method_name) || false
-        else
-          current_user.send(method_name, object) || false
-        end
+        current_permission?(permission: :"can_#{permission}", entity: object)
       end
     end
   end
