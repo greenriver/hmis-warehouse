@@ -15,6 +15,9 @@ module Mutations
 
     def resolve(input:)
       handle_error('connection not configured') unless HmisExternalApis::AcHmis::LinkApi.enabled?
+      # the front-end doesn't block submission if there are empty required fields, handle it here
+      errors = basic_validation(input)
+      return { errors: errors } if errors.any?
 
       enrollment = Hmis::Hud::Enrollment
         .viewable_by(current_user)
@@ -27,6 +30,9 @@ module Mutations
         .find_by(id: input.project_id)
       handle_error('project not found') unless project
 
+      errors = validate_unit_type(project, input)
+      return { errors: errors } if errors.any?
+
       referral = HmisExternalApis::AcHmis::Referral.new(
         enrollment: enrollment,
         referral_date: Time.current,
@@ -35,7 +41,7 @@ module Mutations
       referral.household_members = enrollment.household_members.preload(:client).map do |member|
         HmisExternalApis::AcHmis::ReferralHouseholdMember.new(
           relationship_to_hoh: member.relationship_to_hoh,
-          client_id: member.client.id
+          client_id: member.client.id,
         )
       end
 
@@ -47,11 +53,8 @@ module Mutations
       )
       posting.current_user = current_user
 
-      errors = HmisErrors::Errors.new
       posting.transaction do
         referral.save
-        errors.add_ar_errors(referral.errors.errors)
-        posting.save # context for validations
         errors.add_ar_errors(posting.errors.errors)
 
         raise ActiveRecord::Rollback if errors.any?
@@ -65,6 +68,29 @@ module Mutations
 
     def handle_error(msg)
       raise msg
+    end
+
+    def basic_validation(input)
+      errors = HmisErrors::Errors.new
+      errors.add(:project_id, :invalid, message: 'is required') unless input.project_id
+      errors.add(:enrollment_id, :invalid, message: 'is required') unless input.enrollment_id
+      errors.add(:unit_type_id, :invalid, message: 'is required') unless input.unit_type_id
+      errors
+    end
+
+    def validate_unit_type(project, input)
+      errors = HmisErrors::Errors.new
+      valid_by_id = project.units.unoccupied_on.preload(:unit_type).index_by(&:unit_type_id)
+      unless valid_by_id.key?(input.unit_type_id.to_i)
+        valid_types = valid_by_id.values.map { |u| u.unit_type.description }.sort
+        if valid_types.any?
+          message = "not valid for the selected project. Valid types are #{valid_types.join(', ')}"
+          errors.add(:unit_type, :invalid, message: message)
+        else
+          errors.add(:project_id, :invalid, message: 'does not have any available units')
+        end
+      end
+      errors
     end
   end
 end

@@ -51,6 +51,7 @@ module Types
       when 'PROJECT'
         Hmis::Hud::Project.viewable_by(user).
           joins(:organization).
+          preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
       when 'ENROLLABLE_PROJECTS'
