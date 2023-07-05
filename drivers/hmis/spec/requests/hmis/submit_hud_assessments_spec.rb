@@ -41,8 +41,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         submitAssessment(input: $input) {
           assessment {
             #{scalar_fields(Types::HmisSchema::Assessment)}
+            definition {
+              #{form_definition_fragment}
+            }
             enrollment {
-              id
               #{scalar_fields(Types::HmisSchema::Enrollment)}
             }
             user {

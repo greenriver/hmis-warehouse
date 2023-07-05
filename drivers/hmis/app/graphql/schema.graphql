@@ -152,11 +152,11 @@ type Assessment {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
-  definition: FormDefinitionJson!
-  definitionId: ID!
+  definition: FormDefinition!
   disabilityGroup: DisabilityGroup
   employmentEducation: EmploymentEducation
   enrollment: Enrollment!
+  enrollmentCoc: String
   exit: Exit
   healthAndDv: HealthAndDv
   id: ID!
@@ -2788,10 +2788,7 @@ FormDefinition
 type FormDefinition {
   definition: FormDefinitionJson!
   id: ID!
-  identifier: String!
   role: FormRole!
-  status: String!
-  version: Int!
 }
 
 type FormDefinitionJson {

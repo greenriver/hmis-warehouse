@@ -14,6 +14,7 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
     let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
     let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+    let(:time_fmt) { '%Y-%m-%d %T.%3N'.freeze }
 
     # Full record set for Entry and Annual
     let!(:records_by_data_collaction_stage) do
@@ -30,12 +31,14 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           client: c1,
           data_collection_stage: dcs,
           information_date: date,
+          date_created: date,
+          date_updated: date,
         }
         records << create(:hmis_income_benefit, **shared_attributes)
-        records << create(:hmis_health_and_dv, **shared_attributes)
-        records << create(:hmis_youth_education_status, **shared_attributes)
-        records << create(:hmis_employment_education, **shared_attributes)
-        records << create(:hmis_enrollment_coc, **shared_attributes)
+        records << create(:hmis_health_and_dv, **shared_attributes, date_created: date - 1.day)
+        records << create(:hmis_youth_education_status, **shared_attributes, date_created: date - 2.days)
+        records << create(:hmis_employment_education, **shared_attributes, date_updated: date - 7.days)
+        records << create(:hmis_enrollment_coc, **shared_attributes, date_updated: date - 3.days)
         HudLists.disability_type_map.keys.each do |typ|
           records << create(:hmis_disability, disability_type: typ, **shared_attributes)
         end
@@ -60,7 +63,12 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         [1, 2, 3].each do |dcs|
           assessment = e1.custom_assessments.where(data_collection_stage: dcs).first!
           expected_records = records_by_data_collaction_stage[dcs]
+          # User should be one of the users from related records
           expect(expected_records.map(&:user)).to include(assessment.user)
+          # Date created should be MIN from records
+          expect(assessment.date_created.strftime(time_fmt)).to eq(expected_records.map(&:date_created).min.strftime(time_fmt))
+          # Date updated should be MAX from records
+          expect(assessment.date_updated.strftime(time_fmt)).to eq(expected_records.map(&:date_updated).max.strftime(time_fmt))
 
           related_records = [
             :health_and_dv,

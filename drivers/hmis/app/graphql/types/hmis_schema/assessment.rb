@@ -22,6 +22,7 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true
+    field :enrollment_coc, String, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
@@ -43,8 +44,7 @@ module Types
     custom_data_elements_field
 
     field :role, Types::Forms::Enums::AssessmentRole, null: false
-    field :definition_id, ID, null: false
-    field :definition, Forms::FormDefinitionJson, null: false
+    field :definition, Types::Forms::FormDefinition, null: false
     field :wip_values, JsonObject, null: true
 
     def wip_values
@@ -57,18 +57,14 @@ module Types
       Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.invert[object.data_collection_stage]&.to_s
     end
 
-    def definition_id
-      load_ar_association(object, :form_processor)&.definition_id
-    end
-
     # EXPENSIVE! Do not use in batch
     def definition
       # If definition is stored on form processor, return that
       # TODO: check if form is retired? For non-WIP assessments, we should
       # really be choosing the "latest" form, which may not be the one on the FormProcessor.
       form_processor = load_ar_association(object, :form_processor)
-      definition_json = load_ar_association(form_processor, :definition)&.definition
-      return JSON.parse(definition_json) if definition_json.present?
+      definition = load_ar_association(form_processor, :definition)
+      return definition if definition.present?
 
       # If there was no definition, find the appropriate definition to use
       project = load_ar_association(object, :project)

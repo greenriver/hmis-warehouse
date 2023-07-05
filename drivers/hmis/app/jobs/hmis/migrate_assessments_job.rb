@@ -45,7 +45,7 @@ module Hmis
         ].each do |klass|
           group_by_fields = klass == Hmis::Hud::Exit ? key_fields.take(2) : key_fields
 
-          result_fields = [:id, :user_id]
+          result_fields = [:id, :user_id, :date_created, :date_updated]
           result_fields << :disability_type if klass == Hmis::Hud::Disability
           result_fields << :exit_date if klass == Hmis::Hud::Exit
 
@@ -67,20 +67,21 @@ module Hmis
                 next
               end
 
-              user_id = values[:user_id].last
+              # Choose oldest date_created and newest date_updated to apply to this hash_key
+              metadata = merge_metadata(assessment_records[hash_key], values)
 
               case klass.name
               when 'Hmis::Hud::Disability'
                 # Build hash like {:physical_disability_id=>25, :developmental_disability_id=>26, ...}
                 colnames = values[:disability_type].map { |type| form_processor_column_name(klass, disability_type: type) }
                 disability_ids = colnames.zip(values[:id]).to_h
-                assessment_records.deep_merge!({ hash_key => { user_id: user_id, **disability_ids } })
+                assessment_records.deep_merge!({ hash_key => { **disability_ids, **metadata } })
               else
                 # Transform Hmis::Hud::HealthAndDv => health_and_dv_id
                 colname = form_processor_column_name(klass)
                 Rails.logger.warn "More than 1 #{klass.name} for key. IDs: #{values[:id]}" if values[:id].size > 1
                 record_id = values[:id].last
-                assessment_records.deep_merge!({ hash_key => { user_id: user_id, colname => record_id } })
+                assessment_records.deep_merge!({ hash_key => { colname => record_id, **metadata } })
               end
             end
         end
@@ -97,11 +98,13 @@ module Hmis
             **key.slice(:enrollment_id, :personal_id, :data_collection_stage),
           }
 
-          assessment = Hmis::Hud::CustomAssessment.new(
-            **uniq_attributes,
-            user_id: value[:user_id] || system_user.user_id,
-          )
-          assessment.build_form_processor(**value.except(:user_id))
+          # Build CustomAssessment with appropriate metadata
+          metadata_attributes = value.extract!(:user_id, :date_created, :date_updated)
+          metadata_attributes[:user_id] ||= system_user.user_id
+          assessment = Hmis::Hud::CustomAssessment.new(**uniq_attributes, **metadata_attributes)
+
+          # Build FormProcessor with IDs to all related records
+          assessment.build_form_processor(**value)
           assessment.save!
         end
       end
@@ -130,6 +133,21 @@ module Hmis
         :substance_use_disorder_id
       else
         raise "Disability type not found: #{disability_type}"
+      end
+    end
+
+    def merge_metadata(old_hash, values)
+      metadata = old_hash&.slice(:user_id, :date_created, :date_updated) || {}
+      new_metadata = values.slice(:user_id, :date_created, :date_updated).transform_values(&:first)
+      metadata.merge(new_metadata) do |key, oldval, newval|
+        case key
+        when :date_created
+          [oldval, newval].compact.map(&:to_datetime).min
+        when :date_updated
+          [oldval, newval].compact.map(&:to_datetime).max
+        else
+          [oldval, newval].compact.first
+        end
       end
     end
   end
