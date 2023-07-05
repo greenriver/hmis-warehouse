@@ -19,6 +19,7 @@ module Types
     value 'PRIOR_LIVING_SITUATION'
     value 'CURRENT_LIVING_SITUATION'
     value 'DESTINATION'
+    value 'ALL_UNIT_TYPES', 'All unit types.'
     value 'UNIT_TYPES', 'Unit types. If project is specified, limited to unit types in the project.'
     value 'AVAILABLE_UNIT_TYPES', 'Unit types that have unoccupied units in the specified project'
     value 'UNITS', 'Units in the specified project'

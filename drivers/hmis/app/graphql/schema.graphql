@@ -4928,6 +4928,11 @@ enum PickListType {
   ALL_SERVICE_TYPES
 
   """
+  All unit types.
+  """
+  ALL_UNIT_TYPES
+
+  """
   Referral Posting Status
   """
   ASSIGNED_REFERRAL_POSTING_STATUSES

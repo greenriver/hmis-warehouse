@@ -63,6 +63,10 @@ module Types
           sort_by_option(:name).
           map(&:to_pick_list_option)
 
+      when 'ALL_UNIT_TYPES'
+        # actually return all unit types, regardless of project
+        all_unit_types = Hmis::UnitType.order(:description, :id)
+        return all_unit_types.map(&:to_pick_list_option)
       when 'UNIT_TYPES'
         # If no project was specified, return all unit types
         all_unit_types = Hmis::UnitType.order(:description, :id)

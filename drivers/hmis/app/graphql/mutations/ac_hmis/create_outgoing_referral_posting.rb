@@ -20,7 +20,7 @@ module Mutations
         .viewable_by(current_user)
         .find_by(id: input.enrollment_id)
       handle_error('enrollment not found') unless enrollment
-      handle_error('access denied') if current_user.can_manage_outgoing_referrals_for?(enrollment.project)
+      handle_error('access denied') unless current_user.can_manage_outgoing_referrals_for?(enrollment.project)
 
       project = Hmis::Hud::Project
         .viewable_by(current_user)
@@ -28,14 +28,18 @@ module Mutations
       handle_error('project not found') unless project
 
       referral = HmisExternalApis::AcHmis::Referral.new(
-        project: project,
+        enrollment: enrollment,
+        referral_date: Time.current,
+        service_coordinator: current_user.name,
       )
       posting = referral.postings.build(
         status: 'assigned_status',
+        project: project,
+        unit_type_id: input.unit_type_id,
+        data_source: enrollment.data_source,
       )
 
       posting.current_user = current_user
-      referral.attributes = input.to_params
 
       errors = HmisErrors::Errors.new
       posting.transaction do
