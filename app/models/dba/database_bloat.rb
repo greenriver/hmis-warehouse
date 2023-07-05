@@ -51,7 +51,7 @@ class Dba::DatabaseBloat
   def show_cache_hits!
     cache_hit_rates.each do |row|
       if row['ratio'].to_f < 0.7
-        Rails.logger.warn "Cache #{row['name']} is too low in #{row['current_database']}: #{row['ratio'].round(2)}"
+        Rails.logger.warn "Cache #{row['name']} is too low in #{row['current_database']}: #{row['ratio']&.round(2)}"
       elsif row['ratio'].to_f < 0.85
         Rails.logger.info "Cache #{row['name']} is a little low in #{row['current_database']}: #{row['ratio'].round(2)}"
       end
