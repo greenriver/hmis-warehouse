@@ -32,13 +32,19 @@ module Mutations
         referral_date: Time.current,
         service_coordinator: current_user.name,
       )
+      referral.household_members = enrollment.household_members.preload(:client).map do |member|
+        HmisExternalApis::AcHmis::ReferralHouseholdMember.new(
+          relationship_to_hoh: member.relationship_to_hoh,
+          client_id: member.client.id
+        )
+      end
+
       posting = referral.postings.build(
         status: 'assigned_status',
         project: project,
         unit_type_id: input.unit_type_id,
         data_source: enrollment.data_source,
       )
-
       posting.current_user = current_user
 
       errors = HmisErrors::Errors.new

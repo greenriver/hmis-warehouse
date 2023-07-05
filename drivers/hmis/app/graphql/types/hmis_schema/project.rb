@@ -149,9 +149,9 @@ module Types
     def outgoing_referral_postings(**args)
       raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
-      scope = object.external_referral_postings.outgoing
-        .joins(:enrollments)
-        .where(arel.e_t[:ProjectID].eq(object.ProjectId))
+      scope = HmisExternalApis::AcHmis::ReferralPosting.outgoing
+        .joins(referral: :enrollment)
+        .where(arel.e_t[:ProjectID].eq(object.ProjectID))
       scoped_referral_postings(scope, **args)
     end
   end

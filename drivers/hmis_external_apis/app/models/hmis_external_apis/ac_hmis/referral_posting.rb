@@ -73,7 +73,7 @@ module HmisExternalApis::AcHmis
     scope :active, -> { where.not(status: INACTIVE_STATUSES) }
 
     OUTGOING_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
-    scope :outgoing, -> { where.not(status: OUTGOING_STATUSES) }
+    scope :outgoing, -> { where(status: OUTGOING_STATUSES) }
 
     # referral came from LINK
     def from_link?
