@@ -75,6 +75,7 @@ module Filters
     attribute :lsa_scope, Integer, default: nil
     attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
+    attribute :dates_to_compare, Symbol, default: :entry_to_exit
 
     validates_presence_of :start, :end
 
@@ -157,6 +158,7 @@ module Filters
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
+      self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
 
       ensure_dates_work if valid?
       self
@@ -258,6 +260,7 @@ module Filters
         :cohort_column_voucher_type,
         :cohort_column_housed_date,
         :cohort_column_matched_date,
+        :dates_to_compare,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -1289,6 +1292,14 @@ module Filters
         with_children: 'Adult and Child Households',
         only_children: 'Child only Households',
       }.invert.freeze
+    end
+
+    def available_dates_to_compare
+      {
+        entry_to_exit: 'Entry to Exit',
+        date_to_street_to_entry: 'Date Homelessness Started to Entry',
+        date_to_street_to_exit: 'Date Homelessness Started to Exit',
+      }
     end
 
     def available_prior_living_situations(grouped: false)
