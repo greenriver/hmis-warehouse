@@ -6,8 +6,22 @@
 
 module Financial
   class ProviderImport < ::GrdaWarehouse::CustomImports::ImportFile
+    include CsvImportConcern
     def self.import_prefix
       'provider'
+    end
+
+    private def associated_class
+      Financial::Provider
+    end
+
+    private def conflict_target
+      [:provider_id, :data_source_id]
+    end
+
+    private def header_lookup
+      # All headers match
+      {}
     end
   end
 end

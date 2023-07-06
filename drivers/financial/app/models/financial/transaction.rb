@@ -6,5 +6,6 @@
 
 module Financial
   class Transaction < ::GrdaWarehouseBase
+    self.table_name = :financial_transactions
   end
 end

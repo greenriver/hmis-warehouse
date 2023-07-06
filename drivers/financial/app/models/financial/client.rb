@@ -6,5 +6,8 @@
 
 module Financial
   class Client < ::GrdaWarehouseBase
+    self.table_name = :financial_clients
+
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   end
 end

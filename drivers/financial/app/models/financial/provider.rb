@@ -6,5 +6,6 @@
 
 module Financial
   class Provider < ::GrdaWarehouseBase
+    self.table_name = :financial_providers
   end
 end
