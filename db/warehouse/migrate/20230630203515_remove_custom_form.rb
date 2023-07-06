@@ -1,5 +1,7 @@
 class RemoveCustomForm < ActiveRecord::Migration[6.1]
   def up
+    # Can safely delete these all in QA and staging.
+    # Note this does NOT delete underlying related records. Assessments can be re-generated using MigrateAssessmentsJob.
     Hmis::Hud::CustomAssessment.delete_all
     Hmis::Form::FormProcessor.delete_all
 

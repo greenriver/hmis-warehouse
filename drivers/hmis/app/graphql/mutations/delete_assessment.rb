@@ -14,6 +14,7 @@ module Mutations
       record = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
+      # FIXME(#185552893): this mutation should delete all the related records linked to the FormProcessor
       record.transaction do
         role = record.definition&.role
         is_wip = record.in_progress?
