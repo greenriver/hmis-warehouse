@@ -121,6 +121,8 @@ module HealthPctp
         ccm: "Enrollee's Clinical Care Manager(s)",
         pcp: "Enrollee's PCP or PCP Designee",
         rn: "Enrollee's RN",
+        guardian: 'Guardian',
+        social_support: 'Social Support (e.g., Informal, Caregiver, Family)',
         other_members: 'Additional Care Team members, as applicable',
       }
     end

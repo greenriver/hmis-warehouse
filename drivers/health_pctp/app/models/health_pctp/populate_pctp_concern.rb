@@ -42,6 +42,14 @@ module HealthPctp::PopulatePctpConcern
         rn_phone: patient.nurse_care_manager&.phone,
         rn_email: patient.nurse_care_manager&.email,
 
+        guardian_name: ca.guardian_provider,
+        guardian_phone: ca.guardian_phone,
+        guardian_email: ca.guardian_address,
+
+        social_support_name: ca.social_support_provider,
+        social_support_phone: ca.social_support_phone,
+        social_support_email: ca.social_support_address,
+
         scribe: user.name,
         sex_at_birth: ca.sex_at_birth,
         sex_at_birth_other: ca.sex_at_birth_other,
