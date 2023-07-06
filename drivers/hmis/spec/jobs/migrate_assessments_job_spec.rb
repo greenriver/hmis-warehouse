@@ -34,14 +34,20 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           date_created: date,
           date_updated: date,
         }
-        records << create(:hmis_income_benefit, **shared_attributes)
+        # If this is entry or exit, offset the date for one record to ensure that it still gets grouped into one assessment
+        records << create(:hmis_income_benefit, **shared_attributes, information_date: [1, 3].include?(dcs) ? date - 2.days : date)
+        # Offset some of the date_created values to ensure earliest is chosen
         records << create(:hmis_health_and_dv, **shared_attributes, date_created: date - 1.day)
         records << create(:hmis_youth_education_status, **shared_attributes, date_created: date - 2.days)
+        # Offset some of the date_updated values to ensure latest is chosen
         records << create(:hmis_employment_education, **shared_attributes, date_updated: date - 7.days)
         records << create(:hmis_enrollment_coc, **shared_attributes, date_updated: date - 3.days)
+
+        # create 1 record per disability type
         HudLists.disability_type_map.keys.each do |typ|
           records << create(:hmis_disability, disability_type: typ, **shared_attributes)
         end
+
         if dcs == 3
           records << create(
             :hmis_hud_exit,
@@ -63,6 +69,9 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         [1, 2, 3].each do |dcs|
           assessment = e1.custom_assessments.where(data_collection_stage: dcs).first!
           expected_records = records_by_data_collaction_stage[dcs]
+          # Assessment Date should be MIN from records
+          expected_assmt_date = expected_records.map { |r| r.respond_to?(:information_date) ? r.information_date : r.exit_date }.min
+          expect(assessment.assessment_date).to eq(expected_assmt_date)
           # User should be one of the users from related records
           expect(expected_records.map(&:user)).to include(assessment.user)
           # Date created should be MIN from records
