@@ -87,6 +87,12 @@ module Types::HmisSchema::Enums::Hud
     hud_enum ::HudLists.project_type_map
   end
 
+  class ProjectTypeBrief < Types::BaseEnum
+    description '2.02.6'
+    graphql_name 'ProjectTypeBrief'
+    hud_enum ::HudLists.project_type_brief_map
+  end
+
   class FundingSource < Types::BaseEnum
     description '2.06.1'
     graphql_name 'FundingSource'

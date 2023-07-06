@@ -15,7 +15,7 @@ namespace :code do
 
   desc 'Generate HUD list mapping module'
   task generate_hud_lists: [:environment, 'log:info_to_stdout'] do
-    source = File.read('lib/data/hud_lists.json')
+    source = File.read('lib/data/2022_hud_lists.json')
     all_lists = JSON.parse(source).sort_by { |hash| hash['code'] }
     skipped = []
     filename = 'lib/util/hud_lists.rb'

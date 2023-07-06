@@ -360,6 +360,64 @@
     ]
   },
   {
+    "name": "ProjectTypeBrief",
+    "code": "2.02.6.brief",
+    "values": [
+      {
+        "key": 1,
+        "description": "ES"
+      },
+      {
+        "key": 2,
+        "description": "TH"
+      },
+      {
+        "key": 3,
+        "description": "PH - PSH"
+      },
+      {
+        "key": 4,
+        "description": "SO"
+      },
+      {
+        "key": 6,
+        "description": "SSO"
+      },
+      {
+        "key": 8,
+        "description": "SH"
+      },
+      {
+        "key": 9,
+        "description": "PH - PH"
+      },
+      {
+        "key": 7,
+        "description": "Other"
+      },
+      {
+        "key": 10,
+        "description": "PH - OPH"
+      },
+      {
+        "key": 11,
+        "description": "Day Shelter"
+      },
+      {
+        "key": 12,
+        "description": "HP"
+      },
+      {
+        "key": 13,
+        "description": "PH - RRH"
+      },
+      {
+        "key": 14,
+        "description": "CE"
+      }
+    ]
+  },
+  {
     "name": "FundingSource",
     "code": "2.06.1",
     "values": [

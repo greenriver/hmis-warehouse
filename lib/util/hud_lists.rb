@@ -129,6 +129,7 @@ module HudLists
     }.freeze
   end
 
+  # 2.02.6.brief
   def project_type_brief_map
     {
       1 => 'ES',
@@ -136,9 +137,9 @@ module HudLists
       3 => 'PH - PSH',
       4 => 'SO',
       6 => 'SSO',
-      7 => 'Other',
       8 => 'SH',
       9 => 'PH - PH',
+      7 => 'Other',
       10 => 'PH - OPH',
       11 => 'Day Shelter',
       12 => 'HP',
@@ -1592,6 +1593,7 @@ module HudLists
       "1.8": :no_yes_reasons_for_missing_data_map,
       "1.9": :source_type_map,
       "2.02.6": :project_type_map,
+      "2.02.6.brief": :project_type_brief_map,
       "2.02.8": :target_population_map,
       "2.02.9": :hopwa_med_assisted_living_fac_map,
       "2.02.C": :tracking_method_map,
