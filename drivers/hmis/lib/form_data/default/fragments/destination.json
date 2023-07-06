@@ -8,7 +8,7 @@
       "type": "DATE",
       "link_id": "exit-date",
       "text": "Exit Date",
-      "mapping": { "field_name": "exitDate" },
+      "mapping": { "record_type": "EXIT", "field_name": "exitDate" },
       "required": true,
       "assessment_date": true,
       "initial": [
