@@ -11,19 +11,12 @@ module Types
     description 'HUD Project Types'
     graphql_name 'ProjectType'
 
-    value 'ES', 'Emergency Shelter', value: 1
-    value 'TH', 'Transitional Housing', value: 2
-    value 'PSH', 'Permanent Supportive Housing', value: 3
-    value 'SO', 'Street Outreach', value: 4
-    value 'SERVICES_ONLY', 'Services Only', value: 6
-    value 'OTHER', 'Other', value: 7
-    value 'SH', 'Safe Haven', value: 8
-    value 'OPH', 'Permanent Housing Only', value: 9
-    value 'PH', 'Permanent Housing', value: 10
-    value 'DAY_SHELTER', 'Day Shelter', value: 11
-    value 'PREVENTION', 'Homelessness Prevention', value: 12
-    value 'RRH', 'Rapid Re-Housing', value: 13
-    value 'CE', 'Coordinated Entry', value: 14
+    with_enum_map Hmis::Hud::Project.project_type_enum_map, prefix_description_with_key: true
+    # HudLists.project_type_map.each do |id, description|
+    #   brief = HudLists.project_type_brief_map[id].gsub(/\s-?\s?/, '_').upcase
+    #   value brief, "(#{id}) #{description}", value: id
+    # end
+
     invalid_value
   end
 end

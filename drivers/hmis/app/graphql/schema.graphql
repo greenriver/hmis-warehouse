@@ -5170,19 +5170,24 @@ HUD Project Types
 """
 enum ProjectType {
   """
-  Coordinated Entry
+  (14) Coordinated Entry
   """
   CE
 
   """
-  Day Shelter
+  (11) Day Shelter
   """
   DAY_SHELTER
 
   """
-  Emergency Shelter
+  (1) Emergency Shelter
   """
   ES
+
+  """
+  (12) Homelessness Prevention
+  """
+  HP
 
   """
   Invalid Value
@@ -5190,52 +5195,47 @@ enum ProjectType {
   INVALID
 
   """
-  Permanent Housing Only
-  """
-  OPH
-
-  """
-  Other
+  (7) Other
   """
   OTHER
 
   """
-  Permanent Housing
+  (10) PH - Housing with Services (no disability required for entry)
   """
-  PH
+  PH_OPH
 
   """
-  Homelessness Prevention
+  (9) PH - Housing Only
   """
-  PREVENTION
+  PH_PH
 
   """
-  Permanent Supportive Housing
+  (3) PH - Permanent Supportive Housing
   """
-  PSH
+  PH_PSH
 
   """
-  Rapid Re-Housing
+  (13) PH - Rapid Re-Housing
   """
-  RRH
+  PH_RRH
 
   """
-  Services Only
-  """
-  SERVICES_ONLY
-
-  """
-  Safe Haven
+  (8) Safe Haven
   """
   SH
 
   """
-  Street Outreach
+  (4) Street Outreach
   """
   SO
 
   """
-  Transitional Housing
+  (6) Services Only
+  """
+  SSO
+
+  """
+  (2) Transitional Housing
   """
   TH
 }

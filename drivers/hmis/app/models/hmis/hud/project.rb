@@ -99,6 +99,16 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)).or(p_t[:project_id].eq(search_term)))
   end
 
+  use_enum(:project_type_enum_map, HudLists.project_type_map) do |hash|
+    hash.map do |value, desc|
+      {
+        key: HudLists.project_type_brief_map[value].gsub(/\s-?\s?/, '_').upcase,
+        value: value,
+        desc: desc,
+      }
+    end
+  end
+
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
   SORT_OPTION_DESCRIPTIONS = {

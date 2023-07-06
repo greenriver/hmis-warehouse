@@ -41,7 +41,7 @@
           "link_id": "3.917.A",
           "read_only": true,
           "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "project_types_excluded": ["ES", "SSO", "SH"],
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -63,7 +63,7 @@
           "type": "DISPLAY",
           "link_id": "3.917.B",
           "text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "project_types_excluded": ["ES", "SSO", "SH"],
           "enable_behavior": "ALL",
           "_required_when": "TODO",
           "enable_when": [
@@ -142,7 +142,7 @@
       "field_name": "previousStreetEssh",
       "text": "On the night before, did the client stay on the streets, ES or SH?",
       "brief_text": "Homeless on previous night",
-      "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+      "project_types_excluded": ["ES", "SSO", "SH"],
       "enable_behavior": "ALL",
       "enable_when": [
         {
@@ -161,7 +161,7 @@
       "type": "DISPLAY",
       "link_id": "3.917.C.message",
       "text": "Client does not meet the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-      "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+      "project_types_excluded": ["ES", "SSO", "SH"],
       "enable_behavior": "ALL",
       "enable_when": [
         {
