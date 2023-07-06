@@ -5,6 +5,8 @@
 = f.input :initial_date, as: :date_picker, label: 'Initiation Date'
 = "By #{@careplan.user.name}"
 
+= debug @careplan.identifying_information
+
 %h2.mt-4 Identifying Information
 .well
   = render 'field_section', f: f, fields: @careplan.identifying_information

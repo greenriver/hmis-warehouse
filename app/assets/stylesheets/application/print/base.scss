@@ -32,4 +32,34 @@
     padding-bottom: 0;
   }
 
+  .pctc-print__table {
+    page-break-inside: avoid;
+    table {
+      width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+      font-size: 14px;
+    }
+    th {
+      font-weight: bold;
+    }
+
+    // th:first-child, td:first-child {
+    //   padding-left: 16px;
+    // }
+
+    // th:last-child, td:last-child {
+    //   padding-right: 16px;
+    // }
+    
+    th.pctc-print__table-title {
+      border-bottom: 2px solid #E7E7E7;
+      font-weight: bold;
+      font-size: 20px;
+      padding: 4px 0px;
+    }
+  }
+
 }

@@ -1,0 +1,410 @@
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2} Identifying Information
+    %tbody
+      - @careplan.identifying_information.each do |key, (labels, kind, collection, input_html, controlled)|
+        - if labels.is_a?(Array)
+          - label = labels.first
+          - hint = labels.last
+        -else
+          - label = labels
+        %tr
+          %th{style: 'width:40%;'}
+            %span= label
+            - if hint.present?
+              %small= hint
+          %td= @careplan.send(key.to_sym)
+
+- care_team_cols = [:name, :phone, :email]
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: care_team_cols.size + 1} Care team
+      %tr
+        %th{style: 'width:25%;'} Care Team Members
+        %th{style: 'width:25%;'} Name
+        %th{style: 'width:25%;'} Phone Number
+        %th{style: 'width:25%;'} Email
+    %tbody
+      - @careplan.care_team_members.each do |key, label|
+        %tr
+          %th= label
+          - care_team_cols.each do |kind|
+            %td= @careplan.send("#{key}_#{kind}".to_sym)
+
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title Enrollee Overview
+    %tbody
+      %tr
+        %th
+          ="#{@careplan.enrollee_overview_label}".html_safe
+      %tr
+        %td
+          %div{style: 'height:125px;'}
+
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2} Demographic Information
+    %tbody
+      - @careplan.demographic_information_1.each do |key, (labels, kind, collection, input_html, controlled)|
+        - if labels.is_a?(Array)
+          - label = labels.first
+          - hint = labels.last
+        -else
+          - label = labels
+        %tr
+          %th{style: 'width:40%;'}
+            %span= label
+            - if hint.present?
+              %br
+              %small= hint
+          %td= @careplan.send(key.to_sym)
+      - @careplan.demographic_information_2.each do |key, (labels, kind, collection, input_html, controlled)|
+        - if labels.is_a?(Array)
+          - label = labels.first
+          - hint = labels.last
+        -else
+          - label = labels
+        %tr
+          %th{style: 'width:40%;'}
+            %span= label
+            - if hint.present?
+              %small= hint
+          %td= @careplan.send(key.to_sym)
+
+- self_ident_rows = [:strengths, :weaknesses, :interests, :choices, :care_goals, :personal_goals, :cultural_considerations]
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2}
+          Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
+      %tr
+        %th{colspan: 2} In Enrollee's words
+    %tbody
+      - self_ident_rows.each do |row|
+        %tr
+          %th
+            = row.to_s.titleize
+          %td
+            %div{style: 'height:125px;'}
+
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2}
+          Accessibility Requirements and Equipment Needs
+    %tbody
+      %tr
+        %th{style: 'width:40%;'}
+          Does the Enrollee have accessibility requirements including but not limited to communication, transportation, and equipment needs?
+        %td= @careplan.accessibility_needs? ? 'Yes' : ''
+      %tr
+        %th Accomodation Type
+        %td= @careplan.accommodation_types
+      %tr
+        %th Equipment
+        %td= @careplan.accessibility_equipment
+      %tr
+        %th Comments
+        %td
+          %div{style: 'min-height: 65px;'}= @careplan.accessibility_equipment_notes
+      %tr
+        %th Start Date
+        %td= @careplan.accessibility_equipment_start
+      %tr
+        %th End Date
+        %td= @careplan.accessibility_equipment_end
+
+-# TODO -- should we leave a few blank ones for any  additional? 
+- need_cols = ['Domain', 'Identified Need or Condition', 'Start Date', 'End Date', 'Status']
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: need_cols.size}
+          Identified Needs and Conditions
+      %tr
+        - need_cols.each do |col|
+          %th= col
+    %tbody
+      - @careplan.needs.order(id: :desc).each do |need|
+        %tr
+          %td= [need.translate_domain_response(need.domain)]
+          %td= need.need_or_condition
+          %td= need.start_date
+          %td= need.end_date
+          %td= need.translate_status_response(need.status)
+      - 3.times do |time|
+        %tr
+          - need_cols.each do |col|
+            %td
+              %div{style: 'height:28px;'}
+
+-# TODO -- should we leave a few blank ones for any  additional? 
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2} Care Goals, Plans, and Barriers
+    %tbody
+      %tr
+        %th{colspan: 2}
+          = @careplan.goals_label
+      %tr
+        %td{colspan: 2}
+          %div{style: 'min-height:125px;'}= @careplan.goals
+:ruby
+  goal_item_labels = [
+    'Domain',
+    'Goal',
+    'Status',
+    'Estimated Completion Date',
+    'Start Date',
+    'End Date',
+    'Barriers',
+    'Plan for Follow-up',
+    'Comments',
+    'Source of Identification',
+    'Priority',
+    'Plans/Interventions',
+    'Responsible Party',
+    'Times',
+    'Interval'
+  ]
+- @careplan.care_goal_details.order(id: :desc).each do |goal|
+  :ruby
+    goal_items = [
+      goal.domain_responses.invert[goal.domain],
+      goal.goal,
+      goal.status_responses.invert[goal.status],
+      goal.estimated_completion_date,
+      goal.start_date,
+      goal.end_date,
+      goal.barriers,
+      goal.followup,
+      goal.comments,
+      goal.source_responses.invert[goal.source],
+      goal.priority_responses.invert[goal.priority],
+      goal.plan,
+      goal.responsible_party,
+      goal.times,
+      goal.interval
+    ]
+  .mt-4.pctc-print__table
+    %table
+      %thead 
+        %tr
+          %th.pctc-print__table-title{colspan: 2} Goal
+      %tbody
+        - goal_items.each_with_index do |value, i|
+          %tr
+            %th= goal_item_labels[i]
+            %td= value
+- 1.times do |time|
+  .mt-4.pctc-print__table
+    %table
+      %thead
+        %tr
+          %th.pctc-print__table-title{colspan: 2} Goal
+      %tbody
+        - goal_item_labels.each do |label|
+          %tr
+            %th= label
+            %td
+
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title
+          Contingency Plan
+      %tr
+        %th
+          %i
+            For BH Enrollees, this section should be used to help the Enrollee identify contingencies in their services,
+            including but not limited to: occasions when critical services (e.g. medications, transportation) or caregivers
+            are unavailable and when there is a failure of other essential supports and services.
+          .mt-4 Contingency plan
+    %tbody
+      %tr
+        %td
+          %div{style: 'min-height:125px;'}
+            = @careplan.contingency_plan
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title
+          Crisis Plan
+      %tr
+        %th
+          %i
+            The Crisis Prevention Plan provides a thorough checklist of the triggers that may lead to or escalate a psychiatric
+            crisis. The plan also includes potential clinical presentations and a preferred disposition and treatment plan
+            for each of these presentations as well as the Enrollee’s preferences with respect to involvement of the Enrollee,
+            their family and other supports, such as behavioral health providers, community social service agencies, and
+            natural community supports.
+          .mt-4
+            Crisis Plan – Do you have any triggers that you would like us to be aware of?
+    %tbody
+      %tr
+        %td
+          %div{style: 'min-height:125px;'}
+            = @careplan.crisis_plan
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title
+          Additional Concerns
+      %tr
+        %th
+          Additional needs or conditions that the Enrollee would like to address in the future
+    %tbody
+      %tr
+        %td
+          %div{style: 'min-height:125px;'}
+            = @careplan.additional_concerns
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2}
+          Complete & Review
+    %tbody
+      %tr
+        %th
+          Patient singed on
+        %td= @careplan.patient_signed_on
+      %tr
+        %th 
+          Patient unable to sign – verbal approval received - signature is required within 90 days
+        %td= @careplan.verbal_approval ? 'Yes' : ''
+      - if @careplan.verbal_approval?
+        %tr
+          %th 
+            The Care Plan was signed by the Assigned or Engaged Enrollee (or authorized representative) within 90 days of verbal approval.
+          %td= @careplan.verbal_approval_followup ? 'Yes' : ''
+
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2}
+          BH Document Review
+    %tbody
+      %tr
+        %th
+          The Assigned or Engaged Enrollee has been provided choice in CP services/programs during the care planning process
+        %td= @careplan.offered_services_choice_care_planning ? 'Yes' : ''
+      %tr
+        %th
+          The Assigned or Engaged Enrollee has been provided choice in available CP providers during the care planning process
+        %td= @careplan.offered_provider_choice_care_planning ? 'Yes' : ''
+      %tr
+        %th
+          The Engaged Enrollee was informed of recommended services for which they may be clinically eligible, subject to prior authorization where applicable
+        %td= @careplan.received_recommendations ? 'Yes' : ''
+      %tr
+        %th
+          The Engaged Enrollee has been provided choice in services and providers during the treatment planning process
+        %td= @careplan.offered_services_choice_treatment_planning ? 'Yes' : ''
+
+
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2}
+          By approving this record, you agree that the above information is true to the best of your knowledge
+    %tbody
+      %tr
+        %th
+          The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager
+        %td= @careplan.review_by_ccm_complete ? 'Yes' : ''
+      %tr
+        %th Reviewed by
+        %td= @careplan.reviewed_by_ccm&.name
+      %tr
+        %th Reviewed on
+        %td= @careplan.reviewed_by_ccm_on
+          
+
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2}
+          Enrollee Rights
+      %tr
+        %th{colspan: 2}
+          The Engaged Enrollee has been notified of his or her rights, including:
+    %tbody
+      %tr
+        %th 
+          The right to approve the BH Person-Centered Treatment Plan
+        %td= @careplan.right_to_approve_pctp ? 'Yes' : ''
+      %tr
+        %th
+          The right to appeal any denial, termination, suspension, or reduction in services through MassHealth or the ACO or MCO
+        %td= @careplan.right_to_appeal ? 'Yes' : ''
+      %tr
+        %th
+          The right to request a different CP Care Coordinator from the Contractor
+        %td= @careplan.right_to_change_cc ? 'Yes' : ''
+      %tr
+        %th The right to request a different BH CP
+        %td= @careplan.right_to_change_bhcp ? 'Yes' : ''
+      %tr
+        %th
+          The right to submit an internal Grievance to the Contractor and the Contractor's internal Grievances procedure
+        %td= @careplan.right_to_complain ? 'Yes' : ''
+      %tr
+        %th The right to access Ombudsman  services
+        %td= @careplan.right_to_ombudsman ? 'Yes' : ''
+
+.mt-8.pctc-print__table
+  %table
+    %tbody
+      %tr
+        %th
+          The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)
+        %td= @careplan.review_by_rn_complete ? 'Yes' : ''
+      %tr
+        %th Reviewed by
+        %td= @careplan.reviewed_by_rn&.name
+      %tr
+        %th Reviewed on
+        %td= @careplan.reviewed_by_rn_on
+
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: 2}
+          Document delivery
+    %tbody
+      %tr
+        %th The Enrollee was provided a copy of the plan
+        %td= @careplan.provided_to_patient ? 'Yes' : ''
+      %tr
+        %th The careplan was sent to the PCP
+        %td= @careplan.was_sent_to_pcp ? 'Yes' : ''
+      %tr
+        %th Sent by
+        %td= @careplan.sent_to_pcp_by&.name
+      %tr
+        %th Sent on
+        %td= @careplan.sent_to_pcp_on
+
+

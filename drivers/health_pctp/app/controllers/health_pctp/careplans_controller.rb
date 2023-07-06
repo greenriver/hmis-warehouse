@@ -13,6 +13,7 @@ module HealthPctp
     before_action :set_hpc_patient
     before_action :set_careplan, only: [:edit, :update, :show, :destroy, :download, :remove_file]
     before_action :set_upload_object, only: [:edit, :update, :download, :remove_file]
+    before_action :set_pdf_export, only: [:edit]
 
     def new
       @careplan = if @patient.pctps.in_progress.exists?
@@ -75,6 +76,10 @@ module HealthPctp
       :accommodation_types,
       :accessibility_equipment,
     ].freeze
+
+    private def set_pdf_export
+      @pdf_export = ::DocumentExports::HealthPctpPdfExport.new
+    end
 
     private def careplan_params
       permitted_cols = ::HealthPctp::Careplan.column_names.map(&:to_sym) -
