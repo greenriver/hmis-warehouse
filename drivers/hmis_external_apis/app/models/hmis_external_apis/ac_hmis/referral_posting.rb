@@ -60,7 +60,6 @@ module HmisExternalApis::AcHmis
 
     with_options on: :hmis_admin_action do
       validates :status, inclusion: { in: DENIAL_STATUSES }
-      validates :denial_note, presence: true, if: :denied_status?
       validates :referral_result, presence: true, if: :denied_status?
       validates :denial_reason, presence: true, if: :denied_pending_status?
       validates :denial_note, length: { maximum: 2_000 }
@@ -72,6 +71,9 @@ module HmisExternalApis::AcHmis
 
     INACTIVE_STATUSES = [:closed_status, :accepted_by_other_program_status, :denied_status].freeze
     scope :active, -> { where.not(status: INACTIVE_STATUSES) }
+
+    OUTGOING_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
+    scope :outgoing, -> { where(status: OUTGOING_STATUSES) }
 
     # referral came from LINK
     def from_link?
