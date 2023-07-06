@@ -75,6 +75,8 @@ module HealthPctp::PopulatePctpConcern
         accessibility_equipment_notes: ca.accessibility_equipment_notes,
         accessibility_equipment_start: ca.accessibility_equipment_start,
         accessibility_equipment_end: ca.accessibility_equipment_end,
+
+        crisis_plan: crisis_plan_default,
       )
     end
   end

@@ -303,5 +303,21 @@ module HealthPctp
         other: 'Other - Not Listed (specify below)',
       }.with_indifferent_access.invert
     end
+
+    def contingency_plan_placeholder
+      "Client is encouraged to develop a contingency plan with natural supports to address critical needs that they are not able to manage on their own.\n" +
+        "Client can collaborate with CP services (CC, NCM, and TC) to address any critical needs like transportation or medication.\n" +
+        "Client can contact JYP Clinic (857-654-1604) to schedule medical appointment or present to clinic for open access appointment during clinic business hours.\n" +
+        "Client can page on call medical or BH provider at 781-221-6565.\n" +
+        "Client is able to contact 911 for any emergencies or go to the nearest ED.\n" +
+        'Client is able to contact The Best Team (1-800-981-4357) or go to the nearest ED.'
+    end
+
+    def crisis_plan_default
+      "For Psychiatric emergency, If the risk is immanent call 911.\n" +
+        "If the risk is high but not immediate, TigerConnect BH Crises Response, call BEST Team (1-800-981-4357), and/or page BH team member on call at 781-221-6565.\n" +
+        'If the client is seeking substance use and/or dual-diagnosis treatment such as inpatient detox, residential treatment or partial hospitalization or day ' +
+        'program, client will contact PAATHS for assistance.'
+    end
   end
 end
