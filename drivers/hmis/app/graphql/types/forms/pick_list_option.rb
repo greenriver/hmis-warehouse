@@ -51,6 +51,7 @@ module Types
       when 'PROJECT'
         Hmis::Hud::Project.viewable_by(user).
           joins(:organization).
+          preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
       when 'ENROLLABLE_PROJECTS'
@@ -63,6 +64,10 @@ module Types
           sort_by_option(:name).
           map(&:to_pick_list_option)
 
+      when 'ALL_UNIT_TYPES'
+        # actually return all unit types, regardless of project
+        all_unit_types = Hmis::UnitType.order(:description, :id)
+        return all_unit_types.map(&:to_pick_list_option)
       when 'UNIT_TYPES'
         # If no project was specified, return all unit types
         all_unit_types = Hmis::UnitType.order(:description, :id)
@@ -84,11 +89,33 @@ module Types
         project.units.unoccupied_on.order(:name, :id).map(&:to_pick_list_option)
       when 'AVAILABLE_FILE_TYPES'
         file_tag_picklist
+      when 'PROJECT_HOH_ENROLLMENTS'
+        enrollments = Hmis::Hud::Enrollment
+          .viewable_by(user)
+          .in_project(relation_id)
+          .open_on_date
+          .heads_of_households
+          .preload(:client)
+          .preload(household: :enrollments)
+
+        enrollments.sort_by_option(:most_recent).map do |enrollment|
+          client = enrollment.client
+          household_size = enrollment.household&.enrollments&.size || 0
+          other_size = household_size - 1 # more than hoh
+          desc = other_size > 0 ? "and #{other_size} #{'other'.pluralize(other_size)}" :  ''
+          {
+            code: enrollment.id,
+            label: "#{client.brief_name} #{desc} (Entered #{enrollment.entry_date.strftime('%m/%d/%Y')})",
+          }
+        end
       when 'CLIENT_ENROLLMENTS'
         client = Hmis::Hud::Client.viewable_by(user).find_by(id: relation_id)
         return [] unless client.present?
 
-        client.enrollments.sort_by_option(:most_recent).map do |enrollment|
+        enrollments = client.enrollments
+          .preload(:project, :exit)
+
+        enrollments.sort_by_option(:most_recent).map do |enrollment|
           {
             code: enrollment.id,
             label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
