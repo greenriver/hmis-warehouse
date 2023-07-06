@@ -42,6 +42,14 @@ module HealthPctp::PopulatePctpConcern
         rn_phone: patient.nurse_care_manager&.phone,
         rn_email: patient.nurse_care_manager&.email,
 
+        guardian_name: ca.guardian_provider,
+        guardian_phone: ca.guardian_phone,
+        guardian_email: ca.guardian_address,
+
+        social_support_name: ca.social_support_provider,
+        social_support_phone: ca.social_support_phone,
+        social_support_email: ca.social_support_address,
+
         scribe: user.name,
         sex_at_birth: ca.sex_at_birth,
         sex_at_birth_other: ca.sex_at_birth_other,
@@ -67,6 +75,10 @@ module HealthPctp::PopulatePctpConcern
         accessibility_equipment_notes: ca.accessibility_equipment_notes,
         accessibility_equipment_start: ca.accessibility_equipment_start,
         accessibility_equipment_end: ca.accessibility_equipment_end,
+
+        crisis_plan: crisis_plan_default,
+
+        name_sent_to: ca.pcp_provider,
       )
     end
   end

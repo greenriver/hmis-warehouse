@@ -4444,7 +4444,14 @@ CREATE TABLE public.pctp_careplans (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    initial_date date
+    initial_date date,
+    guardian_name character varying,
+    guardian_phone character varying,
+    guardian_email character varying,
+    social_support_name character varying,
+    social_support_phone character varying,
+    social_support_email character varying,
+    name_sent_to character varying
 );
 
 
@@ -9107,6 +9114,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230613185511'),
 ('20230613201311'),
 ('20230614191047'),
-('20230614194646');
+('20230614194646'),
+('20230706134746');
 
 
