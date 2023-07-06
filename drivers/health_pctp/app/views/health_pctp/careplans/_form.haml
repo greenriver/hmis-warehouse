@@ -61,9 +61,9 @@
 
 %h2 Care Goals, Plans, and Barriers
 .well
-  = f.input :goals, as: :text, label: @careplan.goals_label, input_html: {rows: 5}
-
   = render 'goals', f: f
+
+  = f.input :goals, as: :text, label: @careplan.goals_label, input_html: {rows: 5}
 
 %h2 Contingency Plan
 .well

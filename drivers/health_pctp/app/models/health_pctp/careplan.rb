@@ -150,8 +150,7 @@ module HealthPctp
     end
 
     def goals_label
-      'What are the goals they would like to achieve with the Community Partner program and how will their ' +
-        'self-identified strengths be used to overcome barriers to these goals?'
+      "How will the person's self-identified strengths be used to overcome barriers to these goals?"
     end
 
     def update_reason_responses
