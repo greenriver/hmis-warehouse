@@ -4450,7 +4450,8 @@ CREATE TABLE public.pctp_careplans (
     guardian_email character varying,
     social_support_name character varying,
     social_support_phone character varying,
-    social_support_email character varying
+    social_support_email character varying,
+    name_sent_to character varying
 );
 
 

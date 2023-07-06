@@ -89,7 +89,10 @@
 .well
   = f.input :additional_concerns, as: :text, input_html: {rows: 6}, label: 'Additional needs or conditions that the Enrollee would like to address in the future'
 
-%h2{id: 'complete'} Complete & Review
+%h2 Review
+= render 'document_review', f: f
+
+%h2{id: 'complete'} Sign & Complete
 = render 'complete', f: f
 
 - content_for :page_js do

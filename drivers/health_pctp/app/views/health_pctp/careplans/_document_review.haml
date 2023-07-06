@@ -1,0 +1,16 @@
+%h3 BH Document Review
+.well
+  = f.input :offered_services_choice_care_planning, as: :pretty_boolean, label: 'The Assigned or Engaged Enrollee has been provided choice in CP services/programs during the care planning process'
+  = f.input :offered_provider_choice_care_planning, as: :pretty_boolean, label: 'The Assigned or Engaged Enrollee has been provided choice in available CP providers during the care planning process'
+  = f.input :received_recommendations, as: :pretty_boolean, label: 'The Engaged Enrollee was informed of recommended services for which they may be clinically eligible, subject to prior authorization where applicable'
+  = f.input :offered_services_choice_treatment_planning, as: :pretty_boolean, label: 'The Engaged Enrollee has been provided choice in services and providers during the treatment planning process'
+
+%h3 Enrollee Rights
+.well
+  %p The Engaged Enrollee has been notified of his or her rights, including:
+  = f.input :right_to_approve_pctp, as: :pretty_boolean, label: 'The right to approve the BH Person-Centered Treatment Plan'
+  = f.input :right_to_appeal, as: :pretty_boolean, label: 'The right to appeal any denial, termination, suspension, or reduction in services through MassHealth or the ACO or MCO'
+  = f.input :right_to_change_cc, as: :pretty_boolean, label: 'The right to request a different CP Care Coordinator from the Contractor'
+  = f.input :right_to_change_bhcp, as: :pretty_boolean, label: 'The right to request a different BH CP'
+  = f.input :right_to_complain, as: :pretty_boolean, label: "The right to submit an internal Grievance to the Contractor and the Contractor's internal Grievances procedure"
+  = f.input :right_to_ombudsman, as: :pretty_boolean, label: 'The right to access Ombudsman  services'
