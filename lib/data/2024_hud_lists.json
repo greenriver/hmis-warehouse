@@ -1,0 +1,4479 @@
+[
+  {
+    "name": "ExportPeriodType",
+    "code": "1.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Updated"
+      },
+      {
+        "key": 2,
+        "description": "Effective",
+        "deprecated": true
+      },
+      {
+        "key": 3,
+        "description": "Reporting period"
+      },
+      {
+        "key": 4,
+        "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "ExportDirective",
+    "code": "1.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Delta refresh"
+      },
+      {
+        "key": 2,
+        "description": "Full refresh"
+      },
+      {
+        "key": 3,
+        "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "DisabilityType",
+    "code": "1.3",
+    "values": [
+      {
+        "key": 5,
+        "description": "Physical disability"
+      },
+      {
+        "key": 6,
+        "description": "Developmental disability"
+      },
+      {
+        "key": 7,
+        "description": "Chronic health condition"
+      },
+      {
+        "key": 8,
+        "description": "HIV/AIDS"
+      },
+      {
+        "key": 9,
+        "description": "Mental health disorder"
+      },
+      {
+        "key": 10,
+        "description": "Substance use disorder"
+      }
+    ]
+  },
+  {
+    "name": "RecordType",
+    "code": "1.4",
+    "values": [
+      {
+        "key": 12,
+        "description": "Contact 12",
+        "deprecated": true
+      },
+      {
+        "key": 13,
+        "description": "Contact 13",
+        "deprecated": true
+      },
+      {
+        "key": 141,
+        "description": "PATH Service"
+      },
+      {
+        "key": 142,
+        "description": "RHY Service Connections"
+      },
+      {
+        "key": 143,
+        "description": "HOPWA Service"
+      },
+      {
+        "key": 144,
+        "description": "SSVF Service"
+      },
+      {
+        "key": 151,
+        "description": "HOPWA Financial Assistance"
+      },
+      {
+        "key": 152,
+        "description": "SSVF Financial Assistance"
+      },
+      {
+        "key": 161,
+        "description": "PATH Referral"
+      },
+      {
+        "key": 162,
+        "description": "RHY Referral",
+        "deprecated": true
+      },
+      {
+        "key": 200,
+        "description": "Bed Night"
+      },
+      {
+        "key": 210,
+        "description": "HUD-VASH OTH Voucher Tracking"
+      },
+      {
+        "key": 300,
+        "description": "Moving On Assistance"
+      }
+    ]
+  },
+  {
+    "name": "HashStatus",
+    "code": "1.5",
+    "values": [
+      {
+        "key": 1,
+        "description": "Unhashed"
+      },
+      {
+        "key": 2,
+        "description": "SHA-1 RHY"
+      },
+      {
+        "key": 3,
+        "description": "Hashed - other"
+      },
+      {
+        "key": 4,
+        "description": "SHA-256 (RHY)"
+      }
+    ]
+  },
+  {
+    "name": "RaceNone",
+    "code": "1.6",
+    "values": [
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "NoYesMissing",
+    "code": "1.7",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "NoYesReasonsForMissingData",
+    "code": "1.8",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "SourceType",
+    "code": "1.9",
+    "values": [
+      {
+        "key": 1,
+        "description": "CoC HMIS"
+      },
+      {
+        "key": 2,
+        "description": "Standalone/agency-specific application"
+      },
+      {
+        "key": 3,
+        "description": "Data warehouse"
+      },
+      {
+        "key": 4,
+        "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "NoYes",
+    "code": "1.10",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      }
+    ]
+  },
+  {
+    "name": "TargetPopulation",
+    "code": "2.02.7",
+    "values": [
+      {
+        "key": 1,
+        "description": "DV: Survivor of Domestic Violence"
+      },
+      {
+        "key": 3,
+        "description": "HIV: Persons with HIV/AIDS"
+      },
+      {
+        "key": 4,
+        "description": "NA: Not applicable"
+      }
+    ]
+  },
+  {
+    "name": "HOPWAMedAssistedLivingFac",
+    "code": "2.02.8",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 2,
+        "description": "Non-HOPWA Funded Project"
+      }
+    ]
+  },
+  {
+    "name": "HousingType",
+    "code": "2.02.D",
+    "values": [
+      {
+        "key": 1,
+        "description": "Site-based - single site"
+      },
+      {
+        "key": 2,
+        "description": "Site-based - clustered / multiple sites"
+      },
+      {
+        "key": 3,
+        "description": "Tenant-based - scattered site"
+      }
+    ]
+  },
+  {
+    "name": "ProjectType",
+    "code": "2.02.6",
+    "values": [
+      {
+        "key": 0,
+        "description": "Emergency Shelter - Entry Exit"
+      },
+      {
+        "key": 1,
+        "description": "Emergency Shelter - Night-by-Night"
+      },
+      {
+        "key": 2,
+        "description": "Transitional Housing"
+      },
+      {
+        "key": 3,
+        "description": "PH - Permanent Supportive Housing"
+      },
+      {
+        "key": 4,
+        "description": "Street Outreach"
+      },
+      {
+        "key": 6,
+        "description": "Services Only"
+      },
+      {
+        "key": 8,
+        "description": "Safe Haven"
+      },
+      {
+        "key": 9,
+        "description": "PH - Housing Only"
+      },
+      {
+        "key": 7,
+        "description": "Other"
+      },
+      {
+        "key": 10,
+        "description": "PH - Housing with Services (no disability required for entry)"
+      },
+      {
+        "key": 11,
+        "description": "Day Shelter"
+      },
+      {
+        "key": 12,
+        "description": "Homelessness Prevention"
+      },
+      {
+        "key": 13,
+        "description": "PH - Rapid Re-Housing"
+      },
+      {
+        "key": 14,
+        "description": "Coordinated Entry"
+      }
+    ]
+  },
+  {
+    "name": "RRHSubType",
+    "code": "2.02.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "RRH: Services Only"
+      },
+      {
+        "key": 2,
+        "description": "RRH: Housing with or without services"
+      }
+    ]
+  },
+  {
+    "name": "FundingSource",
+    "code": "2.06.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "HUD: CoC - Homelessness Prevention (High Performing Communities Only)"
+      },
+      {
+        "key": 2,
+        "description": "HUD: CoC - Permanent Supportive Housing"
+      },
+      {
+        "key": 3,
+        "description": "HUD: CoC - Rapid Re-Housing"
+      },
+      {
+        "key": 4,
+        "description": "HUD: CoC - Supportive Services Only"
+      },
+      {
+        "key": 5,
+        "description": "HUD: CoC - Transitional Housing"
+      },
+      {
+        "key": 6,
+        "description": "HUD: CoC - Safe Haven"
+      },
+      {
+        "key": 7,
+        "description": "HUD: CoC - Single Room Occupancy (SRO)"
+      },
+      {
+        "key": 8,
+        "description": "HUD: ESG - Emergency Shelter (operating and/or essential services)"
+      },
+      {
+        "key": 9,
+        "description": "HUD: ESG - Homelessness Prevention "
+      },
+      {
+        "key": 10,
+        "description": "HUD: ESG - Rapid Rehousing"
+      },
+      {
+        "key": 11,
+        "description": "HUD: ESG - Street Outreach"
+      },
+      {
+        "key": 12,
+        "description": "HUD: Rural Housing Stability Assistance Program",
+        "deprecated": true
+      },
+      {
+        "key": 13,
+        "description": "HUD: HOPWA - Hotel/Motel Vouchers"
+      },
+      {
+        "key": 14,
+        "description": "HUD: HOPWA - Housing Information"
+      },
+      {
+        "key": 15,
+        "description": "HUD: HOPWA - Permanent Housing (facility based or TBRA)"
+      },
+      {
+        "key": 16,
+        "description": "HUD: HOPWA - Permanent Housing Placement"
+      },
+      {
+        "key": 17,
+        "description": "HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance"
+      },
+      {
+        "key": 18,
+        "description": "HUD: HOPWA - Short-Term Supportive Facility"
+      },
+      {
+        "key": 19,
+        "description": "HUD: HOPWA - Transitional Housing (facility based or TBRA)"
+      },
+      {
+        "key": 20,
+        "description": "HUD: HUD/VASH"
+      },
+      {
+        "key": 21,
+        "description": "HHS: PATH - Street Outreach \u0026 Supportive Services Only"
+      },
+      {
+        "key": 22,
+        "description": "HHS: RHY - Basic Center Program (prevention and shelter)"
+      },
+      {
+        "key": 23,
+        "description": "HHS: RHY - Maternity Group Home for Pregnant and Parenting Youth"
+      },
+      {
+        "key": 24,
+        "description": "HHS: RHY - Transitional Living Program"
+      },
+      {
+        "key": 25,
+        "description": "HHS: RHY - Street Outreach Project"
+      },
+      {
+        "key": 26,
+        "description": "HHS: RHY - Demonstration Project"
+      },
+      {
+        "key": 27,
+        "description": "VA: CRS Contract Residential Services"
+      },
+      {
+        "key": 30,
+        "description": "VA: Community Contract Safe Haven Program"
+      },
+      {
+        "key": 32,
+        "description": "VA: Compensated Work Therapy Transitional Residence"
+      },
+      {
+        "key": 33,
+        "description": "VA: Supportive Services for Veteran Families"
+      },
+      {
+        "key": 34,
+        "description": "N/A"
+      },
+      {
+        "key": 35,
+        "description": "HUD: Pay for Success"
+      },
+      {
+        "key": 36,
+        "description": "HUD: Public and Indian Housing (PIH) Programs"
+      },
+      {
+        "key": 37,
+        "description": "VA: Grant Per Diem - Bridge Housing"
+      },
+      {
+        "key": 38,
+        "description": "VA: Grant Per Diem - Low Demand"
+      },
+      {
+        "key": 39,
+        "description": "VA: Grant Per Diem - Hospital to Housing"
+      },
+      {
+        "key": 40,
+        "description": "VA: Grant Per Diem - Clinical Treatment"
+      },
+      {
+        "key": 41,
+        "description": "VA: Grant Per Diem - Service Intensive Transitional Housing"
+      },
+      {
+        "key": 42,
+        "description": "VA: Grant Per Diem - Transition in Place"
+      },
+      {
+        "key": 43,
+        "description": "HUD: CoC - Youth Homeless Demonstration Program (YHDP)"
+      },
+      {
+        "key": 44,
+        "description": "HUD: CoC - Joint Component TH/RRH"
+      },
+      {
+        "key": 45,
+        "description": "VA: Grant Per Diem - Case Management/Housing Retention"
+      },
+      {
+        "key": 46,
+        "description": "Local or Other Funding Source"
+      },
+      {
+        "key": 47,
+        "description": "HUD: ESG - CV"
+      },
+      {
+        "key": 48,
+        "description": "HUD: HOPWA - CV"
+      },
+      {
+        "key": 49,
+        "description": "HUD: CoC - Joint Component RRH/PSH",
+        "deprecated": true
+      },
+      {
+        "key": 50,
+        "description": "HUD: HOME"
+      },
+      {
+        "key": 51,
+        "description": "HUD: HOME (ARP)"
+      },
+      {
+        "key": 52,
+        "description": "HUD: PIH (Emergency Housing Voucher)"
+      },
+      {
+        "key": 53,
+        "description": "HUD: ESG - RUSH"
+      },
+      {
+        "key": 54,
+        "description": "HUD: Unsheltered Special NOFO"
+      },
+      {
+        "key": 55,
+        "description": "HUD: Rural Special NOFO"
+      }
+    ]
+  },
+  {
+    "name": "HouseholdType",
+    "code": "2.07.4",
+    "values": [
+      {
+        "key": 1,
+        "description": "Households without children"
+      },
+      {
+        "key": 3,
+        "description": "Households with at least one adult and one child"
+      },
+      {
+        "key": 4,
+        "description": "Households with only children"
+      }
+    ]
+  },
+  {
+    "name": "BedType",
+    "code": "2.07.5",
+    "values": [
+      {
+        "key": 1,
+        "description": "Facility-based"
+      },
+      {
+        "key": 2,
+        "description": "Voucher"
+      },
+      {
+        "key": 3,
+        "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "Availability",
+    "code": "2.07.6",
+    "values": [
+      {
+        "key": 1,
+        "description": "Year-round"
+      },
+      {
+        "key": 2,
+        "description": "Seasonal"
+      },
+      {
+        "key": 3,
+        "description": "Overflow"
+      }
+    ]
+  },
+  {
+    "name": "YouthAgeGroup",
+    "code": "2.7.B",
+    "values": [
+      {
+        "key": 1,
+        "description": "Only under age 18"
+      },
+      {
+        "key": 2,
+        "description": "Only ages 18 to 24"
+      },
+      {
+        "key": 3,
+        "description": "Only youth under age 24 (both of the above)"
+      }
+    ]
+  },
+  {
+    "name": "GeographyType",
+    "code": "2.03.4",
+    "values": [
+      {
+        "key": 1,
+        "description": "Urban"
+      },
+      {
+        "key": 2,
+        "description": "Suburban"
+      },
+      {
+        "key": 3,
+        "description": "Rural"
+      },
+      {
+        "key": 99,
+        "description": "Unknown / data not collected"
+      }
+    ]
+  },
+  {
+    "name": "HMISParticipationType",
+    "code": "2.08.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "Not Participating"
+      },
+      {
+        "key": 1,
+        "description": "HMIS Participating"
+      },
+      {
+        "key": 2,
+        "description": "Comparable Database Participating"
+      }
+    ]
+  },
+  {
+    "name": "NameDataQuality",
+    "code": "3.01.5",
+    "values": [
+      {
+        "key": 1,
+        "description": "Full name reported"
+      },
+      {
+        "key": 2,
+        "description": "Partial, street name, or code name reported"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "Destination",
+    "code": "3.12",
+    "values": [
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 17,
+        "description": "Other"
+      },
+      {
+        "key": 24,
+        "description": "Deceased"
+      },
+      {
+        "key": 30,
+        "description": "No exit interview completed"
+      },
+      {
+        "key": 35,
+        "description": "Staying or living in a family member's room, apartment or house"
+      },
+      {
+        "key": 37,
+        "description": "Worker unable to determine"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      },
+      {
+        "key": 101,
+        "description": "Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter"
+      },
+      {
+        "key": 116,
+        "description": "Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)"
+      },
+      {
+        "key": 118,
+        "description": "Safe Haven"
+      },
+      {
+        "key": 204,
+        "description": "Psychiatric hospital or other psychiatric facility"
+      },
+      {
+        "key": 205,
+        "description": "Substance abuse treatment facility or detox center"
+      },
+      {
+        "key": 206,
+        "description": "Hospital or other residential non-psychiatric medical facility"
+      },
+      {
+        "key": 207,
+        "description": "Jail, prison or juvenile detention facility"
+      },
+      {
+        "key": 215,
+        "description": "Foster care home or foster care group home"
+      },
+      {
+        "key": 225,
+        "description": "Long-term care facility or nursing home"
+      },
+      {
+        "key": 302,
+        "description": "Transitional housing for homeless persons (including homeless youth)"
+      },
+      {
+        "key": 312,
+        "description": "Staying or living with family, temporary tenure (e.g. room, apartment or house)"
+      },
+      {
+        "key": 313,
+        "description": "Staying or living with friends, temporary tenure (e.g. room apartment or house)"
+      },
+      {
+        "key": 314,
+        "description": "Hotel or motel paid for without emergency shelter voucher"
+      },
+      {
+        "key": 327,
+        "description": "Moved from one HOPWA funded project to HOPWA TH"
+      },
+      {
+        "key": 329,
+        "description": "Residential project or halfway house with no homeless criteria"
+      },
+      {
+        "key": 332,
+        "description": "Host Home (non-crisis)"
+      },
+      {
+        "key": 410,
+        "description": "Rental by client, no ongoing housing subsidy"
+      },
+      {
+        "key": 411,
+        "description": "Owned by client, no ongoing housing subsidy"
+      },
+      {
+        "key": 421,
+        "description": "Owned by client, with ongoing housing subsidy"
+      },
+      {
+        "key": 422,
+        "description": "Staying or living with family, permanent tenure"
+      },
+      {
+        "key": 423,
+        "description": "Staying or living with friends, permanent tenure"
+      },
+      {
+        "key": 426,
+        "description": "Moved from one HOPWA funded project to HOPWA PH"
+      },
+      {
+        "key": 435,
+        "description": "Rental by client, with ongoing housing subsidy"
+      }
+    ]
+  },
+  {
+    "name": "RelationshipToHoH",
+    "code": "3.15.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Self (head of household)"
+      },
+      {
+        "key": 2,
+        "description": "Child"
+      },
+      {
+        "key": 3,
+        "description": "Spouse or partner"
+      },
+      {
+        "key": 4,
+        "description": "Other relative"
+      },
+      {
+        "key": 5,
+        "description": "Unrelated household member"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "SSNDataQuality",
+    "code": "3.02.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Full SSN reported"
+      },
+      {
+        "key": 2,
+        "description": "Approximate or partial SSN reported"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "DOBDataQuality",
+    "code": "3.03.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Full DOB reported"
+      },
+      {
+        "key": 2,
+        "description": "Approximate or partial DOB reported"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "TimesHomelessPastThreeYears",
+    "code": "3.917.4",
+    "values": [
+      {
+        "key": 1,
+        "description": "One time"
+      },
+      {
+        "key": 2,
+        "description": "Two times"
+      },
+      {
+        "key": 3,
+        "description": "Three times"
+      },
+      {
+        "key": 4,
+        "description": "Four or more times"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "Ethnicity",
+    "code": "3.05.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "Non-Hispanic/Non-Latin(a)(o)(x)"
+      },
+      {
+        "key": 1,
+        "description": "Hispanic/Latin(a)(o)(x)"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "Gender",
+    "code": "3.6.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "Female"
+      },
+      {
+        "key": 1,
+        "description": "Male"
+      },
+      {
+        "key": 4,
+        "description": "A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)"
+      },
+      {
+        "key": 5,
+        "description": "Transgender"
+      },
+      {
+        "key": 6,
+        "description": "Questioning"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "LivingSituation",
+    "code": "4.12",
+    "values": [
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 17,
+        "description": "Other"
+      },
+      {
+        "key": 35,
+        "description": "Staying or living in a family member's room, apartment or house"
+      },
+      {
+        "key": 37,
+        "description": "Worker unable to determine"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      },
+      {
+        "key": 101,
+        "description": "Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter"
+      },
+      {
+        "key": 116,
+        "description": "Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)"
+      },
+      {
+        "key": 118,
+        "description": "Safe Haven"
+      },
+      {
+        "key": 204,
+        "description": "Psychiatric hospital or other psychiatric facility"
+      },
+      {
+        "key": 205,
+        "description": "Substance abuse treatment facility or detox center"
+      },
+      {
+        "key": 206,
+        "description": "Hospital or other residential non-psychiatric medical facility"
+      },
+      {
+        "key": 207,
+        "description": "Jail, prison or juvenile detention facility"
+      },
+      {
+        "key": 215,
+        "description": "Foster care home or foster care group home"
+      },
+      {
+        "key": 225,
+        "description": "Long-term care facility or nursing home"
+      },
+      {
+        "key": 302,
+        "description": "Transitional housing for homeless persons (including homeless youth)"
+      },
+      {
+        "key": 314,
+        "description": "Hotel or motel paid for without emergency shelter voucher"
+      },
+      {
+        "key": 329,
+        "description": "Residential project or halfway house with no homeless criteria"
+      },
+      {
+        "key": 332,
+        "description": "Host Home (non-crisis)"
+      },
+      {
+        "key": 335,
+        "description": "Staying or living in a family member’s room, apartment, or house"
+      },
+      {
+        "key": 336,
+        "description": "Staying or living in a friend's room, apartment or house"
+      },
+      {
+        "key": 410,
+        "description": "Rental by client, no ongoing housing subsidy"
+      },
+      {
+        "key": 411,
+        "description": "Owned by client, no ongoing housing subsidy"
+      },
+      {
+        "key": 421,
+        "description": "Owned by client, with ongoing housing subsidy"
+      },
+      {
+        "key": 435,
+        "description": "Rental by client, with ongoing housing subsidy"
+      }
+    ]
+  },
+  {
+    "name": "PriorLivingSituation",
+    "code": "3.917",
+    "values": [
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 35,
+        "description": "Staying or living in a family member's room, apartment or house"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      },
+      {
+        "key": 101,
+        "description": "Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter"
+      },
+      {
+        "key": 116,
+        "description": "Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)"
+      },
+      {
+        "key": 118,
+        "description": "Safe Haven"
+      },
+      {
+        "key": 204,
+        "description": "Psychiatric hospital or other psychiatric facility"
+      },
+      {
+        "key": 205,
+        "description": "Substance abuse treatment facility or detox center"
+      },
+      {
+        "key": 206,
+        "description": "Hospital or other residential non-psychiatric medical facility"
+      },
+      {
+        "key": 207,
+        "description": "Jail, prison or juvenile detention facility"
+      },
+      {
+        "key": 215,
+        "description": "Foster care home or foster care group home"
+      },
+      {
+        "key": 225,
+        "description": "Long-term care facility or nursing home"
+      },
+      {
+        "key": 302,
+        "description": "Transitional housing for homeless persons (including homeless youth)"
+      },
+      {
+        "key": 314,
+        "description": "Hotel or motel paid for without emergency shelter voucher"
+      },
+      {
+        "key": 329,
+        "description": "Residential project or halfway house with no homeless criteria"
+      },
+      {
+        "key": 332,
+        "description": "Host Home (non-crisis)"
+      },
+      {
+        "key": 335,
+        "description": "Staying or living in a family member’s room, apartment, or house"
+      },
+      {
+        "key": 336,
+        "description": "Staying or living in a friend's room, apartment or house"
+      },
+      {
+        "key": 410,
+        "description": "Rental by client, no ongoing housing subsidy"
+      },
+      {
+        "key": 411,
+        "description": "Owned by client, no ongoing housing subsidy"
+      },
+      {
+        "key": 421,
+        "description": "Owned by client, with ongoing housing subsidy"
+      },
+      {
+        "key": 435,
+        "description": "Rental by client, with ongoing housing subsidy"
+      }
+    ]
+  },
+  {
+    "name": "RentalSubsidyType",
+    "code": "3.12.A",
+    "values": [
+      {
+        "key": 428,
+        "description": "GPD TIP housing subsidy"
+      },
+      {
+        "key": 419,
+        "description": "VASH housing subsidy"
+      },
+      {
+        "key": 431,
+        "description": "RRH or equivalent subsidy"
+      },
+      {
+        "key": 433,
+        "description": "HCV voucher (tenant or project based) (not dedicated)"
+      },
+      {
+        "key": 434,
+        "description": "Public housing unit"
+      },
+      {
+        "key": 420,
+        "description": "Rental by client, with other ongoing housing subsidy"
+      },
+      {
+        "key": 436,
+        "description": "Emergency Housing Voucher"
+      },
+      {
+        "key": 437,
+        "description": "Family Unification Program Voucher (FUP)"
+      },
+      {
+        "key": 438,
+        "description": "Foster Youth to Independence Initiative (FYI)"
+      },
+      {
+        "key": 439,
+        "description": "Permanent Supportive Housing"
+      },
+      {
+        "key": 440,
+        "description": "Other permanent housing dedicated for formerly homeless persons"
+      }
+    ]
+  },
+  {
+    "name": "ResidencePriorLengthOfStay",
+    "code": "3.917.2",
+    "values": [
+      {
+        "key": 2,
+        "description": "One week or more, but less than one month"
+      },
+      {
+        "key": 3,
+        "description": "One month or more, but less than 90 days"
+      },
+      {
+        "key": 4,
+        "description": "90 days or more but less than one year"
+      },
+      {
+        "key": 5,
+        "description": "One year or longer"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 10,
+        "description": "One night or less"
+      },
+      {
+        "key": 11,
+        "description": "Two to six nights"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "MonthsHomelessPastThreeYears",
+    "code": "3.917.5",
+    "values": [
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      },
+      {
+        "key": 101,
+        "description": "1"
+      },
+      {
+        "key": 102,
+        "description": "2"
+      },
+      {
+        "key": 103,
+        "description": "3"
+      },
+      {
+        "key": 104,
+        "description": "4"
+      },
+      {
+        "key": 105,
+        "description": "5"
+      },
+      {
+        "key": 106,
+        "description": "6"
+      },
+      {
+        "key": 107,
+        "description": "7"
+      },
+      {
+        "key": 108,
+        "description": "8"
+      },
+      {
+        "key": 109,
+        "description": "9"
+      },
+      {
+        "key": 110,
+        "description": "10"
+      },
+      {
+        "key": 111,
+        "description": "11"
+      },
+      {
+        "key": 112,
+        "description": "12"
+      },
+      {
+        "key": 113,
+        "description": "More than 12 months"
+      }
+    ]
+  },
+  {
+    "name": "ReasonNotInsured",
+    "code": "4.04.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Applied; decision pending"
+      },
+      {
+        "key": 2,
+        "description": "Applied; client not eligible"
+      },
+      {
+        "key": 3,
+        "description": "Client did not apply"
+      },
+      {
+        "key": 4,
+        "description": "Insurance type N/A for this client"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "HousingStatus",
+    "code": "4.1.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Category 1 - Homeless"
+      },
+      {
+        "key": 2,
+        "description": "Category 2 - At imminent risk of losing housing"
+      },
+      {
+        "key": 3,
+        "description": "At-risk of homelessness"
+      },
+      {
+        "key": 4,
+        "description": "Stably housed"
+      },
+      {
+        "key": 5,
+        "description": "Category 3 - Homeless only under other federal statutes"
+      },
+      {
+        "key": 6,
+        "description": "Category 4 - Fleeing domestic violence"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "DisabilityResponse",
+    "code": "4.10.2",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Alcohol use disorder"
+      },
+      {
+        "key": 2,
+        "description": "Drug use disorder"
+      },
+      {
+        "key": 3,
+        "description": "Both alcohol and drug use disorders"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "WhenDVOccurred",
+    "code": "4.11.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Within the past three months"
+      },
+      {
+        "key": 2,
+        "description": "Three to six months ago (excluding six months exactly)"
+      },
+      {
+        "key": 3,
+        "description": "Six months to one year ago (excluding one year exactly)"
+      },
+      {
+        "key": 4,
+        "description": "One year or more"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "ContactLocation",
+    "code": "4.12.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Place not meant for habitation"
+      },
+      {
+        "key": 2,
+        "description": "Service setting, non-residential"
+      },
+      {
+        "key": 3,
+        "description": "Service setting, residential"
+      }
+    ]
+  },
+  {
+    "name": "BedNight",
+    "code": "4.14",
+    "values": [
+      {
+        "key": 200,
+        "description": "BedNight"
+      }
+    ]
+  },
+  {
+    "name": "RHYServices",
+    "code": "R14.2",
+    "values": [
+      {
+        "key": 2,
+        "description": "Community service/service learning (CSL)"
+      },
+      {
+        "key": 5,
+        "description": "Education"
+      },
+      {
+        "key": 6,
+        "description": "Employment and training services"
+      },
+      {
+        "key": 7,
+        "description": "Criminal justice /legal services"
+      },
+      {
+        "key": 8,
+        "description": "Life skills training"
+      },
+      {
+        "key": 10,
+        "description": "Parenting education for youth with children"
+      },
+      {
+        "key": 12,
+        "description": "Post-natal care for client (person who gave birth)"
+      },
+      {
+        "key": 13,
+        "description": "Pre-natal care"
+      },
+      {
+        "key": 14,
+        "description": "Health/medical care"
+      },
+      {
+        "key": 17,
+        "description": "Substance use disorder treatment"
+      },
+      {
+        "key": 18,
+        "description": "Substance use disorder/Prevention Services"
+      },
+      {
+        "key": 26,
+        "description": "Home-based Services"
+      },
+      {
+        "key": 27,
+        "description": "Post-natal newborn care (wellness exams; immunizations)"
+      },
+      {
+        "key": 28,
+        "description": "STD Testing"
+      },
+      {
+        "key": 29,
+        "description": "Street-based Services"
+      }
+    ]
+  },
+  {
+    "name": "SSVFFinancialAssistance",
+    "code": "V3.3",
+    "values": [
+      {
+        "key": 1,
+        "description": "Rental assistance"
+      },
+      {
+        "key": 2,
+        "description": "Security deposit"
+      },
+      {
+        "key": 3,
+        "description": "Utility deposit"
+      },
+      {
+        "key": 4,
+        "description": "Utility fee payment assistance"
+      },
+      {
+        "key": 5,
+        "description": "Moving costs"
+      },
+      {
+        "key": 8,
+        "description": "Transportation services: tokens/vouchers"
+      },
+      {
+        "key": 9,
+        "description": "Transportation services: vehicle repair/maintenance"
+      },
+      {
+        "key": 10,
+        "description": "Child care"
+      },
+      {
+        "key": 11,
+        "description": "General housing stability assistance - emergency supplies",
+        "deprecated": true
+      },
+      {
+        "key": 12,
+        "description": "General housing stability assistance"
+      },
+      {
+        "key": 14,
+        "description": "Emergency housing assistance"
+      },
+      {
+        "key": 15,
+        "description": "Shallow Subsidy - Financial Assistance"
+      },
+      {
+        "key": 16,
+        "description": "Food Assistance"
+      },
+      {
+        "key": 17,
+        "description": "Landlord Incentive"
+      },
+      {
+        "key": 18,
+        "description": "Tenant Incentive"
+      }
+    ]
+  },
+  {
+    "name": "HousingAssessmentDisposition",
+    "code": "4.18.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referred to emergency shelter/safe haven"
+      },
+      {
+        "key": 2,
+        "description": "Referred to transitional housing"
+      },
+      {
+        "key": 3,
+        "description": "Referred to rapid re-housing"
+      },
+      {
+        "key": 4,
+        "description": "Referred to permanent supportive housing"
+      },
+      {
+        "key": 5,
+        "description": "Referred to homelessness prevention"
+      },
+      {
+        "key": 6,
+        "description": "Referred to street outreach"
+      },
+      {
+        "key": 7,
+        "description": "Referred to other continuum project type"
+      },
+      {
+        "key": 8,
+        "description": "Referred to a homelessness diversion program"
+      },
+      {
+        "key": 9,
+        "description": "Unable to refer/accept within continuum; ineligible for continuum projects"
+      },
+      {
+        "key": 10,
+        "description": "Unable to refer/accept within continuum; continuum services unavailable"
+      },
+      {
+        "key": 11,
+        "description": "Referred to other community project (non-continuum)"
+      },
+      {
+        "key": 12,
+        "description": "Applicant declined referral/acceptance"
+      },
+      {
+        "key": 13,
+        "description": "Applicant terminated assessment prior to completion"
+      },
+      {
+        "key": 14,
+        "description": "Other/specify"
+      }
+    ]
+  },
+  {
+    "name": "AssessmentType",
+    "code": "4.19.3",
+    "values": [
+      {
+        "key": 1,
+        "description": "Phone"
+      },
+      {
+        "key": 2,
+        "description": "Virtual"
+      },
+      {
+        "key": 3,
+        "description": "In Person"
+      }
+    ]
+  },
+  {
+    "name": "AssessmentLevel",
+    "code": "4.19.4",
+    "values": [
+      {
+        "key": 1,
+        "description": "Crisis Needs Assessment"
+      },
+      {
+        "key": 2,
+        "description": "Housing Needs Assessment"
+      }
+    ]
+  },
+  {
+    "name": "PrioritizationStatus",
+    "code": "4.19.7",
+    "values": [
+      {
+        "key": 1,
+        "description": "Placed on prioritization list"
+      },
+      {
+        "key": 2,
+        "description": "Not placed on prioritization list"
+      }
+    ]
+  },
+  {
+    "name": "EventType",
+    "code": "4.20.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referral to Prevention Assistance project"
+      },
+      {
+        "key": 2,
+        "description": "Problem Solving/Diversion/Rapid Resolution intervention or service"
+      },
+      {
+        "key": 3,
+        "description": "Referral to scheduled Coordinated Entry Crisis Needs Assessment"
+      },
+      {
+        "key": 4,
+        "description": "Referral to scheduled Coordinated Entry Housing Needs Assessment"
+      },
+      {
+        "key": 5,
+        "description": "Referral to Post-placement/ follow-up case management"
+      },
+      {
+        "key": 6,
+        "description": "Referral to Street Outreach project or services"
+      },
+      {
+        "key": 7,
+        "description": "Referral to Housing Navigation project or services"
+      },
+      {
+        "key": 8,
+        "description": "Referral to Non-continuum services: Ineligible for continuum services"
+      },
+      {
+        "key": 9,
+        "description": "Referral to Non-continuum services: No availability in continuum services"
+      },
+      {
+        "key": 10,
+        "description": "Referral to Emergency Shelter bed opening"
+      },
+      {
+        "key": 11,
+        "description": "Referral to Transitional Housing bed/unit opening"
+      },
+      {
+        "key": 12,
+        "description": "Referral to Joint TH-RRH project/unit/resource opening"
+      },
+      {
+        "key": 13,
+        "description": "Referral to RRH project resource opening"
+      },
+      {
+        "key": 14,
+        "description": "Referral to PSH project resource opening"
+      },
+      {
+        "key": 15,
+        "description": "Referral to Other PH project/unit/resource opening"
+      },
+      {
+        "key": 16,
+        "description": "Referral to emergency assistance/flex fund/furniture assistance"
+      },
+      {
+        "key": 17,
+        "description": "Referral to Emergency Housing Voucher (EHV)"
+      },
+      {
+        "key": 18,
+        "description": "Referral to a Housing Stability Voucher"
+      }
+    ]
+  },
+  {
+    "name": "ReferralResult",
+    "code": "4.20.D",
+    "values": [
+      {
+        "key": 1,
+        "description": "Successful referral: client accepted"
+      },
+      {
+        "key": 2,
+        "description": "Unsuccessful referral: client rejected"
+      },
+      {
+        "key": 3,
+        "description": "Unsuccessful referral: provider rejected"
+      }
+    ]
+  },
+  {
+    "name": "PreventionOutcome",
+    "code": "4.21.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referral to a HP project opening"
+      },
+      {
+        "key": 2,
+        "description": "No HP referral – no availability, placed on priority/waiting list"
+      },
+      {
+        "key": 3,
+        "description": "No HP referral - determined ineligible"
+      },
+      {
+        "key": 4,
+        "description": "Referral to emergency assistance/flex fund/furniture assistance"
+      },
+      {
+        "key": 5,
+        "description": "Client declined HP referral"
+      },
+      {
+        "key": 6,
+        "description": "Don’t know outcome or outcome pending"
+      }
+    ]
+  },
+  {
+    "name": "ShelterOutcome",
+    "code": "4.21.E",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referral to Diversion project opening"
+      },
+      {
+        "key": 2,
+        "description": "Client declined Diversion referral"
+      },
+      {
+        "key": 3,
+        "description": "Referral to Emergency Shelter bed opening"
+      },
+      {
+        "key": 4,
+        "description": "Client declined shelter referral - street outreach connection made"
+      },
+      {
+        "key": 5,
+        "description": "Client declined shelter referral - no connections/referrals"
+      },
+      {
+        "key": 6,
+        "description": "Placed on prioritization list"
+      },
+      {
+        "key": 7,
+        "description": "No connections/referrals provided"
+      },
+      {
+        "key": 8,
+        "description": "Don’t know yet or outcome pending"
+      }
+    ]
+  },
+  {
+    "name": "HousingOutcome",
+    "code": "4.21.I",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referral to Diversion project opening"
+      },
+      {
+        "key": 2,
+        "description": "Referral to Transitional Housing bed/unit opening"
+      },
+      {
+        "key": 3,
+        "description": "Referral to Joint TH-RRH project/unit opening"
+      },
+      {
+        "key": 4,
+        "description": "Referral to RRH project/unit opening"
+      },
+      {
+        "key": 5,
+        "description": "Referral to PSH project/unit opening"
+      },
+      {
+        "key": 6,
+        "description": "Referral to Other PH project/unit opening"
+      },
+      {
+        "key": 7,
+        "description": "Referral to a Housing Stability Voucher"
+      },
+      {
+        "key": 8,
+        "description": "Client declined Diversion referral"
+      },
+      {
+        "key": 9,
+        "description": "Placed on prioritization list"
+      },
+      {
+        "key": 10,
+        "description": "No availability - Provided other housing information"
+      },
+      {
+        "key": 11,
+        "description": "Ineligible – Provided other housing information"
+      },
+      {
+        "key": 12,
+        "description": "Client declined housing referral"
+      },
+      {
+        "key": 13,
+        "description": "Don’t know yet or outcome pending"
+      }
+    ]
+  },
+  {
+    "name": "ServiceProvided",
+    "code": "4.21.6",
+    "values": [
+      {
+        "key": 0,
+        "description": "None"
+      },
+      {
+        "key": 1,
+        "description": "Financial Assistance"
+      },
+      {
+        "key": 2,
+        "description": "Other Assistance"
+      },
+      {
+        "key": 3,
+        "description": "Both Financial & Other Assistance"
+      }
+    ]
+  },
+  {
+    "name": "ServiceOutcome",
+    "code": "4.21.M",
+    "values": [
+      {
+        "key": 1,
+        "description": "Maintained housing they had at CE entry"
+      },
+      {
+        "key": 2,
+        "description": "Secured other permanent housing"
+      },
+      {
+        "key": 3,
+        "description": "Referred back to CE for shelter assessment"
+      },
+      {
+        "key": 4,
+        "description": "Referred back to CE for housing assessment"
+      },
+      {
+        "key": 5,
+        "description": "Don't know yet or outcome pending"
+      }
+    ]
+  },
+  {
+    "name": "IncarceratedParentStatus",
+    "code": "4.33.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "One parent / legal guardian is incarcerated"
+      },
+      {
+        "key": 2,
+        "description": "Both parents / legal guardians are incarcerated"
+      },
+      {
+        "key": 3,
+        "description": "The only parent / legal guardian is incarcerated"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "ExitAction",
+    "code": "4.36.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      }
+    ]
+  },
+  {
+    "name": "EarlyExitReason",
+    "code": "4.37.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Left for other opportunities - independent living"
+      },
+      {
+        "key": 2,
+        "description": "Left for other opportunities - education"
+      },
+      {
+        "key": 3,
+        "description": "Left for other opportunities - military"
+      },
+      {
+        "key": 4,
+        "description": "Left for other opportunities - other"
+      },
+      {
+        "key": 5,
+        "description": "Needs could not be met by project"
+      }
+    ]
+  },
+  {
+    "name": "CrisisServicesUse",
+    "code": "4.49.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "0"
+      },
+      {
+        "key": 1,
+        "description": "1-2"
+      },
+      {
+        "key": 2,
+        "description": "3-5"
+      },
+      {
+        "key": 3,
+        "description": "6-10"
+      },
+      {
+        "key": 4,
+        "description": "11-20"
+      },
+      {
+        "key": 5,
+        "description": "More than 20"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "PATHHowConfirmed",
+    "code": "4.9.D",
+    "values": [
+      {
+        "key": 1,
+        "description": "Unconfirmed; presumptive or self-report"
+      },
+      {
+        "key": 2,
+        "description": "Confirmed through assessment and clinical evaluation"
+      },
+      {
+        "key": 3,
+        "description": "Confirmed by prior evaluation or clinical records"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "PATHSMIInformation",
+    "code": "4.9.E",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Unconfirmed; presumptive or self-report"
+      },
+      {
+        "key": 2,
+        "description": "Confirmed through assessment and clinical evaluation"
+      },
+      {
+        "key": 3,
+        "description": "Confirmed by prior evaluation or clinical records"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "DataCollectionStage",
+    "code": "5.03.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Project entry"
+      },
+      {
+        "key": 2,
+        "description": "Update"
+      },
+      {
+        "key": 3,
+        "description": "Project exit"
+      },
+      {
+        "key": 5,
+        "description": "Annual assessment"
+      },
+      {
+        "key": 6,
+        "description": "Post-exit"
+      }
+    ]
+  },
+  {
+    "name": "MovingOnAssistance",
+    "code": "C2.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Subsidized housing application assistance"
+      },
+      {
+        "key": 2,
+        "description": "Financial assistance for Moving On (e.g., security deposit, moving expenses)"
+      },
+      {
+        "key": 3,
+        "description": "Non-financial assistance for Moving On (e.g., housing navigation, transition support)"
+      },
+      {
+        "key": 4,
+        "description": "Housing referral/placement"
+      },
+      {
+        "key": 5,
+        "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "CurrentSchoolAttended",
+    "code": "C3.2",
+    "values": [
+      {
+        "key": 0,
+        "description": "Not currently enrolled in any school or educational course"
+      },
+      {
+        "key": 1,
+        "description": "Currently enrolled but NOT attending regularly (when school or the course is in session)"
+      },
+      {
+        "key": 2,
+        "description": "Currently enrolled and attending regularly (when school or the course is in session)"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "MostRecentEdStatus",
+    "code": "C3.A",
+    "values": [
+      {
+        "key": 0,
+        "description": "K12: Graduated from high school"
+      },
+      {
+        "key": 1,
+        "description": "K12: Obtained GED"
+      },
+      {
+        "key": 2,
+        "description": "K12: Dropped out"
+      },
+      {
+        "key": 3,
+        "description": "K12: Suspended"
+      },
+      {
+        "key": 4,
+        "description": "K12: Expelled"
+      },
+      {
+        "key": 5,
+        "description": "Higher education: Pursuing a credential but not currently attending"
+      },
+      {
+        "key": 6,
+        "description": "Higher education: Dropped out"
+      },
+      {
+        "key": 7,
+        "description": "Higher education: Obtained a credential/degree"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "CurrentEdStatus",
+    "code": "C3.B",
+    "values": [
+      {
+        "key": 0,
+        "description": "Pursuing a high school diploma or GED"
+      },
+      {
+        "key": 1,
+        "description": "Pursuing Associate's Degree"
+      },
+      {
+        "key": 2,
+        "description": "Pursuing Bachelor's Degree"
+      },
+      {
+        "key": 3,
+        "description": "Pursuing Graduate Degree"
+      },
+      {
+        "key": 4,
+        "description": "Pursuing other post-secondary credential"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "PATHServices",
+    "code": "P1.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Re-engagement"
+      },
+      {
+        "key": 2,
+        "description": "Screening"
+      },
+      {
+        "key": 3,
+        "description": "Habilitation/rehabilitation"
+      },
+      {
+        "key": 4,
+        "description": "Community mental health"
+      },
+      {
+        "key": 5,
+        "description": "Substance use treatment"
+      },
+      {
+        "key": 6,
+        "description": "Case management"
+      },
+      {
+        "key": 7,
+        "description": "Residential supportive services"
+      },
+      {
+        "key": 8,
+        "description": "Housing minor renovation"
+      },
+      {
+        "key": 9,
+        "description": "Housing moving assistance"
+      },
+      {
+        "key": 10,
+        "description": "Housing eligibility determination"
+      },
+      {
+        "key": 11,
+        "description": "Security deposits"
+      },
+      {
+        "key": 12,
+        "description": "One-time rent for eviction prevention"
+      },
+      {
+        "key": 14,
+        "description": "Clinical assessment"
+      }
+    ]
+  },
+  {
+    "name": "PATHReferral",
+    "code": "P2.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Community mental health"
+      },
+      {
+        "key": 2,
+        "description": "Substance use treatment"
+      },
+      {
+        "key": 3,
+        "description": "Primary health/dental care"
+      },
+      {
+        "key": 4,
+        "description": "Job training"
+      },
+      {
+        "key": 5,
+        "description": "Educational services"
+      },
+      {
+        "key": 6,
+        "description": "Housing services"
+      },
+      {
+        "key": 7,
+        "description": "Permanent housing"
+      },
+      {
+        "key": 8,
+        "description": "Income assistance"
+      },
+      {
+        "key": 9,
+        "description": "Employment assistance"
+      },
+      {
+        "key": 10,
+        "description": "Medical insurance"
+      },
+      {
+        "key": 11,
+        "description": "Temporary housing"
+      }
+    ]
+  },
+  {
+    "name": "PATHReferralOutcome",
+    "code": "P2.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Attained"
+      },
+      {
+        "key": 2,
+        "description": "Not attained"
+      },
+      {
+        "key": 3,
+        "description": "Unknown"
+      }
+    ]
+  },
+  {
+    "name": "ReasonNotEnrolled",
+    "code": "P3.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Client was found ineligible for PATH"
+      },
+      {
+        "key": 2,
+        "description": "Client was not enrolled for other reason(s)"
+      }
+    ]
+  },
+  {
+    "name": "ReferralSource",
+    "code": "R1.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Self-referral"
+      },
+      {
+        "key": 2,
+        "description": "Individual: Parent/Guardian/Relative/Friend/Foster Parent/Other Individual"
+      },
+      {
+        "key": 7,
+        "description": "Outreach Project"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 10,
+        "description": "Outreach project: other"
+      },
+      {
+        "key": 11,
+        "description": "Temporary Shelter"
+      },
+      {
+        "key": 18,
+        "description": "Residential Project"
+      },
+      {
+        "key": 28,
+        "description": "Hotline"
+      },
+      {
+        "key": 30,
+        "description": "Child Welfare/CPS"
+      },
+      {
+        "key": 34,
+        "description": "Juvenile Justice"
+      },
+      {
+        "key": 35,
+        "description": "Law Enforcement/ Police"
+      },
+      {
+        "key": 37,
+        "description": "Mental Hospital"
+      },
+      {
+        "key": 38,
+        "description": "School"
+      },
+      {
+        "key": 39,
+        "description": "Other organization"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "RHYNumberofYears",
+    "code": "R11.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Less than one year"
+      },
+      {
+        "key": 2,
+        "description": "1 to 2 years"
+      },
+      {
+        "key": 3,
+        "description": "3 to 5 or more years"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "CountExchangeForSex",
+    "code": "R15.B",
+    "values": [
+      {
+        "key": 1,
+        "description": "1-3"
+      },
+      {
+        "key": 2,
+        "description": "4-7"
+      },
+      {
+        "key": 3,
+        "description": "8-11"
+      },
+      {
+        "key": 4,
+        "description": "12 or more"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "ProjectCompletionStatus",
+    "code": "R17.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Completed project"
+      },
+      {
+        "key": 2,
+        "description": "Client voluntarily left early"
+      },
+      {
+        "key": 3,
+        "description": "Client was expelled or otherwise involuntarily discharged from project"
+      }
+    ]
+  },
+  {
+    "name": "ExpelledReason",
+    "code": "R17.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Criminal activity/destruction of property/violence"
+      },
+      {
+        "key": 2,
+        "description": "Non-compliance with project rules"
+      },
+      {
+        "key": 3,
+        "description": "Non-payment of rent/occupancy charge"
+      },
+      {
+        "key": 4,
+        "description": "Reached maximum time allowed by project"
+      },
+      {
+        "key": 5,
+        "description": "Project terminated"
+      },
+      {
+        "key": 6,
+        "description": "Unknown/disappeared"
+      }
+    ]
+  },
+  {
+    "name": "WorkerResponse",
+    "code": "R19.A",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 2,
+        "description": "Worker does not know"
+      }
+    ]
+  },
+  {
+    "name": "ReasonNoServices",
+    "code": "R2.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Out of age range"
+      },
+      {
+        "key": 2,
+        "description": "Ward of the state"
+      },
+      {
+        "key": 3,
+        "description": "Ward of the criminal justice system"
+      },
+      {
+        "key": 4,
+        "description": "Other"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "AftercareProvided",
+    "code": "R20.2",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      }
+    ]
+  },
+  {
+    "name": "SexualOrientation",
+    "code": "R3.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Heterosexual"
+      },
+      {
+        "key": 2,
+        "description": "Gay"
+      },
+      {
+        "key": 3,
+        "description": "Lesbian"
+      },
+      {
+        "key": 4,
+        "description": "Bisexual"
+      },
+      {
+        "key": 5,
+        "description": "Questioning / unsure"
+      },
+      {
+        "key": 6,
+        "description": "Other"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "LastGradeCompleted",
+    "code": "R4.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Less than grade 5"
+      },
+      {
+        "key": 2,
+        "description": "Grades 5-6"
+      },
+      {
+        "key": 3,
+        "description": "Grades 7-8"
+      },
+      {
+        "key": 4,
+        "description": "Grades 9-11"
+      },
+      {
+        "key": 5,
+        "description": "Grade 12"
+      },
+      {
+        "key": 6,
+        "description": "School program does not have grade levels"
+      },
+      {
+        "key": 7,
+        "description": "GED"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 10,
+        "description": "Some college"
+      },
+      {
+        "key": 11,
+        "description": "Associate's degree"
+      },
+      {
+        "key": 12,
+        "description": "Bachelor's degree"
+      },
+      {
+        "key": 13,
+        "description": "Graduate degree"
+      },
+      {
+        "key": 14,
+        "description": "Vocational certification"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "SchoolStatus",
+    "code": "R5.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Attending school regularly"
+      },
+      {
+        "key": 2,
+        "description": "Attending school irregularly"
+      },
+      {
+        "key": 3,
+        "description": "Graduated from high school"
+      },
+      {
+        "key": 4,
+        "description": "Obtained GED"
+      },
+      {
+        "key": 5,
+        "description": "Dropped out"
+      },
+      {
+        "key": 6,
+        "description": "Suspended"
+      },
+      {
+        "key": 7,
+        "description": "Expelled"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "EmploymentType",
+    "code": "R6.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Full-time"
+      },
+      {
+        "key": 2,
+        "description": "Part-time"
+      },
+      {
+        "key": 3,
+        "description": "Seasonal / sporadic (including day labor)"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "NotEmployedReason",
+    "code": "R6.B",
+    "values": [
+      {
+        "key": 1,
+        "description": "Looking for work"
+      },
+      {
+        "key": 2,
+        "description": "Unable to work"
+      },
+      {
+        "key": 3,
+        "description": "Not looking for work"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "HealthStatus",
+    "code": "R7.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Excellent"
+      },
+      {
+        "key": 2,
+        "description": "Very good"
+      },
+      {
+        "key": 3,
+        "description": "Good"
+      },
+      {
+        "key": 4,
+        "description": "Fair"
+      },
+      {
+        "key": 5,
+        "description": "Poor"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "MilitaryBranch",
+    "code": "V1.11",
+    "values": [
+      {
+        "key": 1,
+        "description": "Army"
+      },
+      {
+        "key": 2,
+        "description": "Air Force"
+      },
+      {
+        "key": 3,
+        "description": "Navy"
+      },
+      {
+        "key": 4,
+        "description": "Marines"
+      },
+      {
+        "key": 6,
+        "description": "Coast Guard"
+      },
+      {
+        "key": 7,
+        "description": "Space Force"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "DischargeStatus",
+    "code": "V1.12",
+    "values": [
+      {
+        "key": 1,
+        "description": "Honorable"
+      },
+      {
+        "key": 2,
+        "description": "General under honorable conditions"
+      },
+      {
+        "key": 4,
+        "description": "Bad conduct"
+      },
+      {
+        "key": 5,
+        "description": "Dishonorable"
+      },
+      {
+        "key": 6,
+        "description": "Under other than honorable conditions (OTH)"
+      },
+      {
+        "key": 7,
+        "description": "Uncharacterized"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "SSVFServices",
+    "code": "V2.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Outreach services"
+      },
+      {
+        "key": 2,
+        "description": "Case management services"
+      },
+      {
+        "key": 3,
+        "description": "Assistance obtaining VA benefits"
+      },
+      {
+        "key": 4,
+        "description": "Assistance obtaining/coordinating other public benefits"
+      },
+      {
+        "key": 5,
+        "description": "Direct provision of other public benefits"
+      },
+      {
+        "key": 6,
+        "description": "Other (non-TFA) supportive service approved by VA"
+      },
+      {
+        "key": 7,
+        "description": "Shallow Subsidy"
+      },
+      {
+        "key": 8,
+        "description": "Returning Home"
+      },
+      {
+        "key": 9,
+        "description": "Rapid Resolution"
+      }
+    ]
+  },
+  {
+    "name": "HOPWAFinancialAssistance",
+    "code": "V2.3",
+    "values": [
+      {
+        "key": 1,
+        "description": "Rental assistance"
+      },
+      {
+        "key": 2,
+        "description": "Security deposits"
+      },
+      {
+        "key": 3,
+        "description": "Utility deposits"
+      },
+      {
+        "key": 4,
+        "description": "Utility payments"
+      },
+      {
+        "key": 7,
+        "description": "Mortgage assistance"
+      }
+    ]
+  },
+  {
+    "name": "SSVFSubType3",
+    "code": "V2.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "VA vocational and rehabilitation counseling"
+      },
+      {
+        "key": 2,
+        "description": "Employment and training services"
+      },
+      {
+        "key": 3,
+        "description": "Educational assistance"
+      },
+      {
+        "key": 4,
+        "description": "Health care services"
+      }
+    ]
+  },
+  {
+    "name": "SSVFSubType4",
+    "code": "V2.B",
+    "values": [
+      {
+        "key": 1,
+        "description": "Health care services"
+      },
+      {
+        "key": 2,
+        "description": "Daily living services"
+      },
+      {
+        "key": 3,
+        "description": "Personal financial planning services"
+      },
+      {
+        "key": 4,
+        "description": "Transportation services"
+      },
+      {
+        "key": 5,
+        "description": "Income support services"
+      },
+      {
+        "key": 6,
+        "description": "Fiduciary and representative payee services"
+      },
+      {
+        "key": 7,
+        "description": "Legal services - child support"
+      },
+      {
+        "key": 8,
+        "description": "Legal services - eviction prevention"
+      },
+      {
+        "key": 9,
+        "description": "Legal services - outstanding fines and penalties"
+      },
+      {
+        "key": 10,
+        "description": "Legal services - restore / acquire driver's license"
+      },
+      {
+        "key": 11,
+        "description": "Legal services - other"
+      },
+      {
+        "key": 12,
+        "description": "Child care"
+      },
+      {
+        "key": 13,
+        "description": "Housing counseling"
+      }
+    ]
+  },
+  {
+    "name": "SSVFSubType5",
+    "code": "V2.C",
+    "values": [
+      {
+        "key": 1,
+        "description": "Personal financial planning services"
+      },
+      {
+        "key": 2,
+        "description": "Transportation services"
+      },
+      {
+        "key": 3,
+        "description": "Income support services"
+      },
+      {
+        "key": 4,
+        "description": "Fiduciary and representative payee services"
+      },
+      {
+        "key": 5,
+        "description": "Legal services - child support"
+      },
+      {
+        "key": 6,
+        "description": "Legal services - eviction prevention"
+      },
+      {
+        "key": 7,
+        "description": "Legal services - outstanding fines and penalties"
+      },
+      {
+        "key": 8,
+        "description": "Legal services - restore / acquire driver's license"
+      },
+      {
+        "key": 9,
+        "description": "Legal services - other"
+      },
+      {
+        "key": 10,
+        "description": "Child care"
+      },
+      {
+        "key": 11,
+        "description": "Housing counseling"
+      }
+    ]
+  },
+  {
+    "name": "PercentAMI",
+    "code": "V4.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "30% or less"
+      },
+      {
+        "key": 2,
+        "description": "31% to 50%"
+      },
+      {
+        "key": 3,
+        "description": "51% to 80%"
+      },
+      {
+        "key": 4,
+        "description": "81% or greater"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "VamcsStationNumber",
+    "code": "V6.1",
+    "values": [
+      {
+        "key": 402,
+        "description": "(402) Togus, ME"
+      },
+      {
+        "key": 405,
+        "description": "(405) White River Junction, VT"
+      },
+      {
+        "key": 436,
+        "description": "(436) Montana HCS"
+      },
+      {
+        "key": 437,
+        "description": "(437) Fargo, ND"
+      },
+      {
+        "key": 438,
+        "description": "(438) Sioux Falls, SD"
+      },
+      {
+        "key": 442,
+        "description": "(442) Cheyenne, WY"
+      },
+      {
+        "key": 459,
+        "description": "(459) Honolulu, HI"
+      },
+      {
+        "key": 460,
+        "description": "(460) Wilmington, DE"
+      },
+      {
+        "key": 463,
+        "description": "(463) Anchorage, AK"
+      },
+      {
+        "key": 501,
+        "description": "(501) New Mexico HCS"
+      },
+      {
+        "key": 502,
+        "description": "(502) Alexandria, LA"
+      },
+      {
+        "key": 503,
+        "description": "(503) Altoona, PA"
+      },
+      {
+        "key": 504,
+        "description": "(504) Amarillo, TX"
+      },
+      {
+        "key": 506,
+        "description": "(506) Ann Arbor, MI"
+      },
+      {
+        "key": 508,
+        "description": "(508) Atlanta, GA"
+      },
+      {
+        "key": 509,
+        "description": "(509) Augusta, GA"
+      },
+      {
+        "key": 512,
+        "description": "(512) Baltimore HCS, MD"
+      },
+      {
+        "key": 515,
+        "description": "(515) Battle Creek, MI"
+      },
+      {
+        "key": 516,
+        "description": "(516) Bay Pines, FL"
+      },
+      {
+        "key": 517,
+        "description": "(517) Beckley, WV"
+      },
+      {
+        "key": 518,
+        "description": "(518) Bedford, MA"
+      },
+      {
+        "key": 519,
+        "description": "(519) Big Spring, TX"
+      },
+      {
+        "key": 520,
+        "description": "(520) Gulf Coast HCS, MS"
+      },
+      {
+        "key": 521,
+        "description": "(521) Birmingham, AL"
+      },
+      {
+        "key": 523,
+        "description": "(523) VA Boston HCS, MA "
+      },
+      {
+        "key": 526,
+        "description": "(526) Bronx, NY"
+      },
+      {
+        "key": 528,
+        "description": "(528) Western New York, NY"
+      },
+      {
+        "key": 529,
+        "description": "(529) Butler, PA"
+      },
+      {
+        "key": 531,
+        "description": "(531) Boise, ID"
+      },
+      {
+        "key": 534,
+        "description": "(534) Charleston, SC"
+      },
+      {
+        "key": 537,
+        "description": "(537) Jesse Brown VAMC (Chicago), IL"
+      },
+      {
+        "key": 538,
+        "description": "(538) Chillicothe, OH"
+      },
+      {
+        "key": 539,
+        "description": "(539) Cincinnati, OH"
+      },
+      {
+        "key": 540,
+        "description": "(540) Clarksburg, WV"
+      },
+      {
+        "key": 541,
+        "description": "(541) Cleveland, OH"
+      },
+      {
+        "key": 542,
+        "description": "(542) Coatesville, PA"
+      },
+      {
+        "key": 544,
+        "description": "(544) Columbia, SC "
+      },
+      {
+        "key": 546,
+        "description": "(546) Miami, FL"
+      },
+      {
+        "key": 548,
+        "description": "(548) West Palm Beach, FL"
+      },
+      {
+        "key": 549,
+        "description": "(549) Dallas, TX"
+      },
+      {
+        "key": 550,
+        "description": "(550) Danville, IL"
+      },
+      {
+        "key": 552,
+        "description": "(552) Dayton, OH"
+      },
+      {
+        "key": 553,
+        "description": "(553) Detroit, MI"
+      },
+      {
+        "key": 554,
+        "description": "(554) Denver, CO"
+      },
+      {
+        "key": 556,
+        "description": "(556) Captain James A Lovell FHCC"
+      },
+      {
+        "key": 557,
+        "description": "(557) Dublin, GA"
+      },
+      {
+        "key": 558,
+        "description": "(558) Durham, NC"
+      },
+      {
+        "key": 561,
+        "description": "(561) New Jersey HCS, NJ"
+      },
+      {
+        "key": 562,
+        "description": "(562) Erie, PA"
+      },
+      {
+        "key": 564,
+        "description": "(564) Fayetteville, AR"
+      },
+      {
+        "key": 565,
+        "description": "(565) Fayetteville, NC"
+      },
+      {
+        "key": 568,
+        "description": "(568) Black Hills HCS, SD "
+      },
+      {
+        "key": 570,
+        "description": "(570) Fresno, CA"
+      },
+      {
+        "key": 573,
+        "description": "(573) Gainesville, FL"
+      },
+      {
+        "key": 575,
+        "description": "(575) Grand Junction, CO "
+      },
+      {
+        "key": 578,
+        "description": "(578) Hines, IL"
+      },
+      {
+        "key": 580,
+        "description": "(580) Houston, TX"
+      },
+      {
+        "key": 581,
+        "description": "(581) Huntington, WV"
+      },
+      {
+        "key": 583,
+        "description": "(583) Indianapolis, IN"
+      },
+      {
+        "key": 585,
+        "description": "(585) Iron Mountain, MI"
+      },
+      {
+        "key": 586,
+        "description": "(586) Jackson, MS"
+      },
+      {
+        "key": 589,
+        "description": "(589) Kansas City, MO"
+      },
+      {
+        "key": 590,
+        "description": "(590) Hampton, VA"
+      },
+      {
+        "key": 593,
+        "description": "(593) Las Vegas, NV "
+      },
+      {
+        "key": 595,
+        "description": "(595) Lebanon, PA"
+      },
+      {
+        "key": 596,
+        "description": "(596) Lexington, KY "
+      },
+      {
+        "key": 598,
+        "description": "(598) Little Rock, AR "
+      },
+      {
+        "key": 600,
+        "description": "(600) Long Beach, CA "
+      },
+      {
+        "key": 603,
+        "description": "(603) Louisville, KY "
+      },
+      {
+        "key": 605,
+        "description": "(605) Loma Linda, CA"
+      },
+      {
+        "key": 607,
+        "description": "(607) Madison, WI"
+      },
+      {
+        "key": 608,
+        "description": "(608) Manchester, NH"
+      },
+      {
+        "key": 610,
+        "description": "(610) Northern Indiana HCS, IN"
+      },
+      {
+        "key": 612,
+        "description": "(612) N. California, CA"
+      },
+      {
+        "key": 613,
+        "description": "(613) Martinsburg, WV"
+      },
+      {
+        "key": 614,
+        "description": "(614) Memphis, TN"
+      },
+      {
+        "key": 618,
+        "description": "(618) Minneapolis, MN"
+      },
+      {
+        "key": 619,
+        "description": "(619) Central Alabama Veterans HCS, AL"
+      },
+      {
+        "key": 620,
+        "description": "(620) VA Hudson Valley HCS, NY"
+      },
+      {
+        "key": 621,
+        "description": "(621) Mountain Home, TN"
+      },
+      {
+        "key": 623,
+        "description": "(623) Muskogee, OK"
+      },
+      {
+        "key": 626,
+        "description": "(626) Middle Tennessee HCS, TN"
+      },
+      {
+        "key": 629,
+        "description": "(629) New Orleans, LA"
+      },
+      {
+        "key": 630,
+        "description": "(630) New York Harbor HCS, NY"
+      },
+      {
+        "key": 631,
+        "description": "(631) VA Central Western Massachusetts HCS"
+      },
+      {
+        "key": 632,
+        "description": "(632) Northport, NY"
+      },
+      {
+        "key": 635,
+        "description": "(635) Oklahoma City, OK"
+      },
+      {
+        "key": 636,
+        "description": "(636) Nebraska-W Iowa, NE"
+      },
+      {
+        "key": 637,
+        "description": "(637) Asheville, NC"
+      },
+      {
+        "key": 640,
+        "description": "(640) Palo Alto, CA "
+      },
+      {
+        "key": 642,
+        "description": "(642) Philadelphia, PA "
+      },
+      {
+        "key": 644,
+        "description": "(644) Phoenix, AZ"
+      },
+      {
+        "key": 646,
+        "description": "(646) Pittsburgh, PA"
+      },
+      {
+        "key": 648,
+        "description": "(648) Portland, OR"
+      },
+      {
+        "key": 649,
+        "description": "(649) Northern Arizona HCS"
+      },
+      {
+        "key": 650,
+        "description": "(650) Providence, RI"
+      },
+      {
+        "key": 652,
+        "description": "(652) Richmond, VA"
+      },
+      {
+        "key": 653,
+        "description": "(653) Roseburg, OR"
+      },
+      {
+        "key": 654,
+        "description": "(654) Reno, NV"
+      },
+      {
+        "key": 655,
+        "description": "(655) Saginaw, MI"
+      },
+      {
+        "key": 656,
+        "description": "(656) St. Cloud, MN"
+      },
+      {
+        "key": 657,
+        "description": "(657) St. Louis, MO"
+      },
+      {
+        "key": 658,
+        "description": "(658) Salem, VA"
+      },
+      {
+        "key": 659,
+        "description": "(659) Salisbury, NC"
+      },
+      {
+        "key": 660,
+        "description": "(660) Salt Lake City, UT"
+      },
+      {
+        "key": 662,
+        "description": "(662) San Francisco, CA"
+      },
+      {
+        "key": 663,
+        "description": "(663) VA Puget Sound, WA"
+      },
+      {
+        "key": 664,
+        "description": "(664) San Diego, CA"
+      },
+      {
+        "key": 666,
+        "description": "(666) Sheridan, WY"
+      },
+      {
+        "key": 667,
+        "description": "(667) Shreveport, LA"
+      },
+      {
+        "key": 668,
+        "description": "(668) Spokane, WA"
+      },
+      {
+        "key": 671,
+        "description": "(671) San Antonio, TX"
+      },
+      {
+        "key": 672,
+        "description": "(672) San Juan, PR"
+      },
+      {
+        "key": 673,
+        "description": "(673) Tampa, FL"
+      },
+      {
+        "key": 674,
+        "description": "(674) Temple, TX"
+      },
+      {
+        "key": 675,
+        "description": "(675) Orlando, FL"
+      },
+      {
+        "key": 676,
+        "description": "(676) Tomah, WI"
+      },
+      {
+        "key": 678,
+        "description": "(678) Southern Arizona HCS"
+      },
+      {
+        "key": 679,
+        "description": "(679) Tuscaloosa, AL"
+      },
+      {
+        "key": 687,
+        "description": "(687) Walla Walla, WA"
+      },
+      {
+        "key": 688,
+        "description": "(688) Washington, DC"
+      },
+      {
+        "key": 689,
+        "description": "(689) VA Connecticut HCS, CT"
+      },
+      {
+        "key": 691,
+        "description": "(691) Greater Los Angeles HCS"
+      },
+      {
+        "key": 692,
+        "description": "(692) White City, OR"
+      },
+      {
+        "key": 693,
+        "description": "(693) Wilkes-Barre, PA"
+      },
+      {
+        "key": 695,
+        "description": "(695) Milwaukee, WI"
+      },
+      {
+        "key": 740,
+        "description": "(740) VA Texas Valley Coastal Bend HCS"
+      },
+      {
+        "key": 756,
+        "description": "(756) El Paso, TX"
+      },
+      {
+        "key": 757,
+        "description": "(757) Columbus, OH"
+      },
+      {
+        "key": "459GE",
+        "description": "(459GE) Guam"
+      },
+      {
+        "key": "528A5",
+        "description": "(528A5) Canandaigua, NY"
+      },
+      {
+        "key": "528A6",
+        "description": "(528A6) Bath, NY"
+      },
+      {
+        "key": "528A7",
+        "description": "(528A7) Syracuse, NY"
+      },
+      {
+        "key": "528A8",
+        "description": "(528A8) Albany, NY"
+      },
+      {
+        "key": "589A4",
+        "description": "(589A4) Columbia, MO"
+      },
+      {
+        "key": "589A5",
+        "description": "(589A5) Kansas City, MO"
+      },
+      {
+        "key": "589A6",
+        "description": "(589A6) Eastern KS HCS, KS"
+      },
+      {
+        "key": "589A7",
+        "description": "(589A7) Wichita, KS"
+      },
+      {
+        "key": "636A6",
+        "description": "(636A6) Central Iowa, IA "
+      },
+      {
+        "key": "636A8",
+        "description": "(636A8) Iowa City, IA"
+      },
+      {
+        "key": "657A4",
+        "description": "(657A4) Poplar Bluff, MO"
+      },
+      {
+        "key": "657A5",
+        "description": "(657A5) Marion, IL"
+      },
+      {
+        "key": 99,
+        "description": "not collected"
+      }
+    ]
+  },
+  {
+    "name": "NoPointsYes",
+    "code": "V7.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "No (0 points)"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "TimeToHousingLoss",
+    "code": "V7.A",
+    "values": [
+      {
+        "key": 0,
+        "description": "1-6 days"
+      },
+      {
+        "key": 1,
+        "description": "7-13 days"
+      },
+      {
+        "key": 2,
+        "description": "14-21 days"
+      },
+      {
+        "key": 3,
+        "description": "More than 21 days"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "AnnualPercentAMI",
+    "code": "V7.B",
+    "values": [
+      {
+        "key": 0,
+        "description": "$0 (i.e., not employed, not receiving cash benefits, no other current income)"
+      },
+      {
+        "key": 1,
+        "description": "1-14% of Area Median Income (AMI) for household size"
+      },
+      {
+        "key": 2,
+        "description": "15-30% of AMI for household size"
+      },
+      {
+        "key": 3,
+        "description": "More than 30% of AMI for household size"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "LiteralHomelessHistory",
+    "code": "V7.C",
+    "values": [
+      {
+        "key": 0,
+        "description": "Most recent episode occurred in the last year"
+      },
+      {
+        "key": 1,
+        "description": "Most recent episode occurred more than one year ago"
+      },
+      {
+        "key": 2,
+        "description": "None"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "EvictionHistory",
+    "code": "V7.G",
+    "values": [
+      {
+        "key": 0,
+        "description": "No prior rental evictions"
+      },
+      {
+        "key": 1,
+        "description": "1 prior rental eviction"
+      },
+      {
+        "key": 2,
+        "description": "2 or more prior rental evictions"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "IncarceratedAdult",
+    "code": "V7.I",
+    "values": [
+      {
+        "key": 0,
+        "description": "Not incarcerated"
+      },
+      {
+        "key": 1,
+        "description": "Incarcerated once"
+      },
+      {
+        "key": 2,
+        "description": "Incarcerated two or more times"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "DependentUnder6",
+    "code": "V7.O",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Youngest child is under 1 year old"
+      },
+      {
+        "key": 2,
+        "description": "Youngest child is 1 to 6 years old and/or one or more children (any age) require significant care"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "VoucherTracking",
+    "code": "V8.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referral package forwarded to PHA"
+      },
+      {
+        "key": 2,
+        "description": "Voucher denied by PHA"
+      },
+      {
+        "key": 3,
+        "description": "Voucher issued by PHA"
+      },
+      {
+        "key": 4,
+        "description": "Voucher revoked or expired"
+      },
+      {
+        "key": 5,
+        "description": "Voucher in use - veteran moved into housing"
+      },
+      {
+        "key": 6,
+        "description": "Voucher was ported locally"
+      },
+      {
+        "key": 7,
+        "description": "Voucher was administratively absorbed by new PHA"
+      },
+      {
+        "key": 8,
+        "description": "Voucher was converted to Housing Choice Voucher"
+      },
+      {
+        "key": 9,
+        "description": "Veteran exited - voucher was returned"
+      },
+      {
+        "key": 10,
+        "description": "Veteran exited - family maintained the voucher"
+      },
+      {
+        "key": 11,
+        "description": "Veteran exited - prior to ever receiving a voucher"
+      },
+      {
+        "key": 12,
+        "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "CmExitReason",
+    "code": "V9.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Accomplished goals and/or obtained services and no longer needs CM"
+      },
+      {
+        "key": 2,
+        "description": "Transferred to another HUD/VASH program site"
+      },
+      {
+        "key": 3,
+        "description": "Found/chose other housing"
+      },
+      {
+        "key": 4,
+        "description": "Did not comply with HUD/VASH CM"
+      },
+      {
+        "key": 5,
+        "description": "Eviction and/or other housing related issues"
+      },
+      {
+        "key": 6,
+        "description": "Unhappy with HUD/VASH housing"
+      },
+      {
+        "key": 7,
+        "description": "No longer financially eligible for HUD/VASH voucher"
+      },
+      {
+        "key": 8,
+        "description": "No longer interested in participating in this program"
+      },
+      {
+        "key": 9,
+        "description": "Veteran cannot be located"
+      },
+      {
+        "key": 10,
+        "description": "Veteran too ill to participate at this time"
+      },
+      {
+        "key": 11,
+        "description": "Veteran is incarcerated"
+      },
+      {
+        "key": 12,
+        "description": "Veteran is deceased"
+      },
+      {
+        "key": 13,
+        "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "HOPWAServices",
+    "code": "W1.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Adult day care and personal assistance"
+      },
+      {
+        "key": 2,
+        "description": "Case management"
+      },
+      {
+        "key": 3,
+        "description": "Child care"
+      },
+      {
+        "key": 4,
+        "description": "Criminal justice/legal services"
+      },
+      {
+        "key": 5,
+        "description": "Education"
+      },
+      {
+        "key": 6,
+        "description": "Employment and training services"
+      },
+      {
+        "key": 7,
+        "description": "Food/meals/nutritional services"
+      },
+      {
+        "key": 8,
+        "description": "Health/medical care"
+      },
+      {
+        "key": 9,
+        "description": "Life skills training"
+      },
+      {
+        "key": 10,
+        "description": "Mental health care/counseling"
+      },
+      {
+        "key": 11,
+        "description": "Outreach and/or engagement"
+      },
+      {
+        "key": 12,
+        "description": "Substance use services/treatment"
+      },
+      {
+        "key": 13,
+        "description": "Transportation"
+      },
+      {
+        "key": 14,
+        "description": "Other HOPWA funded service"
+      }
+    ]
+  },
+  {
+    "name": "NoAssistanceReason",
+    "code": "W3",
+    "values": [
+      {
+        "key": 1,
+        "description": "Applied; decision pending"
+      },
+      {
+        "key": 2,
+        "description": "Applied; client not eligible"
+      },
+      {
+        "key": 3,
+        "description": "Client did not apply"
+      },
+      {
+        "key": 4,
+        "description": "Insurance type not applicable for this client"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "ViralLoadAvailable",
+    "code": "W4.3",
+    "values": [
+      {
+        "key": 0,
+        "description": "Not available"
+      },
+      {
+        "key": 1,
+        "description": "Available"
+      },
+      {
+        "key": 2,
+        "description": "Undetectable"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "TCellSourceViralLoadSource",
+    "code": "W4.B",
+    "values": [
+      {
+        "key": 1,
+        "description": "Medical Report"
+      },
+      {
+        "key": 2,
+        "description": "Client Report"
+      },
+      {
+        "key": 3,
+        "description": "Other"
+      }
+    ]
+  },
+  {
+    "name": "HousingAssessmentAtExit",
+    "code": "W5.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Able to maintain the housing they had at project entry"
+      },
+      {
+        "key": 2,
+        "description": "Moved to new housing unit"
+      },
+      {
+        "key": 3,
+        "description": "Moved in with family/friends on a temporary basis"
+      },
+      {
+        "key": 4,
+        "description": "Moved in with family/friends on a permanent basis"
+      },
+      {
+        "key": 5,
+        "description": "Moved to a transitional or temporary housing facility or program"
+      },
+      {
+        "key": 6,
+        "description": "Client became homeless - moving to a shelter or other place unfit for human habitation"
+      },
+      {
+        "key": 7,
+        "description": "Jail/prison"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 10,
+        "description": "Deceased"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "SubsidyInformation",
+    "code": "W5.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Without a subsidy 1"
+      },
+      {
+        "key": 2,
+        "description": "With the subsidy they had at project entry 1"
+      },
+      {
+        "key": 3,
+        "description": "With an on-going subsidy acquired since project entry 1"
+      },
+      {
+        "key": 4,
+        "description": "But only with other financial assistance 1"
+      },
+      {
+        "key": 11,
+        "description": "With on-going subsidy 2"
+      },
+      {
+        "key": 12,
+        "description": "Without an on-going subsidy 2"
+      }
+    ]
+  },
+  {
+    "name": "AdHocYesNo",
+    "code": "ad_hoc_yes_no",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 8,
+        "description": "Don't Know"
+      },
+      {
+        "key": 9,
+        "description": "Refused"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "Race",
+    "code": "race",
+    "values": [
+      {
+        "key": "AmIndAKNative",
+        "description": "American Indian, Alaska Native, or Indigenous"
+      },
+      {
+        "key": "Asian",
+        "description": "Asian or Asian American"
+      },
+      {
+        "key": "BlackAfAmerican",
+        "description": "Black, African American, or African"
+      },
+      {
+        "key": "NativeHIPacific",
+        "description": "Native Hawaiian or Pacific Islander"
+      },
+      {
+        "key": "White",
+        "description": "White"
+      },
+      {
+        "key": "RaceNone",
+        "description": "Doesn't Know, refused, or not collected"
+      }
+    ]
+  }
+]
