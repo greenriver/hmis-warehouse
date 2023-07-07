@@ -101,6 +101,7 @@ class DocumentExportsControllerBase < ApplicationController
       'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
       'SystemPathways::DocumentExports::ReportExport',
       'SystemPathways::DocumentExports::ReportExcelExport',
+      'StartDateDq::DocumentExports::StartDateDqExcelExport',
     ]
   end
 end

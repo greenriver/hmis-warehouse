@@ -23,18 +23,21 @@ module HapReport::WarehouseReports
 
       if @filter.valid?
         @report = report_scope.create(user_id: @filter.user_id, options: report_options(@filter))
-        erap_parsed = ::HapReport::Erap.parse(@report, erap_data)
 
-        if erap_parsed
+        if ::HapReport::Erap.parse(@report, erap_data)
           ::WarehouseReports::GenericReportJob.perform_later(
             user_id: @filter.user_id,
             report_class: @report.class.name,
             report_id: @report.id,
           )
+          redirect_to action: :index and return
+        else
+          flash[:error] = 'Error parsing eRAP data, is the file in the expected CSV format?'
+          # We needed a persistent report to parse the file, but since the parse failed, remove it
+          @report.destroy
         end
       end
 
-      flash[:error] = 'Error parsing eRAP data, is the file in the expected CSV format?' unless erap_parsed
       @pagy, @reports = pagy(report_scope)
       render :index
     end
