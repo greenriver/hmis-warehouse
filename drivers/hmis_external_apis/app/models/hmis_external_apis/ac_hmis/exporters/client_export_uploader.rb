@@ -6,7 +6,7 @@
 
 module HmisExternalApis::AcHmis::Exporters
   class ClientExportUploader
-    delegate :username, :host, :path, :password, to: :credentials
+    delegate :username, :host, :path, :password, :port, to: :credentials
 
     attr_accessor :io_streams, :filename
 
@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis::Exporters
 
     def run!
       Rails.logger.info "Sftping to #{username}@#{host}"
-      args = { password: password, verbose: :error }
+      args = { password: password, verbose: :error, port: port }
       Net::SFTP.start(host, username, args) do |sftp|
         zipped_contents = zipped_io_stream.string
 

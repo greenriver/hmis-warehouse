@@ -8,5 +8,6 @@ module GrdaWarehouse
   class RemoteCredentials::Sftp < GrdaWarehouse::RemoteCredential
     alias_attribute :host, :endpoint
     alias_attribute :private_key, :region
+    alias_attribute :port, :bucket
   end
 end
