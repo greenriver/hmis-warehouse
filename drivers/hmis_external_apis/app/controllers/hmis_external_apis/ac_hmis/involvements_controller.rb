@@ -6,21 +6,39 @@
 
 module HmisExternalApis::AcHmis
   class InvolvementsController < HmisExternalApis::BaseController
+    MAX_RESPONSE_SIZE_TO_SAVE = 1.kilobyte
+
     def client
-      # TODO write ExternalRequestLog
-      involvement = ClientInvolvement.new(client_params)
-      involvement.validate_request!
-      render json: involvement.to_json, status: (involvement.ok? ? :ok : :bad_request)
+      involvement = nil
+
+      json_payload = log_request_with_truncation do
+        involvement = ClientInvolvement.new(client_params)
+        involvement.validate_request!
+        involvement.to_json
+      end
+
+      render json: json_payload, status: (involvement.ok? ? :ok : :bad_request)
     end
 
     def program
-      # TODO write ExternalRequestLog
-      involvement = ProgramInvolvement.new(program_params)
-      involvement.validate_request!
-      render json: involvement.to_json, status: (involvement.ok? ? :ok : :bad_request)
+      involvement = nil
+
+      json_payload = log_request_with_truncation do
+        involvement = ProgramInvolvement.new(program_params)
+        involvement.validate_request!
+        involvement.to_json
+      end
+
+      render json: json_payload, status: (involvement.ok? ? :ok : :bad_request)
     end
 
     protected
+
+    def log_request_with_truncation &block
+      block.call.tap do |json_payload|
+        request_log.update!(response: json_payload.first(MAX_RESPONSE_SIZE_TO_SAVE))
+      end
+    end
 
     def internal_system
       @internal_system ||= HmisExternalApis::InternalSystem.where(name: 'Involvements').first
