@@ -15,45 +15,48 @@ namespace :code do
 
   desc 'Generate HUD list mapping module'
   task generate_hud_lists: [:environment, 'log:info_to_stdout'] do
-    source = File.read('lib/data/2022_hud_lists.json')
-    all_lists = JSON.parse(source).sort_by { |hash| hash['code'] }
-    skipped = []
-    filename = 'lib/util/hud_lists.rb'
+    filenames = []
+    ['2022', '2024'].each do |year|
+      source = File.read("lib/data/#{year}_hud_lists.json")
+      all_lists = JSON.parse(source).sort_by { |hash| hash['code'] }
+      skipped = []
+      filename = year == '2022' ? 'lib/util/hud_lists.rb' : "lib/util/hud_lists_#{year}.rb"
+      filenames << filename
+      map_lookup = {}
+      arr = []
+      arr.push ::Code.copywright_header
+      arr.push "# frozen_string_literal: true\n"
+      arr.push "# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY\n"
+      arr.push year == '2022' ? "module HudLists" : "module HudLists#{year}"
+      arr.push '  module_function'
+      all_lists.each do |element|
+        next if skipped.include?(element['code'].to_s)
 
-    map_lookup = {}
-    arr = []
-    arr.push ::Code.copywright_header
-    arr.push "# frozen_string_literal: true\n"
-    arr.push "# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY\n"
-    arr.push 'module HudLists'
-    arr.push '  module_function'
-    all_lists.each do |element|
-      next if skipped.include?(element['code'].to_s)
+        function_name = "#{element['name'].underscore}_map"
+        map_lookup[element['code']] = function_name
 
-      function_name = "#{element['name'].underscore}_map"
-      map_lookup[element['code']] = function_name
+        map_values = element['values'].map do |obj|
+          description = obj['description'].strip
+          "#{obj['key'].to_json} => \"#{description}\""
+        end.join(",\n")
 
-      map_values = element['values'].map do |obj|
-        description = obj['description'].strip
-        "#{obj['key'].to_json} => \"#{description}\""
-      end.join(",\n")
+        arr.push "# #{element['code']}"
+        arr.push "def #{function_name}"
+        arr.push "  {\n#{map_values}\n}.freeze"
+        arr.push 'end'
+      end
 
-      arr.push "# #{element['code']}"
-      arr.push "def #{function_name}"
-      arr.push "  {\n#{map_values}\n}.freeze"
+      map_contents = map_lookup.sort.to_h.map { |code, func| "#{code.to_json}: :#{func}" }.join(",\n")
+      arr.push 'def hud_code_to_function_map'
+      arr.push "  {\n#{map_contents}\n}.freeze"
       arr.push 'end'
+      arr.push 'end'
+      contents = arr.join("\n")
+      File.open(filename, 'w') do |f|
+        f.write(contents)
+      end
     end
-
-    map_contents = map_lookup.sort.to_h.map { |code, func| "#{code.to_json}: :#{func}" }.join(",\n")
-    arr.push 'def hud_code_to_function_map'
-    arr.push "  {\n#{map_contents}\n}.freeze"
-    arr.push 'end'
-    arr.push 'end'
-    contents = arr.join("\n")
-    File.open(filename, 'w') do |f|
-      f.write(contents)
-    end
-    exec("bundle exec rubocop -A --format simple #{filename}")
+    exec("bundle exec rubocop -A --format simple #{filenames.join(' ')} > /dev/null")
   end
 
   def files
