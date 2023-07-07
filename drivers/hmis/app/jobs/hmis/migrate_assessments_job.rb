@@ -32,7 +32,7 @@ module Hmis
     # The resulting Assessments are constructed with:
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
-    #  - UserID = randomly selected UserID from the collection of records
+    #  - UserID = UserID from the related record that was most recently updated
     def perform(data_source_id:)
       Hmis::Hud::Enrollment.where(data_source_id: data_source_id).in_batches(of: 10_000) do |batch|
         # Build entry/exit assessments
@@ -175,6 +175,11 @@ module Hmis
       values[:assessment_date] = values.delete :exit_date if values.key?(:exit_date)
 
       new_metadata = values.slice(:user_id, :date_created, :date_updated, :assessment_date).compact.transform_values(&:first)
+
+      # User that most recently updated
+      user_latest_updated = [metadata, new_metadata].reject { |v| v[:date_updated].nil? || v[:user_id].nil? }.
+        max_by { |v| v[:date_updated].to_datetime }&.fetch(:user_id)
+
       metadata.merge(new_metadata) do |key, oldval, newval|
         case key
         when :date_created
@@ -183,6 +188,8 @@ module Hmis
           [oldval, newval].compact.map(&:to_datetime).max
         when :assessment_date
           [oldval, newval].compact.map(&:to_datetime).min
+        when :user_id
+          user_latest_updated
         else
           [oldval, newval].compact.first
         end

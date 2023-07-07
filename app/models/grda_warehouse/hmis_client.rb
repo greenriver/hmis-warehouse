@@ -29,8 +29,8 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   def address_lat_lon
     return unless last_permanent_zip.present?
 
-    lat, lon, bound = Place.lookup_lat_lon(postalcode: last_permanent_zip)
-    return { address: address, lat: lat, lon: lon, boundingbox: bound } if bound.present?
+    lat, lon, bound = ::GrdaWarehouse::Place.lookup_lat_lon(postalcode: last_permanent_zip)
+    return { zip: last_permanent_zip, lat: lat, lon: lon, boundingbox: bound } if bound.present?
   end
 
   def last_permanent_zip

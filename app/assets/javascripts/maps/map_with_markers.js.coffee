@@ -13,8 +13,9 @@ class App.Maps.MapWithMarkers
       for marker in @data
         options = {
           iconShape: 'marker',
-          borderColor: @options.border_color,
-          borderWidth: 6,
+          backgroundColor: @options.marker_color,
+          borderColor: 'white',
+          borderWidth: 2,
         }
         if marker.highlight
           options.borderColor = @options.highlight_color
@@ -31,7 +32,13 @@ class App.Maps.MapWithMarkers
       map.fitBounds(bounds)
     else
       for marker in @data
-        m = L.marker(marker.lat_lon)
+        options = {
+          iconShape: 'marker',
+          backgroundColor: @options.marker_color,
+          borderColor: 'white',
+          borderWidth: 2,
+        }
+        m = L.marker(marker.lat_lon, icon: L.BeautifyIcon.icon(options))
         if @options.link
           m.bindPopup(marker.label)
           # NOTE: there seems to be some sort of weird bug where this isn't bound automatically
