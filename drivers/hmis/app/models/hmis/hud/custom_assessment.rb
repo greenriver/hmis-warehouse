@@ -28,7 +28,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_one :project, through: :enrollment # null for WIP assessment
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 

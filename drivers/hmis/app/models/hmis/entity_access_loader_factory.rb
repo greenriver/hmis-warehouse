@@ -75,11 +75,17 @@ class Hmis::EntityAccessLoaderFactory
       # enrollment. If the file is linked to an enrollment, access to the file
       # should be limited based on access to that enrollment.
       entity.enrollment_id ? block.call(entity, :enrollment) : block.call(entity, :client)
-    when Hmis::Hud::Enrollment, Hmis::Hud::CustomAssessment
+    when Hmis::Hud::Enrollment
       if entity.in_progress?
         block.call(entity, :wip)
       else
         block.call(entity, :project)
+      end
+    when Hmis::Hud::CustomAssessment
+      if entity.in_progress?
+        block.call(entity, :wip)
+      else
+        block.call(entity, :enrollment)
       end
     else
       resolve_through_project(entity, &block)
