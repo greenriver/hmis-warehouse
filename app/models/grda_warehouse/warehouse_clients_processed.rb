@@ -105,25 +105,10 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           days_homeless_last_three_years: calcs.all_homeless_in_last_three_years[client_id] || 0,
           literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
           days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
-          # enrolled_homeless_shelter: calcs.enrolled_homeless_shelter(client_id),
-          # enrolled_homeless_unsheltered: calcs.enrolled_homeless_unsheltered(client_id),
-          # enrolled_permanent_housing: calcs.enrolled_permanent_housing(client_id),
-          # household_members: calcs.household_members(client_id),
-          # open_enrollments: calcs.open_enrollments(client_id),
-          # rrh_desired: calcs.rrh_desired(client_id),
-          # last_homeless_visit: calcs.last_homeless_visit(client_id),
-          # cohorts_ongoing_enrollments_es: calcs.last_es_visit(client_id),
-          # cohorts_ongoing_enrollments_sh: calcs.last_sh_visit(client_id),
-          # cohorts_ongoing_enrollments_th: calcs.last_th_visit(client_id),
-          # cohorts_ongoing_enrollments_so: calcs.last_so_visit(client_id),
-          # cohorts_ongoing_enrollments_psh: calcs.last_psh_visit(client_id),
-          # cohorts_ongoing_enrollments_rrh: calcs.last_rrh_visit(client_id),
-          # active_in_cas_match: calcs.active_in_cas_match(client_id),
-          # last_cas_match_date: calcs.last_cas_match_date(client_id),
-          # lgbtq_from_hmis: calcs.sexual_orientation_from_hmis(client_id),
-          # last_exit_destination: calcs.last_exit_destination(client_id),
-          # vispdat_score: calcs.vispdat_score(client_id),
-          # vispdat_priority_score: calcs.vispdat_priority_score(client_id),
+          last_intentional_contacts: calcs.last_intentional_contacts(client_id),
+          last_exit_destination: calcs.last_exit_destination(client_id),
+          # limited and extra data calculations are exclusive, if you want something
+          # for both populations, put it in both sets
         )
         processed_batch << processed if processed.changed?
       end
@@ -145,25 +130,6 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
               :days_homeless_last_three_years,
               :literally_homeless_last_three_years,
               :days_homeless_plus_overrides,
-              # :enrolled_homeless_shelter,
-              # :enrolled_homeless_unsheltered,
-              # :enrolled_permanent_housing,
-              # :household_members,
-              # :open_enrollments,
-              # :rrh_desired,
-              # :last_homeless_visit,
-              # :cohorts_ongoing_enrollments_es,
-              # :cohorts_ongoing_enrollments_sh,
-              # :cohorts_ongoing_enrollments_th,
-              # :cohorts_ongoing_enrollments_so,
-              # :cohorts_ongoing_enrollments_psh,
-              # :cohorts_ongoing_enrollments_rrh,
-              # :active_in_cas_match,
-              # :last_cas_match_date,
-              # :lgbtq_from_hmis,
-              # :last_exit_destination,
-              # :vispdat_score,
-              # :vispdat_priority_score,
             ],
           },
         )
@@ -221,6 +187,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           vispdat_score: calcs.vispdat_score(client_id),
           vispdat_priority_score: calcs.vispdat_priority_score(client_id),
           last_intentional_contacts: calcs.last_intentional_contacts(client_id),
+          # limited and extra data calculations are exclusive, if you want something
+          # for both populations, put it in both sets
         )
         processed_batch << processed if processed.changed?
       end
