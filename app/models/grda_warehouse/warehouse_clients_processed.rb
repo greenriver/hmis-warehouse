@@ -790,7 +790,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         open_enrollments.
           joins(enrollment: [:project, :services]).
           group(she_t[:client_id], p_t[:id]).maximum(s_t[:date_provided]).
-          map do |(service_client_id, project_id), date|
+          sort_by { |_, d| d }.
+          reverse_each do |(service_client_id, project_id), date|
             h[service_client_id] ||= {}
             h[service_client_id][project_id] ||= {
               date: date,
@@ -803,7 +804,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         open_enrollments.
           joins(enrollment: [:project, :current_living_situations]).
           group(she_t[:client_id], p_t[:id]).maximum(cls_t[:information_date]).
-          map do |(cls_client_id, project_id), date|
+          sort_by { |_, d| d }.
+          reverse_each do |(cls_client_id, project_id), date|
           h[cls_client_id] ||= {}
           h[cls_client_id][project_id] ||= {
             date: date,
@@ -816,7 +818,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         open_enrollments.
           joins(enrollment: [:project, :events]).
           group(she_t[:client_id], p_t[:id]).maximum(ev_t[:event_date]).
-          map do |(event_client_id, project_id), date|
+          sort_by { |_, d| d }.
+          reverse_each do |(event_client_id, project_id), date|
           h[event_client_id] ||= {}
           h[event_client_id][project_id] ||= {
             date: date,
@@ -829,7 +832,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         GrdaWarehouse::Generic::Service.
           where(client_id: @client_ids).
           group(:client_id, :title).maximum(:date).
-          map do |(custom_service_client_id, title), date|
+          sort_by { |_, d| d }.
+          reverse_each do |(custom_service_client_id, title), date|
             h[custom_service_client_id] ||= {
               date: date,
               project_name: title,
