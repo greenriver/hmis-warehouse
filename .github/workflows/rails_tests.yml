@@ -193,17 +193,6 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
 
-      - name: Run My tests WIP
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
-          MAX_FAILURES: 20
-          LOG_LEVEL: INFO
-        run: |
-          bundle exec rspec drivers/hmis_external_apis/spec/models/hmis_external_apis/ac_hmis/exporters drivers/hmis_external_apis/spec/jobs/hmis_external_apis/ac_hmis/upload_clients_job_spec.rb
-
       - name: Run tests
         env:
           AWS_ACCESS_KEY_ID: local_access_key
