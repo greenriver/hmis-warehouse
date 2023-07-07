@@ -15276,6 +15276,41 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 
 
 --
+-- Name: hmis_project_unit_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_project_unit_types (
+    id bigint NOT NULL,
+    "ProgramID" bigint NOT NULL,
+    "UnitTypeID" bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    "UnitCapacity" integer,
+    "isActive" character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_project_unit_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_project_unit_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_project_unit_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_project_unit_types_id_seq OWNED BY public.hmis_project_unit_types.id;
+
+
+--
 -- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -24282,6 +24317,13 @@ ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: hmis_project_unit_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_unit_types ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_unit_types_id_seq'::regclass);
+
+
+--
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -27604,6 +27646,14 @@ ALTER TABLE ONLY public.hmis_forms
 
 ALTER TABLE ONLY public.hmis_import_configs
     ADD CONSTRAINT hmis_import_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_project_unit_types hmis_project_unit_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_unit_types
+    ADD CONSTRAINT hmis_project_unit_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -45319,6 +45369,20 @@ CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_c
 
 
 --
+-- Name: index_hmis_project_unit_types_on_UnitTypeID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_hmis_project_unit_types_on_UnitTypeID" ON public.hmis_project_unit_types USING btree ("UnitTypeID");
+
+
+--
+-- Name: index_hmis_project_unit_types_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_unit_types_on_data_source_id ON public.hmis_project_unit_types USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50723,6 +50787,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_exter
 
 
 --
+-- Name: uidx_hmis_project_unit_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_project_unit_type ON public.hmis_project_unit_types USING btree ("ProgramID", "UnitTypeID", data_source_id);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53675,6 +53746,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230623124456'),
 ('20230623200215'),
 ('20230626005404'),
-('20230626012029');
+('20230626012029'),
+('20230706204940');
 
 

@@ -30,6 +30,8 @@ module HmisExternalApis::AcHmis::Importers
         upsert_projects
         upsert_walkins
         upsert_inventory
+        upsert_project_unit_types
+        Hmis::ProjectUnitType.freshen_project_units
       end
       analyze
       finish
@@ -157,6 +159,19 @@ module HmisExternalApis::AcHmis::Importers
         file: file,
         conflict_target: ['"InventoryID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Inventory,
+      )
+    end
+
+    def upsert_project_unit_types
+      file = 'ProjectUnitTypes.csv'
+
+      columns = ['ProgramID', 'UnitTypeID', 'UnitCapacity', 'IsActive']
+      check_columns(file: file, expected_columns: columns, critical_columns: columns)
+
+      generic_upsert(
+        file: file,
+        conflict_target: ['"ProgramID"', '"UnitTypeID"', :data_source_id],
+        klass: Hmis::ProjectUnitType,
       )
     end
 
