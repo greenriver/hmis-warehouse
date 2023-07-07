@@ -9,6 +9,7 @@ module HmisExternalApis::AcHmis::Exporters
     attr_accessor :output
 
     def initialize(output = StringIO.new)
+      require 'csv'
       self.output = output
     end
 

@@ -9,7 +9,7 @@ require 'rails_helper'
 RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExportUploader, type: :model do
   let(:subject) { HmisExternalApis::AcHmis::Exporters::ClientExportUploader.new(io_streams: [OpenStruct.new(name: 'Client.csv', io: StringIO.new("a,b,c\n1,2,3"))], date: Date.parse('2023-06-01')) }
   let(:creds) do
-    port = ENV['CI'].present? ? 2222 : 22
+    # port = ENV['CI'].present? ? 2222 : 22
 
     GrdaWarehouse::RemoteCredentials::Sftp.create!(
       slug: 'ac_hmis_client_export',
@@ -17,7 +17,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExportUploader, type: 
       password: 'password',
       path: 'sftp',
       host: 'hmis-warehouse-sftp',
-      port: port,
+      port: 22,
     )
   end
 
