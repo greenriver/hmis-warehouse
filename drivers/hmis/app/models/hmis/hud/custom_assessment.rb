@@ -71,7 +71,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   scope :with_role, ->(role) do
-    stages = Array.wrap(role).map { |r| Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[r] }
+    stages = Array.wrap(role).map { |r| Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[r.to_sym] }.compact
     where(data_collection_stage: stages)
   end
 
