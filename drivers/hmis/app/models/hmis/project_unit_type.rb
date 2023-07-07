@@ -4,11 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# exported data from ACHMIS that describes the unit types and capacity for each project (called program)
 class Hmis::ProjectUnitType < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_project_unit_types
 
   belongs_to :project, primary_key: [:data_source_id, :ProjectID], foreign_key: [:data_source_id, :ProgramID], autosave: false, optional: true, class_name: 'Hmis::Hud::Project'
+
+  scope :active, -> { where(IsActive: 'Y') }
+  scope :for_project, ->(project) { where(data_source_id: project.data_source_id, ProgramID: project.ProjectID) }
 
   def self.freshen_project_units(user: )
     # assuming unit types is a small collection

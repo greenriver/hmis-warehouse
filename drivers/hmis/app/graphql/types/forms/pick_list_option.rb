@@ -65,9 +65,15 @@ module Types
           map(&:to_pick_list_option)
 
       when 'ALL_UNIT_TYPES'
+        # for referrals between projects
         # actually return all unit types, regardless of project
         all_unit_types = Hmis::UnitType.order(:description, :id)
         return all_unit_types.map(&:to_pick_list_option)
+      when 'POSSIBLE_PROJECT_UNIT_TYPES'
+        # for creating new units at a project
+        raise unless project.present?
+
+        possible_unit_types_for_project(project)
       when 'UNIT_TYPES'
         # If no project was specified, return all unit types
         all_unit_types = Hmis::UnitType.order(:description, :id)
@@ -164,6 +170,26 @@ module Types
           option[:secondary_label] = "#{num_left} available"
           option
         end
+    end
+
+    # UNIT_TYPES pick list should only return types that are "mapped" for this project. If there are
+    # no mappings it should return all unit types, which is the default behavior.
+    def self.possible_unit_types_for_project(project)
+      unit_type_scope = Hmis::UnitType.all
+
+      project_unit_types = Hmis::ProjectUnitType.for_project(project)
+      if project_unit_types.any?
+        # Hash { mper => unit_type.id}
+        unit_id_by_mper = Hmis::UnitType
+          .joins(:external_ids)
+          .merge(HmisExternalApis::AcHmis::Mper.external_ids)
+          .pluck(HmisExternalApis::ExternalId.arel_table[:value], :id)
+          .to_h
+        unit_type_ids = project_unit_types.map { |r| unit_id_by_mper[r.UnitTypeID] }
+        unit_type_scope = unit_type_scope.where(id: unit_type_ids)
+      end
+
+      unit_type_scope.order(:description, :id).map(&:to_pick_list_option)
     end
 
     def self.coc_picklist(selected_project)
