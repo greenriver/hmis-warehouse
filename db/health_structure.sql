@@ -3040,7 +3040,8 @@ CREATE TABLE public.hca_assessments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     care_goals character varying,
-    address character varying
+    address character varying,
+    legal_comments character varying
 );
 
 
@@ -9115,6 +9116,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230613201311'),
 ('20230614191047'),
 ('20230614194646'),
-('20230706134746');
+('20230706134746'),
+('20230707132626');
 
 
