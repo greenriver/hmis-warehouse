@@ -5937,11 +5937,6 @@ Related record type for a group of questions in an assessment
 """
 enum RelatedRecordType {
   """
-  Assessment
-  """
-  ASSESSMENT
-
-  """
   CurrentLivingSituation
   """
   CURRENT_LIVING_SITUATION
