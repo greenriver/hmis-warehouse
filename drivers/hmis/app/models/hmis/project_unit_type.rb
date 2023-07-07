@@ -14,9 +14,10 @@ class Hmis::ProjectUnitType < Hmis::HmisBase
   scope :active, -> { where(IsActive: 'Y') }
   scope :for_project, ->(project) { where(data_source_id: project.data_source_id, ProgramID: project.ProjectID) }
 
-  def self.freshen_project_units(user: )
-    # assuming unit types is a small collection
-    unit_types_by_external_id = HmisExternalApis::AcHmis::Mper.external_ids
+  def self.freshen_project_units(user:)
+    today = Date.current
+
+    unit_types_by_mper = HmisExternalApis::AcHmis::Mper.external_ids
       .preload(:source)
       .where(source_type: Hmis::UnitType.sti_name)
       .index_by(&:value)
@@ -30,7 +31,7 @@ class Hmis::ProjectUnitType < Hmis::HmisBase
 
     unit_attrs = []
     scope.find_each do |record|
-      unit_type = unit_types_by_external_id[record.UnitTypeID]
+      unit_type = unit_types_by_mper[record.UnitTypeID]
       raise "Unit Type not found for mper id #{record.UnitTypeID}" unless unit_type
 
       case record.IsActive
@@ -53,7 +54,11 @@ class Hmis::ProjectUnitType < Hmis::HmisBase
         end
       when 'N'
         # If this ProjectID is already mapped to this UnitTypeID in our system, but it is marked as Active=N, then remove the mapping. At this point also remove any Units for this unit type. Raise if any of those Units are occupied
-        existing_units.each(&:destroy)
+        record.destroy!
+        existing_units = project.units.where(unit_type: unit_type)
+        raise "Can't remove active units: #{record.inspect}" if existing_units.occupied_on(today).any?
+
+        existing_units.each(&:destroy!)
       else
         raise "unexpected project_unit_type: #{attributes.inspect}"
       end

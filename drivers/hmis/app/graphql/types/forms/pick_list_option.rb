@@ -177,15 +177,17 @@ module Types
     def self.possible_unit_types_for_project(project)
       unit_type_scope = Hmis::UnitType.all
 
-      project_unit_types = Hmis::ProjectUnitType.for_project(project)
+      project_unit_types = Hmis::ProjectUnitType.for_project(project).to_a
       if project_unit_types.any?
         # Hash { mper => unit_type.id}
-        unit_id_by_mper = Hmis::UnitType
+        unit_type_id_by_mper = Hmis::UnitType
           .joins(:external_ids)
           .merge(HmisExternalApis::AcHmis::Mper.external_ids)
           .pluck(HmisExternalApis::ExternalId.arel_table[:value], :id)
           .to_h
-        unit_type_ids = project_unit_types.map { |r| unit_id_by_mper[r.UnitTypeID] }
+
+        unit_type_ids = project.units.pluck(:unit_type_id) # include unit types for current projects
+        unit_type_ids += project_unit_types.map { |r| unit_type_id_by_mper[r.UnitTypeID] }
         unit_type_scope = unit_type_scope.where(id: unit_type_ids)
       end
 
