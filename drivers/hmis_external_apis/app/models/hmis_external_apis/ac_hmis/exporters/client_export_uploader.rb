@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis::Exporters
 
     def run!
       Rails.logger.info "Sftping to #{username}@#{host}"
-      args = { password: password, verbose: :error, port: port }
+      args = { password: password, verbose: :error, port: port || 22 }
       Net::SFTP.start(host, username, args) do |sftp|
         zipped_contents = zipped_io_stream.string
 
