@@ -574,15 +574,6 @@ module HudLists2024
     }.freeze
   end
 
-  # 4.12.2
-  def contact_location_map
-    {
-      1 => 'Place not meant for habitation',
-      2 => 'Service setting, non-residential',
-      3 => 'Service setting, residential',
-    }.freeze
-  end
-
   # 4.14
   def bed_night_map
     {
@@ -1660,7 +1651,6 @@ module HudLists2024
       "4.10.2": :disability_response_map,
       "4.11.A": :when_dv_occurred_map,
       "4.12": :living_situation_map,
-      "4.12.2": :contact_location_map,
       "4.14": :bed_night_map,
       "4.18.1": :housing_assessment_disposition_map,
       "4.19.3": :assessment_type_map,

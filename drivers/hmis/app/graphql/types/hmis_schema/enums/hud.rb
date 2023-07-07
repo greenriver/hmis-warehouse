@@ -88,7 +88,7 @@ module Types::HmisSchema::Enums::Hud
   end
 
   class ProjectTypeBrief < Types::BaseEnum
-    description '2.02.6'
+    description '2.02.6.brief'
     graphql_name 'ProjectTypeBrief'
     hud_enum ::HudLists.project_type_brief_map
   end

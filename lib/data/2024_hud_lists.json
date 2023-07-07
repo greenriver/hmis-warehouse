@@ -1556,24 +1556,6 @@
     ]
   },
   {
-    "name": "ContactLocation",
-    "code": "4.12.2",
-    "values": [
-      {
-        "key": 1,
-        "description": "Place not meant for habitation"
-      },
-      {
-        "key": 2,
-        "description": "Service setting, non-residential"
-      },
-      {
-        "key": 3,
-        "description": "Service setting, residential"
-      }
-    ]
-  },
-  {
     "name": "BedNight",
     "code": "4.14",
     "values": [
