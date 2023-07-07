@@ -11,6 +11,15 @@ module Financial
       'client'
     end
 
+    def import!(force = false)
+      return unless check_hour || force
+
+      start_import
+      fetch_and_load
+      complete_import
+      post_process
+    end
+
     private def associated_class
       Financial::Client
     end
@@ -24,6 +33,10 @@ module Financial
       {
         'client_id' => 'external_client_id',
       }
+    end
+
+    private def post_process
+      Financial::Client.match_warehouse_clients
     end
   end
 end
