@@ -10,6 +10,7 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   include ::HmisStructure::Funder
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::ProjectRelated
+
   validates_with Hmis::Hud::Validators::FunderValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')

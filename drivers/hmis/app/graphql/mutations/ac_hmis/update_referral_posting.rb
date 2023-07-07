@@ -54,13 +54,14 @@ module Mutations
           posting.update!(household_id: household_id)
         end
         raise ActiveRecord::Rollback if errors.any?
+
+        # send to link if:
+        # * the referral came from link
+        # * status has changed (status will be unchanged if user just updated note)
+        send_update(posting) if posting.from_link? && posting_status_change.present?
       end
       return { errors: errors } if errors.any?
 
-      # send to link if:
-      # * the referral came from link
-      # * status has changed (status will be unchanged if user just updated note)
-      send_update(posting) if posting.from_link? && posting_status_change.present?
       # resend original referral request
       if posting_status_change == ['denied_pending_status', 'denied_status'] && input.resend_referral_request
         raise unless posting.from_link?

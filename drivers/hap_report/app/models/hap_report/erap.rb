@@ -33,7 +33,7 @@ module HapReport
     end
 
     def client_key
-      OpenStruct.new(first_name: first_name, last_name: last_name)
+      OpenStruct.new(first_name: first_name, last_name: last_name, mci_id: mci_id)
     end
 
     def client_data

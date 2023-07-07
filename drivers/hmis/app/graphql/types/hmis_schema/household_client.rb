@@ -17,7 +17,15 @@ module Types
     # object is hash with the format { relationship_to_ho_h: String, client: Client, enrollment: Enrollment }
 
     def id
-      "#{object[:enrollment].id}:#{object[:client].id}"
+      "#{enrollment.id}:#{client.id}"
+    end
+
+    def client
+      load_ar_association(enrollment, :client)
+    end
+
+    def enrollment
+      object.fetch(:enrollment)
     end
   end
 end

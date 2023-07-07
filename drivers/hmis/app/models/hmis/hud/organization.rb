@@ -15,6 +15,8 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   has_many :projects, **hmis_relation(:OrganizationID, 'Project'), dependent: :destroy
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :organizations
   has_many :custom_data_elements, as: :owner
+  has_many :group_viewable_entity_projects
+  has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
