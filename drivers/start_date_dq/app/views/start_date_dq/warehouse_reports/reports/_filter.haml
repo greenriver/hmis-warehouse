@@ -16,6 +16,8 @@
       .col-sm
         = f.input :end, label: 'End Date', as: :date_picker
       .col-sm
+        = f.input :dates_to_compare, collection: @filter.available_dates_to_compare.invert, label: 'Dates to Compare', as: :select_two, include_blank: false
+      .col-sm
         = f.input :length_of_times, collection: @report.day_ranges.keys, label: 'Days Difference', as: :select_two, input_html: { multiple: true, placeholder: 'All' }
   - content_for :filter_actions do
     = f.submit 'Apply Filters', class: ['btn', 'btn-primary']

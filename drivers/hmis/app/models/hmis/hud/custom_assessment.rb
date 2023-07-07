@@ -11,17 +11,18 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::HmisStructure::Assessment
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
   WIP_ID = 'WIP'.freeze
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment') # WIP_ID for WIP assessment
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   has_one :custom_form, class_name: 'Hmis::Form::CustomForm', as: :owner, dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
-  has_one :project, through: :enrollment
   has_many :custom_data_elements, as: :owner
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
@@ -57,11 +58,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   scope :with_project, ->(project_ids) do
     joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
-  end
-
-  # Load project for WIP enrollment
-  def project
-    super || enrollment&.project
   end
 
   def enrollment

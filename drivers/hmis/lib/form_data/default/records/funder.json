@@ -91,6 +91,7 @@
           "field_name": "startDate",
           "bounds": [
             {
+              "id": "max-start-date",
               "type": "MAX",
               "question": "end"
             }
@@ -104,6 +105,7 @@
           "field_name": "endDate",
           "bounds": [
             {
+              "id": "min-end-date",
               "type": "MIN",
               "question": "start"
             }

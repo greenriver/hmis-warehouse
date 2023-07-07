@@ -33,9 +33,15 @@ module Mutations
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
       # Check permission
-      allowed = true
-      allowed = current_user.permissions_for?(record, *Array(definition.record_editing_permission)) if definition.record_editing_permission.present?
-      allowed = definition.allowed_proc.call(record, current_user) if definition.allowed_proc.present?
+      allowed = nil
+      if definition.allowed_proc.present?
+        allowed = definition.allowed_proc.call(record, current_user)
+      elsif definition.record_editing_permission.present?
+        allowed = current_user.permissions_for?(record, *Array(definition.record_editing_permission))
+      else
+        # allow if no permission check defined
+        allowed = true
+      end
       raise HmisErrors::ApiError, 'Access Denied' unless allowed
 
       # Build CustomForm
@@ -76,6 +82,8 @@ module Mutations
           record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
         elsif record.is_a? HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
+        elsif record.is_a? Hmis::Hud::Enrollment
+          record.save_in_progress
         else
           record.save!
           record.touch
@@ -120,6 +128,10 @@ module Mutations
     end
 
     private def related_id_attributes(class_name, input)
+      project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id) if input.project_id.present?
+      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id) if input.client_id.present?
+      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id) if input.enrollment_id.present?
+
       case class_name
       when 'Hmis::Hud::Project'
         {
@@ -127,14 +139,13 @@ module Mutations
         }
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory'
         {
-          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.ProjectID,
+          project_id: project&.ProjectID,
         }
       when 'HmisExternalApis::AcHmis::ReferralRequest'
         {
-          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.id,
+          project_id: project&.id,
         }
       when 'Hmis::Hud::HmisService'
-        enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)
         custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id)
         {
           enrollment_id: enrollment&.EnrollmentID,
@@ -143,8 +154,13 @@ module Mutations
         }
       when 'Hmis::File'
         {
-          client_id: Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id)&.id,
-          enrollment_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.id,
+          client_id: client&.id,
+          enrollment_id: enrollment&.id,
+        }
+      when 'Hmis::Hud::Enrollment'
+        {
+          project_id: project&.ProjectID,
+          personal_id: client&.personal_id,
         }
       else
         {}
