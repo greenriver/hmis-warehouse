@@ -16,11 +16,13 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
   WIP_ID = 'WIP'.freeze
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment') # WIP_ID for WIP assessment
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   has_one :custom_form, class_name: 'Hmis::Form::CustomForm', as: :owner, dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
+  has_one :project, through: :enrollment # null for WIP assessment
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 
