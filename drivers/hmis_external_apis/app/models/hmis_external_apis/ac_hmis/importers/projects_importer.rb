@@ -31,7 +31,7 @@ module HmisExternalApis::AcHmis::Importers
         upsert_walkins
         upsert_inventory
         upsert_project_unit_types
-        Hmis::ProjectUnitType.freshen_project_units
+        Hmis::ProjectUnitType.freshen_project_units(user: sys_user)
       end
       analyze
       finish

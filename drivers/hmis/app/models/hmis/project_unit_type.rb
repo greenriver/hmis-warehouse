@@ -6,14 +6,17 @@
 
 class Hmis::ProjectUnitType < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
-  self.table_name = :hmis_project_unit_type
+  self.table_name = :hmis_project_unit_types
 
-  belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
+  belongs_to :project, primary_key: [:data_source_id, :ProjectID], foreign_key: [:data_source_id, :ProgramID], autosave: false, optional: true, class_name: 'Hmis::Hud::Project'
 
-  def self.freshen_project_units
+  def self.freshen_project_units(user: )
+    # assuming unit types is a small collection
     unit_types_by_external_id = HmisExternalApis::AcHmis::Mper.external_ids
-      .where(source_type: Hmis::Unit.sti_name)
+      .preload(:source)
+      .where(source_type: Hmis::UnitType.sti_name)
       .index_by(&:value)
+      .transform_values(&:source)
 
     scope = preload(:project)
     unit_counts_by_project_and_unit_type_id = Hmis::Unit
@@ -24,9 +27,9 @@ class Hmis::ProjectUnitType < Hmis::HmisBase
     unit_attrs = []
     scope.find_each do |record|
       unit_type = unit_types_by_external_id[record.UnitTypeID]
-      next unless local_unit_type_id
+      raise "Unit Type not found for mper id #{record.UnitTypeID}" unless unit_type
 
-      case record.isActive
+      case record.IsActive
       when 'Y'
         key = [record.project.id, unit_type.id]
         if unit_counts_by_project_and_unit_type_id[key]
@@ -36,10 +39,11 @@ class Hmis::ProjectUnitType < Hmis::HmisBase
           # If this ProjectID is not already mapped to this UnitTypeID, add it and add the number of units specified in the UnitCapacity column.
           unit_attrs += record.UnitCapacity.times.map do |i|
             {
-              project_id: project.id,
+              project_id: record.project.id,
               unit_type_id: unit_type.id,
-              unit_size: unit_ty0pe.unit_size,
+              unit_size: unit_type.unit_size,
               name: "Unit #{unit_type.description} #{i + 1}", # FIXME: guess at unit name format
+              user_id: user.id,
             }
           end
         end
