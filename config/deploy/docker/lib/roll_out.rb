@@ -34,6 +34,7 @@ class RollOut
   attr_accessor :task_arn
   attr_accessor :web_options
   attr_accessor :only_check_ram
+  attr_accessor :service_registry_arns
 
   include SharedLogic
   include AwsSdkHelpers::Helpers
@@ -51,19 +52,24 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
-  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:)
-    self.cluster             = _cluster_name
-    self.image_base          = image_base
-    self.secrets_arn         = secrets_arn
-    self.target_group_arn    = target_group_arn
-    self.target_group_name   = target_group_name
-    self.execution_role      = execution_role
-    self.task_role           = task_role
-    self.dj_options          = dj_options
-    self.web_options         = web_options
-    self.status_uri          = URI("https://#{fqdn}/system_status/details")
-    self.only_check_ram      = false
-    @capacity_providers      = capacity_providers
+  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:, service_registry_arns:)
+    self.cluster                  = _cluster_name
+    self.image_base               = image_base
+    self.secrets_arn              = secrets_arn
+    self.target_group_arn         = target_group_arn
+    self.target_group_name        = target_group_name
+    self.execution_role           = execution_role
+    self.task_role                = task_role
+    self.dj_options               = dj_options
+    self.web_options              = web_options
+    self.status_uri               = URI("https://#{fqdn}/system_status/details")
+    self.only_check_ram           = false
+    self.service_registry_arns    = service_registry_arns || {}
+    @capacity_providers           = capacity_providers
+
+    puts '[WARN] You should specify a web service registry ARN value for service discovery (Cloud Map)' if service_registry_arns['web'].nil?
+
+    puts '[WARN] You should specify a DJ service registry ARN value for service discovery (Cloud Map)' if service_registry_arns['dj'].nil?
 
     if task_role.nil? || task_role.match(/^\s*$/)
       puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
@@ -257,6 +263,19 @@ class RollOut
 
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
+    service_registries =
+      if service_registry_arns['web']
+        [
+          {
+            container_name: name,
+            container_port: 9394,
+            registry_arn: service_registry_arns['web'],
+          },
+        ]
+      else
+        []
+      end
+
     # Keep production web containers on long-term providers
     _start_service!(
       capacity_provider: _long_term_capacity_provider_name,
@@ -265,6 +284,7 @@ class RollOut
       desired_count: web_options['container_count'] || 1,
       minimum_healthy_percent: minimum,
       maximum_percent: maximum,
+      service_registries: service_registries,
     )
   end
 
@@ -296,12 +316,25 @@ class RollOut
 
     minimum, maximum = _get_min_max_from_desired(dj_options['container_count'])
 
+    # service_registries =
+    #   if service_registry_arns['dj']
+    #     {
+    #       container_name: name,
+    #       container_port: 9394,
+    #       registry_arn: service_registry_arns['dj'],
+    #     }
+    #   else
+    #     []
+    #   end
+    service_registries = []
+
     _start_service!(
       name: name,
       capacity_provider: _long_term_capacity_provider_name,
       desired_count: dj_options['container_count'] || 1,
       maximum_percent: maximum,
       minimum_healthy_percent: minimum,
+      service_registries: service_registries,
     )
   end
 
@@ -568,7 +601,7 @@ class RollOut
     end
   end
 
-  def _start_service!(capacity_provider:, load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0)
+  def _start_service!(capacity_provider:, load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0, service_registries: [])
     services = ecs.list_services({ cluster: cluster })
 
     # services result is paginated. The first any iterates over each page
@@ -604,6 +637,7 @@ class RollOut
             rollback: true,
           },
         },
+        service_registries: service_registries,
       }
 
       payload[:health_check_grace_period_seconds] = five_minutes if load_balancers.length.positive?
@@ -627,6 +661,7 @@ class RollOut
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
         },
+        service_registries: service_registries,
         placement_strategy: _placement_strategy,
         load_balancers: load_balancers,
       }

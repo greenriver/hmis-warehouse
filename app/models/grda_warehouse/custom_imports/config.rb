@@ -48,7 +48,7 @@ module GrdaWarehouse::CustomImports
       else
         AwsS3.new(
           region: s3_region,
-          bucket_name: s3_bucket_name,
+          bucket_name: s3_bucket,
         )
       end
     end

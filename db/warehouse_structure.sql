@@ -41426,6 +41426,13 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
+-- Name: idx_cibs_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cibs_p_id_ds_id ON public.custom_imports_b_services_rows USING btree (personal_id, data_source_id);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53444,6 +53451,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230623200215'),
 ('20230626005404'),
 ('20230626012029'),
-('20230630203515');
+('20230630203515'),
+('20230707143716');
 
 
