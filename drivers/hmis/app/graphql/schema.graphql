@@ -2226,6 +2226,8 @@ type Enrollment {
   formerWardJuvenileJustice: NoYesReasonsForMissingData
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   household: Household!
+  householdId: ID!
+  householdShortId: ID!
   householdSize: Int!
   id: ID!
   inProgress: Boolean!

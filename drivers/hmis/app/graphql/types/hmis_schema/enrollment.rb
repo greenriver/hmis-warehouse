@@ -51,6 +51,8 @@ module Types
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
+    field :household_id, ID, null: false
+    field :household_short_id, ID, null: false
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
@@ -145,6 +147,10 @@ module Types
 
     def client
       load_ar_association(object, :client)
+    end
+
+    def household_short_id
+      Hmis::Hud::Household.short_id(object.household_id)
     end
 
     def household

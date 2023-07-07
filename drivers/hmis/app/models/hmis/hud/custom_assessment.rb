@@ -170,11 +170,11 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     # FIXME wont work for wip.
     # raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !enrollments.pluck(:enrollment_id).include(source_assessment.enrollment_id)
 
-    household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role).for_enrollments(household_enrollments)
+    household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).for_enrollments(household_enrollments)
 
-    case assessment_role
+    case assessment_role.to_sym
     when :INTAKE, :EXIT
-      # Ensure we only return 1 assesment per person
+      # Ensure we only return 1 assessment per person
       household_assessments.group_by(&:personal_id).map { |_, a| a.last }
     when :ANNUAL
       # If we have a source, find annuals "near" it (within threshold)
