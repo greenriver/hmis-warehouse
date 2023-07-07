@@ -89,7 +89,7 @@ module CustomImportsBostonCommunityOfOrigin
 
     def self.process_locations
       rows = Row.where(dirty: true)
-      rows.preload(enrollment: :project, client: :destination_client).find_in_batches do |batch|
+      rows.preload(enrollment: :project, client: :destination_client).find_in_batches(batch_size: 100) do |batch|
         location_batch = []
         batch.each do |row|
           next unless row.client.present? && row.enrollment.present?
