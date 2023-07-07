@@ -5306,6 +5306,11 @@ type Query {
   household(id: ID!): Household
 
   """
+  Get group of assessments that are performed together
+  """
+  householdAssessments(assessmentId: ID, assessmentRole: AssessmentRole!, householdId: ID!): [Assessment!]
+
+  """
   Inventory lookup
   """
   inventory(id: ID!): Inventory
