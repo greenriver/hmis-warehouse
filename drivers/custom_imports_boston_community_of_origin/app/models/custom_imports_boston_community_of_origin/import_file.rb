@@ -29,6 +29,7 @@ module CustomImportsBostonCommunityOfOrigin
 
       start_import
       fetch_and_load
+      complete_import
     end
 
     # Override CSV load so that we can upsert.
