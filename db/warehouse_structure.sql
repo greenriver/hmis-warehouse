@@ -6130,9 +6130,6 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
-    "order" integer DEFAULT 0 NOT NULL,
-    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
-    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -15276,40 +15273,6 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 
 
 --
--- Name: hmis_project_unit_type_mappings; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_project_unit_type_mappings (
-    id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    unit_type_id bigint NOT NULL,
-    unit_capacity integer,
-    active boolean NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_project_unit_type_mappings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_project_unit_type_mappings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
-
-
---
 -- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -24316,13 +24279,6 @@ ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- Name: hmis_project_unit_type_mappings id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_unit_type_mappings_id_seq'::regclass);
-
-
---
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -27645,14 +27601,6 @@ ALTER TABLE ONLY public.hmis_forms
 
 ALTER TABLE ONLY public.hmis_import_configs
     ADD CONSTRAINT hmis_import_configs_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_project_unit_type_mappings hmis_project_unit_type_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_project_unit_type_mappings
-    ADD CONSTRAINT hmis_project_unit_type_mappings_pkey PRIMARY KEY (id);
 
 
 --
@@ -41707,6 +41655,13 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
+-- Name: idx_cibs_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cibs_p_id_ds_id ON public.custom_imports_b_services_rows USING btree (personal_id, data_source_id);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45365,20 +45320,6 @@ CREATE INDEX index_hmis_forms_on_name ON public.hmis_forms USING btree (name);
 --
 
 CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_configs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_project_unit_type_mappings_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_project_unit_type_mappings_on_project_id ON public.hmis_project_unit_type_mappings USING btree (project_id);
-
-
---
--- Name: index_hmis_project_unit_type_mappings_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmis_project_unit_type_mappings USING btree (unit_type_id);
 
 
 --
@@ -50740,7 +50681,7 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -50783,13 +50724,6 @@ CREATE UNIQUE INDEX uidx_hmis_external_referral_requests_identifier ON public.hm
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_external_referrals USING btree (identifier);
-
-
---
--- Name: uidx_hmis_project_unit_type_mappings; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uidx_hmis_project_unit_type_mappings ON public.hmis_project_unit_type_mappings USING btree (project_id, unit_type_id);
 
 
 --
@@ -52133,14 +52067,6 @@ ALTER TABLE ONLY public.service_history_services_2018
 
 
 --
--- Name: hmis_project_unit_type_mappings fk_rails_2df98dd2c6; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_project_unit_type_mappings
-    ADD CONSTRAINT fk_rails_2df98dd2c6 FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
-
-
---
 -- Name: service_history_services_remainder fk_rails_330ff927f7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -52458,14 +52384,6 @@ ALTER TABLE ONLY public.service_history_services_2049
 
 ALTER TABLE ONLY public.hmis_external_referral_household_members
     ADD CONSTRAINT fk_rails_993d7f8d95 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
-
-
---
--- Name: hmis_project_unit_type_mappings fk_rails_9ad4af7ff3; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_project_unit_type_mappings
-    ADD CONSTRAINT fk_rails_9ad4af7ff3 FOREIGN KEY (project_id) REFERENCES public."Project"(id);
 
 
 --
@@ -53762,6 +53680,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230623200215'),
 ('20230626005404'),
 ('20230626012029'),
-('20230706204940');
+('20230707143716');
 
 
