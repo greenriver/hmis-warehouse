@@ -173,8 +173,7 @@ module HmisExternalApis::AcHmis::Importers
         .pluck(:ProjectID, :id)
         .to_h
       unit_type_ids_by_mper = Hmis::UnitType
-        .joins(:external_ids)
-        .merge(HmisExternalApis::AcHmis::Mper.external_ids)
+        .joins(:mper_id)
         .pluck(HmisExternalApis::ExternalId.arel_table[:value], :id)
         .to_h
 
