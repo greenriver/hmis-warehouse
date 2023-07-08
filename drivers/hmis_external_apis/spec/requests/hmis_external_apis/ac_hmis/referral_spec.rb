@@ -27,26 +27,18 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       ::HmisExternalApis::AcHmis::Mper.new
     end
 
-    let(:clients) do
-      2.times.map do
-        client = create(:hmis_hud_client_complete, data_source: ds1)
-        mci_id = random_id
-        mci.create_external_id(source: client, value: mci_id)
-        [client, mci_id]
-      end
-    end
-
     let(:unit_type_id) do
       record = mper.create_external_id(source: create(:hmis_unit_type), value: random_id)
       record.value
     end
 
-    def household_member_params(clients)
-      clients.map do |client, mci_id|
+    def household_member_params(household)
+      household.map do |record|
+        record => { client:, mci_id:, relationship_to_hoh: }
         {
           mci_id: mci_id,
           # make the first client the hoh
-          relationship_to_hoh: (client == clients[0][0] ? 1 : 99),
+          relationship_to_hoh: ::HudUtility.hud_list_map_as_enumerable(:relationship_to_ho_h_map).fetch(relationship_to_hoh),
           first_name: client.first_name,
           middle_name: client.middle_name,
           last_name: client.last_name,
@@ -62,14 +54,14 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       end
     end
 
-    def referral_params(clients)
+    def referral_params(household)
       {
         referral_id: random_id,
         referral_date: Date.today,
         service_coordinator: Faker::Name.name,
         posting_id: random_id,
         program_id: project_mper_id, # project == program
-        household_members: household_member_params(clients),
+        household_members: household_member_params(household),
         unit_type_id: unit_type_id,
         score: 8,
         needs_wheelchair_accessible_unit: false,
@@ -123,59 +115,148 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
     end
 
-    it 'receives referral for referral request' do
-      params = referral_params(clients)
-        .merge({ referral_request_id: referral_request.identifier })
-      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
-      check_response_okay
+    context 'with existing household' do
+      let(:household) do
+        2.times.map do |idx|
+          client = create(:hmis_hud_client_complete, data_source: ds1)
+          mci_id = random_id
+          mci.create_external_id(source: client, value: mci_id)
+          {
+            client: client,
+            mci_id: mci_id,
+            relationship_to_hoh: idx.zero? ? 'self_head_of_household' : 'other_relative',
+          }
+        end
+      end
 
-      referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
-      expect(referral.postings.map(&:referral_request_id)).to(eq([referral_request.id]))
-      expect(referral.postings.map(&:project_id)).to(eq([referral_request.project_id]))
-      expect(referral.household_members.size).to(eq(clients.size))
+      it 'receives referral for referral request' do
+        params = referral_params(household)
+          .merge({ referral_request_id: referral_request.identifier })
+        post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+        check_response_okay
 
-      id_scope = HmisExternalApis::ExternalId.where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
-      clients.each do |client, mci_id|
-        found = referral.household_members.where(client_id: client.id).first!
-        expect(id_scope.where(source: found.client, value: mci_id).count).to(eq(1))
+        referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
+        expect(referral.postings.map(&:referral_request_id)).to(eq([referral_request.id]))
+        expect(referral.postings.map(&:project_id)).to(eq([referral_request.project_id]))
+        expect(referral.household_members.size).to(eq(household.size))
+      end
+
+      it 'receives referral assignment' do
+        params = referral_params(household)
+        post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+        check_response_okay
+
+        referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
+        expect(referral.postings.map(&:project_id)).to(eq([project.id]))
+        expect(referral.household_members.size).to(eq(household.size))
+      end
+
+      it 'errors if multiple household members are hoh' do
+        household[0][:relationship_to_hoh] = 'self_head_of_household'
+        household[1][:relationship_to_hoh] = 'self_head_of_household'
+
+        params = referral_params(household)
+        post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+        parsed_body = JSON.parse(response.body)
+        expect(parsed_body['errors']).to eq(['Household must have exactly one HoH'])
+      end
+
+      it 'errors if no household members are hoh' do
+        household[0][:relationship_to_hoh] = 'other_relative'
+        household[1][:relationship_to_hoh] = 'other_relative'
+
+        params = referral_params(household)
+        post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+        parsed_body = JSON.parse(response.body)
+        expect(parsed_body['errors']).to eq(['Household must have exactly one HoH'])
+      end
+
+      context 'with existing closed referral' do
+        let(:referral) do
+          current_posting = create(:hmis_external_api_ac_hmis_referral_posting)
+          current_posting.closed_status!
+          referral = current_posting.referral
+          household.each do |record|
+            referral.household_members.create!(**record)
+          end
+          referral
+        end
+
+        it 'receives new postings' do
+          params = referral_params(household)
+            .merge({ referral_id: referral.identifier })
+          post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+          check_response_okay
+          expect(referral.postings.size).to(eq(2))
+          expect(referral.household_members.size).to(eq(household.size))
+        end
+
+        it 'updates relationship to hoh' do
+          # swap hoh
+          household[0][:relationship_to_hoh] = 'other_relative'
+          household[1][:relationship_to_hoh] = 'self_head_of_household'
+
+          params = referral_params(household)
+            .merge({ referral_id: referral.identifier })
+          post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+          check_response_okay
+          referral.reload
+
+          hoh = referral.household_members.where(relationship_to_hoh: 'other_relative').first!
+          expect(hoh.client).to eq(household[0][:client])
+
+          non_hoh = referral.household_members.where(relationship_to_hoh: 'self_head_of_household').first!
+          expect(non_hoh.client).to eq(household[1][:client])
+        end
+
+        it 'removes stale household members' do
+          reduced_household = household.take(1)
+          params = referral_params(reduced_household)
+            .merge({ referral_id: referral.identifier })
+          post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+          check_response_okay
+          expect(referral.household_members.to_a.map(&:client)).to(eq([reduced_household.first[:client]]))
+        end
       end
     end
 
-    it 'receives referral assignment' do
-      params = referral_params(clients)
-      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
-      check_response_okay
-
-      referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
-      expect(referral.postings.map(&:project_id)).to(eq([project.id]))
-      expect(referral.household_members.size).to(eq(clients.size))
-    end
-
     it 'receives referral for new clients' do
-      new_client_id = random_id
-      new_clients = [
-        [build(:hmis_hud_client_complete), new_client_id],
+      mci_id = random_id
+      household = [
+        {
+          client: build(:hmis_hud_client_complete),
+          mci_id: mci_id,
+          relationship_to_hoh: 'self_head_of_household',
+        },
       ]
-      params = referral_params(new_clients)
+      params = referral_params(household)
       post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
       check_response_okay
 
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
       expect(referral.postings.map(&:project_id)).to(eq([project.id]))
-      expect(referral.household_members.size).to(eq(new_clients.size))
-      client = mci.find_client_by_mci(new_client_id)
+      expect(referral.household_members.size).to(eq(household.size))
+      client = mci.find_client_by_mci(mci_id)
       expect(client).to(be_present)
       expect(client.addresses.size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
     end
 
-    it 'receives referral for existing clients' do
-      client_mci_id = random_id
+    it 'updates client attributes' do
+      mci_id = random_id
       client = create(:hmis_hud_client_complete, data_source: ds1)
-      mci.create_external_id(source: client, value: client_mci_id)
+      mci.create_external_id(source: client, value: mci_id)
 
-      params = referral_params([[client, client_mci_id]])
+      household = [
+        {
+          client: client,
+          mci_id: mci_id,
+          relationship_to_hoh: 'self_head_of_household',
+        },
+      ]
+
+      params = referral_params(household)
       expected = {
         first_name: 'Thisisanewfirstnamefortesting',
         middle_name: 'Thisisanewmiddlenamefortesting',
@@ -203,18 +284,6 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       expect(client.addresses.size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
-    end
-
-    it 'receives new posting on existing referral if old posting is closed' do
-      current_posting = create(:hmis_external_api_ac_hmis_referral_posting)
-      current_posting.closed_status!
-      referral = current_posting.referral
-
-      params = referral_params(clients)
-        .merge({ referral_id: referral.identifier })
-      post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
-      check_response_okay
-      expect(referral.postings.size).to(eq(2))
     end
   end
 end
