@@ -85,33 +85,28 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     end
 
     it 'preserves shared data' do
-      client.destroy
-      client.reload
-
-      [
-        :data_source,
-        :user,
-      ].each do |assoc|
-        expect(client.send(assoc)).to be_present, "expected #{assoc} to be present"
+      expect do
+        client.destroy!
+        client.reload
       end
+        .to not_change(client, :data_source)
+        .and not_change(client, :user)
     end
 
     it 'destroys dependent data' do
-      client.reload
-      [
-        :enrollments,
-      ].each do |assoc|
-        expect(client.send(assoc)).to be_present, "expected #{assoc} to be present"
-      end
+      referral = create(:hmis_external_api_ac_hmis_referral)
+      referral.household_members.create!(
+        relationship_to_hoh: 'self_head_of_household',
+        client: client,
+      )
 
-      client.destroy
-      client.reload
-
-      [
-        :enrollments,
-      ].each do |assoc|
-        expect(client.send(assoc)).not_to be_present, "expected #{assoc} not to be present"
+      expect do
+        client.destroy!
+        client.reload
       end
+        .to change(client, :enrollments).to([])
+        .and change(client, :external_referral_household_members).to([])
+        .and change(HmisExternalApis::AcHmis::Referral, :count).to(0)
     end
   end
 end
