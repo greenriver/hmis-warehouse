@@ -28,7 +28,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
     expect(GrdaWarehouse::Hud::Inventory.count).to eq(20)
     expect(Hmis::Hud::CustomDataElement.count).to eq(1)
     expect(Hmis::Hud::CustomDataElement.first.value_boolean).to be(false)
-    expect(Hmis::ProjectUnitType.count).to eq(1)
+    expect(Hmis::ProjectUnitTypeMapping.count).to eq(1)
     expect(Hmis::Unit.count).to eq(10)
   end
 end

@@ -17,7 +17,7 @@ class Hmis::Unit < Hmis::HmisBase
   belongs_to :user, class_name: 'User'
 
   # All historical and current occupancies of this unit
-  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit, dependent: :restrict_with_exception
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
