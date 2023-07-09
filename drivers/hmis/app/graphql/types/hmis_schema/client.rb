@@ -105,6 +105,14 @@ module Types
     field :user, HmisSchema::User, null: true
     field :image, HmisSchema::ClientImage, null: true
 
+    def client_files
+      load_ar_association(object, :client_files)
+    end
+
+    def image
+      client_files&.client_photos&.newest_first&.first&.client_file
+    end
+
     access_field do
       can :view_partial_ssn
       can :view_full_ssn
@@ -121,9 +129,13 @@ module Types
       can :view_any_confidential_client_files
     end
 
-    # FIXME: use graphql dataloader
     def external_ids
-      object.external_identifiers
+      collection = Hmis::Hud::ClientExternalIdentifierCollection.new(
+        client: object,
+        ac_hmis_mci_ids: load_ar_association(object, :ac_hmis_mci_ids),
+        warehouse_client_source: load_ar_association(object, :warehouse_client_source)
+      )
+      collection.all_identifiers
     end
 
     def enrollments(**args)
