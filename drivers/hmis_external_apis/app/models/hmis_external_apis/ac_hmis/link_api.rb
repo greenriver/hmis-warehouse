@@ -47,6 +47,10 @@ module HmisExternalApis::AcHmis
         .then { |r| handle_error(r) }
     end
 
+    def active_referral_mci_ids
+      conn.get('Referral/ActiveReferralMciid').then { |r| handle_error(r) }
+    end
+
     protected
 
     def handle_error(result)

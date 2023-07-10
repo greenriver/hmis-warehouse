@@ -241,14 +241,6 @@ module HmisExternalApis::AcHmis
       true
     end
 
-    def data_source
-      @data_source ||= HmisExternalApis::AcHmis.data_source
-    end
-
-    def system_user
-      @system_user ||= ::Hmis::Hud::User.system_user(data_source_id: data_source.id)
-    end
-
     def error_out(msg)
       errors.push(msg)
       return false
