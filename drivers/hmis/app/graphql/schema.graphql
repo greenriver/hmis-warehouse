@@ -2226,6 +2226,8 @@ type Enrollment {
   formerWardJuvenileJustice: NoYesReasonsForMissingData
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   household: Household!
+  householdId: ID!
+  householdShortId: ID!
   householdSize: Int!
   id: ID!
   inProgress: Boolean!
@@ -5304,6 +5306,11 @@ type Query {
   Household lookup
   """
   household(id: ID!): Household
+
+  """
+  Get group of assessments that are performed together
+  """
+  householdAssessments(assessmentId: ID, assessmentRole: AssessmentRole!, householdId: ID!): [Assessment!]
 
   """
   Inventory lookup

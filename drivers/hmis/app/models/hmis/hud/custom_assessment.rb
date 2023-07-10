@@ -83,6 +83,16 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
   end
 
+  scope :for_enrollments, ->(enrollments) do
+    hud_ids = enrollments.pluck(:enrollment_id)
+    db_ids = enrollments.pluck(:id)
+    completed_assessments = cas_t[:enrollment_id].in(hud_ids)
+    wip_assessments = wip_t[:enrollment_id].in(db_ids)
+
+    ids = Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments)).pluck(:id)
+    where(id: ids)
+  end
+
   def enrollment
     super || Hmis::Hud::Enrollment.find_by(id: wip&.enrollment_id)
   end
@@ -153,6 +163,33 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     # AR doesn't recognize the built record on the has_one-through, so add it directly
     new_assessment.definition = form_definition
     new_assessment
+  end
+
+  def self.group_household_assessments(household_enrollments:, assessment_role:, threshold:, assessment_id: nil)
+    source_assessment = Hmis::Hud::CustomAssessment.find(assessment_id) if assessment_id.present?
+    # FIXME wont work for wip.
+    # raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !enrollments.pluck(:enrollment_id).include(source_assessment.enrollment_id)
+
+    household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).for_enrollments(household_enrollments)
+
+    case assessment_role.to_sym
+    when :INTAKE, :EXIT
+      # Ensure we only return 1 assessment per person
+      household_assessments.index_by(&:personal_id).values
+    when :ANNUAL
+      # If we have a source, find annuals "near" it (within threshold)
+      # If we don't have a source, that means this is a new annual. Include any annuals from the past 3 months.
+      source_date = source_assessment&.assessment_date || Date.current
+      household_assessments.group_by(&:personal_id).
+        map do |_, assmts|
+          nearest_assmt = assmts.min_by { |a| (source_date - a.assessment_date).abs }
+          distance = (source_date - nearest_assmt.assessment_date).abs
+
+          nearest_assmt if distance <= threshold
+        end.compact
+    else
+      raise HmisErrors::ApiError, "Unable to group #{assessment_role} assessments"
+    end
   end
 
   def self.hud_key
