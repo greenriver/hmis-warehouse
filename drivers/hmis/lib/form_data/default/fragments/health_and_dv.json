@@ -3,8 +3,7 @@
   "link_id": "health-and-dv",
   "text": "Health and DV",
   "data_collected_about": "HOH_AND_ADULTS",
-  "record_type": "HEALTH_AND_DV",
-  "prefill": true,
+  "prefill": "HEALTH_AND_DV",
   "item": [
     {
       "type": "DISPLAY",
@@ -19,7 +18,7 @@
       "warn_if_empty": true,
       "text": "Domestic Violence Victim/Survivor",
       "pick_list_reference": "NoYesReasonsForMissingData",
-      "field_name": "domesticViolenceVictim"
+      "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "domesticViolenceVictim" }
     },
     {
       "type": "CHOICE",
@@ -28,7 +27,7 @@
       "warn_if_empty": true,
       "text": "When did the experience occur?",
       "brief_text": "When DV Occurred",
-      "field_name": "whenOccurred",
+      "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "whenOccurred" },
       "pick_list_reference": "WhenDVOccurred",
       "disabled_display": "PROTECTED",
       "enable_behavior": "ALL",
@@ -48,7 +47,7 @@
       "warn_if_empty": true,
       "text": "Are you currently fleeing?",
       "brief_text": "Currently Fleeing DV",
-      "field_name": "currentlyFleeing",
+      "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "currentlyFleeing" },
       "pick_list_reference": "NoYesReasonsForMissingData",
       "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
       "disabled_display": "PROTECTED",

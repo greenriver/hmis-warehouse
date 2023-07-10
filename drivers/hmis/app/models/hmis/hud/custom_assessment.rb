@@ -4,6 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# A CustomAssessment record represents an assessment that has been performed.
+# It may be a HUD assessment (intake, exit, etc) or a fully custom assessment.
+
+# Assessments can be WIP (aka incomplete) or Submitted.
+# WIP assessments have a null EnrollmentID, and a record in the wip table.
+# Assessments are "processed" using the FormProcessor, which maintains references
+# to all related records that have been created/updated from the assessment.
 class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   self.table_name = :CustomAssessments
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -16,13 +23,29 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
   WIP_ID = 'WIP'.freeze
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment') # WIP_ID for WIP assessment
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
-  has_one :custom_form, class_name: 'Hmis::Form::CustomForm', as: :owner, dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :custom_data_elements, as: :owner
+
+  has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
+  has_one :definition, through: :form_processor
+  has_one :health_and_dv, through: :form_processor
+  has_one :income_benefit, through: :form_processor
+  has_one :enrollment_coc, through: :form_processor
+  has_one :physical_disability, through: :form_processor
+  has_one :developmental_disability, through: :form_processor
+  has_one :chronic_health_condition, through: :form_processor
+  has_one :hiv_aids, through: :form_processor
+  has_one :mental_health_disorder, through: :form_processor
+  has_one :substance_use_disorder, through: :form_processor
+  has_one :exit, through: :form_processor
+  has_one :youth_education_status, through: :form_processor
+  has_one :employment_education, through: :form_processor
+  has_one :current_living_situation, through: :form_processor
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
@@ -48,7 +71,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   scope :with_role, ->(role) do
-    joins(:custom_form).merge(Hmis::Form::CustomForm.with_role(role))
+    stages = Array.wrap(role).map { |r| Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[r.to_sym] }.compact
+    where(data_collection_stage: stages)
   end
 
   scope :with_project_type, ->(project_types) do
@@ -57,6 +81,16 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   scope :with_project, ->(project_ids) do
     joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
+  end
+
+  scope :for_enrollments, ->(enrollments) do
+    hud_ids = enrollments.pluck(:enrollment_id)
+    db_ids = enrollments.pluck(:id)
+    completed_assessments = cas_t[:enrollment_id].in(hud_ids)
+    wip_assessments = wip_t[:enrollment_id].in(db_ids)
+
+    ids = Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments)).pluck(:id)
+    where(id: ids)
   end
 
   def enrollment
@@ -120,15 +154,42 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date: nil)
     new_assessment = new(
-      data_source_id: enrollment.data_source_id,
       user_id: user.user_id,
-      personal_id: enrollment.personal_id,
-      enrollment_id: enrollment.enrollment_id,
       assessment_date: assessment_date,
       data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym] || 99,
+      **enrollment.slice(:data_source_id, :personal_id, :enrollment_id),
     )
-    new_assessment.custom_form = Hmis::Form::CustomForm.new(definition: form_definition, owner: new_assessment)
+    new_assessment.build_form_processor(definition: form_definition)
+    # AR doesn't recognize the built record on the has_one-through, so add it directly
+    new_assessment.definition = form_definition
     new_assessment
+  end
+
+  def self.group_household_assessments(household_enrollments:, assessment_role:, threshold:, assessment_id: nil)
+    source_assessment = Hmis::Hud::CustomAssessment.find(assessment_id) if assessment_id.present?
+    # FIXME wont work for wip.
+    # raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !enrollments.pluck(:enrollment_id).include(source_assessment.enrollment_id)
+
+    household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).for_enrollments(household_enrollments)
+
+    case assessment_role.to_sym
+    when :INTAKE, :EXIT
+      # Ensure we only return 1 assessment per person
+      household_assessments.index_by(&:personal_id).values
+    when :ANNUAL
+      # If we have a source, find annuals "near" it (within threshold)
+      # If we don't have a source, that means this is a new annual. Include any annuals from the past 3 months.
+      source_date = source_assessment&.assessment_date || Date.current
+      household_assessments.group_by(&:personal_id).
+        map do |_, assmts|
+          nearest_assmt = assmts.min_by { |a| (source_date - a.assessment_date).abs }
+          distance = (source_date - nearest_assmt.assessment_date).abs
+
+          nearest_assmt if distance <= threshold
+        end.compact
+    else
+      raise HmisErrors::ApiError, "Unable to group #{assessment_role} assessments"
+    end
   end
 
   def self.hud_key
