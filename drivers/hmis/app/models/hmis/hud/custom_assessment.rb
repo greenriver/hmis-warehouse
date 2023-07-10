@@ -72,10 +72,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     joins(:project).merge(Hmis::Hud::Project.where(id: project_ids))
   end
 
-  scope :for_enrollments, ->(enrollments) do
-    joins(:enrollment).merge(enrollments)
-  end
-
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
@@ -132,7 +128,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     source_assessment = Hmis::Hud::CustomAssessment.find(assessment_id) if assessment_id.present?
     raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !household_enrollments.pluck(:enrollment_id).include?(source_assessment.enrollment_id)
 
-    household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).for_enrollments(household_enrollments)
+    household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).
+      where(enrollment_id: enrollments.pluck(:enrollment_id))
 
     case assessment_role.to_sym
     when :INTAKE, :EXIT

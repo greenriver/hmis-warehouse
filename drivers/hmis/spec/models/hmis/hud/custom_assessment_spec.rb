@@ -162,7 +162,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       create(:hmis_custom_assessment, data_collection_stage: 3, data_source: ds1, enrollment: e3) # exit
 
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
-        household_enrollments: Hmis::Hud::Enrollment.where(id: [e1.id, e2.id, e3.id]),
+        household_enrollments: [e1, e2, e3],
         assessment_role: :INTAKE,
         threshold: 1.day,
         assessment_id: nil,
@@ -176,7 +176,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       a2 = create(:hmis_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e2)
 
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
-        household_enrollments: Hmis::Hud::Enrollment.where(id: [e1.id, e2.id, e3.id]),
+        household_enrollments: [e1, e2, e3],
         assessment_role: :INTAKE,
         threshold: 1.day,
         assessment_id: nil,
@@ -196,7 +196,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
       # no source assessments, include past 3 months
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
-        household_enrollments: Hmis::Hud::Enrollment.where(id: [e1.id, e2.id, e3.id]),
+        household_enrollments: [e1, e2, e3],
         assessment_role: :ANNUAL,
         threshold: 3.months,
         assessment_id: nil,
@@ -205,7 +205,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
       # within 3 months of 2 years ago
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
-        household_enrollments: Hmis::Hud::Enrollment.where(id: [e1.id, e2.id, e3.id]),
+        household_enrollments: [e1, e2, e3],
         assessment_role: :ANNUAL,
         threshold: 3.months,
         assessment_id: e1_a1.id,
@@ -214,7 +214,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
       # within 3 months of 3 months ago (ensure closer assmt is chosen)
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
-        household_enrollments: Hmis::Hud::Enrollment.where(id: [e1.id, e2.id, e3.id]),
+        household_enrollments: [e1, e2, e3],
         assessment_role: :ANNUAL,
         threshold: 3.months,
         assessment_id: e2_a2.id,
@@ -223,7 +223,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
       # within 6 months of 1 month ago (ensure closer assmt is chosen)
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
-        household_enrollments: Hmis::Hud::Enrollment.where(id: [e1.id, e2.id, e3.id]),
+        household_enrollments: [e1, e2, e3],
         assessment_role: :ANNUAL,
         threshold: 6.months,
         assessment_id: e3_a1.id,
