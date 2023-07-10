@@ -187,19 +187,12 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
     it 'groups annual assessments by date' do
       e1.save_in_progress
-      # out of range
       e1_a1 = create(:hmis_custom_assessment, assessment_date: 2.years.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
-      # out of range
-      # e1_a2 = create(:hmis_wip_custom_assessment, assessment_date: 6.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
 
-      # in range, but not chosen
       _e2_a1 = create(:hmis_wip_custom_assessment, assessment_date: 6.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
-      # in range, chosen
       e2_a2 = create(:hmis_wip_custom_assessment, assessment_date: 3.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
 
-      # in range, chosen
       e3_a1 = create(:hmis_custom_assessment, assessment_date: 1.month.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
-      # in range, but not chosen
       e3_a2 = create(:hmis_custom_assessment, assessment_date: 3.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
 
       # no source assessments, include past 3 months
