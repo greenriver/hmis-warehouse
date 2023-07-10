@@ -11,6 +11,10 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
+  before(:all) do
+    cleanup_test_environment
+  end
+
   let!(:enrollments) do
     10.times.map do
       client = create :hmis_hud_client_complete, data_source: ds1, user: u1
