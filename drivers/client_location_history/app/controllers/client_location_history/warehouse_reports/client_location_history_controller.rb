@@ -26,8 +26,7 @@ module ClientLocationHistory::WarehouseReports
       @options = {
         bounds: @bounds,
         cluster: true,
-        border_color: 'DarkBlue',
-        highlight_color: 'DarkBlue',
+        marker_color: '#72A0C1',
         link: true,
       }
     end

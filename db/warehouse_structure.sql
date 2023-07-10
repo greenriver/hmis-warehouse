@@ -1195,43 +1195,6 @@ ALTER SEQUENCE public."CustomDataElements_id_seq" OWNED BY public."CustomDataEle
 
 
 --
--- Name: CustomForms; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."CustomForms" (
-    id bigint NOT NULL,
-    owner_type character varying NOT NULL,
-    owner_id bigint NOT NULL,
-    definition_id bigint NOT NULL,
-    form_processor_id bigint,
-    "values" jsonb,
-    hud_values jsonb,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: CustomForms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public."CustomForms_id_seq"
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: CustomForms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public."CustomForms_id_seq" OWNED BY public."CustomForms".id;
-
-
---
 -- Name: CustomProjectAssessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15186,7 +15149,14 @@ CREATE TABLE public.hmis_form_processors (
     hiv_aids_id bigint,
     mental_health_disorder_id bigint,
     substance_use_disorder_id bigint,
-    exit_id bigint
+    exit_id bigint,
+    custom_assessment_id integer NOT NULL,
+    definition_id integer,
+    "values" jsonb,
+    hud_values jsonb,
+    youth_education_status_id integer,
+    employment_education_id integer,
+    current_living_situation_id integer
 );
 
 
@@ -22737,13 +22707,6 @@ ALTER TABLE ONLY public."CustomDataElements" ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- Name: CustomForms id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."CustomForms" ALTER COLUMN id SET DEFAULT nextval('public."CustomForms_id_seq"'::regclass);
-
-
---
 -- Name: CustomProjectAssessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25828,14 +25791,6 @@ ALTER TABLE ONLY public."CustomDataElementDefinitions"
 
 ALTER TABLE ONLY public."CustomDataElements"
     ADD CONSTRAINT "CustomDataElements_pkey" PRIMARY KEY (id);
-
-
---
--- Name: CustomForms CustomForms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."CustomForms"
-    ADD CONSTRAINT "CustomForms_pkey" PRIMARY KEY (id);
 
 
 --
@@ -41873,6 +41828,13 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
+-- Name: idx_cibs_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cibs_p_id_ds_id ON public.custom_imports_b_services_rows USING btree (personal_id, data_source_id);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42332,27 +42294,6 @@ CREATE INDEX "index_CustomDataElements_on_data_element_definition_id" ON public.
 --
 
 CREATE INDEX "index_CustomDataElements_on_owner" ON public."CustomDataElements" USING btree (owner_type, owner_id);
-
-
---
--- Name: index_CustomForms_on_definition_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomForms_on_definition_id" ON public."CustomForms" USING btree (definition_id);
-
-
---
--- Name: index_CustomForms_on_form_processor_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomForms_on_form_processor_id" ON public."CustomForms" USING btree (form_processor_id);
-
-
---
--- Name: index_CustomForms_on_owner; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomForms_on_owner" ON public."CustomForms" USING btree (owner_type, owner_id);
 
 
 --
@@ -53905,6 +53846,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230623200215'),
 ('20230626005404'),
 ('20230626012029'),
-('20230706112135');
+('20230630203515'),
+('20230706112135'),
+('20230707143716');
 
 

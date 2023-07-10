@@ -4,12 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Process form data (custom_form)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
 
-  has_one :custom_form
+  # The assessment that was processed with this processor.
+  # If processor is being used as in-memory processor for records, this will be empty.
+  belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment', optional: false
+  # Definition that was most recently used to process this assessment
+  belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: true
 
+  # Related records that were created/updated from this assessment
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
@@ -20,23 +24,25 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :mental_health_disorder, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :substance_use_disorder, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :exit, class_name: 'Hmis::Hud::Exit', optional: true, autosave: true
-  has_many :custom_form_answers, class_name: 'Hmis::Form::CustomFormAnswer'
+  belongs_to :youth_education_status, class_name: 'Hmis::Hud::YouthEducationStatus', optional: true, autosave: true
+  belongs_to :employment_education, class_name: 'Hmis::Hud::EmploymentEducation', optional: true, autosave: true
+  belongs_to :current_living_situation, class_name: 'Hmis::Hud::CurrentLivingSituation', optional: true, autosave: true
 
   validate :hmis_records_are_valid
 
   attr_accessor :owner, :hud_user, :current_user
 
   def run!(owner:, user:)
-    # Set the owner reference so we are updating the correct record. Unpersisted changes can't be validated correctly if you go through custom_form.owner.
+    # Owner is the "base" record for the form, which could be an assessment, client, project, etc.
     self.owner = owner
     # Set the HUD User and current user, so processors can store them on related records
     self.current_user = user
     self.hud_user = Hmis::Hud::User.from_user(user)
 
-    return unless custom_form.hud_values.present?
+    return unless hud_values.present?
 
     # Iterate through each hud_value, processing field-by-field
-    custom_form.hud_values.each do |key, value|
+    hud_values.each do |key, value|
       container, field = parse_key(key)
       # If this key can be identified as a CustomDataElement, set it and continue
       next if container_processor(container)&.process_custom_field(field, value)
@@ -50,10 +56,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     # Iterate through each used processor to apply metadata and information dates
-    relevant_container_names = custom_form.hud_values.keys.map { |k| parse_key(k)&.first }.compact.uniq
+    relevant_container_names = hud_values.keys.map { |k| parse_key(k)&.first }.compact.uniq
     relevant_container_names.each do |container|
       container_processor(container)&.assign_metadata
-      container_processor(container)&.information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?
+      container_processor(container)&.information_date(custom_assessment.assessment_date) if custom_assessment.present?
     end
 
     owner.enrollment = enrollment_factory if owner.is_a?(Hmis::Hud::CustomAssessment)
@@ -82,14 +88,19 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
-    @enrollment_factory ||= owner.enrollment if owner.is_a?(Hmis::Hud::CustomAssessment)
+    @enrollment_factory ||= case owner
+    when Hmis::Hud::CustomAssessment
+      owner.enrollment
+    when Hmis::Hud::Enrollment
+      owner
+    end
   end
 
   def common_attributes
     {
-      data_collection_stage: custom_form.assessment.data_collection_stage,
-      personal_id: custom_form.assessment.personal_id,
-      information_date: custom_form.assessment.assessment_date,
+      data_collection_stage: custom_assessment&.data_collection_stage,
+      personal_id: custom_assessment&.personal_id,
+      information_date: custom_assessment&.assessment_date,
     }
   end
 
@@ -115,7 +126,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     else
       self.exit = enrollment_factory.build_exit(
         personal_id: enrollment_factory.client.personal_id,
-        user_id: custom_form.assessment.user_id,
+        user_id: custom_assessment&.user_id,
       )
     end
   end
@@ -263,6 +274,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end.compact.uniq
   end
 
+  # Pull out the Assessment Date from the values hash
+  def find_assessment_date_from_values
+    item = definition&.assessment_date_item
+    return nil unless item.present? && values.present?
+
+    date_string = values[item.link_id]
+    return nil unless date_string.present?
+
+    HmisUtil::Dates.safe_parse_date(date_string: date_string)
+  end
+
   # Get HmisError::Errors object containing related record AR errors that can be resolved
   # as GraphQL ValidationErrors.
   def collect_active_record_errors
@@ -278,6 +300,36 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     errors
+  end
+
+  # Validate `values` purely based on FormDefinition validation requirements
+  # @return [HmisError::Error] an array errors
+  def collect_form_validations
+    definition.validate_form_values(values)
+  end
+
+  # Validate related records using custom AR Validators
+  # @return [HmisError::Error] an array errors
+  def collect_record_validations(user: nil, household_members: nil)
+    # Collect ActiveRecord validations (as HmisErrors)
+    errors = collect_active_record_errors
+    # Collect validations on the Assessment Date (if this is an assessment form)
+    if custom_assessment.present?
+      errors.push(*Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(
+        custom_assessment,
+        # Need to pass household members so we can validate based on their unpersisted entry/exit dates
+        household_members: household_members,
+      ))
+    end
+
+    # Collect errors from custom validator, in the context of this role
+    role = definition&.role
+    related_records.each do |record|
+      validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class
+      errors.push(*validator.hmis_validate(record, user: user, role: role)) if validator.present?
+    end
+
+    errors.errors
   end
 
   private def translate_field(field, container: nil)

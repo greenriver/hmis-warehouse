@@ -16,12 +16,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
   end
 
   describe 'in progress assessments' do
-    let!(:assessment) { create(:hmis_custom_assessment_with_defaults) }
-
-    before(:each) do
-      assessment.build_wip(enrollment: assessment.enrollment, client: assessment.enrollment.client, date: assessment.assessment_date)
-      assessment.save_in_progress
-    end
+    let!(:assessment) { create(:hmis_wip_custom_assessment) }
 
     it 'cleans up dependent wip after destroy' do
       assessment.reload
@@ -30,12 +25,12 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       assessment.destroy
       assessment.reload
       expect(assessment.wip).not_to be_present
-      expect(assessment.custom_form).not_to be_present
+      expect(assessment.form_processor).not_to be_present
     end
   end
 
   describe 'submitted assessments' do
-    let!(:assessment) { create(:hmis_custom_assessment_with_defaults) }
+    let!(:assessment) { create(:hmis_custom_assessment) }
 
     before(:each) do
       assessment.save_not_in_progress
@@ -59,7 +54,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     include_context 'hmis base setup'
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_ho_h: 1 }
     let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
-    let!(:assessment) { create(:hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e1) }
+    let!(:assessment) { create(:hmis_custom_assessment, data_source: ds1, enrollment: e1) }
 
     def apply_assessment_date(date)
       assessment.update(assessment_date: date)
@@ -110,7 +105,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     describe 'for household exits' do
       let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 2.weeks.ago, relationship_to_ho_h: 2, household_id: e1.household_id }
       let!(:e2_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e2, client: e2.client }
-      let!(:assessment2) { create(:hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e2) }
+      let!(:assessment2) { create(:hmis_custom_assessment, data_source: ds1, enrollment: e2) }
       before(:each) do
         assessment.update(data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[:EXIT])
         assessment2.update(data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[:EXIT])
