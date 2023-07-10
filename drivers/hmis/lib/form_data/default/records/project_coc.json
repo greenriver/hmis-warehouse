@@ -11,7 +11,7 @@
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
-          "field_name": "cocCode"
+          "mapping": { "field_name": "cocCode" }
         },
         {
           "type": "CHOICE",
@@ -19,7 +19,7 @@
           "link_id": "geocode",
           "text": "Geocode",
           "pick_list_reference": "GEOCODE",
-          "field_name": "geocode"
+          "mapping": { "field_name": "geocode" }
         },
         {
           "type": "CHOICE",
@@ -27,7 +27,7 @@
           "link_id": "geotype",
           "text": "Geography Type",
           "pick_list_reference": "GeographyType",
-          "field_name": "geographyType"
+          "mapping": { "field_name": "geographyType" }
         },
         {
           "type": "STRING",
@@ -48,7 +48,7 @@
           "required": false,
           "link_id": "city",
           "text": "City",
-          "field_name": "city"
+          "mapping": { "field_name": "city" }
         },
         {
           "type": "GROUP",
@@ -61,7 +61,7 @@
               "link_id": "state",
               "text": "State",
               "pick_list_reference": "STATE",
-              "field_name": "state",
+              "mapping": { "field_name": "state" },
               "size": "XSMALL"
             },
             {
@@ -69,7 +69,7 @@
               "required": false,
               "link_id": "zip",
               "text": "Zip Code",
-              "field_name": "zip",
+              "mapping": { "field_name": "zip" },
               "size": "SMALL"
             }
           ]

@@ -20,8 +20,7 @@ module ClientLocationHistory
       @options = {
         bounds: @bounds,
         cluster: true,
-        border_color: 'DarkBlue',
-        highlight_color: 'ForestGreen',
+        marker_color: '#72A0C1',
       }
     end
 
