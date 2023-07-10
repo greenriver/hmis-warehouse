@@ -15,7 +15,6 @@ module HudLists2024
   def export_period_type_map
     {
       1 => 'Updated',
-      2 => 'Effective',
       3 => 'Reporting period',
       4 => 'Other',
     }.freeze
@@ -53,8 +52,6 @@ module HudLists2024
   # 1.4
   def record_type_map
     {
-      12 => 'Contact 12',
-      13 => 'Contact 13',
       141 => 'PATH Service',
       142 => 'RHY Service Connections',
       143 => 'HOPWA Service',
@@ -62,7 +59,6 @@ module HudLists2024
       151 => 'HOPWA Financial Assistance',
       152 => 'SSVF Financial Assistance',
       161 => 'PATH Referral',
-      162 => 'RHY Referral',
       200 => 'Bed Night',
       210 => 'HUD-VASH OTH Voucher Tracking',
       300 => 'Moving On Assistance',
@@ -197,7 +193,7 @@ module HudLists2024
       9 => 'HUD: ESG - Homelessness Prevention',
       10 => 'HUD: ESG - Rapid Rehousing',
       11 => 'HUD: ESG - Street Outreach',
-      12 => 'HUD: Rural Housing Stability Assistance Program',
+      12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
       13 => 'HUD: HOPWA - Hotel/Motel Vouchers',
       14 => 'HUD: HOPWA - Housing Information',
       15 => 'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
@@ -231,7 +227,7 @@ module HudLists2024
       46 => 'Local or Other Funding Source',
       47 => 'HUD: ESG - CV',
       48 => 'HUD: HOPWA - CV',
-      49 => 'HUD: CoC - Joint Component RRH/PSH',
+      49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
       50 => 'HUD: HOME',
       51 => 'HUD: HOME (ARP)',
       52 => 'HUD: PIH (Emergency Housing Voucher)',
@@ -1226,7 +1222,7 @@ module HudLists2024
       8 => 'Transportation services: tokens/vouchers',
       9 => 'Transportation services: vehicle repair/maintenance',
       10 => 'Child care',
-      11 => 'General housing stability assistance - emergency supplies',
+      11 => 'General housing stability assistance - emergency supplies [Deprecated]',
       12 => 'General housing stability assistance',
       14 => 'Emergency housing assistance',
       15 => 'Shallow Subsidy - Financial Assistance',

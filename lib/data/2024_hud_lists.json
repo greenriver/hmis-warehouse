@@ -8,11 +8,6 @@
         "description": "Updated"
       },
       {
-        "key": 2,
-        "description": "Effective",
-        "deprecated": true
-      },
-      {
         "key": 3,
         "description": "Reporting period"
       },
@@ -75,16 +70,6 @@
     "code": "1.4",
     "values": [
       {
-        "key": 12,
-        "description": "Contact 12",
-        "deprecated": true
-      },
-      {
-        "key": 13,
-        "description": "Contact 13",
-        "deprecated": true
-      },
-      {
         "key": 141,
         "description": "PATH Service"
       },
@@ -111,11 +96,6 @@
       {
         "key": 161,
         "description": "PATH Referral"
-      },
-      {
-        "key": 162,
-        "description": "RHY Referral",
-        "deprecated": true
       },
       {
         "key": 200,
@@ -431,8 +411,7 @@
       },
       {
         "key": 12,
-        "description": "HUD: Rural Housing Stability Assistance Program",
-        "deprecated": true
+        "description": "HUD: Rural Housing Stability Assistance Program [Deprecated]"
       },
       {
         "key": 13,
@@ -568,8 +547,7 @@
       },
       {
         "key": 49,
-        "description": "HUD: CoC - Joint Component RRH/PSH",
-        "deprecated": true
+        "description": "HUD: CoC - Joint Component RRH/PSH [Deprecated]"
       },
       {
         "key": 50,
@@ -1669,8 +1647,7 @@
       },
       {
         "key": 11,
-        "description": "General housing stability assistance - emergency supplies",
-        "deprecated": true
+        "description": "General housing stability assistance - emergency supplies [Deprecated]"
       },
       {
         "key": 12,
