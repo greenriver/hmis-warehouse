@@ -134,7 +134,7 @@ module Hmis
         # Build CustomAssessment with appropriate metadata
         metadata_attributes = value.extract!(:user_id, :date_created, :date_updated, :assessment_date)
         metadata_attributes[:user_id] ||= system_user.user_id
-        assessment = Hmis::Hud::CustomAssessment.new(**uniq_attributes.merge(metadata_attributes))
+        assessment = Hmis::Hud::CustomAssessment.new(**uniq_attributes.merge(metadata_attributes), wip: false)
 
         # Build FormProcessor with IDs to all related records
         assessment.build_form_processor(**value)

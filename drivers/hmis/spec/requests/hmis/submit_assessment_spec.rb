@@ -71,7 +71,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment['id']).to be_present
         expect(assessment['assessmentDate']).to eq(test_assessment_date)
         expect(e1.custom_assessments.count).to eq(1)
-        expect(e1.custom_assessments_including_wip.in_progress.count).to eq(0)
+        expect(e1.custom_assessments.in_progress.count).to eq(0)
         expect(e1.custom_assessments.first.enrollment_id).to eq(e1.enrollment_id)
       end
     end
@@ -108,7 +108,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Submitting a form that was previously saved as WIP' do
     it 'should update and submit assessment successfully' do
       a1_wip = create(:hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date)
-      expect(e1.custom_assessments_including_wip.in_progress.count).to eq(1)
+      expect(e1.custom_assessments.in_progress.count).to eq(1)
 
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
@@ -129,14 +129,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment['assessmentDate']).to eq(new_information_date)
         expect(assessment['inProgress']).to eq(false)
         expect(e1.custom_assessments.count).to eq(1)
-        expect(e1.custom_assessments_including_wip.count).to eq(1)
-        expect(e1.custom_assessments_including_wip.in_progress.count).to eq(0)
+        expect(e1.custom_assessments.in_progress.count).to eq(0)
       end
     end
 
     it 'should not save if there were unconfirmed warnings' do
       a1_wip = create(:hmis_wip_custom_assessment, data_source: ds1, enrollment: e1, assessment_date: e1.entry_date)
-      expect(e1.custom_assessments_including_wip.in_progress.count).to eq(1)
+      expect(e1.custom_assessments.in_progress.count).to eq(1)
 
       new_information_date = (e1.entry_date + 5.days).strftime('%Y-%m-%d')
       input = {
