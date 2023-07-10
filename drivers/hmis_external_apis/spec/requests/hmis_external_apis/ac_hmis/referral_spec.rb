@@ -171,7 +171,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         expect(parsed_body['errors']).to eq(['Household must have exactly one HoH'])
       end
 
-      context 'with existing closed referral' do
+      context 'posting to existing closed referral' do
         let(:referral) do
           current_posting = create(:hmis_external_api_ac_hmis_referral_posting)
           current_posting.closed_status!
@@ -215,7 +215,23 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
             .merge({ referral_id: referral.identifier })
           post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
           check_response_okay
-          expect(referral.household_members.to_a.map(&:client)).to(eq([reduced_household.first[:client]]))
+          expect(referral.household_members.to_a.map(&:client)).to eq(reduced_household.map { |h| h[:client] })
+        end
+
+        it 'adds new household members' do
+          new_client = build(:hmis_hud_client_complete, SSN: '529526789')
+          expanded_household = household + [
+            client: new_client,
+            mci_id: random_id,
+            relationship_to_hoh: 'other_relative',
+          ]
+          params = referral_params(expanded_household)
+            .merge({ referral_id: referral.identifier })
+          post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+          check_response_okay
+          expect(referral.household_members.size).to eq(expanded_household.size)
+          last_client = referral.household_members.order(:id).last.client
+          expect(last_client.SSN).to eq(new_client.SSN)
         end
       end
     end
