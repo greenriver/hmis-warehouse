@@ -82,8 +82,6 @@ class Hmis::EntityAccessLoaderFactory
         block.call(entity, :project)
       end
     else
-      res = resolve_through_project(entity, &block)
-      Rails.logger.info(">>> entity #{entity} - #{res}")
       resolve_through_project(entity, &block)
     end
 
