@@ -1,0 +1,28 @@
+:ruby
+  clients = @client.
+    financial_clients.
+    order(client_last_name: :asc, client_first_name: :asc, created_at: :asc)
+- if clients.any?
+  .table-responsive
+    %table.table
+      %thead
+        %tr
+          %th Name
+          %th HoH?
+          %th Referral Date
+          %th Housed Date
+          %th Created
+          %th Updated
+      %tbody
+        - clients.each do |client|
+          %tr
+            %td= client.name
+            %td= yes_no(client.head_of_household == 1)
+            %td.date-cell= client.date_of_referral_to_agency&.to_date
+            %td.date-cell= client.housed_date&.to_date
+            %td= client.created_at
+            %td= client.updated_at
+
+- else
+  .no-data
+    No Financial Clients on Record

@@ -1,0 +1,25 @@
+- title = @client.full_name
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+.o-page
+  .o-page__header.d-block
+    = render 'clients/aliases'
+  = render 'clients/tab_navigation', current: financial_client_path(@client)
+
+  %section.row.o-dashboard__block--primary.client--transaction-history
+    .col-sm-12
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'financial_clients'}}
+        %header
+          %h1.h3 Financial Clients
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'financial_transactions'}}
+        %header
+          %h1.h3 Transactions
+
+= content_for :page_js do
+  :javascript
+    var rollupPath = #{financial_client_rollup_path(@client, partial: '').to_json.html_safe};
+    var clients = #{js_clients.to_json.html_safe};
+    var manyClients = #{source_clients.many?.to_json.html_safe};
+    var high = #{@client.source_clients.size + 1};
+    var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);

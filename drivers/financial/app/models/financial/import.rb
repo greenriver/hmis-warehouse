@@ -25,6 +25,9 @@ require 'zip'
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::ClientImport'); config.import!
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::ProviderImport'); config.import!
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::TransactionImport'); config.import!
+#
+# # Store the second import file and re-run imports
+# config.s3.store(content: File.read('drivers/financial/spec/fixtures/second_import.zip'), name: "development/combined/#{Time.current.to_s(:number)}-second_import.zip")
 module Financial
   class Import < ::GrdaWarehouse::CustomImports::ImportFile
     alias_attribute :filename, :file

@@ -9,6 +9,11 @@ module Financial
     self.table_name = :financial_clients
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    has_many :transactions, foreign_key: :external_client_id
+
+    def name
+      client_first_name + ' ' + client_last_name
+    end
 
     # Search for matching destination clients, set client_id when match is found
     def self.match_warehouse_clients
@@ -26,7 +31,7 @@ module Financial
 
         # Find a match based on exact match of name, and DOB
         client.client_id = GrdaWarehouse::Hud::Client.source.
-          where(
+          find_by(
             c_t[:FirstName].matches(client.client_first_name.downcase),
             c_t[:LastName].matches(client.client_last_name.downcase),
             dob: client.client_birthdate.to_date,

@@ -7,5 +7,8 @@
 module Financial
   class Transaction < ::GrdaWarehouseBase
     self.table_name = :financial_transactions
+
+    belongs_to :provider
+    belongs_to :client
   end
 end
