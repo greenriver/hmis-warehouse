@@ -175,7 +175,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     case assessment_role.to_sym
     when :INTAKE, :EXIT
       # Ensure we only return 1 assessment per person
-      household_assessments.group_by(&:personal_id).map { |_, a| a.last }
+      household_assessments.index_by(&:personal_id).values
     when :ANNUAL
       # If we have a source, find annuals "near" it (within threshold)
       # If we don't have a source, that means this is a new annual. Include any annuals from the past 3 months.
