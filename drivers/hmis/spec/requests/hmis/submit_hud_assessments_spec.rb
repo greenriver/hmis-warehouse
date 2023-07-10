@@ -41,8 +41,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         submitAssessment(input: $input) {
           assessment {
             #{scalar_fields(Types::HmisSchema::Assessment)}
+            definition {
+              #{form_definition_fragment}
+            }
             enrollment {
-              id
               #{scalar_fields(Types::HmisSchema::Enrollment)}
             }
             user {
@@ -62,12 +64,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             }
             disabilityGroup {
               #{scalar_fields(Types::HmisSchema::DisabilityGroup)}
-            }
-            customForm {
-              #{scalar_fields(Types::HmisSchema::CustomForm)}
-              definition {
-                id
-              }
             }
           }
           #{error_fields}
@@ -91,12 +87,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            customForm {
-              #{scalar_fields(Types::HmisSchema::CustomForm)}
-              definition {
-                id
-              }
-            }
           }
           #{error_fields}
         }
@@ -110,7 +100,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expected_exit_date = Date.parse(expected_exit_date) if expected_exit_date.is_a?(String)
 
     expect(assessment).to be_present
-    expect(assessment.custom_form.form_processor).to be_present
+    expect(assessment.form_processor).to be_present
+    expect(assessment.form_processor.definition).to be_present
     expect(assessment.assessment_date).to eq(expected_assessment_date)
     expect(assessment.enrollment.entry_date).to eq(expected_entry_date) if expected_entry_date.present?
     expect(assessment.enrollment.exit&.exit_date).to eq(expected_exit_date) if expected_exit_date.present?
@@ -125,7 +116,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         # Create the initial assessment (submit)
         initial_assessment_date = 1.week.ago.strftime('%Y-%m-%d')
-        input = { **test_input, form_definition_id: definition.id, **build_minimum_values(definition, assessment_date: initial_assessment_date) }
+        input = {
+          **test_input,
+          form_definition_id: definition.id,
+          **build_minimum_values(definition, assessment_date: initial_assessment_date),
+        }
         _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
         assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
         errors = result.dig('data', 'submitAssessment', 'errors')
@@ -143,7 +138,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         # Update the assessment (submit)
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
-        input = { assessment_id: assessment.id, **build_minimum_values(definition, assessment_date: new_assessment_date) }
+        input = {
+          assessment_id: assessment.id,
+          form_definition_id: definition.id,
+          **build_minimum_values(definition, assessment_date: new_assessment_date),
+        }
         _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
         expect(errors).to be_empty
@@ -170,7 +169,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         # Create the initial assessment (save as WIP)
         initial_assessment_date = 1.week.ago.strftime('%Y-%m-%d')
-        input = { **test_input, form_definition_id: definition.id, **build_minimum_values(definition, assessment_date: initial_assessment_date) }
+        input = {
+          **test_input,
+          form_definition_id: definition.id,
+          **build_minimum_values(definition, assessment_date: initial_assessment_date),
+        }
         _resp, result = post_graphql(input: { input: input }) { save_assessment_mutation }
         assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
         errors = result.dig('data', 'saveAssessment', 'errors')
@@ -186,7 +189,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         # Update the assessment (submit)
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
-        input = { assessment_id: assessment.id, **build_minimum_values(definition, assessment_date: new_assessment_date) }
+        input = {
+          assessment_id: assessment.id,
+          form_definition_id: definition.id,
+          **build_minimum_values(definition, assessment_date: new_assessment_date),
+        }
         _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
         expect(errors).to be_empty
@@ -202,7 +209,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         # Update the assessment again (submit)
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
-        input = { assessment_id: assessment.id, **build_minimum_values(definition, assessment_date: new_assessment_date) }
+        input = {
+          assessment_id: assessment.id,
+          form_definition_id: definition.id,
+          **build_minimum_values(definition, assessment_date: new_assessment_date),
+        }
         _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
         expect(errors).to be_empty

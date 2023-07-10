@@ -9,14 +9,14 @@
           "type": "STRING",
           "link_id": "file-id",
           "hidden": true,
-          "field_name": "id"
+          "mapping": { "field_name": "id" }
         },
         {
           "type": "FILE",
           "required": true,
           "link_id": "fileBlobId",
           "text": "Attachment",
-          "field_name": "fileBlobId",
+          "mapping": { "field_name": "fileBlobId" },
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -33,7 +33,7 @@
           "link_id": "tags",
           "text": "File Tags",
           "pick_list_reference": "AVAILABLE_FILE_TYPES",
-          "field_name": "tags"
+          "mapping": { "field_name": "tags" }
         },
         {
           "type": "CHOICE",
@@ -41,28 +41,28 @@
           "link_id": "enrollmentId",
           "text": "Enrollment",
           "pick_list_reference": "CLIENT_ENROLLMENTS",
-          "field_name": "enrollmentId"
+          "mapping": { "field_name": "enrollmentId" }
         },
         {
           "type": "DATE",
           "link_id": "effectiveDate",
           "text": "Signature Date",
           "required": false,
-          "field_name": "effectiveDate"
+          "mapping": { "field_name": "effectiveDate" }
         },
         {
           "type": "DATE",
           "link_id": "expirationDate",
           "text": "Expiration Date",
           "required": false,
-          "field_name": "expirationDate"
+          "mapping": { "field_name": "expirationDate" }
         },
         {
           "type": "BOOLEAN",
           "required": false,
           "link_id": "confidential",
           "text": "Confidential",
-          "field_name": "confidential",
+          "mapping": { "field_name": "confidential" },
           "initial": [
             {
               "initial_behavior": "IF_EMPTY",

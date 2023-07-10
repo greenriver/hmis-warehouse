@@ -18,10 +18,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let!(:assessment1) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
-  let!(:assessment2) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
-  let!(:assessment3) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
-
+  let(:assessment1) { create :hmis_wip_custom_assessment, data_source: ds1 }
+  let(:assessment2) { create :hmis_wip_custom_assessment, data_source: ds1 }
+  let(:assessment3) { create :hmis_wip_custom_assessment, data_source: ds1 }
   let(:submit_assessment_mutation) do
     <<~GRAPHQL
       mutation SubmitHouseholdAssessments($input: SubmitHouseholdAssessmentsInput!) {
@@ -52,11 +51,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         enrollment.save_in_progress
       end
 
+      definition = Hmis::Form::Definition.find_by(role: role)
+      raise "No definition for role #{role}" unless definition.present?
+
       # Save assessment as WIP with minimum needed values
       assessment.update(data_collection_stage: role == :INTAKE ? 1 : 3)
-      assessment.custom_form.update(**custom_form_attributes(role, assessment.assessment_date))
-      assessment.build_wip(enrollment: enrollment, client: enrollment.client, date: assessment.assessment_date, project_id: project.id)
-      assessment.save_in_progress
+      assessment.form_processor.update(definition: definition, **build_minimum_values(definition, assessment_date: assessment.assessment_date))
+      assessment.definition = definition
+      # assessment.build_wip(enrollment: enrollment, client: enrollment.client, date: assessment.assessment_date, project_id: project.id)
+      # assessment.save_in_progress
+      # assessment.reload
     end
   end
 
