@@ -45,11 +45,6 @@ namespace :code do
         arr.push "  {\n#{map_values}\n}.freeze"
         arr.push 'end'
       end
-
-      map_contents = map_lookup.sort.to_h.map { |code, func| "#{code.to_json}: :#{func}" }.join(",\n")
-      arr.push 'def hud_code_to_function_map'
-      arr.push "  {\n#{map_contents}\n}.freeze"
-      arr.push 'end'
       arr.push 'end'
       contents = arr.join("\n")
       File.open(filename, 'w') do |f|

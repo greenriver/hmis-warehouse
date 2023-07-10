@@ -202,7 +202,7 @@ module ApplicationHelper
 
   # because this comes up a fair bit...
   def hud_1_8(id)
-    lighten_no HudUtility.list('1.8', id)
+    lighten_no HudUtility.no_yes_reasons_for_missing_data(id)
   end
 
   # make no less visually salient
