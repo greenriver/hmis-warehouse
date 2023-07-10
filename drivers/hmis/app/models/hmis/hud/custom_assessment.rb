@@ -129,7 +129,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !household_enrollments.pluck(:enrollment_id).include?(source_assessment.enrollment_id)
 
     household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).
-      where(enrollment_id: enrollments.pluck(:enrollment_id))
+      where(enrollment_id: household_enrollments.pluck(:enrollment_id))
 
     case assessment_role.to_sym
     when :INTAKE, :EXIT
