@@ -65,11 +65,11 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   scope :with_project_type, ->(project_types) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project_type(project_types))
+    joins(:project).merge(Hmis::Hud::Project.with_project_type(project_types))
   end
 
   scope :with_project, ->(project_ids) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
+    joins(:project).merge(Hmis::Hud::Project.where(id: project_ids))
   end
 
   scope :for_enrollments, ->(enrollments) do

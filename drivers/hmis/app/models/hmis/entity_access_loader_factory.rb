@@ -81,13 +81,9 @@ class Hmis::EntityAccessLoaderFactory
       else
         block.call(entity, :project)
       end
-    # when Hmis::Hud::CustomAssessment
-    #   if entity.in_progress?
-    #     block.call(entity, :wip)
-    #   else
-    #     block.call(entity, :enrollment)
-    #   end
     else
+      res = resolve_through_project(entity, &block)
+      Rails.logger.info(">>> entity #{entity} - #{res}")
       resolve_through_project(entity, &block)
     end
 
