@@ -1549,12 +1549,12 @@ module HudLists
   # W5.A
   def subsidy_information_map
     {
-      1 => 'Without a subsidy 1',
-      2 => 'With the subsidy they had at project entry 1',
-      3 => 'With an on-going subsidy acquired since project entry 1',
-      4 => 'But only with other financial assistance 1',
-      11 => 'With on-going subsidy 2',
-      12 => 'Without an on-going subsidy 2',
+      1 => 'Without a subsidy',
+      2 => 'With the subsidy they had at project entry',
+      3 => 'With an on-going subsidy acquired since project entry',
+      4 => 'But only with other financial assistance',
+      11 => 'With on-going subsidy',
+      12 => 'Without an on-going subsidy',
     }.freeze
   end
 

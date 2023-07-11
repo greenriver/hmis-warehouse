@@ -8,4 +8,5 @@ When making any changes to the JSON files, please run the following tasks to re-
 ```
 rails code:generate_hud_lists
 rails driver:hmis:generate_graphql_enums
+rails driver:hmis:dump_graphql_schema
 ```

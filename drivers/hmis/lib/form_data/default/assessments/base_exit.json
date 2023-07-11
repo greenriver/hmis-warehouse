@@ -4,6 +4,9 @@
       "fragment": "#destination"
     },
     {
+      "fragment": "#w5_housing_assessment_at_exit"
+    },
+    {
       "fragment": "#income_and_sources"
     },
     {
