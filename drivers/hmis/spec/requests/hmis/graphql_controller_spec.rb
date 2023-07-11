@@ -98,7 +98,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect do
       response, _result = post_graphql { simple_query }
       expect(response.status).to eq 200
-    end.to make_database_queries(count: 0..20)
+    end.to make_database_queries(count: 1..20)
     expect do
       response, _result = post_graphql { simple_query }
       expect(response.status).to eq 200

@@ -167,60 +167,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     warehouse_client_source&.destination_id
   end
 
-  def warehouse_url
-    "https://#{ENV['FQDN']}/clients/#{id}/from_source"
-  end
-
-  private def clientview_url(mci_id_value)
-    link_base = HmisExternalApis::AcHmis::Clientview.link_base
-    return unless link_base&.present? && mci_id_value&.present?
-
-    "#{link_base}/ClientInformation/Profile/#{mci_id_value}?aid=2"
-  end
-
-  def external_identifiers
-    external_identifiers = [
-      {
-        type: :client_id,
-        identifier: id,
-        label: 'HMIS ID',
-      },
-      {
-        type: :personal_id,
-        identifier: personal_id,
-        label: 'Personal ID',
-      },
-      {
-        type: :warehouse_id,
-        identifier: warehouse_id,
-        url: warehouse_url,
-        label: 'Warehouse ID',
-      },
-    ]
-
-    if HmisExternalApis::AcHmis::Mci.enabled?
-      if ac_hmis_mci_ids.present?
-        ac_hmis_mci_ids.to_a.each do |mci_id|
-          external_identifiers << {
-            type: :mci_id,
-            identifier: mci_id.value,
-            url: clientview_url(mci_id.value),
-            label: 'MCI ID',
-          }
-        end
-      else
-        external_identifiers << {
-          type: :mci_id,
-          identifier: nil,
-          url: nil,
-          label: 'MCI ID',
-        }
-      end
-    end
-
-    external_identifiers
-  end
-
   SORT_OPTIONS = [
     :last_name_a_to_z,
     :last_name_z_to_a,
@@ -343,10 +289,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
-  end
-
-  def image
-    @image ||= client_files&.client_photos&.newest_first&.first&.client_file
   end
 
   def delete_image
