@@ -7,7 +7,7 @@
 class Hmis::Hud::ClientExternalIdentifierCollection
   attr_accessor :client, :ac_hmis_mci_ids, :warehouse_client_source
 
-  def initialize(client:, ac_hmis_mci_ids:, warehouse_client_source:)
+  def initialize(client:, ac_hmis_mci_ids:, warehouse_client_source: nil)
     self.client = client
     self.ac_hmis_mci_ids = ac_hmis_mci_ids
     self.warehouse_client_source = warehouse_client_source

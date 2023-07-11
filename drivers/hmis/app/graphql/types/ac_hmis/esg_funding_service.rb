@@ -87,7 +87,7 @@ module Types
     end
 
     def organization
-      load_ar_association(project, organization)
+      load_ar_association(project, :organization)
     end
   end
 end
