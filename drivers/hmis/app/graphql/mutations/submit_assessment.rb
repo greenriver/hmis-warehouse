@@ -83,6 +83,7 @@ module Mutations
         # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
         assessment.enrollment.save!
         # Save the assessment as non-WIP
+        assessment.touch
         assessment.save_not_in_progress
         # If this is an intake assessment, ensure the enrollment is no longer in WIP status
         assessment.enrollment.save_not_in_progress if assessment.intake?

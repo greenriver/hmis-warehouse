@@ -40,7 +40,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # CE Assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
-  # Custom Assessments (note: this does NOT include WIP assessments)
+  # Custom Assessments
   has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
 
   # Files
@@ -175,19 +175,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
-  def custom_assessments_including_wip
-    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
-    wip_assessments = wip_t[:enrollment_id].eq(id)
-
-    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
-  end
-
   def intake_assessment
-    custom_assessments_including_wip.intakes.first
+    custom_assessments.intakes.first
   end
 
   def exit_assessment
-    custom_assessments_including_wip.exits.first
+    custom_assessments.exits.first
   end
 
   def in_progress?
