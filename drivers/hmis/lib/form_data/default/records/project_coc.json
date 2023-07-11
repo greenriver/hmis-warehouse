@@ -34,14 +34,14 @@
           "required": false,
           "link_id": "address1",
           "text": "Address",
-          "field_name": "address1"
+          "mapping": { "field_name": "address1" }
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "address2",
           "text": "Apt, suite, etc (Optional)",
-          "field_name": "address2"
+          "mapping": { "field_name": "address1" }
         },
         {
           "type": "STRING",

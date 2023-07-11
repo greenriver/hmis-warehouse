@@ -16,7 +16,7 @@
       "link_id": "fa-start-date",
       "required": true,
       "text": "Start Date",
-      "field_name": "faStartDate",
+      "mapping": { "field_name": "faStartDate" },
       "bounds": [
         {
           "id": "min-start-date",
@@ -35,7 +35,7 @@
       "link_id": "fa-end-date",
       "required": true,
       "text": "End Date",
-      "field_name": "faEndDate",
+      "mapping": { "field_name": "faEndDate" },
       "bounds": [
         {
           "id": "min-end-date",
@@ -48,7 +48,7 @@
       "type": "DATE",
       "link_id": "date-provided",
       "hidden": true,
-      "field_name": "dateProvided",
+      "mapping": { "field_name": "dateProvided" },
       "autofill_values": [
         {
           "value_question": "fa-start-date",
