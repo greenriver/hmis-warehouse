@@ -45,5 +45,13 @@ module ClientDocumentsReport
     def filter_path_array
       [:filters] + report_path_array
     end
+
+    protected def build_control_sections
+      [
+        build_general_control_section,
+        build_coc_control_section,
+        build_files_control_section,
+      ]
+    end
   end
 end

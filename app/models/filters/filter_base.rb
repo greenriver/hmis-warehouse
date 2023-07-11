@@ -76,6 +76,8 @@ module Filters
     attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
+    attribute :required_files, Array, default: []
+    attribute :optional_files, Array, default: []
 
     validates_presence_of :start, :end
 
@@ -160,6 +162,9 @@ module Filters
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
       self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
 
+      self.required_files = filters.dig(:required_files)&.reject(&:blank?)&.map(&:to_i).presence || required_files
+      self.optional_files = filters.dig(:optional_files)&.reject(&:blank?)&.map(&:to_i).presence || optional_files
+
       ensure_dates_work if valid?
       self
     end
@@ -220,6 +225,8 @@ module Filters
           creator_id: creator_id,
           inactivity_days: inactivity_days,
           lsa_scope: lsa_scope,
+          required_files: required_files,
+          optional_files: optional_files,
         },
       }
     end
@@ -286,6 +293,8 @@ module Filters
         prior_living_situation_ids: [],
         length_of_times: [],
         times_homeless_in_last_three_years: [],
+        required_files: [],
+        optional_files: [],
       ]
     end
 
@@ -338,6 +347,8 @@ module Filters
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
         opts['Require Service During Range'] = 'Yes' if require_service_during_range
+        opts['Required Files'] = chosen_required_files if required_files.any?
+        opts['Optional Files'] = chosen_optional_files if required_files.any?
       end
     end
 
@@ -715,6 +726,10 @@ module Filters
 
     def available_times_homeless_in_last_three_years
       ::HudUtility.times_homeless_options
+    end
+
+    def available_file_tags
+      GrdaWarehouse::AvailableFileTag.grouped
     end
 
     def chosen_times_homeless_in_last_three_years
@@ -1101,6 +1116,10 @@ module Filters
         when 'With CE Assessment'
           'With CE Assessment'
         end
+      when :required_files
+        chosen_required_files
+      when :optional_files
+        chosen_optional_files
       else
         val = send(key)
         val.instance_of?(String) ? val.titleize : val
@@ -1228,6 +1247,18 @@ module Filters
     def chosen_dv_status
       dv_status.map do |id|
         available_dv_status.invert[id]
+      end.join(', ')
+    end
+
+    def chosen_required_files
+      required_files.flat_map do |id|
+        available_file_tags.values.flatten.find { |f| f[:id] == id }[:name]
+      end.join(', ')
+    end
+
+    def chosen_optional_files
+      optional_files.flat_map do |id|
+        available_file_tags.values.flatten.find { |f| f[:id] == id }[:name]
       end.join(', ')
     end
 

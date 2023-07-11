@@ -241,5 +241,18 @@ module
       )
       section
     end
+
+    protected def build_files_control_section
+      ::Filters::UiControlSection.new(id: 'files').tap do |section|
+        section.add_control(
+          id: 'required_files',
+          value: @filter.chosen_required_files,
+        )
+        section.add_control(
+          id: 'optional_files',
+          value: @filter.chosen_optional_files,
+        )
+      end
+    end
   end
 end
