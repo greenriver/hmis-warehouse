@@ -127,7 +127,7 @@ module Types
         ac_hmis_mci_ids: load_ar_association(object, :ac_hmis_mci_ids),
         warehouse_client_source: load_ar_association(object, :warehouse_client_source)
       )
-      collection.all_identifiers
+      collection.hmis_identifiers + collection.mci_identifiers
     end
 
     def enrollments(**args)

@@ -291,10 +291,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
   end
 
-  def image
-    @image ||= client_files&.client_photos&.newest_first&.first&.client_file
-  end
-
   def delete_image
     client_files&.client_photos&.newest_first&.first&.destroy!
     @image = nil
