@@ -16,7 +16,6 @@ module Mutations
 
       # FIXME(#185552893): this mutation should delete all the related records linked to the FormProcessor
       record.transaction do
-        role = record.definition&.role
         is_wip = record.in_progress?
 
         result = default_delete_record(
@@ -26,21 +25,25 @@ module Mutations
             # WIP assessments, including WIP Intakes, can be deleted by users that have "can_edit_enrollments"
             return user.can_edit_enrollments_for?(assessment.enrollment) if is_wip
 
-            if role == 'INTAKE'
+            if record.intake?
               user.can_delete_enrollments_for?(assessment.enrollment)
             else
               user.can_delete_assessments_for?(assessment.enrollment)
             end
           end,
           after_delete: -> do
-            # Deleting the Exit Assessment "un-exits" the client by deleting the Exit record
-            record.enrollment&.exit&.destroy if role == 'EXIT'
-            # Deleting the Intake Assessment "un-enters" the client by deleting the Enrollment entirely
-            record.enrollment&.destroy if role == 'INTAKE'
+            # Deleting the Exit Assessment "un-exits" the client by deleting the Exit record,
+            # and moving the referral back to "accepted" status
+            if record.exit? && !is_wip
+              record.enrollment&.exit&.destroy # FIXME(#185552893) this becomes redundant
+              record.enrollment&.accept_referral!(current_user: current_user)
+            end
+
+            # Deleting the Intake Assessment deletes the enrollment
+            record.enrollment&.destroy if record.intake?
           end,
         )
 
-        # Only resolve the ID, because there are issues resolving the assessment after the enrollment got deleted
         { assessment_id: result[:assessment]&.id, errors: result[:errors] }
       end
     end
