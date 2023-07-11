@@ -15,8 +15,6 @@ module HmisExternalApis::AcHmis
       relationship_to_hoh: ::HudUtility.hud_list_map_as_enumerable(:relationship_to_ho_h_map)
     )
 
-    def self.where_is_h_oh
-      where(relationship_to_hoh: 'self_head_of_household')
-    end
+    scope :heads_of_households, -> { where(relationship_to_hoh: 'self_head_of_household') }
   end
 end

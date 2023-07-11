@@ -25,7 +25,7 @@ module HmisExternalApis
           # remove referrals where this client is the the HOH
           def destroy_hoh_external_referrals
             HmisExternalApis::AcHmis::Referral
-              .where(id: external_referral_household_members.where_is_h_oh.select(:referral_id))
+              .where(id: external_referral_household_members.heads_of_households.select(:referral_id))
               .each(&:destroy!)
           end
 
