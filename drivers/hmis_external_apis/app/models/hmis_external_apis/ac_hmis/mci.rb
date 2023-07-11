@@ -141,8 +141,13 @@ module HmisExternalApis::AcHmis
     #   conn.get('clients/v1/api/Lookup/logicalTables')
     # end
 
+    MUTEX = Mutex.new
     def self.enabled?
-      ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: SYSTEM_ID).exists?
+      return @enabled unless @enabled.nil?
+
+      MUTEX.synchronize do
+        @enabled = ::GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: SYSTEM_ID).exists?
+      end
     end
 
     # returns the first client record matching this MCI Id
