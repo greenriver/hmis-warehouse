@@ -1583,6 +1583,24 @@ module HudLists2024
     }.freeze
   end
 
+  # W5.A
+  def subsidy_information_w5_a_map
+    {
+      1 => 'Without a subsidy',
+      2 => 'With the subsidy they had at project entry',
+      3 => 'With an on-going subsidy acquired since project entry',
+      4 => 'But only with other financial assistance',
+    }.freeze
+  end
+
+  # W5.B
+  def subsidy_information_w5_b_map
+    {
+      11 => 'With on-going subsidy',
+      12 => 'Without an on-going subsidy',
+    }.freeze
+  end
+
   # ad_hoc_yes_no
   def ad_hoc_yes_no_map
     {

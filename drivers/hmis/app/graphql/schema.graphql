@@ -2594,6 +2594,8 @@ type Exit {
   sessionCountAtExit: NoYesMissing
   sessionsInPlan: Int
   subsidyInformation: SubsidyInformation
+  subsidyInformationA: SubsidyInformationW5A
+  subsidyInformationB: SubsidyInformationW5B
   telephone: NoYesMissing
   user: User
   workPlaceViolenceThreats: NoYesReasonsForMissingData
@@ -7064,7 +7066,7 @@ type SubmitHouseholdAssessmentsPayload {
 }
 
 """
-W5.A
+W5.AB
 """
 enum SubsidyInformation {
   """
@@ -7101,6 +7103,56 @@ enum SubsidyInformation {
   (2) With the subsidy they had at project entry
   """
   WITH_THE_SUBSIDY_THEY_HAD_AT_PROJECT_ENTRY
+}
+
+"""
+W5.A
+"""
+enum SubsidyInformationW5A {
+  """
+  (4) But only with other financial assistance
+  """
+  BUT_ONLY_WITH_OTHER_FINANCIAL_ASSISTANCE
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Without a subsidy
+  """
+  WITHOUT_A_SUBSIDY
+
+  """
+  (3) With an on-going subsidy acquired since project entry
+  """
+  WITH_AN_ON_GOING_SUBSIDY_ACQUIRED_SINCE_PROJECT_ENTRY
+
+  """
+  (2) With the subsidy they had at project entry
+  """
+  WITH_THE_SUBSIDY_THEY_HAD_AT_PROJECT_ENTRY
+}
+
+"""
+W5.B
+"""
+enum SubsidyInformationW5B {
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (12) Without an on-going subsidy
+  """
+  WITHOUT_AN_ON_GOING_SUBSIDY
+
+  """
+  (11) With on-going subsidy
+  """
+  WITH_ON_GOING_SUBSIDY
 }
 
 """

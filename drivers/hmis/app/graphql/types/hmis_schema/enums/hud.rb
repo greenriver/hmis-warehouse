@@ -610,9 +610,21 @@ module Types::HmisSchema::Enums::Hud
   end
 
   class SubsidyInformation < Types::BaseEnum
-    description 'W5.A'
+    description 'W5.AB'
     graphql_name 'SubsidyInformation'
     hud_enum ::HudLists.subsidy_information_map
+  end
+
+  class SubsidyInformationW5A < Types::BaseEnum
+    description 'W5.A'
+    graphql_name 'SubsidyInformationW5A'
+    hud_enum ::HudLists.subsidy_information_w5_a_map
+  end
+
+  class SubsidyInformationW5B < Types::BaseEnum
+    description 'W5.B'
+    graphql_name 'SubsidyInformationW5B'
+    hud_enum ::HudLists.subsidy_information_w5_b_map
   end
 
   class AdHocYesNo < Types::BaseEnum

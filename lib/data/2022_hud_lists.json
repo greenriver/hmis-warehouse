@@ -4305,7 +4305,7 @@
   },
   {
     "name": "SubsidyInformation",
-    "code": "W5.A",
+    "code": "W5.AB",
     "values": [
       {
         "key": 1,
@@ -4323,6 +4323,42 @@
         "key": 4,
         "description": "But only with other financial assistance"
       },
+      {
+        "key": 11,
+        "description": "With on-going subsidy"
+      },
+      {
+        "key": 12,
+        "description": "Without an on-going subsidy"
+      }
+    ]
+  },
+  {
+    "name": "SubsidyInformationW5A",
+    "code": "W5.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Without a subsidy"
+      },
+      {
+        "key": 2,
+        "description": "With the subsidy they had at project entry"
+      },
+      {
+        "key": 3,
+        "description": "With an on-going subsidy acquired since project entry"
+      },
+      {
+        "key": 4,
+        "description": "But only with other financial assistance"
+      }
+    ]
+  },
+  {
+    "name": "SubsidyInformationW5B",
+    "code": "W5.B",
+    "values": [
       {
         "key": 11,
         "description": "With on-going subsidy"

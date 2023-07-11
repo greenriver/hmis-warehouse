@@ -26,6 +26,9 @@ module Types
     # W5
     hud_field :housing_assessment, Types::HmisSchema::Enums::Hud::HousingAssessmentAtExit
     hud_field :subsidy_information, Types::HmisSchema::Enums::Hud::SubsidyInformation
+    # Add in A and B as separate fields so we get the enums in the schema
+    hud_field :subsidy_information_a, Types::HmisSchema::Enums::Hud::SubsidyInformationW5A, method: :subsidy_information
+    hud_field :subsidy_information_b, Types::HmisSchema::Enums::Hud::SubsidyInformationW5B, method: :subsidy_information
     # R17
     hud_field :project_completion_status, Types::HmisSchema::Enums::Hud::ProjectCompletionStatus
     hud_field :early_exit_reason, Types::HmisSchema::Enums::Hud::ExpelledReason
