@@ -67,6 +67,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
+  scope :with_organization_ids, ->(organization_ids) do
+    joins(:organization).where(o_t[:id].in(Array.wrap(organization_ids)))
+  end
+
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
   scope :with_project_type, ->(project_types) do
     where(ProjectType: project_types)
