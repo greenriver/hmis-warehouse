@@ -113,17 +113,8 @@ module Mutations
 
       # Save all assessments and related records
       Hmis::Hud::CustomAssessment.transaction do
-        assessments.each do |assessment|
-          # Save FormProcessor to save related records
-          assessment.form_processor.save!
-          # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
-          assessment.enrollment.save!
-          # Save the assessment as non-WIP
-          assessment.save_not_in_progress
-          # If this is an intake assessment, ensure the enrollment is no longer in WIP status
-          assessment.enrollment.save_not_in_progress if assessment.intake?
-          # Update DateUpdated on the Enrollment
-          assessment.enrollment.touch
+        assessments.each do |a|
+          a.save_submitted_assessment!(current_user: current_user)
         end
       end
 

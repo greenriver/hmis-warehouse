@@ -863,7 +863,8 @@ CREATE TABLE public."CustomAssessments" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    wip boolean DEFAULT false NOT NULL
 );
 
 
@@ -53848,6 +53849,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230626012029'),
 ('20230630203515'),
 ('20230706112135'),
-('20230707143716');
+('20230707143716'),
+('20230710183058');
 
 
