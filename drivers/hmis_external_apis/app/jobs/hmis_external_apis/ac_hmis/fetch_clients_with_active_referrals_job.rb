@@ -27,14 +27,16 @@ module HmisExternalApis::AcHmis
         user: system_user,
       )
 
-      Hmis::Hud::Client.
-        where(id: client_ids).
-        each do |client|
-          client.custom_data_elements.
-            where(data_element_definition: cded).
-            first_or_create!(value_boolean: true, data_source: data_source, user: system_user).
-            update!(value_boolean: true)
-        end
+      Hmis::Hud::CustomDataElement.import(
+        Hmis::Hud::Client.
+          where(id: client_ids).
+          map do |client|
+            cde = client.custom_data_elements.where(data_element_definition: cded).first_or_create!(data_source: data_source, user: system_user, value_boolean: true)
+            cde.value_boolean = true
+            cde
+          end,
+        on_duplicate_key_update: { conflict_target: [:id], columns: [:value_boolean] },
+      )
 
       Hmis::Hud::CustomDataElement.
         where(owner_type: 'Hmis::Hud::Client', data_element_definition: cded).
