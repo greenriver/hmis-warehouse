@@ -137,6 +137,7 @@ end
 
 DBQueryMatchers.configure do |config|
   config.schemaless = true # ignore schema queries
+  config.ignore_cached = true # ignore cached queries
 end
 
 
