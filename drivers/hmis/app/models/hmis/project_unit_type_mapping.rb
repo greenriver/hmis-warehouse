@@ -14,13 +14,10 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
   scope :active, -> { where(active: true) }
 
   def self.freshen_project_units(user:, today: Date.current)
-    scope = preload(:project, :unit_type)
     # { [project_id, unit_type_id] => unit_count }
-    unit_counts_by_project_and_unit_type_id = Hmis::Unit
-      .where(project_id: scope.map { |r| r.project.id })
-      .group(:project_id, :unit_type_id)
-      .count
+    unit_counts_by_project_and_unit_type_id = Hmis::Unit.group(:project_id, :unit_type_id).count
 
+    scope = preload(:project, :unit_type).order(:id).to_a
     unit_attrs = scope.filter(&:active?).flat_map do |record|
       unit_type = record.unit_type
       project = record.project
@@ -35,7 +32,6 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
           project_id: project.id,
           unit_type_id: unit_type.id,
           unit_size: unit_type.unit_size,
-          name: "Unit #{unit_type.description} #{i + 1}", # FIXME: guess at unit name format
           user_id: user.id,
         }
       end
@@ -47,7 +43,6 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
       existing_units = record.project.units.where(unit_type: record.unit_type)
       raise "Can't remove active units: #{record.inspect}" if existing_units.occupied_on(today).any?
 
-      record.destroy!
       existing_units.find_each(&:destroy!)
     end
   end
