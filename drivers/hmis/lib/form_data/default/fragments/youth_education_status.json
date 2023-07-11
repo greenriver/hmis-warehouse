@@ -1,0 +1,57 @@
+{
+  "type": "GROUP",
+  "link_id": "youth-education-status",
+  "text": "Education Status",
+  "data_collected_about": "ALL_CLIENTS",
+  "prefill": "YOUTH_EDUCATION_STATUS",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "C3.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Current school enrollment and attendance",
+      "pick_list_reference": "CurrentSchoolAttended",
+      "mapping": { "record_type": "YOUTH_EDUCATION_STATUS", "field_name": "currentSchoolAttend" }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "C3.A",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Most recent educational status",
+      "pick_list_reference": "MostRecentEdStatus",
+      "mapping": { "record_type": "YOUTH_EDUCATION_STATUS", "field_name": "mostRecentEdStatus" },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "C3.2",
+          "operator": "EQUAL",
+          "answer_code": "NOT_CURRENTLY_ENROLLED_IN_ANY_SCHOOL_OR_EDUCATIONAL_COURSE"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "C3.B",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Current Educational Status",
+      "pick_list_reference": "CurrentEdStatus",
+      "mapping": { "record_type": "YOUTH_EDUCATION_STATUS", "field_name": "currentEdStatus" },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "C3.2",
+          "operator": "EQUAL",
+          "answer_code": "CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION"
+        },
+        {
+          "question": "C3.2",
+          "operator": "EQUAL",
+          "answer_code": "CURRENTLY_ENROLLED_AND_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION"
+        }
+      ]
+    }
+  ]
+}
