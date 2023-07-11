@@ -114,7 +114,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       # Save FormProcessor to save wip values and/or related records
       form_processor.save!
 
-      # Save the assessment as non-WIP
+      # Save the assessment record
       if as_wip
         save_in_progress
       else
