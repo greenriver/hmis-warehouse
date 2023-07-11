@@ -37,7 +37,7 @@ module HmisExternalApis::AcHmis
           data_element_definition_id: cded.id,
           value_boolean: true,
           data_source_id: data_source.id,
-          UserID: system_user.id,
+          UserID: system_user.user_id,
         }
       end
       Hmis::Hud::CustomDataElement.import(cde_attributes_to_create)
