@@ -4,13 +4,13 @@
       "type": "STRING",
       "link_id": "enrollment-id",
       "hidden": true,
-      "field_name": "id"
+      "mapping": { "field_name": "id" }
     },
     {
       "type": "STRING",
       "link_id": "household-id",
       "hidden": true,
-      "field_name": "householdId",
+      "mapping": { "field_name": "householdId" },
       "initial": [
         {
           "initial_behavior": "IF_EMPTY",
@@ -37,7 +37,7 @@
           "type": "DATE",
           "link_id": "entry-date",
           "text": "Entry Date",
-          "field_name": "entryDate",
+          "mapping": { "field_name": "entryDate" },
           "required": true,
           "initial": [
             {
@@ -57,7 +57,7 @@
           "type": "CHOICE",
           "link_id": "relationship-to-hoh",
           "text": "Relationship to HoH",
-          "field_name": "relationshipToHoH",
+          "mapping": { "field_name": "relationshipToHoH" },
           "pick_list_reference": "RelationshipToHoH",
           "required": false,
           "autofill_values": [

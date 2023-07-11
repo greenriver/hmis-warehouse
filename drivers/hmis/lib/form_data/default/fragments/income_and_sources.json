@@ -3,8 +3,7 @@
   "link_id": "income-and-sources",
   "text": "Income and Sources",
   "data_collected_about": "HOH_AND_ADULTS",
-  "record_type": "INCOME_BENEFIT",
-  "prefill": true,
+  "prefill": "INCOME_BENEFIT",
   "item": [
     {
       "type": "CHOICE",
@@ -14,7 +13,7 @@
       "warn_if_empty": true,
       "text": "Income from Any Source",
       "pick_list_reference": "NoYesReasonsForMissingData",
-      "field_name": "incomeFromAnySource",
+      "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "incomeFromAnySource" },
       "autofill_values": [
         {
           "value_code": "YES",
@@ -123,7 +122,7 @@
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.3",
           "hidden": true,
-          "field_name": "earned",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "earned" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -158,14 +157,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.A",
           "text": "Earned Income (i.e., employment income)",
-          "field_name": "earnedAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "earnedAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.4",
           "hidden": true,
-          "field_name": "unemployment",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "unemployment" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -200,14 +199,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.B",
           "text": "Unemployment Insurance",
-          "field_name": "unemploymentAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "unemploymentAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.5",
           "hidden": true,
-          "field_name": "ssi",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "ssi" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -242,14 +241,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.C",
           "text": "Supplemental Security Income (SSI)",
-          "field_name": "ssiAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "ssiAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.6",
           "hidden": true,
-          "field_name": "ssdi",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "ssdi" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -284,14 +283,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.D",
           "text": "Social Security Disability Insurance (SSDI)",
-          "field_name": "ssdiAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "ssdiAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.7",
           "hidden": true,
-          "field_name": "vaDisabilityService",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "vaDisabilityService" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -326,14 +325,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.E",
           "text": "VA Service-Connected Disability Compensation",
-          "field_name": "vaDisabilityServiceAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "vaDisabilityServiceAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.8",
           "hidden": true,
-          "field_name": "vaDisabilityNonService",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "vaDisabilityNonService" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -368,14 +367,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.F",
           "text": "VA Non-Service-Connected Disability Pension",
-          "field_name": "vaDisabilityNonServiceAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "vaDisabilityNonServiceAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.9",
           "hidden": true,
-          "field_name": "privateDisability",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "privateDisability" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -410,14 +409,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.G",
           "text": "Private disability insurance",
-          "field_name": "privateDisabilityAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "privateDisabilityAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.10",
           "hidden": true,
-          "field_name": "workersComp",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "workersComp" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -452,14 +451,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.H",
           "text": "Worker's Compensation",
-          "field_name": "workersCompAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "workersCompAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.11",
           "hidden": true,
-          "field_name": "tanf",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "tanf" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -494,14 +493,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.I",
           "text": "Temporary Assistance for Needy Families (TANF)",
-          "field_name": "tanfAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "tanfAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.12",
           "hidden": true,
-          "field_name": "ga",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "ga" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -536,14 +535,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.J",
           "text": "General Assistance (GA)",
-          "field_name": "gaAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "gaAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.13",
           "hidden": true,
-          "field_name": "socSecRetirement",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "socSecRetirement" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -578,14 +577,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.K",
           "text": "Retirement Income from Social Security",
-          "field_name": "socSecRetirementAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "socSecRetirementAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.14",
           "hidden": true,
-          "field_name": "pension",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "pension" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -620,14 +619,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.L",
           "text": "Pension or retirement income from a former job",
-          "field_name": "pensionAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "pensionAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.15",
           "hidden": true,
-          "field_name": "childSupport",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "childSupport" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -662,14 +661,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.M",
           "text": "Child support",
-          "field_name": "childSupportAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "childSupportAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.16",
           "hidden": true,
-          "field_name": "alimony",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "alimony" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -704,14 +703,14 @@
           "type": "CURRENCY",
           "link_id": "4.02.N",
           "text": "Alimony and other spousal support",
-          "field_name": "alimonyAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "alimonyAmount" }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.02.17",
           "hidden": true,
-          "field_name": "otherIncomeSource",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "otherIncomeSource" },
           "autofill_values": [
             {
               "value_code": "YES",
@@ -746,7 +745,7 @@
           "type": "CURRENCY",
           "link_id": "4.02.O",
           "text": "Other source",
-          "field_name": "otherIncomeAmount"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "otherIncomeAmount" }
         },
         {
           "type": "STRING",
@@ -756,7 +755,7 @@
           "required": false,
           "warn_if_empty": true,
           "enable_behavior": "ALL",
-          "field_name": "otherIncomeSourceIdentify",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "otherIncomeSourceIdentify" },
           "enable_when": [
             {
               "question": "4.02.O",

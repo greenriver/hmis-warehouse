@@ -64,6 +64,7 @@ module Types
     custom_data_elements_field
     referral_requests_field :referral_requests
     referral_postings_field :incoming_referral_postings
+    referral_postings_field :outgoing_referral_postings
     access_field do
       can :delete_project
       can :edit_project_details
@@ -139,6 +140,19 @@ module Types
 
     def incoming_referral_postings(**args)
       scoped_referral_postings(object.external_referral_postings.active, **args)
+    end
+
+    def arel
+      Hmis::ArelHelper.instance
+    end
+
+    def outgoing_referral_postings(**args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
+
+      scope = HmisExternalApis::AcHmis::ReferralPosting.outgoing
+        .joins(referral: :enrollment)
+        .where(arel.e_t[:ProjectID].eq(object.ProjectID))
+      scoped_referral_postings(scope, **args)
     end
   end
 end

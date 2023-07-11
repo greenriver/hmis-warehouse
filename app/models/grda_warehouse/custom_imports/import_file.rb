@@ -32,6 +32,10 @@ module GrdaWarehouse::CustomImports
       update(status: 'started', started_at: Time.current, summary: [])
     end
 
+    def complete_import
+      update(status: 'complete', completed_at: Time.current)
+    end
+
     def log(message)
       @notifier&.ping(message)
       Rails.logger.info(message)

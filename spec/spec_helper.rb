@@ -103,6 +103,9 @@ RSpec.configure do |config|
   config.include ActiveSupport::Testing::TimeHelpers
 end
 
+# allows and not_change
+RSpec::Matchers.define_negated_matcher :not_change, :change
+
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
     with.test_framework :rspec
@@ -138,7 +141,6 @@ end
 DBQueryMatchers.configure do |config|
   config.schemaless = true # ignore schema queries
 end
-
 
 RSpec::Benchmark.configure do |config|
   config.samples = 5
