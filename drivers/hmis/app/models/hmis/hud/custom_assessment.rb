@@ -87,11 +87,13 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def save_in_progress
     self.wip = true
+    touch # Update even if no changes to assessment record
     save!
   end
 
   def save_not_in_progress
     self.wip = false
+    touch # Update even if no changes to assessment record
     save!
   end
 
@@ -105,6 +107,32 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def exit?
     data_collection_stage == 3
+  end
+
+  def save_submitted_assessment!(current_user:, as_wip: false)
+    Hmis::Hud::CustomAssessment.transaction do
+      # Save FormProcessor to save wip values and/or related records
+      form_processor.save!
+
+      # Save the assessment as non-WIP
+      if as_wip
+        save_in_progress
+      else
+        save_not_in_progress
+      end
+
+      unless as_wip
+        # Save the Enrollment (not saved by FormProcessor because they dont have a relationship)
+        enrollment.save!
+        enrollment.touch # Update even if no changes to Enrollment
+        # Move Enrollment out of WIP if this is a submitted intake
+        enrollment.save_not_in_progress if intake?
+        # Accept referral in LINK if submitted intake (HoH)
+        enrollment.accept_referral!(current_user: current_user) if intake?
+        # Close referral in LINK if submitted exit (HoH)
+        enrollment.close_referral!(current_user: current_user) if exit?
+      end
+    end
   end
 
   def self.apply_filters(input)
