@@ -215,11 +215,11 @@ module Types
     end
 
     def phone_numbers
-      load_ar_association(object, :contact_points).filter {|r| r.system == 'phone'}
+      load_ar_association(object, :contact_points).filter { |r| r.system == 'phone' }
     end
 
     def email_addresses
-      load_ar_association(object, :contact_points).filter {|r| r.system == 'email'}
+      load_ar_association(object, :contact_points).filter { |r| r.system == 'email' }
     end
 
     def addresses

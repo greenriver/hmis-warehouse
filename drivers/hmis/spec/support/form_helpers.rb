@@ -11,7 +11,7 @@ module FormHelpers
     assessment_date ||= Date.yesterday.strftime('%Y-%m-%d')
 
     date_item = definition.assessment_date_item
-    date_field = date_item.field_name
+    date_field = date_item.mapping.field_name
     date_field = "Exit.#{date_field}" if definition.exit?
     date_field = "Enrollment.#{date_field}" if definition.intake?
 
@@ -25,18 +25,8 @@ module FormHelpers
     }
   end
 
-  def custom_form_attributes(role, assessment_date)
-    definition = Hmis::Form::Definition.find_by(role: role)
-    raise "No definition for role #{role}" unless definition.present?
-
-    {
-      definition: definition,
-      **build_minimum_values(definition, assessment_date: assessment_date),
-    }
-  end
-
   def find_required_item(definition)
-    definition.link_id_item_hash.find { |_link_id, item| item.required && item.field_name.present? }&.last
+    definition.link_id_item_hash.find { |_link_id, item| item.required && item.mapping&.field_name&.present? }&.last
   end
 
   def completed_form_values_for_role(role)

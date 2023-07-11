@@ -20,7 +20,7 @@
       "required": false,
       "link_id": "dob",
       "text": "Date of Birth",
-      "field_name": "dob",
+      "mapping": { "field_name": "dob" },
       "enable_when": [
         {
           "question": "see-dob",
@@ -46,7 +46,7 @@
           "required": false,
           "link_id": "dob-dq",
           "text": "DOB Data Quality",
-          "field_name": "dobDataQuality",
+          "mapping": { "field_name": "dobDataQuality" },
           "pick_list_reference": "DOBDataQuality"
         }
       ],
@@ -74,7 +74,7 @@
       "required": false,
       "link_id": "ssn",
       "text": "Social Security Number",
-      "field_name": "ssn",
+      "mapping": { "field_name": "ssn" },
       "component": "SSN",
       "enable_when": [
         {
@@ -94,7 +94,7 @@
           "required": false,
           "link_id": "ssn-dq",
           "text": "SSN Data Quality",
-          "field_name": "ssnDataQuality",
+          "mapping": { "field_name": "ssnDataQuality" },
           "pick_list_reference": "SSNDataQuality"
         }
       ],

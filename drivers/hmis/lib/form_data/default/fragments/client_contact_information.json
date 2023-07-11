@@ -9,7 +9,7 @@
       "component": "ADDRESS",
       "repeats": true,
       "link_id": "addresses",
-      "field_name": "addresses",
+      "mapping": { "field_name": "addresses" },
       "text": "Address"
     },
     {
@@ -17,7 +17,7 @@
       "component": "PHONE",
       "repeats": true,
       "link_id": "phones",
-      "field_name": "phoneNumbers",
+      "mapping": { "field_name": "phoneNumbers" },
       "text": "Phone"
     },
     {
@@ -25,7 +25,7 @@
       "component": "EMAIL",
       "repeats": true,
       "link_id": "emails",
-      "field_name": "emailAddresses",
+      "mapping": { "field_name": "emailAddresses" },
       "text": "Email"
     }
   ]

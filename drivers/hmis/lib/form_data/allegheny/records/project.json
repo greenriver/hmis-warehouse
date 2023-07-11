@@ -13,7 +13,7 @@
           "type": "BOOLEAN",
           "link_id": "direct-entry",
           "text": "Direct Entry",
-          "custom_field_key": "direct_entry"
+          "mapping": { "custom_field_key": "direct_entry" }
         }
       ]
     }

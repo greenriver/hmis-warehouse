@@ -44,10 +44,9 @@ module Mutations
       end
       raise HmisErrors::ApiError, 'Access Denied' unless allowed
 
-      # Build CustomForm
-      # It wont be persisted, but it handles validation and initializes a form processor to process values
-      custom_form = Hmis::Form::CustomForm.new(
-        owner: record,
+      # Build FormProcessor
+      # It wont be persisted, but it handles validation and updating the relevant record(s)
+      form_processor = Hmis::Form::FormProcessor.new(
         definition: definition,
         values: input.values,
         hud_values: input.hud_values,
@@ -55,18 +54,17 @@ module Mutations
 
       # Validate based on FormDefinition
       errors = HmisErrors::Errors.new
-      form_validations = custom_form.collect_form_validations
+      form_validations = form_processor.collect_form_validations
       errors.push(*form_validations)
 
       # Run processor to create/update record(s)
-      custom_form.form_processor.run!(owner: record, user: current_user)
+      form_processor.run!(owner: record, user: current_user)
 
-      # Run both validations
+      # Validate record
       is_valid = record.valid?
-      is_valid = custom_form.valid? && is_valid
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = custom_form.collect_record_validations(user: current_user)
+      record_validations = form_processor.collect_record_validations(user: current_user)
       errors.push(*record_validations)
 
       errors.drop_warnings! if input.confirmed
@@ -96,9 +94,6 @@ module Mutations
           record.enrollment&.save!
         end
       else
-        # These are potentially unfixable errors. Maybe should be server error instead.
-        # For now, return them all because they are useful in development.
-        errors.add_ar_errors(custom_form.errors&.errors)
         errors.add_ar_errors(record.errors&.errors)
         record = nil
       end
