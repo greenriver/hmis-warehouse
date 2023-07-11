@@ -31,6 +31,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # WIP records representing enrollments for this Client
   has_many :wip, class_name: 'Hmis::Wip', through: :enrollments
 
+  has_many :custom_assessments, through: :enrollments
+
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
@@ -144,15 +146,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   scope :unenrolled, -> do
     # Clients that have no projects, AND no wip enrollments
     left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
-  end
-
-  # All CustomAssessments for this Client, including WIP Assessments and assessments at WIP Enrollments
-  def custom_assessments_including_wip
-    enrollment_ids = enrollments.pluck(:id, :enrollment_id)
-    wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
-
-    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   def enrolled?

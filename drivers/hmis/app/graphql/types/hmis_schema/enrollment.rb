@@ -174,7 +174,7 @@ module Types
     end
 
     def assessments(**args)
-      resolve_assessments_including_wip(**args)
+      resolve_assessments(**args)
     end
 
     def ce_assessments(**args)

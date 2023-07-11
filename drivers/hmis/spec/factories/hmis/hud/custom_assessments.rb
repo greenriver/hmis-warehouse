@@ -15,6 +15,7 @@ FactoryBot.define do
     user { association :hmis_hud_user, data_source: data_source }
     enrollment { association :hmis_hud_enrollment, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
+    wip { false }
     AssessmentDate { Date.yesterday }
     DataCollectionStage { 1 }
     DateCreated { Date.parse('2019-01-01') }
@@ -29,6 +30,7 @@ FactoryBot.define do
     user { association :hmis_hud_user, data_source: data_source }
     enrollment { association :hmis_hud_enrollment, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
+    wip { true }
     AssessmentDate { Date.yesterday }
     DataCollectionStage { 1 }
     DateCreated { Date.parse('2019-01-01') }
@@ -39,11 +41,6 @@ FactoryBot.define do
     end
     after(:create) do |assessment, evaluator|
       assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
-      assessment.build_wip(
-        enrollment: assessment.enrollment,
-        client: assessment.enrollment.client,
-        date: assessment.assessment_date,
-      )
       assessment.save_in_progress
     end
   end

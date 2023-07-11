@@ -18,13 +18,12 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
   describe 'in progress assessments' do
     let!(:assessment) { create(:hmis_wip_custom_assessment) }
 
-    it 'cleans up dependent wip after destroy' do
+    it 'cleans up dependent processor after destroy' do
       assessment.reload
-      expect(assessment.wip).to be_present
+      expect(assessment.wip).to eq(true)
 
       assessment.destroy
       assessment.reload
-      expect(assessment.wip).not_to be_present
       expect(assessment.form_processor).not_to be_present
     end
   end
