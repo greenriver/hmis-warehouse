@@ -13,8 +13,5 @@ module Hmis::Hud::Processors
     def schema
       Types::HmisSchema::EmploymentEducation
     end
-
-    def information_date(_)
-    end
   end
 end
