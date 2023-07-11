@@ -34,9 +34,7 @@ module GrdaWarehouse
     rescue NominatimApiPaused
       return nil
     rescue StandardError
-      setup_notifier('NominatimWarning')
-      @notifier.ping('Error contacting the OSM Nominatim API.') if @send_notifications
-      nil
+      send_single_notification('Error contacting the OSM Nominatim API.')
     end
 
     def self.nominatim_lookup(query, city, state, postalcode, country)
