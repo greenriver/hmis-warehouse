@@ -9,5 +9,4 @@ class Hmis::Hud::ClientProject < GrdaWarehouseBase
   def readonly?
     true
   end
-
 end

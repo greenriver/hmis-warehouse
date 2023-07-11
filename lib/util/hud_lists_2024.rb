@@ -8,16 +8,23 @@
 
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
 
-module HudLists
+module HudLists2024
   module_function
 
   # 1.1
   def export_period_type_map
     {
       1 => 'Updated',
-      2 => 'Effective',
       3 => 'Reporting period',
       4 => 'Other',
+    }.freeze
+  end
+
+  # 1.10
+  def no_yes_map
+    {
+      0 => 'No',
+      1 => 'Yes',
     }.freeze
   end
 
@@ -45,8 +52,6 @@ module HudLists
   # 1.4
   def record_type_map
     {
-      12 => 'Contact 12',
-      13 => 'Contact 13',
       141 => 'PATH Service',
       142 => 'RHY Service Connections',
       143 => 'HOPWA Service',
@@ -54,7 +59,6 @@ module HudLists
       151 => 'HOPWA Financial Assistance',
       152 => 'SSVF Financial Assistance',
       161 => 'PATH Referral',
-      162 => 'RHY Referral',
       200 => 'Bed Night',
       210 => 'HUD-VASH OTH Voucher Tracking',
       300 => 'Moving On Assistance',
@@ -75,7 +79,7 @@ module HudLists
   def race_none_map
     {
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -95,7 +99,7 @@ module HudLists
       0 => 'No',
       1 => 'Yes',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -113,7 +117,8 @@ module HudLists
   # 2.02.6
   def project_type_map
     {
-      1 => 'Emergency Shelter',
+      0 => 'Emergency Shelter - Entry Exit',
+      1 => 'Emergency Shelter - Night-by-Night',
       2 => 'Transitional Housing',
       3 => 'PH - Permanent Supportive Housing',
       4 => 'Street Outreach',
@@ -129,35 +134,16 @@ module HudLists
     }.freeze
   end
 
-  # 2.02.6.brief
-  def project_type_brief_map
+  # 2.02.7
+  def target_population_map
     {
-      1 => 'ES',
-      2 => 'TH',
-      3 => 'PH - PSH',
-      4 => 'SO',
-      6 => 'SSO',
-      8 => 'SH',
-      9 => 'PH - PH',
-      7 => 'Other',
-      10 => 'PH - OPH',
-      11 => 'Day Shelter',
-      12 => 'HP',
-      13 => 'PH - RRH',
-      14 => 'CE',
+      1 => 'DV: Survivor of Domestic Violence',
+      3 => 'HIV: Persons with HIV/AIDS',
+      4 => 'NA: Not applicable',
     }.freeze
   end
 
   # 2.02.8
-  def target_population_map
-    {
-      1 => 'Domestic violence victims',
-      3 => 'Persons with HIV/AIDS',
-      4 => 'Not applicable',
-    }.freeze
-  end
-
-  # 2.02.9
   def hopwa_med_assisted_living_fac_map
     {
       0 => 'No',
@@ -166,11 +152,11 @@ module HudLists
     }.freeze
   end
 
-  # 2.02.C
-  def tracking_method_map
+  # 2.02.A
+  def rrh_sub_type_map
     {
-      0 => 'Entry/Exit Date',
-      3 => 'Night-by-Night',
+      1 => 'RRH: Services Only',
+      2 => 'RRH: Housing with or without services',
     }.freeze
   end
 
@@ -207,7 +193,7 @@ module HudLists
       9 => 'HUD: ESG - Homelessness Prevention',
       10 => 'HUD: ESG - Rapid Rehousing',
       11 => 'HUD: ESG - Street Outreach',
-      12 => 'HUD: Rural Housing Stability Assistance Program',
+      12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
       13 => 'HUD: HOPWA - Hotel/Motel Vouchers',
       14 => 'HUD: HOPWA - Housing Information',
       15 => 'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
@@ -241,11 +227,13 @@ module HudLists
       46 => 'Local or Other Funding Source',
       47 => 'HUD: ESG - CV',
       48 => 'HUD: HOPWA - CV',
-      49 => 'HUD: CoC - Joint Component RRH/PSH',
+      49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
       50 => 'HUD: HOME',
       51 => 'HUD: HOME (ARP)',
       52 => 'HUD: PIH (Emergency Housing Voucher)',
       53 => 'HUD: ESG - RUSH',
+      54 => 'HUD: Unsheltered Special NOFO',
+      55 => 'HUD: Rural Special NOFO',
     }.freeze
   end
 
@@ -276,6 +264,15 @@ module HudLists
     }.freeze
   end
 
+  # 2.08.1
+  def hmis_participation_type_map
+    {
+      0 => 'Not Participating',
+      1 => 'HMIS Participating',
+      2 => 'Comparable Database Participating',
+    }.freeze
+  end
+
   # 2.7.B
   def youth_age_group_map
     {
@@ -291,7 +288,7 @@ module HudLists
       1 => 'Full name reported',
       2 => 'Partial, street name, or code name reported',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -302,7 +299,7 @@ module HudLists
       1 => 'Full SSN reported',
       2 => 'Approximate or partial SSN reported',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -313,7 +310,7 @@ module HudLists
       1 => 'Full DOB reported',
       2 => 'Approximate or partial DOB reported',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -324,96 +321,62 @@ module HudLists
       0 => 'Non-Hispanic/Non-Latin(a)(o)(x)',
       1 => 'Hispanic/Latin(a)(o)(x)',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
 
-  # 3.12.1
+  # 3.12
   def destination_map
     {
-      1 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter',
-      2 => 'Transitional housing for homeless persons (including homeless youth)',
-      3 => 'Permanent housing (other than RRH) for formerly homeless persons',
-      4 => 'Psychiatric hospital or other psychiatric facility',
-      5 => 'Substance abuse treatment facility or detox center',
-      6 => 'Hospital or other residential non-psychiatric medical facility',
-      7 => 'Jail, prison or juvenile detention facility',
       8 => "Client doesn't know",
-      9 => 'Client refused',
-      10 => 'Rental by client, no ongoing housing subsidy',
-      11 => 'Owned by client, no ongoing housing subsidy',
-      12 => 'Staying or living with family, temporary tenure (e.g. room, apartment or house)',
-      13 => 'Staying or living with friends, temporary tenure (e.g. room apartment or house)',
-      14 => 'Hotel or motel paid for without emergency shelter voucher',
-      15 => 'Foster care home or foster care group home',
-      16 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
+      9 => 'Client prefers not to answer',
       17 => 'Other',
-      18 => 'Safe Haven',
-      19 => 'Rental by client, with VASH housing subsidy',
-      20 => 'Rental by client, with other ongoing housing subsidy',
-      21 => 'Owned by client, with ongoing housing subsidy',
-      22 => 'Staying or living with family, permanent tenure',
-      23 => 'Staying or living with friends, permanent tenure',
       24 => 'Deceased',
-      25 => 'Long-term care facility or nursing home',
-      26 => 'Moved from one HOPWA funded project to HOPWA PH',
-      27 => 'Moved from one HOPWA funded project to HOPWA TH',
-      28 => 'Rental by client, with GPD TIP housing subsidy',
-      29 => 'Residential project or halfway house with no homeless criteria',
       30 => 'No exit interview completed',
-      31 => 'Rental by client, with RRH or equivalent subsidy',
-      32 => 'Host Home (non-crisis)',
-      33 => 'Rental by client, with HCV voucher (tenant or project based)',
-      34 => 'Rental by client in a public housing unit',
       35 => "Staying or living in a family member's room, apartment or house",
-      36 => "Staying or living in a friend's room, apartment or house",
       37 => 'Worker unable to determine',
       99 => 'Data not collected',
+      101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',
+      116 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
+      118 => 'Safe Haven',
+      204 => 'Psychiatric hospital or other psychiatric facility',
+      205 => 'Substance abuse treatment facility or detox center',
+      206 => 'Hospital or other residential non-psychiatric medical facility',
+      207 => 'Jail, prison or juvenile detention facility',
+      215 => 'Foster care home or foster care group home',
+      225 => 'Long-term care facility or nursing home',
+      302 => 'Transitional housing for homeless persons (including homeless youth)',
+      312 => 'Staying or living with family, temporary tenure (e.g. room, apartment or house)',
+      313 => 'Staying or living with friends, temporary tenure (e.g. room apartment or house)',
+      314 => 'Hotel or motel paid for without emergency shelter voucher',
+      327 => 'Moved from one HOPWA funded project to HOPWA TH',
+      329 => 'Residential project or halfway house with no homeless criteria',
+      332 => 'Host Home (non-crisis)',
+      410 => 'Rental by client, no ongoing housing subsidy',
+      411 => 'Owned by client, no ongoing housing subsidy',
+      421 => 'Owned by client, with ongoing housing subsidy',
+      422 => 'Staying or living with family, permanent tenure',
+      423 => 'Staying or living with friends, permanent tenure',
+      426 => 'Moved from one HOPWA funded project to HOPWA PH',
+      435 => 'Rental by client, with ongoing housing subsidy',
     }.freeze
   end
 
-  # 3.12.1
-  def living_situation_map
+  # 3.12.A
+  def rental_subsidy_type_map
     {
-      1 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter',
-      2 => 'Transitional housing for homeless persons (including homeless youth)',
-      3 => 'Permanent housing (other than RRH) for formerly homeless persons',
-      4 => 'Psychiatric hospital or other psychiatric facility',
-      5 => 'Substance abuse treatment facility or detox center',
-      6 => 'Hospital or other residential non-psychiatric medical facility',
-      7 => 'Jail, prison or juvenile detention facility',
-      8 => "Client doesn't know",
-      9 => 'Client refused',
-      10 => 'Rental by client, no ongoing housing subsidy',
-      11 => 'Owned by client, no ongoing housing subsidy',
-      12 => 'Staying or living with family, temporary tenure (e.g. room, apartment or house)',
-      13 => 'Staying or living with friends, temporary tenure (e.g. room apartment or house)',
-      14 => 'Hotel or motel paid for without emergency shelter voucher',
-      15 => 'Foster care home or foster care group home',
-      16 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
-      17 => 'Other',
-      18 => 'Safe Haven',
-      19 => 'Rental by client, with VASH housing subsidy',
-      20 => 'Rental by client, with other ongoing housing subsidy',
-      21 => 'Owned by client, with ongoing housing subsidy',
-      22 => 'Staying or living with family, permanent tenure',
-      23 => 'Staying or living with friends, permanent tenure',
-      24 => 'Deceased',
-      25 => 'Long-term care facility or nursing home',
-      26 => 'Moved from one HOPWA funded project to HOPWA PH',
-      27 => 'Interim Housing',
-      28 => 'Rental by client, with GPD TIP housing subsidy',
-      29 => 'Residential project or halfway house with no homeless criteria',
-      30 => 'No exit interview completed',
-      31 => 'Rental by client, with RRH or equivalent subsidy',
-      32 => 'Host Home (non-crisis)',
-      33 => 'Rental by client, with HCV voucher (tenant or project based)',
-      34 => 'Rental by client in a public housing unit',
-      35 => "Staying or living in a family member's room, apartment or house",
-      36 => "Staying or living in a friend's room, apartment or house",
-      37 => 'Worker unable to determine',
-      99 => 'Data not collected',
+      428 => 'GPD TIP housing subsidy',
+      419 => 'VASH housing subsidy',
+      431 => 'RRH or equivalent subsidy',
+      433 => 'HCV voucher (tenant or project based) (not dedicated)',
+      434 => 'Public housing unit',
+      420 => 'Rental by client, with other ongoing housing subsidy',
+      436 => 'Emergency Housing Voucher',
+      437 => 'Family Unification Program Voucher (FUP)',
+      438 => 'Foster Youth to Independence Initiative (FYI)',
+      439 => 'Permanent Supportive Housing',
+      440 => 'Other permanent housing dedicated for formerly homeless persons',
     }.freeze
   end
 
@@ -438,8 +401,37 @@ module HudLists
       5 => 'Transgender',
       6 => 'Questioning',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
+    }.freeze
+  end
+
+  # 3.917
+  def prior_living_situation_map
+    {
+      8 => "Client doesn't know",
+      9 => 'Client prefers not to answer',
+      35 => "Staying or living in a family member's room, apartment or house",
+      99 => 'Data not collected',
+      101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',
+      116 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
+      118 => 'Safe Haven',
+      204 => 'Psychiatric hospital or other psychiatric facility',
+      205 => 'Substance abuse treatment facility or detox center',
+      206 => 'Hospital or other residential non-psychiatric medical facility',
+      207 => 'Jail, prison or juvenile detention facility',
+      215 => 'Foster care home or foster care group home',
+      225 => 'Long-term care facility or nursing home',
+      302 => 'Transitional housing for homeless persons (including homeless youth)',
+      314 => 'Hotel or motel paid for without emergency shelter voucher',
+      329 => 'Residential project or halfway house with no homeless criteria',
+      332 => 'Host Home (non-crisis)',
+      335 => 'Staying or living in a family member’s room, apartment, or house',
+      336 => "Staying or living in a friend's room, apartment or house",
+      410 => 'Rental by client, no ongoing housing subsidy',
+      411 => 'Owned by client, no ongoing housing subsidy',
+      421 => 'Owned by client, with ongoing housing subsidy',
+      435 => 'Rental by client, with ongoing housing subsidy',
     }.freeze
   end
 
@@ -451,7 +443,7 @@ module HudLists
       4 => '90 days or more but less than one year',
       5 => 'One year or longer',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       10 => 'One night or less',
       11 => 'Two to six nights',
       99 => 'Data not collected',
@@ -466,7 +458,7 @@ module HudLists
       3 => 'Three times',
       4 => 'Four or more times',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -475,7 +467,7 @@ module HudLists
   def months_homeless_past_three_years_map
     {
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
       101 => '1',
       102 => '2',
@@ -501,7 +493,7 @@ module HudLists
       3 => 'Client did not apply',
       4 => 'Insurance type N/A for this client',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -516,7 +508,7 @@ module HudLists
       5 => 'Category 3 - Homeless only under other federal statutes',
       6 => 'Category 4 - Fleeing domestic violence',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -529,7 +521,7 @@ module HudLists
       2 => 'Drug use disorder',
       3 => 'Both alcohol and drug use disorders',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -542,17 +534,39 @@ module HudLists
       3 => 'Six months to one year ago (excluding one year exactly)',
       4 => 'One year or more',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
 
-  # 4.12.2
-  def contact_location_map
+  # 4.12
+  def living_situation_map
     {
-      1 => 'Place not meant for habitation',
-      2 => 'Service setting, non-residential',
-      3 => 'Service setting, residential',
+      8 => "Client doesn't know",
+      9 => 'Client prefers not to answer',
+      17 => 'Other',
+      35 => "Staying or living in a family member's room, apartment or house",
+      37 => 'Worker unable to determine',
+      99 => 'Data not collected',
+      101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',
+      116 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
+      118 => 'Safe Haven',
+      204 => 'Psychiatric hospital or other psychiatric facility',
+      205 => 'Substance abuse treatment facility or detox center',
+      206 => 'Hospital or other residential non-psychiatric medical facility',
+      207 => 'Jail, prison or juvenile detention facility',
+      215 => 'Foster care home or foster care group home',
+      225 => 'Long-term care facility or nursing home',
+      302 => 'Transitional housing for homeless persons (including homeless youth)',
+      314 => 'Hotel or motel paid for without emergency shelter voucher',
+      329 => 'Residential project or halfway house with no homeless criteria',
+      332 => 'Host Home (non-crisis)',
+      335 => 'Staying or living in a family member’s room, apartment, or house',
+      336 => "Staying or living in a friend's room, apartment or house",
+      410 => 'Rental by client, no ongoing housing subsidy',
+      411 => 'Owned by client, no ongoing housing subsidy',
+      421 => 'Owned by client, with ongoing housing subsidy',
+      435 => 'Rental by client, with ongoing housing subsidy',
     }.freeze
   end
 
@@ -560,46 +574,6 @@ module HudLists
   def bed_night_map
     {
       200 => 'BedNight',
-    }.freeze
-  end
-
-  # 4.14.B
-  def rhy_services_map
-    {
-      2 => 'Community service/service learning (CSL)',
-      5 => 'Education',
-      6 => 'Employment and training services',
-      7 => 'Criminal justice /legal services',
-      8 => 'Life skills training',
-      10 => 'Parenting education for youth with children',
-      12 => 'Post-natal care',
-      13 => 'Pre-natal care',
-      14 => 'Health/medical care',
-      17 => 'Substance use disorder treatment',
-      18 => 'Substance use disorder/Prevention Services',
-      26 => 'Home-based Services',
-      27 => 'Post-natal newborn care (wellness exams; immunizations)',
-      28 => 'STD Testing',
-      29 => 'Street-based Services',
-    }.freeze
-  end
-
-  # 4.15.B
-  def ssvf_financial_assistance_map
-    {
-      1 => 'Rental assistance',
-      2 => 'Security deposit',
-      3 => 'Utility deposit',
-      4 => 'Utility fee payment assistance',
-      5 => 'Moving costs',
-      8 => 'Transportation services: tokens/vouchers',
-      9 => 'Transportation services: vehicle repair/maintenance',
-      10 => 'Child care',
-      11 => 'General housing stability assistance - emergency supplies',
-      12 => 'General housing stability assistance',
-      14 => 'Emergency housing assistance',
-      15 => 'Extended Shallow Subsidy - Rental Assistance',
-      16 => 'Food Assistance',
     }.freeze
   end
 
@@ -681,6 +655,72 @@ module HudLists
     }.freeze
   end
 
+  # 4.21.6
+  def service_provided_map
+    {
+      0 => 'None',
+      1 => 'Financial Assistance',
+      2 => 'Other Assistance',
+      3 => 'Both Financial & Other Assistance',
+    }.freeze
+  end
+
+  # 4.21.A
+  def prevention_outcome_map
+    {
+      1 => 'Referral to a HP project opening',
+      2 => 'No HP referral – no availability, placed on priority/waiting list',
+      3 => 'No HP referral - determined ineligible',
+      4 => 'Referral to emergency assistance/flex fund/furniture assistance',
+      5 => 'Client declined HP referral',
+      6 => 'Don’t know outcome or outcome pending',
+    }.freeze
+  end
+
+  # 4.21.E
+  def shelter_outcome_map
+    {
+      1 => 'Referral to Diversion project opening',
+      2 => 'Client declined Diversion referral',
+      3 => 'Referral to Emergency Shelter bed opening',
+      4 => 'Client declined shelter referral - street outreach connection made',
+      5 => 'Client declined shelter referral - no connections/referrals',
+      6 => 'Placed on prioritization list',
+      7 => 'No connections/referrals provided',
+      8 => 'Don’t know yet or outcome pending',
+    }.freeze
+  end
+
+  # 4.21.I
+  def housing_outcome_map
+    {
+      1 => 'Referral to Diversion project opening',
+      2 => 'Referral to Transitional Housing bed/unit opening',
+      3 => 'Referral to Joint TH-RRH project/unit opening',
+      4 => 'Referral to RRH project/unit opening',
+      5 => 'Referral to PSH project/unit opening',
+      6 => 'Referral to Other PH project/unit opening',
+      7 => 'Referral to a Housing Stability Voucher',
+      8 => 'Client declined Diversion referral',
+      9 => 'Placed on prioritization list',
+      10 => 'No availability - Provided other housing information',
+      11 => 'Ineligible – Provided other housing information',
+      12 => 'Client declined housing referral',
+      13 => 'Don’t know yet or outcome pending',
+    }.freeze
+  end
+
+  # 4.21.M
+  def service_outcome_map
+    {
+      1 => 'Maintained housing they had at CE entry',
+      2 => 'Secured other permanent housing',
+      3 => 'Referred back to CE for shelter assessment',
+      4 => 'Referred back to CE for housing assessment',
+      5 => "Don't know yet or outcome pending",
+    }.freeze
+  end
+
   # 4.33.A
   def incarcerated_parent_status_map
     {
@@ -696,7 +736,7 @@ module HudLists
     {
       0 => 'No',
       1 => 'Yes',
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
     }.freeze
   end
 
@@ -721,7 +761,7 @@ module HudLists
       4 => '11-20',
       5 => 'More than 20',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -744,7 +784,7 @@ module HudLists
       2 => 'Confirmed through assessment and clinical evaluation',
       3 => 'Confirmed by prior evaluation or clinical records',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -757,34 +797,6 @@ module HudLists
       3 => 'Project exit',
       5 => 'Annual assessment',
       6 => 'Post-exit',
-    }.freeze
-  end
-
-  # C1.1
-  def wellbeing_agreement_map
-    {
-      0 => 'Strongly disagree',
-      1 => 'Somewhat disagree',
-      2 => 'Neither agree nor disagree',
-      3 => 'Somewhat agree',
-      4 => 'Strongly agree',
-      8 => "Client doesn't know",
-      9 => 'Client refused',
-      99 => 'Data not collected',
-    }.freeze
-  end
-
-  # C1.2
-  def feeling_frequency_map
-    {
-      0 => 'Not at all',
-      1 => 'Once a month',
-      2 => 'Several times a month',
-      3 => 'Several times a week',
-      4 => 'At least every day',
-      8 => "Client doesn't know",
-      9 => 'Client refused',
-      99 => 'Data not collected',
     }.freeze
   end
 
@@ -806,7 +818,7 @@ module HudLists
       1 => 'Currently enrolled but NOT attending regularly (when school or the course is in session)',
       2 => 'Currently enrolled and attending regularly (when school or the course is in session)',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -823,7 +835,7 @@ module HudLists
       6 => 'Higher education: Dropped out',
       7 => 'Higher education: Obtained a credential/degree',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -837,7 +849,7 @@ module HudLists
       3 => 'Pursuing Graduate Degree',
       4 => 'Pursuing other post-secondary credential',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -902,7 +914,7 @@ module HudLists
       2 => 'Individual: Parent/Guardian/Relative/Friend/Foster Parent/Other Individual',
       7 => 'Outreach Project',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       10 => 'Outreach project: other',
       11 => 'Temporary Shelter',
       18 => 'Residential Project',
@@ -928,25 +940,23 @@ module HudLists
   end
 
   # R14.2
-  def rhy_referral_map
+  def rhy_services_map
     {
-      1 => 'Child care non-TANF',
-      2 => 'Supplemental nutritional assistance program (food stamps)',
-      3 => 'Education - McKinney/Vento liaison assistance to remain in school',
-      4 => 'HUD section 8 or other permanent housing assistance',
-      5 => 'Individual development account',
-      6 => 'Medicaid',
-      7 => 'Mentoring program other than RHY agency',
-      8 => 'National service (Americorps, VISTA, Learn and Serve)',
-      9 => 'Non-residential substance abuse or mental health program',
-      10 => 'Other public - federal, state, or local program',
-      11 => 'Private non-profit charity or foundation support',
-      12 => 'SCHIP',
-      13 => 'SSI, SSDI, or other disability insurance',
-      14 => 'TANF or other welfare/non-disability income maintenance (all TANF services)',
-      15 => 'Unemployment insurance',
-      16 => 'WIC',
-      17 => 'Workforce development (WIA)',
+      2 => 'Community service/service learning (CSL)',
+      5 => 'Education',
+      6 => 'Employment and training services',
+      7 => 'Criminal justice /legal services',
+      8 => 'Life skills training',
+      10 => 'Parenting education for youth with children',
+      12 => 'Post-natal care for client (person who gave birth)',
+      13 => 'Pre-natal care',
+      14 => 'Health/medical care',
+      17 => 'Substance use disorder treatment',
+      18 => 'Substance use disorder/Prevention Services',
+      26 => 'Home-based Services',
+      27 => 'Post-natal newborn care (wellness exams; immunizations)',
+      28 => 'STD Testing',
+      29 => 'Street-based Services',
     }.freeze
   end
 
@@ -958,7 +968,7 @@ module HudLists
       3 => '8-11',
       4 => '12 or more',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -967,8 +977,8 @@ module HudLists
   def project_completion_status_map
     {
       1 => 'Completed project',
-      2 => 'Youth voluntarily left early',
-      3 => 'Youth was expelled or otherwise involuntarily discharged from project',
+      2 => 'Client voluntarily left early',
+      3 => 'Client was expelled or otherwise involuntarily discharged from project',
     }.freeze
   end
 
@@ -1009,7 +1019,7 @@ module HudLists
     {
       0 => 'No',
       1 => 'Yes',
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
     }.freeze
   end
 
@@ -1023,7 +1033,7 @@ module HudLists
       5 => 'Questioning / unsure',
       6 => 'Other',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -1039,7 +1049,7 @@ module HudLists
       6 => 'School program does not have grade levels',
       7 => 'GED',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       10 => 'Some college',
       11 => "Associate's degree",
       12 => "Bachelor's degree",
@@ -1060,7 +1070,7 @@ module HudLists
       6 => 'Suspended',
       7 => 'Expelled',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -1094,7 +1104,7 @@ module HudLists
       4 => 'Fair',
       5 => 'Poor',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -1107,8 +1117,9 @@ module HudLists
       3 => 'Navy',
       4 => 'Marines',
       6 => 'Coast Guard',
+      7 => 'Space Force',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -1123,7 +1134,7 @@ module HudLists
       6 => 'Under other than honorable conditions (OTH)',
       7 => 'Uncharacterized',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -1137,6 +1148,9 @@ module HudLists
       4 => 'Assistance obtaining/coordinating other public benefits',
       5 => 'Direct provision of other public benefits',
       6 => 'Other (non-TFA) supportive service approved by VA',
+      7 => 'Shallow Subsidy',
+      8 => 'Returning Home',
+      9 => 'Rapid Resolution',
     }.freeze
   end
 
@@ -1197,23 +1211,34 @@ module HudLists
     }.freeze
   end
 
-  # V4.1
-  def percent_ami_map
+  # V3.3
+  def ssvf_financial_assistance_map
     {
-      1 => 'Less than 30%',
-      2 => '30% to 50%',
-      3 => 'Greater than 50%',
-      99 => 'Data not collected',
+      1 => 'Rental assistance',
+      2 => 'Security deposit',
+      3 => 'Utility deposit',
+      4 => 'Utility fee payment assistance',
+      5 => 'Moving costs',
+      8 => 'Transportation services: tokens/vouchers',
+      9 => 'Transportation services: vehicle repair/maintenance',
+      10 => 'Child care',
+      11 => 'General housing stability assistance - emergency supplies [Deprecated]',
+      12 => 'General housing stability assistance',
+      14 => 'Emergency housing assistance',
+      15 => 'Shallow Subsidy - Financial Assistance',
+      16 => 'Food Assistance',
+      17 => 'Landlord Incentive',
+      18 => 'Tenant Incentive',
     }.freeze
   end
 
-  # V5.5
-  def address_data_quality_map
+  # V4.1
+  def percent_ami_map
     {
-      1 => 'Full address',
-      2 => 'Incomplete or estimated address',
-      8 => "Client doesn't know",
-      9 => 'Client refused',
+      1 => '30% or less',
+      2 => '31% to 50%',
+      3 => '51% to 80%',
+      4 => '81% or greater',
       99 => 'Data not collected',
     }.freeze
   end
@@ -1489,7 +1514,7 @@ module HudLists
       9 => 'Life skills training',
       10 => 'Mental health care/counseling',
       11 => 'Outreach and/or engagement',
-      12 => 'Substance abuse services/treatment',
+      12 => 'Substance use services/treatment',
       13 => 'Transportation',
       14 => 'Other HOPWA funded service',
     }.freeze
@@ -1503,7 +1528,7 @@ module HudLists
       3 => 'Client did not apply',
       4 => 'Insurance type not applicable for this client',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -1515,7 +1540,7 @@ module HudLists
       1 => 'Available',
       2 => 'Undetectable',
       8 => "Client doesn't know",
-      9 => 'Client refused',
+      9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
   end
@@ -1538,10 +1563,10 @@ module HudLists
       4 => 'Moved in with family/friends on a permanent basis',
       5 => 'Moved to a transitional or temporary housing facility or program',
       6 => 'Client became homeless - moving to a shelter or other place unfit for human habitation',
-      7 => 'Client went to jail/prison',
+      7 => 'Jail/prison',
       8 => "Client doesn't know",
-      9 => 'Client refused',
-      10 => 'Client died',
+      9 => 'Client prefers not to answer',
+      10 => 'Deceased',
       99 => 'Data not collected',
     }.freeze
   end

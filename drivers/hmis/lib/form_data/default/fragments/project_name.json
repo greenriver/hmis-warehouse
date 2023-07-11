@@ -9,21 +9,21 @@
       "required": true,
       "link_id": "2.02.2",
       "text": "Project Name",
-      "field_name": "projectName"
+      "mapping": { "field_name": "projectName" }
     },
     {
       "type": "TEXT",
       "required": false,
       "link_id": "description",
       "text": "Description",
-      "field_name": "description"
+      "mapping": { "field_name": "description" }
     },
     {
       "type": "TEXT",
       "required": false,
       "link_id": "contact",
       "text": "Contact Information",
-      "field_name": "contactInformation"
+      "mapping": { "field_name": "contactInformation" }
     }
   ]
 }

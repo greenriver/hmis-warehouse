@@ -9,7 +9,7 @@
       "component": "NAME",
       "repeats": true,
       "link_id": "names",
-      "field_name": "names"
+      "mapping": { "field_name": "names" }
     }
   ]
 }

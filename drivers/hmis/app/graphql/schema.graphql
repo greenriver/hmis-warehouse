@@ -148,19 +148,24 @@ type Assessment {
   assessmentDate: ISO8601Date!
   client: Client!
   customDataElements: [CustomDataElement!]!
-  customForm: CustomForm
   dataCollectionStage: DataCollectionStage
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  definition: FormDefinition!
   disabilityGroup: DisabilityGroup
+  employmentEducation: EmploymentEducation
   enrollment: Enrollment!
+  enrollmentCoc: String
   exit: Exit
   healthAndDv: HealthAndDv
   id: ID!
   inProgress: Boolean!
   incomeBenefit: IncomeBenefit
+  role: AssessmentRole!
   user: User
+  wipValues: JsonObject
+  youthEducationStatus: YouthEducationStatus
 }
 
 type AssessmentAccess {
@@ -193,14 +198,14 @@ input AssessmentInput {
   enrollmentId: ID
 
   """
-  Required if saving a new assessment
+  Form Definition that was used to perform this assessment
   """
-  formDefinitionId: ID
+  formDefinitionId: ID!
 
   """
   Transformed HUD values as JSON
   """
-  hudValues: JsonObject
+  hudValues: JsonObject!
 
   """
   Validate assessment but don't submit it
@@ -210,7 +215,7 @@ input AssessmentInput {
   """
   Raw form state as JSON
   """
-  values: JsonObject
+  values: JsonObject!
 }
 
 """
@@ -1292,16 +1297,6 @@ type CustomDataElementValue {
 }
 
 """
-CustomForm
-"""
-type CustomForm {
-  assessment: Assessment!
-  definition: FormDefinition!
-  id: ID!
-  values: JsonObject
-}
-
-"""
 3.03.2
 """
 enum DOBDataQuality {
@@ -2209,6 +2204,7 @@ type Enrollment {
   clientEnrolledInPath: NoYesMissing
   countOutreachReferralApproaches: Int
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date
@@ -2230,6 +2226,8 @@ type Enrollment {
   formerWardJuvenileJustice: NoYesReasonsForMissingData
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   household: Household!
+  householdId: ID!
+  householdShortId: ID!
   householdSize: Int!
   id: ID!
   inProgress: Boolean!
@@ -2735,6 +2733,23 @@ enum FeelingFrequency {
   SEVERAL_TIMES_A_WEEK
 }
 
+type FieldMapping {
+  """
+  Key of CustomDataElement where field is stored
+  """
+  customFieldKey: String
+
+  """
+  Field name that this field is stored as
+  """
+  fieldName: String
+
+  """
+  Type of record that this field is tied to
+  """
+  recordType: RelatedRecordType
+}
+
 """
 File
 """
@@ -2783,10 +2798,7 @@ FormDefinition
 type FormDefinition {
   definition: FormDefinitionJson!
   id: ID!
-  identifier: String!
   role: FormRole!
-  status: String!
-  version: Int!
 }
 
 type FormDefinitionJson {
@@ -2840,11 +2852,6 @@ type FormItem {
   component: Component
 
   """
-  Key of CustomDataElement to save record as. Use record_type to specify type.
-  """
-  customFieldKey: String
-
-  """
   Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout
@@ -2855,12 +2862,6 @@ type FormItem {
   disabledDisplay: DisabledDisplay
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
-
-  """
-  Name of the field on the record (or on the query input type). Used for record
-  creation/update forms, for assessment population, and for assessment extraction.
-  """
-  fieldName: String
 
   """
   Include this item only for the listed funders
@@ -2891,6 +2892,7 @@ type FormItem {
   Unique identifier for item
   """
   linkId: String!
+  mapping: FieldMapping
 
   """
   Permitted answers, for choice items
@@ -2903,10 +2905,9 @@ type FormItem {
   pickListReference: String
 
   """
-  Whether to allow pre-filling section from recent records. Should only be
-  enabled in conjunction with record_type and for top-level group items.
+  Whether to allow pre-filling section from a recent records
   """
-  prefill: Boolean
+  prefill: RelatedRecordType
 
   """
   Prefix for the item label
@@ -2932,11 +2933,6 @@ type FormItem {
   Text to use for the item when displayed in read-only view
   """
   readonlyText: String
-
-  """
-  Record type to use for population and extraction
-  """
-  recordType: RelatedRecordType
 
   """
   Whether the item may repeat (for choice types, this means multiple choice)
@@ -5310,6 +5306,11 @@ type Query {
   Household lookup
   """
   household(id: ID!): Household
+
+  """
+  Get group of assessments that are performed together
+  """
+  householdAssessments(assessmentId: ID, assessmentRole: AssessmentRole!, householdId: ID!): [Assessment!]
 
   """
   Inventory lookup
