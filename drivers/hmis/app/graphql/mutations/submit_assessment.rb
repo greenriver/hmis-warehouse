@@ -78,17 +78,7 @@ module Mutations
       return { assessments: assessments, errors: [] } if input.validate_only
 
       if is_valid
-        # Save FormProcessor to save related records
-        assessment.form_processor.save!
-        # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
-        assessment.enrollment.save!
-        # Save the assessment as non-WIP
-        assessment.touch
-        assessment.save_not_in_progress
-        # If this is an intake assessment, ensure the enrollment is no longer in WIP status
-        assessment.enrollment.save_not_in_progress if assessment.intake?
-        # Update DateUpdated on the Enrollment
-        assessment.enrollment.touch
+        assessment.save_submitted_assessment!(current_user: current_user)
       else
         # These are potentially unfixable errors. Maybe should be server error instead.
         # For now, return them all because they are useful in development.

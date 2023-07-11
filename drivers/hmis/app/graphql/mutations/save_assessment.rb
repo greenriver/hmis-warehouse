@@ -35,9 +35,7 @@ module Mutations
       is_valid = assessment.valid?
       is_valid = assessment.form_processor.valid? && is_valid
       if is_valid
-        assessment.form_processor.save!
-        assessment.touch
-        assessment.save_in_progress
+        assessment.save_submitted_assessment!(current_user: current_user, as_wip: true)
       else
         errors.add_ar_errors(assessment.errors&.errors)
         errors.add_ar_errors(assessment.form_processor&.errors&.errors)
