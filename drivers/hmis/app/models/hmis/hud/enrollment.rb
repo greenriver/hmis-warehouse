@@ -55,6 +55,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
+  alias_to_underscore [:EnrollmentCoC]
 
   SORT_OPTIONS = [:most_recent, :household_id].freeze
 

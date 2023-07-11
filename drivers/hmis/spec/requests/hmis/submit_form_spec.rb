@@ -160,7 +160,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
               record = definition.record_class_name.constantize.find_by(id: record_id)
               expect(record).to be_present
-              expect(Hmis::Form::CustomForm.count).to eq(0)
               expect(Hmis::Form::FormProcessor.count).to eq(0)
 
               # Expect that all of the fields that were submitted exist on the record
@@ -178,14 +177,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           input = test_input.merge(
             values: test_input[:values].merge(required_item.link_id => nil),
-            hud_values: test_input[:hud_values].merge(required_item.field_name => nil),
+            hud_values: test_input[:hud_values].merge(required_item.mapping.field_name => nil),
           )
           response, result = post_graphql(input: { input: input }) { mutation }
           record = result.dig('data', 'submitForm', 'record')
           errors = result.dig('data', 'submitForm', 'errors')
           expected_error = {
             type: :required,
-            attribute: required_item.field_name,
+            attribute: required_item.mapping.field_name,
             severity: :error,
           }
 

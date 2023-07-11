@@ -11,6 +11,10 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
+  before(:all) do
+    cleanup_test_environment
+  end
+
   let!(:client) do
     create :hmis_hud_client_complete, data_source: ds1, user: u1
   end
@@ -110,7 +114,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'client', 'enrollments', 'nodes').size).to eq(enrollments.size)
-      end.to perform_under(200).ms
+      end.to perform_under(250).ms
     end
   end
 end

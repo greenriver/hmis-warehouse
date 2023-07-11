@@ -14,28 +14,28 @@
           "required": false,
           "link_id": "first-name",
           "text": "First Name",
-          "field_name": "firstName"
+          "mapping": { "field_name": "firstName" }
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "middle-name",
           "text": "Middle Name",
-          "field_name": "middleName"
+          "mapping": { "field_name": "middleName" }
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "last-name",
           "text": "Last Name",
-          "field_name": "lastName"
+          "mapping": { "field_name": "lastName" }
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "name-suffix",
           "text": "Suffix",
-          "field_name": "nameSuffix",
+          "mapping": { "field_name": "nameSuffix" },
           "size": "XSMALL"
         }
       ]
@@ -50,7 +50,7 @@
           "required": false,
           "link_id": "name-dq",
           "text": "Name Data Quality",
-          "field_name": "nameDataQuality",
+          "mapping": { "field_name": "nameDataQuality" },
           "pick_list_reference": "NameDataQuality"
         }
       ]
