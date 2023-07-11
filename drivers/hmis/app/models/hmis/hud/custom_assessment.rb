@@ -87,14 +87,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def save_in_progress
     self.wip = true
-    touch # Update even if no changes to assessment record
     save!
+    touch # Update even if no changes to assessment record
   end
 
   def save_not_in_progress
     self.wip = false
-    touch # Update even if no changes to assessment record
     save!
+    touch # Update even if no changes to assessment record
   end
 
   def in_progress?
