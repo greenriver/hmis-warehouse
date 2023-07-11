@@ -9,6 +9,6 @@ module Financial
     self.table_name = :financial_transactions
 
     belongs_to :provider
-    belongs_to :client
+    belongs_to :client, foreign_key: :external_client_id
   end
 end

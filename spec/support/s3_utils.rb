@@ -1,7 +1,13 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.configure do |config|
   config.before(:suite) do
     Aws.config.update(
-      credentials: Aws::Credentials.new(ENV.fetch('AWS_ACCESS_KEY_ID', 'local_access_key'), ENV.fetch('AWS_SECRET_ACCESS_KEY', 'local_access_key')),
+      credentials: Aws::Credentials.new(ENV.fetch('AWS_ACCESS_KEY_ID', 'local_access_key'), ENV.fetch('AWS_SECRET_ACCESS_KEY', 'local_secret_key')),
       endpoint: ENV.fetch('MINIO_ENDPOINT', 'http://s3.dev.test:9000'),
       force_path_style: true,
       region: 'us-east-1',

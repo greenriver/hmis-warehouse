@@ -26,6 +26,7 @@ module Financial::CsvImportConcern
       headers = clean_headers(file.first.compact)
       file.drop(1).each_slice(batch_size) do |lines|
         loaded_rows += lines.count
+
         associated_class.import!(
           headers,
           clean_rows(lines),

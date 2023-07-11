@@ -20,7 +20,7 @@ module Financial
       matched = []
       where(client_id: nil).find_each do |client|
         # First check for PersonalID match
-        client.client_id = GrdaWarehouse::Hud::Client.source.
+        client.client_id = ::GrdaWarehouse::Hud::Client.source.
           find_by(personal_id: client.hmis_id_if_applicable)&.
           destination_client&.
           id
@@ -30,7 +30,7 @@ module Financial
         end
 
         # Find a match based on exact match of name, and DOB
-        client.client_id = GrdaWarehouse::Hud::Client.source.
+        client.client_id = ::GrdaWarehouse::Hud::Client.source.
           find_by(
             c_t[:FirstName].matches(client.client_first_name.downcase),
             c_t[:LastName].matches(client.client_last_name.downcase),
