@@ -28,7 +28,7 @@ module HmisExternalApis::AcHmis
       )
 
       cdes_to_update = Hmis::Hud::CustomDataElement.where(owner_type: 'Hmis::Hud::Client', owner_id: client_ids, data_element_definition: cded)
-      cdes_to_update.update_all(value_boolean: true, user_id: system_user.id)
+      cdes_to_update.update_all(value_boolean: true, user_id: system_user.user_id)
 
       cde_attributes_to_create = (client_ids - cdes_to_update.pluck(:owner_id)).map do |client_id|
         {
