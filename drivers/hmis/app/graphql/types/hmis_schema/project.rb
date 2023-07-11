@@ -31,6 +31,7 @@ module Types
       ]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :funder, [HmisSchema::Enums::Hud::FundingSource]
+      arg :organization, [ID]
       arg :search_term, String
     end
 
