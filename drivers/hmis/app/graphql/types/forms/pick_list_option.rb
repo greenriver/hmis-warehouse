@@ -69,22 +69,18 @@ module Types
         # actually return all unit types, regardless of project
         all_unit_types = Hmis::UnitType.order(:description, :id)
         return all_unit_types.map(&:to_pick_list_option)
-      when 'POSSIBLE_PROJECT_UNIT_TYPES'
-        # for creating new units at a project
-        raise unless project.present?
 
-        possible_unit_types_for_project(project)
       when 'UNIT_TYPES'
         # If no project was specified, return all unit types
         all_unit_types = Hmis::UnitType.order(:description, :id)
         return all_unit_types.map(&:to_pick_list_option) unless relation_id.present?
         return [] unless project.present? # relation id specified but project not found
 
-        unit_types_for_project(project, available_only: false)
+        possible_unit_types_for_project(project)
       when 'AVAILABLE_UNIT_TYPES'
         return [] unless project.present?
 
-        unit_types_for_project(project, available_only: true)
+        available_unit_types_for_project(project)
       when 'UNITS'
         return [] unless project.present?
 
@@ -155,9 +151,8 @@ module Types
       end
     end
 
-    def self.unit_types_for_project(project, available_only: false)
-      units = project.units
-      units = units.unoccupied_on if available_only
+    def self.available_unit_types_for_project(project)
+      units = project.units.unoccupied_on
 
       # Hash { unit type id => num unoccupied }
       unit_type_to_availability = units.group(:unit_type_id).count

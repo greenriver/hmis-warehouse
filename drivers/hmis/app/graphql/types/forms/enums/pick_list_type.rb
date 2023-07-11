@@ -24,7 +24,6 @@ module Types
     value 'AVAILABLE_UNIT_TYPES', 'Unit types that have unoccupied units in the specified project'
     value 'UNITS', 'Units in the specified project'
     value 'AVAILABLE_UNITS', 'Unoccupied units in the specified project'
-    value 'POSSIBLE_PROJECT_UNIT_TYPES', 'What are valid unit types for new units'
     value 'ALL_SERVICE_TYPES'
     value 'ALL_SERVICE_CATEGORIES'
     value 'AVAILABLE_SERVICE_TYPES'

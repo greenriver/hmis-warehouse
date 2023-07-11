@@ -4972,11 +4972,6 @@ enum PickListType {
   All Organizations that the User can see
   """
   ORGANIZATION
-
-  """
-  What are valid unit types for new units
-  """
-  POSSIBLE_PROJECT_UNIT_TYPES
   PRIOR_LIVING_SITUATION
 
   """
