@@ -105,14 +105,6 @@ module Types
     field :user, HmisSchema::User, null: true
     field :image, HmisSchema::ClientImage, null: true
 
-    def client_files
-      load_ar_association(object, :client_files)
-    end
-
-    def image
-      client_files&.client_photos&.newest_first&.first&.client_file
-    end
-
     access_field do
       can :view_partial_ssn
       can :view_full_ssn
@@ -181,9 +173,9 @@ module Types
     end
 
     def image
-      return nil unless object.image&.download
-
-      object.image
+      files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
+      file = files.first
+      file&.download ? file : nil
     end
 
     def user
