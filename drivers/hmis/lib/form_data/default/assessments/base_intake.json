@@ -23,6 +23,9 @@
     },
     {
       "fragment": "#youth_education_status"
+    },
+    {
+      "fragment": "#employment_education"
     }
   ]
 }
