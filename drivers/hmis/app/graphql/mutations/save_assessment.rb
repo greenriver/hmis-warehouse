@@ -31,12 +31,10 @@ module Mutations
       errors.reject!(&:warning?)
       return { errors: errors } if errors.any?
 
-      errors = HmisErrors::Errors.new
-      is_valid = assessment.valid?
-      is_valid = assessment.form_processor.valid? && is_valid
-      if is_valid
+      if assessment.valid?(:form_submission)
         assessment.save_submitted_assessment!(current_user: current_user, as_wip: true)
       else
+        errors = HmisErrors::Errors.new
         errors.add_ar_errors(assessment.errors&.errors)
         errors.add_ar_errors(assessment.form_processor&.errors&.errors)
         errors.deduplicate!

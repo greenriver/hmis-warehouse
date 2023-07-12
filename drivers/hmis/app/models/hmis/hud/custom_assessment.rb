@@ -53,6 +53,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   attr_accessor :in_progress
 
   validates_with Hmis::Hud::Validators::CustomAssessmentValidator
+  validate :form_processor_is_valid, on: :form_submission
 
   scope :in_progress, -> { where(wip: true) }
   scope :not_in_progress, -> { where(wip: false) }
@@ -112,7 +113,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   def save_submitted_assessment!(current_user:, as_wip: false)
     Hmis::Hud::CustomAssessment.transaction do
       # Save FormProcessor to save wip values and/or related records
-      form_processor.save!
+      form_processor.save! # Not passing validation context because records have already been validated
 
       # Save the assessment record
       if as_wip
@@ -181,5 +182,13 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def self.hud_key
     :CustomAssessmentID
+  end
+
+  # If we are validating a form submission, validate the form processor
+  # which will validate all related records.
+  # Does not merge errors into assessment error object, so caller
+  # must check form_processor.errors for any validation errors.
+  private def form_processor_is_valid
+    form_processor.valid?(:form_submission)
   end
 end

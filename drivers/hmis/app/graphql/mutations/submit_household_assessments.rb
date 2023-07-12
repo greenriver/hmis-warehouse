@@ -87,8 +87,7 @@ module Mutations
       all_valid = true
       household_members = assessments.map(&:enrollment) # Enrollments with unsaved changes to Entry dates
       assessments.each do |assessment|
-        all_valid = false unless assessment.valid?
-        all_valid = false unless assessment.form_processor.valid?
+        all_valid = false unless assessment.valid?(:form_submission)
         record_validations = assessment.form_processor.collect_record_validations(
           user: current_user,
           household_members: household_members,
