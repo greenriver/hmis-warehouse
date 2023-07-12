@@ -27,13 +27,16 @@
             %thead
               %tr
                 %th Client
-                %th Required Documents
-                %th Optional Documents
-                %th All documents
+                %th Required Documents (of #{@report.total_required_documents} in #{@report.total_required_document_groups} groups)
+                %th Optional Documents (of #{@report.total_optional_documents} in #{@report.total_optional_document_groups} groups)
+                %th All documents (of #{@report.total_overall_documents} in #{@report.total_overall_document_groups} groups)
             %tbody
               - @clients.each do |client|
                 %tr
-                  %td= link_to client.name, client.appropriate_path_for?(current_user)
+                  %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+                  %td= @report.required_documents(client).count
+                  %td= @report.optional_documents(client).count
+                  %td= @report.overall_documents(client).count
         = render 'common/pagination_bottom', item_name: 'client'
       - else
         .well.none-found
