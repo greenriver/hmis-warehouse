@@ -191,7 +191,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
-      expect(assessment.form_processor.valid?).to be false
+      expect(assessment.form_processor.valid?(:form_submission)).to be false
       expect(assessment.form_processor.errors.where(:income_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
