@@ -203,7 +203,7 @@ module HmisExternalApis::AcHmis::Importers
           unit_capacity: row.fetch('UnitCapacity'),
           active: active,
         }
-      end
+      end.compact
 
       Hmis::ProjectUnitTypeMapping.import!(
         records,
