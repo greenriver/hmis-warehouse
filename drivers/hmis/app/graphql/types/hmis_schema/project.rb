@@ -113,7 +113,7 @@ module Types
 
     # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
-      project_units = object.units.active
+      project_units = object.units
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
 
