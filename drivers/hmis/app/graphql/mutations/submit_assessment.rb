@@ -63,9 +63,8 @@ module Mutations
       # Run processor to create/update related records
       assessment.form_processor.run!(owner: assessment, user: current_user)
 
-      # Run both validations
-      is_valid = assessment.valid?
-      is_valid = assessment.form_processor.valid? && is_valid
+      # Run validations
+      is_valid = assessment.valid?(:form_submission)
 
       # Collect validations and warnings from AR Validator classes
       record_validations = assessment.form_processor.collect_record_validations(user: current_user)
