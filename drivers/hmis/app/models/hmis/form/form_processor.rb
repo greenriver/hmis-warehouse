@@ -28,7 +28,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :employment_education, class_name: 'Hmis::Hud::EmploymentEducation', optional: true, autosave: true
   belongs_to :current_living_situation, class_name: 'Hmis::Hud::CurrentLivingSituation', optional: true, autosave: true
 
-  validate :hmis_records_are_valid
+  validate :hmis_records_are_valid, on: :form_submission
 
   attr_accessor :owner, :hud_user, :current_user
 
