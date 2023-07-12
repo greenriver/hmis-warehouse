@@ -17,7 +17,7 @@ module GrdaWarehouse::CustomImports
     has_one :data_source, through: :config
 
     def check_hour
-      return true if Rails.env.development?
+      return true if Rails.env.development? || Rails.env.test?
 
       # Only allow imports during the specified hour where it hasn't started in the past 23 hours
       last_start_time = config.import_files.maximum(:started_at).presence || 3.days.ago
@@ -91,6 +91,11 @@ module GrdaWarehouse::CustomImports
       FileUtils.remove_entry(tmp_dir)
     end
 
+    # NOTE: at the moment, this doesn't check file names or etags, it just returns the most recent
+    # eventually we should compare etags to make sure we aren't re-importing the same file repeatedly.
+    # File name isn't sufficient because we receive some files that _always_ come with the same name.
+    # Also, we don't want to exlude a file because we previously saw the same etag if we've imported
+    # something else in the meantime, since we might be trying to fix a previously bad import.
     def most_recent_on_s3
       files = []
       # Returns oldest first
