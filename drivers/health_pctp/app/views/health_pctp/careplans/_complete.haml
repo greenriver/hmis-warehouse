@@ -17,20 +17,20 @@
   .row
     .col
       - if current_user.can_approve_cha?
+        = f.input :review_by_rn_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)'
+      - if @careplan.review_by_rn_complete
+        .row
+          .col.mb-4
+            = "Reviewed by #{@careplan.reviewed_by_rn&.name_with_credentials} on #{@careplan.reviewed_by_rn_on}"
+  .row
+    .col
+      - if current_user.can_approve_careplan
         %h4 By approving this record, you agree that the above information is true to the best of your knowledge
         = f.input :review_by_ccm_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager'
       - if @careplan.review_by_ccm_complete
         .row
           .col.mb-4
             = "Reviewed by #{@careplan.reviewed_by_ccm&.name_with_credentials} on #{@careplan.reviewed_by_ccm_on}"
-  .row
-    .col
-      - if current_user.can_approve_careplan
-        = f.input :review_by_rn_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)'
-      - if @careplan.review_by_rn_complete
-        .row
-          .col.mb-4
-            = "Reviewed by #{@careplan.reviewed_by_rn&.name_with_credentials} on #{@careplan.reviewed_by_rn_on}"
   .row
     .col-6
       = f.input :name_sent_to, label: 'Primary Care Provider or PCP Designee'
