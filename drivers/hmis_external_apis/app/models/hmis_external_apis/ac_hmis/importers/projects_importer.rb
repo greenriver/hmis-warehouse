@@ -187,8 +187,12 @@ module HmisExternalApis::AcHmis::Importers
         else
           raise 'unknown value for IsActive'
         end
+
         db_project_id = projects_ids_by_hud.fetch(row['ProgramID'], nil)
-        raise "UnitTypeMapping error: ProgramID not found: #{row['ProgramID']}" unless db_project_id.present?
+        if db_project_id.nil?
+          Rails.logger.info "Skipping unrecognized ProgramID: #{row['ProgramID']}"
+          next
+        end
 
         db_unit_type_id = unit_type_ids_by_mper.fetch(row['UnitTypeID'], nil)
         raise "UnitTypeMapping error: UnitTypeID not found: #{row['UnitTypeID']}" unless db_unit_type_id.present?
