@@ -47,10 +47,14 @@ module HmisExternalApis::AcHmis
         .then { |r| handle_error(r) }
     end
 
+    def active_referral_mci_ids
+      conn.get('Referral/ActiveReferralMciid').then { |r| handle_error(r) }
+    end
+
     protected
 
     def handle_error(result)
-      Sentry.capture_exception(result.error) if result.error
+      Sentry.capture_exception(StandardError.new(result.error)) if result.error
       raise HmisErrors::ApiError, result.error if result.error
 
       result

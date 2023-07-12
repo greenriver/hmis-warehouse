@@ -121,9 +121,13 @@ module Types
       can :view_any_confidential_client_files
     end
 
-    # FIXME: use graphql dataloader
     def external_ids
-      object.external_identifiers
+      collection = Hmis::Hud::ClientExternalIdentifierCollection.new(
+        client: object,
+        ac_hmis_mci_ids: load_ar_association(object, :ac_hmis_mci_ids),
+        warehouse_client_source: load_ar_association(object, :warehouse_client_source)
+      )
+      collection.hmis_identifiers + collection.mci_identifiers
     end
 
     def enrollments(**args)
@@ -147,7 +151,7 @@ module Types
     end
 
     def assessments(**args)
-      resolve_assessments_including_wip(**args)
+      resolve_assessments(**args)
     end
 
     def services(**args)
@@ -169,9 +173,9 @@ module Types
     end
 
     def image
-      return nil unless object.image&.download
-
-      object.image
+      files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
+      file = files.first
+      file&.download ? file : nil
     end
 
     def user
@@ -215,11 +219,11 @@ module Types
     end
 
     def phone_numbers
-      load_ar_association(object, :contact_points).filter {|r| r.system == 'phone'}
+      load_ar_association(object, :contact_points).filter { |r| r.system == 'phone' }
     end
 
     def email_addresses
-      load_ar_association(object, :contact_points).filter {|r| r.system == 'email'}
+      load_ar_association(object, :contact_points).filter { |r| r.system == 'email' }
     end
 
     def addresses

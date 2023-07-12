@@ -5,8 +5,8 @@
 ###
 
 require 'rails_helper'
-require_relative 'login_and_permissions'
-require_relative '../../support/hmis_base_setup'
+require_relative '../login_and_permissions'
+require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -19,11 +19,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
-  let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
-  let!(:fd1) { create :hmis_form_definition, role: 'UPDATE' }
-  let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, client: c1, user: u1 }
-  let!(:cf1) { create :hmis_form_custom_form, definition: fd1, owner: a1 }
+  let(:c1) { create :hmis_hud_client, data_source: ds1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: 2.weeks.ago }
+  let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 5 }
 
   before(:each) do
     hmis_login(user)
@@ -87,7 +85,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it "should handle deleting #{name} intake assessment based on whether user can delete enrollments" do
       remove_permissions(access_control, :can_delete_enrollments)
       action.call(a1)
-      fd1.update(role: 'INTAKE')
+      a1.update(data_collection_stage: 1) # intake
 
       if key == :submitted
         expect_gql_error post_graphql(input: { id: a1.id }) { mutation }
@@ -108,7 +106,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   wip_and_submitted.each do |key, name, action|
     it "should handle deleting a #{name} intake assessment" do
       action.call(a1)
-      fd1.update(role: 'INTAKE')
+      a1.update(data_collection_stage: 1) # intake
 
       mutate(input: { id: a1.id }) do |assessment_id, errors|
         a1.reload
@@ -128,20 +126,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  # Client should be exited when deleting an exit assessment
-  wip_and_submitted.each do |_key, name, action|
-    it "should handle deleting a #{name} intake assessment" do
-      action.call(a1)
-      fd1.update(role: 'EXIT')
-      create(:hmis_hud_exit, enrollment: e1, client: c1, user: u1, data_source: ds1)
+  it 'should un-exit when deleting a submitted exit assessment' do
+    a1.save_not_in_progress
+    a1.update(data_collection_stage: 3) # exit
+    create(:hmis_hud_exit, enrollment: e1, client: c1, user: u1, data_source: ds1)
 
-      mutate(input: { id: a1.id }) do |assessment_id, errors|
-        expect(assessment_id).to be_present
-        expect(errors).to be_empty
-        expect(Hmis::Hud::CustomAssessment.all).not_to include(have_attributes(id: a1.id))
-        expect(e1.exit).to be_nil
-        expect(e1.exit_date).to be_nil
-      end
+    mutate(input: { id: a1.id }) do |assessment_id, errors|
+      expect(assessment_id).to be_present
+      expect(errors).to be_empty
+      expect(Hmis::Hud::CustomAssessment.all).not_to include(have_attributes(id: a1.id))
+      expect(e1.exit).to be_nil
+      expect(e1.exit_date).to be_nil
     end
   end
 end

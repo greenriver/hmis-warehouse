@@ -19,6 +19,6 @@ module Types
     value 'EXIT', 'Exit'
     value 'CURRENT_LIVING_SITUATION', 'CurrentLivingSituation'
     value 'YOUTH_EDUCATION_STATUS', 'YouthEducationStatus'
-    value 'EMPLOYMENT_EDUCATION', 'ExmploymentEducation'
+    value 'EMPLOYMENT_EDUCATION', 'EmploymentEducation'
   end
 end

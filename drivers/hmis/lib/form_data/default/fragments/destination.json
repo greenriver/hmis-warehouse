@@ -3,13 +3,12 @@
   "link_id": "destination",
   "text": "Exit Details",
   "data_collected_about": "ALL_CLIENTS",
-  "record_type": "EXIT",
   "item": [
     {
       "type": "DATE",
       "link_id": "exit-date",
       "text": "Exit Date",
-      "field_name": "exitDate",
+      "mapping": { "record_type": "EXIT", "field_name": "exitDate" },
       "required": true,
       "assessment_date": true,
       "initial": [
@@ -28,7 +27,7 @@
       "link_id": "3.12",
       "text": "Exit Destination",
       "pick_list_reference": "DESTINATION",
-      "field_name": "destination",
+      "mapping": { "record_type": "EXIT", "field_name": "destination" },
       "required": false,
       "warn_if_empty": true
     },
@@ -36,7 +35,7 @@
       "type": "STRING",
       "link_id": "3.12.A ",
       "text": "Other destination",
-      "field_name": "otherDestination",
+      "mapping": { "record_type": "EXIT", "field_name": "otherDestination" },
       "enable_behavior": "ALL",
       "required": true,
       "enable_when": [

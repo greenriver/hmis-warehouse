@@ -65,20 +65,22 @@ module Types
           map(&:to_pick_list_option)
 
       when 'ALL_UNIT_TYPES'
+        # for referrals between projects
         # actually return all unit types, regardless of project
         all_unit_types = Hmis::UnitType.order(:description, :id)
         return all_unit_types.map(&:to_pick_list_option)
+
       when 'UNIT_TYPES'
         # If no project was specified, return all unit types
         all_unit_types = Hmis::UnitType.order(:description, :id)
         return all_unit_types.map(&:to_pick_list_option) unless relation_id.present?
         return [] unless project.present? # relation id specified but project not found
 
-        unit_types_for_project(project, available_only: false)
+        possible_unit_types_for_project(project)
       when 'AVAILABLE_UNIT_TYPES'
         return [] unless project.present?
 
-        unit_types_for_project(project, available_only: true)
+        available_unit_types_for_project(project)
       when 'UNITS'
         return [] unless project.present?
 
@@ -149,9 +151,8 @@ module Types
       end
     end
 
-    def self.unit_types_for_project(project, available_only: false)
-      units = project.units
-      units = units.unoccupied_on if available_only
+    def self.available_unit_types_for_project(project)
+      units = project.units.unoccupied_on
 
       # Hash { unit type id => num unoccupied }
       unit_type_to_availability = units.group(:unit_type_id).count
@@ -164,6 +165,21 @@ module Types
           option[:secondary_label] = "#{num_left} available"
           option
         end
+    end
+
+    # UNIT_TYPES pick list should only return types that are "mapped" for this project. If there are
+    # no mappings it should return all unit types, which is the default behavior.
+    def self.possible_unit_types_for_project(project)
+      unit_type_scope = Hmis::UnitType.all
+      unit_type_ids = project.unit_type_mappings.active.pluck(:unit_type_id)
+      if unit_type_ids.any?
+        unit_type_ids += project.units.distinct.pluck(:unit_type_id) # include unit types for existing units
+        unit_type_scope = unit_type_scope.where(id: unit_type_ids)
+      end
+
+      unit_type_scope
+        .order(:description, :id)
+        .map(&:to_pick_list_option)
     end
 
     def self.coc_picklist(selected_project)

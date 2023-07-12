@@ -4,7 +4,7 @@
       "type": "STRING",
       "link_id": "client-id",
       "hidden": true,
-      "field_name": "id"
+      "mapping": { "field_name": "id" }
     },
     {
       "type": "DATE",

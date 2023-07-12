@@ -37,6 +37,12 @@
       },
     })
     hmis.merge!({
+      financial_client_path(@client) => {
+        title: 'Transactions',
+        permission: can_access_some_version_of_clients? && @client.financial_clients.exists?,
+      },
+    }) if RailsDrivers.loaded.include?(:financial)
+    hmis.merge!({
       map_client_location_history_client_path(@client) => {
         title: 'Locations',
         permission: show_demographic && can_view_client_locations?,

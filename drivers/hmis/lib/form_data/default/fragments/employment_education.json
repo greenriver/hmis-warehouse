@@ -1,0 +1,70 @@
+{
+  "type": "GROUP",
+  "link_id": "employment-education",
+  "text": "Employment Education",
+  "data_collected_about": "ALL_CLIENTS",
+  "prefill": "EMPLOYMENT_EDUCATION",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R4.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Last Grade Completed",
+      "pick_list_reference": "LastGradeCompleted",
+      "mapping": { "record_type": "EMPLOYMENT_EDUCATION", "field_name": "lastGradeCompleted" }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R5.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "School Status",
+      "pick_list_reference": "SchoolStatus",
+      "mapping": { "record_type": "EMPLOYMENT_EDUCATION", "field_name": "schoolStatus" }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R6.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Employed",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": { "record_type": "EMPLOYMENT_EDUCATION", "field_name": "employed" }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R6.A",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Type of Employment",
+      "pick_list_reference": "EmploymentType",
+      "mapping": { "record_type": "EMPLOYMENT_EDUCATION", "field_name": "employmentType" },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R6.2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R6.B",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Why Not Employed",
+      "pick_list_reference": "NotEmployedReason",
+      "mapping": { "record_type": "EMPLOYMENT_EDUCATION", "field_name": "notEmployedReason" },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R6.2",
+          "operator": "EQUAL",
+          "answer_code": "NO"
+        }
+      ]
+    }
+  ]
+}
