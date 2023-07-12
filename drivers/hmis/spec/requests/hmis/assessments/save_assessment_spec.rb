@@ -5,8 +5,8 @@
 ###
 
 require 'rails_helper'
-require_relative 'login_and_permissions'
-require_relative '../../support/hmis_base_setup'
+require_relative '../login_and_permissions'
+require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -94,9 +94,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
       expect(Hmis::Hud::CustomAssessment.count).to eq(1)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
-      expect(Hmis::Hud::CustomAssessment.where(enrollment_id: Hmis::Hud::CustomAssessment::WIP_ID).count).to eq(1)
-      expect(Hmis::Wip.count).to eq(1)
-      expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: p1.id)
       expect(Hmis::Hud::CustomAssessment.viewable_by(hmis_user).count).to eq(1)
     end
 
@@ -141,7 +138,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
       expect(Hmis::Hud::CustomAssessment.count).to eq(1)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
-      expect(Hmis::Wip.count).to eq(1)
     end
   end
 

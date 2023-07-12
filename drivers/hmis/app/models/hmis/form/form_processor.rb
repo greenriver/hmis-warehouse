@@ -205,6 +205,20 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       )
   end
 
+  def youth_education_status_factory(create: true)
+    return youth_education_status if youth_education_status.present? || !create
+
+    self.youth_education_status = enrollment_factory.youth_education_statuses.
+      build(**common_attributes)
+  end
+
+  def employment_education_factory(create: true)
+    return employment_education if employment_education.present? || !create
+
+    self.employment_education = enrollment_factory.employment_educations.
+      build(**common_attributes)
+  end
+
   private def container_processor(container)
     container = container.to_sym
     return unless container.in?(valid_containers.keys)
@@ -232,6 +246,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       Funder: Hmis::Hud::Processors::FunderProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
+      YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
+      EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
     }.freeze
   end
 
@@ -250,6 +266,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :exit_factory,
       :owner_factory,
       :service_factory,
+      :youth_education_status_factory,
+      :employment_education_factory,
     ]
   end
 
