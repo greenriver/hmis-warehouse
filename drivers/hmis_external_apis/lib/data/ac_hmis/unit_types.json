@@ -120,7 +120,7 @@
     "hud_bed_type": "OtherBedInventory"
   },
   {
-    "external_id": "OtherBedInventory",
+    "external_id": 13,
     "name": "SRO",
     "hud_bed_type": "OtherBedInventory"
   },
