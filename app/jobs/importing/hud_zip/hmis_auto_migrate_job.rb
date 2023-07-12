@@ -34,11 +34,8 @@ module Importing::HudZip
       end
       return if lock_obtained
 
+      # when this exits, it will remove the current job from the queue, so add a new one to replace it
       requeue_job
-    end
-
-    private def already_running_for_data_source?
-      GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_name)
     end
 
     private def advisory_lock_name
@@ -52,7 +49,6 @@ module Importing::HudZip
       @data_source_id = job.payload_object.instance_variable_get(:@data_source_id)
 
       Rails.logger.info("Import of Data Source: #{@data_source_id} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
-      # when this exits, it will remove the current job from the queue, so add a new one to replace it
       new_job = job.dup
       new_job.update(
         locked_at: nil,
