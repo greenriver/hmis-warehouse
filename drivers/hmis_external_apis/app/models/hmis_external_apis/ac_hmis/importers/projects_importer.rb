@@ -185,13 +185,19 @@ module HmisExternalApis::AcHmis::Importers
         when 'N'
           false
         else
-          raise "unknown value for IsActive"
+          raise 'unknown value for IsActive'
         end
+        db_project_id = projects_ids_by_hud.fetch(row['ProgramID'], nil)
+        raise "UnitTypeMapping error: ProgramID not found: #{row['ProgramID']}" unless db_project_id.present?
+
+        db_unit_type_id = unit_type_ids_by_mper.fetch(row['UnitTypeID'], nil)
+        raise "UnitTypeMapping error: UnitTypeID not found: #{row['UnitTypeID']}" unless db_unit_type_id.present?
+
         {
-          project_id: projects_ids_by_hud.fetch(row['ProgramID']),
-          unit_type_id: unit_type_ids_by_mper.fetch(row['UnitTypeID']),
+          project_id: db_project_id,
+          unit_type_id: db_unit_type_id,
           unit_capacity: row.fetch('UnitCapacity'),
-          active: active
+          active: active,
         }
       end
 
