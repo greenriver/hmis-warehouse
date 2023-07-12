@@ -11,7 +11,8 @@
     "service_coordinator",
     "posting_id",
     "program_id",
-    "unit_type_id"
+    "unit_type_id",
+    "household_members"
   ],
   "properties": {
     "referral_id": { "type": ["integer", "string"] },
@@ -22,7 +23,7 @@
     "chronic": { "type": ["boolean", "null"] },
     "addresses": {
       "type": "array",
-      "maxItems": 3,
+      "maxItems": 6,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -39,7 +40,7 @@
     },
     "phone_numbers": {
       "type": "array",
-      "maxItems": 3,
+      "maxItems": 6,
       "items": {
         "type": "object",
         "additionalProperties": false,
