@@ -45,7 +45,7 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "number": { "type": "string", "pattern": "^[0-9]{10}$" },
+          "number": { "type": "string" },
           "notes": { "type": ["string", "null"] },
           "type": { "enum": ["home", "mobile", "work", null] }
         }
