@@ -12,3 +12,29 @@
       = render 'utility'
     .top-nav-prs1
       %h1.mb-5= title
+      .d-flex.flex-wrap
+        .hero-prs1
+          .d-flex.align-items-center
+            .h1.hero-value-prs1.mr-3= number_with_delimiter @report.total_client_count
+            .hero-label-prs1.h5-prs1 Unique Clients
+    .main-inner-prs1
+      .text-right.mb-4
+        = render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
+      - if @report.total_client_count.positive?
+        = render 'common/pagination_top', item_name: 'client'
+        .card
+          %table.table.table-striped.mb-0
+            %thead
+              %tr
+                %th Client
+                %th Required Documents
+                %th Optional Documents
+                %th All documents
+            %tbody
+              - @clients.each do |client|
+                %tr
+                  %td= link_to client.name, client.appropriate_path_for?(current_user)
+        = render 'common/pagination_bottom', item_name: 'client'
+      - else
+        .well.none-found
+          No clients match the chosen universe.

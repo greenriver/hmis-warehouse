@@ -53,5 +53,21 @@ module ClientDocumentsReport
         build_files_control_section,
       ]
     end
+
+    def total_client_count
+      @total_client_count ||= clients.count
+    end
+
+    def clients
+      GrdaWarehouse::Hud::Client.where(id: enrollments.select(:client_id))
+    end
+
+    def enrollments
+      filter.apply(report_scope_base)
+    end
+
+    def report_scope_base
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
+    end
   end
 end

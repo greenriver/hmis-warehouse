@@ -16,7 +16,9 @@ module ClientDocumentsReport::WarehouseReports
     def index
       @excel_export = ::ClientDocumentsReport::DocumentExports::ReportExcelExport.new
       respond_to do |format|
-        format.html {}
+        format.html do
+          @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
+        end
         format.xlsx do
           filename = "Client Documents - #{Time.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
