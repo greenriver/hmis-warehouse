@@ -30,7 +30,7 @@ module Reporting::MonthlyReports
     end
 
     def self.class_for sub_population
-      available_types[sub_population.to_sym].constantize
+      available_types[sub_population.to_sym]&.constantize
     end
 
     def self.lookback_start

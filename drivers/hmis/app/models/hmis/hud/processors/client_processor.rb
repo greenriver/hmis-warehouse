@@ -158,7 +158,10 @@ module Hmis::Hud::Processors
       client = @processor.send(factory_name)
       current_mci_ids = client.ac_hmis_mci_ids
       # If MCI ID hasn't changed, do nothing.
-      return if current_mci_ids.present? && value.in?(current_mci_ids.map(&:value))
+      if current_mci_ids.present? && value.in?(current_mci_ids.map(&:value))
+        client.update_mci_attributes = true
+        return
+      end
 
       # If field is hidden, that means that there was not enough information to clear MCI.
       # Do nothing, which will create an "uncleared" client. If client is already cleared, nothing happens.
@@ -182,6 +185,7 @@ module Hmis::Hud::Processors
       raise 'Invalid MCI ID' unless Float(value)
 
       # Initialize an ExternalID with this MCI ID
+      client.update_mci_attributes = true
       client.external_ids << HmisExternalApis::ExternalId.new(
         value: value,
         remote_credential: HmisExternalApis::AcHmis::Mci.new.creds,

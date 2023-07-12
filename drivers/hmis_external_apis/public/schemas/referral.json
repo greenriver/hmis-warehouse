@@ -15,11 +15,11 @@
   ],
   "properties": {
     "referral_id": { "type": ["integer", "string"] },
-    "score": { "type": "integer", "minimum": 1, "maximum": 10 },
-    "needs_wheelchair_accessible_unit": { "type": "boolean" },
-    "referral_notes": { "type": "string" },
-    "resource_coordinator_notes": { "type": "string" },
-    "chronic": { "type": "boolean" },
+    "score": { "type": ["integer", "null"], "minimum": 1, "maximum": 10 },
+    "needs_wheelchair_accessible_unit": { "type": ["boolean", "null"] },
+    "referral_notes": { "type": ["string", "null"] },
+    "resource_coordinator_notes": { "type": ["string", "null"] },
+    "chronic": { "type": ["boolean", "null"] },
     "addresses": {
       "type": "array",
       "maxItems": 3,
@@ -27,13 +27,13 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "line1": { "type": "string" },
-          "line2": { "type": "string" },
-          "city": { "type": "string" },
-          "state": { "type": "string" },
-          "zip": { "type": "string" },
-          "county": { "type": "string" },
-          "use": { "enum": ["home", "work", "mail"] }
+          "line1": { "type": ["string", "null"] },
+          "line2": { "type": ["string", "null"] },
+          "city": { "type": ["string", "null"] },
+          "state": { "type": ["string", "null"] },
+          "zip": { "type": ["string", "null"] },
+          "county": { "type": ["string", "null"] },
+          "use": { "enum": ["home", "work", "mail", null] }
         }
       }
     },
@@ -45,8 +45,8 @@
         "additionalProperties": false,
         "properties": {
           "number": { "type": "string", "pattern": "^[0-9]{10}$" },
-          "notes": { "type": "string" },
-          "type": { "enum": ["home", "mobile", "work"] }
+          "notes": { "type": ["string", "null"] },
+          "type": { "enum": ["home", "mobile", "work", null] }
         }
       }
     },
@@ -75,31 +75,29 @@
           "relationship_to_hoh": {
             "enum": [1, 2, 3, 4, 5, 99]
           },
-          "prefix": { "type": "string" },
+          "prefix": { "type": ["string", "null"] },
           "first_name": { "type": "string" },
           "last_name": { "type": "string" },
-          "middle_name": { "type": "string" },
-          "suffix": { "type": "string" },
+          "middle_name": { "type": ["string", "null"] },
+          "suffix": { "type": ["string", "null"] },
           "dob": { "type": "string", "format": "date" },
-          "veteran_status": { "type": "string" },
-          "discharge_status": { "type": "string" },
-          "ssn": { "type": "string", "pattern": "^\\d{3}-?\\d{2}-?\\d{4}$" },
+          "ssn": { "type": ["string", "null"], "pattern": "^\\d{3}-?\\d{2}-?\\d{4}$" },
           "gender": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": ["Woman", "Man", "NonBinary", "CulturallySpecific", "Transgender", "Questioning", "DifferentIdentity"]
+              "type": "integer",
+              "enum": [0,1,2,3,4,5,6,8,9,99]
             }
           },
-          "different_identity_text": { "type": "string" },
+          "different_identity_text": { "type": ["string", "null"] },
           "race": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": ["AmIndAKNative", "Asian", "BlackAfAmerican", "HispanicLatinaeo", "MidEastNAfrican", "NativeHIPacific", "White"]
+              "type": "integer",
+              "enum": [1,2,3,4,5,6,7,8,9,99]
             }
           },
-          "additional_race_ethnicity": { "type": "string" }
+          "additional_race_ethnicity": { "type": ["string", "null"] }
         }
       }
     }

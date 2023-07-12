@@ -14,6 +14,7 @@ module Types
     field :value_code, String, 'Value to autofill if condition is met', null: true
     field :value_number, Integer, 'Value to autofill if condition is met', null: true
     field :value_boolean, Boolean, 'Value to autofill if condition is met', null: true
+    field :value_question, String, 'Link ID whos value to autofill if condition is met', null: true
     field :sum_questions, [String], 'Link IDs of numeric questions to sum up and set as the value if condition is met', null: true
 
     # Condition specifying when to perform this autofill

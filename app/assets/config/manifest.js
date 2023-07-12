@@ -3,4 +3,4 @@
 //= link application.js
 
 //= link_directory ../stylesheets .css
-//= link theme/styles/_variables.css
+//= link_directory ../stylesheets/theme/styles .css

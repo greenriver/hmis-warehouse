@@ -6,6 +6,11 @@
 
 .warehouse-reports__completed
   = render 'filters/report_parameters', options: @report.options, report: @report
+  - imported_clients = @report.universe.members.merge(HapReport::HapClient.imported)
+  - if imported_clients.exists?
+    %p.mb-4
+      %i.icon-info
+        Including #{pluralize(imported_clients.count, 'imported client')}
 .card
   %table.table.table-striped
     %thead

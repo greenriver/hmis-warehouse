@@ -32,8 +32,10 @@ module Types
         geocodes_picklist
       when 'PRIOR_LIVING_SITUATION'
         living_situation_picklist(as: :prior)
-      when 'SERVICE_TYPE'
-        service_type_picklist
+      when 'ALL_SERVICE_TYPES'
+        service_types_picklist
+      when 'ALL_SERVICE_CATEGORIES'
+        service_categories_picklist
       when 'AVAILABLE_SERVICE_TYPES'
         available_service_types_picklist(project)
       when 'SUB_TYPE_PROVIDED_3'
@@ -171,6 +173,28 @@ module Types
           initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
         }
       end
+    end
+
+    def self.service_types_picklist
+      options = Hmis::Hud::CustomServiceType.
+        preload(:custom_service_category).to_a.
+        map(&:to_pick_list_option).
+        sort_by { |obj| obj[:group_label] + obj[:label] }
+
+      options[0][:initial_selected] = true if options.size == 1
+
+      options
+    end
+
+    def self.service_categories_picklist
+      options = Hmis::Hud::CustomServiceCategory.all.
+        to_a.
+        map(&:to_pick_list_option).
+        sort_by { |obj| obj[:label] }
+
+      options[0][:initial_selected] = true if options.size == 1
+
+      options
     end
 
     def self.available_service_types_picklist(project)

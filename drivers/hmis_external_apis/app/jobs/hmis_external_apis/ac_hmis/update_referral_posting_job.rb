@@ -27,6 +27,7 @@ module HmisExternalApis::AcHmis
 
     # map from HudLists.referral_result_map to implementation-specific codes
     REFERRAL_RESULT_CODE_MAP = {
+      1 => 157, # 157 Successful referral: client accepted
       2 => 158, # 158 Unsuccessful referral: client rejected
       3 => 159, # 159 Unsuccessful referral: provider rejected
     }.freeze

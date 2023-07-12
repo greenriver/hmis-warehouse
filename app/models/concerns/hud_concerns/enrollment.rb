@@ -7,6 +7,10 @@
 module HudConcerns::Enrollment
   extend ActiveSupport::Concern
   included do
+    # NOTE: this is fairly computationally expensive if you run it in a loop (it needs to
+    # run a table scan on Enrollment.)  Each call is relatively fast, but you'll
+    # probably want to pluck ids and batch fetch by id batches if you are running it more
+    # than a handful of times
     scope :open_during_range, ->(range) do
       # convert the range into a standard range for backwards compatability
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)

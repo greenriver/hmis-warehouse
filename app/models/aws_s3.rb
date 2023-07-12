@@ -117,11 +117,19 @@ class AwsS3
   def put(file_name:, prefix:)
     name = "#{prefix}/#{File.basename(file_name)}"
     obj = @bucket.object(name)
-    obj.upload_file(file_name, server_side_encryption: 'AES256')
+    if Rails.env.development?
+      obj.upload_file(file_name)
+    else
+      obj.upload_file(file_name, server_side_encryption: 'AES256')
+    end
   end
 
   def store(content:, name:)
     obj = @bucket.object(name)
-    obj.put(body: content, server_side_encryption: 'AES256')
+    if Rails.env.development?
+      obj.put(body: content)
+    else
+      obj.put(body: content, server_side_encryption: 'AES256')
+    end
   end
 end

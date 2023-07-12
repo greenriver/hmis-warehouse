@@ -734,6 +734,13 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
+      can_edit_theme: {
+        description: 'Access to the site theme',
+        administrative: true,
+        categories: [
+          'Administration',
+        ],
+      },
       can_upload_dashboard_extras: {
         description: 'Access to upload the supplemental enrollment data for a data source',
         administrative: false,

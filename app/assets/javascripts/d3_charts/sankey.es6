@@ -55,7 +55,7 @@ App.D3Chart.Sankey = class Sankey {
     let nodeGroup = d => d.id; //.split(/\W/)[0]; // take first word for color
     // let nodeTitle = d => `${d.id}\n${format(d.value)}`; // given d in (computed) nodes, hover text
     let nodeWidth = 25; // width of node rects
-    let nodePadding = 40; // vertical separation between adjacent nodes
+    let nodePadding = 60; // vertical separation between adjacent nodes
     let nodeLabelPadding = 0; // horizontal separation between node and label
     let nodeStroke = 'currentColor'; // stroke around node rects
     let nodeStrokeWidth = 0; // width of stroke around node rects, in pixels

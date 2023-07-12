@@ -1,0 +1,20 @@
+%h1 System Colors
+%p
+  The following are available by applying the classes as noted below or by fetching the colors directly in ruby:
+  %pre.well
+    %code
+      color = GrdaWarehouse::SystemColor.first
+      slug = 'project-type'
+      id = 0
+      background_color = color.color_for(slug, id)
+      foreground_color = color.calculated_foreground_color(background_color)
+
+- colors = GrdaWarehouse::SystemColor.all.index_by(&:slug)
+.row.mt-6
+  - GrdaWarehouse::SystemColor.default_colors.each do |section, colors|
+    .col-sm-6
+      %h2= section
+      .well
+        - colors.each do |i, color|
+          - slug = "#{section}-#{i}"
+          .mb-4.p-4{ class: slug } .#{slug}

@@ -1358,7 +1358,8 @@ CREATE TABLE public.roles (
     system boolean DEFAULT false NOT NULL,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
-    can_see_confidential_files boolean DEFAULT false
+    can_see_confidential_files boolean DEFAULT false,
+    can_edit_theme boolean DEFAULT false
 );
 
 
@@ -3489,6 +3490,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230514123118'),
 ('20230516131951'),
 ('20230522111726'),
-('20230525153134');
+('20230525153134'),
+('20230623113136');
 
 

@@ -28,6 +28,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :units, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 
+  has_many :client_projects
+  has_many :clients_including_wip, through: :client_projects, source: :client
+  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
+
+  has_many :group_viewable_entity_projects
+  has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
+
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   # Households in this Project, NOT including WIP Enrollments
@@ -120,12 +127,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     return true unless operating_end_date.present?
 
     operating_end_date >= Date.current
-  end
-
-  def enrollments_including_wip
-    enrollment_ids = enrollments.pluck(:id)
-    wip_ids = wip_enrollments.pluck(:id)
-    Hmis::Hud::Enrollment.where(id: enrollment_ids + wip_ids)
   end
 
   def households_including_wip

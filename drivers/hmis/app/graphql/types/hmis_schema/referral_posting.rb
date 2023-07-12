@@ -134,6 +134,5 @@ module Types
     def enrollment_project
       enrollment&.project
     end
-
   end
 end

@@ -172,19 +172,25 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     before { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
 
     it 'dedups names' do
-      expect(client2_name_dup.reload).to be_deleted
+      # Dedup deletes record based on sort by ID.
+      # Don't assume that IDs are in a particular order from tests, because this is flaking.
+      dup = [client1_name, client2_name_dup].max_by(&:id)
+      expect(dup.reload).to be_deleted
     end
 
     it 'dedups addresses' do
-      expect(client2_address_dup.reload).to be_deleted
+      dup = [client1_address, client2_address_dup].max_by(&:id)
+      expect(dup.reload).to be_deleted
     end
 
     it 'dedups contact points' do
-      expect(client2_contact_point_dup.reload).to be_deleted
+      dup = [client1_contact_point, client2_contact_point_dup].max_by(&:id)
+      expect(dup.reload).to be_deleted
     end
 
     it 'dedups custom data elements' do
-      expect(client2_data_element_dup.reload).to be_deleted
+      dup = [client1_custom_data_element, client2_data_element_dup].max_by(&:id)
+      expect(dup.reload).to be_deleted
     end
   end
 end
