@@ -113,7 +113,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   def save_submitted_assessment!(current_user:, as_wip: false)
     Hmis::Hud::CustomAssessment.transaction do
       # Save FormProcessor to save wip values and/or related records
-      form_processor.save!(context: form_submission)
+      form_processor.save! # Not passing validation context because records have already been validated
 
       # Save the assessment record
       if as_wip
