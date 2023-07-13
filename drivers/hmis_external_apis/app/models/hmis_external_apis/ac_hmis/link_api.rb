@@ -65,7 +65,7 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(creds)
+      @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: 10)
     end
 
     # @param payload [Hash]
