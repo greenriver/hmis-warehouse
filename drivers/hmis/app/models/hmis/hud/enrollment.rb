@@ -52,6 +52,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 
+  # Unit occupancy
+  # All unit occupancies, including historical
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
+  has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
+  has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
+
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator

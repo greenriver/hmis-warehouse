@@ -24,7 +24,9 @@ class Hmis::UnitOccupancy < Hmis::HmisBase
   delegate :end_date, to: :occupancy_period
 
   scope :active, ->(date = Date.current) do
-    joins(:occupancy_period).merge(Hmis::ActiveRange.active_on(date))
+    includes(:occupancy_period).
+      where(Hmis::ActiveRange.arel_active_on(date)).
+      references(:occupancy_period)
   end
 
   scope :for_service_type, ->(service_type_id) do

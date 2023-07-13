@@ -18,6 +18,8 @@ class Hmis::Unit < Hmis::HmisBase
 
   # All historical and current occupancies of this unit
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
+  has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
+  has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
@@ -71,7 +73,6 @@ class Hmis::Unit < Hmis::HmisBase
     enrollment_ids = unit_occupancies.active_on(date).pluck(:enrollment_id)
     Hmis::Hud::Enrollment.where(id: enrollment_ids)
   end
-  alias occupants occupants_on
 
   def start_date
     Hmis::ActiveRange.most_recent_for_entity(self)&.start_date

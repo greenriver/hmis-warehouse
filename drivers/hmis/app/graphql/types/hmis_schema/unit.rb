@@ -43,8 +43,8 @@ module Types
       object.unit_type&.unit_size
     end
 
-    # TODO data loader
-    # def occupants
-    # end
+    def occupants
+      load_ar_association(object, :current_occupants)
+    end
   end
 end

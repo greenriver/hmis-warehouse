@@ -33,6 +33,13 @@ class Hmis::ActiveRange < Hmis::HmisBase
     ).first
   end
 
+  def self.arel_active_on(date)
+    past_start_date = ar_t[:start_date].lteq(date)
+    future_end_date = ar_t[:end_date].eq(nil).or(ar_t[:end_date].gt(date))
+
+    past_start_date.and(future_end_date)
+  end
+
   def active_on(date = Date.current)
     end_date.nil? || end_date > date
   end
