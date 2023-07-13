@@ -42,5 +42,9 @@ module Types
 
       object.unit_type&.unit_size
     end
+
+    # TODO data loader
+    # def occupants
+    # end
   end
 end
