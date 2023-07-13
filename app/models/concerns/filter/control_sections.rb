@@ -57,6 +57,12 @@ module
           hint: 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
         )
         section.add_control(
+          id: 'active_roi',
+          label: 'Require Active Release of Information?',
+          value: @filter.active_roi,
+          hint: 'If checked, a client must have an active ROI to be included in the universe.',
+        )
+        section.add_control(
           id: 'reporting_period',
           required: true,
           value: @filter.date_range_words,

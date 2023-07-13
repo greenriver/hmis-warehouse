@@ -78,6 +78,7 @@ module Filters
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
     attribute :required_files, Array, default: []
     attribute :optional_files, Array, default: []
+    attribute :active_roi, Boolean, default: false
 
     validates_presence_of :start, :end
 
@@ -164,6 +165,7 @@ module Filters
 
       self.required_files = filters.dig(:required_files)&.reject(&:blank?)&.map(&:to_i).presence || required_files
       self.optional_files = filters.dig(:optional_files)&.reject(&:blank?)&.map(&:to_i).presence || optional_files
+      self.active_roi = filters.dig(:active_roi).in?(['1', 'true', true]) unless filters.dig(:active_roi).nil?
 
       ensure_dates_work if valid?
       self
@@ -227,6 +229,7 @@ module Filters
           lsa_scope: lsa_scope,
           required_files: required_files,
           optional_files: optional_files,
+          active_roi: active_roi,
         },
       }
     end
@@ -268,6 +271,7 @@ module Filters
         :cohort_column_housed_date,
         :cohort_column_matched_date,
         :dates_to_compare,
+        :active_roi,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -349,6 +353,7 @@ module Filters
         opts['Require Service During Range'] = 'Yes' if require_service_during_range
         opts['Required Files'] = chosen_required_files if required_files.any?
         opts['Optional Files'] = chosen_optional_files if required_files.any?
+        opts['With Active ROI'] = 'Yes' if active_roi
       end
     end
 
@@ -501,6 +506,7 @@ module Filters
       scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_active_roi(scope)
       filter_for_times_homeless(scope)
     end
 

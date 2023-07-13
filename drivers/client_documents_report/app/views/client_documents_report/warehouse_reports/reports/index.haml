@@ -27,9 +27,18 @@
             %thead
               %tr
                 %th Client
-                %th Required Documents (of #{@report.total_required_documents} in #{@report.total_required_document_groups} groups)
-                %th Optional Documents (of #{@report.total_optional_documents} in #{@report.total_optional_document_groups} groups)
-                %th All documents (of #{@report.total_overall_documents} in #{@report.total_overall_document_groups} groups)
+                %th Required Documents
+                %th Optional Documents
+                %th All documents
+                -# -# The following only show in the download for now
+                -# - @report.groups_for_type(:required).each do |group, tags|
+                -#   %th #{group} (#{pluralize(tags.count, 'tags')})
+                -#   - tags.each do |tag|
+                -#     %th= tag
+                -# - @report.groups_for_type(:optional).each do |group, tags|
+                -#   %th #{group} (#{pluralize(tags.count, 'tags')})
+                -#   - tags.each do |tag|
+                -#     %th= tag
             %tbody
               - @clients.each do |client|
                 %tr
@@ -37,6 +46,13 @@
                   %td= @report.required_documents(client).count
                   %td= @report.optional_documents(client).count
                   %td= @report.overall_documents(client).count
+                  -# -# The following only show in the download for now
+                  -# - types = [:required, :optional]
+                  -# - types.each do |type|
+                  -#   - @report.groups_for_type(type).each do |group, tags|
+                  -#     %td= @report.date_for_group(group, client, type: type)
+                  -#     - tags.each do |tag|
+                  -#       %td= @report.date_for_tag(tag, client, type: type)
         = render 'common/pagination_bottom', item_name: 'client'
       - else
         .well.none-found

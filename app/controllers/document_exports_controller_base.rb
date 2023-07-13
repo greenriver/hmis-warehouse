@@ -102,6 +102,7 @@ class DocumentExportsControllerBase < ApplicationController
       'SystemPathways::DocumentExports::ReportExport',
       'SystemPathways::DocumentExports::ReportExcelExport',
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
+      'ClientDocumentsReport::DocumentExports::ReportExcelExport',
     ]
   end
 end

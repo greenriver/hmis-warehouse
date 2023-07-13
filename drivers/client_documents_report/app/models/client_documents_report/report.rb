@@ -21,20 +21,52 @@ module ClientDocumentsReport
       'client_documents_report/warehouse_reports/reports'
     end
 
+    # Find the most recent date from the documents of the appropriate type in the chosen group
+    # for the client
+    def date_for_group(group, client, type:)
+      groups = groups_for_type(type)
+      tags = groups[group]
+      documents = documents_for_type(type, client)
+      relevant_documents = documents.select do |d|
+        (d.taggings.flat_map(&:tag).map(&:name) & tags).present?
+      end
+      relevant_documents.map { |d| d.effective_date.presence || d.created_at.to_date }.max
+    end
+
+    def date_for_tag(tag, client, type:)
+      documents = documents_for_type(type, client)
+      relevant_documents = documents.select do |d|
+        d.taggings.flat_map(&:tag).map(&:name).include?(tag)
+      end
+      relevant_documents.map { |d| d.effective_date.presence || d.created_at.to_date }.max
+    end
+
+    def groups_for_type(type)
+      return required_tag_names_by_group if type == :required
+
+      optional_tag_names_by_group
+    end
+
+    def documents_for_type(type, client)
+      return required_documents(client) if type == :required
+
+      optional_documents(client)
+    end
+
     def total_required_documents
       @total_required_documents ||= filter.required_files.select(&:present?).count
     end
 
     def total_required_document_groups
-      required_tag_ids_by_group.count
+      required_tag_names_by_group.count
     end
 
     def required_documents(client)
       client.client_files&.select { |cf| (cf.taggings.map(&:tag_id) & filter.required_files).present? }
     end
 
-    private def required_tag_ids_by_group
-      required_tags.map do |tag|
+    def required_tag_names_by_group
+      tags(:required).map do |tag|
         group = available_tags[tag.name]
         next unless group.present?
 
@@ -42,11 +74,17 @@ module ClientDocumentsReport
           group,
           tag.name,
         ]
-      end.compact.group_by(&:shift)
+      end.compact.group_by(&:shift).transform_values(&:flatten)
     end
 
-    private def required_tags
-      ActsAsTaggableOn::Tag.where(id: filter.required_files)
+    private def tags(type)
+      ids = if type == :required
+        filter.required_files
+      else
+        filter.optional_files
+      end
+      tag_names = GrdaWarehouse::AvailableFileTag.where(id: ids).pluck(:name)
+      ActsAsTaggableOn::Tag.where(name: tag_names)
     end
 
     def total_optional_documents
@@ -54,15 +92,15 @@ module ClientDocumentsReport
     end
 
     def total_optional_document_groups
-      optional_tag_ids_by_group.count
+      optional_tag_names_by_group.count
     end
 
     def optional_documents(client)
       client.client_files&.select { |cf| (cf.taggings.map(&:tag_id) & filter.optional_files).present? }
     end
 
-    private def optional_tag_ids_by_group
-      optional_tags.map do |tag|
+    def optional_tag_names_by_group
+      tags(:optional).map do |tag|
         group = available_tags[tag.name]
         next unless group.present?
 
@@ -70,11 +108,7 @@ module ClientDocumentsReport
           group,
           tag.name,
         ]
-      end.compact.group_by(&:shift)
-    end
-
-    private def optional_tags
-      ActsAsTaggableOn::Tag.where(id: filter.optional_files)
+      end.compact.group_by(&:shift).transform_values(&:flatten)
     end
 
     def total_overall_documents
@@ -99,7 +133,7 @@ module ClientDocumentsReport
 
     private def available_tags
       @available_tags ||= GrdaWarehouse::AvailableFileTag.
-        where(name: required_tags.map(&:name) + optional_tags.map(&:name)).
+        where(name: tags(:required).map(&:name) + tags(:optional).map(&:name)).
         pluck(:name, :group).to_h
     end
 
