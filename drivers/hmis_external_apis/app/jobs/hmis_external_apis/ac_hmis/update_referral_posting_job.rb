@@ -52,6 +52,7 @@ module HmisExternalApis::AcHmis
         requested_by: format_requested_by(requested_by),
       }.compact_blank
 
+      Rails.logger.info "Updating status in LINK: #{payload.to_json}"
       link.update_referral_posting_status(payload)
     end
   end
