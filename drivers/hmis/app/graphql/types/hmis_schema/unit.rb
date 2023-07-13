@@ -20,8 +20,9 @@ module Types
 
     field :id, ID, null: false
     field :name, String, null: true
-    field :start_date, GraphQL::Types::ISO8601Date, null: false
-    field :end_date, GraphQL::Types::ISO8601Date, null: true
+    # Not resolving start/end dates because we only resolve active units (for now)
+    # field :start_date, GraphQL::Types::ISO8601Date, null: false
+    # field :end_date, GraphQL::Types::ISO8601Date, null: true
     field :unit_type, Types::HmisSchema::UnitTypeObject, null: true
     field :project, Types::HmisSchema::Project, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false

@@ -36,8 +36,9 @@ class Hmis::Unit < Hmis::HmisBase
 
   scope :active, ->(date = Date.current) do
     active_unit_ids = joins(:active_ranges).merge(Hmis::ActiveRange.active_on(date)).pluck(:id)
+    units_without_active_range = left_outer_joins(:active_ranges).where(ar_t[:id].eq(nil)).pluck(:id)
 
-    where(id: active_unit_ids)
+    where(id: active_unit_ids + units_without_active_range)
   end
 
   # Filter scope

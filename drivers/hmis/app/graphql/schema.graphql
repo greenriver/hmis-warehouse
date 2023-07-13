@@ -7204,12 +7204,10 @@ enum TrackingMethod {
 type Unit {
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
-  endDate: ISO8601Date
   id: ID!
   name: String
   occupants: [Enrollment!]!
   project: Project
-  startDate: ISO8601Date!
   unitSize: Int
   unitType: UnitTypeObject
   user: User!
