@@ -101,8 +101,9 @@ RSpec.configure do |config|
   Dir[Rails.root.join('drivers/*/lib')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/app')].each { |x| config.project_source_dirs << x }
 end
+
 VCR.configure do |config|
-  config.ignore_hosts '127.0.0.1', 'localhost', 'minio', 's3.dev.test'
+  config.ignore_hosts('127.0.0.1', 'localhost', 'minio', 's3.dev.test')
 end
 
 def cleanup_test_environment
