@@ -7206,7 +7206,7 @@ type Unit {
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   id: ID!
-  name: String
+  name: String!
   occupants: [Enrollment!]!
   project: Project
   unitSize: Int

@@ -128,6 +128,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
         enrollment.touch # Update even if no changes to Enrollment
         # Move Enrollment out of WIP if this is a submitted intake
         enrollment.save_not_in_progress if intake?
+        # If this is an exit, release the unit
+        enrollment.release_unit!(occupancy_end_date: enrollment.exit_date) if exit?
         # Accept referral in LINK if submitted intake (HoH)
         enrollment.accept_referral!(current_user: current_user) if intake?
         # Close referral in LINK if submitted exit (HoH)

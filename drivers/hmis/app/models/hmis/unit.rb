@@ -82,7 +82,19 @@ class Hmis::Unit < Hmis::HmisBase
     Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
   end
 
+  # Class method so can use with data loader
+  def self.display_name(id:, name: nil, unit_type: nil)
+    return name if name.present?
+    return "#{unit_type.description} (#{id})" if unit_type.present?
+
+    "Unit #{id}"
+  end
+
+  def display_name
+    self.class.display_name(id: id, name: name, unit_type: unit_type)
+  end
+
   def to_pick_list_option
-    { code: id, label: name, secondary_label: unit_type&.description }
+    { code: id, label: display_name }
   end
 end

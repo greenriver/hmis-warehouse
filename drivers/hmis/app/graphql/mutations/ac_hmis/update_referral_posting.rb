@@ -34,19 +34,26 @@ module Mutations
       posting.current_user = current_user
       posting.attributes = input.to_params
 
-      # if moving from assigned to accepted_pending
       posting_status_change = posting.changes['status']
 
       posting.transaction do
         posting.save(context: validation_context) # context for validations
         errors.add_ar_errors(posting.errors.errors)
 
+        # if moving from assigned to accepted_pending, enroll household and assign to unit
         if errors.empty? && posting_status_change == ['assigned_status', 'accepted_pending_status']
+          # choose any available unit of type, error if none available
+          unit_to_assign = Hmis::Unit.active.find_by(unit_type_id: posting.unit_type_id).first
+          errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
+          raise ActiveRecord::Rollback if errors.any?
+
+          # build new household of WIP enrollments
           household_id ||= Hmis::Hud::Enrollment.generate_household_id
           build_enrollments(posting).each do |enrollment|
             enrollment.household_id = household_id
             if enrollment.valid?
               enrollment.save_in_progress # this method will unset projectID and calls enrollment.save!
+              enrollment.assign_unit!(unit_to_assign, user: current_user)
             else
               handle_error('Could not create valid enrollments')
             end
@@ -58,7 +65,16 @@ module Mutations
         # send to link if:
         # * the referral came from link
         # * status has changed (status will be unchanged if user just updated note)
-        send_update(posting) if posting.from_link? && posting_status_change.present?
+        if posting.from_link? && posting_status_change.present?
+          begin
+            send_update(posting)
+          rescue StandardError
+            # Return an error message specifically about the LINK connection.
+            # Error should already have been sent to Sentry from LinkApi.
+            errors.add :base, :server_error, full_message: 'Failed to connect to LINK. Please try again.'
+            raise ActiveRecord::Rollback
+          end
+        end
       end
       return { errors: errors } if errors.any?
 

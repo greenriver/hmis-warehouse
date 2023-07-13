@@ -19,7 +19,7 @@ module Types
     end
 
     field :id, ID, null: false
-    field :name, String, null: true
+    field :name, String, null: false
     # Not resolving start/end dates because we only resolve active units (for now)
     # field :start_date, GraphQL::Types::ISO8601Date, null: false
     # field :end_date, GraphQL::Types::ISO8601Date, null: true
@@ -45,6 +45,14 @@ module Types
 
     def occupants
       load_ar_association(object, :current_occupants)
+    end
+
+    def unit_type
+      load_ar_association(object, :unit_type)
+    end
+
+    def name
+      Hmis::Unit.display_name(id: object.id, name: object.name, unit_type: unit_type)
     end
   end
 end

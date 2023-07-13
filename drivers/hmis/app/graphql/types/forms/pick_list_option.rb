@@ -77,11 +77,18 @@ module Types
       when 'UNITS'
         return [] unless project.present?
 
-        project.units.order(:name, :id).map(&:to_pick_list_option)
+        project.units.
+          preload(:unit_type).
+          order(:unit_type_id, :id).
+          map(&:to_pick_list_option)
       when 'AVAILABLE_UNITS'
         return [] unless project.present?
 
-        project.units.unoccupied_on.order(:name, :id).map(&:to_pick_list_option)
+        project.units.
+          unoccupied_on.
+          preload(:unit_type).
+          order(:unit_type_id, :id).
+          map(&:to_pick_list_option)
       when 'AVAILABLE_FILE_TYPES'
         file_tag_picklist
       when 'PROJECT_HOH_ENROLLMENTS'
