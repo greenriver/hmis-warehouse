@@ -125,7 +125,7 @@ module Types
       collection = Hmis::Hud::ClientExternalIdentifierCollection.new(
         client: object,
         ac_hmis_mci_ids: load_ar_association(object, :ac_hmis_mci_ids),
-        warehouse_client_source: load_ar_association(object, :warehouse_client_source)
+        warehouse_client_source: load_ar_association(object, :warehouse_client_source),
       )
       collection.hmis_identifiers + collection.mci_identifiers
     end
@@ -174,7 +174,7 @@ module Types
 
     def image
       files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
-      file = files.first
+      file = files.first&.client_file
       file&.download ? file : nil
     end
 
