@@ -21,6 +21,7 @@
 module HmisExternalApis::AcHmis
   class LinkApi
     SYSTEM_ID = 'ac_hmis_link'.freeze
+    CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
 
     def self.enabled?
       ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).exists?
@@ -65,7 +66,7 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: 10)
+      @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
 
     # @param payload [Hash]
