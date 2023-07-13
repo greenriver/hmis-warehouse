@@ -2789,6 +2789,51 @@ ALTER SEQUENCE public.epic_team_members_id_seq OWNED BY public.epic_team_members
 
 
 --
+-- Name: epic_thrives; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.epic_thrives (
+    id bigint NOT NULL,
+    patient_id character varying,
+    id_in_source character varying,
+    thrive_updated_at timestamp without time zone,
+    housing_status character varying,
+    food_insecurity character varying,
+    food_worries character varying,
+    trouble_drug_cost character varying,
+    trouble_medical_transportation character varying,
+    trouble_utility_cost character varying,
+    trouble_caring_for_family character varying,
+    trouble_with_adl character varying,
+    unemployed character varying,
+    interested_in_education character varying,
+    assistance character varying,
+    data_source_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: epic_thrives_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.epic_thrives_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: epic_thrives_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.epic_thrives_id_seq OWNED BY public.epic_thrives.id;
+
+
+--
 -- Name: equipment; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5281,7 +5326,8 @@ CREATE TABLE public.thrive_assessments (
     completed_on date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    epic_source_id character varying
 );
 
 
@@ -6184,6 +6230,13 @@ ALTER TABLE ONLY public.epic_team_members ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: epic_thrives id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.epic_thrives ALTER COLUMN id SET DEFAULT nextval('public.epic_thrives_id_seq'::regclass);
+
+
+--
 -- Name: equipment id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -7051,6 +7104,14 @@ ALTER TABLE ONLY public.epic_ssms
 
 ALTER TABLE ONLY public.epic_team_members
     ADD CONSTRAINT epic_team_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: epic_thrives epic_thrives_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.epic_thrives
+    ADD CONSTRAINT epic_thrives_pkey PRIMARY KEY (id);
 
 
 --
@@ -9117,6 +9178,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230614191047'),
 ('20230614194646'),
 ('20230706134746'),
-('20230707132626');
+('20230707132626'),
+('20230712155403');
 
 
