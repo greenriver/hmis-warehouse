@@ -17,7 +17,7 @@ class Hmis::Unit < Hmis::HmisBase
   belongs_to :user, class_name: 'User'
 
   # All historical and current occupancies of this unit
-  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit, dependent: :destroy
   has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
   has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
 

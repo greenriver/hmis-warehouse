@@ -50,11 +50,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   # Unit occupancy
   # All unit occupancies, including historical
-  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
@@ -231,8 +231,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     )
   end
 
-  def release_unit!(occupancy_end_date = Date.current)
-    active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date)
+  def release_unit!(occupancy_end_date = Date.current, user:)
+    active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date, user: user)
   end
 
   def unit_occupied_on(date = Date.current)
