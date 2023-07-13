@@ -28,11 +28,13 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :occupants, [HmisSchema::Enrollment], null: false
-    field :user, HmisSchema::User, null: false
+    field :user, HmisSchema::User, null: true
     field :unit_size, Integer, null: true
 
     def user
-      user = object.user
+      user = load_ar_association(object, :user)
+      return unless user.present?
+
       user.hmis_data_source_id = current_user.hmis_data_source_id
       Hmis::Hud::User.from_user(user)
     end
