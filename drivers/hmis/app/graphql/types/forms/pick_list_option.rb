@@ -65,21 +65,14 @@ module Types
           map(&:to_pick_list_option)
 
       when 'ALL_UNIT_TYPES'
-        # for referrals between projects
-        # actually return all unit types, regardless of project
-        all_unit_types = Hmis::UnitType.order(:description, :id)
-        return all_unit_types.map(&:to_pick_list_option)
-
+        # used for referrals between projects
+        all_unit_types
       when 'UNIT_TYPES'
         # If no project was specified, return all unit types
-        all_unit_types = Hmis::UnitType.order(:description, :id)
-        return all_unit_types.map(&:to_pick_list_option) unless relation_id.present?
-        return [] unless project.present? # relation id specified but project not found
+        return all_unit_types unless relation_id.present?
 
         possible_unit_types_for_project(project)
       when 'AVAILABLE_UNIT_TYPES'
-        return [] unless project.present?
-
         available_unit_types_for_project(project)
       when 'UNITS'
         return [] unless project.present?
@@ -104,7 +97,7 @@ module Types
           client = enrollment.client
           household_size = enrollment.household&.enrollments&.size || 0
           other_size = household_size - 1 # more than hoh
-          desc = other_size > 0 ? "and #{other_size} #{'other'.pluralize(other_size)}" :  ''
+          desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
           {
             code: enrollment.id,
             label: "#{client.brief_name} #{desc} (Entered #{enrollment.entry_date.strftime('%m/%d/%Y')})",
@@ -151,7 +144,13 @@ module Types
       end
     end
 
+    def self.all_unit_types
+      Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
+    end
+
     def self.available_unit_types_for_project(project)
+      return [] unless project.present?
+
       units = project.units.unoccupied_on
 
       # Hash { unit type id => num unoccupied }
@@ -170,6 +169,8 @@ module Types
     # UNIT_TYPES pick list should only return types that are "mapped" for this project. If there are
     # no mappings it should return all unit types, which is the default behavior.
     def self.possible_unit_types_for_project(project)
+      return [] unless project.present?
+
       unit_type_scope = Hmis::UnitType.all
       unit_type_ids = project.unit_type_mappings.active.pluck(:unit_type_id)
       if unit_type_ids.any?
