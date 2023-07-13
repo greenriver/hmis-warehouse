@@ -30,6 +30,8 @@ module HmisExternalApis::AcHmis::Importers
         upsert_projects
         upsert_walkins
         upsert_inventory
+        upsert_project_unit_type_mappings
+        Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
       end
       analyze
       finish
@@ -157,6 +159,60 @@ module HmisExternalApis::AcHmis::Importers
         file: file,
         conflict_target: ['"InventoryID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Inventory,
+      )
+    end
+
+    def upsert_project_unit_type_mappings
+      file = 'ProjectUnitTypes.csv'
+
+      columns = ['ProgramID', 'UnitTypeID', 'UnitCapacity', 'IsActive']
+      check_columns(file: file, expected_columns: columns, critical_columns: columns)
+
+      projects_ids_by_hud = Hmis::Hud::Project
+        .where(data_source: data_source)
+        .pluck(:ProjectID, :id)
+        .to_h
+      unit_type_ids_by_mper = Hmis::UnitType
+        .joins(:mper_id)
+        .pluck(HmisExternalApis::ExternalId.arel_table[:value], :id)
+        .to_h
+
+      csv = records_from_csv(file)
+      records = csv.each.map do |row|
+        active = case row.fetch('IsActive')
+        when 'Y'
+          true
+        when 'N'
+          false
+        else
+          raise 'unknown value for IsActive'
+        end
+
+        db_project_id = projects_ids_by_hud.fetch(row['ProgramID'], nil)
+        if db_project_id.nil?
+          Rails.logger.info "Skipping unrecognized ProgramID: #{row['ProgramID']}"
+          next
+        end
+
+        db_unit_type_id = unit_type_ids_by_mper.fetch(row['UnitTypeID'], nil)
+        raise "UnitTypeMapping error: UnitTypeID not found: #{row['UnitTypeID']}" unless db_unit_type_id.present?
+
+        {
+          project_id: db_project_id,
+          unit_type_id: db_unit_type_id,
+          unit_capacity: row.fetch('UnitCapacity'),
+          active: active,
+        }
+      end.compact
+
+      Hmis::ProjectUnitTypeMapping.import!(
+        records,
+        validate: false,
+        batch_size: 1_000,
+        on_duplicate_key_update: {
+          conflict_target: [:project_id, :unit_type_id],
+          columns: [:unit_capacity, :active],
+        },
       )
     end
 

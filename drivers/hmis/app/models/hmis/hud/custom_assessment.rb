@@ -8,9 +8,9 @@
 # It may be a HUD assessment (intake, exit, etc) or a fully custom assessment.
 
 # Assessments can be WIP (aka incomplete) or Submitted.
-# WIP assessments have a null EnrollmentID, and a record in the wip table.
 # Assessments are "processed" using the FormProcessor, which maintains references
-# to all related records that have been created/updated from the assessment.
+# to all related records that have been created/updated from the assessment
+# if it has been submitted.
 class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   self.table_name = :CustomAssessments
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -21,14 +21,12 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
-  WIP_ID = 'WIP'.freeze
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment') # WIP_ID for WIP assessment
+  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :custom_data_elements, as: :owner
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
@@ -55,20 +53,12 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   attr_accessor :in_progress
 
   validates_with Hmis::Hud::Validators::CustomAssessmentValidator
+  validate :form_processor_is_valid, on: :form_submission
 
-  scope :in_progress, -> { where(enrollment_id: WIP_ID) }
-  scope :not_in_progress, -> { where.not(enrollment_id: WIP_ID) }
+  scope :in_progress, -> { where(wip: true) }
+  scope :not_in_progress, -> { where(wip: false) }
   scope :intakes, -> { where(data_collection_stage: 1) }
   scope :exits, -> { where(data_collection_stage: 3) }
-
-  # hide previous declaration of :viewable_by, we'll use this one
-  replace_scope :viewable_by, ->(user) do
-    enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
-    viewable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    viewable_completed = cas_t[:EnrollmentID].in(enrollment_ids.map(&:second))
-
-    left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
-  end
 
   scope :with_role, ->(role) do
     stages = Array.wrap(role).map { |r| Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[r.to_sym] }.compact
@@ -76,25 +66,11 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   scope :with_project_type, ->(project_types) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project_type(project_types))
+    joins(:project).merge(Hmis::Hud::Project.with_project_type(project_types))
   end
 
   scope :with_project, ->(project_ids) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
-  end
-
-  scope :for_enrollments, ->(enrollments) do
-    hud_ids = enrollments.pluck(:enrollment_id)
-    db_ids = enrollments.pluck(:id)
-    completed_assessments = cas_t[:enrollment_id].in(hud_ids)
-    wip_assessments = wip_t[:enrollment_id].in(db_ids)
-
-    ids = Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments)).pluck(:id)
-    where(id: ids)
-  end
-
-  def enrollment
-    super || Hmis::Hud::Enrollment.find_by(id: wip&.enrollment_id)
+    joins(:project).merge(Hmis::Hud::Project.where(id: project_ids))
   end
 
   def self.sort_by_option(option)
@@ -111,33 +87,19 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   def save_in_progress
-    saved_enrollment_id = enrollment.id
-    project_id = enrollment.project.id
-
-    self.enrollment_id = WIP_ID
-    save!(validate: false)
-    touch
-    self.wip = Hmis::Wip.create_with(date: assessment_date).find_or_create_by(
-      source: self,
-      enrollment_id: saved_enrollment_id,
-      project_id: project_id,
-      client_id: client.id,
-    )
-
-    wip.update(date: assessment_date)
-    wip
+    self.wip = true
+    save!
+    touch # Update even if no changes to assessment record
   end
 
   def save_not_in_progress
-    transaction do
-      self.enrollment_id = enrollment_id == WIP_ID ? enrollment.enrollment_id : enrollment_id
-      wip&.destroy
-      save!
-    end
+    self.wip = false
+    save!
+    touch # Update even if no changes to assessment record
   end
 
   def in_progress?
-    enrollment_id == WIP_ID
+    wip
   end
 
   def intake?
@@ -146,6 +108,32 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def exit?
     data_collection_stage == 3
+  end
+
+  def save_submitted_assessment!(current_user:, as_wip: false)
+    Hmis::Hud::CustomAssessment.transaction do
+      # Save FormProcessor to save wip values and/or related records
+      form_processor.save! # Not passing validation context because records have already been validated
+
+      # Save the assessment record
+      if as_wip
+        save_in_progress
+      else
+        save_not_in_progress
+      end
+
+      unless as_wip
+        # Save the Enrollment (not saved by FormProcessor because they dont have a relationship)
+        enrollment.save!
+        enrollment.touch # Update even if no changes to Enrollment
+        # Move Enrollment out of WIP if this is a submitted intake
+        enrollment.save_not_in_progress if intake?
+        # Accept referral in LINK if submitted intake (HoH)
+        enrollment.accept_referral!(current_user: current_user) if intake?
+        # Close referral in LINK if submitted exit (HoH)
+        enrollment.close_referral!(current_user: current_user) if exit?
+      end
+    end
   end
 
   def self.apply_filters(input)
@@ -167,10 +155,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def self.group_household_assessments(household_enrollments:, assessment_role:, threshold:, assessment_id: nil)
     source_assessment = Hmis::Hud::CustomAssessment.find(assessment_id) if assessment_id.present?
-    # FIXME wont work for wip.
-    # raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !enrollments.pluck(:enrollment_id).include(source_assessment.enrollment_id)
+    raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !household_enrollments.pluck(:enrollment_id).include?(source_assessment.enrollment_id)
 
-    household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).for_enrollments(household_enrollments)
+    household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).
+      where(enrollment_id: household_enrollments.pluck(:enrollment_id))
 
     case assessment_role.to_sym
     when :INTAKE, :EXIT
@@ -194,5 +182,13 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def self.hud_key
     :CustomAssessmentID
+  end
+
+  # If we are validating a form submission, validate the form processor
+  # which will validate all related records.
+  # Does not merge errors into assessment error object, so caller
+  # must check form_processor.errors for any validation errors.
+  private def form_processor_is_valid
+    form_processor.valid?(:form_submission)
   end
 end
