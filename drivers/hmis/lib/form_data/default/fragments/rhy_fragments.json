@@ -15,16 +15,7 @@
           "required": false,
           "warn_if_empty": true,
           "text": "General Health Status",
-          "pick_list_reference": "GeneralHealthStatus",
-          "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "generalHealthStatus" }
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "R7.1",
-          "required": false,
-          "warn_if_empty": true,
-          "text": "General Health Status",
-          "pick_list_reference": "GeneralHealthStatus",
+          "pick_list_reference": "HealthStatus",
           "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "generalHealthStatus" }
         },
         {
@@ -33,7 +24,7 @@
           "required": false,
           "warn_if_empty": true,
           "text": "Dental Health Status",
-          "pick_list_reference": "DentalHealthStatus",
+          "pick_list_reference": "HealthStatus",
           "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "dentalHealthStatus" }
         },
         {
@@ -42,7 +33,7 @@
           "required": false,
           "warn_if_empty": true,
           "text": "Mental Health Status",
-          "pick_list_reference": "MentalHealthStatus",
+          "pick_list_reference": "HealthStatus",
           "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "mentalHealthStatus" }
         },
         {
@@ -170,7 +161,7 @@
         },
         {
           "type": "CHOICE",
-          "link_id": "R13.9",
+          "link_id": "R13.11",
           "required": false,
           "warn_if_empty": true,
           "text": "Mental Health Disorder - Family member",
@@ -180,7 +171,7 @@
         },
         {
           "type": "CHOICE",
-          "link_id": "R13.9",
+          "link_id": "R13.15",
           "required": false,
           "warn_if_empty": true,
           "text": "Physical Disability - Family member",
@@ -190,7 +181,7 @@
         },
         {
           "type": "CHOICE",
-          "link_id": "R13.9",
+          "link_id": "R13.21",
           "required": false,
           "warn_if_empty": true,
           "text": "Alcohol or Substance Use Disorder - Family member",
@@ -200,7 +191,7 @@
         },
         {
           "type": "CHOICE",
-          "link_id": "R13.9",
+          "link_id": "R13.22",
           "required": false,
           "warn_if_empty": true,
           "text": "Insufficient Income to Support Youth - Family member",
@@ -210,7 +201,7 @@
         },
         {
           "type": "CHOICE",
-          "link_id": "R13.9",
+          "link_id": "R13.24",
           "required": false,
           "warn_if_empty": true,
           "text": "Incarcerated Parent of Youth",
@@ -222,8 +213,8 @@
     },
     {
       "type": "GROUP",
-      "link_id": "rhy-exit",
-      "text": "Exit",
+      "link_id": "R15",
+      "text": "RHY Exit Questions",
       "data_collected_about": "HOH_AND_ADULTS",
       "item": [
         {
@@ -239,7 +230,7 @@
           "type": "CHOICE",
           "link_id": "R15.A",
           "required": false,
-          "text": "Has it been the last three months?",
+          "text": "Has it been the past three months?",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "mapping": { "record_type": "EXIT", "field_name": "exchangeForSexPastThreeMonths" },
           "enable_behavior": "ALL",
@@ -287,13 +278,13 @@
           "type": "CHOICE",
           "link_id": "R15.D",
           "required": false,
-          "text": "Has it been the last three months?",
+          "text": "Has it been the past three months?",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "mapping": { "record_type": "EXIT", "field_name": "askedOrForcedToExchangeForSexPastThreeMonths" },
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "R15.1",
+              "question": "R15.C",
               "operator": "EQUAL",
               "answer_code": "YES"
             }
@@ -369,7 +360,7 @@
           "type": "CHOICE",
           "link_id": "R17.A",
           "required": false,
-          "text": "If Youth was expelled or otherwise involuntarily discharged from project, Select the major reason",
+          "text": "Reason for involuntarily discharge",
           "pick_list_reference": "ExpelledReason",
           "mapping": { "record_type": "EXIT", "field_name": "earlyExitReason" },
           "enable_behavior": "ALL",
@@ -441,7 +432,7 @@
           "type": "INTEGER",
           "link_id": "R18.B",
           "required": false,
-          "text": "Identify the number of sessions received by exit",
+          "text": "Number of sessions received by exit",
           "mapping": { "record_type": "EXIT", "field_name": "sessionCountAtExit" },
           "enable_behavior": "ALL",
           "enable_when": [
@@ -453,18 +444,18 @@
           ]
         },
         {
-          "type": "CHOICE",
-          "link_id": "R18.3",
-          "required": false,
-          "text": "Total number of sessions planned in youth's treatment or service plan",
-          "mapping": { "record_type": "EXIT", "field_name": "postExitCounselingPlan" }
-        },
-        {
           "type": "INTEGER",
           "link_id": "R18.2",
           "required": false,
-          "text": "Identify the number of sessions received by exit",
+          "text": "Total number of sessions planned in youth's treatment or service plan",
           "mapping": { "record_type": "EXIT", "field_name": "sessionsInPlan" }
+        },
+        {
+          "type": "BOOLEAN",
+          "link_id": "R18.3",
+          "required": false,
+          "text": "A plan is in place to start or continue counseling after exit",
+          "mapping": { "record_type": "EXIT", "field_name": "postExitCounselingPlan" }
         }
       ]
     }
