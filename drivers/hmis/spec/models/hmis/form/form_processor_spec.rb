@@ -191,7 +191,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
-      expect(assessment.form_processor.valid?).to be false
+      expect(assessment.form_processor.valid?(:form_submission)).to be false
       expect(assessment.form_processor.errors.where(:income_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
@@ -254,6 +254,136 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(health_and_dv.domestic_violence_victim).to eq(1)
       expect(health_and_dv.currently_fleeing).to eq(99)
       expect(health_and_dv.when_occurred).to eq(9)
+    end
+  end
+
+  describe 'YouthEducationStatus processor' do
+    it 'ingests YouthEducationStatus into the hud tables (unknown/refused/not collected)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'YouthEducationStatus.currentSchoolAttend' => 'DATA_NOT_COLLECTED',
+        'YouthEducationStatus.mostRecentEdStatus' => HIDDEN,
+        'YouthEducationStatus.currentEdStatus' => HIDDEN,
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.youth_education_statuses.count).to eq(1)
+
+      youth_education_status = assessment.enrollment.youth_education_statuses.first
+      expect(youth_education_status.current_school_attend).to eq(99)
+      expect(youth_education_status.most_recent_ed_status).to eq(nil)
+      expect(youth_education_status.current_ed_status).to eq(nil)
+    end
+
+    it 'ingests YouthEducationStatus into the hud tables (0)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'YouthEducationStatus.currentSchoolAttend' => 'NOT_CURRENTLY_ENROLLED_IN_ANY_SCHOOL_OR_EDUCATIONAL_COURSE',
+        'YouthEducationStatus.mostRecentEdStatus' => 'K12_GRADUATED_FROM_HIGH_SCHOOL',
+        'YouthEducationStatus.currentEdStatus' => HIDDEN,
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.youth_education_statuses.count).to eq(1)
+
+      youth_education_status = assessment.enrollment.youth_education_statuses.first
+      expect(youth_education_status.current_school_attend).to eq(0)
+      expect(youth_education_status.most_recent_ed_status).to eq(0)
+      expect(youth_education_status.current_ed_status).to eq(nil)
+    end
+
+    it 'ingests YouthEducationStatus into the hud tables (1)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'YouthEducationStatus.currentSchoolAttend' => 'CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION',
+        'YouthEducationStatus.mostRecentEdStatus' => HIDDEN,
+        'YouthEducationStatus.currentEdStatus' => 'PURSUING_BACHELOR_S_DEGREE',
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.youth_education_statuses.count).to eq(1)
+
+      youth_education_status = assessment.enrollment.youth_education_statuses.first
+      expect(youth_education_status.current_school_attend).to eq(1)
+      expect(youth_education_status.most_recent_ed_status).to eq(nil)
+      expect(youth_education_status.current_ed_status).to eq(2)
+    end
+  end
+
+  describe 'EmploymentEducation processor' do
+    it 'ingests EmploymentEducation into the hud tables (unknown/refused/not collected)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'EmploymentEducation.lastGradeCompleted' => 'DATA_NOT_COLLECTED',
+        'EmploymentEducation.schoolStatus' => 'DATA_NOT_COLLECTED',
+        'EmploymentEducation.employed' => 'DATA_NOT_COLLECTED',
+        'EmploymentEducation.employmentType' => HIDDEN,
+        'EmploymentEducation.notEmployedReason' => HIDDEN,
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.employment_educations.count).to eq(1)
+
+      youth_education_status = assessment.enrollment.employment_educations.first
+      expect(youth_education_status.last_grade_completed).to eq(99)
+      expect(youth_education_status.school_status).to eq(99)
+      expect(youth_education_status.employed).to eq(99)
+      expect(youth_education_status.employment_type).to eq(nil)
+      expect(youth_education_status.not_employed_reason).to eq(nil)
+    end
+
+    it 'ingests EmploymentEducation into the hud tables (employed)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'EmploymentEducation.lastGradeCompleted' => 'DATA_NOT_COLLECTED',
+        'EmploymentEducation.schoolStatus' => 'DATA_NOT_COLLECTED',
+        'EmploymentEducation.employed' => 'YES',
+        'EmploymentEducation.employmentType' => 'PART_TIME',
+        'EmploymentEducation.notEmployedReason' => HIDDEN,
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.employment_educations.count).to eq(1)
+
+      youth_education_status = assessment.enrollment.employment_educations.first
+      expect(youth_education_status.last_grade_completed).to eq(99)
+      expect(youth_education_status.school_status).to eq(99)
+      expect(youth_education_status.employed).to eq(1)
+      expect(youth_education_status.employment_type).to eq(2)
+      expect(youth_education_status.not_employed_reason).to eq(nil)
+    end
+
+    it 'ingests EmploymentEducation into the hud tables (not employed)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'EmploymentEducation.lastGradeCompleted' => 'DATA_NOT_COLLECTED',
+        'EmploymentEducation.schoolStatus' => 'DATA_NOT_COLLECTED',
+        'EmploymentEducation.employed' => 'NO',
+        'EmploymentEducation.employmentType' => HIDDEN,
+        'EmploymentEducation.notEmployedReason' => 'NOT_LOOKING_FOR_WORK',
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.employment_educations.count).to eq(1)
+
+      youth_education_status = assessment.enrollment.employment_educations.first
+      expect(youth_education_status.last_grade_completed).to eq(99)
+      expect(youth_education_status.school_status).to eq(99)
+      expect(youth_education_status.employed).to eq(0)
+      expect(youth_education_status.employment_type).to eq(nil)
+      expect(youth_education_status.not_employed_reason).to eq(3)
     end
   end
 

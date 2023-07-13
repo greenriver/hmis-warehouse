@@ -7,6 +7,7 @@
 module Hmis
   class MigrateAssessmentsJob < ApplicationJob
     include Hmis::Concerns::HmisArelHelper
+    attr_accessor :data_source_id
 
     EXIT_STAGE = 3
     ENTRY_EXIT = [1, 3].freeze # entry, exit
@@ -34,6 +35,7 @@ module Hmis
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
     def perform(data_source_id:)
+      self.data_source_id = data_source_id
       Hmis::Hud::Enrollment.where(data_source_id: data_source_id).in_batches(of: 10_000) do |batch|
         # Build entry/exit assessments
         build_assessments(
@@ -119,8 +121,6 @@ module Hmis
 
       Rails.logger.info "Skipped #{skipped_records} records. Creating #{assessment_records.keys.size} assessments..."
 
-      system_user = Hmis::Hud::User.system_user(data_source_id: data_source_id)
-
       # For each grouping of Enrollment+InformationDate+DataCollectionStage,
       # create a CustomAssessment and a FormProcessor that references the related records
       assessment_records.each do |hash_key, value|
@@ -133,8 +133,11 @@ module Hmis
 
         # Build CustomAssessment with appropriate metadata
         metadata_attributes = value.extract!(:user_id, :date_created, :date_updated, :assessment_date)
-        metadata_attributes[:user_id] ||= system_user.user_id
-        assessment = Hmis::Hud::CustomAssessment.new(**uniq_attributes.merge(metadata_attributes))
+        assessment = Hmis::Hud::CustomAssessment.new(
+          **uniq_attributes.merge(metadata_attributes),
+          user: hud_users_by_id[metadata_attributes[:user_id]] || system_user,
+          wip: false,
+        )
 
         # Build FormProcessor with IDs to all related records
         assessment.build_form_processor(**value)
@@ -143,6 +146,14 @@ module Hmis
     end
 
     private
+
+    def system_user
+      @system_user ||= Hmis::Hud::User.system_user(data_source_id: data_source_id)
+    end
+
+    def hud_users_by_id
+      @hud_users_by_id ||= Hmis::Hud::User.where(data_source_id: data_source_id).index_by(&:user_id)
+    end
 
     # Map class name to column name on form process0r
     def form_processor_column_name(klass, disability_type: nil)
@@ -178,6 +189,7 @@ module Hmis
 
       # User that most recently updated
       user_latest_updated = [metadata, new_metadata].reject { |v| v[:date_updated].nil? || v[:user_id].nil? }.
+        select { |v| hud_users_by_id.key?(v[:user_id]) }. # keep if we have this user record
         max_by { |v| v[:date_updated].to_datetime }&.fetch(:user_id)
 
       metadata.merge(new_metadata) do |key, oldval, newval|

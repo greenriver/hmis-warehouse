@@ -4798,7 +4798,7 @@ type Organization {
   hudId: ID!
   id: ID!
   organizationName: String!
-  projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
+  projects(filters: ProjectsForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
   user: User
   victimServiceProvider: NoYesMissing!
 }
@@ -5141,6 +5141,7 @@ enum ProjectFilterOptionStatus {
 
 input ProjectFilterOptions {
   funder: [FundingSource!]
+  organization: [ID!]
   projectType: [ProjectType!]
   searchTerm: String
   status: [ProjectFilterOptionStatus!]
@@ -5234,6 +5235,13 @@ enum ProjectType {
   Transitional Housing
   """
   TH
+}
+
+input ProjectsForEnrollmentFilterOptions {
+  funder: [FundingSource!]
+  projectType: [ProjectType!]
+  searchTerm: String
+  status: [ProjectFilterOptionStatus!]
 }
 
 type ProjectsPaginated {
@@ -5954,7 +5962,7 @@ enum RelatedRecordType {
   DISABILITY_GROUP
 
   """
-  ExmploymentEducation
+  EmploymentEducation
   """
   EMPLOYMENT_EDUCATION
 
