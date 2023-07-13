@@ -18,7 +18,9 @@ module HmisExternalApis::AcHmis
         request_log.update!(request: 'too large') # Don't store large request
         return respond_with_errors([msg])
       end
+
       unsafe_params = JSON.parse(request.raw_post)
+      unsafe_params = deep_compact(unsafe_params)
       errors = validate_request(unsafe_params)
       return respond_with_errors(errors) if errors.any?
 
@@ -42,6 +44,18 @@ module HmisExternalApis::AcHmis
       schema_path = Rails.root
         .join('drivers/hmis_external_apis/public/schemas/referral.json')
       HmisExternalApis::JsonValidator.perform(data, schema_path)
+    end
+
+    # Recursively remove keys with null values or empty string values
+    def deep_compact(hash)
+      res_hash = hash.map do |key, value|
+        value = deep_compact(value) if value.is_a?(Hash)
+        value = value.map { |a| deep_compact(a) } if value.is_a?(Array) && value[0].is_a?(Hash)
+
+        [key, value]
+      end
+
+      res_hash.to_h.compact_blank
     end
   end
 end
