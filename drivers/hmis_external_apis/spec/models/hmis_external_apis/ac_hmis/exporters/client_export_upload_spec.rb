@@ -7,6 +7,11 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExportUploader, type: :model do
+  before(:all) do
+    system('ssh-keygen -R hmis-warehouse-sftp > /dev/null 2>&1')
+    system('ssh-keygen -R \[hmis-warehouse-sftp\]:22 > /dev/null 2>&1')
+  end
+
   let(:subject) { HmisExternalApis::AcHmis::Exporters::ClientExportUploader.new(io_streams: [OpenStruct.new(name: 'Client.csv', io: StringIO.new("a,b,c\n1,2,3"))], date: Date.parse('2023-06-01')) }
   let(:creds) do
     # port = ENV['CI'].present? ? 2222 : 22

@@ -28,11 +28,8 @@ module HmisExternalApis::AcHmis::Exporters
           client.send(col)
         end
 
-        mci =
-          client.external_ids.to_a.find do |x|
-            x.namespace == HmisExternalApis::AcHmis::Mci::SYSTEM_ID
-          end
-        external_id_values = [mci&.value]
+        # If the client has multiple MCI IDs, it doesn't matter which one we send
+        external_id_values = [client.ac_hmis_mci_ids&.first&.value]
 
         best_address = client.addresses.to_a.max_by(&:DateUpdated)
 
@@ -85,7 +82,7 @@ module HmisExternalApis::AcHmis::Exporters
       Hmis::Hud::Client
         .where(data_source: data_source)
         .preload(:addresses)
-        .preload(:external_ids)
+        .preload(:ac_hmis_mci_ids)
     end
 
     def data_source
