@@ -306,9 +306,8 @@ module Types
     def self.open_hoh_enrollments_for_project(project)
       raise 'Project required' unless project.present?
 
-      enrollments = project.enrollments
-        .viewable_by(user)
-        .open_on_date
+      # No need for viewable_by here because we know the project is already veiwable by the user
+      enrollments = project.enrollments.open_on_date
         .heads_of_households
         .preload(:client)
         .preload(household: :enrollments)
