@@ -470,10 +470,10 @@ module Filters
 
     # Apply all known scopes
     # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
-    def apply(scope, all_project_types: nil, multi_coc_code_filter: true)
+    def apply(scope, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true)
       @filter = self
       scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
+      scope = filter_for_range(scope) if include_date_range
       scope = if multi_coc_code_filter
         filter_for_cocs(scope)
       else
@@ -506,6 +506,7 @@ module Filters
       scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_cohorts(scope)
       scope = filter_for_active_roi(scope)
       filter_for_times_homeless(scope)
     end
