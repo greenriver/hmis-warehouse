@@ -24,8 +24,8 @@ module Types
       return result if result.present?
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
-      household = Hmis::Hud::Household.viewable_by(current_user).find_by(id: household_id) if household_id.present?
-      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: client_id) if client_id.present?
+      household = Hmis::Hud::Household.viewable_by(user).find_by(id: household_id) if household_id.present?
+      client = Hmis::Hud::Client.viewable_by(user).find_by(id: client_id) if client_id.present?
 
       case pick_list_type
       when 'COC'
