@@ -25,7 +25,7 @@
 module HmisExternalApis::AcHmis
   class Mci
     SYSTEM_ID = 'ac_hmis_mci'.freeze
-    Error = StandardError.new
+    Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to MCI')
 
     # Perform "clearance" to find potential matches for a client in MCI
     #

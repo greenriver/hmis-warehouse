@@ -50,7 +50,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
+
+  # Unit occupancy
+  # All unit occupancies, including historical
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
+  has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
+  has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
@@ -206,6 +212,27 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def hoh_entry_date
     household_members.heads_of_households.first&.entry_date
+  end
+
+  def assign_unit!(unit, user:)
+    occupants = unit.occupants_on(entry_date)
+    return if occupants.include?(self) # already assigned, ignore
+
+    raise 'Unit already assigned to another household' if occupants.where.not(household_id: household_id).present?
+
+    Hmis::UnitOccupancy.create!(
+      unit: unit,
+      enrollment: self,
+      occupancy_period_attributes: {
+        start_date: entry_date,
+        end_date: nil,
+        user: user,
+      },
+    )
+  end
+
+  def release_unit!(occupancy_end_date = Date.current, user:)
+    active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date, user: user)
   end
 
   def unit_occupied_on(date = Date.current)

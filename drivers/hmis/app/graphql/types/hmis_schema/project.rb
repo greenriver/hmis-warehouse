@@ -127,6 +127,7 @@ module Types
       end
     end
 
+    # TODO use dataloader
     def units(**args)
       resolve_units(**args)
     end

@@ -23,7 +23,6 @@ module Types
       end
 
       def resolve_units(scope = object.units, filters: nil)
-        # scope = scope.active
         scope = scope.apply_filters(filters) if filters.present?
         scope.order(created_at: :desc)
       end
