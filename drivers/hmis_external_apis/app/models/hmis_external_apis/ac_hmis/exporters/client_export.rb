@@ -71,7 +71,6 @@ module HmisExternalApis::AcHmis::Exporters
           elsif value.respond_to?(:strftime)
             value.strftime('%Y-%m-%d %H:%M:%S')
           else
-            # FIXME: Do the integer fields that represent boolean values default to zero? Or is nil/null correct?
             value
           end
         },
