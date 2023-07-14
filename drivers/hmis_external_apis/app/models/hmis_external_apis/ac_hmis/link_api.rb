@@ -56,7 +56,7 @@ module HmisExternalApis::AcHmis
     protected
 
     def handle_error(result)
-      Rails.logger.error "LINK Error: #{result.error}"
+      Rails.logger.error "LINK Error: #{result.error}" if result.error
       Sentry.capture_exception(StandardError.new(result.error)) if result.error
       raise(Error, result.error) if result.error
 
