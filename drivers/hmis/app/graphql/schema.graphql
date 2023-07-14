@@ -4958,12 +4958,12 @@ enum PickListType {
   Projects that the User can enroll Clients in
   """
   ENROLLABLE_PROJECTS
-  GEOCODE
 
   """
-  Open enrollments for the client.
+  Enrollments for the client, including WIP and Exited.
   """
-  OPEN_ENROLLMENTS_FOR_CLIENT
+  ENROLLMENTS_FOR_CLIENT
+  GEOCODE
 
   """
   Open HoH enrollments at the project.

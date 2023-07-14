@@ -53,8 +53,8 @@ module Types
         available_units_for_enrollment(project, household)
       when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
         open_hoh_enrollments_for_project(project)
-      when 'OPEN_ENROLLMENTS_FOR_CLIENT'
-        open_enrollments_for_client(client)
+      when 'ENROLLMENTS_FOR_CLIENT'
+        enrollments_for_client(client)
       end
     end
 
@@ -325,14 +325,14 @@ module Types
       end
     end
 
-    def self.open_enrollments_for_client(client)
+    def self.enrollments_for_client(client)
       raise 'Client required' unless client.present?
 
       enrollments = client.enrollments.preload(:project, :exit)
       enrollments.sort_by_option(:most_recent).map do |en|
         {
           code: en.id,
-          label: "#{en.project.project_name} (#{[en.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
+          label: "#{en.project.project_name} (#{[en.entry_date.strftime('%m/%d/%Y'), en.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
         }
       end
     end

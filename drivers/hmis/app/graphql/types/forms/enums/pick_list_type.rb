@@ -31,7 +31,7 @@ module Types
     value 'SUB_TYPE_PROVIDED_5'
     value 'REFERRAL_OUTCOME'
     value 'AVAILABLE_FILE_TYPES'
-    value 'OPEN_ENROLLMENTS_FOR_CLIENT', 'Open enrollments for the client.'
+    value 'ENROLLMENTS_FOR_CLIENT', 'Enrollments for the client, including WIP and Exited.'
     value 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT', 'Open HoH enrollments at the project.'
     value 'REFERRAL_RESULT_TYPES', 'Referral Result '
     value 'ASSIGNED_REFERRAL_POSTING_STATUSES', 'Referral Posting Status'
