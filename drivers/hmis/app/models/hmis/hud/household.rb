@@ -65,10 +65,14 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   end
 
   TRIMMED_HOUSEHOLD_ID_LENGTH = 6
-  def short_id
-    return household_id unless household_id.length == 32
+  def self.short_id(hh_id)
+    return hh_id unless hh_id.length == 32
 
-    household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
+    hh_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
+  end
+
+  def short_id
+    self.class.short_id(household_id)
   end
 
   SORT_OPTIONS = [

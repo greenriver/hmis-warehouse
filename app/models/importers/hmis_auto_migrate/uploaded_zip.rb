@@ -43,17 +43,17 @@ module Importers::HmisAutoMigrate
       dest_file = ''
       tmp_folder = ''
       if File.extname(zip_file) == '.7z'
-        tmp_folder = zip_file.gsub('.7z', '')
-        dest_file = zip_file.gsub('.7z', '.zip')
+        tmp_folder = zip_file.gsub('.7z', '').gsub(' ', '_')
+        dest_file = zip_file.gsub('.7z', '.zip').gsub(' ', '_')
         FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
         FileUtils.mkdir_p(tmp_folder)
 
         # options = {}
         # options = { password: @file_password } if @file_password.present?
         cmd = if @file_password.present?
-          "7z e -p#{@file_password} -o#{tmp_folder} #{zip_file}"
+          "7z e -p#{@file_password} -o#{tmp_folder} \"#{zip_file}\""
         else
-          "7z e -o#{tmp_folder} #{zip_file}"
+          "7z e -o#{tmp_folder} \"#{zip_file}\""
         end
         system(cmd)
         # File.open(zip_file, 'rb') do |seven_zip|

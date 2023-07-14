@@ -3,8 +3,7 @@
   "link_id": "health-insurance",
   "text": "Health Insurance",
   "data_collected_about": "ALL_CLIENTS",
-  "record_type": "INCOME_BENEFIT",
-  "prefill": true,
+  "prefill": "INCOME_BENEFIT",
   "item": [
     {
       "type": "CHOICE",
@@ -14,7 +13,7 @@
       "warn_if_empty": true,
       "text": "Covered by Health Insurance",
       "pick_list_reference": "NoYesReasonsForMissingData",
-      "field_name": "insuranceFromAnySource",
+      "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "insuranceFromAnySource" },
       "autofill_values": [
         {
           "value_code": "YES",
@@ -100,7 +99,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.3",
           "text": "Medicaid",
-          "field_name": "medicaid"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "medicaid" }
         },
         {
           "type": "CHOICE",
@@ -108,7 +107,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.4",
           "text": "Medicare",
-          "field_name": "medicare"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "medicare" }
         },
         {
           "type": "CHOICE",
@@ -116,7 +115,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.5",
           "text": "State Children's Health Insurance Program",
-          "field_name": "schip"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "schip" }
         },
         {
           "type": "CHOICE",
@@ -124,7 +123,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.6",
           "text": "VA Medical Services",
-          "field_name": "vaMedicalServices"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "vaMedicalServices" }
         },
         {
           "type": "CHOICE",
@@ -132,7 +131,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.7",
           "text": "Employer-Provided Health Insurance",
-          "field_name": "employerProvided"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "employerProvided" }
         },
         {
           "type": "CHOICE",
@@ -140,7 +139,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.8",
           "text": "Health Insurance obtained through COBRA",
-          "field_name": "cobra"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "cobra" }
         },
         {
           "type": "CHOICE",
@@ -148,7 +147,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.9",
           "text": "Private Pay Health Insurance",
-          "field_name": "privatePay"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "privatePay" }
         },
         {
           "type": "CHOICE",
@@ -156,7 +155,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.10",
           "text": "State Health Insurance for Adults",
-          "field_name": "stateHealthIns"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "stateHealthIns" }
         },
         {
           "type": "CHOICE",
@@ -164,7 +163,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.11",
           "text": "Indian Health Services Program",
-          "field_name": "indianHealthServices"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "indianHealthServices" }
         },
         {
           "type": "CHOICE",
@@ -172,7 +171,7 @@
           "component": "CHECKBOX",
           "link_id": "4.04.12",
           "text": "Other",
-          "field_name": "otherInsurance"
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "otherInsurance" }
         },
         {
           "type": "STRING",
@@ -181,7 +180,7 @@
           "brief_text": "Other insurance",
           "required": false,
           "warn_if_empty": true,
-          "field_name": "otherInsuranceIdentify",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "otherInsuranceIdentify" },
           "enable_behavior": "ALL",
           "enable_when": [
             {

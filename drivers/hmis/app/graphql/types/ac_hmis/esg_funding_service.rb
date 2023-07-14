@@ -41,35 +41,53 @@ module Types
     end
 
     def project_name
-      object.project.project_name
+      project.project_name
     end
 
     def organization_id
-      object.project.organization.organization_id
+      organization.organization_id
     end
 
     def organization_name
-      object.project.organization.organization_name
+      organization.organization_name
     end
 
     def client_id
-      object.client.id
+      client.id
     end
 
     def client_dob
-      object.client.dob
+      client.dob
     end
 
     def first_name
-      object.client.first_name
+      client.first_name
     end
 
     def last_name
-      object.client.last_name
+      client.last_name
     end
 
     def mci_ids
-      object.client.external_identifiers.select { |identifier| identifier[:type] == :mci_id }
+      collection = Hmis::Hud::ClientExternalIdentifierCollection.new(
+        client: client,
+        ac_hmis_mci_ids: load_ar_association(client, :ac_hmis_mci_ids),
+      )
+      collection.mci_identifiers
+    end
+
+    protected
+
+    def client
+      load_ar_association(object, :client)
+    end
+
+    def project
+      load_ar_association(object, :project)
+    end
+
+    def organization
+      load_ar_association(project, :organization)
     end
   end
 end

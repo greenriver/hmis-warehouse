@@ -23,7 +23,7 @@ module Types
 
     # field display
     field :type, Types::Forms::Enums::ItemType, null: false
-    field :prefill, Boolean, 'Whether to allow pre-filling section from recent records. Should only be enabled in conjunction with record_type and for top-level group items.', null: true
+    field :prefill, Forms::Enums::RelatedRecordType, 'Whether to allow pre-filling section from a recent records', null: true
     field :component, Types::Forms::Enums::Component, 'Component to use for display/input of this item', null: true
     field :text, String, 'Primary text for the item', null: true
     field :brief_text, String, 'Label to use for placeholder and population table', null: true
@@ -44,10 +44,8 @@ module Types
     field :service_detail_type, Forms::Enums::ServiceDetailType, 'Whether to apply this field to all clients or a single client when bulk creating', null: true
 
     # field mapping
+    field :mapping, Types::Forms::FieldMapping, null: true
     field :assessment_date, Boolean, 'Whether this item corresponds to the assessment date. Must be used with DATE type. Should be used no more than once per form', null: true
-    field :record_type, Forms::Enums::RelatedRecordType, 'Record type to use for population and extraction', null: true
-    field :field_name, String, 'Name of the field on the record (or on the query input type). Used for record creation/update forms, for assessment population, and for assessment extraction.', null: true
-    field :custom_field_key, String, 'Key of CustomDataElement to save record as. Use record_type to specify type.', null: true
 
     # nested children
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
