@@ -79,6 +79,20 @@
               ]
             }
           ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "unit-tmp",
+          "text": "Select Unit",
+          "mapping": { "field_name": "currentUnit" },
+          "pick_list_reference": "AVAILABLE_UNITS",
+          "required": false,
+          "initial": [
+            {
+              "initial_behavior": "IF_EMPTY",
+              "value_local_constant": "$hohUnitId"
+            }
+          ]
         }
       ]
     }
