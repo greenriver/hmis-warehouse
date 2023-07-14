@@ -28,8 +28,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query GetPickList($pickListType: PickListType!, $relationId: ID) {
-        pickList(pickListType: $pickListType, relationId: $relationId) {
+      query GetPickList($pickListType: PickListType!, $projectId: ID, $clientId: ID, $householdId: ID, $enrollmentId: ID) {
+        pickList(pickListType: $pickListType, projectId: $projectId, clientId: $clientId, householdId: $householdId, enrollmentId: $enrollmentId) {
           code
           label
           secondaryLabel
@@ -128,7 +128,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'returns CoC pick list for specified project' do
-    response, result = post_graphql(pick_list_type: 'COC', relationId: p1.id.to_s) { query }
+    response, result = post_graphql(pick_list_type: 'COC', projectId: p1.id.to_s) { query }
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(1)
@@ -198,7 +198,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       Types::Forms::PickListOption.options_for_type(
         'AVAILABLE_SERVICE_TYPES',
         user: hmis_user,
-        relation_id: project.id,
+        project_id: project.id,
       ).map { |opt| opt[:code] }
     end
 

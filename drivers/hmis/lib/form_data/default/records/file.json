@@ -40,7 +40,7 @@
           "required": false,
           "link_id": "enrollmentId",
           "text": "Enrollment",
-          "pick_list_reference": "CLIENT_ENROLLMENTS",
+          "pick_list_reference": "OPEN_ENROLLMENTS_FOR_CLIENT",
           "mapping": { "field_name": "enrollmentId" }
         },
         {
