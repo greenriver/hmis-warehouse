@@ -65,16 +65,7 @@ module Mutations
         # send to link if:
         # * the referral came from link
         # * status has changed (status will be unchanged if user just updated note)
-        if posting.from_link? && posting_status_change.present?
-          begin
-            send_update(posting)
-          rescue StandardError
-            # Return an error message specifically about the LINK connection.
-            # Error should already have been sent to Sentry from LinkApi.
-            errors.add :base, :server_error, full_message: 'Failed to connect to LINK. Please try again.'
-            raise ActiveRecord::Rollback
-          end
-        end
+        send_update(posting) if posting.from_link? && posting_status_change.present?
       end
       return { errors: errors } if errors.any?
 

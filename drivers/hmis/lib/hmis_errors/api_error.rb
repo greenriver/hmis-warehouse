@@ -5,5 +5,12 @@
 ###
 
 module HmisErrors
-  class ApiError < StandardError; end
+  class ApiError < StandardError
+    attr_reader :display_message
+    INTERNAL_ERROR_DISPLAY_MESSAGE = 'An error occurred'.freeze
+
+    def initialize(display_message: INTERNAL_ERROR_DISPLAY_MESSAGE)
+      @display_message = display_message
+    end
+  end
 end
