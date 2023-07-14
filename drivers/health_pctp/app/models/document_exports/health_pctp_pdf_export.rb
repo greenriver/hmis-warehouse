@@ -29,7 +29,7 @@ module DocumentExports
     def perform
       with_status_progression do
         template_file = 'health_pctp/careplans/edit_pdf'
-        layout = 'layouts/performance_report'
+        layout = 'layouts/careplan_pdf'
         # https://stackoverflow.com/questions/55865582/set-dynamic-header-and-footer-data-on-pdf-generation-from-rails-grover-gem
 
         html = PdfGenerator.html(
@@ -39,16 +39,35 @@ module DocumentExports
           user: user,
           assigns: view_assigns,
         )
+        header_html = PdfGenerator.html(
+          controller: controller_class,
+          template: 'health_pctp/careplans/pdf_header',
+          layout: false,
+          user: user,
+          assigns: view_assigns,
+        )
+        footer_html = PdfGenerator.html(
+          controller: controller_class,
+          template: 'health_pctp/careplans/pdf_footer',
+          layout: false,
+          user: user,
+          assigns: view_assigns,
+        )
         PdfGenerator.new.perform(
           html: html,
           file_name: "#{_('Care Plan / Patient-Centered Treatment Plan')} #{DateTime.current.to_s(:db)}",
           options: {
             print_background: true,
             display_header_footer: true,
-            header_template: '',
-            footer_template: '',
+            header_template: header_html,
+            footer_template: footer_html,
+            prefer_css_page_size: true,
+            scale: 1,
             margin: {
-              bottom: '.75in',
+              top: '1in',
+              bottom: '1.2in',
+              left: '.4in',
+              right: '.4in',
             },
           },
         ) do |io|

@@ -1,3 +1,45 @@
+.mt-3.d-flex
+  .mr-8
+    .pctc-print__detail-label Patient Birthdate
+    .pctc-print__detail-value= @careplan.patient.birthdate
+  .mr-8
+    .pctc-print__detail-label Initial Date
+    .pctc-print__detail-value TODO
+  .mr-8
+    .pctc-print__detail-label Review Date
+    .pctc-print__detail-value TODO
+
+- care_team_cols = [:name, :phone, :email]
+.mt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title{colspan: care_team_cols.size + 1} Care team
+      %tr.pctc-print__table-header
+        %th{style: 'width:25%;'} Care Team Members
+        %th{style: 'width:25%;'} Name
+        %th{style: 'width:25%;'} Phone Number
+        %th{style: 'width:25%;'} Email
+    %tbody
+      - @careplan.care_team_members.each do |key, label|
+        %tr
+          %th= label
+          - care_team_cols.each do |kind|
+            %td= @careplan.send("#{key}_#{kind}".to_sym)
+
+.mt-8.pctc-print__table.pctc-print__table-no-end
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title Enrollee Overview
+    %tbody
+      %tr
+        %th
+          ="#{@careplan.enrollee_overview_label}".html_safe
+      %tr
+        %td
+          
+
 .mt-8.pctc-print__table
   %table
     %thead
@@ -14,39 +56,8 @@
           %th{style: 'width:40%;'}
             %span= label
             - if hint.present?
-              %small= hint
+              %span.hint= hint
           %td= @careplan.send(key.to_sym)
-
-- care_team_cols = [:name, :phone, :email]
-.mt-8.pctc-print__table
-  %table
-    %thead
-      %tr
-        %th.pctc-print__table-title{colspan: care_team_cols.size + 1} Care team
-      %tr
-        %th{style: 'width:25%;'} Care Team Members
-        %th{style: 'width:25%;'} Name
-        %th{style: 'width:25%;'} Phone Number
-        %th{style: 'width:25%;'} Email
-    %tbody
-      - @careplan.care_team_members.each do |key, label|
-        %tr
-          %th= label
-          - care_team_cols.each do |kind|
-            %td= @careplan.send("#{key}_#{kind}".to_sym)
-
-.mt-8.pctc-print__table
-  %table
-    %thead
-      %tr
-        %th.pctc-print__table-title Enrollee Overview
-    %tbody
-      %tr
-        %th
-          ="#{@careplan.enrollee_overview_label}".html_safe
-      %tr
-        %td
-          %div{style: 'height:125px;'}
 
 .mt-8.pctc-print__table
   %table
@@ -65,7 +76,7 @@
             %span= label
             - if hint.present?
               %br
-              %small= hint
+              %span.hint= hint
           %td= @careplan.send(key.to_sym)
       - @careplan.demographic_information_2.each do |key, (labels, kind, collection, input_html, controlled)|
         - if labels.is_a?(Array)
@@ -77,25 +88,23 @@
           %th{style: 'width:40%;'}
             %span= label
             - if hint.present?
-              %small= hint
+              %span.hint= hint
           %td= @careplan.send(key.to_sym)
 
 - self_ident_rows = [:strengths, :weaknesses, :interests, :choices, :care_goals, :personal_goals, :cultural_considerations]
-.mt-8.pctc-print__table
+.mt-16.pctc-print__table
   %table
     %thead
       %tr
         %th.pctc-print__table-title{colspan: 2}
           Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
-      %tr
-        %th{colspan: 2} In Enrollee's words
     %tbody
       - self_ident_rows.each do |row|
         %tr
-          %th
+          %th{style: 'vertical-align: top;'}
             = row.to_s.titleize
           %td
-            %div{style: 'height:125px;'}
+            %div{style: 'height:165px;'}
 
 .mt-8.pctc-print__table
   %table
@@ -133,7 +142,7 @@
       %tr
         %th.pctc-print__table-title{colspan: need_cols.size}
           Identified Needs and Conditions
-      %tr
+      %tr.pctc-print__table-header
         - need_cols.each do |col|
           %th= col
     %tbody
@@ -144,7 +153,7 @@
           %td= need.start_date
           %td= need.end_date
           %td= need.translate_status_response(need.status)
-      - 3.times do |time|
+      - 18.times do |time|
         %tr
           - need_cols.each do |col|
             %td

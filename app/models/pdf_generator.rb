@@ -56,10 +56,17 @@ class PdfGenerator
     renderer = controller.renderer.new(
       'warden' => warden_proxy(user),
     )
-    renderer.render(
-      template,
-      layout: layout,
-      assigns: assigns,
-    )
+    if !layout.present?
+      renderer.render(
+        partial: template,
+        assigns: assigns,
+      )
+    else
+      renderer.render(
+        template,
+        layout: layout,
+        assigns: assigns,
+      )
+    end
   end
 end

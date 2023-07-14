@@ -32,6 +32,16 @@
     padding-bottom: 0;
   }
 
+  .pctc-print__detail-label {
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .pctc-print__detail-value {
+    font-size: 12px;
+  }
+
+
   .pctc-print__table {
     page-break-inside: avoid;
     table {
@@ -40,10 +50,14 @@
     th, td {
       padding: 8px;
       border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-      font-size: 14px;
+      font-size: 12px;
     }
     th {
       font-weight: bold;
+      span.hint {
+        font-size: 12px;
+        font-weight: normal;
+      }
     }
 
     // th:first-child, td:first-child {
@@ -53,12 +67,27 @@
     // th:last-child, td:last-child {
     //   padding-right: 16px;
     // }
+
+    &.pctc-print__table-no-end {
+      page-break-after: always;
+      table tbody td,
+      table tbody th {
+        border-bottom: none;
+      }
+    }
     
     th.pctc-print__table-title {
       border-bottom: 2px solid #E7E7E7;
       font-weight: bold;
       font-size: 20px;
       padding: 4px 0px;
+      color: #454545;
+    }
+
+    tr.pctc-print__table-header {
+      th, td {
+        background-color: #EEE;
+      }
     }
   }
 
