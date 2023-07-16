@@ -121,6 +121,14 @@ module Types
 
     field :current_unit, HmisSchema::Unit, null: true
 
+    field :reminders, [HmisSchema::Reminder], null: false
+
+    def reminders
+      enrollments = object.project.enrollments.where()
+      generator = Hmis::Reminders::ReminderGenerator.new
+      generator.perform(object.enrollments)
+    end
+
     def project
       if object.in_progress?
         wip = load_ar_association(object, :wip)
