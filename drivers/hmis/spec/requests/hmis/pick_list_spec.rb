@@ -255,6 +255,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(picklist_option_codes(p3)).to be_empty
     end
   end
+
+  describe 'AVAILABLE_UNITS_FOR_ENROLLMENT' do
+    def picklist_option_codes(project, enrollment_id)
+      Types::Forms::PickListOption.options_for_type(
+        'AVAILABLE_UNITS_FOR_ENROLLMENT',
+        user: hmis_user,
+        project_id: project.id,
+        enrollment_id: enrollment_id.id,
+      ).map { |opt| opt[:code] }
+    end
+
+    it 'resolves available units for project' do
+      # TODO
+    end
+
+    it 'includes units that are currently occupied by the household' do
+      # TODO
+    end
+  end
 end
 
 RSpec.configure do |c|
