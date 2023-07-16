@@ -24,7 +24,6 @@ module Types
       return result if result.present?
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
-      household = Hmis::Hud::Household.viewable_by(user).find_by(id: household_id) if household_id.present?
       client = Hmis::Hud::Client.viewable_by(user).find_by(id: client_id) if client_id.present?
 
       case pick_list_type
@@ -50,7 +49,7 @@ module Types
       when 'AVAILABLE_UNIT_TYPES'
         available_unit_types_for_project(project)
       when 'AVAILABLE_UNITS_FOR_ENROLLMENT'
-        available_units_for_enrollment(project, household)
+        available_units_for_enrollment(project, household_id: household_id)
       when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
         open_hoh_enrollments_for_project(project)
       when 'ENROLLMENTS_FOR_CLIENT'
@@ -336,12 +335,19 @@ module Types
       end
     end
 
-    def self.available_units_for_enrollment(project, household)
+    def self.available_units_for_enrollment(project, household_id: nil)
       raise 'Project required' unless project.present?
 
-      # Eligible units are unoccupied units OR units occupied by household members
-      hh_units = household.present? ? household.current_units.pluck(:id) : []
+      # Eligible units are unoccupied units, PLUS units occupied by household members
       unoccupied_units = project.units.unoccupied_on.pluck(:id)
+
+      hh_units = if household_id.present?
+        hh_en_ids = project.enrollments_including_wip.where(household_id: household_id).pluck(:id)
+        Hmis::UnitOccupancy.active.joins(:enrollment).where(enrollment_id: hh_en_ids).pluck(:unit_id)
+      else
+        []
+      end
+
       Hmis::Unit.where(id: unoccupied_units + hh_units).
         preload(:unit_type).
         order(:unit_type_id, :id).
