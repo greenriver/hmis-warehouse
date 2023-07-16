@@ -257,21 +257,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'AVAILABLE_UNITS_FOR_ENROLLMENT' do
-    def picklist_option_codes(project, enrollment_id)
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+    let!(:un1) { create :hmis_unit, project: p1 }
+    let!(:un2) { create :hmis_unit, project: p1 }
+    let!(:un3) { create :hmis_unit } # in another project
+
+    # assign e1 to un1
+    let!(:uo1) { create :hmis_unit_occupancy, unit: un1, enrollment: e1, start_date: 1.week.ago }
+
+    def picklist_option_codes(project, household_id = nil)
       Types::Forms::PickListOption.options_for_type(
         'AVAILABLE_UNITS_FOR_ENROLLMENT',
         user: hmis_user,
         project_id: project.id,
-        enrollment_id: enrollment_id.id,
+        household_id: household_id,
       ).map { |opt| opt[:code] }
     end
 
     it 'resolves available units for project' do
-      # TODO
+      expect(picklist_option_codes(p1)).to contain_exactly(un2.id)
     end
 
     it 'includes units that are currently occupied by the household' do
-      # TODO
+      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id, un2.id)
     end
   end
 end
