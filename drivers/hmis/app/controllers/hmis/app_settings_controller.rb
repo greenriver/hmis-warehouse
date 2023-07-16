@@ -22,7 +22,6 @@ class Hmis::AppSettingsController < Hmis::BaseController
     themes = themes.where(origin: current_hmis_host) if themes.size > 1
 
     render json: {
-      sessionLifetime: Devise.timeout_in.in_seconds,
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
       logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
       warehouseUrl: "https://#{hostname}",
