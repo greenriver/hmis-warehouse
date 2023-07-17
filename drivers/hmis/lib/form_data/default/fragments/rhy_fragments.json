@@ -1,0 +1,463 @@
+{
+  "type": "GROUP",
+  "link_id": "rhy-fragments",
+  "text": "RHY Fragments",
+  "item": [
+    {
+      "type": "GROUP",
+      "link_id": "rhy-health-and-dv",
+      "text": "Health and DV",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "R7.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "General Health Status",
+          "pick_list_reference": "HealthStatus",
+          "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "generalHealthStatus" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R8.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Dental Health Status",
+          "pick_list_reference": "HealthStatus",
+          "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "dentalHealthStatus" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R9.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Mental Health Status",
+          "pick_list_reference": "HealthStatus",
+          "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "mentalHealthStatus" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R10.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Pregnancy Status",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "pregnancyStatus" }
+        },
+        {
+          "type": "DATE",
+          "link_id": "R10.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Due Date",
+          "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "dueDate" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R10.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "rhy-enrollment",
+      "text": "Enrollment",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "R11.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Formerly a Ward of Child Welfare/Foster Care Agency",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "formerWardChildWelfare" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R11.A",
+          "required": false,
+          "text": "Number of Years",
+          "pick_list_reference": "RHYNumberofYears",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "childWelfareYears" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R11.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "R11.B",
+          "required": false,
+          "text": "Number of Months",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "childWelfareMonths" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R11.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R12.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Formerly a Ward of Juvenile Justice System",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "formerWardJuvenileJustice" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R12.A",
+          "required": false,
+          "text": "Number of Years",
+          "pick_list_reference": "RHYNumberofYears",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "juvenileJusticeYears" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R12.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "R12.B",
+          "required": false,
+          "text": "Number of Months",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "juvenileJusticeMonths" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R12.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R13.9",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Unemployment - Family member",
+          "helper_text": "Issues associated with the inability to of an adult member in the youth’s family to find and secure steady employment.",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "unemploymentFam" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R13.11",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Mental Health Disorder - Family member",
+          "helper_text": "Issues related to a family member’s mental health status.",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "mentalHealthDisorderFam" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R13.15",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Physical Disability - Family member",
+          "helper_text": "Issues related to a family member’s physical disability or impairment.",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "physicalDisabilityFam" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R13.21",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Alcohol or Substance Use Disorder - Family member",
+          "helper_text": "Any misuse of alcohol, or legal or illegal drugs within the household.",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "alcoholDrugUseDisorderFam" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R13.22",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Insufficient Income to Support Youth - Family member",
+          "helper_text": "Issues related to insufficient incomes of the parents/legal guardians to support the basic needs of the youth (e.g., food, clothing, and shelter).",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "insufficientIncome" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R13.24",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Incarcerated Parent of Youth",
+          "helper_text": "Issues related to the incarceration of a parent or legal guardian.",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "incarceratedParent" }
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R15",
+      "text": "RHY Exit Questions",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "R15.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Have you ever received anything in exchange for having sexual relations with another person, such as money, food, drugs, or shelter?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "exchangeForSex" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R15.A",
+          "required": false,
+          "text": "Has it been the past three months?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "exchangeForSexPastThreeMonths" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R15.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R15.B",
+          "required": false,
+          "text": "How many times have you received something in exchange for having sexual relations with another person, such as money, food, drugs, or shelter?",
+          "pick_list_reference": "CountExchangeForSex",
+          "mapping": { "record_type": "EXIT", "field_name": "countOfExchangeForSex" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R15.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R15.C",
+          "required": false,
+          "text": "Did someone ever make you or persuade you to have sex with anyone else in exchange for something, such as money, food, drugs or shelter?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "askedOrForcedToExchangeForSex" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R15.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R15.D",
+          "required": false,
+          "text": "Has it been the past three months?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "askedOrForcedToExchangeForSexPastThreeMonths" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R15.C",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R16.1",
+          "required": false,
+          "text": "Have you ever been afraid to leave or quit a work situation due to fears of violence or other threats of harm to yourself, family or friends?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "workplaceViolenceThreats" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R16.2",
+          "required": false,
+          "text": "Have you ever been promised work where the work or payment ended up being different from what you expected?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "workplacePromiseDifference" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R16.A",
+          "required": false,
+          "text": "Did you feel forced, pressured or tricked into continuing this job?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "coercedToContinueWork" },
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "R16.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "R16.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R16.B",
+          "required": false,
+          "text": "Have you had any jobs like these in the last 3 months?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "laborExploitPastThreeMonths" },
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "R16.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "R16.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R17.1",
+          "required": false,
+          "text": "Project Completion Status",
+          "pick_list_reference": "ProjectCompletionStatus",
+          "mapping": { "record_type": "EXIT", "field_name": "projectCompletionStatus" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R17.A",
+          "required": false,
+          "text": "Reason for involuntarily discharge",
+          "pick_list_reference": "ExpelledReason",
+          "mapping": { "record_type": "EXIT", "field_name": "earlyExitReason" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R17.1",
+              "operator": "EQUAL",
+              "answer_code": "YOUTH_WAS_EXPELLED_OR_OTHERWISE_INVOLUNTARILY_DISCHARGED_FROM_PROJECT"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R18.1",
+          "required": false,
+          "text": "Counseling received by client",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "EXIT", "field_name": "counselingReceived" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R18.A1",
+          "required": false,
+          "text": "Client received individual counseling",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "EXIT", "field_name": "individualCounseling" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R18.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R18.A2",
+          "required": false,
+          "text": "Client received family counseling",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "EXIT", "field_name": "familyCounseling" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R18.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R18.A3",
+          "required": false,
+          "text": "Client received group counseling, including peer counseling",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "EXIT", "field_name": "groupCounseling" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R18.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "R18.B",
+          "required": false,
+          "text": "Number of sessions received by exit",
+          "mapping": { "record_type": "EXIT", "field_name": "sessionCountAtExit" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R18.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "R18.2",
+          "required": false,
+          "text": "Total number of sessions planned in youth's treatment or service plan",
+          "mapping": { "record_type": "EXIT", "field_name": "sessionsInPlan" }
+        },
+        {
+          "type": "BOOLEAN",
+          "link_id": "R18.3",
+          "required": false,
+          "text": "A plan is in place to start or continue counseling after exit",
+          "mapping": { "record_type": "EXIT", "field_name": "postExitCounselingPlan" }
+        }
+      ]
+    }
+  ]
+}
