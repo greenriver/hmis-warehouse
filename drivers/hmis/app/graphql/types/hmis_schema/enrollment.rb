@@ -119,6 +119,8 @@ module Types
     end
     custom_data_elements_field
 
+    field :current_unit, HmisSchema::Unit, null: true
+
     def project
       if object.in_progress?
         wip = load_ar_association(object, :wip)
@@ -203,6 +205,10 @@ module Types
 
     def user
       load_ar_association(object, :user)
+    end
+
+    def current_unit
+      load_ar_association(object, :current_unit)
     end
   end
 end
