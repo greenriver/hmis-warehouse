@@ -1,5 +1,8 @@
 FROM open-path-warehouse:latest--base
 
 USER root
-RUN apk add py3-pip aws-cli
+RUN apk add py3-pip
+RUN pip3 install wheel
+# https://github.com/aws/aws-cli/issues/8036#issuecomment-1638544754
+RUN pip3 install awscli --no-build-isolation
 USER app

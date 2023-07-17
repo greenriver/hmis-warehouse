@@ -40,8 +40,10 @@ RUN apk add --no-cache \
   shared-mime-info docker \
   vim less \
   tar xz p7zip \
-  python3 py3-pip aws-cli\
+  python3 py3-pip \
   && git config --global --add safe.directory /app
+
+RUN pip3 install awscliv2 awscli
 
 RUN mkdir /app
 WORKDIR /app
