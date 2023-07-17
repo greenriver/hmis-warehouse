@@ -20,6 +20,13 @@ class CreateEpicThrives < ActiveRecord::Migration[6.1]
       t.timestamps
     end
 
-    add_column :thrive_assessments, :epic_source_id, :string
+    safety_assured do
+      change_table :thrive_assessments do |t|
+        t.string :epic_source_id
+        t.integer :reporter
+        t.boolean :trouble_with_adl
+        t.boolean :help_with_adl
+      end
+    end
   end
 end

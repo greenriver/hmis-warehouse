@@ -30,8 +30,8 @@ module Health
         '\"Within the past 12 months; you worried that your food would run out before you got money to buy more.\"'	=>
           :food_worries,
         '\"Do you have trouble paying for medicines?\"'	=> :trouble_drug_cost,
-        '\"Do you have trouble getting transportation to medical appointments?\""	=> :trouble_medical_transportation,
-        "\"Do you have trouble paying your heating; water or electricity bill?\"'	=> :trouble_utility_cost,
+        '\"Do you have trouble getting transportation to medical appointments?\"'	=> :trouble_medical_transportation,
+        '\"Do you have trouble paying your heating; water or electricity bill?\"'	=> :trouble_utility_cost,
         '\"Do you have trouble taking care of a child; family member or friend?\"'	=> :trouble_caring_for_family,
         '\"Do you have trouble with day-to-day activities such as bathing; preparing meals; shopping; managing finances; etc.?\"'	=> :trouble_with_adl, # Not on paper THRIVE
         '\"Are you currently unemployed and looking for a job?\"'	=> :unemployed,
@@ -95,6 +95,7 @@ module Health
         assessment.help_with_utilities = help_requests.include?('Utilities')
         assessment.help_with_childcare = help_requests.include?('Child Care/Daycare')
         assessment.help_with_eldercare = help_requests.include?('Care for Elder or disabled')
+        # assessment.help_with_adl = help.requests('')
         assessment.help_with_job_search = help_requests.include?('Job Search/Training')
         assessment.help_with_education = help_requests.include?('Education')
       else
@@ -105,6 +106,7 @@ module Health
         assessment.help_with_utilities = nil
         assessment.help_with_childcare = nil
         assessment.help_with_eldercare = nil
+        assessment.help_with_adl = nil
         assessment.help_with_job_search = nil
         assessment.help_with_education = nil
       end
@@ -114,9 +116,9 @@ module Health
 
     def yes_no(value)
       case value
-      when '0'
+      when '0', 'No'
         false
-      when '1'
+      when '1', 'Yes'
         true
       end
     end

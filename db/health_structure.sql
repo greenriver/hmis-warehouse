@@ -5327,7 +5327,10 @@ CREATE TABLE public.thrive_assessments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    epic_source_id character varying
+    epic_source_id character varying,
+    reporter integer,
+    trouble_with_adl boolean,
+    help_with_adl boolean
 );
 
 
