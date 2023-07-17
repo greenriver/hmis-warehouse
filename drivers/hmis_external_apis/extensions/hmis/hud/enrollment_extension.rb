@@ -20,11 +20,13 @@ module HmisExternalApis
 
             # Posting can only be accepted if it is AcceptedPending or Closed (if re-opening exited enrollment)
             posting = source_postings.find_by(status: ['accepted_pending_status', 'closed_status'])
-            return unless posting.present? && posting.identifier.present?
+            return unless posting.present?
 
             posting.status = 20 # accepted
             posting.referral_result = 1 # successful result
             posting.save!
+            return unless posting.identifier.present? # HMIS Admin-assigned posting
+
             HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
               posting_id: posting.identifier,
               posting_status_id: posting.status_before_type_cast,
@@ -38,10 +40,12 @@ module HmisExternalApis
             return unless HmisExternalApis::AcHmis::LinkApi.enabled?
 
             posting = source_postings.find_by(status: 'accepted_status')
-            return unless posting.present? && posting.identifier.present?
+            return unless posting.present?
 
             posting.status = 13 # closed
             posting.save!
+            return unless posting.identifier.present? # HMIS Admin-assigned posting
+
             HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
               posting_id: posting.identifier,
               posting_status_id: posting.status_before_type_cast,
