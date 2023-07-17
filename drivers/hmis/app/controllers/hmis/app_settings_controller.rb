@@ -40,5 +40,4 @@ class Hmis::AppSettingsController < Hmis::BaseController
       },
     }
   end
-
 end
