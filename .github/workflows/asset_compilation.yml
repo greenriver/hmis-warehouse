@@ -96,9 +96,7 @@ jobs:
           chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
           lftp postgresql tmux postgis geos geos-dev \
           shared-mime-info \
-          python3 py3-pip
-
-        pip3 install awscli
+          python3 py3-pip aws-cli
 
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
