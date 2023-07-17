@@ -2,7 +2,7 @@
   "type": "GROUP",
   "link_id": "youth-education-status",
   "text": "Education Status",
-  "data_collected_about": "ALL_CLIENTS",
+  "data_collected_about": "HOH",
   "prefill": "YOUTH_EDUCATION_STATUS",
   "item": [
     {
