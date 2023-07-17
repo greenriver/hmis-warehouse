@@ -120,7 +120,7 @@ module Types
         enrollments.sort_by_option(:most_recent).map do |enrollment|
           {
             code: enrollment.id,
-            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
+            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'Active'].join(' - ')})",
           }
         end
 
