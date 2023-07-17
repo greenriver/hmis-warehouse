@@ -49,6 +49,7 @@
           "required": false,
           "link_id": "confidential",
           "text": "Confidential File?",
+          "readonly_text": "Confidential File",
           "mapping": { "field_name": "confidential" },
           "helper_text": "If yes, access will be limited to users who can view confidential files.",
           "initial": [
