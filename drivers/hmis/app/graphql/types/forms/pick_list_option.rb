@@ -339,11 +339,12 @@ module Types
           label: tag.name,
           group_code: tag.group,
           group_label: tag.group,
-          secondary_label: tag.included_info&.strip&.present? ? "(includes: #{tag.included_info})" : nil,
+          # secondary_label: tag.included_info&.strip&.present? ? "(includes: #{tag.included_info})" : nil,
         }
       end.
         compact.
-        sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+        # Put 'Other' at the end
+        sort_by { |obj| obj[:label] == 'Other' ? 'z' : [obj[:group_label] + obj[:label]].join(' ') }
     end
   end
 end
