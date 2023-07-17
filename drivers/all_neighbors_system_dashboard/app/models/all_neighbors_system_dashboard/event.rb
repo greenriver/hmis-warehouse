@@ -9,5 +9,21 @@ module AllNeighborsSystemDashboard
     acts_as_paranoid
 
     belongs_to :enrollment
+
+    def client_id
+      enrollment.source_client.id
+    end
+
+    def report_start
+      enrollment.start_date
+    end
+
+    def report_end
+      enrollment.end_date
+    end
+
+    def run_date
+      enrollment.report.updated_at
+    end
   end
 end

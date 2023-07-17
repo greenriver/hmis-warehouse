@@ -129,8 +129,7 @@ and just need Enrollment.CaseID in your query's table.
                 XX.Location AS Location,
                 DENSE_RANK() OVER(PARTITION BY XEC.CaseID ORDER BY XS.BeginDate DESC, XS.ServiceID DESC) AS RankNum
             FROM
-                Enrollment XE (nolock)
-                LEFT JOIN EnrollmentCase XEC (nolock) ON XE.CaseID = XEC.CaseID AND XEC.ActiveStatus <> 'D'
+                Enrollment XE (nolock) LEFT JOIN EnrollmentCase XEC (nolock) ON XE.CaseID = XEC.CaseID AND XEC.ActiveStatus <> 'D'
                 INNER JOIN qview_2000000305_DRTRRProjects XvP(nolock) ON XEC.ProgramID = XvP.ProgramID
                 INNER JOIN Service XS (nolock) ON XE.ClientID = XS.ClientID AND XS.ActiveStatus <> 'D'
                 INNER JOIN ServiceReferral XSR (nolock) ON XS.ServiceID = XSR.ServiceID AND XSR.ServiceCodeID IN(433,435,436,437,438,439,440,441,443,444,445,446,447,968,974,975,976,1114)

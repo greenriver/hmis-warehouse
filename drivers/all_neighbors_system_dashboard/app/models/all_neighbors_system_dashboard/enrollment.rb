@@ -14,5 +14,36 @@ module AllNeighborsSystemDashboard
     has_one :source_client, through: :source_enrollment, class_name: 'GrdaWarehouse::Hud::Client'
     has_one :source_project, through: :source_enrollment, class_name: 'GrdaWarehouse::Hud::Project'
     has_many :events
+
+    def intervention
+      case project_type
+      when 9
+        'Emergency Housing Voucher'
+      when 13
+        'Rapid Rehousing'
+      else
+        'ERROR'
+      end
+    end
+
+    def report_start
+      report.filter.start_date
+    end
+
+    def report_end
+      report.filter.end_date
+    end
+
+    def enrollment_count
+      1
+    end
+
+    def move_in_count
+      return 1 if move_in_date.present?
+    end
+
+    def scaffold_link
+      1
+    end
   end
 end
