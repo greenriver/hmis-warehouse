@@ -184,7 +184,7 @@ class Hmis::User < ApplicationRecord
       name: name,
       email: email,
       phone: phone,
-      sessionLifetime: Devise.timeout_in.in_seconds,
+      sessionDuration: Devise.timeout_in.in_seconds,
     }
   end
 end

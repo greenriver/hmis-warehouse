@@ -48,7 +48,7 @@ class Rack::Attack
     # last_request_at, regardless of skip_trackable in the controller. This means
     # sessions may not expire as expected
     strip_path = request.path.split('.', 2)[0]
-    return false if strip_path == '/active'
+    return false if strip_path == '/hmis/app_settings' || strip_path == '/hmis/user' || strip_path == '/active'
 
     request.env['warden']&.user.present? || request.env['warden']&.user(:hmis_user).present?
   end
