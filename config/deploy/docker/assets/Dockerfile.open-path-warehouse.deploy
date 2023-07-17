@@ -1,5 +1,5 @@
 FROM open-path-warehouse:latest--base
 
 USER root
-RUN apk add py3-pip aws-cli
+RUN apk add aws-cli
 USER app

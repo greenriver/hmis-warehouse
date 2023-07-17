@@ -40,7 +40,7 @@ RUN apk add --no-cache \
   shared-mime-info docker \
   vim less \
   tar xz p7zip \
-  python3 py3-pip aws-cli\
+  python3 aws-cli\
   && git config --global --add safe.directory /app
 
 RUN mkdir /app
