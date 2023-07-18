@@ -214,17 +214,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_members.heads_of_households.first&.entry_date
   end
 
-  def assign_unit!(unit, user:)
-    occupants = unit.occupants_on(entry_date)
+  def assign_unit(unit:, start_date:, user:)
+    occupants = unit.occupants_on(start_date)
     return if occupants.include?(self) # already assigned, ignore
 
     raise 'Unit already assigned to another household' if occupants.where.not(household_id: household_id).present?
 
-    Hmis::UnitOccupancy.create!(
+    build_active_unit_occupancy(
       unit: unit,
-      enrollment: self,
       occupancy_period_attributes: {
-        start_date: entry_date,
+        start_date: start_date,
         end_date: nil,
         user: user,
       },
