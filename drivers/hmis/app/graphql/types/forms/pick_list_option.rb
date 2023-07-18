@@ -332,7 +332,7 @@ module Types
       enrollments.sort_by_option(:most_recent).map do |en|
         {
           code: en.id,
-          label: "#{en.project.project_name} (#{[en.entry_date.strftime('%m/%d/%Y'), en.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
+          label: "#{en.project.project_name} (#{[en.entry_date.strftime('%m/%d/%Y'), en.exit_date&.strftime('%m/%d/%Y') || 'Active'].join(' - ')})",
         }
       end
     end
