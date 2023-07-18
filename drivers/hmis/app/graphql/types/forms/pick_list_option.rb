@@ -19,35 +19,16 @@ module Types
 
     CODE_PATTERN = /^\(([0-9]*)\) /
 
-    def self.options_for_type(pick_list_type, user:, relation_id: nil)
-      # NOTE: relation_id is not necessarily a project id, that depends on the pick list type
-      project = Hmis::Hud::Project.find_by(id: relation_id) if relation_id.present?
+    def self.options_for_type(pick_list_type, user:, project_id: nil, client_id: nil, household_id: nil)
+      result = static_options_for_type(pick_list_type)
+      return result if result.present?
+
+      project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
+      client = Hmis::Hud::Client.viewable_by(user).find_by(id: client_id) if client_id.present?
 
       case pick_list_type
       when 'COC'
         coc_picklist(project)
-      when 'STATE'
-        state_picklist
-      when 'GEOCODE'
-        geocodes_picklist
-      when 'PRIOR_LIVING_SITUATION'
-        living_situation_picklist(as: :prior)
-      when 'ALL_SERVICE_TYPES'
-        service_types_picklist
-      when 'ALL_SERVICE_CATEGORIES'
-        service_categories_picklist
-      when 'AVAILABLE_SERVICE_TYPES'
-        available_service_types_picklist(project)
-      when 'SUB_TYPE_PROVIDED_3'
-        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
-      when 'SUB_TYPE_PROVIDED_4'
-        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType4, '144:4')
-      when 'SUB_TYPE_PROVIDED_5'
-        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType5, '144:5')
-      when 'CURRENT_LIVING_SITUATION'
-        living_situation_picklist(as: :current)
-      when 'DESTINATION'
-        living_situation_picklist(as: :destination)
       when 'PROJECT'
         Hmis::Hud::Project.viewable_by(user).
           joins(:organization).
@@ -58,72 +39,58 @@ module Types
         Hmis::Hud::Project.viewable_by(user).with_access(user, :can_enroll_clients).
           joins(:organization).
           sort_by_option(:organization_and_name).
+          preload(:organization).
           map(&:to_pick_list_option)
       when 'ORGANIZATION'
-        Hmis::Hud::Organization.viewable_by(user).
-          sort_by_option(:name).
-          map(&:to_pick_list_option)
-
-      when 'ALL_UNIT_TYPES'
-        # used for referrals between projects
-        all_unit_types
-      when 'UNIT_TYPES'
-        # If no project was specified, return all unit types
-        return all_unit_types unless relation_id.present?
-
+        Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
+      when 'AVAILABLE_SERVICE_TYPES'
+        available_service_types_picklist(project)
+      when 'POSSIBLE_UNIT_TYPES_FOR_PROJECT'
         possible_unit_types_for_project(project)
       when 'AVAILABLE_UNIT_TYPES'
         available_unit_types_for_project(project)
-      when 'UNITS'
-        return [] unless project.present?
+      when 'AVAILABLE_UNITS_FOR_ENROLLMENT'
+        available_units_for_enrollment(project, household_id: household_id)
+      when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
+        open_hoh_enrollments_for_project(project)
+      when 'ENROLLMENTS_FOR_CLIENT'
+        enrollments_for_client(client)
+      end
+    end
 
-        project.units.
-          preload(:unit_type).
-          order(:unit_type_id, :id).
-          map(&:to_pick_list_option)
-      when 'AVAILABLE_UNITS'
-        return [] unless project.present?
-
-        project.units.
-          unoccupied_on.
-          preload(:unit_type).
-          order(:unit_type_id, :id).
-          map(&:to_pick_list_option)
+    # "Static" pick list options that do not depend on any other data
+    def self.static_options_for_type(pick_list_type)
+      case pick_list_type
+      when 'STATE'
+        state_picklist
+      when 'GEOCODE'
+        geocodes_picklist
+      when 'PRIOR_LIVING_SITUATION'
+        living_situation_picklist(as: :prior)
+      when 'ALL_SERVICE_TYPES'
+        service_types_picklist
+      when 'ALL_SERVICE_CATEGORIES'
+        service_categories_picklist
+      when 'SUB_TYPE_PROVIDED_3'
+        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
+      when 'SUB_TYPE_PROVIDED_4'
+        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType4, '144:4')
+      when 'SUB_TYPE_PROVIDED_5'
+        sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType5, '144:5')
+      when 'CURRENT_LIVING_SITUATION'
+        living_situation_picklist(as: :current)
+      when 'DESTINATION'
+        living_situation_picklist(as: :destination)
       when 'AVAILABLE_FILE_TYPES'
         file_tag_picklist
-      when 'PROJECT_HOH_ENROLLMENTS'
-        enrollments = Hmis::Hud::Enrollment
-          .viewable_by(user)
-          .in_project(relation_id)
-          .open_on_date
-          .heads_of_households
-          .preload(:client)
-          .preload(household: :enrollments)
-
-        enrollments.sort_by_option(:most_recent).map do |enrollment|
-          client = enrollment.client
-          household_size = enrollment.household&.enrollments&.size || 0
-          other_size = household_size - 1 # more than hoh
-          desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
-          {
-            code: enrollment.id,
-            label: "#{client.brief_name} #{desc} (Entered #{enrollment.entry_date.strftime('%m/%d/%Y')})",
-          }
-        end
-      when 'CLIENT_ENROLLMENTS'
-        client = Hmis::Hud::Client.viewable_by(user).find_by(id: relation_id)
-        return [] unless client.present?
-
-        enrollments = client.enrollments
-          .preload(:project, :exit)
-
-        enrollments.sort_by_option(:most_recent).map do |enrollment|
-          {
-            code: enrollment.id,
-            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'Active'].join(' - ')})",
-          }
-        end
-
+      when 'ALL_UNIT_TYPES'
+        # used for referrals between projects
+        Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
+      when 'REFERRAL_RESULT_TYPES'
+        [
+          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(2), label: 'Client Rejected' },
+          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(3), label: 'Provider Rejected' },
+        ]
       when 'ASSIGNED_REFERRAL_POSTING_STATUSES'
         HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUSES.map do |status|
           {
@@ -142,17 +109,7 @@ module Types
             label: label_map.fetch(status),
           }
         end
-      when 'REFERRAL_RESULT_TYPES'
-        # ::HudLists.referral_result_map
-        [
-          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(2), label: 'Client Rejected' },
-          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(3), label: 'Provider Rejected' },
-        ]
       end
-    end
-
-    def self.all_unit_types
-      Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
     end
 
     def self.available_unit_types_for_project(project)
@@ -345,6 +302,66 @@ module Types
         compact.
         # Put 'Other' at the end
         sort_by { |obj| obj[:label] == 'Other' ? 'z' : [obj[:group_label] + obj[:label]].join(' ') }
+    end
+
+    def self.open_hoh_enrollments_for_project(project)
+      raise 'Project required' unless project.present?
+
+      # No need for viewable_by here because we know the project is already veiwable by the user
+      enrollments = project.enrollments.open_on_date
+        .heads_of_households
+        .preload(:client)
+        .preload(household: :enrollments)
+
+      enrollments.sort_by_option(:most_recent).map do |en|
+        client = en.client
+        household_size = en.household&.enrollments&.size || 0
+        other_size = household_size - 1 # more than hoh
+        desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
+        {
+          code: en.id,
+          label: "#{client.brief_name} #{desc} (Entered #{en.entry_date.strftime('%m/%d/%Y')})",
+        }
+      end
+    end
+
+    def self.enrollments_for_client(client)
+      raise 'Client required' unless client.present?
+
+      enrollments = client.enrollments.preload(:project, :exit)
+      enrollments.sort_by_option(:most_recent).map do |en|
+        {
+          code: en.id,
+          label: "#{en.project.project_name} (#{[en.entry_date.strftime('%m/%d/%Y'), en.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
+        }
+      end
+    end
+
+    def self.available_units_for_enrollment(project, household_id: nil)
+      raise 'Project required' unless project.present?
+
+      # Eligible units are unoccupied units, PLUS units occupied by household members
+      unoccupied_units = project.units.unoccupied_on.pluck(:id)
+
+      hh_units = if household_id.present?
+        hh_en_ids = project.enrollments_including_wip.where(household_id: household_id).pluck(:id)
+        Hmis::UnitOccupancy.active.joins(:enrollment).where(enrollment_id: hh_en_ids).pluck(:unit_id)
+      else
+        []
+      end
+
+      Hmis::Unit.where(id: unoccupied_units + hh_units).
+        preload(:unit_type).
+        order(:unit_type_id, :id).
+        map do |unit|
+          {
+            **unit.to_pick_list_option,
+            # If unit is already assigned to other members of this household, show that
+            secondary_label: hh_units.include?(unit.id) ? 'Assigned to Household' : nil,
+            # If household already has some units assigned, select one of them as default
+            initial_selected: unit.id == hh_units.first,
+          }
+        end
     end
   end
 end
