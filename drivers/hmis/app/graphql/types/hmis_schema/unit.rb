@@ -12,6 +12,7 @@ module Types
       arg :unit_type, [ID]
       arg :status, [
         Types::BaseEnum.generate_enum('UnitFilterOptionStatus') do
+          # FIXME standardize names "Assigned/Empty"
           value 'AVAILABLE', description: 'Available'
           value 'FILLED', description: 'Filled'
         end,

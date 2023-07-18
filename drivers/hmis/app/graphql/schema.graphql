@@ -4937,19 +4937,14 @@ enum PickListType {
   AVAILABLE_SERVICE_TYPES
 
   """
-  Unoccupied units in the specified project
+  Units available for the given household at the given project
   """
-  AVAILABLE_UNITS
+  AVAILABLE_UNITS_FOR_ENROLLMENT
 
   """
   Unit types that have unoccupied units in the specified project
   """
   AVAILABLE_UNIT_TYPES
-
-  """
-  All Enrollments, including WIP and exited, for the client.
-  """
-  CLIENT_ENROLLMENTS
   COC
   CURRENT_LIVING_SITUATION
 
@@ -4963,23 +4958,33 @@ enum PickListType {
   Projects that the User can enroll Clients in
   """
   ENROLLABLE_PROJECTS
+
+  """
+  Enrollments for the client, including WIP and Exited.
+  """
+  ENROLLMENTS_FOR_CLIENT
   GEOCODE
+
+  """
+  Open HoH enrollments at the project.
+  """
+  OPEN_HOH_ENROLLMENTS_FOR_PROJECT
 
   """
   All Organizations that the User can see
   """
   ORGANIZATION
+
+  """
+  Unit types that are eligible to be added to project
+  """
+  POSSIBLE_UNIT_TYPES_FOR_PROJECT
   PRIOR_LIVING_SITUATION
 
   """
   All Projects that the User can see
   """
   PROJECT
-
-  """
-  Project HOH Enrollments, including WIP and exited, for the client.
-  """
-  PROJECT_HOH_ENROLLMENTS
   REFERRAL_OUTCOME
 
   """
@@ -4990,16 +4995,6 @@ enum PickListType {
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
   SUB_TYPE_PROVIDED_5
-
-  """
-  Units in the specified project
-  """
-  UNITS
-
-  """
-  Unit types. If project is specified, limited to unit types in the project.
-  """
-  UNIT_TYPES
 }
 
 """
@@ -5335,7 +5330,7 @@ type Query {
   """
   Get list of options for pick list
   """
-  pickList(pickListType: PickListType!, relationId: ID): [PickListOption!]!
+  pickList(clientId: ID, enrollmentId: ID, householdId: ID, pickListType: PickListType!, projectId: ID): [PickListOption!]!
 
   """
   Project lookup

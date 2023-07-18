@@ -13,6 +13,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   has_many :enrollments, **hmis_relation(:HouseholdID, 'Enrollment')
   has_many :clients, through: :enrollments
+  has_many :current_units, through: :enrollments
   alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do
