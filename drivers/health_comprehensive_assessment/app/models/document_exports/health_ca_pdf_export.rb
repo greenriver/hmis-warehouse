@@ -5,30 +5,30 @@
 ###
 
 module DocumentExports
-  class HealthPctpPdfExport < ::Health::DocumentExport
+  class HealthCaPdfExport < ::Health::DocumentExport
     include ApplicationHelper
     def authorized?
       # TODO
       true
     end
 
-    protected def careplan
+    protected def comprehensive_assessment
       patient = Health::Patient.viewable_by_user(user).find_by(client_id: params['client_id'].to_i)
-      @careplan ||= patient.pctps.find(params['id'])
+      @comprehensive_assessment ||= patient.comprehensive_assessments.find(params['id'])
     end
 
     protected def view_assigns
       {
-        careplan: careplan,
+        comprehensive_assessment: comprehensive_assessment,
         user: user,
-        title: _('Care Plan / Patient-Centered Treatment Plan'),
+        title: _('Comprehensive Assessment'),
         pdf: true,
       }
     end
 
     def perform
       with_status_progression do
-        template_file = 'health_pctp/careplans/edit_pdf'
+        template_file = 'health_comprehensive_assessment/assessments/edit_pdf'
         layout = 'layouts/careplan_pdf'
         # https://stackoverflow.com/questions/55865582/set-dynamic-header-and-footer-data-on-pdf-generation-from-rails-grover-gem
 
@@ -41,21 +41,21 @@ module DocumentExports
         )
         header_html = PdfGenerator.html(
           controller: controller_class,
-          template: 'health_pctp/careplans/pdf_header',
+          template: 'health_comprehensive_assessment/assessments/pdf_header',
           layout: false,
           user: user,
           assigns: view_assigns,
         )
         footer_html = PdfGenerator.html(
           controller: controller_class,
-          template: 'health_pctp/careplans/pdf_footer',
+          template: 'health_comprehensive_assessment/assessments/pdf_footer',
           layout: false,
           user: user,
           assigns: view_assigns,
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{_('Care Plan / Patient-Centered Treatment Plan')} #{DateTime.current.to_s(:db)}",
+          file_name: "#{_('Comprehensive Assessment')} #{DateTime.current.to_s(:db)}",
           options: {
             print_background: true,
             display_header_footer: true,
@@ -76,13 +76,8 @@ module DocumentExports
       end
     end
 
-    # protected def report_class
-    #   HmisDataQualityTool::Report
-    # end
-
     private def controller_class
-      # HmisDataQualityTool::WarehouseReports::ReportsController
-      HealthPctp::CareplansController
+      HealthComprehensiveAssessment::AssessmentsController
     end
   end
 end

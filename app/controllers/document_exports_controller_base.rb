@@ -102,6 +102,7 @@ class DocumentExportsControllerBase < ApplicationController
       'SystemPathways::DocumentExports::ReportExport',
       'SystemPathways::DocumentExports::ReportExcelExport',
       'DocumentExports::HealthPctpPdfExport',
+      'DocumentExports::HealthCaPdfExport',
     ]
   end
 end
