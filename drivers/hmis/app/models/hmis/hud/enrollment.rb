@@ -230,11 +230,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     )
   end
 
-  def assign_unit!(**args)
-    assign_unit(**args)
-    save!
-  end
-
   def release_unit!(occupancy_end_date = Date.current, user:)
     active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date, user: user)
   end

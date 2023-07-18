@@ -23,7 +23,7 @@ module Types
       result = static_options_for_type(pick_list_type)
       return result if result.present?
 
-      project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
+      project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
       client = Hmis::Hud::Client.viewable_by(user).find_by(id: client_id) if client_id.present?
 
       case pick_list_type
@@ -39,6 +39,7 @@ module Types
         Hmis::Hud::Project.viewable_by(user).with_access(user, :can_enroll_clients).
           joins(:organization).
           sort_by_option(:organization_and_name).
+          preload(:organization).
           map(&:to_pick_list_option)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)

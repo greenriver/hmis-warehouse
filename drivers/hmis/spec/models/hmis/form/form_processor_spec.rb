@@ -698,7 +698,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'does not change unit occupancy if unchanged' do
       e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
       unit = create(:hmis_unit, project: p1)
-      e2.assign_unit!(unit: unit, start_date: 1.week.ago, user: hmis_user)
+      e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
+      e2.save!
       old_uo = e2.active_unit_occupancy
       expect(unit.current_occupants.count).to eq(1)
 
@@ -710,7 +711,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'errors if unit already occupied by another household' do
       e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
       unit = create(:hmis_unit, project: p1)
-      e2.assign_unit!(unit: unit, start_date: 1.week.ago, user: hmis_user)
+      e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
+      e2.save!
       new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, client: c1, project: p1, household_id: e1.household_id)
 
       hud_values = complete_hud_values.merge('currentUnit' => unit.id)

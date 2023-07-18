@@ -25,15 +25,17 @@ module Mutations
 
       # Create Units
       common = { user_id: hmis_user.user_id, created_at: Time.now, updated_at: Time.now }
-      unit_attributes = (1..input.count).map do
-        {
+      units = (1..input.count).map do
+        Hmis::Unit.new(
           project_id: project.id,
           unit_type_id: unit_type&.id,
           **common,
-        }
+        )
       end
 
-      units = Hmis::Unit.import!(unit_attributes)
+      Hmis::Unit.transaction do
+        units.each(&:save!)
+      end
 
       {
         units: units,

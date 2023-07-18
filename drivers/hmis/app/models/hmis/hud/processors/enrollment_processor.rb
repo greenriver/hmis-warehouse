@@ -8,18 +8,14 @@ module Hmis::Hud::Processors
   class EnrollmentProcessor < Base
     def process(field, value)
       attribute_name = ar_attribute_name(field)
-      attribute_value = attribute_value_for_enum(graphql_enum(field), value)
       enrollment = @processor.send(factory_name)
 
-      attributes = case attribute_name
-      when 'current_unit'
+      if attribute_name == 'current_unit'
         assign_unit(value)
-        {} # no attributes to set
       else
-        { attribute_name => attribute_value }
+        attribute_value = attribute_value_for_enum(graphql_enum(field), value)
+        enrollment.assign_attributes(attribute_name => attribute_value)
       end
-
-      enrollment.assign_attributes(attributes)
     end
 
     def factory_name
