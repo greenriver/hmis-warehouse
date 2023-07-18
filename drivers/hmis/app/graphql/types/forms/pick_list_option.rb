@@ -290,18 +290,24 @@ module Types
     end
 
     def self.file_tag_picklist
-      Hmis::File.all_available_tags.map do |tag|
+      tag_to_option = lambda do |tag|
         {
           code: tag.id,
           label: tag.name,
           group_code: tag.group,
           group_label: tag.group,
-          # secondary_label: tag.included_info&.strip&.present? ? "(includes: #{tag.included_info})" : nil,
         }
-      end.
+      end
+
+      other, file_tags = Hmis::File.all_available_tags.partition { |tag| tag.name == 'Other' }
+      picklist = file_tags.
+        map { |tag| tag_to_option.call(tag) }.
         compact.
-        # Put 'Other' at the end
-        sort_by { |obj| obj[:label] == 'Other' ? 'z' : [obj[:group_label] + obj[:label]].join(' ') }
+        sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+
+      # Put 'Other' at the end
+      picklist << tag_to_option.call(other.first) if other.any?
+      picklist.compact
     end
 
     def self.open_hoh_enrollments_for_project(project)
