@@ -5,6 +5,18 @@
   "text": "MCI ID",
   "item": [
     {
+      "type": "OBJECT",
+      "link_id": "current-mci-id",
+      "repeats": true,
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$mciIds"
+        }
+      ]
+    },
+    {
       "type": "STRING",
       "required": true,
       "link_id": "mci-clearance-value",
