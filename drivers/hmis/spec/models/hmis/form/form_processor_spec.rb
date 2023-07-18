@@ -1647,8 +1647,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         ],
         'clientId' => e1.client.id.to_s,
         'enrollmentId' => e1.id.to_s,
-        # 'effectiveDate' => '2023-03-17',
-        # 'expirationDate' => '2023-03-17',
+        'effectiveDate' => '2023-03-17',
+        'expirationDate' => '2023-03-17',
         'confidential' => true,
         'fileBlobId' => blob.id.to_s,
       }
@@ -1664,8 +1664,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(file.name).to eq(blob.filename.to_s)
         expect(file.client).to eq(c1)
         expect(file.enrollment).to eq(e1)
-        # expect(file.effective_date.strftime('%Y-%m-%d')).to eq(hud_values['effectiveDate'])
-        # expect(file.expiration_date.strftime('%Y-%m-%d')).to eq(hud_values['expirationDate'])
+        expect(file.effective_date.strftime('%Y-%m-%d')).to eq(hud_values['effectiveDate'])
+        expect(file.expiration_date.strftime('%Y-%m-%d')).to eq(hud_values['expirationDate'])
         expect(file.confidential).to eq(hud_values['confidential'])
         expect(file.client_file.blob).to eq(blob)
       end
