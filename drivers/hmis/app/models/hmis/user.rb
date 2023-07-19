@@ -183,4 +183,14 @@ class Hmis::User < ApplicationRecord
   def editable_project_ids
     @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
+
+  def current_user_api_values
+    {
+      id: id.to_s,
+      name: name,
+      email: email,
+      phone: phone,
+      sessionDuration: Devise.timeout_in.in_seconds,
+    }
+  end
 end

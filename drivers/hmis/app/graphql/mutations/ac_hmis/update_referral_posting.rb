@@ -52,8 +52,8 @@ module Mutations
           build_enrollments(posting).each do |enrollment|
             enrollment.household_id = household_id
             if enrollment.valid?
+              enrollment.assign_unit(unit: unit_to_assign, start_date: enrollment.entry_date, user: current_user)
               enrollment.save_in_progress # this method will unset projectID and calls enrollment.save!
-              enrollment.assign_unit!(unit_to_assign, user: current_user)
             else
               handle_error('Could not create valid enrollments')
             end
