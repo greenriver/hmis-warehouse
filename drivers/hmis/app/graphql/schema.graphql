@@ -2182,12 +2182,17 @@ type EnableWhen {
   """
   How to evaluate the question's answer
   """
-  operator: EnableOperator!
+  operator: EnableOperator
 
   """
   The linkId of question that determines whether item is enabled/disabled
   """
-  question: String!
+  question: String
+
+  """
+  Whether form is being rendered as read-only
+  """
+  readonly: Boolean
 }
 
 """
