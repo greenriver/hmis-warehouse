@@ -200,6 +200,10 @@ module Health
       edit_client_health_careplan_path(patient.client, id, anchor: anchor)
     end
 
+    def download_partial
+      'signable_document'
+    end
+
     def show_path
       client_health_careplan_path(patient.client, id)
     end
