@@ -24,6 +24,7 @@ module Health
         'PAT_ID' => :patient_id,
         'row_id' => :id_in_source,
         'RECORDED_TIME' => :thrive_updated_at,
+        # "\"\"" => :reporter
         # "\"\"" => :housing_status,
         "\"Within the past 12 months; the food you bought just didn't last and you didn't have money to get more.\""	=>
           :food_insecurity,
@@ -51,31 +52,54 @@ module Health
     def update_thrive_assessment!
       assessment = thrive_assessment.presence || build_thrive_assessment
 
+      @any_answer = false
+      @any_decline = false
+
+      # TODO: assessment.reporter =
+
       assessment.housing_status = case housing_status
       when '0'
+        @any_answer = true
         assessment.steady
       when '1'
+        @any_answer = true
         assessment.at_risk
       when '2'
+        @any_answer = true
         assessment.homeless
+      when 'Declined'
+        @any_decline = true
+        nil
       end
 
       assessment.food_insecurity = case food_insecurity
       when '0'
+        @any_answer = true
         assessment.food_insecurity_never
       when '1'
+        @any_answer = true
         assessment.food_insecurity_sometimes
       when '2'
+        @any_answer = true
         assessment.food_insecurity_often
+      when 'Declined'
+        @any_decline = true
+        nil
       end
 
       assessment.food_worries = case food_worries
       when '0'
+        @any_answer = true
         assessment.food_worries_never
       when '1'
+        @any_answer = true
         assessment.food_worries_sometimes
       when '2'
+        @any_answer = true
         assessment.food_worries_often
+      when 'Declined'
+        @any_decline = true
+        nil
       end
 
       assessment.trouble_drug_cost = yes_no(trouble_drug_cost)
@@ -111,15 +135,22 @@ module Health
         assessment.help_with_education = nil
       end
 
+      assessment.decline_to_answer = true if !@any_answer && @any_decline
+
       assessment.save!
     end
 
     def yes_no(value)
       case value
       when '0', 'No'
+        @any_answer = true
         false
       when '1', 'Yes'
+        @any_answer = true
         true
+      when 'Declined'
+        @any_decline = true
+        nil
       end
     end
   end

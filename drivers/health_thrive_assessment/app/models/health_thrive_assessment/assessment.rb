@@ -138,7 +138,7 @@ module HealthThriveAssessment
         help_with_utilities: 'Utilities',
         help_with_childcare: 'Childcare',
         help_with_eldercare: 'Care for elder or disabled',
-        help_with_adl: 'Daily support',
+        # help_with_adl: 'Daily support',
         help_with_job_search: 'Job search / training',
         help_with_education: 'Education',
       }
