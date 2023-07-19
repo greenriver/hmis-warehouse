@@ -602,17 +602,6 @@ module HudUtility
     ::HudLists.months_homeless_past_three_years_map
   end
 
-  # 3.12.1
-  def destination(id, reverse = false)
-    map = valid_destinations
-
-    _translate map, id, reverse
-  end
-
-  def valid_destinations
-    ::HudLists.destination_map
-  end
-
   def valid_current_living_situations
     homeless_situations(as: :current) +
     institutional_situations(as: :current) +

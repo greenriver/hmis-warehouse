@@ -20,12 +20,22 @@ module HudLists2024
     }.freeze
   end
 
+  def export_period_type(id, reverse = false)
+    map = export_period_type_map
+    _translate map, id, reverse
+  end
+
   # 1.10
   def no_yes_map
     {
       0 => 'No',
       1 => 'Yes',
     }.freeze
+  end
+
+  def no_yes(id, reverse = false)
+    map = no_yes_map
+    _translate map, id, reverse
   end
 
   # 1.2
@@ -35,6 +45,11 @@ module HudLists2024
       2 => 'Full refresh',
       3 => 'Other',
     }.freeze
+  end
+
+  def export_directive(id, reverse = false)
+    map = export_directive_map
+    _translate map, id, reverse
   end
 
   # 1.3
@@ -47,6 +62,11 @@ module HudLists2024
       9 => 'Mental health disorder',
       10 => 'Substance use disorder',
     }.freeze
+  end
+
+  def disability_type(id, reverse = false)
+    map = disability_type_map
+    _translate map, id, reverse
   end
 
   # 1.4
@@ -65,6 +85,11 @@ module HudLists2024
     }.freeze
   end
 
+  def record_type(id, reverse = false)
+    map = record_type_map
+    _translate map, id, reverse
+  end
+
   # 1.5
   def hash_status_map
     {
@@ -73,6 +98,11 @@ module HudLists2024
       3 => 'Hashed - other',
       4 => 'SHA-256 (RHY)',
     }.freeze
+  end
+
+  def hash_status(id, reverse = false)
+    map = hash_status_map
+    _translate map, id, reverse
   end
 
   # 1.6
@@ -84,6 +114,11 @@ module HudLists2024
     }.freeze
   end
 
+  def race_none(id, reverse = false)
+    map = race_none_map
+    _translate map, id, reverse
+  end
+
   # 1.7
   def no_yes_missing_map
     {
@@ -91,6 +126,11 @@ module HudLists2024
       1 => 'Yes',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def no_yes_missing(id, reverse = false)
+    map = no_yes_missing_map
+    _translate map, id, reverse
   end
 
   # 1.8
@@ -104,6 +144,11 @@ module HudLists2024
     }.freeze
   end
 
+  def no_yes_reasons_for_missing_data(id, reverse = false)
+    map = no_yes_reasons_for_missing_data_map
+    _translate map, id, reverse
+  end
+
   # 1.9
   def source_type_map
     {
@@ -112,6 +157,11 @@ module HudLists2024
       3 => 'Data warehouse',
       4 => 'Other',
     }.freeze
+  end
+
+  def source_type(id, reverse = false)
+    map = source_type_map
+    _translate map, id, reverse
   end
 
   # 2.02.6
@@ -134,6 +184,11 @@ module HudLists2024
     }.freeze
   end
 
+  def project_type(id, reverse = false)
+    map = project_type_map
+    _translate map, id, reverse
+  end
+
   # 2.02.7
   def target_population_map
     {
@@ -141,6 +196,11 @@ module HudLists2024
       3 => 'HIV: Persons with HIV/AIDS',
       4 => 'NA: Not applicable',
     }.freeze
+  end
+
+  def target_population(id, reverse = false)
+    map = target_population_map
+    _translate map, id, reverse
   end
 
   # 2.02.8
@@ -152,12 +212,22 @@ module HudLists2024
     }.freeze
   end
 
+  def hopwa_med_assisted_living_fac(id, reverse = false)
+    map = hopwa_med_assisted_living_fac_map
+    _translate map, id, reverse
+  end
+
   # 2.02.A
   def rrh_sub_type_map
     {
       1 => 'RRH: Services Only',
       2 => 'RRH: Housing with or without services',
     }.freeze
+  end
+
+  def rrh_sub_type(id, reverse = false)
+    map = rrh_sub_type_map
+    _translate map, id, reverse
   end
 
   # 2.02.D
@@ -169,6 +239,11 @@ module HudLists2024
     }.freeze
   end
 
+  def housing_type(id, reverse = false)
+    map = housing_type_map
+    _translate map, id, reverse
+  end
+
   # 2.03.4
   def geography_type_map
     {
@@ -177,6 +252,11 @@ module HudLists2024
       3 => 'Rural',
       99 => 'Unknown / data not collected',
     }.freeze
+  end
+
+  def geography_type(id, reverse = false)
+    map = geography_type_map
+    _translate map, id, reverse
   end
 
   # 2.06.1
@@ -237,6 +317,11 @@ module HudLists2024
     }.freeze
   end
 
+  def funding_source(id, reverse = false)
+    map = funding_source_map
+    _translate map, id, reverse
+  end
+
   # 2.07.4
   def household_type_map
     {
@@ -244,6 +329,11 @@ module HudLists2024
       3 => 'Households with at least one adult and one child',
       4 => 'Households with only children',
     }.freeze
+  end
+
+  def household_type(id, reverse = false)
+    map = household_type_map
+    _translate map, id, reverse
   end
 
   # 2.07.5
@@ -255,6 +345,11 @@ module HudLists2024
     }.freeze
   end
 
+  def bed_type(id, reverse = false)
+    map = bed_type_map
+    _translate map, id, reverse
+  end
+
   # 2.07.6
   def availability_map
     {
@@ -262,6 +357,11 @@ module HudLists2024
       2 => 'Seasonal',
       3 => 'Overflow',
     }.freeze
+  end
+
+  def availability(id, reverse = false)
+    map = availability_map
+    _translate map, id, reverse
   end
 
   # 2.08.1
@@ -273,6 +373,11 @@ module HudLists2024
     }.freeze
   end
 
+  def hmis_participation_type(id, reverse = false)
+    map = hmis_participation_type_map
+    _translate map, id, reverse
+  end
+
   # 2.7.B
   def youth_age_group_map
     {
@@ -280,6 +385,11 @@ module HudLists2024
       2 => 'Only ages 18 to 24',
       3 => 'Only youth under age 24 (both of the above)',
     }.freeze
+  end
+
+  def youth_age_group(id, reverse = false)
+    map = youth_age_group_map
+    _translate map, id, reverse
   end
 
   # 3.01.5
@@ -293,6 +403,11 @@ module HudLists2024
     }.freeze
   end
 
+  def name_data_quality(id, reverse = false)
+    map = name_data_quality_map
+    _translate map, id, reverse
+  end
+
   # 3.02.2
   def ssn_data_quality_map
     {
@@ -302,6 +417,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def ssn_data_quality(id, reverse = false)
+    map = ssn_data_quality_map
+    _translate map, id, reverse
   end
 
   # 3.03.2
@@ -315,6 +435,11 @@ module HudLists2024
     }.freeze
   end
 
+  def dob_data_quality(id, reverse = false)
+    map = dob_data_quality_map
+    _translate map, id, reverse
+  end
+
   # 3.05.1
   def ethnicity_map
     {
@@ -324,6 +449,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def ethnicity(id, reverse = false)
+    map = ethnicity_map
+    _translate map, id, reverse
   end
 
   # 3.12
@@ -363,6 +493,11 @@ module HudLists2024
     }.freeze
   end
 
+  def destination(id, reverse = false)
+    map = destination_map
+    _translate map, id, reverse
+  end
+
   # 3.12.A
   def rental_subsidy_type_map
     {
@@ -380,6 +515,11 @@ module HudLists2024
     }.freeze
   end
 
+  def rental_subsidy_type(id, reverse = false)
+    map = rental_subsidy_type_map
+    _translate map, id, reverse
+  end
+
   # 3.15.1
   def relationship_to_ho_h_map
     {
@@ -390,6 +530,11 @@ module HudLists2024
       5 => 'Unrelated household member',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def relationship_to_ho_h(id, reverse = false)
+    map = relationship_to_ho_h_map
+    _translate map, id, reverse
   end
 
   # 3.6.1
@@ -404,6 +549,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def gender(id, reverse = false)
+    map = gender_map
+    _translate map, id, reverse
   end
 
   # 3.917
@@ -435,6 +585,11 @@ module HudLists2024
     }.freeze
   end
 
+  def prior_living_situation(id, reverse = false)
+    map = prior_living_situation_map
+    _translate map, id, reverse
+  end
+
   # 3.917.2
   def residence_prior_length_of_stay_map
     {
@@ -450,6 +605,11 @@ module HudLists2024
     }.freeze
   end
 
+  def residence_prior_length_of_stay(id, reverse = false)
+    map = residence_prior_length_of_stay_map
+    _translate map, id, reverse
+  end
+
   # 3.917.4
   def times_homeless_past_three_years_map
     {
@@ -461,6 +621,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def times_homeless_past_three_years(id, reverse = false)
+    map = times_homeless_past_three_years_map
+    _translate map, id, reverse
   end
 
   # 3.917.5
@@ -485,6 +650,11 @@ module HudLists2024
     }.freeze
   end
 
+  def months_homeless_past_three_years(id, reverse = false)
+    map = months_homeless_past_three_years_map
+    _translate map, id, reverse
+  end
+
   # 4.04.A
   def reason_not_insured_map
     {
@@ -496,6 +666,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def reason_not_insured(id, reverse = false)
+    map = reason_not_insured_map
+    _translate map, id, reverse
   end
 
   # 4.1.1
@@ -513,6 +688,11 @@ module HudLists2024
     }.freeze
   end
 
+  def housing_status(id, reverse = false)
+    map = housing_status_map
+    _translate map, id, reverse
+  end
+
   # 4.10.2
   def disability_response_map
     {
@@ -526,6 +706,11 @@ module HudLists2024
     }.freeze
   end
 
+  def disability_response(id, reverse = false)
+    map = disability_response_map
+    _translate map, id, reverse
+  end
+
   # 4.11.A
   def when_dv_occurred_map
     {
@@ -537,6 +722,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def when_dv_occurred(id, reverse = false)
+    map = when_dv_occurred_map
+    _translate map, id, reverse
   end
 
   # 4.12
@@ -570,11 +760,21 @@ module HudLists2024
     }.freeze
   end
 
+  def living_situation(id, reverse = false)
+    map = living_situation_map
+    _translate map, id, reverse
+  end
+
   # 4.14
   def bed_night_map
     {
       200 => 'BedNight',
     }.freeze
+  end
+
+  def bed_night(id, reverse = false)
+    map = bed_night_map
+    _translate map, id, reverse
   end
 
   # 4.18.1
@@ -597,6 +797,11 @@ module HudLists2024
     }.freeze
   end
 
+  def housing_assessment_disposition(id, reverse = false)
+    map = housing_assessment_disposition_map
+    _translate map, id, reverse
+  end
+
   # 4.19.3
   def assessment_type_map
     {
@@ -604,6 +809,11 @@ module HudLists2024
       2 => 'Virtual',
       3 => 'In Person',
     }.freeze
+  end
+
+  def assessment_type(id, reverse = false)
+    map = assessment_type_map
+    _translate map, id, reverse
   end
 
   # 4.19.4
@@ -614,12 +824,22 @@ module HudLists2024
     }.freeze
   end
 
+  def assessment_level(id, reverse = false)
+    map = assessment_level_map
+    _translate map, id, reverse
+  end
+
   # 4.19.7
   def prioritization_status_map
     {
       1 => 'Placed on prioritization list',
       2 => 'Not placed on prioritization list',
     }.freeze
+  end
+
+  def prioritization_status(id, reverse = false)
+    map = prioritization_status_map
+    _translate map, id, reverse
   end
 
   # 4.20.2
@@ -646,6 +866,11 @@ module HudLists2024
     }.freeze
   end
 
+  def event_type(id, reverse = false)
+    map = event_type_map
+    _translate map, id, reverse
+  end
+
   # 4.20.D
   def referral_result_map
     {
@@ -653,6 +878,11 @@ module HudLists2024
       2 => 'Unsuccessful referral: client rejected',
       3 => 'Unsuccessful referral: provider rejected',
     }.freeze
+  end
+
+  def referral_result(id, reverse = false)
+    map = referral_result_map
+    _translate map, id, reverse
   end
 
   # 4.21.6
@@ -663,6 +893,11 @@ module HudLists2024
       2 => 'Other Assistance',
       3 => 'Both Financial & Other Assistance',
     }.freeze
+  end
+
+  def service_provided(id, reverse = false)
+    map = service_provided_map
+    _translate map, id, reverse
   end
 
   # 4.21.A
@@ -677,6 +912,11 @@ module HudLists2024
     }.freeze
   end
 
+  def prevention_outcome(id, reverse = false)
+    map = prevention_outcome_map
+    _translate map, id, reverse
+  end
+
   # 4.21.E
   def shelter_outcome_map
     {
@@ -689,6 +929,11 @@ module HudLists2024
       7 => 'No connections/referrals provided',
       8 => 'Don’t know yet or outcome pending',
     }.freeze
+  end
+
+  def shelter_outcome(id, reverse = false)
+    map = shelter_outcome_map
+    _translate map, id, reverse
   end
 
   # 4.21.I
@@ -710,6 +955,11 @@ module HudLists2024
     }.freeze
   end
 
+  def housing_outcome(id, reverse = false)
+    map = housing_outcome_map
+    _translate map, id, reverse
+  end
+
   # 4.21.M
   def service_outcome_map
     {
@@ -719,6 +969,11 @@ module HudLists2024
       4 => 'Referred back to CE for housing assessment',
       5 => "Don't know yet or outcome pending",
     }.freeze
+  end
+
+  def service_outcome(id, reverse = false)
+    map = service_outcome_map
+    _translate map, id, reverse
   end
 
   # 4.33.A
@@ -731,6 +986,11 @@ module HudLists2024
     }.freeze
   end
 
+  def incarcerated_parent_status(id, reverse = false)
+    map = incarcerated_parent_status_map
+    _translate map, id, reverse
+  end
+
   # 4.36.1
   def exit_action_map
     {
@@ -738,6 +998,11 @@ module HudLists2024
       1 => 'Yes',
       9 => 'Client prefers not to answer',
     }.freeze
+  end
+
+  def exit_action(id, reverse = false)
+    map = exit_action_map
+    _translate map, id, reverse
   end
 
   # 4.37.A
@@ -749,6 +1014,11 @@ module HudLists2024
       4 => 'Left for other opportunities - other',
       5 => 'Needs could not be met by project',
     }.freeze
+  end
+
+  def early_exit_reason(id, reverse = false)
+    map = early_exit_reason_map
+    _translate map, id, reverse
   end
 
   # 4.49.1
@@ -766,6 +1036,11 @@ module HudLists2024
     }.freeze
   end
 
+  def crisis_services_use(id, reverse = false)
+    map = crisis_services_use_map
+    _translate map, id, reverse
+  end
+
   # 4.9.D
   def path_how_confirmed_map
     {
@@ -774,6 +1049,11 @@ module HudLists2024
       3 => 'Confirmed by prior evaluation or clinical records',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def path_how_confirmed(id, reverse = false)
+    map = path_how_confirmed_map
+    _translate map, id, reverse
   end
 
   # 4.9.E
@@ -789,6 +1069,11 @@ module HudLists2024
     }.freeze
   end
 
+  def pathsmi_information(id, reverse = false)
+    map = pathsmi_information_map
+    _translate map, id, reverse
+  end
+
   # 5.03.1
   def data_collection_stage_map
     {
@@ -798,6 +1083,11 @@ module HudLists2024
       5 => 'Annual assessment',
       6 => 'Post-exit',
     }.freeze
+  end
+
+  def data_collection_stage(id, reverse = false)
+    map = data_collection_stage_map
+    _translate map, id, reverse
   end
 
   # C2.2
@@ -811,6 +1101,11 @@ module HudLists2024
     }.freeze
   end
 
+  def moving_on_assistance(id, reverse = false)
+    map = moving_on_assistance_map
+    _translate map, id, reverse
+  end
+
   # C3.2
   def current_school_attended_map
     {
@@ -821,6 +1116,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def current_school_attended(id, reverse = false)
+    map = current_school_attended_map
+    _translate map, id, reverse
   end
 
   # C3.A
@@ -840,6 +1140,11 @@ module HudLists2024
     }.freeze
   end
 
+  def most_recent_ed_status(id, reverse = false)
+    map = most_recent_ed_status_map
+    _translate map, id, reverse
+  end
+
   # C3.B
   def current_ed_status_map
     {
@@ -852,6 +1157,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def current_ed_status(id, reverse = false)
+    map = current_ed_status_map
+    _translate map, id, reverse
   end
 
   # P1.2
@@ -873,6 +1183,11 @@ module HudLists2024
     }.freeze
   end
 
+  def path_services(id, reverse = false)
+    map = path_services_map
+    _translate map, id, reverse
+  end
+
   # P2.2
   def path_referral_map
     {
@@ -890,6 +1205,11 @@ module HudLists2024
     }.freeze
   end
 
+  def path_referral(id, reverse = false)
+    map = path_referral_map
+    _translate map, id, reverse
+  end
+
   # P2.A
   def path_referral_outcome_map
     {
@@ -899,12 +1219,22 @@ module HudLists2024
     }.freeze
   end
 
+  def path_referral_outcome(id, reverse = false)
+    map = path_referral_outcome_map
+    _translate map, id, reverse
+  end
+
   # P3.A
   def reason_not_enrolled_map
     {
       1 => 'Client was found ineligible for PATH',
       2 => 'Client was not enrolled for other reason(s)',
     }.freeze
+  end
+
+  def reason_not_enrolled(id, reverse = false)
+    map = reason_not_enrolled_map
+    _translate map, id, reverse
   end
 
   # R1.1
@@ -929,6 +1259,11 @@ module HudLists2024
     }.freeze
   end
 
+  def referral_source(id, reverse = false)
+    map = referral_source_map
+    _translate map, id, reverse
+  end
+
   # R11.A
   def rhy_numberof_years_map
     {
@@ -937,6 +1272,11 @@ module HudLists2024
       3 => '3 to 5 or more years',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def rhy_numberof_years(id, reverse = false)
+    map = rhy_numberof_years_map
+    _translate map, id, reverse
   end
 
   # R14.2
@@ -960,6 +1300,11 @@ module HudLists2024
     }.freeze
   end
 
+  def rhy_services(id, reverse = false)
+    map = rhy_services_map
+    _translate map, id, reverse
+  end
+
   # R15.B
   def count_exchange_for_sex_map
     {
@@ -973,6 +1318,11 @@ module HudLists2024
     }.freeze
   end
 
+  def count_exchange_for_sex(id, reverse = false)
+    map = count_exchange_for_sex_map
+    _translate map, id, reverse
+  end
+
   # R17.1
   def project_completion_status_map
     {
@@ -980,6 +1330,11 @@ module HudLists2024
       2 => 'Client voluntarily left early',
       3 => 'Client was expelled or otherwise involuntarily discharged from project',
     }.freeze
+  end
+
+  def project_completion_status(id, reverse = false)
+    map = project_completion_status_map
+    _translate map, id, reverse
   end
 
   # R17.A
@@ -994,6 +1349,11 @@ module HudLists2024
     }.freeze
   end
 
+  def expelled_reason(id, reverse = false)
+    map = expelled_reason_map
+    _translate map, id, reverse
+  end
+
   # R19.A
   def worker_response_map
     {
@@ -1001,6 +1361,11 @@ module HudLists2024
       1 => 'Yes',
       2 => 'Worker does not know',
     }.freeze
+  end
+
+  def worker_response(id, reverse = false)
+    map = worker_response_map
+    _translate map, id, reverse
   end
 
   # R2.A
@@ -1014,6 +1379,11 @@ module HudLists2024
     }.freeze
   end
 
+  def reason_no_services(id, reverse = false)
+    map = reason_no_services_map
+    _translate map, id, reverse
+  end
+
   # R20.2
   def aftercare_provided_map
     {
@@ -1021,6 +1391,11 @@ module HudLists2024
       1 => 'Yes',
       9 => 'Client prefers not to answer',
     }.freeze
+  end
+
+  def aftercare_provided(id, reverse = false)
+    map = aftercare_provided_map
+    _translate map, id, reverse
   end
 
   # R3.1
@@ -1036,6 +1411,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def sexual_orientation(id, reverse = false)
+    map = sexual_orientation_map
+    _translate map, id, reverse
   end
 
   # R4.1
@@ -1059,6 +1439,11 @@ module HudLists2024
     }.freeze
   end
 
+  def last_grade_completed(id, reverse = false)
+    map = last_grade_completed_map
+    _translate map, id, reverse
+  end
+
   # R5.1
   def school_status_map
     {
@@ -1075,6 +1460,11 @@ module HudLists2024
     }.freeze
   end
 
+  def school_status(id, reverse = false)
+    map = school_status_map
+    _translate map, id, reverse
+  end
+
   # R6.A
   def employment_type_map
     {
@@ -1085,6 +1475,11 @@ module HudLists2024
     }.freeze
   end
 
+  def employment_type(id, reverse = false)
+    map = employment_type_map
+    _translate map, id, reverse
+  end
+
   # R6.B
   def not_employed_reason_map
     {
@@ -1093,6 +1488,11 @@ module HudLists2024
       3 => 'Not looking for work',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def not_employed_reason(id, reverse = false)
+    map = not_employed_reason_map
+    _translate map, id, reverse
   end
 
   # R7.1
@@ -1107,6 +1507,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def health_status(id, reverse = false)
+    map = health_status_map
+    _translate map, id, reverse
   end
 
   # V1.11
@@ -1124,6 +1529,11 @@ module HudLists2024
     }.freeze
   end
 
+  def military_branch(id, reverse = false)
+    map = military_branch_map
+    _translate map, id, reverse
+  end
+
   # V1.12
   def discharge_status_map
     {
@@ -1137,6 +1547,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def discharge_status(id, reverse = false)
+    map = discharge_status_map
+    _translate map, id, reverse
   end
 
   # V2.2
@@ -1154,6 +1569,11 @@ module HudLists2024
     }.freeze
   end
 
+  def ssvf_services(id, reverse = false)
+    map = ssvf_services_map
+    _translate map, id, reverse
+  end
+
   # V2.3
   def hopwa_financial_assistance_map
     {
@@ -1165,6 +1585,11 @@ module HudLists2024
     }.freeze
   end
 
+  def hopwa_financial_assistance(id, reverse = false)
+    map = hopwa_financial_assistance_map
+    _translate map, id, reverse
+  end
+
   # V2.A
   def ssvf_sub_type3_map
     {
@@ -1173,6 +1598,11 @@ module HudLists2024
       3 => 'Educational assistance',
       4 => 'Health care services',
     }.freeze
+  end
+
+  def ssvf_sub_type3(id, reverse = false)
+    map = ssvf_sub_type3_map
+    _translate map, id, reverse
   end
 
   # V2.B
@@ -1194,6 +1624,11 @@ module HudLists2024
     }.freeze
   end
 
+  def ssvf_sub_type4(id, reverse = false)
+    map = ssvf_sub_type4_map
+    _translate map, id, reverse
+  end
+
   # V2.C
   def ssvf_sub_type5_map
     {
@@ -1209,6 +1644,11 @@ module HudLists2024
       10 => 'Child care',
       11 => 'Housing counseling',
     }.freeze
+  end
+
+  def ssvf_sub_type5(id, reverse = false)
+    map = ssvf_sub_type5_map
+    _translate map, id, reverse
   end
 
   # V3.3
@@ -1232,6 +1672,11 @@ module HudLists2024
     }.freeze
   end
 
+  def ssvf_financial_assistance(id, reverse = false)
+    map = ssvf_financial_assistance_map
+    _translate map, id, reverse
+  end
+
   # V4.1
   def percent_ami_map
     {
@@ -1241,6 +1686,11 @@ module HudLists2024
       4 => '81% or greater',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def percent_ami(id, reverse = false)
+    map = percent_ami_map
+    _translate map, id, reverse
   end
 
   # V6.1
@@ -1392,6 +1842,11 @@ module HudLists2024
     }.freeze
   end
 
+  def vamcs_station_number(id, reverse = false)
+    map = vamcs_station_number_map
+    _translate map, id, reverse
+  end
+
   # V7.1
   def no_points_yes_map
     {
@@ -1399,6 +1854,11 @@ module HudLists2024
       1 => 'Yes',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def no_points_yes(id, reverse = false)
+    map = no_points_yes_map
+    _translate map, id, reverse
   end
 
   # V7.A
@@ -1412,6 +1872,11 @@ module HudLists2024
     }.freeze
   end
 
+  def time_to_housing_loss(id, reverse = false)
+    map = time_to_housing_loss_map
+    _translate map, id, reverse
+  end
+
   # V7.B
   def annual_percent_ami_map
     {
@@ -1421,6 +1886,11 @@ module HudLists2024
       3 => 'More than 30% of AMI for household size',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def annual_percent_ami(id, reverse = false)
+    map = annual_percent_ami_map
+    _translate map, id, reverse
   end
 
   # V7.C
@@ -1433,6 +1903,11 @@ module HudLists2024
     }.freeze
   end
 
+  def literal_homeless_history(id, reverse = false)
+    map = literal_homeless_history_map
+    _translate map, id, reverse
+  end
+
   # V7.G
   def eviction_history_map
     {
@@ -1441,6 +1916,11 @@ module HudLists2024
       2 => '2 or more prior rental evictions',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def eviction_history(id, reverse = false)
+    map = eviction_history_map
+    _translate map, id, reverse
   end
 
   # V7.I
@@ -1453,6 +1933,11 @@ module HudLists2024
     }.freeze
   end
 
+  def incarcerated_adult(id, reverse = false)
+    map = incarcerated_adult_map
+    _translate map, id, reverse
+  end
+
   # V7.O
   def dependent_under6_map
     {
@@ -1461,6 +1946,11 @@ module HudLists2024
       2 => 'Youngest child is 1 to 6 years old and/or one or more children (any age) require significant care',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def dependent_under6(id, reverse = false)
+    map = dependent_under6_map
+    _translate map, id, reverse
   end
 
   # V8.1
@@ -1481,6 +1971,11 @@ module HudLists2024
     }.freeze
   end
 
+  def voucher_tracking(id, reverse = false)
+    map = voucher_tracking_map
+    _translate map, id, reverse
+  end
+
   # V9.1
   def cm_exit_reason_map
     {
@@ -1498,6 +1993,11 @@ module HudLists2024
       12 => 'Veteran is deceased',
       13 => 'Other',
     }.freeze
+  end
+
+  def cm_exit_reason(id, reverse = false)
+    map = cm_exit_reason_map
+    _translate map, id, reverse
   end
 
   # W1.2
@@ -1520,6 +2020,11 @@ module HudLists2024
     }.freeze
   end
 
+  def hopwa_services(id, reverse = false)
+    map = hopwa_services_map
+    _translate map, id, reverse
+  end
+
   # W3
   def no_assistance_reason_map
     {
@@ -1531,6 +2036,11 @@ module HudLists2024
       9 => 'Client prefers not to answer',
       99 => 'Data not collected',
     }.freeze
+  end
+
+  def no_assistance_reason(id, reverse = false)
+    map = no_assistance_reason_map
+    _translate map, id, reverse
   end
 
   # W4.3
@@ -1545,6 +2055,11 @@ module HudLists2024
     }.freeze
   end
 
+  def viral_load_available(id, reverse = false)
+    map = viral_load_available_map
+    _translate map, id, reverse
+  end
+
   # W4.B
   def t_cell_source_viral_load_source_map
     {
@@ -1552,6 +2067,11 @@ module HudLists2024
       2 => 'Client Report',
       3 => 'Other',
     }.freeze
+  end
+
+  def t_cell_source_viral_load_source(id, reverse = false)
+    map = t_cell_source_viral_load_source_map
+    _translate map, id, reverse
   end
 
   # W5.1
@@ -1571,6 +2091,11 @@ module HudLists2024
     }.freeze
   end
 
+  def housing_assessment_at_exit(id, reverse = false)
+    map = housing_assessment_at_exit_map
+    _translate map, id, reverse
+  end
+
   # W5.A
   def subsidy_information_map
     {
@@ -1581,6 +2106,11 @@ module HudLists2024
       11 => 'With on-going subsidy 2',
       12 => 'Without an on-going subsidy 2',
     }.freeze
+  end
+
+  def subsidy_information(id, reverse = false)
+    map = subsidy_information_map
+    _translate map, id, reverse
   end
 
   # ad_hoc_yes_no
@@ -1594,6 +2124,11 @@ module HudLists2024
     }.freeze
   end
 
+  def ad_hoc_yes_no(id, reverse = false)
+    map = ad_hoc_yes_no_map
+    _translate map, id, reverse
+  end
+
   # race
   def race_map
     {
@@ -1604,5 +2139,10 @@ module HudLists2024
       'White' => 'White',
       'RaceNone' => "Doesn't Know, refused, or not collected",
     }.freeze
+  end
+
+  def race(id, reverse = false)
+    map = race_map
+    _translate map, id, reverse
   end
 end

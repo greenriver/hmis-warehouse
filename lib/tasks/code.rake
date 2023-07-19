@@ -27,7 +27,7 @@ namespace :code do
       arr.push ::Code.copywright_header
       arr.push "# frozen_string_literal: true\n"
       arr.push "# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY\n"
-      arr.push year == '2022' ? "module HudLists" : "module HudLists#{year}"
+      arr.push year == '2022' ? 'module HudList' : "module HudLists#{year}"
       arr.push '  module_function'
       all_lists.each do |element|
         next if skipped.include?(element['code'].to_s)
@@ -43,6 +43,11 @@ namespace :code do
         arr.push "# #{element['code']}"
         arr.push "def #{function_name}"
         arr.push "  {\n#{map_values}\n}.freeze"
+        arr.push 'end'
+        arr.push ''
+        arr.push "def #{element['name'].underscore}(id, reverse = false)"
+        arr.push "  map = #{function_name}"
+        arr.push '  _translate map, id, reverse'
         arr.push 'end'
       end
       arr.push 'end'
