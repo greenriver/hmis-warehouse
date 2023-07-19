@@ -41,28 +41,17 @@
           "link_id": "enrollmentId",
           "text": "Enrollment",
           "pick_list_reference": "ENROLLMENTS_FOR_CLIENT",
-          "mapping": { "field_name": "enrollmentId" }
-        },
-        {
-          "type": "DATE",
-          "link_id": "effectiveDate",
-          "text": "Signature Date",
-          "required": false,
-          "mapping": { "field_name": "effectiveDate" }
-        },
-        {
-          "type": "DATE",
-          "link_id": "expirationDate",
-          "text": "Expiration Date",
-          "required": false,
-          "mapping": { "field_name": "expirationDate" }
+          "mapping": { "field_name": "enrollmentId" },
+          "helper_text": "Optional. Access will be limited to users who can view this Enrollment."
         },
         {
           "type": "BOOLEAN",
           "required": false,
           "link_id": "confidential",
-          "text": "Confidential",
+          "text": "Confidential File?",
+          "readonly_text": "Confidential File",
           "mapping": { "field_name": "confidential" },
+          "helper_text": "If yes, access will be limited to users who can view confidential files.",
           "initial": [
             {
               "initial_behavior": "IF_EMPTY",
