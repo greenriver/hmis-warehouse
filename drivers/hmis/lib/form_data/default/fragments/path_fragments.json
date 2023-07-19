@@ -5,7 +5,7 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "rhy-income-benefit",
+      "link_id": "path-income-benefit",
       "text": "PATH Fragments for IncomeBenefit",
       "data_collected_about": "HOH_AND_ADULTS",
       "prefill": "INCOME_BENEFIT",
