@@ -24,7 +24,7 @@ module Mutations
 
       # check access based on status
       validation_context = case posting.status
-      when 'assigned_status'
+      when 'assigned_status', 'accepted_pending_status'
         :hmis_user_action if current_user.can_manage_incoming_referrals_for?(posting.project)
       when 'denied_pending_status'
         :hmis_admin_action if current_user.can_manage_denied_referrals?
@@ -60,6 +60,17 @@ module Mutations
           end
           posting.update!(household_id: household_id)
         end
+
+        # if moving from accepted_pending to denied_pending, remove WIP Enrollments
+        if errors.empty? && posting_status_change == ['accepted_pending_status', 'denied_pending_status']
+          # This should only happen on a race condition, we don't allow this status change if any members are enrolled
+          errors.add :base, :invalid, full_message: 'Cannot move household to denied pending, because some household members have completed intake assessments. Please exit clients instead.' if posting.enrollments.not_in_progress.exists?
+          raise ActiveRecord::Rollback if errors.any?
+
+          # Note: not checking for can_delete_enrollments permission because it's not needed for deleting WIP enrollments.
+          posting.enrollments.each(&:destroy!)
+        end
+
         raise ActiveRecord::Rollback if errors.any?
 
         # send to link if:

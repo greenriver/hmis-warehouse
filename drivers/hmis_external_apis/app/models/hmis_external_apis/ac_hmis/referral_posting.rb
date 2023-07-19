@@ -50,9 +50,25 @@ module HmisExternalApis::AcHmis
     # Referrals in Assigned status can either be move to Accepted Pending or Denied Pending
     ASSIGNED_STATUSES = ['assigned_status', 'accepted_pending_status', 'denied_pending_status'].freeze
 
+    OLD_STATUS_TO_VALID_NEW_STATUS = {
+      assigned_status: [
+        'accepted_pending_status', # accepted into program (tentatively)
+        'denied_pending_status', # denied from program (tentatively)
+      ],
+      accepted_pending_status: [
+        'accepted_status', # fully accepted to program (hoh intake assessment submitted)
+        'denied_pending_status', # changed mind or mistake, denied from program
+      ],
+      accepted_status: ['closed_status'], # hoh exited
+      denied_pending_status: ['denied_status'], # denial accepted
+      closed_status: ['accepted_status'], # exited enrollment was re-opened
+    }.stringify_keys.freeze
+
     validates :status, presence: true
+
     with_options on: :hmis_user_action do
       validates :status, inclusion: { in: ASSIGNED_STATUSES }
+      validate :validate_status_change
       validates :status_note, presence: true, length: { maximum: 4_000 }
       validates :denial_reason, presence: true, if: :denied_pending_status?
       validates :denial_note, length: { maximum: 2_000 }
@@ -60,6 +76,7 @@ module HmisExternalApis::AcHmis
 
     with_options on: :hmis_admin_action do
       validates :status, inclusion: { in: DENIAL_STATUSES }
+      validate :validate_status_change
       validates :referral_result, presence: true, if: :denied_status?
       validates :denial_reason, presence: true, if: :denied_pending_status?
       validates :denial_note, length: { maximum: 2_000 }
@@ -74,6 +91,15 @@ module HmisExternalApis::AcHmis
 
     OUTGOING_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
     scope :outgoing, -> { where(status: OUTGOING_STATUSES) }
+
+    private def validate_status_change
+      return unless status.present? && status_was.present?
+
+      expected_statuses = OLD_STATUS_TO_VALID_NEW_STATUS[status_was]
+      return unless expected_statuses.present?
+
+      errors.add(:status, :invalid, message: "is invalid. Expected one of: #{expected_statuses.map(&:humanize).join(', ')}") unless expected_statuses.include?(status)
+    end
 
     # referral came from LINK
     def from_link?
