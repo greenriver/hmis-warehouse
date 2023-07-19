@@ -49,7 +49,7 @@ module HealthPctp
         )
     end
 
-    scope :editable, -> { where(patient_signed_on: nil) }
+    scope :editable, -> { where(sent_to_pcp_on: nil) }
 
     alias_attribute :completed_at, :patient_signed_on
     alias_attribute :careplan_sent_on, :sent_to_pcp_on
@@ -94,6 +94,10 @@ module HealthPctp
 
     def edit_path(anchor: nil)
       edit_client_health_pctp_careplan_path(patient.client, id, anchor: anchor)
+    end
+
+    def download_partial
+      'health_pctp/careplans/downloads'
     end
 
     def show_path
