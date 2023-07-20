@@ -27,10 +27,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'client reminders' do
     let(:query) do
       <<~GRAPHQL
-        query GetClient($id: ID!) {
-          client(id: $id) {
+        query GetEnrollment($id: ID!) {
+          enrollment(id: $id) {
             id
-            recommendations {
+            reminders {
               id
               description
               dueDate
@@ -41,14 +41,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
     let(:variables) do
       {
-        clientId: enrollment.client.id,
+        id: enrollment.id,
       }
     end
 
-    it 'returns recommendations' do
+    it 'returns reminders' do
       _, result = post_graphql(**variables) { query }
-      byebug
-      expect(result.dig('data', 'client', 'recommendations').size).to eq(1)
+      expect(result.dig('data', 'enrollment', 'reminders').size).to eq(1)
     end
   end
 end

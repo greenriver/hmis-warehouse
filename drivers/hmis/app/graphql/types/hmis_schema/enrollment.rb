@@ -124,9 +124,10 @@ module Types
     field :reminders, [HmisSchema::Reminder], null: false
 
     def reminders
-      enrollments = object.project.enrollments.where()
-      generator = Hmis::Reminders::ReminderGenerator.new
-      generator.perform(object.enrollments)
+      # assumption is this is called on a single record; we aren't solving n+1 queries
+      project = object.project
+      enrollments = project.enrollments.where(HouseholdID: object.HouseholdID)
+      Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
     end
 
     def project
