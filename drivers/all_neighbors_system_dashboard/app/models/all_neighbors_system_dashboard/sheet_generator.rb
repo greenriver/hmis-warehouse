@@ -108,7 +108,7 @@ module AllNeighborsSystemDashboard
               report_start: 'ReportStart',
               report_end: 'ReportEnd',
             },
-            [],
+            project_ratios,
           ],
           'Ratios - System Level' => [
             {

@@ -52,6 +52,7 @@ module AllNeighborsSystemDashboard
     end
 
     include EnrollmentAttributeCalculations
+    include DemographicRatioCalculations
 
     def populate_universe
       enrollment_scope.find_in_batches do |batch|
@@ -113,7 +114,8 @@ module AllNeighborsSystemDashboard
     end
 
     def calculate_results
-      # TODO Ratios tabs
+      save_project_ratios
+      # TODO save_system_ratios
     end
 
     def enrollment_scope
