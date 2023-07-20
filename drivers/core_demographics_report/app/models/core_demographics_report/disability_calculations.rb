@@ -131,7 +131,7 @@ module
     end
 
     private def client_disabilities
-      @client_disabilities ||= Rails.cache.fetch(disabilities_cache_key, expires_in: 0) do # expiration_length) do
+      @client_disabilities ||= Rails.cache.fetch(disabilities_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           disabled_client_disability_types.each do |client_id, disability|
             clients[client_id] ||= Set.new
