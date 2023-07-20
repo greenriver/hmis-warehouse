@@ -19,7 +19,7 @@ module DocumentExports
 
     protected def view_assigns
       {
-        comprehensive_assessment: comprehensive_assessment,
+        assessment: comprehensive_assessment,
         user: user,
         title: _('Comprehensive Assessment'),
         pdf: true,

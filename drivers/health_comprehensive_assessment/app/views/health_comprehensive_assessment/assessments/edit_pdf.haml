@@ -1,1 +1,420 @@
-%h1 Test Edit PDF
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: 2}
+          Identifying Information
+      = render 'pdf_field_section', fields: @assessment.identifying_information
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: 2}
+          Demographic Information
+      %tr
+        %th{style: 'width:40%;'} Race
+        %td
+          - display_values = @assessment.race_responses.select{|k, v| @assessment.race.include?(v)}.keys
+          = display_values.join(', ')
+      = render 'pdf_field_section', fields: @assessment.demographic_information
+.page-break-after
+.pt-4.ca-print__section
+  %h1 Immediate care needs and current services
+  %p
+    (including but not limited to any Care Coordination or management activities and any services being provided by state agencies)
+  %h2 Current Services
+  - funders = @assessment.service_funders.select{|k, v| @assessment.funders.include?(v)}.keys
+  - unless funders.empty?
+    %h3 
+      Member receives Care Coordination or Management Services funded by (check all that apply):
+    %ul
+      
+      - funders.reject(&:blank?).each do |f|
+        %li= f
+
+.ca-print__section 
+  .pctc-print__table.breakable.top
+    %table
+      %thead
+        %tr
+          %th.pt-4{colspan: 5}
+            %h3 Other service providers
+        %tr.pctc-print__table-header
+          %th{width:'20%'} Service Type
+          %th{width:'20%'} Provider
+          %th{width:'20%'} Address
+          %th{width:'15%'} Phone
+          %th{width:'25%'} Notes
+      %tbody
+        - @assessment.service_providers.each do |type_key, (type_label, notes_prompt)|
+          %tr
+            %td= type_label
+            %td
+              %div{style: 'min-height:45px;'}= @assessment.send("#{type_key}_provider".to_sym)
+            %td
+              %div{style: 'min-height:45px;'}= @assessment.send("#{type_key}_address".to_sym)
+            %td
+              %div{style: 'min-height:45px;'}= @assessment.send("#{type_key}_phone".to_sym)
+            %td
+              %div{style: 'min-height:45px;'}= @assessment.send("#{type_key}_notes".to_sym)
+.page-break-after
+.pt-4.ca-print__section
+  %h1 Health Conditions
+  %p
+    %strong Medical History/Medical Needs 
+    (include ICD codes if applicable)
+
+  - @assessment.health_conditions.each do |section, conditions|
+    .pctc-print__table.top.pt-4
+      %table
+        %thead
+          %tr.pctc-print__table-header
+            %th{width: '40%'} Medical Issue (ICD# where applicable)
+            %th{width: '20%'} Status
+            %th{width: '40%'} Notes (including family history, if available)
+          %tr.pctc-print__table-subheader
+            %td{colspan: 3}= section
+        %tbody
+          - conditions.each do |key, label|
+            %tr
+              %th= label
+              %td
+                = @assessment.health_condition_statuses.select{|k, v| v == @assessment.send("#{key}_status".to_sym)}.keys.first
+                
+              %td
+                %div{style: 'min-height:45px;'}
+                  = @assessment.send("#{key}_notes".to_sym)
+.pt-4.ca-print__section
+  .pctc-print__table.top
+    %h3 General Health
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} In general, would you say your health is
+          %td= @assessment.general_health_conditions.select{|k, v| v == @assessment.general_health_condition}.keys.first
+        %tr
+          %th{width: '40%'} In the past 7 days, how much pain have you felt?
+          %td= @assessment.pain_levels.select{|k, v| v == @assessment.general_health_pain}.keys.first
+        %tr
+          %th{width: '40%'} Comments
+          %td
+            %div{style: 'min-height:45px;'}
+              = @assessment.general_health_comments
+
+.page-break-after
+.pt-4.ca-print__section
+  %h1 Medications
+  .pctc-print__table
+    %h3 Medication Summary
+    %table.pt-4
+      %thead
+        %tr.pctc-print__table-header
+          %th{width: '35%'} Medication
+          %th{width: '30%'} Dosage/Route/Frequency
+          %th{width: '35%'} Reported Side Effects  
+      %tbody
+        - @assessment.medications.order(id: :desc).each do |medication|
+          %tr
+            %td= medication.medication
+            %td= medication.dosage
+            %td= medication.side_effects
+        - 5.times.each do |n|
+          %tr
+            - 3.times do |n2|
+              %td
+                %div{style: 'min-height:45px;'}
+.pt-4.ca-print__section
+  .pctc-print__table.top
+    %h3 Medication Adherence
+    %table.pt-4
+      %tbody
+        %tr
+          %th{width: '40%'}
+            How often do you have trouble taking medicines the way you been told to take them?
+          %td
+            = @assessment.medication_adherence_responses.select{|k, v| v == @assessment.medication_adherence}.keys.first
+        %tr
+          %th Notes/Comments
+          %td
+            %div{style: 'min-height:45px;'}
+              = @assessment.medication_adherence_notes
+.pt-4.ca-print__section
+  %h1 Enrollee's ability to communicate concerns, symptoms, or care goals
+  .pctc-print__table.top
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} Does the Enrollee have the ability to communicate: (check all that apply):
+          %td
+            = @assessment.can_communicate_about_responses.select{|k, v| @assessment.can_communicate_about.include?(v)}.keys.join(', ')
+        %tr
+          %th Notes/Comments
+          %td
+            %div{style: 'min-height:45px;'}
+              = @assessment.can_communicate_notes
+.page-break-after
+.pt-4.ca-print__section
+  %h1 Functional status and needs
+  .pctc-print__table.top
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} Assessed Needs Checklist – Activities of Daily Living
+          %td
+            %ul
+              - @assessment.assessed_needs_responses.each do |label, value|
+                %li
+                  - if @assessment.assessed_needs.include?(value)
+                    %i.icon-checkbox-checked
+                  - else
+                    %i.icon-checkbox-unchecked
+                  %span.pl-4= label
+        %tr
+          %th Additional comments
+          %td
+            %div{style: 'min-height:45px;'}
+              = @assessment.assessed_needs_notes
+.page-break-after
+- self_ident_rows = [:strengths, :weaknesses, :interests, :choices, :care_goals, :personal_goals, :cultural_considerations]
+.pt-4.ca-print__section
+  .pctc-print__table.top
+    %table.pt-4
+      %thead
+        %tr
+          %th.pctc-print__table-title{colspan: 2}
+            Self-identified strengths, weaknesses, interests, choices, preferences, care goals, personal goals and cultural considerations
+        %tr
+          %th{colspan: 2} In Enrollee's words
+      %tbody
+        - self_ident_rows.each do |row|
+          %tr
+            %th{width: '20%'}
+              = row.to_s.titleize
+            %td
+              %div{style: 'min-height:155px;'}
+                = @assessment.send(row)
+.page-break-after
+.pt-4.ca-print__section
+  %h1 Current and past mental health and substance use
+  %h2 Substance Use
+  .pctc-print__table.top
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} 
+            How many times in the past year have you used medication for non-medical reasons?
+          %td
+            = @assessment.substance_use_responses.select{|k, v| v == @assessment.substance_use}.keys.first
+.pt-4.ca-print__section
+  %h2 Tabacco Use
+  .pctc-print__table.top
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'}
+            In the last 30 days, have you smoked cigarettes?
+          %td
+            - if @assessment.cigarette_use?
+              %i.icon-checkbox-checked
+            - else
+              %i.icon-checkbox-unchecked 
+        %tr
+          %th{width: '40%'}
+            In the last 30 days, have you used a smokeless tobacco product?
+          %td
+            - if @assessment.smokeless_use?
+              %i.icon-checkbox-checked
+            - else
+              %i.icon-checkbox-unchecked
+.pt-4.ca-print__section         
+  %h2 Alcohol Use
+  .pctc-print__table.top
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'}
+            In the past 7 days, on how many days did you drink alcohol?
+          %td= @assessment.alcohol_use
+        %tr
+          %th{width: '40%'}
+            On days when you drink alcohol, how often do you have (5 or more for men, 4 or more for women and those men and women 65 years old or over)) alcoholic drinks on one occasion?
+          %td
+            = @assessment.alcohol_drinks_responses.select{|k,v| v == @assessment.alcohol_drinks}.keys.first
+        %tr
+          %th{width: '40%'}
+            Do you ever drive after drinking, or ride with a driver who has been drinking?
+          %td
+            - if @assessment.alcohol_driving?
+              %i.icon-checkbox-checked
+            - else
+              %i.icon-checkbox-unchecked
+
+.pt-4.ca-print__section         
+  %h2 SUD Treatments
+  .pctc-print__table
+    %table
+      %thead
+        %tr.pctc-print__table-header
+          %th Type of Treatment
+          %th Dates of Service
+          %th Reason
+          %th Name of Provider/Agency
+          %th Inpatient/Outpatient
+          %th Completed
+      %tbody
+        - @assessment.sud_treatments.order(id: :desc).each do |treatment|
+          %tr
+            %td= treatment.service_type
+            %td= treatment.service_dates
+            %td= treatment.reason
+            %td= treatment.provider_name
+            - if treatment.inpatient.present?
+              %td= treatment.inpatient? ? "Inpatient" : "Outpatient"
+            - else
+              %td
+            %td= checkmark(treatment.completed?)
+        - 5.times.each do
+          %tr
+            - 6.times do
+              %td
+                %div{style: 'min-height:45px;'}
+  
+  .pt-4.pctc-print__table.top
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} Efficacy of past and current treatment
+          %td
+            %div{style: 'min-height:45px;'}
+              = @assessment.sud_treatment_efficacy
+        %tr
+          %th{width: '40%'} Sources of Information
+          %td
+            = @assessment.sud_treatment_sources_responses.select{|k, v| @assessment.sud_treatment_sources.include?(v)}.keys.join(', ')
+            - if @assessment.sud_treatment_sources.include?('other')
+              %div= @assessment.sud_treatment_sources_other
+
+.page-break-after
+.pt-4.ca-print__section         
+  %h1 Accessibility Requirements
+  %p 
+    (Including but not limited to preferred language and specific communication needs, transportation needs, and equipment needs)
+  %h3 Accessibility Requirements and Equipment Needs
+  .pt-4.pctc-print__table.top
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} Member's preferred language
+          %td
+            = @assessment.preferred_mode_responses.select{|k, v| v == @assessment.preferred_mode}.keys.first
+        %tr
+          %th{width: '40%'} 
+            Is the Member able to communicate in English?
+          %td
+            = @assessment.yes_no.select{|k, v| v == @assessment.communicate_in_english}.keys.first
+        %tr
+          %th{width: '40%'}
+            Accessibility equipment
+          %td
+            %ul.pb-0
+              - equipment = @assessment.accessibility_equipment_responses.select{|k, v| @assessment.accessibility_equipment.include?(v)}.keys.each do |equip|
+                %li= equip
+        %tr
+          %th{width: '40%'} Comments
+          %td
+            %div{style: 'min-height:45px;'}
+              = @assessment.accessibility_equipment_notes
+        %tr
+          %th{width: '40%'} Start Date
+          %td= @assessment.accessibility_equipment_start
+        %tr
+          %th{width: '40%'} End Date
+          %td= @assessment.accessibility_equipment_end
+.pt-4.ca-print__section         
+  %h1 Available informal, caregiver, or social supports, including Peer Supports
+  .pt-4.pctc-print__table.top
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} Does the Enrollee have supports?
+          %td
+            = @assessment.yes_no.select{|k, v| v == @assessment.has_supports}.keys.first
+        %tr
+          %th{width: '40%'} If Yes, please specify
+          %td= @assessment.supports_responses.select{|k, v| @assessment.supports.include?(v)}.keys.join(', ')
+        %tr
+          %th{width: '40%'} 
+            Social Supports
+            %br
+            %span.hint
+              Friendship/Social/Peer Support Relationships, Pets, Community Supports/Self Help Groups (AA, NA, SMART, NAMI, Peer Support, etc.)
+          %td
+            %div{style: 'min-height:145px;'}
+              = @assessment.social_supports
+
+.page-break-after
+.pt-4.ca-print__section         
+  %h1 Risk factors for abuse or neglect
+  %p
+    Because violence and abuse happen to a lot of people and affects their health, we are asking the following questions
+
+  .pt-4.pctc-print__table.top
+    %table
+      %tbody
+        = render 'pdf_field_section', fields: @assessment.abuse_risk_factors
+        %tr
+          %td{colspan: 2}
+            %p A score of 11 or more when the numerical values for answers to questions 7-10 are added shows that the person might not be safe.
+
+        %tr
+          %th{style: 'vertical-align:top;'} Comments / Notes
+          %td
+            %div{style: 'min-height:145px;'}
+.pt-4.ca-print__section         
+  %h1 
+    Advance directives status and preferences and guardianship status
+  .pt-4.pctc-print__table
+    %h2.nb Advance Directive
+    %table
+      %tbody
+        = render 'pdf_field_section', fields: @assessment.advanced_directive_responses
+
+  .pt-4.pctc-print__table
+    %h2.nb Employment status, professional interests and professional goals
+    %table
+      %tbody
+        = render 'pdf_field_section', fields: @assessment.employment_questions
+  .pt-4.pctc-print__table
+    %h2.nb Legal Status for individuals involved in the justice system
+    %table
+      %tbody
+        = render 'pdf_field_section', fields: @assessment.legal_status
+  .pt-4.pctc-print__table
+    %h2.nb Education
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} Highest Level of Education Achieved
+          %td= @assessment.education_level_responses.select{|k, v| v == @assessment.education_level}.keys.first
+        %tr
+          %th{width: '40%'} If highest grade, please specify
+          %td= @assessment.grade_level
+        %tr
+          %th{width: '40%'} If other, please specity
+          %td= @assessment.education_level_other
+  .pt-4.pctc-print__table
+    %h2.nb Income and Financial Support
+    %table
+      %tbody
+        %tr
+          %th{width: '40%'} Do you receive any sources of financial assistance?
+          %td= @assessment.financial_support_responses.select{|k, v| @assessment.financial_supports.include?(v)}.keys.join(', ')
+        %tr
+          %th{width: '40%'} If other, please specify
+          %td
+            = @assessment.financial_supports_other
+
+        
+
+
+
