@@ -30,7 +30,7 @@ module AllNeighborsSystemDashboard
               age: 'Age',
               gender: 'Gender',
               primary_race: 'Race',
-              race: 'RaceDescList',
+              race_list: 'RaceDescList',
               ethnicity: 'Ethnicity',
               ce_entry_date: 'CAS Enroll Date',
               ce_referral_date: 'CAS Referral Date',
@@ -45,7 +45,7 @@ module AllNeighborsSystemDashboard
               project_name: 'Program Name',
               project_type: 'Program Type INT',
             },
-            [],
+            universe.members.map(&:universe_membership),
           ],
           'CE Events' => [
             {
@@ -63,7 +63,7 @@ module AllNeighborsSystemDashboard
               run_date: 'RunDate',
               enrollment_id: 'EnrollID',
             },
-            [],
+            universe.members.first.universe_membership.events,
           ],
           # 'Enrollments DV' => [
           #   {

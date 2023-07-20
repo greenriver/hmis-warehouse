@@ -100,10 +100,10 @@ module AllNeighborsSystemDashboard
           events << enrollment.events.build(
             event_id: event.event_id,
             event_date: event.event_date,
-            event: event.event,
+            event: HudUtility.event(event.event),
             location: event.location_crisis_or_ph_housing,
             project_name: event.enrollment.project.name,
-            project_type: event.enrollment.project.project_id,
+            project_type: event.enrollment.project.project_type,
             referral_result: event.referral_result,
             result_date: event.result_date,
           )

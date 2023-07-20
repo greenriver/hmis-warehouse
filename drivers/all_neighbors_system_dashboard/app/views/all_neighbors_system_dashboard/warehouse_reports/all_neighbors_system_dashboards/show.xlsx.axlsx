@@ -5,7 +5,7 @@ wb = xlsx_package.workbook
     sheet.add_row(metadata.values, style: title_style)
 
     data.each do |row|
-      sheet.add_row(metadata.keys.map { |column| row[column] })
+      sheet.add_row(metadata.keys.map { |column| row.public_send(column) })
     end
   end
 end
