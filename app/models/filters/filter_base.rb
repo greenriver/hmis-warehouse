@@ -76,6 +76,7 @@ module Filters
     attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
     attribute :dates_to_compare, Symbol, default: :entry_to_exit
+    attribute :mask_small_populations, Boolean, default: false
 
     validates_presence_of :start, :end
 
@@ -159,6 +160,7 @@ module Filters
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
       self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
+      self.mask_small_populations = filters.dig(:mask_small_populations).in?(['1', 'true', true]) unless filters.dig(:mask_small_populations).nil?
 
       ensure_dates_work if valid?
       self
@@ -220,6 +222,7 @@ module Filters
           creator_id: creator_id,
           inactivity_days: inactivity_days,
           lsa_scope: lsa_scope,
+          mask_small_populations: mask_small_populations,
         },
       }
     end
@@ -261,6 +264,7 @@ module Filters
         :cohort_column_housed_date,
         :cohort_column_matched_date,
         :dates_to_compare,
+        :mask_small_populations,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -338,6 +342,7 @@ module Filters
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
         opts['Require Service During Range'] = 'Yes' if require_service_during_range
+        opts['Mask Small Populations'] = 'Yes' if mask_small_populations
       end
     end
 
