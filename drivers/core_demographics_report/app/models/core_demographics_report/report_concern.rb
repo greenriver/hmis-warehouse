@@ -64,11 +64,24 @@ module
       boolean ? 'Yes' : 'No'
     end
 
+    BRACKETS = {
+      0 => 0..0,
+      25 => 1..25,
+      50 => 26..50,
+      100 => 51..100,
+      round: 101..,
+    }.freeze
+
     def mask_small_population(value)
-      return 0 if value.zero?
       return value unless @filter.mask_small_populations
 
-      value.clamp(11..)
+      bracket = BRACKETS.detect { |_k, range| range.cover?(value) }
+      case bracket.first
+      when :round
+        (value/10.0).ceil * 10 # Round up to the nearest 10
+      else
+        bracket.first
+      end
     end
 
     def total_client_count
