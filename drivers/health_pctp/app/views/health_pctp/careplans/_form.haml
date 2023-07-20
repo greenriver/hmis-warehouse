@@ -61,9 +61,9 @@
 
 %h2 Care Goals, Plans, and Barriers
 .well
-  = f.input :goals, as: :text, label: @careplan.goals_label, input_html: {rows: 5}
-
   = render 'goals', f: f
+
+  = f.input :goals, as: :text, label: @careplan.goals_label, input_html: {rows: 5}
 
 %h2 Contingency Plan
 .well
@@ -72,7 +72,7 @@
     including but not limited to: occasions when critical services (e.g. medications, transportation) or caregivers
     are unavailable and when there is a failure of other essential supports and services.
 
-  .mt-4= f.input :contingency_plan, as: :text, input_html: {rows: 5}
+  .mt-4= f.input :contingency_plan, as: :text, input_html: {rows: 5}, placeholder: @careplan.contingency_plan_placeholder
 
 %h2 Crisis Plan
 .well
@@ -89,7 +89,10 @@
 .well
   = f.input :additional_concerns, as: :text, input_html: {rows: 6}, label: 'Additional needs or conditions that the Enrollee would like to address in the future'
 
-%h2{id: 'complete'} Complete & Review
+%h2 Review
+= render 'document_review', f: f
+
+%h2{id: 'complete'} Sign & Complete
 = render 'complete', f: f
 
 - content_for :page_js do

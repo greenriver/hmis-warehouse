@@ -22,14 +22,14 @@
           "link_id": "unitTypeId",
           "text": "Unit Type",
           "pick_list_reference": "AVAILABLE_UNIT_TYPES",
-          "field_name": "unitTypeId"
+          "mapping": { "field_name": "unitTypeId" }
         },
         {
           "type": "DATE",
           "required": true,
           "link_id": "neededBy",
           "text": "Estimated Date Needed",
-          "field_name": "neededBy",
+          "mapping": { "field_name": "neededBy" },
           "bounds": [
             {
               "id": "min-needed-by-lax",
@@ -50,7 +50,7 @@
           "required": true,
           "link_id": "requestorName",
           "text": "Requestor Name",
-          "field_name": "requestorName",
+          "mapping": { "field_name": "requestorName" },
           "initial": [
             {
               "initial_behavior": "IF_EMPTY",
@@ -63,7 +63,7 @@
           "required": true,
           "link_id": "requestorPhone",
           "text": "Requestor Phone",
-          "field_name": "requestorPhone",
+          "mapping": { "field_name": "requestorPhone" },
           "initial": [
             {
               "initial_behavior": "IF_EMPTY",
@@ -76,7 +76,7 @@
           "required": true,
           "link_id": "requestorEmail",
           "text": "Requestor Email",
-          "field_name": "requestorEmail",
+          "mapping": { "field_name": "requestorEmail" },
           "initial": [
             {
               "initial_behavior": "IF_EMPTY",

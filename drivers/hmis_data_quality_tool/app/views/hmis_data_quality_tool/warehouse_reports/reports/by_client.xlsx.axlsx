@@ -35,12 +35,20 @@ wb.add_worksheet(name: 'test') do |sheet|
     sheet.merge_cells(merge.join(':'))
   end
 
-  header = [
-    '',
-    'Personal ID',
-    'Last Name',
-    'First Name',
-  ]
+  header = if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    [
+      '',
+      'Personal ID',
+      'Last Name',
+      'First Name',
+    ]
+  else
+    [
+      '',
+      'Personal ID',
+    ]
+  end
+
   @pivot_details.groups.values.map(&:keys).flatten.each do |key|
     header.push(@pivot_details.lookup[key])
   end
@@ -53,7 +61,11 @@ wb.add_worksheet(name: 'test') do |sheet|
     else
       row.push('')
     end
-    row = row + [client.personal_id, client.last_name, client.first_name]
+    row += if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      [client.personal_id, client.last_name, client.first_name]
+    else
+      [client.personal_id]
+    end
     @pivot_details.groups.values.map(&:keys).flatten.each do |key|
       marked = @pivot_details.flags[@pivot_details.lookup[key]].include?([client.personal_id, client.data_source_id])
       if marked

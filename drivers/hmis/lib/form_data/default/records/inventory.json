@@ -35,7 +35,7 @@
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
-          "field_name": "cocCode"
+          "mapping": { "field_name": "cocCode" }
         },
         {
           "type": "CHOICE",
@@ -44,7 +44,7 @@
           "component": "RADIO_BUTTONS",
           "text": "Household Type",
           "pick_list_reference": "HouseholdType",
-          "field_name": "householdType"
+          "mapping": { "field_name": "householdType" }
         },
         {
           "type": "CHOICE",
@@ -54,7 +54,7 @@
           "component": "RADIO_BUTTONS",
           "text": "Availability",
           "pick_list_reference": "Availability",
-          "field_name": "availability"
+          "mapping": { "field_name": "availability" }
         },
         {
           "type": "CHOICE",
@@ -64,14 +64,14 @@
           "component": "RADIO_BUTTONS",
           "text": "ES Bed Type",
           "pick_list_reference": "BedType",
-          "field_name": "esBedType"
+          "mapping": { "field_name": "esBedType" }
         },
         {
           "type": "DATE",
           "required": true,
           "link_id": "2.07.1",
           "text": "Start Date",
-          "field_name": "inventoryStartDate",
+          "mapping": { "field_name": "inventoryStartDate" },
           "bounds": [
             {
               "id": "min-start-date",
@@ -95,7 +95,7 @@
           "required": false,
           "link_id": "2.07.2",
           "text": "End Date",
-          "field_name": "inventoryEndDate",
+          "mapping": { "field_name": "inventoryEndDate" },
           "bounds": [
             {
               "id": "min-end-date",
@@ -125,7 +125,7 @@
           "type": "INTEGER",
           "link_id": "unit",
           "text": "Unit Inventory",
-          "field_name": "unitInventory",
+          "mapping": { "field_name": "unitInventory" },
           "required": true
         },
         {
@@ -138,49 +138,49 @@
               "type": "INTEGER",
               "link_id": "ch-beds",
               "text": "Chronic",
-              "field_name": "chBedInventory"
+              "mapping": { "field_name": "chBedInventory" }
             },
             {
               "type": "INTEGER",
               "link_id": "vet-beds",
               "text": "Veteran",
-              "field_name": "vetBedInventory"
+              "mapping": { "field_name": "vetBedInventory" }
             },
             {
               "type": "INTEGER",
               "link_id": "ch-vet-beds",
               "text": "Chronic Veteran",
-              "field_name": "chVetBedInventory"
+              "mapping": { "field_name": "chVetBedInventory" }
             },
             {
               "type": "INTEGER",
               "link_id": "youth-beds",
               "text": "Youth",
-              "field_name": "youthBedInventory"
+              "mapping": { "field_name": "youthBedInventory" }
             },
             {
               "type": "INTEGER",
               "link_id": "youth-vet-beds",
               "text": "Youth Veteran",
-              "field_name": "youthVetBedInventory"
+              "mapping": { "field_name": "youthVetBedInventory" }
             },
             {
               "type": "INTEGER",
               "link_id": "ch-youth-beds",
               "text": "Chronic Youth",
-              "field_name": "chYouthBedInventory"
+              "mapping": { "field_name": "chYouthBedInventory" }
             },
             {
               "type": "INTEGER",
               "link_id": "other-beds",
               "text": "Other",
-              "field_name": "otherBedInventory"
+              "mapping": { "field_name": "otherBedInventory" }
             },
             {
               "type": "DISPLAY",
               "link_id": "sum",
               "text": "Total Bed Count",
-              "field_name": "bedInventory",
+              "mapping": { "field_name": "bedInventory" },
               "required": true,
               "initial": [
                 {

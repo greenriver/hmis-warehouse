@@ -258,7 +258,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Assessments query' do
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-    let!(:a1) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e1 }
+    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1 }
     # define a custom field and set 2 values for it
     let!(:cded) { create :hmis_custom_data_element_definition, label: 'Special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, repeats: true }
     let!(:cde1) { create :hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 1' }

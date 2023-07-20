@@ -49,7 +49,7 @@ module HealthPctp
         )
     end
 
-    scope :editable, -> { where(patient_signed_on: nil) }
+    scope :editable, -> { where(sent_to_pcp_on: nil) }
 
     alias_attribute :completed_at, :patient_signed_on
     alias_attribute :careplan_sent_on, :sent_to_pcp_on
@@ -96,6 +96,10 @@ module HealthPctp
       edit_client_health_pctp_careplan_path(patient.client, id, anchor: anchor)
     end
 
+    def download_partial
+      'health_pctp/careplans/downloads'
+    end
+
     def show_path
       client_health_pctp_careplan_path(patient.client, id)
     end
@@ -118,9 +122,11 @@ module HealthPctp
     def care_team_members
       {
         cc: "Enrollee's Care Coordinator(s)",
-        ccm: "Enrollee's Clinical Care Manager(s)",
+        ccm: "Enrollee's Team Coordinator/Clinical Care Manager(s)",
         pcp: "Enrollee's PCP or PCP Designee",
         rn: "Enrollee's RN",
+        guardian: 'Guardian',
+        social_support: 'Social Support (e.g., Informal, Caregiver, Family)',
         other_members: 'Additional Care Team members, as applicable',
       }
     end
@@ -150,8 +156,7 @@ module HealthPctp
     end
 
     def goals_label
-      'What are the goals they would like to achieve with the Community Partner program and how will their ' +
-        'self-identified strengths be used to overcome barriers to these goals?'
+      "How will the person's self-identified strengths be used to overcome barriers to these goals?"
     end
 
     def update_reason_responses
@@ -301,6 +306,22 @@ module HealthPctp
         n_a: 'N/A',
         other: 'Other - Not Listed (specify below)',
       }.with_indifferent_access.invert
+    end
+
+    def contingency_plan_placeholder
+      "Client is encouraged to develop a contingency plan with natural supports to address critical needs that they are not able to manage on their own.\n" +
+        "Client can collaborate with CP services (CC, NCM, and TC) to address any critical needs like transportation or medication.\n" +
+        "Client can contact JYP Clinic (857-654-1604) to schedule medical appointment or present to clinic for open access appointment during clinic business hours.\n" +
+        "Client can page on call medical or BH provider at 781-221-6565.\n" +
+        "Client is able to contact 911 for any emergencies or go to the nearest ED.\n" +
+        'Client is able to contact The Best Team (1-800-981-4357) or go to the nearest ED.'
+    end
+
+    def crisis_plan_default
+      "For Psychiatric emergency, If the risk is immanent call 911.\n" +
+        "If the risk is high but not immediate, TigerConnect BH Crises Response, call BEST Team (1-800-981-4357), and/or page BH team member on call at 781-221-6565.\n" +
+        'If the client is seeking substance use and/or dual-diagnosis treatment such as inpatient detox, residential treatment or partial hospitalization or day ' +
+        'program, client will contact PAATHS for assistance.'
     end
   end
 end

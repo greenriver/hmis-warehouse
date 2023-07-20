@@ -8,9 +8,7 @@
 - elsif @pagy.count.positive?
   .d-flex
     .ml-auto.mb-4
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
-        %i.icon-file-excel.icon-lg
-        Download
+      = render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
   .d-flex
   = render 'common/pagination_top', item_name: 'enrollment'
   .table-responsive

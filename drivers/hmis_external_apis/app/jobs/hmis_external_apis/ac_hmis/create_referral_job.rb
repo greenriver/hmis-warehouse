@@ -223,7 +223,8 @@ module HmisExternalApis::AcHmis
       member_params = params.fetch(:household_members)
       return error_out('Household must have exactly one HoH') if member_params.map { |m| m[:relationship_to_hoh] }.count(1) != 1
 
-      member_params.map do |attrs|
+      old_members = referral.household_members.index_by(&:id)
+      member_params.each do |attrs|
         attrs => {mci_id:, relationship_to_hoh:}
         found = mci.find_client_by_mci(mci_id)
         client = found || build_client
@@ -231,18 +232,13 @@ module HmisExternalApis::AcHmis
         mci.create_external_id(source: client, value: mci_id) unless found
 
         member = referral.household_members.where(client: client).first_or_initialize
+        old_members.delete(member.id) if member.persisted?
         member.relationship_to_hoh = relationship_to_hoh
         member.mci_id = mci_id
         member.save!
       end
-    end
-
-    def data_source
-      @data_source ||= HmisExternalApis::AcHmis.data_source
-    end
-
-    def system_user
-      @system_user ||= ::Hmis::Hud::User.system_user(data_source_id: data_source.id)
+      old_members.values.each(&:destroy!)
+      true
     end
 
     def error_out(msg)

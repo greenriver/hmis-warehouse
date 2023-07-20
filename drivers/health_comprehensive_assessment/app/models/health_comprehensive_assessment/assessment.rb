@@ -533,6 +533,7 @@ module HealthComprehensiveAssessment
       {
         has_legal_involvement: ['Does the Enrollee have current legal involvement or issues or a history of legal involvement or issues?', :pretty_boolean_group, yes_no, { class: 'jHasLegalInvolvements' }],
         legal_involvements: ['If yes, select all that apply:', :select_two, legal_involvements_responses, { multiple: true }, 'jLegalInvolvements'],
+        legal_comments: ['Additional comments', :text, nil, { rows: 5 }],
       }
     end
 

@@ -43,6 +43,7 @@ module HealthThriveAssessment
 
     private def assessment_params
       params.require(:health_thrive_assessment_assessment).permit(
+        :reporter,
         :decline_to_answer,
         :housing_status,
         :food_insecurity,
@@ -51,6 +52,7 @@ module HealthThriveAssessment
         :trouble_medical_transportation,
         :trouble_utility_cost,
         :trouble_caring_for_family,
+        :trouble_with_adl,
         :unemployed,
         :interested_in_education,
         :help_with_housing,
@@ -60,6 +62,7 @@ module HealthThriveAssessment
         :help_with_utilities,
         :help_with_childcare,
         :help_with_eldercare,
+        :help_with_adl,
         :help_with_job_search,
         :help_with_education,
         :completed_on,

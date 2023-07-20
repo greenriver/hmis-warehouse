@@ -47,8 +47,21 @@ module HealthThriveAssessment
         trouble_medical_transportation? ||
         trouble_utility_cost? ||
         trouble_caring_for_family? ||
+        trouble_with_adl? ||
         unemployed? ||
         interested_in_education?
+    end
+
+    enum reporter: {
+      patient: 10,
+      caregiver: 20,
+    }
+
+    def reporter_options
+      {
+        patient: 'Patient',
+        caregiver: 'Parent/Caregiver',
+      }.invert
     end
 
     enum housing_status: {
@@ -102,6 +115,7 @@ module HealthThriveAssessment
 
     def question_labels
       {
+        reporter: ['I am a', reporter_options],
         housing_status: ['What is your living situation today?', housing_statuses],
         food_insecurity: ["Within the past 12 months, the food you bought just didn't last and you didn't have money to get more.", food_insecurity_responses],
         food_worries: ['Within the past 12 months, you worried whether your food would run out before you got money to buy more.', food_worries_responses],
@@ -109,6 +123,7 @@ module HealthThriveAssessment
         trouble_medical_transportation: ['Do you have trouble gettng transportation to medical appointments?', yes_no],
         trouble_utility_cost: ['Do you have trouble paying your heating or electricity bill?', yes_no],
         trouble_caring_for_family: ['Do you have trouble taking care of a child, family member or friend?', yes_no],
+        trouble_with_adl: ['Do you have trouble with day-to-day activities such as bathing, preparing meals, shopping, managing finances, etc.?', yes_no],
         unemployed: ['Are you currently unemployed and looking for a job?', yes_no],
         interested_in_education: ['Are you interested in more education?', yes_no],
       }
@@ -119,10 +134,11 @@ module HealthThriveAssessment
         help_with_housing: 'Housing / Shelter',
         help_with_food: 'Food',
         help_with_drug_cost: 'Paying for Medicine',
-        help_with_medical_transportation: 'Transportation to medical appointments',
+        help_with_medical_transportation: 'Transportation',
         help_with_utilities: 'Utilities',
-        help_with_childcare: 'Child care / Daycare',
+        help_with_childcare: 'Childcare',
         help_with_eldercare: 'Care for elder or disabled',
+        # help_with_adl: 'Daily support',
         help_with_job_search: 'Job search / training',
         help_with_education: 'Education',
       }

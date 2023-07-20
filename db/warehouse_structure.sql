@@ -863,7 +863,8 @@ CREATE TABLE public."CustomAssessments" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    wip boolean DEFAULT false NOT NULL
 );
 
 
@@ -1192,43 +1193,6 @@ CREATE SEQUENCE public."CustomDataElements_id_seq"
 --
 
 ALTER SEQUENCE public."CustomDataElements_id_seq" OWNED BY public."CustomDataElements".id;
-
-
---
--- Name: CustomForms; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."CustomForms" (
-    id bigint NOT NULL,
-    owner_type character varying NOT NULL,
-    owner_id bigint NOT NULL,
-    definition_id bigint NOT NULL,
-    form_processor_id bigint,
-    "values" jsonb,
-    hud_values jsonb,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: CustomForms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public."CustomForms_id_seq"
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: CustomForms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public."CustomForms_id_seq" OWNED BY public."CustomForms".id;
 
 
 --
@@ -6130,9 +6094,6 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
-    "order" integer DEFAULT 0 NOT NULL,
-    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
-    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -7675,6 +7636,172 @@ CREATE SEQUENCE public.files_id_seq
 --
 
 ALTER SEQUENCE public.files_id_seq OWNED BY public.files.id;
+
+
+--
+-- Name: financial_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.financial_clients (
+    id bigint NOT NULL,
+    external_client_id integer NOT NULL,
+    client_id integer,
+    data_source_id integer NOT NULL,
+    client_first_name character varying,
+    client_last_name character varying,
+    address_line_1 character varying,
+    address_line_2 character varying,
+    city character varying,
+    state character varying,
+    zip_code character varying,
+    service_provder_company character varying,
+    head_of_household integer,
+    was_the_client_screened_for_homelessness integer,
+    do_you_have_a_voucher integer,
+    if_yes_what_pha_issued_the_voucher character varying,
+    if_yes_what_type_of_voucher_was_issued character varying,
+    voucher_type_other character varying,
+    what_housing_program_is_the_client_in character varying,
+    housing_program_other character varying,
+    date_vouchered_if_applicable timestamp without time zone,
+    date_of_referral_to_agency timestamp without time zone,
+    lease_start_date timestamp without time zone,
+    city_of_unit character varying,
+    income numeric,
+    household_members integer,
+    household_members_under_18 integer,
+    household_members_over_62 integer,
+    client_birthdate timestamp without time zone,
+    ada_needs integer,
+    race character varying,
+    gender character varying,
+    ethnicity character varying,
+    cal_optima_client_id character varying,
+    dv_survivor integer,
+    most_recent_living_situation character varying,
+    most_recent_living_situation_other character varying,
+    housed_date timestamp without time zone,
+    are_rental_arrears_owed integer,
+    rent_owed_rental_arrears numeric,
+    total_time_housed integer,
+    hmis_id_if_applicable character varying,
+    housed_after_18_months integer,
+    housed_after_24_months integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN financial_clients.client_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.financial_clients.client_id IS 'Reference to a destination client';
+
+
+--
+-- Name: financial_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.financial_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: financial_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.financial_clients_id_seq OWNED BY public.financial_clients.id;
+
+
+--
+-- Name: financial_providers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.financial_providers (
+    id bigint NOT NULL,
+    provider_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    agency_name character varying NOT NULL,
+    address_line_1 character varying,
+    address_line_2 character varying,
+    city character varying,
+    state character varying,
+    zip_code character varying,
+    service_provider_area character varying,
+    service_provider_area_by_city character varying,
+    pha_contracts character varying,
+    client_referral_process character varying,
+    client_referral_process_other character varying,
+    voucher_types_for_client character varying,
+    housing_programs character varying,
+    housing_program_other character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: financial_providers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.financial_providers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: financial_providers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.financial_providers_id_seq OWNED BY public.financial_providers.id;
+
+
+--
+-- Name: financial_transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.financial_transactions (
+    id bigint NOT NULL,
+    transaction_id integer NOT NULL,
+    data_source_id integer NOT NULL,
+    transaction_status character varying NOT NULL,
+    transaction_date timestamp without time zone NOT NULL,
+    paid_date timestamp without time zone,
+    external_client_id integer NOT NULL,
+    provider_id integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: financial_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.financial_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: financial_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.financial_transactions_id_seq OWNED BY public.financial_transactions.id;
 
 
 --
@@ -15023,7 +15150,14 @@ CREATE TABLE public.hmis_form_processors (
     hiv_aids_id bigint,
     mental_health_disorder_id bigint,
     substance_use_disorder_id bigint,
-    exit_id bigint
+    exit_id bigint,
+    custom_assessment_id integer NOT NULL,
+    definition_id integer,
+    "values" jsonb,
+    hud_values jsonb,
+    youth_education_status_id integer,
+    employment_education_id integer,
+    current_living_situation_id integer
 );
 
 
@@ -15273,6 +15407,40 @@ CREATE SEQUENCE public.hmis_import_configs_id_seq
 --
 
 ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_configs.id;
+
+
+--
+-- Name: hmis_project_unit_type_mappings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_project_unit_type_mappings (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    unit_type_id bigint NOT NULL,
+    unit_capacity integer,
+    active boolean NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_project_unit_type_mappings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_project_unit_type_mappings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
 
 
 --
@@ -22574,13 +22742,6 @@ ALTER TABLE ONLY public."CustomDataElements" ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- Name: CustomForms id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."CustomForms" ALTER COLUMN id SET DEFAULT nextval('public."CustomForms_id_seq"'::regclass);
-
-
---
 -- Name: CustomProjectAssessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23306,6 +23467,27 @@ ALTER TABLE ONLY public.federal_census_breakdowns ALTER COLUMN id SET DEFAULT ne
 --
 
 ALTER TABLE ONLY public.files ALTER COLUMN id SET DEFAULT nextval('public.files_id_seq'::regclass);
+
+
+--
+-- Name: financial_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.financial_clients ALTER COLUMN id SET DEFAULT nextval('public.financial_clients_id_seq'::regclass);
+
+
+--
+-- Name: financial_providers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.financial_providers ALTER COLUMN id SET DEFAULT nextval('public.financial_providers_id_seq'::regclass);
+
+
+--
+-- Name: financial_transactions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.financial_transactions ALTER COLUMN id SET DEFAULT nextval('public.financial_transactions_id_seq'::regclass);
 
 
 --
@@ -24279,6 +24461,13 @@ ALTER TABLE ONLY public.hmis_forms ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_import_configs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_project_unit_type_mappings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_unit_type_mappings_id_seq'::regclass);
 
 
 --
@@ -25647,14 +25836,6 @@ ALTER TABLE ONLY public."CustomDataElements"
 
 
 --
--- Name: CustomForms CustomForms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."CustomForms"
-    ADD CONSTRAINT "CustomForms_pkey" PRIMARY KEY (id);
-
-
---
 -- Name: CustomProjectAssessments CustomProjectAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -26492,6 +26673,30 @@ ALTER TABLE ONLY public.federal_census_breakdowns
 
 ALTER TABLE ONLY public.files
     ADD CONSTRAINT files_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: financial_clients financial_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.financial_clients
+    ADD CONSTRAINT financial_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: financial_providers financial_providers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.financial_providers
+    ADD CONSTRAINT financial_providers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: financial_transactions financial_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.financial_transactions
+    ADD CONSTRAINT financial_transactions_pkey PRIMARY KEY (id);
 
 
 --
@@ -27604,6 +27809,14 @@ ALTER TABLE ONLY public.hmis_forms
 
 ALTER TABLE ONLY public.hmis_import_configs
     ADD CONSTRAINT hmis_import_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_project_unit_type_mappings hmis_project_unit_type_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_unit_type_mappings
+    ADD CONSTRAINT hmis_project_unit_type_mappings_pkey PRIMARY KEY (id);
 
 
 --
@@ -29076,6 +29289,13 @@ CREATE UNIQUE INDEX ev_ev_id_ds_id ON public."Event" USING btree ("EventID", dat
 --
 
 CREATE INDEX event_ds_id_p_id_en_id_ev_id ON public."Event" USING btree (data_source_id, "PersonalID", "EnrollmentID", "EventID");
+
+
+--
+-- Name: ex_id_ds_id_fc_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ex_id_ds_id_fc_idx ON public.financial_clients USING btree (external_client_id, data_source_id);
 
 
 --
@@ -41658,6 +41878,13 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
+-- Name: idx_cibs_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cibs_p_id_ds_id ON public.custom_imports_b_services_rows USING btree (personal_id, data_source_id);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42117,27 +42344,6 @@ CREATE INDEX "index_CustomDataElements_on_data_element_definition_id" ON public.
 --
 
 CREATE INDEX "index_CustomDataElements_on_owner" ON public."CustomDataElements" USING btree (owner_type, owner_id);
-
-
---
--- Name: index_CustomForms_on_definition_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomForms_on_definition_id" ON public."CustomForms" USING btree (definition_id);
-
-
---
--- Name: index_CustomForms_on_form_processor_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomForms_on_form_processor_id" ON public."CustomForms" USING btree (form_processor_id);
-
-
---
--- Name: index_CustomForms_on_owner; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomForms_on_owner" ON public."CustomForms" USING btree (owner_type, owner_id);
 
 
 --
@@ -45316,6 +45522,20 @@ CREATE INDEX index_hmis_forms_on_name ON public.hmis_forms USING btree (name);
 --
 
 CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_configs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_project_unit_type_mappings_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_unit_type_mappings_on_project_id ON public.hmis_project_unit_type_mappings USING btree (project_id);
+
+
+--
+-- Name: index_hmis_project_unit_type_mappings_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmis_project_unit_type_mappings USING btree (unit_type_id);
 
 
 --
@@ -50485,6 +50705,13 @@ CREATE INDEX organization_export_id ON public."Organization" USING btree ("Expor
 
 
 --
+-- Name: p_id_ds_id_fp_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX p_id_ds_id_fp_idx ON public.financial_providers USING btree (provider_id, data_source_id);
+
+
+--
 -- Name: pm_clients_c_id_fq_r_id_p; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50674,6 +50901,13 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 
 
 --
+-- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING btree (transaction_id, data_source_id);
+
+
+--
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50720,6 +50954,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referral_requests_identifier ON public.hm
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_external_referrals USING btree (identifier);
+
+
+--
+-- Name: uidx_hmis_project_unit_type_mappings; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_project_unit_type_mappings ON public.hmis_project_unit_type_mappings USING btree (project_id, unit_type_id);
 
 
 --
@@ -52063,6 +52304,14 @@ ALTER TABLE ONLY public.service_history_services_2018
 
 
 --
+-- Name: hmis_project_unit_type_mappings fk_rails_2df98dd2c6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_unit_type_mappings
+    ADD CONSTRAINT fk_rails_2df98dd2c6 FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: service_history_services_remainder fk_rails_330ff927f7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -52380,6 +52629,14 @@ ALTER TABLE ONLY public.service_history_services_2049
 
 ALTER TABLE ONLY public.hmis_external_referral_household_members
     ADD CONSTRAINT fk_rails_993d7f8d95 FOREIGN KEY (client_id) REFERENCES public."Client"(id);
+
+
+--
+-- Name: hmis_project_unit_type_mappings fk_rails_9ad4af7ff3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_unit_type_mappings
+    ADD CONSTRAINT fk_rails_9ad4af7ff3 FOREIGN KEY (project_id) REFERENCES public."Project"(id);
 
 
 --
@@ -53675,6 +53932,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230623124456'),
 ('20230623200215'),
 ('20230626005404'),
-('20230626012029');
+('20230626012029'),
+('20230630203515'),
+('20230706112135'),
+('20230706204940'),
+('20230707143716'),
+('20230710183058');
 
 

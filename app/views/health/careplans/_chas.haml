@@ -6,6 +6,10 @@
       = link_to new_client_health_comprehensive_assessment_assessment_path(@client), class: 'btn btn-secondary btn-sm ml-auto' do
         %i.icon-plus
         Add CA
+      - # TODO: download link
+      = link_to new_client_health_comprehensive_assessment_assessment_path(@client), class: 'btn btn-secondary btn-sm ml-auto' do
+        %i.icon-download2
+        Download New CA
 
   .c-card__content.c-card__content--flush
     = render 'chas_table'

@@ -35,6 +35,8 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
 
       expect(response.status).to eq 200
       expect(JSON.parse(response.body)['involvements']).to eq []
+      expect(HmisExternalApis::ExternalRequestLog.count).to eq(1)
+      expect(HmisExternalApis::ExternalRequestLog.first.response).to match(/involvements/)
     end
   end
 
@@ -44,6 +46,8 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
 
       expect(response.status).to eq 200
       expect(JSON.parse(response.body)['involvements']).to eq []
+      expect(HmisExternalApis::ExternalRequestLog.count).to eq(1)
+      expect(HmisExternalApis::ExternalRequestLog.first.response).to match(/involvements/)
     end
   end
 end

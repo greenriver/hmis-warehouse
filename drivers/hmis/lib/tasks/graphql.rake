@@ -20,7 +20,7 @@ end
 
 desc 'Generate GraphQL Enums'
 task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
-  source = File.read('lib/data/hud_lists.json')
+  source = File.read('lib/data/2022_hud_lists.json')
   skipped = ['race', '3.6.1', '2.4.2', '1.6']
   filename = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud.rb'
 

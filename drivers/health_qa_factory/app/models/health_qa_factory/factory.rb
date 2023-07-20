@@ -24,28 +24,28 @@ module HealthQaFactory
     end
 
     def complete_ca(assessment)
-      update(ca_development_qa: create_ca_development_qa(assessment)) unless ca_development_qa.present?
+      update(ca_development_qa: gen_ca_development_qa(assessment)) unless ca_development_qa.present?
     end
 
     def complete_careplan(careplan)
-      update(careplan_development_qa: create_careplan_development_qa(careplan)) unless careplan_development_qa.present?
+      update(careplan_development_qa: gen_careplan_development_qa(careplan)) unless careplan_development_qa.present?
     end
 
     def review_careplan(careplan)
       update(careplan: careplan)
-      update(hrsn_screening_qa: create_hrsn_screening_qa(patient.recent_hrsn_screening&.instrument)) unless hrsn_screening_qa.present?
+      update(hrsn_screening_qa: gen_hrsn_screening_qa(patient.recent_hrsn_screening&.instrument)) unless hrsn_screening_qa.present?
       return if ca_completed_qa.present?
 
       ca = patient.recent_ca_assessment&.instrument
       ca.update(reviewed_on: careplan.reviewed_by_ccm_on, reviewed_by_id: careplan.reviewed_by_ccm_id)
-      update(ca_completed_qa: create_ca_completed_qa(ca))
+      update(ca_completed_qa: gen_ca_completed_qa(ca))
     end
 
     def approve_careplan(careplan)
-      update(careplan_completed_qa: create_careplan_completed_qa(careplan)) unless careplan_completed_qa.present?
+      update(careplan_completed_qa: gen_careplan_completed_qa(careplan)) unless careplan_completed_qa.present?
     end
 
-    private def create_hrsn_screening_qa(screener)
+    private def gen_hrsn_screening_qa(screener)
       return unless screener.present?
 
       user = User.find(careplan.reviewed_by_ccm_id)
@@ -76,7 +76,7 @@ module HealthQaFactory
       qa
     end
 
-    private def create_ca_development_qa(assessment)
+    private def gen_ca_development_qa(assessment)
       return unless assessment.present?
 
       user = User.find(assessment.user_id)
@@ -95,7 +95,7 @@ module HealthQaFactory
       )
     end
 
-    private def create_ca_completed_qa(assessment)
+    private def gen_ca_completed_qa(assessment)
       return unless assessment.present?
 
       user = User.find(careplan.reviewed_by_ccm_id)
@@ -114,7 +114,7 @@ module HealthQaFactory
       )
     end
 
-    private def create_careplan_development_qa(careplan)
+    private def gen_careplan_development_qa(careplan)
       return unless careplan.present?
 
       user = User.find(careplan.user_id)
@@ -133,7 +133,7 @@ module HealthQaFactory
       )
     end
 
-    private def create_careplan_completed_qa(careplan)
+    private def gen_careplan_completed_qa(careplan)
       return unless careplan.present?
 
       user = User.find(careplan.reviewed_by_rn_id)
