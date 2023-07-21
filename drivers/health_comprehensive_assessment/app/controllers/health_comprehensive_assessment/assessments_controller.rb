@@ -11,7 +11,6 @@ module HealthComprehensiveAssessment
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_assessment, only: [:edit, :update, :show, :destroy]
-    before_action :set_pdf_export, only: [:edit]
 
     def new
       @assessment = if @patient.comprehensive_assessments.in_progress.exists?
@@ -31,7 +30,6 @@ module HealthComprehensiveAssessment
     def update
       @assessment.update(ca_params)
       @patient.current_qa_factory.complete_ca(@assessment) if @assessment.completed_on.present?
-      # raise 'something'
       respond_with @assessment, location: client_health_careplans_path(@client)
     end
 
@@ -50,10 +48,6 @@ module HealthComprehensiveAssessment
       :supports, :has_legal_involvement, :legal_involvements, :financial_supports,
       :race
     ].freeze
-
-    private def set_pdf_export
-      @pdf_export = ::DocumentExports::HealthCaPdfExport.new
-    end
 
     def ca_params
       permitted_cols = ::HealthComprehensiveAssessment::Assessment.column_names.map(&:to_sym) -
