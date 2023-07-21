@@ -1,6 +1,17 @@
--# TODO
--# link_to TODO do
--#  PDF: Care Plan
--#
--# link_to TODO do
--#  PDF: Signature Page
+%div
+  - prefill_export = ::HealthPctp::DocumentExports::HealthPctpPdfExport.new
+  - prefill_data = {type: prefill_export.type, query_string: {'client_id' =>  params['client_id'], 'id' => careplan.id}.to_query, 'url' => prefill_export.data_url}
+  %a.j-document-exports{href: "#", data: prefill_data}
+    %i.icon-download2
+    PDF: Care Plan
+%div
+  - if careplan.health_file.present?
+    = link_to download_client_health_pctp_careplan_path(client_id: client.id, id: careplan.id) do
+      %i.icon-download2
+      PDF: Signature Page
+  - else
+    - signature_export = ::HealthPctp::DocumentExports::HealthPctpSignaturePdfExport.new
+    - signature_data = {type: signature_export.type, query_string: {'client_id' =>  params['client_id'], 'id' => careplan.id}.to_query, 'url' => signature_export.data_url}
+    %a.j-document-exports{href: "#", data: signature_data}
+      %i.icon-download2
+      PDF: Signature Page

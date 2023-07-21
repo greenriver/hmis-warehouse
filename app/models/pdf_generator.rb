@@ -5,8 +5,8 @@
 ###
 
 class PdfGenerator
-  def perform(html:, file_name: 'output', options: {})
-    pdf_data = render_pdf(html, options: options)
+  def perform(html:, file_name: 'output', options: {}, pdf_data: nil)
+    pdf_data ||= render_pdf(html, options: options)
     Dir.mktmpdir do |dir|
       safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
       file_path = "#{dir}/#{safe_name}.pdf"
@@ -56,10 +56,17 @@ class PdfGenerator
     renderer = controller.renderer.new(
       'warden' => warden_proxy(user),
     )
-    renderer.render(
-      template,
-      layout: layout,
-      assigns: assigns,
-    )
+    if !layout.present?
+      renderer.render(
+        partial: template,
+        assigns: assigns,
+      )
+    else
+      renderer.render(
+        template,
+        layout: layout,
+        assigns: assigns,
+      )
+    end
   end
 end

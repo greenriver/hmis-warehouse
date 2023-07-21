@@ -43,13 +43,9 @@ module HealthComprehensiveAssessment
     end
 
     GROUP_PARAMS = [
-      :message_ok, :internet_access, :disabled, :funders, :hip_fracture_status, :other_fracture_status,
-      :chronic_pain_status, :alzheimers_status, :dementia_status, :stroke_status, :parkinsons_status,
-      :hypertension_status, :cad_status, :chf_status, :copd_status, :asthma_status, :apnea_status,
-      :anxiety_status, :bipolar_status, :depression_status, :schizophrenia_status, :cancer_status, :diabetes_status,
-      :arthritis_status, :ckd_status, :liver_status, :transplant_status, :weight_status, :other_condition_status,
-      :can_communicate_about, :assessed_needs, :substance_use, :sud_treatment_sources, :accessibility_equipment,
-      :has_supports, :supports, :advanced_directive, :has_legal_involvement, :legal_involvements, :financial_supports,
+      :funders,
+      :can_communicate_about, :assessed_needs, :sud_treatment_sources, :accessibility_equipment,
+      :supports, :has_legal_involvement, :legal_involvements, :financial_supports,
       :race
     ].freeze
 

@@ -60,7 +60,7 @@
   = f.input :weaknesses, as: :text, label: 'Weaknesses', input_html: {rows: 5}
   = f.input :interests, as: :text, label: 'Interests', input_html: {rows: 5}
   = f.input :choices, as: :text, label: 'Choices and Preferences', input_html: {rows: 5}
-  = f.input :care_goals, as: :text, label: 'Choices and Preferences', input_html: {rows: 5}
+  = f.input :care_goals, as: :text, label: 'Care Goals', input_html: {rows: 5}
   = f.input :personal_goals, as: :text, label: 'Personal goals', input_html: {rows: 5}
   = f.input :cultural_considerations, as: :text, label: 'Cultural considerations', input_html: {rows: 5}
 
@@ -106,6 +106,7 @@
   = render 'social_supports', f: f
 
 %h2#section-risk-factors Risk factors for abuse or neglect
+
 .well
   %h3 Risk Factors for Abuse or Neglect
   %p Because violence and abuse happen to a lot of people and affects their health, we are asking the following questions
