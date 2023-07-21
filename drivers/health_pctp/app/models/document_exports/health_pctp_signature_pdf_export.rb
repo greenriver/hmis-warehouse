@@ -12,6 +12,10 @@ module DocumentExports
       true
     end
 
+    def regenerate?
+      true
+    end
+
     protected def careplan
       patient = Health::Patient.viewable_by_user(user).find_by(client_id: params['client_id'].to_i)
       @careplan ||= patient.pctps.find(params['id'])
