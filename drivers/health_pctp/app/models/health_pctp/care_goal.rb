@@ -10,6 +10,10 @@ module HealthPctp
 
     belongs_to :careplan
 
+    after_initialize do
+      self.plan ||= "1. \n2. \n3. "
+    end
+
     def domain_responses
       {
         accessibility: 'Accessibility requirements',
