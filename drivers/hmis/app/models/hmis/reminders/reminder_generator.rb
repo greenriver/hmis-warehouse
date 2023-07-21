@@ -125,13 +125,12 @@ module Hmis
 
       # Show reminder if: there are any household members that are missing intake assessments OR
       # have WIP intake assessments
-      def intake_assessment_reminder( enrollment)
-        return unless (
+      def intake_assessment_reminder(enrollment)
+        return unless
           # there's a wip assessment
           last_assessment_date(enrollment: enrollment, stages: [:project_entry], wip: [true]) ||
           # there's no submitted assessment
           last_assessment_date(enrollment: enrollment, stages: [:project_entry], wip: [false]).nil?
-        )
 
         new_reminder(
           event_id: 'intake_incomplete',
@@ -142,7 +141,7 @@ module Hmis
       end
 
       # Show reminder if: there are any WIP exit assessments for any household members
-      def exit_assessment_reminder( enrollment)
+      def exit_assessment_reminder(enrollment)
         return unless last_assessment_date(enrollment: enrollment, stages: [:project_exit], wip: [true])
 
         new_reminder(
@@ -162,8 +161,8 @@ module Hmis
 
         latest_living_situation_on = enrollment
           .current_living_situations
-          .sort_by(&:InformationDate)
-          .last&.InformationDate
+          .max_by(&:InformationDate)
+          &.InformationDate
 
         due_date = latest_living_situation_on ? latest_living_situation_on + cadence : enrollment.EntryDate
         return if due_date > today
