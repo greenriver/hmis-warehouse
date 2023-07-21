@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module DocumentExports
+module HealthComprehensiveAssessment::DocumentExports
   class HealthCaPdfExport < ::Health::DocumentExport
     include ApplicationHelper
     def authorized?

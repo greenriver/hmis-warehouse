@@ -1,5 +1,5 @@
 - content_for :modal_title, 'Comprehensive Assessment'
-- pdf_export = ::DocumentExports::HealthCaPdfExport.new
+- pdf_export = ::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new
 - export_data = {type: pdf_export.type, query_string: {'client_id' =>  params['client_id'], 'id' => @assessment.id}.to_query, 'url' => pdf_export.data_url}
 
 .row

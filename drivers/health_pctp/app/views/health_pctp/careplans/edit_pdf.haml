@@ -88,7 +88,7 @@
       %tr
         %th{style: 'width:40%;'} Race
         %td
-          - display_values = @careplan.race_responses.select{|k, v| @careplan.race.include?(v)}.keys
+          - display_values = @careplan.race_responses.select{|k, v| @careplan.race&.include?(v)}.keys
           = display_values.join(', ')
       - @careplan.demographic_information_2.each do |key, (labels, kind, collection, input_html, controlled)|
         - if labels.is_a?(Array)
@@ -140,11 +140,11 @@
       %tr
         %th Accomodation Type
         %td
-          = @careplan.accommodation_responses.select{|k,v| @careplan.accommodation_types.include?(v)}.keys.join(', ')
+          = @careplan.accommodation_responses.select{|k,v| @careplan.accommodation_types&.include?(v)}.keys.join(', ')
       %tr
         %th Equipment
         %td
-          = @careplan.accessibility_equipment_responses.select{|k, v| @careplan.accessibility_equipment.include?(v)}.keys.join(', ')
+          = @careplan.accessibility_equipment_responses.select{|k, v| @careplan.accessibility_equipment&.include?(v)}.keys.join(', ')
       %tr
         %th{style: 'vertical-align: top;'} Comments
         %td

@@ -101,9 +101,9 @@ class DocumentExportsControllerBase < ApplicationController
       'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
       'SystemPathways::DocumentExports::ReportExport',
       'SystemPathways::DocumentExports::ReportExcelExport',
-      'DocumentExports::HealthPctpPdfExport',
-      'DocumentExports::HealthPctpSignaturePdfExport',
-      'DocumentExports::HealthCaPdfExport',
+      'HealthPctp::DocumentExports::HealthPctpPdfExport',
+      'HealthPctp::DocumentExports::HealthPctpSignaturePdfExport',
+      'HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport',
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
     ]
   end

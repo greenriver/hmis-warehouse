@@ -1,3 +1,18 @@
+.mt-3.d-flex
+  .mr-8
+    .pctc-print__detail-label Patient Birthdate
+    .pctc-print__detail-value= @assessment.patient.birthdate
+  .mr-8
+    .pctc-print__detail-label Initial Date
+    .pctc-print__detail-value= @assessment.created_at.to_date
+  .mr-8
+    - if @assessment.reviewed_at.present?
+      .pctc-print__detail-label Reviewed on
+      .pctc-print__detail-value= @assessment.reviewed_at.to_date
+    - elsif @assessment.completed_at.present?
+      .pctc-print__detail-label Completed on
+      .pctc-print__detail-value= @assessment.completed_at.to_date
+    
 .pctc-print__table
   %table
     %thead
