@@ -38,12 +38,12 @@ class CreateAnsdEnrollments < ActiveRecord::Migration[6.1]
 
       t.string :event_id
       t.date :event_date
-      t.integer :event
-      t.integer :location
+      t.string :event
+      t.string :location
       t.string :project_name
       t.string :project_type
       t.integer :referral_result
-      t.integer :result_date
+      t.date :result_date
 
       t.datetime :deleted_at
       t.timestamps

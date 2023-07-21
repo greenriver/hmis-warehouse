@@ -51,6 +51,11 @@ module AllNeighborsSystemDashboard
       all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboard_url(host: ENV.fetch('FQDN'), id: id, protocol: :https, format: :xlsx)
     end
 
+
+    def a_t
+      @a_t ||= Enrollment.arel_table
+    end
+
     include EnrollmentAttributeCalculations
     include DemographicRatioCalculations
 
@@ -94,7 +99,7 @@ module AllNeighborsSystemDashboard
       end
 
       # Attach the CE Events to the first report enrollment (requires at least one enrollment)
-      enrollment = universe.members.first
+      enrollment = universe.members.first.universe_membership
       event_scope.find_in_batches do |batch|
         events = []
         batch.each do |event|
@@ -115,7 +120,7 @@ module AllNeighborsSystemDashboard
 
     def calculate_results
       save_project_ratios
-      # TODO save_system_ratios
+      save_system_ratios
     end
 
     def enrollment_scope
@@ -127,7 +132,7 @@ module AllNeighborsSystemDashboard
 
     def event_scope
       GrdaWarehouse::Hud::Event.
-        within_range(start_date: filter.start_date, end_date: filter.end_date).
+        within_range(filter.range).
         where(Event: SERVICE_CODE_ID.keys)
     end
   end

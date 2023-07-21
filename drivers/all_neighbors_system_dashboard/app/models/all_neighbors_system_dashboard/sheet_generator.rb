@@ -45,14 +45,14 @@ module AllNeighborsSystemDashboard
               project_name: 'Program Name',
               project_type: 'Program Type INT',
             },
-            universe.members.map(&:universe_membership),
+            enrollment_data,
           ],
           'CE Events' => [
             {
               client_id: 'ClientID',
               event_id: 'ServiceID',
               event_date: 'EventDate',
-              event_type: 'Event',
+              event: 'Event',
               location: 'LocationCrisisORPHHousing',
               project_name: 'ProgramName',
               project_type: 'ProgramType',
@@ -63,7 +63,7 @@ module AllNeighborsSystemDashboard
               run_date: 'RunDate',
               enrollment_id: 'EnrollID',
             },
-            universe.members.first.universe_membership.events,
+            ce_event_data,
           ],
           # 'Enrollments DV' => [
           #   {
@@ -123,9 +123,13 @@ module AllNeighborsSystemDashboard
               report_start: 'ReportStart',
               report_end: 'ReportEnd',
             },
-            [],
+            system_ratios,
           ],
         }
+      end
+
+      def ce_event_data
+        universe.members.first.universe_membership.events
       end
     end
   end

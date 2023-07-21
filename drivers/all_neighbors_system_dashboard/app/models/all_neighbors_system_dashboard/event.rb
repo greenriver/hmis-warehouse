@@ -11,15 +11,15 @@ module AllNeighborsSystemDashboard
     belongs_to :enrollment
 
     def client_id
-      enrollment.source_client.id
+      enrollment.source_enrollment.client.id
     end
 
     def report_start
-      enrollment.start_date
+      enrollment.report_start
     end
 
     def report_end
-      enrollment.end_date
+      enrollment.report_end
     end
 
     def run_date
