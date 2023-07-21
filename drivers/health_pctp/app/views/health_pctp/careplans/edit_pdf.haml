@@ -4,10 +4,10 @@
     .pctc-print__detail-value= @careplan.patient.birthdate
   .mr-8
     .pctc-print__detail-label Initial Date
-    .pctc-print__detail-value TODO
+    .pctc-print__detail-value= @careplan.initial_date
   .mr-8
     .pctc-print__detail-label Review Date
-    .pctc-print__detail-value TODO
+    .pctc-print__detail-value= @careplan.reviewed_by_rn_on
 
 - care_team_cols = [:name, :phone, :email]
 .pctc-print__table
