@@ -92,7 +92,7 @@ module Hmis
         return if last_assessed_on && last_assessed_on >= start_date
 
         new_reminder(
-          event_id: 'annual_assessment',
+          topic: ANNUAL_ASSESSMENT_TOPIC,
           enrollment_id: enrollment.id,
           due_date: due_date,
           description: "#{enrollment.client.brief_name} needs an annual assessment",
@@ -116,7 +116,7 @@ module Hmis
         return if last_assessed_on && last_assessed_on >= adulthood_birthday
 
         new_reminder(
-          event_id: 'aged_into_adulthood',
+          topic: AGED_INTO_ADULTHOOD_TOPIC,
           enrollment_id: enrollment.id,
           due_date: normalize_yoy_date(adulthood_birthday),
           description: "#{enrollment.client.brief_name} has turned #{age_of_majority} and needs an assessment",
@@ -133,7 +133,7 @@ module Hmis
           last_assessment_date(enrollment: enrollment, stages: [:project_entry], wip: [false]).nil?
 
         new_reminder(
-          event_id: 'intake_incomplete',
+          topic: INTAKE_INCOMPLETE_TOPIC,
           enrollment_id: enrollment.id,
           due_date: enrollment.EntryDate,
           description: "#{enrollment.client.brief_name} has not completed an intake assessment",
@@ -145,10 +145,10 @@ module Hmis
         return unless last_assessment_date(enrollment: enrollment, stages: [:project_exit], wip: [true])
 
         new_reminder(
-          event_id: 'intake_incomplete',
+          topic: EXIT_INCOMPLETE_TOPIC,
           enrollment_id: enrollment.id,
           due_date: enrollment.EntryDate,
-          description: "#{enrollment.client.brief_name} has not completed an intake assessment",
+          description: "#{enrollment.client.brief_name} has an incomplete exit assessment",
         )
       end
 
@@ -168,7 +168,7 @@ module Hmis
         return if due_date > today
 
         new_reminder(
-          event_id: 'current_living_situation',
+          topic: CURRENT_LIVING_SITUATION_TOPIC,
           enrollment_id: enrollment.id,
           due_date: due_date,
           description: "#{enrollment.client.brief_name} needs survey of current living situation",
