@@ -27,6 +27,18 @@ module HealthPctp
       redirect_to edit_client_health_pctp_careplan_path(@client, @careplan)
     end
 
+    def new_pdf
+      @careplan = if @patient.pctps.in_progress.exists?
+        @patient.pctps.in_progress.first
+      else
+        pctp = @patient.pctps.create!(user: current_user)
+        @patient.pctp_careplans.create(instrument: pctp)
+        pctp.populate_from_ca(current_user)
+        pctp
+      end
+      redirect_to client_health_careplans_path(@client)
+    end
+
     def edit
     end
 

@@ -19,6 +19,10 @@ class Health::DocumentExport < HealthBase
     where(export_version: CURRENT_VERSION)
   end
 
+  def regenerate?
+    false
+  end
+
   protected def params
     query_string.present? ? Rack::Utils.parse_nested_query(query_string) : {}
   end

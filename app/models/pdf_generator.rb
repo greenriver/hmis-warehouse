@@ -5,8 +5,8 @@
 ###
 
 class PdfGenerator
-  def perform(html:, file_name: 'output', options: {})
-    pdf_data = render_pdf(html, options: options)
+  def perform(html:, file_name: 'output', options: {}, pdf_data: nil)
+    pdf_data ||= render_pdf(html, options: options)
     Dir.mktmpdir do |dir|
       safe_name = file_name.gsub(/[^- a-z0-9]+/i, ' ').slice(0, 50).strip
       file_path = "#{dir}/#{safe_name}.pdf"

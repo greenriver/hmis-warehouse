@@ -444,7 +444,12 @@
           - else
             %i.icon-checkbox-unchecked
         %td The right to access Ombudsman  services
-        
+
+- unless @careplan.health_file
+  .page-break-after
+  = render 'pdf_signature'
+
+
 -#
   .pt-8.pctc-print__table
     %table

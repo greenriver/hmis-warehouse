@@ -89,6 +89,12 @@
     font-size: 12px;
   }
 
+  .pctc-print__signature-line {
+    width: 350px;
+    border-bottom: 1px solid #000;
+    height: 1px;
+  }
+
 
   .pctc-print__table {
     page-break-inside: avoid;

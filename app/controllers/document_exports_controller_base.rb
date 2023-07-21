@@ -8,7 +8,7 @@ class DocumentExportsControllerBase < ApplicationController
   def create
     @export = find_or_create
     if @export.authorized?
-      if @export.new_record?
+      if @export.new_record? || @export.regenerate?
         @export.status = document_export_class::PENDING_STATUS
         @export.save!
         export_job_class.perform_later(export_id: @export.id)
@@ -102,6 +102,7 @@ class DocumentExportsControllerBase < ApplicationController
       'SystemPathways::DocumentExports::ReportExport',
       'SystemPathways::DocumentExports::ReportExcelExport',
       'DocumentExports::HealthPctpPdfExport',
+      'DocumentExports::HealthPctpSignaturePdfExport',
       'DocumentExports::HealthCaPdfExport',
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
     ]

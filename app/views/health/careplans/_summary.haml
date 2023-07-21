@@ -9,7 +9,7 @@
         Create a Care Plan
       .ml-4
         -# TODO download link
-        = link_to new_client_health_pctp_careplan_path(@client, @patient), class: 'btn btn-secondary btn-sm' do
+        = link_to new_pdf_client_health_pctp_careplan_path(@client, @patient), class: 'btn btn-secondary btn-sm' do
           %i.icon-download2
           Pre-filled Care Plan
   .c-card__content.c-card__content--flush.table-responsive
@@ -25,28 +25,29 @@
         %tbody
           - @careplans.each do |careplan|
             - instrument = careplan.instrument
-            %tr
-              %td
-                .d-flex.flex-column.align-items-start.flex-wrap
-                  - if instrument.editable?
-                    .mr-auto
-                      = link_to instrument.edit_path do
-                        %i.icon-pencil
-                        Edit
-                  - elsif ! @any_editable
-                    -# .w-100.mb-4
-                    -#   = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
-                    -#     %i.icon-copy.mr-2
-                    -#     Make Copy
-                    .w-100
-                      -# TODO: Replace w/ link to a pop-up for just the signature section?
-                      = link_to instrument.edit_path(anchor: 'complete') do
-                        %i.icon-pencil.mr-2
-                        Update Signature Dates
-              %td= instrument.initial_date&.to_date
-              %td
-                = render 'signatures', careplan: instrument
-              %td
-                = render instrument.download_partial, careplan: instrument
+            - if instrument.present?
+              %tr
+                %td
+                  .d-flex.flex-column.align-items-start.flex-wrap
+                    - if instrument.editable?
+                      .mr-auto
+                        = link_to instrument.edit_path do
+                          %i.icon-pencil
+                          Edit
+                    - elsif ! @any_editable
+                      -# .w-100.mb-4
+                      -#   = link_to polymorphic_path([:revise] + careplan_path_generator, id: careplan) do
+                      -#     %i.icon-copy.mr-2
+                      -#     Make Copy
+                      .w-100
+                        -# TODO: Replace w/ link to a pop-up for just the signature section?
+                        = link_to instrument.edit_path(anchor: 'complete') do
+                          %i.icon-pencil.mr-2
+                          Update Signature Dates
+                %td= instrument.initial_date&.to_date
+                %td
+                  = render 'signatures', careplan: instrument
+                %td
+                  = render instrument.download_partial, careplan: instrument, client: @patient.client
     - else
       = render 'no_careplan_on_file'

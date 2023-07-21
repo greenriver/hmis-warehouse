@@ -72,8 +72,10 @@ $(() => {
       type: $node.data('type'),
       query_string: $node.data('query-string'),
     };
+    const nodeUrl = $node.data('url')
+    
     const xhr = $.ajax({
-      url: $('.j-document-export-body').data('url'),
+      url: nodeUrl || $('.j-document-export-body').data('url'),
       type: 'POST',
       data: formData,
     });
