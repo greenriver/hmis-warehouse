@@ -11,11 +11,12 @@ module Types
     field :id, ID, null: false
     field :topic, HmisSchema::Enums::ReminderTopic, null: false
     field :due_date, GraphQL::Types::ISO8601Date, null: false
-    field :description, String, null: false
-    field :enrollment_id, ID, null: false
+    field :client, HmisSchema::Client, null: false
+    field :enrollment, HmisSchema::Enrollment, null: false
+    field :overdue, Boolean, null: false
 
-    def id
-      "#{object.enrollment_id}.#{object.topic}"
+    def client
+      object.enrollment.client
     end
   end
 end

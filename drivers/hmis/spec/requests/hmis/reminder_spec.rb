@@ -21,7 +21,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:enrollment) do
     client = create :hmis_hud_client_complete, data_source: ds1, user: u1
-    create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1
+    hoh = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, relationship_to_hoh: 1
+    3.times do
+      member = create :hmis_hud_client_complete, data_source: ds1, user: u1
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: member, user: u1, relationship_to_hoh: 99
+    end
+    hoh
   end
 
   describe 'client reminders' do
@@ -45,10 +50,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     end
 
-    it 'returns reminders' do
-      _, result = post_graphql(**variables) { query }
-      expect(result.dig('data', 'enrollment', 'reminders').size).to eq(1)
+    it 'minimizes n+1 queries' do
+      expect do
+        _, result = post_graphql(**variables) { query }
+        expect(result.dig('data', 'enrollment', 'reminders').size).to eq(1)
+      end.to make_database_queries(count: 10..20)
     end
+
+    it 'is responsive' do
+      expect do
+        _, result = post_graphql(**variables) { query }
+        expect(result.dig('data', 'enrollment', 'reminders').size).to eq(1)
+      end.to perform_under(300).ms
+    end
+
   end
 end
 RSpec.configure do |c|

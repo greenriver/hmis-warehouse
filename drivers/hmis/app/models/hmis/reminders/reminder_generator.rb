@@ -8,14 +8,14 @@ module Hmis
       end
 
       # @param project [Hmis::Hud::Project]
-      # @param enrollments [Array<Hmis::Hud::Enrollment>]
+      # @param enrollments [ActiveRecord::Collection<Hmis::Hud::Enrollment>]
       def initialize(project:, enrollments:)
         self.project = project
         self.enrollments = enrollments.preload(:client, :current_living_situations).to_a
       end
 
       def perform
-        enrollments.flat_map do |enrollment|
+        results = enrollments.flat_map do |enrollment|
           [
             annual_assessment_reminder(enrollment),
             aged_into_adulthood_reminder(enrollment),
@@ -24,12 +24,18 @@ module Hmis
             current_living_situation_reminder(enrollment),
           ].compact
         end
+        results.sort_by(&:sort_order)
       end
 
       protected
 
       def new_reminder(...)
-        Hmis::Reminders::Reminder.new(...)
+        @sequence ||= 0
+        @sequence +=1
+        item = Hmis::Reminders::Reminder.new(...)
+        item.id = @sequence.to_s
+        item.overdue = today >= item.due_date
+        item
       end
 
       def today
@@ -45,8 +51,7 @@ module Hmis
         @mapped.fetch_values(*keys.map(&:to_sym))
       end
 
-      def hoh_anniversary_date(enrollment)
-        # load head of household anniversaries
+      def hoh_entry_date(enrollment)
         @hoh_anniversary_by_household_id ||= enrollments
           .group_by(&:household_id)
           .map do |household_id, group|
@@ -77,7 +82,10 @@ module Hmis
       # Show reminder if ANY client in the household is missing an Annual Assessment within the
       # range when the annual is due, and today is on or after the start of that range.
       def annual_assessment_reminder(enrollment)
-        hoh_entered_on = normalize_yoy_date(hoh_anniversary_date(enrollment))
+        hoh_entered_on = hoh_entry_date(enrollment)
+        return unless hoh_entered_on
+
+        hoh_entered_on = normalize_yoy_date(hoh_entered_on)
         window = 30.days
         # not due for an assessment yet
         return if today < (hoh_entered_on + (1.year - window))
@@ -94,9 +102,8 @@ module Hmis
 
         new_reminder(
           topic: ANNUAL_ASSESSMENT_TOPIC,
-          enrollment_id: enrollment.id,
           due_date: due_date,
-          description: "#{enrollment.client.brief_name} needs an annual assessment",
+          enrollment: enrollment,
         )
       end
 
@@ -118,9 +125,8 @@ module Hmis
 
         new_reminder(
           topic: AGED_INTO_ADULTHOOD_TOPIC,
-          enrollment_id: enrollment.id,
           due_date: normalize_yoy_date(adulthood_birthday),
-          description: "#{enrollment.client.brief_name} has turned #{age_of_majority} and needs an assessment",
+          enrollment: enrollment,
         )
       end
 
@@ -132,9 +138,8 @@ module Hmis
 
         new_reminder(
           topic: INTAKE_INCOMPLETE_TOPIC,
-          enrollment_id: enrollment.id,
           due_date: enrollment.EntryDate,
-          description: "#{enrollment.client.brief_name} has not completed an intake assessment",
+          enrollment: enrollment,
         )
       end
 
@@ -144,9 +149,8 @@ module Hmis
 
         new_reminder(
           topic: EXIT_INCOMPLETE_TOPIC,
-          enrollment_id: enrollment.id,
           due_date: enrollment.EntryDate,
-          description: "#{enrollment.client.brief_name} has an incomplete exit assessment",
+          enrollment: enrollment,
         )
       end
 
@@ -167,11 +171,44 @@ module Hmis
 
         new_reminder(
           topic: CURRENT_LIVING_SITUATION_TOPIC,
-          enrollment_id: enrollment.id,
           due_date: due_date,
-          description: "#{enrollment.client.brief_name} needs survey of current living situation",
+          enrollment: enrollment,
         )
       end
+
+      # development cruft
+      # def fake_reminders
+      #   enrollment = enrollments.first
+      #   due_date = today
+      #   [
+      #     new_reminder(
+      #       topic: ANNUAL_ASSESSMENT_TOPIC,
+      #       due_date: due_date,
+      #       enrollment: enrollment,
+      #     ),
+      #     new_reminder(
+      #       topic: AGED_INTO_ADULTHOOD_TOPIC,
+      #       due_date: due_date,
+      #       enrollment: enrollment,
+      #     ),
+      #     new_reminder(
+      #       topic: INTAKE_INCOMPLETE_TOPIC,
+      #       due_date: due_date,
+      #       enrollment: enrollment,
+      #     ),
+      #     new_reminder(
+      #       topic: EXIT_INCOMPLETE_TOPIC,
+      #       due_date: due_date,
+      #       enrollment: enrollment,
+      #     ),
+      #     new_reminder(
+      #       topic: CURRENT_LIVING_SITUATION_TOPIC,
+      #       due_date: due_date,
+      #       enrollment: enrollment,
+      #     ),
+      #   ]
+      # end
+
     end
   end
 end
