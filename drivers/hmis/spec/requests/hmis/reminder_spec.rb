@@ -37,8 +37,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             id
             reminders {
               id
-              description
+              topic
               dueDate
+              overdue
+              enrollment {
+                id
+              }
+              client {
+                id
+              }
             }
           }
         }
