@@ -42,7 +42,7 @@ module Hmis
 
       def data_stages(keys)
         @mapped ||= HudUtility.hud_list_map_as_enumerable(:data_collection_stage_map).symbolize_keys
-        @mapped.values(keys.map(&:to_sym))
+        @mapped.fetch_values(*keys.map(&:to_sym))
       end
 
       def hoh_anniversary_date(enrollment)
@@ -60,15 +60,16 @@ module Hmis
       def last_assessment_date(enrollment:, stages:, wip:)
         # load all the assessments we might need
         @all_assessments ||= Hmis::Hud::CustomAssessment
-          .where(enrollment_id: enrollments.map(&:id))
+          .where(EnrollmentID: enrollments.map(&:EnrollmentID), data_source_id: project.data_source_id)
           .order(AssessmentDate: :desc)
           .group_by(&:enrollment_id)
 
-        assessments = @all_assessments[enrollment.id]
+        assessments = @all_assessments[enrollment.EnrollmentID]
         return unless assessments
 
+        stages = data_stages(stages)
         found = assessments.detect do |r|
-          wip.includes?(r.wip) && stages.includes?(r.data_collection_stage)
+          wip.include?(r.wip) && stages.include?(r.data_collection_stage)
         end
         found&.AssessmentDate
       end
@@ -88,7 +89,7 @@ module Hmis
         # a relevant assessment ocurred.
         # FIXME: maybe we don't include assessments that occur after end_date? This might
         # encourage people to back-date assessments.
-        last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:update], wip: [false])
+        last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:annual_assessment], wip: [false])
         return if last_assessed_on && last_assessed_on >= start_date
 
         new_reminder(
@@ -126,11 +127,8 @@ module Hmis
       # Show reminder if: there are any household members that are missing intake assessments OR
       # have WIP intake assessments
       def intake_assessment_reminder(enrollment)
-        return unless
-          # there's a wip assessment
-          last_assessment_date(enrollment: enrollment, stages: [:project_entry], wip: [true]) ||
-          # there's no submitted assessment
-          last_assessment_date(enrollment: enrollment, stages: [:project_entry], wip: [false]).nil?
+        # there's no submitted assessment
+        return if last_assessment_date(enrollment: enrollment, stages: [:project_entry], wip: [false])
 
         new_reminder(
           topic: INTAKE_INCOMPLETE_TOPIC,
