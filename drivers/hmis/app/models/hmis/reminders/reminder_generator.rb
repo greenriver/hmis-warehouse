@@ -31,7 +31,7 @@ module Hmis
 
       def new_reminder(...)
         @sequence ||= 0
-        @sequence +=1
+        @sequence += 1
         item = Hmis::Reminders::Reminder.new(...)
         item.id = @sequence.to_s
         item.overdue = today >= item.due_date
@@ -208,7 +208,6 @@ module Hmis
       #     ),
       #   ]
       # end
-
     end
   end
 end

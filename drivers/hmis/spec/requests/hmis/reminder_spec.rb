@@ -63,7 +63,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(result.dig('data', 'enrollment', 'reminders').size).to eq(1)
       end.to perform_under(300).ms
     end
-
   end
 end
 RSpec.configure do |c|
