@@ -115,7 +115,7 @@ module Hmis
         return unless client.DOB
 
         entry_date = enrollment.EntryDate
-        adulthood_birthday = client.DOB + age_of_majority.years
+        adulthood_birthday = normalize_yoy_date(client.DOB) + age_of_majority.years
         # the client was already an adult on entry date
         return if adulthood_birthday <= entry_date
 
@@ -125,7 +125,7 @@ module Hmis
 
         new_reminder(
           topic: AGED_INTO_ADULTHOOD_TOPIC,
-          due_date: normalize_yoy_date(adulthood_birthday),
+          due_date: adulthood_birthday,
           enrollment: enrollment,
         )
       end
