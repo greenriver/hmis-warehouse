@@ -4,17 +4,16 @@
       "type": "STRING",
       "link_id": "client-id",
       "hidden": true,
-      "field_name": "id"
+      "mapping": { "field_name": "id" }
     },
     {
-      "type": "OBJECT",
-      "link_id": "current-mci-id",
-      "repeats": false,
+      "type": "DATE",
+      "link_id": "today",
       "hidden": true,
       "initial": [
         {
           "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$mciId"
+          "value_local_constant": "$today"
         }
       ]
     },
@@ -26,6 +25,9 @@
     },
     {
       "fragment": "#client_demographics"
+    },
+    {
+      "fragment": "#client_veteran_info"
     },
     {
       "fragment": "#client_contact_information"

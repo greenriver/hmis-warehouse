@@ -17,6 +17,10 @@ module Types
     include Types::HmisSchema::HasDisabilities
     include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
+    include Types::HmisSchema::HasYouthEducationStatuses
+    include Types::HmisSchema::HasEmploymentEducations
+    include Types::HmisSchema::HasCurrentLivingSituations
+    include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
@@ -37,13 +41,18 @@ module Types
     field :status, HmisSchema::Enums::EnrollmentStatus, null: false
     assessments_field
     events_field
-    services_field
+    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
     files_field
     ce_assessments_field
     income_benefits_field
     disabilities_field
     disability_groups_field
     health_and_dvs_field
+    youth_education_statuses_field
+    employment_educations_field
+    current_living_situations_field
+    field :household_id, ID, null: false
+    field :household_short_id, ID, null: false
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
@@ -53,7 +62,8 @@ module Types
     hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     # 3.917
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
-    # TODO(2024): field :rental_subsidy_type, 3.12.A list
+    # TODO(2024) enable
+    # hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
     hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing
@@ -107,9 +117,17 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
     end
+    custom_data_elements_field
+
+    field :current_unit, HmisSchema::Unit, null: true
 
     def project
-      load_ar_association(object.in_progress? ? object.wip : object, :project)
+      if object.in_progress?
+        wip = load_ar_association(object, :wip)
+        load_ar_association(wip, :project)
+      else
+        load_ar_association(object, :project)
+      end
     end
 
     def exit_date
@@ -129,8 +147,20 @@ module Types
       Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(object)
     end
 
+    def client
+      load_ar_association(object, :client)
+    end
+
+    def household_short_id
+      Hmis::Hud::Household.short_id(object.household_id)
+    end
+
+    def household
+      load_ar_association(object, :household)
+    end
+
     def household_size
-      load_ar_association(object, :household)&.household_size
+      load_ar_association(household, :enrollments).size
     end
 
     def in_progress
@@ -146,7 +176,7 @@ module Types
     end
 
     def assessments(**args)
-      resolve_assessments_including_wip(**args)
+      resolve_assessments(**args)
     end
 
     def ce_assessments(**args)
@@ -175,6 +205,10 @@ module Types
 
     def user
       load_ar_association(object, :user)
+    end
+
+    def current_unit
+      load_ar_association(object, :current_unit)
     end
   end
 end

@@ -18,6 +18,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   delegate :exit_date, to: :exit, allow_nil: true
 
+  # CAUTION: enrollment.project accessor is overridden below
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
 
@@ -39,7 +40,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # CE Assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
-  # Custom Assessments (note: this does NOT include WIP assessments)
+  # Custom Assessments
   has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
 
   # Files
@@ -49,11 +50,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
+
+  # Unit occupancy
+  # All unit occupancies, including historical
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
+  has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
+  has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
+  alias_to_underscore [:EnrollmentCoC]
 
   SORT_OPTIONS = [:most_recent, :household_id].freeze
 
@@ -173,19 +181,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
-  def custom_assessments_including_wip
-    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
-    wip_assessments = wip_t[:enrollment_id].eq(id)
-
-    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
-  end
-
   def intake_assessment
-    custom_assessments_including_wip.intakes.first
+    custom_assessments.intakes.first
   end
 
   def exit_assessment
-    custom_assessments_including_wip.exits.first
+    custom_assessments.exits.first
   end
 
   def in_progress?
@@ -211,6 +212,26 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def hoh_entry_date
     household_members.heads_of_households.first&.entry_date
+  end
+
+  def assign_unit(unit:, start_date:, user:)
+    occupants = unit.occupants_on(start_date)
+    return if occupants.include?(self) # already assigned, ignore
+
+    raise 'Unit already assigned to another household' if occupants.where.not(household_id: household_id).present?
+
+    build_active_unit_occupancy(
+      unit: unit,
+      occupancy_period_attributes: {
+        start_date: start_date,
+        end_date: nil,
+        user: user,
+      },
+    )
+  end
+
+  def release_unit!(occupancy_end_date = Date.current, user:)
+    active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date, user: user)
   end
 
   def unit_occupied_on(date = Date.current)

@@ -31,6 +31,7 @@ module Types
       ]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :funder, [HmisSchema::Enums::Hud::FundingSource]
+      arg :organization, [ID]
       arg :search_term, String
     end
 
@@ -64,6 +65,7 @@ module Types
     custom_data_elements_field
     referral_requests_field :referral_requests
     referral_postings_field :incoming_referral_postings
+    referral_postings_field :outgoing_referral_postings
     access_field do
       can :delete_project
       can :edit_project_details
@@ -80,6 +82,7 @@ module Types
       can :manage_outgoing_referrals
       can :manage_denied_referrals
     end
+    field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
 
     def hud_id
       object.project_id
@@ -108,6 +111,23 @@ module Types
       resolve_inventories(**args)
     end
 
+    # Build OpenStructs to resolve as UnitTypeCapacity
+    def unit_types
+      project_units = object.units
+      capacity = project_units.group(:unit_type_id).count
+      unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
+
+      object.units.map(&:unit_type).uniq.map do |unit_type|
+        OpenStruct.new(
+          id: unit_type.id,
+          unit_type: unit_type.description,
+          capacity: capacity[unit_type.id] || 0,
+          availability: unoccupied[unit_type.id] || 0,
+        )
+      end
+    end
+
+    # TODO use dataloader
     def units(**args)
       resolve_units(**args)
     end
@@ -122,6 +142,19 @@ module Types
 
     def incoming_referral_postings(**args)
       scoped_referral_postings(object.external_referral_postings.active, **args)
+    end
+
+    def arel
+      Hmis::ArelHelper.instance
+    end
+
+    def outgoing_referral_postings(**args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
+
+      scope = HmisExternalApis::AcHmis::ReferralPosting.outgoing
+        .joins(referral: :enrollment)
+        .where(arel.e_t[:ProjectID].eq(object.ProjectID))
+      scoped_referral_postings(scope, **args)
     end
   end
 end

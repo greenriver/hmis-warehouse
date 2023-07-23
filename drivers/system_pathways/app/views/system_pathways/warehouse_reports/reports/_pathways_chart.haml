@@ -7,6 +7,15 @@
 %h4 #{pluralize(number_with_delimiter(@pathways_chart.node_clients('Served by Homeless System').count), 'Total Client')} Served by The Homeless System
 .sankey-chart.mb-6{style: 'position: relative;'}
   #sankey
+%p The above chart tracks clients with open homeless enrollments in the selected universe.  System pathways are limited to those that proceed through the continuum.  If a client goes backwards within the continuum (from more housed to less housed) the regression is ignored for the puposes of this report unless they first exited to a permanent destination.  Clients who exited to a permanent destination and then subsequently enrolled in a homeless project are counted in the Returns to Homelessness category.  The progression of least to most housed is as follows:
+%ul
+  %li SO (4)
+  %li ES (1)
+  %li SH (8)
+  %li TH (2)
+  %li PH - RRH (13)
+  %li PH - PSH (3), PH - PH (9), PH - OPH (10)
+
 - detail_path = nil
 - detail_path = details_system_pathways_warehouse_reports_report_url(@report, **@filter.for_params) if can_access_some_version_of_clients?
 
@@ -22,8 +31,8 @@
       targetColors: targetColors,
       nodeWeights: nodeWeights,
       width: 1200,
-      height: 600,
-      detail_path: '#{detail_path.html_safe}',
+      height: 400,
+      detail_path: '#{detail_path&.html_safe}',
       client_word: '#{@pathways_chart.client_word}',
     }
     let sankeyChart = new App.D3Chart.Sankey('#sankey', options);

@@ -40,13 +40,15 @@ module SystemPathways::Equity::Ethnicity
         node_names.each do |label|
           count = ethnicity_counts[label][k] || 0
 
-          bg_color = config["breakdown_3_color_#{i}"]
+          color = config.color_for('ethnicity', i)
+          bg_color = color.background_color
           data['colors'][ethnicity] = bg_color
-          data['labels']['colors'][ethnicity] = config.foreground_color(bg_color)
+          data['labels']['colors'][ethnicity] = color.calculated_foreground_color(bg_color)
           row << count
         end
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 

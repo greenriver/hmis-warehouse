@@ -10,6 +10,7 @@ Rails.application.routes.draw do
       [:core, :demographic_summary].each do |report|
         resources report, only: [:index] do
           get :details, on: :collection
+          post :render_detail_section, on: :collection
           get 'section/:partial', on: :collection, to: "#{report}#section", as: :section
           get :filters, on: :collection
           get :download, on: :collection

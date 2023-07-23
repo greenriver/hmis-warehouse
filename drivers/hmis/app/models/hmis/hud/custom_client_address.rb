@@ -38,7 +38,6 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
 
   def equal_for_merge?(other)
     columns = [
-      :address_type,
       :city,
       :country,
       :district,

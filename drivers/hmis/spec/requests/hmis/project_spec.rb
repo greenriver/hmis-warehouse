@@ -17,6 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
   let!(:pc2) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-503' }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
@@ -30,7 +31,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'project query' do
     before(:each) do
       hmis_login(user)
-      assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
     end
 
     let(:query) do

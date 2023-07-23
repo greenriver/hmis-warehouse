@@ -16,7 +16,7 @@ module Types
     argument :enrollment_id, ID, required: false
     # Needed for Project creation
     argument :organization_id, ID, required: false
-    # Needed for File creation
+    # Needed for File and Enrollment creation
     argument :client_id, ID, required: false
     # Needed for Funder/ProjectCoC/etc creation
     argument :project_id, ID, required: false

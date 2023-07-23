@@ -1,0 +1,13 @@
+- @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter, show_filter: show_filter)
+- @pdf = true
+
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+.well.report-listing.warehouse-reports__completed.mb-0
+  .d-flex
+    = @report.describe_filter_as_html(@report.known_params)
+
+= render 'pathways_chart'
+.mb-8
+  - @pathways_chart.project_type_node_names_with_data.each.with_index do |label, i|
+    .mb-8.page-break-avoid
+      = render 'node', label: label, i: i, pathways: @pathways_chart

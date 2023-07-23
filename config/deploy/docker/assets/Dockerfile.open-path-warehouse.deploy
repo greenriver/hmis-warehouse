@@ -1,6 +1,5 @@
 FROM open-path-warehouse:latest--base
 
 USER root
-RUN apk add py3-pip
-RUN pip3 install awscli
+RUN apk add aws-cli
 USER app

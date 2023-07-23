@@ -16,7 +16,10 @@
     - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
       - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
       = stylesheet_link_tag(theme_styles, media: 'all')
-
+    - colors = Rails.cache.fetch('system-colors', expires_in: 5.minutes) {GrdaWarehouse::SystemColor.as_css.html_safe }
+    - if colors.present?
+      %style{ type: 'text/css' }
+        = colors
     = render 'layouts/favicon'
     = csrf_meta_tags
   - data = {}

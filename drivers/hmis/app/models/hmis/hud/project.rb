@@ -25,8 +25,16 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
-  has_many :units, dependent: :destroy
+  has_many :units, -> { active }, dependent: :destroy
+  has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
   has_many :custom_data_elements, as: :owner
+
+  has_many :client_projects
+  has_many :clients_including_wip, through: :client_projects, source: :client
+  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
+
+  has_many :group_viewable_entity_projects
+  has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
@@ -57,6 +65,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
+  end
+
+  scope :with_organization_ids, ->(organization_ids) do
+    joins(:organization).where(o_t[:id].in(Array.wrap(organization_ids)))
   end
 
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
@@ -120,12 +132,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     return true unless operating_end_date.present?
 
     operating_end_date >= Date.current
-  end
-
-  def enrollments_including_wip
-    enrollment_ids = enrollments.pluck(:id)
-    wip_ids = wip_enrollments.pluck(:id)
-    Hmis::Hud::Enrollment.where(id: enrollment_ids + wip_ids)
   end
 
   def households_including_wip

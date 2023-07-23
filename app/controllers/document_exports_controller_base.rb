@@ -96,6 +96,12 @@ class DocumentExportsControllerBase < ApplicationController
       'HomelessSummaryReport::DocumentExports::ReportExport',
       'GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport',
       'BostonReports::DocumentExports::StreetToHomePdfExport',
+      'HmisDataQualityTool::DocumentExports::ReportExport',
+      'HmisDataQualityTool::DocumentExports::ReportExcelExport',
+      'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
+      'SystemPathways::DocumentExports::ReportExport',
+      'SystemPathways::DocumentExports::ReportExcelExport',
+      'StartDateDq::DocumentExports::StartDateDqExcelExport',
     ]
   end
 end

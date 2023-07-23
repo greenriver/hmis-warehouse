@@ -50,7 +50,7 @@ module StartDateDq
       date_to_street = row.enrollment.DateToStreetESSH
       entry_date = row.enrollment.EntryDate
       exit_date = row.enrollment.exit&.ExitDate
-      days_between_start_and_exit = ([@filter.end, exit_date].compact.min - entry_date).to_i
+      days_between_start_and_exit = ([filter.end, exit_date].compact.min - entry_date).to_i
       {
         days_between: (entry_date - date_to_street).to_i,
         date_to_street: date_to_street,
@@ -69,10 +69,18 @@ module StartDateDq
         where(e_t[:EntryDate].not_eq(nil).
           and(e_t[:DateToStreetESSH].not_eq(nil)))
 
-      days_between = datediff(scope, 'day', e_t[:EntryDate], e_t[:DateToStreetESSH])
+      exit_date_query = nf('LEAST', [cl(ex_t[:ExitDate], filter.end), filter.end])
+      days_between = case filter.dates_to_compare
+      when :entry_to_exit
+        datediff(scope, 'day', exit_date_query, e_t[:EntryDate])
+      when :date_to_street_to_entry
+        datediff(scope, 'day', e_t[:EntryDate], e_t[:DateToStreetESSH])
+      when :date_to_street_to_exit
+        datediff(scope, 'day', exit_date_query, e_t[:DateToStreetESSH])
+      end
 
-      if @filter.length_of_times.present?
-        conditions = @filter.length_of_times.filter_map do |s|
+      if filter.length_of_times.present?
+        conditions = filter.length_of_times.filter_map do |s|
           next unless day_ranges.key?(s)
 
           range = day_ranges[s]
@@ -98,7 +106,7 @@ module StartDateDq
       fields << GrdaWarehouse::Hud::Client.arel_table[Arel.star]
       fields << GrdaWarehouse::Hud::Enrollment.arel_table[Arel.star]
       fields << GrdaWarehouse::Hud::Project.arel_table[Arel.star]
-      fields << Arel.sql(days_between.to_sql)
+      fields << Arel.sql(days_between.as('days_between').to_sql)
 
       scope.distinct.
         order(days_between.desc).

@@ -13,6 +13,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   has_many :enrollments, **hmis_relation(:HouseholdID, 'Enrollment')
   has_many :clients, through: :enrollments
+  has_many :current_units, through: :enrollments
   alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do
@@ -36,16 +37,28 @@ class Hmis::Hud::Household < Hmis::Hud::Base
       where(hh_t[:latest_exit].eq(nil).or(hh_t[:latest_exit].gteq(date)))
   end
 
+  # Households where ANY enrollment is open
   scope :active, -> do
     where(latest_exit: nil)
   end
 
+  # Households where ALL enrollments are exited
+  scope :exited, -> do
+    where.not(latest_exit: nil)
+  end
+
+  # Households where ANY enrollment is WIP
   scope :in_progress, -> do
     where(any_wip: true)
   end
 
+  # Households where NO enrollments are WIP
   scope :not_in_progress, -> do
     where(any_wip: false)
+  end
+
+  scope :with_project_type, ->(project_types) do
+    joins(:project).merge(Hmis::Hud::Project.with_project_type(project_types))
   end
 
   def household_size
@@ -53,10 +66,14 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   end
 
   TRIMMED_HOUSEHOLD_ID_LENGTH = 6
-  def short_id
-    return household_id unless household_id.length == 32
+  def self.short_id(hh_id)
+    return hh_id unless hh_id.length == 32
 
-    household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
+    hh_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
+  end
+
+  def short_id
+    self.class.short_id(household_id)
   end
 
   SORT_OPTIONS = [

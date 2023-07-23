@@ -7,7 +7,12 @@
         = f.input :end, as: :date_picker
       .col-sm-6
         = f.input :project_ids, as: :grouped_select_two, collection: HapReport::Report.hap_projects(current_user), group_method: :last, input_html: { multiple: true }, label: 'Projects'
-
+    .row
+      .col
+        = f.input :erap_csv, as: :file, label: 'Optional eRAP Data CSV'
+    .row
+      .col
+        = render 'erap_file_format'
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']
 

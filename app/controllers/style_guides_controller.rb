@@ -54,12 +54,13 @@ class StyleGuidesController < ApplicationController
     grid_lines = []
     timeline_date_range.each do |d|
       entries << (rand(1..50) > 45 ? 0.5 : nil)
-      class_name = ''
       class_name =
         if d == d.at_beginning_of_month
           '--start-of-month'
         elsif d == d.at_beginning_of_week
           '--start-of-week'
+        else
+          ''
         end
       grid_lines << { value: d, class: "date-tick #{class_name}" }
     end
@@ -125,6 +126,9 @@ class StyleGuidesController < ApplicationController
   def modal
   end
 
+  def system_colors
+  end
+
   private def guide_routes
     @guide_routes ||= {
       add_goal: 'Add Goal',
@@ -143,6 +147,7 @@ class StyleGuidesController < ApplicationController
       reports: 'Reports',
       public_reports: 'Reports (Public)',
       tags: 'Tags',
+      system_colors: 'System Colors',
     }
   end
   helper_method :guide_routes

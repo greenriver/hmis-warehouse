@@ -8,6 +8,8 @@
       .col-sm-3
         = f.input :end, as: :date_picker, label: 'End date of period', required: true
       .col-sm-3
+        = f.input :comparison_pattern, collection: @report.comparison_patterns, as: :select_two, include_blank: false
+      .col-sm-3
         = f.input :coc_code, collection: @filter.coc_code_options_for_select(user: current_user), input_html: { class: ['select2-id-when-selected'], placeholder: 'Please Choose', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'} }, label: 'CoC Code', as: :select_two, placeholder: 'Please Choose', required: true
     - if PerformanceMeasurement::Goal.include_project_options?
       = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES }, alert: alert

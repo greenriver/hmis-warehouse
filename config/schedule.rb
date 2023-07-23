@@ -83,8 +83,18 @@ tasks = [
     trigger: ENV['ECS'] == 'true',
     interruptable: true,
   },
+  # {
+  #   task: 'grda_warehouse:save_service_history_snapshots',
+  #   frequency: 4.hours,
+  #   interruptable: true,
+  # },
+  # {
+  #   task: 'grda_warehouse:process_location_data',
+  #   frequency: 4.hours,
+  #   interruptable: true,
+  # },
   {
-    task: 'grda_warehouse:save_service_history_snapshots',
+    task: 'grda_warehouse:every_four_hours',
     frequency: 4.hours,
     interruptable: true,
   },
@@ -101,7 +111,7 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'driver:hmis_external_apis:import:remote_data',
+    task: 'import:remote_data',
     frequency: 1.day,
     at: '6:04 am',
     interruptable: false,

@@ -18,6 +18,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, p1) }
+
   # Custom String field on Project (repeating with 2 values)
   let!(:cded1) { create :hmis_custom_data_element_definition, label: 'Multiple strings', data_source: ds1, owner_type: 'Hmis::Hud::Project', repeats: true }
   let!(:cde1a) { create :hmis_custom_data_element, data_element_definition: cded1, owner: p1, data_source: ds1, value_string: 'First value' }
@@ -36,7 +38,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
   describe 'Project query' do
@@ -257,7 +258,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Assessments query' do
     let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-    let!(:a1) { create :hmis_custom_assessment_with_defaults, data_source: ds1, enrollment: e1 }
+    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1 }
     # define a custom field and set 2 values for it
     let!(:cded) { create :hmis_custom_data_element_definition, label: 'Special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, repeats: true }
     let!(:cde1) { create :hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 1' }

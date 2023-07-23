@@ -136,9 +136,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
 
       it 'household with one entered (e1) and one WIP with a WIP intake assessment (e2)' do
-        intake_assessment.update(enrollment: e2)
-        intake_assessment.build_wip(enrollment: intake_assessment.enrollment, client: intake_assessment.enrollment.client, date: intake_assessment.assessment_date)
-        intake_assessment.save_in_progress
+        intake_assessment.update(enrollment: e2, wip: true)
 
         expect(e1.wip).to be nil
         expect(e2.wip).to be_present
@@ -177,9 +175,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
 
       it 'household with one exited (e3) and one unexited with a WIP exit assessment (e2)' do
-        exit_assessment.update(enrollment: e2)
-        exit_assessment.build_wip(enrollment: exit_assessment.enrollment, client: exit_assessment.enrollment.client, date: exit_assessment.assessment_date)
-        exit_assessment.save_in_progress
+        exit_assessment.update(enrollment: e2, wip: true)
 
         expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e3)).to eq('ANY_EXIT_INCOMPLETE')
         expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('OWN_EXIT_INCOMPLETE')

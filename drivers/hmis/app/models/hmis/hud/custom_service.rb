@@ -10,6 +10,7 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   include ::HmisStructure::Service
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
@@ -18,16 +19,12 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   belongs_to :custom_service_type
   alias_attribute :service_type, :custom_service_type
   has_many :custom_data_elements, as: :owner
+  has_one :organization, through: :project
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator
-
-  # Use method instead of has_one so that projects for WIP enrollments are resolved
-  def project
-    enrollment.project
-  end
 
   def self.hud_key
     'CustomServiceID'

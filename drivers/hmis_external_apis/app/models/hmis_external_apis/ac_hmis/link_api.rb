@@ -21,6 +21,8 @@
 module HmisExternalApis::AcHmis
   class LinkApi
     SYSTEM_ID = 'ac_hmis_link'.freeze
+    CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 10 : 5
+    Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK')
 
     def self.enabled?
       ::GrdaWarehouse::RemoteCredential.active.where(slug: SYSTEM_ID).exists?
@@ -47,11 +49,16 @@ module HmisExternalApis::AcHmis
         .then { |r| handle_error(r) }
     end
 
+    def active_referral_mci_ids
+      conn.get('Referral/ActiveReferralMciid').then { |r| handle_error(r) }
+    end
+
     protected
 
     def handle_error(result)
-      Sentry.capture_exception(result.error) if result.error
-      raise HmisErrors::ApiError, result.error if result.error
+      Rails.logger.error "LINK Error: #{result.error}" if result.error
+      Sentry.capture_exception(StandardError.new(result.error)) if result.error
+      raise(Error, result.error) if result.error
 
       result
     end
@@ -61,7 +68,7 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(creds)
+      @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
 
     # @param payload [Hash]

@@ -77,6 +77,17 @@ module HmisDataQualityTool
       filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
 
+    def describe_filter(keys = nil)
+      keys ||= [
+        :project_type_codes,
+        :project_ids,
+        :organization_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
+      filter.describe_filter(keys)
+    end
+
     def known_params
       [
         :start,

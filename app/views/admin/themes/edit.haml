@@ -1,0 +1,27 @@
+- title = 'Edit Theme'
+- content_for :title, title
+%h1= title
+= render 'menus/admin_tabs'
+
+%p
+  The theme
+  - if ENV['CLIENT'].present?
+    for
+    %strong #{ENV['CLIENT']}
+  can be updated here, but note that two things must happen before you'll see changes.
+%ol
+  %li After you save this page, a background job will run that will recompile the assets and push them to S3.
+  %li Then you must redeploy the application so that the new files are pulled down to all the web servers, and the servers restarted.
+
+= simple_form_for @theme, as: :theme, url: admin_theme_path do |f|
+  %h3 Warehouse Theme
+  .well
+    %p This file contains any overrides for SCSS variables, usually it is used to set the overall color scheme
+    = f.input :scss_file_contents, as: :text, label: 'SCSS file', input_html: { rows: 30 }
+    %p This file is integrated at the end of the CSS and will override anything that comes before.
+    = f.input :css_file_contents, as: :text, label: 'CSS file', input_html: { rows: 30 }
+  %h3 HMIS Theme
+  .well
+    = f.input :hmis_origin
+    = f.input :hmis_value, label: 'HMIS Theme', input_html: { rows: 30 }
+  = f.button :submit, value: 'Save Theme'

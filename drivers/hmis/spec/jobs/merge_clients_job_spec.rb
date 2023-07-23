@@ -38,8 +38,12 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
   let(:client_ids) { clients.map(&:id) }
   let(:actor) { create(:user) }
 
+  let(:mci_cred) { create(:ac_hmis_mci_credential) }
+  let!(:external_id_client_1) { create :mci_external_id, source: client1, remote_credential: mci_cred }
+  let!(:external_id_client_2) { create :mci_external_id, source: client2, remote_credential: mci_cred }
+
   context 'main behaviors' do
-    before { Hmis::MergeClientsJob.new.perform(client_ids: client_ids, actor_id: actor.id) }
+    before { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
 
     it 'saves an audit trail' do
       expect(Hmis::ClientMergeAudit.count).to eq(1)
@@ -133,6 +137,10 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       expect(Hmis::Hud::Client.with_deleted.count).to eq(2)
       expect(client2.reload.deleted?).to be_truthy
     end
+
+    it 'merges external ids' do
+      expect(client1.ac_hmis_mci_ids.pluck(:value).sort).to eq([external_id_client_1, external_id_client_2].map(&:value).sort)
+    end
   end
 
   context 'deduplication' do
@@ -161,22 +169,28 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       d
     end
 
-    before { Hmis::MergeClientsJob.new.perform(client_ids: client_ids, actor_id: actor.id) }
+    before { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
 
     it 'dedups names' do
-      expect(client2_name_dup.reload).to be_deleted
+      # Dedup deletes record based on sort by ID.
+      # Don't assume that IDs are in a particular order from tests, because this is flaking.
+      dup = [client1_name, client2_name_dup].max_by(&:id)
+      expect(dup.reload).to be_deleted
     end
 
     it 'dedups addresses' do
-      expect(client2_address_dup.reload).to be_deleted
+      dup = [client1_address, client2_address_dup].max_by(&:id)
+      expect(dup.reload).to be_deleted
     end
 
     it 'dedups contact points' do
-      expect(client2_contact_point_dup.reload).to be_deleted
+      dup = [client1_contact_point, client2_contact_point_dup].max_by(&:id)
+      expect(dup.reload).to be_deleted
     end
 
     it 'dedups custom data elements' do
-      expect(client2_data_element_dup.reload).to be_deleted
+      dup = [client1_custom_data_element, client2_data_element_dup].max_by(&:id)
+      expect(dup.reload).to be_deleted
     end
   end
 end

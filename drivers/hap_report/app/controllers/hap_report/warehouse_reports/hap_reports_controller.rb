@@ -19,19 +19,27 @@ module HapReport::WarehouseReports
 
     def create
       @filter = HapReport::HapFilter.new(user_id: current_user.id).set_from_params(filter_params)
+      erap_data = params[:filter][:erap_csv]&.read
 
       if @filter.valid?
         @report = report_scope.create(user_id: @filter.user_id, options: report_options(@filter))
-        ::WarehouseReports::GenericReportJob.perform_later(
-          user_id: @filter.user_id,
-          report_class: @report.class.name,
-          report_id: @report.id,
-        )
-        redirect_to action: :index
-      else
-        @pagy, @reports = pagy(report_scope)
-        render :index # Show validation errors
+
+        if ::HapReport::Erap.parse(@report, erap_data)
+          ::WarehouseReports::GenericReportJob.perform_later(
+            user_id: @filter.user_id,
+            report_class: @report.class.name,
+            report_id: @report.id,
+          )
+          redirect_to action: :index and return
+        else
+          flash[:error] = 'Error parsing eRAP data, is the file in the expected CSV format?'
+          # We needed a persistent report to parse the file, but since the parse failed, remove it
+          @report.destroy
+        end
       end
+
+      @pagy, @reports = pagy(report_scope)
+      render :index
     end
 
     def show

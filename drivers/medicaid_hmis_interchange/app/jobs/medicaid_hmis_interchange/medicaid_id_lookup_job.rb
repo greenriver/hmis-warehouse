@@ -10,6 +10,10 @@ module MedicaidHmisInterchange
   class MedicaidIdLookupJob < ::BaseJob
     include NotifierConfig
 
+    def self.configured?
+      ::Health::Soap::MassHealth.new.configured? && ::Health::ImportConfig.find_by(kind: :medicaid_hmis_exchange).present?
+    end
+
     def perform(client_ids, test: false, force: false)
       soap = ::Health::Soap::MassHealth.new(test: test)
       return unless soap.configured?

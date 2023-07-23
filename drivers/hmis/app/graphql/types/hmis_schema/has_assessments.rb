@@ -12,13 +12,13 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def assessments_field(name = :assessments, description = nil, filter_type_name: nil, filter_omit: [], filter_args: {}, **override_options, &block)
+        def assessments_field(name = :assessments, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = { type: HmisSchema::Assessment.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
             argument :in_progress, GraphQL::Types::Boolean, required: false
-            filters_argument HmisSchema::Assessment, type_name: filter_type_name, omit: filter_omit, **filter_args
+            filters_argument HmisSchema::Assessment, **filter_args
             instance_eval(&block) if block_given?
           end
         end
@@ -29,10 +29,6 @@ module Types
       end
 
       def resolve_assessments(scope = object.custom_assessments, **args)
-        scoped_assessments(scope, **args)
-      end
-
-      def resolve_assessments_including_wip(scope = object.custom_assessments_including_wip, **args)
         scoped_assessments(scope, **args)
       end
 

@@ -9,26 +9,26 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user) }
-  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
-  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
+  include_context 'hmis base setup'
   let!(:o1) { create :hmis_hud_organization, OrganizationName: 'ZZZ', data_source: ds1 }
   let!(:p1) { create :hmis_hud_project, ProjectName: 'BBB', data_source: ds1, organization: o1 }
   let!(:p2) { create :hmis_hud_project, ProjectName: 'AAA', data_source: ds1, organization: o1 }
   let!(:o2) { create :hmis_hud_organization, OrganizationName: 'XXX', data_source: ds1 }
   let!(:p3) { create :hmis_hud_project, ProjectName: 'DDD', data_source: ds1, organization: o2 }
   let!(:p4) { create :hmis_hud_project, ProjectName: 'CCC', data_source: ds1, organization: o2 }
-  let(:edit_access_group) do
-    group = create :edit_access_group
-    role = create(:hmis_role)
-    group.access_controls.create(role: role)
-    group
+  let(:simple_query) do
+    <<~GRAPHQL
+      query {
+        projects {
+          nodes {
+            projectName
+          }
+        }
+      }
+    GRAPHQL
   end
 
-  let!(:no_permission_role) { create :role }
-  let!(:empty_access_group) { create :access_group }
-
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
   before(:all) do
     cleanup_test_environment
   end
@@ -40,7 +40,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     empty_access_group.set_viewables({ data_sources: [ds1.id] })
     setup_access_control(user, no_permission_role, empty_access_group)
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
   end
 
   describe 'Projects query' do
@@ -90,19 +89,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       delete destroy_hmis_user_session_path
       aggregate_failures 'checking response' do
         expect(response.status).to eq 204
-        response, body = post_graphql do
-          <<~GRAPHQL
-            query {
-              projects {
-                projectName
-              }
-            }
-          GRAPHQL
-        end
+        response, body = post_graphql { simple_query }
         expect(response.status).to eq 401
         expect(body.dig('error', 'type')).to eq 'unauthenticated'
       end
     end
+  end
+
+  it 'is responsive' do
+    expect do
+      response, _result = post_graphql { simple_query }
+      expect(response.status).to eq 200
+    end.to make_database_queries(count: 1..20)
+    expect do
+      response, _result = post_graphql { simple_query }
+      expect(response.status).to eq 200
+    end.to perform_under(100).ms
   end
 end
 

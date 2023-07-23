@@ -40,13 +40,15 @@ module SystemPathways::Equity::DisablingCondition
         node_names.each do |label|
           count = disabling_condition_counts[label][k] || 0
 
-          bg_color = config["breakdown_3_color_#{i}"]
+          color = config.color_for('disabling-condition', i)
+          bg_color = color.background_color
           data['colors'][disabling_condition] = bg_color
-          data['labels']['colors'][disabling_condition] = config.foreground_color(bg_color)
+          data['labels']['colors'][disabling_condition] = color.calculated_foreground_color(bg_color)
           row << count
         end
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 

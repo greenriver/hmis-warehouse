@@ -24,6 +24,14 @@ module CoreDemographicsReport::WarehouseReports
       }
     end
 
+    background_render_action(:render_detail_section, ::BackgroundRender::DemographicSummaryDetailReportJob) do
+      {
+        filters: @filter.for_params[:filters].to_json,
+        key: params[:key],
+        user_id: current_user.id,
+      }
+    end
+
     def index
       @pdf_export = CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExport.new
       @excel_export = CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExcelExport.new

@@ -10,6 +10,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   include ::HmisStructure::Service
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
@@ -20,9 +21,4 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]
   validates_with Hmis::Hud::Validators::ServiceValidator
-
-  # Use method instead of has_one so that projects for WIP enrollments are resolved
-  def project
-    enrollment.project
-  end
 end

@@ -156,9 +156,12 @@ module Hmis::Hud::Processors
       return if value.nil? # Shouldn't happen, the form validation should ensure presence because it is required
 
       client = @processor.send(factory_name)
-      current_mci_id = client.ac_hmis_mci_id&.value
+      current_mci_ids = client.ac_hmis_mci_ids
       # If MCI ID hasn't changed, do nothing.
-      return if current_mci_id.present? && current_mci_id == value
+      if current_mci_ids.present? && value.in?(current_mci_ids.map(&:value))
+        client.update_mci_attributes = true
+        return
+      end
 
       # If field is hidden, that means that there was not enough information to clear MCI.
       # Do nothing, which will create an "uncleared" client. If client is already cleared, nothing happens.
@@ -169,7 +172,7 @@ module Hmis::Hud::Processors
       return if value == MCI_CREATE_UNCLEARED_CLIENT_VALUE
 
       # Changing MCI ID is not supported.
-      raise 'Client already has an MCI ID' if current_mci_id.present?
+      raise 'Client already has an MCI ID' if current_mci_ids.present?
 
       # If value indicates that a new MCI ID should be created, do that.
       # Actual MCI ID creation happens in an after_save hook on Client.
@@ -182,6 +185,7 @@ module Hmis::Hud::Processors
       raise 'Invalid MCI ID' unless Float(value)
 
       # Initialize an ExternalID with this MCI ID
+      client.update_mci_attributes = true
       client.external_ids << HmisExternalApis::ExternalId.new(
         value: value,
         remote_credential: HmisExternalApis::AcHmis::Mci.new.creds,

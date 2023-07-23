@@ -47,7 +47,7 @@ module
             title: "Ages - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { send(key) },
+            scope: -> { send(key).joins(:client, :enrollment).distinct },
           }
         end
         age_categories.each do |key, title|

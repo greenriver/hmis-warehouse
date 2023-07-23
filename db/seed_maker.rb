@@ -407,5 +407,6 @@ class SeedMaker
     maintain_system_groups
     maintain_zip_code_shapes
     populate_internal_system_choices
+    GrdaWarehouse::SystemColor.ensure_colors
   end
 end

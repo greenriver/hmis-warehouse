@@ -62,8 +62,11 @@ class ProjectGroupsController < ApplicationController
   end
 
   def destroy
-    @project_group.destroy
-    AccessGroup.maintain_system_groups(group: :project_groups)
+    @project_group.class.transaction do
+      @project_group.remove_from_group_viewable_entities!
+      @project_group.destroy
+    end
+    AccessGroup.maintain_system_groups
     respond_with(@project_group, location: project_groups_path)
   end
 

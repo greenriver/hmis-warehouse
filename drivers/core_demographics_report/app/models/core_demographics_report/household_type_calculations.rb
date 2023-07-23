@@ -89,24 +89,24 @@ module
       @hoh_enrollments ||= {}
       @households ||= {}
 
-      report_scope.joins(enrollment: :client).preload(enrollment: :client).find_each(batch_size: 1_000) do |enrollment|
-        @hoh_enrollments[get_hh_id(enrollment)] = enrollment if enrollment.head_of_household?
-        next unless enrollment&.enrollment&.client.present?
-
+      # use she.client (destination client) for DOB/Age, sometimes QA has weird data
+      report_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
         date = [enrollment.entry_date, filter.start_date].max
-        age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.client.DOB&.to_date)
+        en = {
+          'client_id' => enrollment.client_id,
+          'enrollment_id' => enrollment.id,
+          'age' => age,
+          'relationship_to_hoh' => enrollment.enrollment.RelationshipToHoH,
+        }
+        @hoh_enrollments[get_hh_id(enrollment)] = en if enrollment.head_of_household?
         @households[get_hh_id(enrollment)] ||= []
-        @households[get_hh_id(enrollment)] << {
-          client_id: enrollment.client_id,
-          enrollment_id: enrollment.id,
-          age: age,
-          relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-        }.with_indifferent_access
+        @households[get_hh_id(enrollment)] << en
       end
     end
 
     private def get_hh_id(service_history_enrollment)
-      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
+      "#{service_history_enrollment.household_id}_#{service_history_enrollment.data_source_id}" || "#{service_history_enrollment.enrollment_group_id}_#{service_history_enrollment.data_source_id}*HH"
     end
 
     private def households

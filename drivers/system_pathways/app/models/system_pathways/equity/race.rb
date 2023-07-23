@@ -73,11 +73,14 @@ module SystemPathways::Equity::Race
         node_names.each do |label|
           row << (race_counts[label][race] || 0)
         end
-        bg_color = config["breakdown_1_color_#{i}"]
+
+        color = config.color_for('race', i)
+        bg_color = color.background_color
         data['colors'][race] = bg_color
-        data['labels']['colors'][race] = config.foreground_color(bg_color)
+        data['labels']['colors'][race] = color.calculated_foreground_color(bg_color)
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 end

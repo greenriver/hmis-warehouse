@@ -19,6 +19,7 @@ module PerformanceMeasurement::WarehouseReports
 
     def index
       @filter.default_project_type_codes = report_class.default_project_type_codes
+      @filter.comparison_pattern = :prior_fiscal_year
       PerformanceMeasurement::Goal.ensure_default
       @pagy, @reports = pagy(report_scope.ordered)
       @report = report_class.new(user_id: current_user.id)

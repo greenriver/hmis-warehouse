@@ -10,5 +10,9 @@ module HapReport
     acts_as_paranoid
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
+
+    scope :imported, -> do
+      where.not(mci_id: nil)
+    end
   end
 end

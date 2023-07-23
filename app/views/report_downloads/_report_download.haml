@@ -1,7 +1,8 @@
 :ruby
   excel_download_tooltip ||= ''
   filter_params = {}
-  (params['filters'] || params['filter'] || {}).to_h.each_pair do |key, value|
+
+  (params['filters'] || params['filter'] || {}).each_pair do |key, value|
     if value.is_a?(Array)
       value = value.map(&:presence).compact.presence
     end

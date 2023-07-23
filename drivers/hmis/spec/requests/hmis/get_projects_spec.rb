@@ -18,6 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, o1) }
   let!(:o2) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o2, user: u1 } # This one shouldn't be viewable by this user
   let!(:p3) { create :hmis_hud_project, project_name: 'TestProject - Name/with=special_chars', data_source: ds1, organization: o1, user: u1, project_type: 2 }
@@ -46,7 +47,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(view_access_group, o1, hmis_user)
   end
 
   it 'should return projects correctly without filters' do
