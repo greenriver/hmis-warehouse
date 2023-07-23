@@ -42,9 +42,17 @@ module CohortAuthorization
       @cohort = cohort_scope.find(cohort_id)
     end
 
+    # TODO: START_ACL remove when ACL transition complete
     def set_groups
       @groups = @cohort.access_groups
       @group_ids = @cohort.access_group_ids
+    end
+    # END_ACL
+
+    def set_users
+      @users = User.active.not_system
+      @participator_ids = @cohort.editable_access_control.user_ids
+      @viewer_ids = @cohort.viewable_access_control.user_ids
     end
 
     def cohort_source

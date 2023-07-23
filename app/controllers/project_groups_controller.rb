@@ -23,24 +23,26 @@ class ProjectGroupsController < ApplicationController
 
   def create
     @project_group = project_group_source.new
-    begin
+    project_group_source.transaction do
       @project_group.assign_attributes(name: group_params[:name])
       filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
       filter.coc_codes = []
       @project_group.options = filter.to_h
-      @project_group.save!
-      users = user_params[:users]&.reject(&:empty?)
-      # If the user can't edit all project groups, make sure we add the user so they can access it later
-      users << current_user.id
-      @project_group.update_access(users.map(&:to_i)) if users.present?
-      @project_group.maintain_projects!
-      AccessGroup.maintain_system_groups
+      if @project_group.save
+        users = user_params[:editor_ids]&.reject(&:blank?)&.map(&:to_i)
+        # If the user can't edit all project groups, make sure we add the user so they can access it later
+        users << current_user.id
+        @project_group.update_access(users.map(&:to_i)) if users.present? # TODO: START_ACL remove when ACL transition complete
+        @project_group.replace_access(User.find(users), scope: :editor)
+        @project_group.maintain_projects!
+        AccessGroup.maintain_system_groups(group: :project_groups)
+      end
     rescue Exception => e
       flash[:error] = e.message
       render action: :new
       return
     end
-    redirect_to action: :index
+    respond_with(@project_group, location: project_groups_path)
   end
 
   def edit
@@ -48,27 +50,29 @@ class ProjectGroupsController < ApplicationController
   end
 
   def update
-    begin
+    project_group_source.transaction do
       @project_group.assign_attributes(name: group_params[:name])
       filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
       filter.coc_codes = []
       @project_group.options = filter.to_h
-      @project_group.save!
-      if user_params.key?(:users)
-        users = user_params[:users]&.reject(&:empty?)
-        @project_group.update_access(users.map(&:to_i))
+      if @project_group.save
+        if user_params.key?(:editor_ids)
+          users = user_params[:editor_ids]&.reject(&:empty?)&.map(&:to_i)
+          @project_group.update_access(users.map(&:to_i)) # TODO: START_ACL remove when ACL transition complete
+          @project_group.replace_access(User.find(users), scope: :editor)
+        end
+        @project_group.maintain_projects!
       end
-      @project_group.maintain_projects!
     rescue Exception => e
       flash[:error] = e.message
       render action: :edit
       return
     end
-    redirect_to action: :index
+    respond_with(@project_group, location: project_groups_path)
   end
 
   def destroy
-    @project_group.class.transaction do
+    project_group_source.transaction do
       @project_group.remove_from_group_viewable_entities!
       @project_group.destroy
     end
@@ -109,7 +113,7 @@ class ProjectGroupsController < ApplicationController
   def user_params
     params.require(:filters).
       permit(
-        users: [],
+        editor_ids: [],
       )
   end
 
@@ -118,8 +122,11 @@ class ProjectGroupsController < ApplicationController
   end
 
   def set_access
+    @editor_ids = @project_group.editable_access_control.user_ids
+    # TODO: START_ACL remove when ACL transition complete
     @groups = @project_group.access_groups
     @group_ids = @project_group.access_group_ids
+    # END_ACL
   end
 
   def project_group_source

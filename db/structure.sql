@@ -1871,7 +1871,9 @@ CREATE TABLE public.users (
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL,
-    credentials character varying
+    credentials character varying,
+    hmis_unique_session_id character varying,
+    permission_context character varying DEFAULT 'role_based'::character varying
 );
 
 
@@ -3491,6 +3493,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230516131951'),
 ('20230522111726'),
 ('20230525153134'),
-('20230623113136');
+('20230623113136'),
+('20230711223507'),
+('20230723145218');
 
 

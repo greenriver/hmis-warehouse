@@ -68,14 +68,37 @@ module GrdaWarehouse::Hud
       )
     end
 
-    scope :viewable_by, ->(user) do
-      if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
-        current_scope
-      elsif user.coc_codes.none?
-        none
+    # NOTE this isn't used for access on the on the project edit pages, so default
+    # to the reporting permission
+    # TODO: START_ACL cleanup after migration to ACLs
+    scope :viewable_by, ->(user, permission: :can_view_assigned_reports) do
+      return none unless user.present?
+      return none unless ! user.using_acls? && user.send("#{permission}?")
+
+      if user.using_acls?
+        # if we have an access control with the All Data Sources system group
+        # and the requested permission, return current scope
+        # Otherwise, just return the project CoCs for the CoC Codes assigned
+        all_data_sources = AccessGroup.system_access_group(:data_sources)
+        if user.roles.merge(Role.where(permission => true)).merge(AccessControl.where(access_group: all_data_sources.id)).exists?
+          current_scope
+        else
+          group_ids = user.entity_groups_for_permission(permission)
+          return none if group_ids.empty?
+
+          coc_codes = AccessGroup.where(id: group_ids).pluck(:coc_codes).flatten
+          GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)
+        end
       else
-        in_coc(coc_code: user.coc_codes)
+        if GrdaWarehouse::DataSource.can_see_all_data_sources?(user) # rubocop:disable Style/IfInsideElse
+          current_scope
+        elsif user.coc_codes.none?
+          none
+        else
+          in_coc(coc_code: user.coc_codes)
+        end
       end
+      # END_ACL
     end
 
     scope :overridden, -> do

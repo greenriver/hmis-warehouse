@@ -29,7 +29,7 @@ class AccountRequest < ApplicationRecord
     "#{first_name} #{last_name}"
   end
 
-  def convert_to_user!(user:, role_ids: [], access_group_ids: [])
+  def convert_to_user!(user:, role_ids: [], access_group_ids: [], access_control_ids: [])
     options = {
       first_name: first_name,
       last_name: last_name,
@@ -38,10 +38,16 @@ class AccountRequest < ApplicationRecord
       agency_id: agency_id,
     }
     user = User.invite!(options, user)
+    # TODO: START_ACL remove when ACL transition complete
     roles = Role.where(id: role_ids)
     access_groups = AccessGroup.where(id: access_group_ids)
     user.roles = roles
     user.access_groups = access_groups
+    # END_ACL
+    acls = AccessControl.where(id: access_control_ids)
+    acls.each do |acl|
+      acl.add(user)
+    end
     update(
       status: :accepted,
       accepted_by: user.id,

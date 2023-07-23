@@ -150,6 +150,9 @@ module GrdaWarehouse::Hud
     end
 
     scope :visible_in_window_to, ->(user) do
+      # FIXME: is this correct? visible_to also includes logic to include
+      # visible_in_window, but is this supposed to only return window data?
+      # like this, I believe it returns both window and assigned data
       visible_to(user)
     end
 
