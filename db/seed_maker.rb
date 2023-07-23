@@ -24,7 +24,10 @@ class SeedMaker
         user.last_name = 'Admin'
         user.password = user.password_confirmation = initial_password
         user.confirmed_at = Time.now
-        user.roles = [admin, dnd_staff]
+        user_group = UserGroup.where(name: 'Fake Admins').first_or_create
+        all_ds_entity_group = AccessGroup.where(name: 'All Data Sources').first
+        AccessControl.create(role: admin, access_group: all_ds_entity_group, user_group: user_group).add(user)
+        AccessControl.create(role: dnd_staff, access_group: all_ds_entity_group, user_group: user_group).add(user)
         user.agency_id = agency.id
         user.save!
         puts "Created initial admin email: #{user.email}  password: #{user.password}"
@@ -405,9 +408,5 @@ class SeedMaker
     maintain_zip_code_shapes
     populate_internal_system_choices
     GrdaWarehouse::SystemColor.ensure_colors
-
-    # for the most recent 50 reports, re-calculate results (which will move the cache to the DB)
-    # Remove this if release-59 has been merged to production
-    # HmisDataQualityTool::Report.ordered.limit(50).find_each(&:results)
   end
 end

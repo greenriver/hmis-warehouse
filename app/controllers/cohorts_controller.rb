@@ -133,6 +133,10 @@ class CohortsController < ApplicationController
   def create
     GrdaWarehouse::Cohort.transaction do
       @cohort = cohort_source.create!(cohort_params)
+      # TODO: START_ACL remove when ACL transition complete
+      current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
+      # END_ACL
+
       # If the user doesn't have All Cohorts access, grant them access to the cohort
       @cohort.replace_access(current_user, scope: :editor)
       # Always add the cohort to the system group

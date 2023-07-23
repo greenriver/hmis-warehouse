@@ -17,7 +17,7 @@ class User < ApplicationRecord
   has_many :user_group_members, dependent: :destroy, inverse_of: :user
   has_many :user_groups, through: :user_group_members
   has_many :access_controls, through: :user_groups
-  has_many :access_groups, through: :access_controls
+  has_many :collections, through: :access_controls
   has_many :roles, through: :access_controls
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
@@ -123,9 +123,9 @@ class User < ApplicationRecord
   def clear_cached_project_ids
     Rails.cache.delete_matched("#{user_project_id_prefix}*")
   end
-  # To fetch the list of AccessGroups that grant a user access to a particular set of projects
+  # To fetch the list of Controlss that grant a user access to a particular set of projects
   # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_projects')
-  # To fetch the list of AccessGroups that grant a user access to clients enrolled at as set of projects
+  # To fetch the list of Controlss that grant a user access to clients enrolled at as set of projects
   # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_clients')
   # def access_groups_for?(entity_type, perm)
   #   return false unless entity_type.present? && perm.present?
@@ -134,7 +134,7 @@ class User < ApplicationRecord
   #   role_ids = roles.where(perm => true).pluck(:id)
   #   acs = access_controls.where(access_group_id: access_group_ids, role_id: role_ids)
   #   FIXME, this isn't quite right yet
-  #   AccessGroup.where(id: acs.pluck(:access_group_id), entity_type: entity_type)
+  #   Controls.where(id: acs.pluck(:access_group_id), entity_type: entity_type)
   # end
   def related_hmis_user(data_source)
     return unless HmisEnforcement.hmis_enabled?

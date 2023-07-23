@@ -6,7 +6,12 @@
   .alert.alert-warning
     %p
       %i.icon-warning
-      By assigning the role <b>#{@admin_role_name}</b> to this account, you are granting the user administrative privileges.
+      -# TODO: START_ACL cleanup after ACL transition
+      By assigning the role
+      %b #{@admin_role_name}
+      or an Access Control containing the role
+      %b #{@admin_role_name}
+      to this account, you are granting the user administrative privileges.
 
   = simple_form_for [:admin, @user] do |f|
     = f.error_notification
