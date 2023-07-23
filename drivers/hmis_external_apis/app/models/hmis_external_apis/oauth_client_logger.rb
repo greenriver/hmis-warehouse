@@ -16,7 +16,13 @@ module HmisExternalApis
         requested_at: Time.current,
         response: 'pending', # can't be null
       )
-      result = yield
+      result = nil
+      begin
+        result = yield
+      rescue StandardError => e
+        update_log_record(record, { response: e.message || 'error' })
+        raise
+      end
       update_log_record(record, { content_type: result.content_type, response: result.body, http_status: result.status }) if result
       [result, record]
     end

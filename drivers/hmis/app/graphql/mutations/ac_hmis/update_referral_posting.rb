@@ -36,8 +36,7 @@ module Mutations
 
       posting_status_change = posting.changes['status']
 
-      deferred_logger = HmisExternalApis::OauthDeferredClientLogger.new
-      posting.transaction do
+      with_logging_transaction(posting) do |logger|
         posting.save(context: validation_context) # context for validations
         errors.add_ar_errors(posting.errors.errors)
 
@@ -66,9 +65,8 @@ module Mutations
         # send to link if:
         # * the referral came from link
         # * status has changed (status will be unchanged if user just updated note)
-        send_update(posting, deferred_logger) if posting.from_link? && posting_status_change.present?
+        send_update(posting, logger) if posting.from_link? && posting_status_change.present?
       end
-      deferred_logger.finalize!
 
       return { errors: errors } if errors.any?
 
@@ -84,6 +82,16 @@ module Mutations
     end
 
     protected
+
+    def with_logging_transaction(posting)
+      logger = HmisExternalApis::OauthDeferredClientLogger.new
+      begin
+        posting.transaction { yield(logger) }
+      ensure
+        # ensure errors are persisted
+        logger.finalize!
+      end
+    end
 
     def send_update(posting, logger)
       # Contact date should only be present when changing to AcceptedPending or DeniedPending
