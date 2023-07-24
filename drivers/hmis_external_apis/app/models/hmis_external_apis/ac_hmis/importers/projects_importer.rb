@@ -139,8 +139,8 @@ module HmisExternalApis::AcHmis::Importers
           user: sys_user,
           value_boolean:
             case bool_str
-            when 'Y' then true
-            when 'N' then false
+            when '1' then true
+            when '0' then false
             end,
         )
       end

@@ -53,6 +53,18 @@ module HmisExternalApis::AcHmis
       conn.get('Referral/ActiveReferralMciid').then { |r| handle_error(r) }
     end
 
+    def with_logger(logger)
+      last_logger = conn.logger
+      result = nil
+      begin
+        conn.logger = logger
+        result = yield
+      ensure
+        conn.logger = last_logger
+      end
+      result
+    end
+
     protected
 
     def handle_error(result)
