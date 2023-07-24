@@ -1,3 +1,3 @@
 ## ClientDocumentsReport README
 
-This README file should be used to explain the functionality of the driver.
+A report for identifying clients clients with specific documents, or clients who are missing specific documents.

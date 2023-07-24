@@ -431,7 +431,7 @@ module ApplicationHelper
     end
 
     %(<span#{p_id} class="pagy-info">#{
-      pagy_t key, item_name: item_name || pagy_t(i18n_key || pagy.vars[:i18n_key], count: number_with_delimiter(p_count)), count: number_with_delimiter(p_count), from: pagy.from, to: pagy.to
+      pagy_t(key, item_name: item_name || pagy_t(i18n_key || pagy.vars[:i18n_key], count: number_with_delimiter(p_count)), count: number_with_delimiter(p_count), from: pagy.from, to: pagy.to)
     }</span>)
   end
 end
