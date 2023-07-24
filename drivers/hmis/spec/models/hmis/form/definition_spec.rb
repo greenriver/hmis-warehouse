@@ -21,6 +21,13 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
   let!(:fd1) { create :hmis_form_definition, role: 'INTAKE' }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
+  let!(:no_permission_role) { create :role }
+  let!(:empty_access_group) { create :access_group }
+
+  before do
+    empty_access_group.set_viewables({ data_sources: [ds1.id] })
+    setup_access_control(user, no_permission_role, empty_access_group)
+  end
 
   it 'should return the right definition if a project has a specific assessment' do
     expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)

@@ -9,7 +9,7 @@
 # u = Hmis::User.first; u.hmis_data_source_id = 3
 # g = Hmis::AccessGroup.create(name: 'test')
 # ac = u.access_controls.create(role: r, access_group: g)
-# u.user_access_controls.create(user: u, access_control: ac)
+# u.user_group_members.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
 class Hmis::User < ApplicationRecord
@@ -17,8 +17,8 @@ class Hmis::User < ApplicationRecord
   include HasRecentItems
   self.table_name = :users
 
-  has_many :user_access_controls, class_name: '::Hmis::UserAccessControl', dependent: :destroy, inverse_of: :user
-  has_many :access_controls, through: :user_access_controls
+  has_many :user_group_members, class_name: '::Hmis::UserAccessControl', dependent: :destroy, inverse_of: :user
+  has_many :access_controls, through: :user_group_members
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
 

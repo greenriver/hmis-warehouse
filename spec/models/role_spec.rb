@@ -1,3 +1,4 @@
+# TODO: START_ACL remove after ACL migration
 require 'rails_helper'
 
 RSpec.describe Role, type: :model do
@@ -42,3 +43,4 @@ RSpec.describe Role, type: :model do
     end
   end
 end
+# END_ACL

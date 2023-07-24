@@ -9,7 +9,7 @@ module HmisUtil
     # Ensures all HUD service types exist in CustomServiceTypes table,
     # and organizes them by Category according to the record type.
     def self.seed_hud_service_types(data_source_id)
-      system_user = Hmis::User.find(User.system_user.id)
+      system_user = Hmis::User.system_user
       system_user.hmis_data_source_id = data_source_id
       hud_user = Hmis::Hud::User.from_user(system_user)
 
