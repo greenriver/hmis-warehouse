@@ -13,7 +13,6 @@ BostonHmis::Application.routes.draw do
                          controllers: { sessions: 'hmis/sessions' },
                          path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
 
-
       resource :user, only: [:show]
       resource :session_keepalive, only: [:create]
 

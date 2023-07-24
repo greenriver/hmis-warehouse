@@ -20,20 +20,20 @@ module
         end
       end
       hash.merge!(
-        "yes_disability" =>
+        'yes_disability' =>
           {
-            title: "At Least One Disability",
+            title: 'At Least One Disability',
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_disabilities.keys).distinct }
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_disabilities.keys).distinct },
           },
-        "no_disability" =>
+        'no_disability' =>
           {
-            title: "No Disability",
+            title: 'No Disability',
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: distinct_client_ids.pluck(:client_id).uniq - client_disabilities.keys).distinct }
-          }
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: distinct_client_ids.pluck(:client_id).uniq - client_disabilities.keys).distinct },
+          },
       )
     end
 

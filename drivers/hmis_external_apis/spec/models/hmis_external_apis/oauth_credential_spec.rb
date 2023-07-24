@@ -95,5 +95,4 @@ RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
       expect(HmisExternalApis::ExternalRequestLog.where(initiator: creds).count).to eq(1)
     end
   end
-
 end

@@ -49,5 +49,4 @@ class Hmis::BaseController < ApplicationController
   def set_app_user_header
     response.headers['X-app-user-id'] = current_hmis_user&.id
   end
-
 end
