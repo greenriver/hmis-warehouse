@@ -7,6 +7,8 @@
 module
   CoreDemographicsReport::ReportConcern
   extend ActiveSupport::Concern
+
+  include ApplicationHelper
   included do
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
@@ -64,24 +66,10 @@ module
       boolean ? 'Yes' : 'No'
     end
 
-    BRACKETS = {
-      0 => 0..0,
-      25 => 1..25,
-      50 => 26..50,
-      100 => 51..100,
-      round: 101..,
-    }.freeze
-
     def mask_small_population(value)
       return value unless @filter.mask_small_populations
 
-      bracket = BRACKETS.detect { |_k, range| range.cover?(value) }
-      case bracket.first
-      when :round
-        (value/10.0).ceil * 10 # Round up to the nearest 10
-      else
-        bracket.first
-      end
+      bracket_small_population(value)
     end
 
     def total_client_count
@@ -109,7 +97,7 @@ module
     end
 
     def can_see_client_details?(user)
-      user.can_access_some_version_of_clients?
+      user.can_access_some_version_of_clients? && ! filter.mask_small_populations
     end
 
     def self.clear_report_cache
