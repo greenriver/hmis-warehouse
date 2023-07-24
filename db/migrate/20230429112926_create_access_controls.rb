@@ -15,6 +15,7 @@ class CreateAccessControls < ActiveRecord::Migration[6.1]
 
     create_table :collections do |t|
       t.string :name
+      t.references :user
       t.jsonb :coc_codes, default: {}
       t.jsonb :system, default: []
       t.boolean :must_exist, null: false, default: false

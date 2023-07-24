@@ -251,4 +251,8 @@ class AccessGroup < ApplicationRecord
       cohorts: 'GrdaWarehouse::Cohort',
     }.freeze
   end
+
+  def associated_entity_set
+    @associated_entity_set ||= group_viewable_entities.pluck(:entity_type, :entity_id).sort.to_set
+  end
 end
