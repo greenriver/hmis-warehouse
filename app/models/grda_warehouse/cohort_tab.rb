@@ -49,9 +49,19 @@ module GrdaWarehouse
       when '>'
         col.arel_col.gt(val)
       when '=='
-        col.arel_col.eq(val)
+        # NOTE: arel won't attemp to match a blank against a nil, so we have to try both
+        if val.in?([nil, ''])
+          col.arel_col.eq(nil).or(col.arel_col.eq(''))
+        else
+          col.arel_col.eq(val)
+        end
       when '<>'
-        col.arel_col.not_eq(val)
+        # NOTE: arel won't attemp to match a blank against a nil, so we have to try both
+        if val.in?([nil, ''])
+          col.arel_col.not_eq(nil).and(col.arel_col.not_eq(''))
+        else
+          col.arel_col.not_eq(val)
+        end
       else
         raise "Unknown Operator #{rule['operator']}"
       end
