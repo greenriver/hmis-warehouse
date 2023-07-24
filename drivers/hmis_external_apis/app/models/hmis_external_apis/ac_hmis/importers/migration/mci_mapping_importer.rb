@@ -99,8 +99,7 @@ module HmisExternalApis::AcHmis::Importers::Migration
     end
 
     def remote_credential
-      # Which one? Neither?
-      GrdaWarehouse::RemoteCredential.where(slug: ['ac_hmis_mci', 'ac_hmis_mci_unique_id']).first
+      GrdaWarehouse::RemoteCredential.active.where(slug: 'ac_hmis_mci').first!
     end
   end
 end
