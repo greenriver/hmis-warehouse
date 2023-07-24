@@ -491,6 +491,7 @@ HUD Client
 type Client {
   access: ClientAccess!
   addresses: [ClientAddress!]!
+  afghanistanOef: NoYesReasonsForMissingData
   age: Int
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
@@ -500,8 +501,10 @@ type Client {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  desertStorm: NoYesReasonsForMissingData
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   disabilityGroups: [DisabilityGroup!]!
+  dischargeStatus: DischargeStatus
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   emailAddresses: [ClientContactPoint!]!
@@ -516,11 +519,16 @@ type Client {
   id: ID!
   image: ClientImage
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
+  iraqOif: NoYesReasonsForMissingData
+  iraqOnd: NoYesReasonsForMissingData
+  koreanWar: NoYesReasonsForMissingData
   lastName: String
   middleName: String
+  militaryBranch: MilitaryBranch
   nameDataQuality: NameDataQuality!
   nameSuffix: String
   names: [ClientName!]!
+  otherTheater: NoYesReasonsForMissingData
   personalId: String!
   phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
@@ -530,6 +538,10 @@ type Client {
   ssnDataQuality: SSNDataQuality!
   user: User
   veteranStatus: NoYesReasonsForMissingData!
+  vietnamWar: NoYesReasonsForMissingData
+  worldWarIi: NoYesReasonsForMissingData
+  yearEnteredService: Int
+  yearSeparated: Int
   youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
 }
 
@@ -2061,6 +2073,61 @@ enum DisabledDisplay {
 }
 
 """
+V1.12
+"""
+enum DischargeStatus {
+  """
+  (4) Bad conduct
+  """
+  BAD_CONDUCT
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (5) Dishonorable
+  """
+  DISHONORABLE
+
+  """
+  (2) General under honorable conditions
+  """
+  GENERAL_UNDER_HONORABLE_CONDITIONS
+
+  """
+  (1) Honorable
+  """
+  HONORABLE
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (7) Uncharacterized
+  """
+  UNCHARACTERIZED
+
+  """
+  (6) Under other than honorable conditions (OTH)
+  """
+  UNDER_OTHER_THAN_HONORABLE_CONDITIONS_OTH
+}
+
+"""
 HUD Employment Education
 """
 type EmploymentEducation {
@@ -2204,6 +2271,7 @@ type Enrollment {
   clientEnrolledInPath: NoYesMissing
   countOutreachReferralApproaches: Int
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
+  currentUnit: Unit
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -4258,6 +4326,56 @@ type MciClearanceMatch {
 }
 
 """
+V1.11
+"""
+enum MilitaryBranch {
+  """
+  (2) Air Force
+  """
+  AIR_FORCE
+
+  """
+  (1) Army
+  """
+  ARMY
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (6) Coast Guard
+  """
+  COAST_GUARD
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (4) Marines
+  """
+  MARINES
+
+  """
+  (3) Navy
+  """
+  NAVY
+}
+
+"""
 3.917.5
 """
 enum MonthsHomelessPastThreeYears {
@@ -4927,78 +5045,58 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
-
-  """
-  Referral Posting Status
-  """
-  ASSIGNED_REFERRAL_POSTING_STATUSES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
 
   """
-  Unoccupied units in the specified project
+  Units available for the given household at the given project
   """
-  AVAILABLE_UNITS
+  AVAILABLE_UNITS_FOR_ENROLLMENT
 
   """
   Unit types that have unoccupied units in the specified project
   """
   AVAILABLE_UNIT_TYPES
-
-  """
-  All Enrollments, including WIP and exited, for the client.
-  """
-  CLIENT_ENROLLMENTS
   COC
   CURRENT_LIVING_SITUATION
-
-  """
-  Referral Posting Status
-  """
-  DENIED_PENDING_REFERRAL_POSTING_STATUSES
   DESTINATION
 
   """
   Projects that the User can enroll Clients in
   """
   ENROLLABLE_PROJECTS
+
+  """
+  Enrollments for the client, including WIP and Exited.
+  """
+  ENROLLMENTS_FOR_CLIENT
   GEOCODE
+
+  """
+  Open HoH enrollments at the project.
+  """
+  OPEN_HOH_ENROLLMENTS_FOR_PROJECT
 
   """
   All Organizations that the User can see
   """
   ORGANIZATION
+
+  """
+  Unit types that are eligible to be added to project
+  """
+  POSSIBLE_UNIT_TYPES_FOR_PROJECT
   PRIOR_LIVING_SITUATION
 
   """
   All Projects that the User can see
   """
   PROJECT
-
-  """
-  Project HOH Enrollments, including WIP and exited, for the client.
-  """
-  PROJECT_HOH_ENROLLMENTS
   REFERRAL_OUTCOME
-
-  """
-  Referral Result 
-  """
-  REFERRAL_RESULT_TYPES
   STATE
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
   SUB_TYPE_PROVIDED_5
-
-  """
-  Units in the specified project
-  """
-  UNITS
-
-  """
-  Unit types. If project is specified, limited to unit types in the project.
-  """
-  UNIT_TYPES
 }
 
 """
@@ -5334,7 +5432,7 @@ type Query {
   """
   Get list of options for pick list
   """
-  pickList(pickListType: PickListType!, relationId: ID): [PickListOption!]!
+  pickList(clientId: ID, enrollmentId: ID, householdId: ID, pickListType: PickListType!, projectId: ID): [PickListOption!]!
 
   """
   Project lookup
@@ -7204,15 +7302,13 @@ enum TrackingMethod {
 type Unit {
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
-  endDate: ISO8601Date
   id: ID!
-  name: String
+  name: String!
   occupants: [Enrollment!]!
   project: Project
-  startDate: ISO8601Date!
   unitSize: Int
   unitType: UnitTypeObject
-  user: User!
+  user: User
 }
 
 enum UnitFilterOptionStatus {

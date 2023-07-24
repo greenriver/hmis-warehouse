@@ -79,6 +79,7 @@ module Filters
     attribute :required_files, Array, default: []
     attribute :optional_files, Array, default: []
     attribute :active_roi, Boolean, default: false
+    attribute :mask_small_populations, Boolean, default: false
 
     validates_presence_of :start, :end
 
@@ -162,6 +163,7 @@ module Filters
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
       self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
+      self.mask_small_populations = filters.dig(:mask_small_populations).in?(['1', 'true', true]) unless filters.dig(:mask_small_populations).nil?
 
       self.required_files = filters.dig(:required_files)&.reject(&:blank?)&.map(&:to_i).presence || required_files
       self.optional_files = filters.dig(:optional_files)&.reject(&:blank?)&.map(&:to_i).presence || optional_files
@@ -230,6 +232,7 @@ module Filters
           required_files: required_files,
           optional_files: optional_files,
           active_roi: active_roi,
+          mask_small_populations: mask_small_populations,
         },
       }
     end
@@ -272,6 +275,7 @@ module Filters
         :cohort_column_matched_date,
         :dates_to_compare,
         :active_roi,
+        :mask_small_populations,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -354,6 +358,7 @@ module Filters
         opts['Required Files'] = chosen_required_files if required_files.any?
         opts['Optional Files'] = chosen_optional_files if required_files.any?
         opts['With Active ROI'] = 'Yes' if active_roi
+        opts['Mask Small Populations'] = 'Yes' if mask_small_populations
       end
     end
 

@@ -21,7 +21,7 @@ module
       ]
     end
 
-    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false)
+    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false, include_mask_small_populations: false)
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
           id: 'project_types',
@@ -71,6 +71,13 @@ module
           section.add_control(
             id: 'comparison_period',
             value: nil,
+          )
+        end
+        if include_mask_small_populations
+          section.add_control(
+            id: 'mask_small_populations',
+            label: 'Mask Small Populations?',
+            value: @filter.mask_small_populations ? 'Yes' : nil,
           )
         end
       end

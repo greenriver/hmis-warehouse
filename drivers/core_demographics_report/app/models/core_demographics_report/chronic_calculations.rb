@@ -22,7 +22,7 @@ module
     end
 
     def chronic_count(type)
-      chronic_clients[type]&.count&.presence || 0
+      mask_small_population(chronic_clients[type]&.count&.presence || 0)
     end
 
     def chronic_percentage(type)

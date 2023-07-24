@@ -434,4 +434,26 @@ module ApplicationHelper
       pagy_t(key, item_name: item_name || pagy_t(i18n_key || pagy.vars[:i18n_key], count: number_with_delimiter(p_count)), count: number_with_delimiter(p_count), from: pagy.from, to: pagy.to)
     }</span>)
   end
+
+  def small_population_brackets
+    {
+      0 => 0..0,
+      25 => 1..25,
+      50 => 26..50,
+      100 => 51..100,
+      round: 101..,
+    }.freeze
+  end
+
+  def bracket_small_population(value, mask: true)
+    return value unless mask
+
+    bracket = small_population_brackets.detect { |_k, range| range.cover?(value) }
+    case bracket.first
+    when :round
+      (value / 10.0).ceil * 10 # Round up to the nearest 10
+    else
+      bracket.first
+    end
+  end
 end
