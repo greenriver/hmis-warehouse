@@ -93,7 +93,7 @@ module HmisExternalApis::AcHmis
     scope :outgoing, -> { where(status: OUTGOING_STATUSES) }
 
     private def validate_status_change
-      return unless status.present? && status_was.present?
+      return unless status_changed? && status.present? && status_was.present?
 
       expected_statuses = OLD_STATUS_TO_VALID_NEW_STATUS[status_was]
       return unless expected_statuses.present?
