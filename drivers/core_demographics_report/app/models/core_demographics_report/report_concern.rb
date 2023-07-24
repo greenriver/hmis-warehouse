@@ -7,6 +7,8 @@
 module
   CoreDemographicsReport::ReportConcern
   extend ActiveSupport::Concern
+
+  include ApplicationHelper
   included do
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
@@ -64,32 +66,38 @@ module
       boolean ? 'Yes' : 'No'
     end
 
+    def mask_small_population(value)
+      return value unless @filter.mask_small_populations
+
+      bracket_small_population(value)
+    end
+
     def total_client_count
       @total_client_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        distinct_client_ids.count
+        mask_small_population(distinct_client_ids.count)
       end
     end
 
     def hoh_count
       @hoh_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        hoh_scope.select(:client_id).distinct.count
+        mask_small_population(hoh_scope.select(:client_id).distinct.count)
       end
     end
 
     def household_count
       @household_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.select(:household_id).distinct.count
+        mask_small_population(report_scope.select(:household_id).distinct.count)
       end
     end
 
     def project_count
       @project_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.select(p_t[:id]).distinct.count
+        mask_small_population(report_scope.select(p_t[:id]).distinct.count)
       end
     end
 
     def can_see_client_details?(user)
-      user.can_access_some_version_of_clients?
+      user.can_access_some_version_of_clients? && ! filter.mask_small_populations
     end
 
     def self.clear_report_cache

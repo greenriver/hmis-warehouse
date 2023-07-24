@@ -38,7 +38,7 @@ module
     end
 
     def disability_count(type)
-      disability_breakdowns[type]&.count&.presence || 0
+      mask_small_population(disability_breakdowns[type]&.count&.presence || 0)
     end
 
     def disability_percentage(type)
@@ -111,7 +111,7 @@ module
 
     private def client_disabilities_count
       @client_disabilities_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        client_disabilities.count
+        mask_small_population(client_disabilities.count)
       end
     end
 
