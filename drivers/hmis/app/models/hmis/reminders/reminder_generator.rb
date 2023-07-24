@@ -34,7 +34,7 @@ module Hmis
         @sequence += 1
         item = Hmis::Reminders::Reminder.new(...)
         item.id = @sequence.to_s
-        item.overdue = today >= item.due_date
+        item.overdue = item.due_date && today >= item.due_date
         item
       end
 
@@ -56,7 +56,7 @@ module Hmis
           .group_by(&:household_id)
           .map do |household_id, group|
             hoh = group.detect { |e| e.RelationshipToHoH == 1 }
-            [household_id, hoh&.EntryDate]
+            [household_id, hoh&.entry_date]
           end
           .to_h
         @hoh_anniversary_by_household_id[enrollment.household_id]
@@ -65,18 +65,18 @@ module Hmis
       def last_assessment_date(enrollment:, stages:, wip:)
         # load all the assessments we might need
         @all_assessments ||= Hmis::Hud::CustomAssessment
-          .where(EnrollmentID: enrollments.map(&:EnrollmentID), data_source_id: project.data_source_id)
-          .order(AssessmentDate: :desc)
+          .where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: project.data_source_id)
+          .order(assessment_date: :desc)
           .group_by(&:enrollment_id)
 
-        assessments = @all_assessments[enrollment.EnrollmentID]
+        assessments = @all_assessments[enrollment.enrollment_id]
         return unless assessments
 
         stages = data_stages(stages)
         found = assessments.detect do |r|
           wip.include?(r.wip) && stages.include?(r.data_collection_stage)
         end
-        found&.AssessmentDate
+        found&.assessment_date
       end
 
       # Show reminder if ANY client in the household is missing an Annual Assessment within the
@@ -114,7 +114,7 @@ module Hmis
         client = enrollment.client
         return unless client.DOB
 
-        entry_date = enrollment.EntryDate
+        entry_date = enrollment.entry_date
         adulthood_birthday = normalize_yoy_date(client.DOB) + age_of_majority.years
         # the client was already an adult on entry date
         return if adulthood_birthday <= entry_date
@@ -133,12 +133,12 @@ module Hmis
       # Show reminder if: there are any household members that are missing intake assessments OR
       # have WIP intake assessments
       def intake_assessment_reminder(enrollment)
-        # there's no submitted assessment
+        # there is a submitted assessment
         return if last_assessment_date(enrollment: enrollment, stages: [:project_entry], wip: [false])
 
         new_reminder(
           topic: INTAKE_INCOMPLETE_TOPIC,
-          due_date: enrollment.EntryDate,
+          due_date: enrollment.entry_date,
           enrollment: enrollment,
         )
       end
@@ -149,7 +149,6 @@ module Hmis
 
         new_reminder(
           topic: EXIT_INCOMPLETE_TOPIC,
-          due_date: enrollment.EntryDate,
           enrollment: enrollment,
         )
       end
@@ -166,7 +165,7 @@ module Hmis
           .max_by(&:InformationDate)
           &.InformationDate
 
-        due_date = latest_living_situation_on ? latest_living_situation_on + cadence : enrollment.EntryDate
+        due_date = latest_living_situation_on ? latest_living_situation_on + cadence : enrollment.entry_date
         return if due_date > today
 
         new_reminder(

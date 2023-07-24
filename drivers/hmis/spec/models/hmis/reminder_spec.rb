@@ -17,14 +17,14 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
   def reminders_for(_enrollment, topic:)
     project = p1
     Hmis::Reminders::ReminderGenerator
-      .perform(project: project, enrollments: project.enrollments)
+      .perform(project: project, enrollments: project.enrollments_including_wip)
       .filter { |r| r.topic == topic }
   end
 
   describe 'with an enrollment due for annual assessment' do
     let(:enrollment) do
       client = create :hmis_hud_client_complete, data_source: ds1, user: u1
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, EntryDate: today - (1.year - 30.days)
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, entry_date: today - (1.year - 30.days)
     end
     it 'reminds about annual assessment' do
       expect(reminders_for(enrollment, topic: 'annual_assessment').size).to eq(1)
@@ -42,7 +42,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
   describe 'with an enrollment not due for annual assessment' do
     let(:enrollment) do
       client = create :hmis_hud_client_complete, data_source: ds1, user: u1
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, EntryDate: today
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, entry_date: today
     end
     it 'does not remind about annual assessment' do
       expect(reminders_for(enrollment, topic: 'annual_assessment').size).to eq(0)
@@ -52,7 +52,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
   describe 'with an individual aging into adulthood after entry' do
     let(:enrollment) do
       client = create :hmis_hud_client_complete, data_source: ds1, user: u1, DOB: (today - (18.years + 1.day))
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, EntryDate: today - 2.days
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, entry_date: today - 2.days
     end
     it 'reminds about an update assessment' do
       expect(reminders_for(enrollment, topic: 'aged_into_adulthood').size).to eq(1)
@@ -70,7 +70,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
   describe 'with a client not yet aged into adulthood' do
     let(:enrollment) do
       client = create :hmis_hud_client_complete, data_source: ds1, user: u1, DOB: (today - (18.years - 1.day))
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, EntryDate: today
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, entry_date: today
     end
     it 'does not remind about update assessment' do
       expect(reminders_for(enrollment, topic: 'annual_assessment').size).to eq(0)
@@ -80,7 +80,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
   describe 'with a client aged to adulthood after enrollment' do
     let(:enrollment) do
       client = create :hmis_hud_client_complete, data_source: ds1, user: u1, DOB: (today - (18.years + 1.day))
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, EntryDate: today
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, entry_date: today
     end
     it 'does not remind about update assessment' do
       expect(reminders_for(enrollment, topic: 'annual_assessment').size).to eq(0)
@@ -90,7 +90,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
   describe 'with an enrollment' do
     let(:enrollment) do
       client = create :hmis_hud_client_complete, data_source: ds1, user: u1
-      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, EntryDate: today - 6.months
+      create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, entry_date: today - 6.months
     end
 
     describe 'with no intake assessment' do
