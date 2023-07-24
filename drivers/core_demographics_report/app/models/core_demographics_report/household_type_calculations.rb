@@ -30,7 +30,7 @@ module
     end
 
     def household_type_hoh_count(type)
-      hoh_households[type]&.keys&.count&.presence || 0
+      mask_small_population(hoh_households[type]&.keys&.count&.presence || 0)
     end
 
     def household_type_hoh_percentage(type)
@@ -44,7 +44,7 @@ module
     end
 
     def household_type_client_count(type)
-      client_households[type]&.keys&.count&.presence || 0
+      mask_small_population(client_households[type]&.keys&.count&.presence || 0)
     end
 
     def household_type_client_percentage(type)

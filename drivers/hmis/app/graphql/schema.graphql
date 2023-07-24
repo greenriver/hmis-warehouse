@@ -5046,11 +5046,6 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
-
-  """
-  Referral Posting Status
-  """
-  ASSIGNED_REFERRAL_POSTING_STATUSES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
 
@@ -5065,11 +5060,6 @@ enum PickListType {
   AVAILABLE_UNIT_TYPES
   COC
   CURRENT_LIVING_SITUATION
-
-  """
-  Referral Posting Status
-  """
-  DENIED_PENDING_REFERRAL_POSTING_STATUSES
   DESTINATION
 
   """
@@ -5104,11 +5094,6 @@ enum PickListType {
   """
   PROJECT
   REFERRAL_OUTCOME
-
-  """
-  Referral Result 
-  """
-  REFERRAL_RESULT_TYPES
   STATE
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
