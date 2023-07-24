@@ -5,13 +5,25 @@
   "text": "MCI ID",
   "item": [
     {
+      "type": "OBJECT",
+      "link_id": "current-mci-id",
+      "repeats": true,
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$mciIds"
+        }
+      ]
+    },
+    {
       "type": "STRING",
       "required": true,
       "link_id": "mci-clearance-value",
       "component": "MCI",
       "text": "MCI ID",
       "_comment": "NOTE: mciId is not a real field on Client, but the ClientProcessor has a special case to handle it",
-      "field_name": "mciId",
+      "mapping": { "field_name": "mciId" },
       "disabled_display": "PROTECTED",
       "enable_behavior": "ALL",
       "enable_when": [

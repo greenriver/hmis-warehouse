@@ -39,6 +39,5 @@ module Types
     def enrollments
       load_ar_association(object, :enrollments)
     end
-
   end
 end

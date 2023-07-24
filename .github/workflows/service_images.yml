@@ -4,7 +4,7 @@ on:
   push:
     branches:
       # Just enable this for your branch as needed
-      - some-branch-pushed-to-build-these-images
+      # - tb/client-export/185190925
 
 # Branch pushes will cancel any running jobs to the same branch
 concurrency:
@@ -23,6 +23,11 @@ jobs:
             context: docker/minio
             dockerfile: docker/minio/Dockerfile
             cache_key: minio
+          - name: sftp
+            image: ghcr.io/greenriver/openpath-sftp:1.0
+            context: docker/sftp
+            dockerfile: docker/sftp/Dockerfile
+            cache_key: sftp
 
     steps:
       - name: Checkout
