@@ -30,9 +30,9 @@ module
 
     def no_recent_homelessness_count(type)
       if type.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
-        no_recent_homelessness_clients[type]&.map(&:last)&.uniq&.count&.presence || 0
+        mask_small_population(no_recent_homelessness_clients[type]&.map(&:last)&.uniq&.count&.presence || 0)
       else
-        no_recent_homelessness_clients[type]&.count&.presence || 0
+        mask_small_population(no_recent_homelessness_clients[type]&.count&.presence || 0)
       end
     end
 

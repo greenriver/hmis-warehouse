@@ -73,7 +73,7 @@ module
 
     def adult_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        adult_scope.select(:client_id).distinct.count
+        mask_small_population(adult_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -83,7 +83,7 @@ module
 
     def adult_female_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        adult_female_scope.select(:client_id).distinct.count
+        mask_small_population(adult_female_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -93,7 +93,7 @@ module
 
     def adult_male_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        adult_male_scope.select(:client_id).distinct.count
+        mask_small_population(adult_male_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -103,7 +103,7 @@ module
 
     def adult_trans_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        adult_trans_scope.select(:client_id).distinct.count
+        mask_small_population(adult_trans_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -113,7 +113,7 @@ module
 
     def adult_questioning_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        adult_questioning_scope.select(:client_id).distinct.count
+        mask_small_population(adult_questioning_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -123,7 +123,7 @@ module
 
     def adult_no_single_gender_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        adult_no_single_gender_scope.select(:client_id).distinct.count
+        mask_small_population(adult_no_single_gender_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -133,7 +133,7 @@ module
 
     def adult_unknown_gender_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        adult_unknown_gender_scope.select(:client_id).distinct.count
+        mask_small_population(adult_unknown_gender_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -143,7 +143,7 @@ module
 
     def child_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        child_scope.select(:client_id).distinct.count
+        mask_small_population(child_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -153,7 +153,7 @@ module
 
     def child_female_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        child_female_scope.select(:client_id).distinct.count
+        mask_small_population(child_female_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -163,7 +163,7 @@ module
 
     def child_male_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        child_male_scope.select(:client_id).distinct.count
+        mask_small_population(child_male_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -173,7 +173,7 @@ module
 
     def child_trans_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        child_trans_scope.select(:client_id).distinct.count
+        mask_small_population(child_trans_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -183,7 +183,7 @@ module
 
     def child_questioning_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        child_questioning_scope.select(:client_id).distinct.count
+        mask_small_population(child_questioning_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -193,7 +193,7 @@ module
 
     def child_no_single_gender_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        child_no_single_gender_scope.select(:client_id).distinct.count
+        mask_small_population(child_no_single_gender_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -203,7 +203,7 @@ module
 
     def child_unknown_gender_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        child_unknown_gender_scope.select(:client_id).distinct.count
+        mask_small_population(child_unknown_gender_scope.select(:client_id).distinct.count)
       end
     end
 
@@ -296,7 +296,7 @@ module
     end
 
     def age_count(type)
-      clients_in_age_range(type)&.count&.presence || 0
+      mask_small_population(clients_in_age_range(type)&.count&.presence || 0)
     end
 
     def clients_in_age_range(type)
@@ -308,7 +308,7 @@ module
     end
 
     def age_percentage(type)
-      total_count = client_ages.count
+      total_count = mask_small_population(client_ages.count)
       return 0 if total_count.zero?
 
       of_type = age_count(type)
