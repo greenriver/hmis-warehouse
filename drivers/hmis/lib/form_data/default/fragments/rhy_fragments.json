@@ -71,6 +71,94 @@
       "item": [
         {
           "type": "CHOICE",
+          "link_id": "R1.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Referral Source",
+          "pick_list_reference": "ReferralSource",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "referralSource" }
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "R1.A",
+          "required": false,
+          "text": "Number of times approached by Outreach prior to entering project",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "countOutreachReferralApproaches" }
+        },
+
+        {
+          "type": "DATE",
+          "link_id": "R2.1",
+          "required": false,
+          "text": "Date of Status Determination",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "dateOfBCPStatus" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R2.2",
+          "required": false,
+          "text": "Youth Eligible for RHY Services",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "eligibleForRHY" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R2.A",
+          "required": false,
+          "text": "Reason by services are not funded by BCP grant",
+          "pick_list_reference": "ReasonNoServices",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "reasonNoServices" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R2.2",
+              "operator": "EQUAL",
+              "answer_code": "NO"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R3.1",
+          "required": false,
+          "text": "Sexual Orientation",
+          "pick_list_reference": "SexualOrientation",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "sexualOrientation" }
+        },
+        {
+          "type": "STRING",
+          "link_id": "R3.A",
+          "required": false,
+          "text": "If other, please describe",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "sexualOrientationOther" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R3.1",
+              "operator": "EQUAL",
+              "answer_code": "OTHER"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R2.B",
+          "required": false,
+          "text": "Runaway Youth",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "ENROLLMENT", "field_name": "runawayYouth" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R2.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+
+        {
+          "type": "CHOICE",
           "link_id": "R11.1",
           "required": false,
           "warn_if_empty": true,
@@ -456,6 +544,118 @@
           "required": false,
           "text": "A plan is in place to start or continue counseling after exit",
           "mapping": { "record_type": "EXIT", "field_name": "postExitCounselingPlan" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R19.1",
+          "required": false,
+          "text": "Exit destination safe - as determined by the client",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "record_type": "EXIT", "field_name": "destinationSafeClient" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R19.2",
+          "required": false,
+          "text": "Exit destination safe - as determined by the project/caseworker",
+          "pick_list_reference": "WorkerResponse",
+          "mapping": { "record_type": "EXIT", "field_name": "destinationSafeWorker" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R19.3",
+          "required": false,
+          "text": "Client has permanent positive adult connections outside of project",
+          "pick_list_reference": "WorkerResponse",
+          "mapping": { "record_type": "EXIT", "field_name": "posAdultConnections" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R19.4",
+          "required": false,
+          "text": "Client has permanent positive peer connections outside of project",
+          "pick_list_reference": "WorkerResponse",
+          "mapping": { "record_type": "EXIT", "field_name": "posPeerConnections" }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R19.5",
+          "required": false,
+          "text": "Client has permanent positive community connections outside of project",
+          "pick_list_reference": "WorkerResponse",
+          "mapping": { "record_type": "EXIT", "field_name": "posCommunityConnections" }
+        },
+
+        {
+          "type": "DATE",
+          "link_id": "R20.1",
+          "required": false,
+          "text": "Aftercare Date",
+          "mapping": { "record_type": "EXIT", "field_name": "aftercareDate" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R10.1",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R20.2",
+          "required": false,
+          "text": "Aftercare was provided",
+          "pick_list_reference": "AftercareProvided",
+          "mapping": { "record_type": "EXIT", "field_name": "aftercareProvided" }
+        },
+        {
+          "type": "GROUP",
+          "link_id": "aftercare-provided-group",
+          "component": "INPUT_GROUP",
+          "text": "Identify the primary way it was provided",
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "R20.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ],
+          "item": [
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesMissing",
+              "component": "CHECKBOX",
+              "link_id": "R20.A.1",
+              "text": "Via email/social media",
+              "mapping": { "record_type": "EXIT", "field_name": "emailSocialMedia" }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesMissing",
+              "component": "CHECKBOX",
+              "link_id": "R20.A.2",
+              "text": "Via telephone",
+              "mapping": { "record_type": "EXIT", "field_name": "telephone" }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesMissing",
+              "component": "CHECKBOX",
+              "link_id": "R20.A.3",
+              "text": "In person: one-on-one",
+              "mapping": { "record_type": "EXIT", "field_name": "inPersonIndividual" }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesMissing",
+              "component": "CHECKBOX",
+              "link_id": "R20.A.4",
+              "text": "In person: group",
+              "mapping": { "record_type": "EXIT", "field_name": "inPersonGroup" }
+            }
+          ]
         }
       ]
     }

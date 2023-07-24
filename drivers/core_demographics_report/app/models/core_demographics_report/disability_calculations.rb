@@ -9,7 +9,7 @@ module
   extend ActiveSupport::Concern
   included do
     def disability_detail_hash
-      {}.tap do |hashes|
+      hash = {}.tap do |hashes|
         HudUtility.disability_types.each do |key, title|
           hashes["disability_#{key}"] = {
             title: "Disability #{title}",
@@ -19,6 +19,22 @@ module
           }
         end
       end
+      hash.merge!(
+        "yes_disability" =>
+          {
+            title: "At Least One Disability",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_disabilities.keys).distinct }
+          },
+        "no_disability" =>
+          {
+            title: "No Disability",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: distinct_client_ids.pluck(:client_id).uniq - client_disabilities.keys).distinct }
+          }
+      )
     end
 
     def disability_count(type)

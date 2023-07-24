@@ -65,6 +65,8 @@ module Types
         state_picklist
       when 'GEOCODE'
         geocodes_picklist
+      when 'VAMC_STATION'
+        vamc_station_picklist
       when 'PRIOR_LIVING_SITUATION'
         living_situation_picklist(as: :prior)
       when 'ALL_SERVICE_TYPES'
@@ -86,29 +88,6 @@ module Types
       when 'ALL_UNIT_TYPES'
         # used for referrals between projects
         Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
-      when 'REFERRAL_RESULT_TYPES'
-        [
-          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(2), label: 'Client Rejected' },
-          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(3), label: 'Provider Rejected' },
-        ]
-      when 'ASSIGNED_REFERRAL_POSTING_STATUSES'
-        HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUSES.map do |status|
-          {
-            code: status,
-            label: status.gsub(/_status\z/, '').humanize.titleize,
-          }
-        end
-      when 'DENIED_PENDING_REFERRAL_POSTING_STATUSES'
-        label_map = {
-          'assigned_status' => 'Send Back',
-          'denied_status' => 'Approve Denial',
-        }
-        HmisExternalApis::AcHmis::ReferralPosting::DENIAL_STATUSES.map do |status|
-          {
-            code: status,
-            label: label_map.fetch(status),
-          }
-        end
       end
     end
 
@@ -179,6 +158,17 @@ module Types
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
           initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
+        }
+      end
+    end
+
+    def self.vamc_station_picklist
+      Rails.cache.fetch('VAMC_STATION_OPTION_LIST', expires_in: 1.days) do
+        JSON.parse(File.read('drivers/hmis/lib/pick_list_data/vamc_stations.json'))
+      end.map do |obj|
+        {
+          code: obj['value'],
+          label: obj['text'],
         }
       end
     end
