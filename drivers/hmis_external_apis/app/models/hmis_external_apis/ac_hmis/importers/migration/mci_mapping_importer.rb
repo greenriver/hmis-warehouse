@@ -51,7 +51,7 @@ module HmisExternalApis::AcHmis::Importers::Migration
     def get_matching_mci_id(client_id:, mci_id:)
       HmisExternalApis::ExternalId
         .for_clients
-        .where(namespace: 'ac_hmis_mci')
+        .where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
         .where(source_id: client_id)
         .where(value: mci_id)
         .first_or_initialize
