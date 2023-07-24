@@ -70,7 +70,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :viewable_by, ->(user, permission: :can_view_projects) do
     # TODO: START_ACL cleanup after migration to ACLs
-    return none unless ! user.using_acls && user&.send("#{permission}?")
+    return none unless ! user.using_acls? && user&.send("#{permission}?")
 
     if user.using_acls?
       ids = data_source_ids_viewable_by(user, permission: permission)
@@ -95,7 +95,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :editable_by, ->(user) do
     # TODO: START_ACL cleanup after migration to ACLs
-    return none unless ! user.using_acls && user.can_edit_data_sources?
+    return none unless ! user.using_acls? && user.can_edit_data_sources?
 
     if user.using_acls?
       ids = data_source_ids_from_viewable_entities(user, :can_edit_data_sources)
@@ -111,7 +111,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :directly_viewable_by, ->(user, permission: :can_view_projects) do
     # TODO: START_ACL cleanup after migration to ACLs
-    return none unless ! user.using_acls && user&.send("#{permission}?")
+    return none unless ! user.using_acls? && user&.send("#{permission}?")
 
     if user.using_acls?
       ids = data_source_ids_from_viewable_entities(user, permission)
