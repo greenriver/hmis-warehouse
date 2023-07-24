@@ -45,6 +45,18 @@ module Types
     field :race, [Types::HmisSchema::Enums::Race], null: false
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :year_entered_service
+    hud_field :year_separated
+    hud_field :world_war_ii, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :korean_war, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :vietnam_war, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :desert_storm, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :afghanistan_oef, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :iraq_oif, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :iraq_ond, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :other_theater, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :military_branch, Types::HmisSchema::Enums::Hud::MilitaryBranch
+    hud_field :discharge_status, Types::HmisSchema::Enums::Hud::DischargeStatus
     field :pronouns, [String], null: false
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false

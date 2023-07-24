@@ -65,6 +65,8 @@ module Types
         state_picklist
       when 'GEOCODE'
         geocodes_picklist
+      when 'VAMC_STATION'
+        vamc_station_picklist
       when 'PRIOR_LIVING_SITUATION'
         living_situation_picklist(as: :prior)
       when 'ALL_SERVICE_TYPES'
@@ -156,6 +158,17 @@ module Types
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
           initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
+        }
+      end
+    end
+
+    def self.vamc_station_picklist
+      Rails.cache.fetch('VAMC_STATION_OPTION_LIST', expires_in: 1.days) do
+        JSON.parse(File.read('drivers/hmis/lib/pick_list_data/vamc_stations.json'))
+      end.map do |obj|
+        {
+          code: obj['value'],
+          label: obj['text'],
         }
       end
     end
