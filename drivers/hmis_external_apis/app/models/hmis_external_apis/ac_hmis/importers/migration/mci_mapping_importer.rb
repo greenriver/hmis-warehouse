@@ -40,7 +40,7 @@ module HmisExternalApis::AcHmis::Importers::Migration
     def mci_unique_ids
       result = HmisExternalApis::ExternalId
         .for_clients
-        .where(namespace: 'ac_hmis_mci_unique_id')
+        .where(namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE)
         .where(value: lookup.keys)
 
       Rails.logger.warn("We could not find any matching MCI unique IDs. That doesn't seem right") if result.none?
