@@ -20,7 +20,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
         skip: [
           'L2', # Is the generator name, so not expected to match
           # FIXME: this needs to exclude children who entered after the HoH even if the HoH is CH at entry
-          'P2', # Pending AirTable regarding children of CH HoH submitted 1/14/2023 https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec3mJbXygkAoje1t (30)
+          'P2', # AirTable regarding children of CH HoH submitted 1/14/2023 https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec3mJbXygkAoje1t (30)
         ],
       )
     end
