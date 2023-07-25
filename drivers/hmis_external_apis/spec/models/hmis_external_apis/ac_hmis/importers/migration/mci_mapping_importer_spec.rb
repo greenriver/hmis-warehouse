@@ -19,10 +19,11 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporte
 
   it 'makes an MCI ID' do
     create(:mci_unique_id_external_id, source: client, value: '1234567')
+    create(:ac_hmis_mci_credential)
 
     subject.run!
 
-    scope = client.external_ids.where(namespace: 'ac_hmis_mci')
+    scope = client.external_ids.where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
     expect(scope.count).to eq(1)
     expect(scope.first.value).to eq('7654321')
   end
@@ -33,7 +34,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporte
 
     subject.run!
 
-    scope = client.external_ids.where(namespace: 'ac_hmis_mci')
+    scope = client.external_ids.where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
     expect(scope.count).to eq(1)
     expect(scope.first.value).to eq('7654321')
   end
@@ -43,6 +44,6 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporte
 
     subject.run!
 
-    expect(client.external_ids.where(namespace: 'ac_hmis_mci').first&.value).to be_nil
+    expect(client.external_ids.where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID).first&.value).to be_nil
   end
 end
