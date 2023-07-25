@@ -62,7 +62,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
         create(:hmis_custom_assessment, data_collection_stage: 2, assessment_date: today, enrollment: enrollment, data_source: ds1)
       end
       it 'does not remind about update assessment' do
-        expect(reminders_for(enrollment, topic: 'annual_assessment').size).to eq(0)
+        expect(reminders_for(enrollment, topic: 'aged_into_adulthood').size).to eq(0)
       end
     end
   end
@@ -73,7 +73,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
       create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, entry_date: today
     end
     it 'does not remind about update assessment' do
-      expect(reminders_for(enrollment, topic: 'annual_assessment').size).to eq(0)
+      expect(reminders_for(enrollment, topic: 'aged_into_adulthood').size).to eq(0)
     end
   end
 
@@ -83,7 +83,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
       create :hmis_hud_enrollment, data_source: ds1, project: p1, client: client, user: u1, entry_date: today
     end
     it 'does not remind about update assessment' do
-      expect(reminders_for(enrollment, topic: 'annual_assessment').size).to eq(0)
+      expect(reminders_for(enrollment, topic: 'aged_into_adulthood').size).to eq(0)
     end
   end
 

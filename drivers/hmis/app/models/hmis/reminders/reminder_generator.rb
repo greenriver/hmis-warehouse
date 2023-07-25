@@ -115,6 +115,9 @@ module Hmis
         # the client was already an adult on entry date
         return if adulthood_birthday <= entry_date
 
+        # client is still <18
+        return if adulthood_birthday > today
+
         # client had an assessment after they became and adult
         last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:update, :annual_assessment], wip: [false])
         return if last_assessed_on && last_assessed_on >= adulthood_birthday
