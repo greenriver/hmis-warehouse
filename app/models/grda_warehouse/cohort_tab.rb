@@ -51,11 +51,11 @@ module GrdaWarehouse
       when '=='
         if val.in?([nil, ''])
           case col.arel_col.type_caster.type
-          when :date, :datetime, :boolean
-            col.arel_col.eq(nil)
-          else
+          when :string
             # NOTE: arel won't attempt to match a blank against a nil, so we have to try both
             col.arel_col.eq(nil).or(col.arel_col.eq(''))
+          else
+            col.arel_col.eq(nil)
           end
         else
           col.arel_col.eq(val)
@@ -63,11 +63,11 @@ module GrdaWarehouse
       when '<>'
         if val.in?([nil, ''])
           case col.arel_col.type_caster.type
-          when :date, :datetime, :boolean
-            col.arel_col.not_eq(nil)
-          else
+          when :string
             # NOTE: arel won't attempt to match a blank against a nil, so we have to try both
             col.arel_col.not_eq(nil).and(col.arel_col.not_eq(''))
+          else
+            col.arel_col.not_eq(nil)
           end
         else
           col.arel_col.not_eq(val)
