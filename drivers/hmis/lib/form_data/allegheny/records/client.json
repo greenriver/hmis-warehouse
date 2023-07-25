@@ -27,9 +27,6 @@
       "fragment": "#client_demographics"
     },
     {
-      "fragment": "#client_veteran_info"
-    },
-    {
       "fragment": "#client_contact_information"
     },
     {

@@ -15,7 +15,7 @@ module HmisExternalApis
       self.client_id = creds.client_id
       self.scope = creds.oauth_scope
       # normalized base_url
-      self.base_url = creds.base_url.strip.gsub(%r{/*\z}, '')
+      self.base_url = creds.base_url.strip.gsub(/\/*\z/, '')
       self.headers = creds.additional_headers
       self.connection_timeout = connection_timeout
       self.logger = logger
@@ -49,7 +49,7 @@ module HmisExternalApis
     def url_for(path)
       return base_url if path.blank?
 
-      base_url + '/' + path.strip.gsub(%r{\A/*}, '')
+      base_url + '/' + path.strip.gsub(/\A\/*/, '')
     end
 
     def request(verb, url, payload = nil)

@@ -2276,6 +2276,7 @@ type Enrollment {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date
+  dateOfEngagement: ISO8601Date
   dateOfPathStatus: ISO8601Date
   dateToStreetEssh: ISO8601Date
   dateUpdated: ISO8601DateTime!
@@ -2289,6 +2290,7 @@ type Enrollment {
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitAssessment: Assessment
   exitDate: ISO8601Date
+  exitDestination: Destination
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
   formerWardChildWelfare: NoYesReasonsForMissingData
   formerWardJuvenileJustice: NoYesReasonsForMissingData
@@ -2308,6 +2310,7 @@ type Enrollment {
   losUnderThreshold: NoYesMissing
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
+  moveInDate: ISO8601Date
   percentAmi: PercentAMI
   physicalDisabilityFam: NoYesMissing
   previousStreetEssh: NoYesMissing
@@ -5098,6 +5101,7 @@ enum PickListType {
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
   SUB_TYPE_PROVIDED_5
+  VAMC_STATION
 }
 
 """
