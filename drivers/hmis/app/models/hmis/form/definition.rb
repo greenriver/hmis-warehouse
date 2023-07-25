@@ -38,6 +38,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     MOVE_IN_DATE: 'Move-in Date',
     DATE_OF_ENGAGEMENT: 'Date of Engagement',
     UNIT_ASSIGNMENT: 'Unit Assignment',
+    PATH_STATUS: 'PATH Status',
   }.freeze
 
   validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
@@ -71,6 +72,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     MOVE_IN_DATE: ENROLLMENT_CONFIG,
     DATE_OF_ENGAGEMENT: ENROLLMENT_CONFIG,
     UNIT_ASSIGNMENT: ENROLLMENT_CONFIG,
+    PATH_STATUS: ENROLLMENT_CONFIG,
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {

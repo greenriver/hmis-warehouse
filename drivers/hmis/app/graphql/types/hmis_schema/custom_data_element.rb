@@ -10,7 +10,7 @@ module Types
   class HmisSchema::CustomDataElement < Types::BaseObject
     field :id, ID, null: false
     field :key, String, null: false
-    field :type, String, null: false
+    field :field_type, HmisSchema::Enums::CustomDataElementType, null: false
     field :label, String, null: false
     field :repeats, Boolean, null: false
     field :at_occurrence, Boolean, null: false
