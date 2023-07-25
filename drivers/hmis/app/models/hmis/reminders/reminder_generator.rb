@@ -15,43 +15,16 @@ module Hmis
       end
 
       def perform
-        enrollments.group_by(&:household_id).flat_map do |_household_id, group|
-          reminders = group.flat_map do |enrollment|
-            [
-              annual_assessment_reminder(enrollment),
-              aged_into_adulthood_reminder(enrollment),
-              intake_assessment_reminder(enrollment),
-              exit_assessment_reminder(enrollment),
-              current_living_situation_reminder(enrollment),
-            ]
-          end
-          filter_household_reminders(reminders.compact).sort_by(&:sort_order)
+        results = enrollments.flat_map do |enrollment|
+          [
+            annual_assessment_reminder(enrollment),
+            aged_into_adulthood_reminder(enrollment),
+            intake_assessment_reminder(enrollment),
+            exit_assessment_reminder(enrollment),
+            current_living_situation_reminder(enrollment),
+          ].compact
         end
-      end
-
-      def filter_household_reminders(reminders)
-        results = []
-        # these topics are limited to just one per household
-        reminders_by_topic = {
-          INTAKE_INCOMPLETE_TOPIC => [],
-          EXIT_INCOMPLETE_TOPIC => [],
-        }
-
-        reminders.each do |reminder|
-          if reminders_by_topic.key?(reminder.topic)
-            reminders_by_topic[reminder.topic].push(reminder)
-          else
-            results.push(reminder)
-          end
-        end
-
-        reminders_by_topic.each_value do |group|
-          next if group.length == 0
-          chosen = group.detect { |r| r.enrollment.head_of_household? } || group.min_by(&:sort_order)
-          results.push(chosen)
-        end
-
-        results
+        results.sort_by(&:sort_order)
       end
 
       protected
