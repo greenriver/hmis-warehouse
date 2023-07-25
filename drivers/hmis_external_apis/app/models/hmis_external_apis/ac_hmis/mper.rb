@@ -53,14 +53,18 @@ module HmisExternalApis::AcHmis
       end
     end
 
+    def self.external_ids
+      HmisExternalApis::ExternalId.where(namespace: SYSTEM_ID)
+    end
+
+    def external_ids
+      self.class.external_ids
+    end
+
     protected
 
     def source_not_supported!(source)
       raise "source not supported #{source.inspect}"
-    end
-
-    def external_ids
-      HmisExternalApis::ExternalId.where(namespace: SYSTEM_ID)
     end
 
     def project_scope

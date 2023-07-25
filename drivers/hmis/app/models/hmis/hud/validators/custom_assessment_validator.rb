@@ -27,12 +27,12 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
     errors = HmisErrors::Errors.new
 
     # Provide error context, so that they are named according to the FormDefinition item
-    item = assessment&.custom_form&.definition&.assessment_date_item
+    item = assessment&.definition&.assessment_date_item
     if item.present?
       options = {
         readable_attribute: item.brief_text || item.text,
         link_id: item.link_id,
-        attribute: item.field_name.to_sym,
+        attribute: item.mapping&.field_name&.to_sym,
         **options,
       }
     end

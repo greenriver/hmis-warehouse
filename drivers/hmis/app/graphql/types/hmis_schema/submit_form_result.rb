@@ -19,6 +19,7 @@ module Types
       Types::HmisSchema::Service,
       Types::HmisSchema::File,
       Types::HmisSchema::ReferralRequest,
+      Types::HmisSchema::Enrollment,
     )
 
     def self.resolve_type(object, _context)

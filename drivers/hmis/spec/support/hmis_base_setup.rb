@@ -32,6 +32,9 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
       initial {
         #{scalar_fields(Types::Forms::InitialValue)}
       }
+      mapping {
+        #{scalar_fields(Types::Forms::FieldMapping)}
+      }
       autofillValues {
         #{scalar_fields(Types::Forms::AutofillValue)}
         autofillWhen {

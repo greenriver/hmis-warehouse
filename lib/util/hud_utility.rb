@@ -115,16 +115,6 @@ module HudUtility
     race_list
   end
 
-  # for translating straight from a controlled vocabulary list identifier and integer
-  # to the corresponding phrase
-  def list(number, id, reverse = false)
-    method = ::HudLists.hud_code_to_function_map[number.to_s.to_sym]
-    raise "unknown controlled vocabulary list: #{number}" unless method
-
-    map = ::HudLists.send(method)
-    _translate(map, id, reverse)
-  end
-
   # 1.1
   def export_period_type(id, reverse = false)
     map = period_types

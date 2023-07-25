@@ -17,13 +17,13 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Update values
-      assessment.custom_form.assign_attributes(
+      assessment.form_processor.assign_attributes(
         values: input.values,
         hud_values: input.hud_values,
       )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
-        assessment_date: assessment.custom_form.find_assessment_date_from_values || assessment.assessment_date,
+        assessment_date: assessment.form_processor.find_assessment_date_from_values || assessment.assessment_date,
       )
 
       # Validate the assessment date
@@ -31,19 +31,17 @@ module Mutations
       errors.reject!(&:warning?)
       return { errors: errors } if errors.any?
 
-      errors = HmisErrors::Errors.new
-      is_valid = assessment.valid?
-      is_valid = assessment.custom_form.valid? && is_valid
-      if is_valid
-        assessment.custom_form.save!
-        assessment.save_in_progress
+      if assessment.valid?(:form_submission)
+        assessment.save_submitted_assessment!(current_user: current_user, as_wip: true)
       else
+        errors = HmisErrors::Errors.new
         errors.add_ar_errors(assessment.errors&.errors)
-        errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+        errors.add_ar_errors(assessment.form_processor&.errors&.errors)
         errors.deduplicate!
         assessment = nil
       end
 
+      assessment&.reload
       {
         assessment: assessment,
         errors: errors,
