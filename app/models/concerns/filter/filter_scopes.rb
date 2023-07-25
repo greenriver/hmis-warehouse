@@ -335,6 +335,12 @@ module Filter::FilterScopes
       scope.in_project_type(3).where(move_in_date: @filter.range)
     end
 
+    private def filter_for_active_roi(scope)
+      return scope unless @filter.active_roi
+
+      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.consent_form_valid)
+    end
+
     private def filter_for_first_time_homeless_in_past_two_years(scope)
       return scope unless @filter.first_time_homeless
 

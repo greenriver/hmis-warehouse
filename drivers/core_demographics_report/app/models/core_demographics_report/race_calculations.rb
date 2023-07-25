@@ -26,11 +26,11 @@ module
     end
 
     def race_count(type)
-      race_breakdowns[type]&.count&.presence || 0
+      mask_small_population(race_breakdowns[type]&.count&.presence || 0)
     end
 
     def race_percentage(type)
-      total_count = client_races.count
+      total_count = mask_small_population(client_races.count)
       return 0 if total_count.zero?
 
       of_type = race_count(type)

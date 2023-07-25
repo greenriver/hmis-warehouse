@@ -42,7 +42,7 @@ module
     end
 
     def enrollment_count(type)
-      project_enrollments[type]&.count&.presence || 0
+      mask_small_population(project_enrollments[type]&.count&.presence || 0)
     end
 
     def enrollment_percentage(type)

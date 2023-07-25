@@ -88,29 +88,6 @@ module Types
       when 'ALL_UNIT_TYPES'
         # used for referrals between projects
         Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
-      when 'REFERRAL_RESULT_TYPES'
-        [
-          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(2), label: 'Client Rejected' },
-          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(3), label: 'Provider Rejected' },
-        ]
-      when 'ASSIGNED_REFERRAL_POSTING_STATUSES'
-        HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUSES.map do |status|
-          {
-            code: status,
-            label: status.gsub(/_status\z/, '').humanize.titleize,
-          }
-        end
-      when 'DENIED_PENDING_REFERRAL_POSTING_STATUSES'
-        label_map = {
-          'assigned_status' => 'Send Back',
-          'denied_status' => 'Approve Denial',
-        }
-        HmisExternalApis::AcHmis::ReferralPosting::DENIAL_STATUSES.map do |status|
-          {
-            code: status,
-            label: label_map.fetch(status),
-          }
-        end
       end
     end
 

@@ -38,6 +38,7 @@ module Types
     field :project, Types::HmisSchema::Project, null: false
     hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
+    field :exit_destination, Types::HmisSchema::Enums::Hud::Destination, null: true
     field :status, HmisSchema::Enums::EnrollmentStatus, null: false
     assessments_field
     events_field
@@ -56,13 +57,19 @@ module Types
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
-    field :enrollment_coc, String, null: true
+    # 3.15.1
     hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
+    # 3.16.1
+    field :enrollment_coc, String, null: true
     # 3.08
     hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    # 3.13.1
+    field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
+    # 3.20.1
+    field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     # 3.917
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
-    # TODO(2024) enable
+    # TODO(2024) enable 3.917.A
     # hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
     hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
@@ -74,7 +81,6 @@ module Types
     field :date_of_path_status, GraphQL::Types::ISO8601Date, null: true
     field :client_enrolled_in_path, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :reason_not_enrolled, HmisSchema::Enums::Hud::ReasonNotEnrolled, null: true
-    # R3
     # V4
     field :percent_ami, HmisSchema::Enums::Hud::PercentAMI, null: true
     # R1
@@ -132,6 +138,10 @@ module Types
 
     def exit_date
       exit&.exit_date
+    end
+
+    def exit_destination
+      exit&.destination
     end
 
     def exit
