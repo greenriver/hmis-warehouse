@@ -49,16 +49,26 @@ module GrdaWarehouse
       when '>'
         col.arel_col.gt(val)
       when '=='
-        # NOTE: arel won't attemp to match a blank against a nil, so we have to try both
         if val.in?([nil, ''])
-          col.arel_col.eq(nil).or(col.arel_col.eq(''))
+          case col.arel_col.type_caster.type
+          when :date, :datetime, :boolean
+            col.arel_col.eq(nil)
+          else
+            # NOTE: arel won't attempt to match a blank against a nil, so we have to try both
+            col.arel_col.eq(nil).or(col.arel_col.eq(''))
+          end
         else
           col.arel_col.eq(val)
         end
       when '<>'
-        # NOTE: arel won't attemp to match a blank against a nil, so we have to try both
         if val.in?([nil, ''])
-          col.arel_col.not_eq(nil).and(col.arel_col.not_eq(''))
+          case col.arel_col.type_caster.type
+          when :date, :datetime, :boolean
+            col.arel_col.not_eq(nil)
+          else
+            # NOTE: arel won't attempt to match a blank against a nil, so we have to try both
+            col.arel_col.not_eq(nil).and(col.arel_col.not_eq(''))
+          end
         else
           col.arel_col.not_eq(val)
         end
@@ -146,17 +156,9 @@ module GrdaWarehouse
               'left' => {
                 'operator' => 'or',
                 'left' => {
-                  'operator' => 'or',
-                  'left' => {
-                    'column' => 'destination',
-                    'operator' => '==',
-                    'value' => nil,
-                  },
-                  'right' => {
-                    'column' => 'destination',
-                    'operator' => '==',
-                    'value' => '',
-                  },
+                  'column' => 'destination',
+                  'operator' => '==',
+                  'value' => nil,
                 },
                 'right' => {
                   'column' => 'housed_date',
@@ -197,17 +199,9 @@ module GrdaWarehouse
               'value' => nil,
             },
             'right' => {
-              'operator' => 'or',
-              'left' => {
-                'column' => 'destination',
-                'operator' => '<>',
-                'value' => nil,
-              },
-              'right' => {
-                'column' => 'destination',
-                'operator' => '<>',
-                'value' => '',
-              },
+              'column' => 'destination',
+              'operator' => '<>',
+              'value' => nil,
             },
           },
         },
@@ -230,17 +224,9 @@ module GrdaWarehouse
                 'value' => nil,
               },
               'right' => {
-                'operator' => 'or',
-                'left' => {
-                  'column' => 'destination',
-                  'operator' => '==',
-                  'value' => nil,
-                },
-                'right' => {
-                  'column' => 'destination',
-                  'operator' => '==',
-                  'value' => '',
-                },
+                'column' => 'destination',
+                'operator' => '==',
+                'value' => nil,
               },
             },
           },
