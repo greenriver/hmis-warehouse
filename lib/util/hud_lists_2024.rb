@@ -545,7 +545,6 @@ module HudLists2024
       8 => "Client doesn't know",
       9 => 'Client prefers not to answer',
       17 => 'Other',
-      35 => "Staying or living in a family member's room, apartment or house",
       37 => 'Worker unable to determine',
       99 => 'Data not collected',
       101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',

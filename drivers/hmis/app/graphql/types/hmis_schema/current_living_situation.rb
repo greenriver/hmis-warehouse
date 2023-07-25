@@ -23,6 +23,7 @@ module Types
     # TODO(2024) enable
     # hud_field :cls_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :verified_by
+    hud_field 'CLSSubsidyType', HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :leave_situation14_days, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :subsequent_residence, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :resources_to_obtain, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
