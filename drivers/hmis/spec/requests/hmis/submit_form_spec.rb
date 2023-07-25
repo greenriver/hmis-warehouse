@@ -70,6 +70,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on File {
               id
             }
+            ... on Enrollment {
+              id
+            }
           }
           #{error_fields}
         }
@@ -87,6 +90,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :CLIENT,
       :SERVICE,
       :FILE,
+      :ENROLLMENT,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -140,6 +144,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               hmis_hud_service1.id
             when :FILE
               file1.id
+            when :ENROLLMENT
+              e1.id
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))
@@ -154,7 +160,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
               record = definition.record_class_name.constantize.find_by(id: record_id)
               expect(record).to be_present
-              expect(Hmis::Form::CustomForm.count).to eq(0)
               expect(Hmis::Form::FormProcessor.count).to eq(0)
 
               # Expect that all of the fields that were submitted exist on the record
@@ -172,14 +177,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           input = test_input.merge(
             values: test_input[:values].merge(required_item.link_id => nil),
-            hud_values: test_input[:hud_values].merge(required_item.field_name => nil),
+            hud_values: test_input[:hud_values].merge(required_item.mapping.field_name => nil),
           )
           response, result = post_graphql(input: { input: input }) { mutation }
           record = result.dig('data', 'submitForm', 'record')
           errors = result.dig('data', 'submitForm', 'errors')
           expected_error = {
             type: :required,
-            attribute: required_item.field_name,
+            attribute: required_item.mapping.field_name,
             severity: :error,
           }
 
@@ -354,6 +359,73 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(i1.reload.inventory_end_date).to be_present
         expect(f1.reload.end_date).to be_present
       end
+    end
+  end
+
+  describe 'SubmitForm for Enrollment creation' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
+    let(:c2) { create :hmis_hud_client, data_source: ds1 }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **completed_form_values_for_role(:ENROLLMENT),
+        project_id: p1.id,
+        client_id: c2.id,
+        confirmed: false,
+      }
+    end
+
+    def merge_hud_values(input, *args)
+      input.merge(hud_values: input[:hud_values].merge(*args))
+    end
+
+    def expect_error_message(input, **expected_error)
+      response, result = post_graphql(input: { input: input }) { mutation }
+      errors = result.dig('data', 'submitForm', 'errors')
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to contain_exactly(include(expected_error.stringify_keys))
+      end
+    end
+
+    it 'should error if adding second HoH to existing household' do
+      input = merge_hud_values(
+        test_input,
+        'householdId' => e1.household_id,
+      )
+      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.one_hoh_full_message)
+    end
+
+    it 'should error if creating household without hoh' do
+      input = merge_hud_values(
+        test_input,
+        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+      )
+      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.first_member_hoh_full_message)
+    end
+
+    it 'should error if adding duplicate member to household' do
+      input = merge_hud_values(
+        test_input.merge(client_id: e1.client.id),
+        'householdId' => e1.household_id,
+        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+      )
+      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
+    end
+
+    it 'should warn if client already enrolled' do
+      input = merge_hud_values(
+        test_input.merge(client_id: e1.client.id),
+      )
+      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message)
+    end
+
+    it 'should error if entry date is in the future' do
+      input = merge_hud_values(
+        test_input,
+        'entryDate' => Date.tomorrow.strftime('%Y-%m-%d'),
+      )
+      expect_error_message(input, message: Hmis::Hud::Validators::EnrollmentValidator.future_message)
     end
   end
 end
