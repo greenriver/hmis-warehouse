@@ -1,0 +1,13 @@
+{
+  "item": [
+    {
+      "link_id": "4.13",
+      "type": "DATE",
+      "text": "Date of Engagement",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "dateOfEngagement"
+      }
+    }
+  ]
+}

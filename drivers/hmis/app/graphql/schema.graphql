@@ -1286,10 +1286,12 @@ enum CurrentSchoolAttended {
 }
 
 type CustomDataElement {
+  atOccurrence: Boolean!
   id: ID!
   key: String!
   label: String!
   repeats: Boolean!
+  type: String!
   value: CustomDataElementValue
   values: [CustomDataElementValue!]
 }
@@ -3062,6 +3064,11 @@ enum FormRole {
   CUSTOM
 
   """
+  (DATE_OF_ENGAGEMENT) Date of Engagement
+  """
+  DATE_OF_ENGAGEMENT
+
+  """
   (ENROLLMENT) Enrollment
   """
   ENROLLMENT
@@ -3092,6 +3099,11 @@ enum FormRole {
   INVENTORY
 
   """
+  (MOVE_IN_DATE) Move-in Date
+  """
+  MOVE_IN_DATE
+
+  """
   (ORGANIZATION) Organization
   """
   ORGANIZATION
@@ -3120,6 +3132,11 @@ enum FormRole {
   (SERVICE) Service
   """
   SERVICE
+
+  """
+  (UNIT_ASSIGNMENT) Unit Assignment
+  """
+  UNIT_ASSIGNMENT
 
   """
   (UPDATE) Update Assessment
@@ -5137,6 +5154,7 @@ type Project {
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
+  hasUnits: Boolean!
   households(filters: HouseholdFilterOptions, limit: Int, offset: Int, sortOrder: HouseholdSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!

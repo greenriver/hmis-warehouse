@@ -34,9 +34,19 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FILE: 'File',
     REFERRAL_REQUEST: 'Referral Request',
     ENROLLMENT: 'Enrollment',
+    # Occurrence-point collection forms
+    MOVE_IN_DATE: 'Move-in Date',
+    DATE_OF_ENGAGEMENT: 'Date of Engagement',
+    UNIT_ASSIGNMENT: 'Unit Assignment',
   }.freeze
 
   validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
+
+  ENROLLMENT_CONFIG = {
+    class_name: 'Hmis::Hud::Enrollment',
+    permission: :can_edit_enrollments,
+    resolve_as: 'Types::HmisSchema::Enrollment',
+  }.freeze
 
   FORM_ROLE_CONFIG = {
     SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
@@ -57,7 +67,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: :can_manage_incoming_referrals,
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
-    ENROLLMENT: { class_name: 'Hmis::Hud::Enrollment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Enrollment' },
+    ENROLLMENT: ENROLLMENT_CONFIG,
+    MOVE_IN_DATE: ENROLLMENT_CONFIG,
+    DATE_OF_ENGAGEMENT: ENROLLMENT_CONFIG,
+    UNIT_ASSIGNMENT: ENROLLMENT_CONFIG,
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
