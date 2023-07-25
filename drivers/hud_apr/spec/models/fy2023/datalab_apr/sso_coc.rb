@@ -48,10 +48,11 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6c',
-        # FIXME: see airtable below for details
         # Need to compare who's in B4 and who should be in the overall count of people with an annual assessment
         # test kit has 50% error rate for one person, we have 100%
-        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recrrcX718GygIUxt (50)
+        # https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recrrcX718GygIUxt (50)
+        # 689253 was enrolled on the report start date, so we don't think they should be included... Ignoring
+        # as the report is being revised anyway.
         skip: [
           'C4',
         ],
@@ -391,8 +392,11 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26a',
-        # pending AirTable 1/13/2023 related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
+        # https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recPqCTCPFGLLpBON
+        # Related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
         # also pending outcome of HMIS Glossary changes to CH calculations
+        # AirTable https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recPqCTCPFGLLpBON disagrees with the AAQ,
+        # but is fixed in the 2024 glossary
         skip: [
           'B3',
           'E3',
@@ -408,6 +412,8 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         question: 'Q26b',
         # pending AirTable 1/13/2023 related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
         # also pending outcome of HMIS Glossary changes to CH calculations
+        # AirTable https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recPqCTCPFGLLpBON disagrees with the AAQ,
+        # but is fixed in the 2024 glossary
         skip: [
           'B3',
           'E3',
@@ -519,9 +525,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27i',
-        # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
-        # and https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJd87KB7pyODgD1 (48)
-        # IncomeFromAnySource = 0, but do have earned income
+        # Pending AAQ: https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJjcOLKKV4YHBWs
         skip: [
           'M14',
         ],

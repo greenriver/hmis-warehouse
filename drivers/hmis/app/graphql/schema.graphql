@@ -2334,6 +2334,7 @@ type Enrollment {
   reasonNotEnrolled: ReasonNotEnrolled
   referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
+  reminders: [Reminder!]!
   runawayYouth: NoYesReasonsForMissingData
   services(filters: ServicesForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   sexualOrientation: SexualOrientation
@@ -6179,6 +6180,23 @@ enum RelationshipToHoH {
   (5) Unrelated household member
   """
   UNRELATED_HOUSEHOLD_MEMBER
+}
+
+type Reminder {
+  client: Client!
+  dueDate: ISO8601Date
+  enrollment: Enrollment!
+  id: ID!
+  overdue: Boolean!
+  topic: ReminderTopic!
+}
+
+enum ReminderTopic {
+  aged_into_adulthood
+  annual_assessment
+  current_living_situation
+  exit_incomplete
+  intake_incomplete
 }
 
 """

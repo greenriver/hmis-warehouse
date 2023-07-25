@@ -127,6 +127,15 @@ module Types
 
     field :current_unit, HmisSchema::Unit, null: true
 
+    field :reminders, [HmisSchema::Reminder], null: false
+
+    def reminders
+      # assumption is this is called on a single record; we aren't solving n+1 queries
+      project = object.project
+      enrollments = project.enrollments_including_wip.where(household_id: object.HouseholdID)
+      Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
+    end
+
     def project
       if object.in_progress?
         wip = load_ar_association(object, :wip)
