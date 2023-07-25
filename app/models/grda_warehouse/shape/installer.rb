@@ -61,15 +61,18 @@ module GrdaWarehouse
           conf.klass.delete_all
 
           ActiveRecord::Base.logger.silence do
-            ::File.open("shape_files/#{conf.dir}/inserts.sql", 'r') do |fin|
-              fin.each_line.with_index do |line, i|
-                begin
-                  GrdaWarehouseBase.connection.exec_query(line)
-                rescue PG::InternalError => e
-                  Rails.logger.error e.message
-                end
+            filename = "shape_files/#{conf.dir}/inserts.sql"
+            if ::File.exist?(filename)
+              ::File.open(filename, 'r') do |fin|
+                fin.each_line.with_index do |line, i|
+                  begin
+                    GrdaWarehouseBase.connection.exec_query(line)
+                  rescue PG::InternalError => e
+                    Rails.logger.error e.message
+                  end
 
-                Rails.logger.info "Inserted another 100 #{conf.klass} into the database" if (i % 100).zero? && i.positive?
+                  Rails.logger.info "Inserted another 100 #{conf.klass} into the database" if (i % 100).zero? && i.positive?
+                end
               end
             end
           end

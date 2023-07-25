@@ -51,7 +51,7 @@ class Dba::DatabaseBloat
   def show_cache_hits!
     cache_hit_rates.each do |row|
       if row['ratio'].to_f < 0.7
-        Rails.logger.warn "Cache #{row['name']} is too low in #{row['current_database']}: #{row['ratio'].round(2)}"
+        Rails.logger.warn "Cache #{row['name']} is too low in #{row['current_database']}: #{row['ratio']&.round(2)}"
       elsif row['ratio'].to_f < 0.85
         Rails.logger.info "Cache #{row['name']} is a little low in #{row['current_database']}: #{row['ratio'].round(2)}"
       end
@@ -70,7 +70,7 @@ class Dba::DatabaseBloat
   def reindex!
     catch(:enough) do
       bloated_indexes.each.with_index do |row, i|
-        sql = %<REINDEX INDEX CONCURRENTLY "#{row['schemaname']}"."#{row['idxname']}";>
+        sql = %(REINDEX INDEX CONCURRENTLY "#{row['schemaname']}"."#{row['idxname']}";)
         Rails.logger.info("EVIDENCE: #{row}")
         run(sql)
         throw :enough if i + 1 == MAX_PER_RUN && !dry_run
@@ -78,11 +78,11 @@ class Dba::DatabaseBloat
     end
   end
 
-  # This aquires an aggresive (exclusive) lock.
+  # This acquires an aggressive (exclusive) lock.
   def vacuum_full!
     catch(:enough) do
       bloated_tables.each.with_index do |row, i|
-        sql = %<VACUUM FULL "#{row['schemaname']}"."#{row['tblname']}";>
+        sql = %(VACUUM FULL "#{row['schemaname']}"."#{row['tblname']}";)
         Rails.logger.info("EVIDENCE: #{row}")
 
         run(sql)
@@ -112,8 +112,7 @@ class Dba::DatabaseBloat
                  autovacuum_analyze_threshold,
                  autovacuum_analyze_scale_factor,
                  autovacuum_vacuum_threshold,
-                 autovacuum_vacuum_scale_factor
-                )
+                 autovacuum_vacuum_scale_factor)
     Rails.logger.info sql
     run(sql)
   end
@@ -122,7 +121,7 @@ class Dba::DatabaseBloat
   # aquire exlusive locks on the table
   def repack!
     catch(:enough) do
-      port = ar_base_class.connection_db_config.configuration_hash[:port].presence || "5432"
+      port = ar_base_class.connection_db_config.configuration_hash[:port].presence || '5432'
       host = File.exist?(ar_base_class.connection_db_config.configuration_hash[:host].to_s) ? CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) : ar_base_class.connection_db_config.configuration_hash[:host]
       username = ar_base_class.connection_db_config.configuration_hash[:username]
       database = ar_base_class.connection_db_config.configuration_hash[:database]
@@ -137,14 +136,12 @@ class Dba::DatabaseBloat
 
         cmd = "pg_repack #{options}"
 
-        raise "version of pg_repack needs to match that in the database"
+        raise 'version of pg_repack needs to match that in the database'
 
-        Rails.logger.info("Repacking #{row['tblname']}")
+        Rails.logger.info("Repacking #{row['tblname']}") # rubocop:disable Lint/UnreachableCode
         system(cmd)
 
-        if $?.exitstatus != 0
-          raise "running repack failed."
-        end
+        raise 'running repack failed.' if $?.exitstatus != 0 # rubocop:disable Style/SpecialGlobalVars
 
         adjust_autovacuum_for(row)
 
@@ -158,7 +155,7 @@ class Dba::DatabaseBloat
   # for finding bloat, etc. Harmless things only
   def always_run(sql)
     results = nil
-    r = Benchmark.measure do
+    Benchmark.measure do
       results = ar_base_class.connection.exec_query(sql)
     end
     results
@@ -166,16 +163,16 @@ class Dba::DatabaseBloat
 
   # for the dangerous queries
   def run(sql)
-    Rails.logger.info "#{sql}"
+    Rails.logger.info sql.to_s
 
-    if !dry_run
-      results = nil
-      r = Benchmark.measure do
-        results = ar_base_class.connection.exec_query(sql)
-      end
-      Rails.logger.info "Ran in #{r.real} seconds"
-      results
+    return if dry_run
+
+    results = nil
+    r = Benchmark.measure do
+      results = ar_base_class.connection.exec_query(sql)
     end
+    Rails.logger.info "Ran in #{r.real} seconds"
+    results
   end
 
   def bloated_tables
@@ -309,127 +306,127 @@ class Dba::DatabaseBloat
 
   def bloated_indexes_sql
     <<~SQL
-    with results AS (
-        SELECT current_database(), nspname AS schemaname, tblname, idxname, bs*(relpages)::bigint AS real_size,
-          bs*(relpages-est_pages)::bigint AS extra_size,
-          100 * (relpages-est_pages)::float / relpages AS extra_pct,
-          fillfactor,
-          CASE WHEN relpages > est_pages_ff
-            THEN bs*(relpages-est_pages_ff)
-            ELSE 0
-          END AS bloat_size,
-          100 * (relpages-est_pages_ff)::float / relpages AS bloat_pct,
-          is_na
-          -- , 100-(pst).avg_leaf_density AS pst_avg_bloat, est_pages, index_tuple_hdr_bm, maxalign, pagehdr, nulldatawidth, nulldatahdrwidth, reltuples, relpages -- (DEBUG INFO)
-        FROM (
-          SELECT coalesce(1 +
-                 ceil(reltuples/floor((bs-pageopqdata-pagehdr)/(4+nulldatahdrwidth)::float)), 0 -- ItemIdData size + computed avg size of a tuple (nulldatahdrwidth)
-              ) AS est_pages,
-              coalesce(1 +
-                 ceil(reltuples/floor((bs-pageopqdata-pagehdr)*fillfactor/(100*(4+nulldatahdrwidth)::float))), 0
-              ) AS est_pages_ff,
-              bs, nspname, tblname, idxname, relpages, fillfactor, is_na
-              -- , pgstatindex(idxoid) AS pst, index_tuple_hdr_bm, maxalign, pagehdr, nulldatawidth, nulldatahdrwidth, reltuples -- (DEBUG INFO)
+      with results AS (
+          SELECT current_database(), nspname AS schemaname, tblname, idxname, bs*(relpages)::bigint AS real_size,
+            bs*(relpages-est_pages)::bigint AS extra_size,
+            100 * (relpages-est_pages)::float / relpages AS extra_pct,
+            fillfactor,
+            CASE WHEN relpages > est_pages_ff
+              THEN bs*(relpages-est_pages_ff)
+              ELSE 0
+            END AS bloat_size,
+            100 * (relpages-est_pages_ff)::float / relpages AS bloat_pct,
+            is_na
+            -- , 100-(pst).avg_leaf_density AS pst_avg_bloat, est_pages, index_tuple_hdr_bm, maxalign, pagehdr, nulldatawidth, nulldatahdrwidth, reltuples, relpages -- (DEBUG INFO)
           FROM (
-              SELECT maxalign, bs, nspname, tblname, idxname, reltuples, relpages, idxoid, fillfactor,
-                    ( index_tuple_hdr_bm +
-                        maxalign - CASE -- Add padding to the index tuple header to align on MAXALIGN
-                          WHEN index_tuple_hdr_bm%maxalign = 0 THEN maxalign
-                          ELSE index_tuple_hdr_bm%maxalign
-                        END
-                      + nulldatawidth + maxalign - CASE -- Add padding to the data to align on MAXALIGN
-                          WHEN nulldatawidth = 0 THEN 0
-                          WHEN nulldatawidth::integer%maxalign = 0 THEN maxalign
-                          ELSE nulldatawidth::integer%maxalign
-                        END
-                    )::numeric AS nulldatahdrwidth, pagehdr, pageopqdata, is_na
-                    -- , index_tuple_hdr_bm, nulldatawidth -- (DEBUG INFO)
-              FROM (
-                  SELECT n.nspname, i.tblname, i.idxname, i.reltuples, i.relpages,
-                      i.idxoid, i.fillfactor, current_setting('block_size')::numeric AS bs,
-                      CASE -- MAXALIGN: 4 on 32bits, 8 on 64bits (and mingw32 ?)
-                        WHEN version() ~ 'mingw32' OR version() ~ '64-bit|x86_64|ppc64|ia64|amd64' THEN 8
-                        ELSE 4
-                      END AS maxalign,
-                      /* per page header, fixed size: 20 for 7.X, 24 for others */
-                      24 AS pagehdr,
-                      /* per page btree opaque data */
-                      16 AS pageopqdata,
-                      /* per tuple header: add IndexAttributeBitMapData if some cols are null-able */
-                      CASE WHEN max(coalesce(s.null_frac,0)) = 0
-                          THEN 2 -- IndexTupleData size
-                          ELSE 2 + (( 32 + 8 - 1 ) / 8) -- IndexTupleData size + IndexAttributeBitMapData size ( max num filed per index + 8 - 1 /8)
-                      END AS index_tuple_hdr_bm,
-                      /* data len: we remove null values save space using it fractionnal part from stats */
-                      sum( (1-coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 1024)) AS nulldatawidth,
-                      max( CASE WHEN i.atttypid = 'pg_catalog.name'::regtype THEN 1 ELSE 0 END ) > 0 AS is_na
-                  FROM (
-                      SELECT ct.relname AS tblname, ct.relnamespace, ic.idxname, ic.attpos, ic.indkey, ic.indkey[ic.attpos], ic.reltuples, ic.relpages, ic.tbloid, ic.idxoid, ic.fillfactor,
-                          coalesce(a1.attnum, a2.attnum) AS attnum, coalesce(a1.attname, a2.attname) AS attname, coalesce(a1.atttypid, a2.atttypid) AS atttypid,
-                          CASE WHEN a1.attnum IS NULL
-                          THEN ic.idxname
-                          ELSE ct.relname
-                          END AS attrelname
-                      FROM (
-                          SELECT idxname, reltuples, relpages, tbloid, idxoid, fillfactor, indkey,
-                              pg_catalog.generate_series(1,indnatts) AS attpos
-                          FROM (
-                              SELECT ci.relname AS idxname, ci.reltuples, ci.relpages, i.indrelid AS tbloid,
-                                  i.indexrelid AS idxoid,
-                                  coalesce(substring(
-                                      array_to_string(ci.reloptions, ' ')
-                                      from 'fillfactor=([0-9]+)')::smallint, 90) AS fillfactor,
-                                  i.indnatts,
-                                  pg_catalog.string_to_array(pg_catalog.textin(
-                                      pg_catalog.int2vectorout(i.indkey)),' ')::int[] AS indkey
-                              FROM pg_catalog.pg_index i
-                              JOIN pg_catalog.pg_class ci ON ci.oid = i.indexrelid
-                              WHERE ci.relam=(SELECT oid FROM pg_am WHERE amname = 'btree')
-                              AND ci.relpages > 0
-                          ) AS idx_data
-                      ) AS ic
-                      JOIN pg_catalog.pg_class ct ON ct.oid = ic.tbloid
-                      LEFT JOIN pg_catalog.pg_attribute a1 ON
-                          ic.indkey[ic.attpos] <> 0
-                          AND a1.attrelid = ic.tbloid
-                          AND a1.attnum = ic.indkey[ic.attpos]
-                      LEFT JOIN pg_catalog.pg_attribute a2 ON
-                          ic.indkey[ic.attpos] = 0
-                          AND a2.attrelid = ic.idxoid
-                          AND a2.attnum = ic.attpos
-                    ) i
-                    JOIN pg_catalog.pg_namespace n ON n.oid = i.relnamespace
-                    JOIN pg_catalog.pg_stats s ON s.schemaname = n.nspname
-                                              AND s.tablename = i.attrelname
-                                              AND s.attname = i.attname
-                    GROUP BY 1,2,3,4,5,6,7,8,9,10,11
-              ) AS rows_data_stats
-          ) AS rows_hdr_pdg_stats
-        ) AS relation_stats
-      )
+            SELECT coalesce(1 +
+                   ceil(reltuples/floor((bs-pageopqdata-pagehdr)/(4+nulldatahdrwidth)::float)), 0 -- ItemIdData size + computed avg size of a tuple (nulldatahdrwidth)
+                ) AS est_pages,
+                coalesce(1 +
+                   ceil(reltuples/floor((bs-pageopqdata-pagehdr)*fillfactor/(100*(4+nulldatahdrwidth)::float))), 0
+                ) AS est_pages_ff,
+                bs, nspname, tblname, idxname, relpages, fillfactor, is_na
+                -- , pgstatindex(idxoid) AS pst, index_tuple_hdr_bm, maxalign, pagehdr, nulldatawidth, nulldatahdrwidth, reltuples -- (DEBUG INFO)
+            FROM (
+                SELECT maxalign, bs, nspname, tblname, idxname, reltuples, relpages, idxoid, fillfactor,
+                      ( index_tuple_hdr_bm +
+                          maxalign - CASE -- Add padding to the index tuple header to align on MAXALIGN
+                            WHEN index_tuple_hdr_bm%maxalign = 0 THEN maxalign
+                            ELSE index_tuple_hdr_bm%maxalign
+                          END
+                        + nulldatawidth + maxalign - CASE -- Add padding to the data to align on MAXALIGN
+                            WHEN nulldatawidth = 0 THEN 0
+                            WHEN nulldatawidth::integer%maxalign = 0 THEN maxalign
+                            ELSE nulldatawidth::integer%maxalign
+                          END
+                      )::numeric AS nulldatahdrwidth, pagehdr, pageopqdata, is_na
+                      -- , index_tuple_hdr_bm, nulldatawidth -- (DEBUG INFO)
+                FROM (
+                    SELECT n.nspname, i.tblname, i.idxname, i.reltuples, i.relpages,
+                        i.idxoid, i.fillfactor, current_setting('block_size')::numeric AS bs,
+                        CASE -- MAXALIGN: 4 on 32bits, 8 on 64bits (and mingw32 ?)
+                          WHEN version() ~ 'mingw32' OR version() ~ '64-bit|x86_64|ppc64|ia64|amd64' THEN 8
+                          ELSE 4
+                        END AS maxalign,
+                        /* per page header, fixed size: 20 for 7.X, 24 for others */
+                        24 AS pagehdr,
+                        /* per page btree opaque data */
+                        16 AS pageopqdata,
+                        /* per tuple header: add IndexAttributeBitMapData if some cols are null-able */
+                        CASE WHEN max(coalesce(s.null_frac,0)) = 0
+                            THEN 2 -- IndexTupleData size
+                            ELSE 2 + (( 32 + 8 - 1 ) / 8) -- IndexTupleData size + IndexAttributeBitMapData size ( max num filed per index + 8 - 1 /8)
+                        END AS index_tuple_hdr_bm,
+                        /* data len: we remove null values save space using it fractionnal part from stats */
+                        sum( (1-coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 1024)) AS nulldatawidth,
+                        max( CASE WHEN i.atttypid = 'pg_catalog.name'::regtype THEN 1 ELSE 0 END ) > 0 AS is_na
+                    FROM (
+                        SELECT ct.relname AS tblname, ct.relnamespace, ic.idxname, ic.attpos, ic.indkey, ic.indkey[ic.attpos], ic.reltuples, ic.relpages, ic.tbloid, ic.idxoid, ic.fillfactor,
+                            coalesce(a1.attnum, a2.attnum) AS attnum, coalesce(a1.attname, a2.attname) AS attname, coalesce(a1.atttypid, a2.atttypid) AS atttypid,
+                            CASE WHEN a1.attnum IS NULL
+                            THEN ic.idxname
+                            ELSE ct.relname
+                            END AS attrelname
+                        FROM (
+                            SELECT idxname, reltuples, relpages, tbloid, idxoid, fillfactor, indkey,
+                                pg_catalog.generate_series(1,indnatts) AS attpos
+                            FROM (
+                                SELECT ci.relname AS idxname, ci.reltuples, ci.relpages, i.indrelid AS tbloid,
+                                    i.indexrelid AS idxoid,
+                                    coalesce(substring(
+                                        array_to_string(ci.reloptions, ' ')
+                                        from 'fillfactor=([0-9]+)')::smallint, 90) AS fillfactor,
+                                    i.indnatts,
+                                    pg_catalog.string_to_array(pg_catalog.textin(
+                                        pg_catalog.int2vectorout(i.indkey)),' ')::int[] AS indkey
+                                FROM pg_catalog.pg_index i
+                                JOIN pg_catalog.pg_class ci ON ci.oid = i.indexrelid
+                                WHERE ci.relam=(SELECT oid FROM pg_am WHERE amname = 'btree')
+                                AND ci.relpages > 0
+                            ) AS idx_data
+                        ) AS ic
+                        JOIN pg_catalog.pg_class ct ON ct.oid = ic.tbloid
+                        LEFT JOIN pg_catalog.pg_attribute a1 ON
+                            ic.indkey[ic.attpos] <> 0
+                            AND a1.attrelid = ic.tbloid
+                            AND a1.attnum = ic.indkey[ic.attpos]
+                        LEFT JOIN pg_catalog.pg_attribute a2 ON
+                            ic.indkey[ic.attpos] = 0
+                            AND a2.attrelid = ic.idxoid
+                            AND a2.attnum = ic.attpos
+                      ) i
+                      JOIN pg_catalog.pg_namespace n ON n.oid = i.relnamespace
+                      JOIN pg_catalog.pg_stats s ON s.schemaname = n.nspname
+                                                AND s.tablename = i.attrelname
+                                                AND s.attname = i.attname
+                      GROUP BY 1,2,3,4,5,6,7,8,9,10,11
+                ) AS rows_data_stats
+            ) AS rows_hdr_pdg_stats
+          ) AS relation_stats
+        )
 
-      SELECT
-        current_database,
-        schemaname,
-        tblname,
-        idxname,
-        pg_size_pretty(real_size::bigint) as real_size,
-        pg_size_pretty(extra_size::bigint) as extra_size,
-        round(extra_pct) as extra_pct,
-        round(bloat_pct) as bloat_pct,
-        pg_size_pretty(bloat_size::bigint) as bloat_size_pretty,
-        bloat_size,
-        fillfactor
-      from
-        results
-      WHERE
-        NOT is_na
-        AND schemaname not in ('information_schema', 'pg_catalog')
-        AND bloat_size > #{SIZE_CUTOFF}
-        -- fillfactor is purposeful bloat/wasted space so subtract it out
-        AND (bloat_pct - (100 - fillfactor)) >= #{BLOAT_CUTOFF}
-      ORDER BY
-        bloat_size desc
+        SELECT
+          current_database,
+          schemaname,
+          tblname,
+          idxname,
+          pg_size_pretty(real_size::bigint) as real_size,
+          pg_size_pretty(extra_size::bigint) as extra_size,
+          round(extra_pct) as extra_pct,
+          round(bloat_pct) as bloat_pct,
+          pg_size_pretty(bloat_size::bigint) as bloat_size_pretty,
+          bloat_size,
+          fillfactor
+        from
+          results
+        WHERE
+          NOT is_na
+          AND schemaname not in ('information_schema', 'pg_catalog')
+          AND bloat_size > #{SIZE_CUTOFF}
+          -- fillfactor is purposeful bloat/wasted space so subtract it out
+          AND (bloat_pct - (100 - fillfactor)) >= #{BLOAT_CUTOFF}
+        ORDER BY
+          bloat_size desc
     SQL
   end
 

@@ -19,25 +19,60 @@ module Types
 
     CODE_PATTERN = /^\(([0-9]*)\) /
 
-    def self.options_for_type(pick_list_type, user:, relation_id: nil)
-      # NOTE: relation_id is not necessarily a project id, that depends on the pick list type
-      project = Hmis::Hud::Project.find_by(id: relation_id) if relation_id.present?
+    def self.options_for_type(pick_list_type, user:, project_id: nil, client_id: nil, household_id: nil)
+      result = static_options_for_type(pick_list_type)
+      return result if result.present?
+
+      project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
+      client = Hmis::Hud::Client.viewable_by(user).find_by(id: client_id) if client_id.present?
 
       case pick_list_type
       when 'COC'
         coc_picklist(project)
+      when 'PROJECT'
+        Hmis::Hud::Project.viewable_by(user).
+          joins(:organization).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
+      when 'ENROLLABLE_PROJECTS'
+        Hmis::Hud::Project.viewable_by(user).with_access(user, :can_enroll_clients).
+          joins(:organization).
+          sort_by_option(:organization_and_name).
+          preload(:organization).
+          map(&:to_pick_list_option)
+      when 'ORGANIZATION'
+        Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
+      when 'AVAILABLE_SERVICE_TYPES'
+        available_service_types_picklist(project)
+      when 'POSSIBLE_UNIT_TYPES_FOR_PROJECT'
+        possible_unit_types_for_project(project)
+      when 'AVAILABLE_UNIT_TYPES'
+        available_unit_types_for_project(project)
+      when 'AVAILABLE_UNITS_FOR_ENROLLMENT'
+        available_units_for_enrollment(project, household_id: household_id)
+      when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
+        open_hoh_enrollments_for_project(project)
+      when 'ENROLLMENTS_FOR_CLIENT'
+        enrollments_for_client(client)
+      end
+    end
+
+    # "Static" pick list options that do not depend on any other data
+    def self.static_options_for_type(pick_list_type)
+      case pick_list_type
       when 'STATE'
         state_picklist
       when 'GEOCODE'
         geocodes_picklist
+      when 'VAMC_STATION'
+        vamc_station_picklist
       when 'PRIOR_LIVING_SITUATION'
         living_situation_picklist(as: :prior)
       when 'ALL_SERVICE_TYPES'
         service_types_picklist
       when 'ALL_SERVICE_CATEGORIES'
         service_categories_picklist
-      when 'AVAILABLE_SERVICE_TYPES'
-        available_service_types_picklist(project)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_picklist(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
       when 'SUB_TYPE_PROVIDED_4'
@@ -48,83 +83,18 @@ module Types
         living_situation_picklist(as: :current)
       when 'DESTINATION'
         living_situation_picklist(as: :destination)
-      when 'PROJECT'
-        Hmis::Hud::Project.viewable_by(user).
-          joins(:organization).
-          sort_by_option(:organization_and_name).
-          map(&:to_pick_list_option)
-      when 'ENROLLABLE_PROJECTS'
-        Hmis::Hud::Project.viewable_by(user).with_access(user, :can_enroll_clients).
-          joins(:organization).
-          sort_by_option(:organization_and_name).
-          map(&:to_pick_list_option)
-      when 'ORGANIZATION'
-        Hmis::Hud::Organization.viewable_by(user).
-          sort_by_option(:name).
-          map(&:to_pick_list_option)
-
-      when 'UNIT_TYPES'
-        # If no project was specified, return all unit types
-        all_unit_types = Hmis::UnitType.order(:description, :id)
-        return all_unit_types.map(&:to_pick_list_option) unless relation_id.present?
-        return [] unless project.present? # relation id specified but project not found
-
-        unit_types_for_project(project, available_only: false)
-      when 'AVAILABLE_UNIT_TYPES'
-        return [] unless project.present?
-
-        unit_types_for_project(project, available_only: true)
-      when 'UNITS'
-        return [] unless project.present?
-
-        project.units.order(:name, :id).map(&:to_pick_list_option)
-      when 'AVAILABLE_UNITS'
-        return [] unless project.present?
-
-        project.units.unoccupied_on.order(:name, :id).map(&:to_pick_list_option)
       when 'AVAILABLE_FILE_TYPES'
         file_tag_picklist
-      when 'CLIENT_ENROLLMENTS'
-        client = Hmis::Hud::Client.viewable_by(user).find_by(id: relation_id)
-        return [] unless client.present?
-
-        client.enrollments.sort_by_option(:most_recent).map do |enrollment|
-          {
-            code: enrollment.id,
-            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
-          }
-        end
-
-      when 'ASSIGNED_REFERRAL_POSTING_STATUSES'
-        HmisExternalApis::AcHmis::ReferralPosting::ASSIGNED_STATUSES.map do |status|
-          {
-            code: status,
-            label: status.gsub(/_status\z/, '').humanize.titleize,
-          }
-        end
-      when 'DENIED_PENDING_REFERRAL_POSTING_STATUSES'
-        label_map = {
-          'assigned_status' => 'Send Back',
-          'denied_status' => 'Approve Denial',
-        }
-        HmisExternalApis::AcHmis::ReferralPosting::DENIAL_STATUSES.map do |status|
-          {
-            code: status,
-            label: label_map.fetch(status),
-          }
-        end
-      when 'REFERRAL_RESULT_TYPES'
-        # ::HudLists.referral_result_map
-        [
-          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(2), label: 'Client Rejected' },
-          { code: Types::HmisSchema::Enums::Hud::ReferralResult.key_for(3), label: 'Provider Rejected' },
-        ]
+      when 'ALL_UNIT_TYPES'
+        # used for referrals between projects
+        Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
       end
     end
 
-    def self.unit_types_for_project(project, available_only: false)
-      units = project.units
-      units = units.unoccupied_on if available_only
+    def self.available_unit_types_for_project(project)
+      return [] unless project.present?
+
+      units = project.units.unoccupied_on
 
       # Hash { unit type id => num unoccupied }
       unit_type_to_availability = units.group(:unit_type_id).count
@@ -137,6 +107,23 @@ module Types
           option[:secondary_label] = "#{num_left} available"
           option
         end
+    end
+
+    # UNIT_TYPES pick list should only return types that are "mapped" for this project. If there are
+    # no mappings it should return all unit types, which is the default behavior.
+    def self.possible_unit_types_for_project(project)
+      return [] unless project.present?
+
+      unit_type_scope = Hmis::UnitType.all
+      unit_type_ids = project.unit_type_mappings.active.pluck(:unit_type_id)
+      if unit_type_ids.any?
+        unit_type_ids += project.units.distinct.pluck(:unit_type_id) # include unit types for existing units
+        unit_type_scope = unit_type_scope.where(id: unit_type_ids)
+      end
+
+      unit_type_scope
+        .order(:description, :id)
+        .map(&:to_pick_list_option)
     end
 
     def self.coc_picklist(selected_project)
@@ -171,6 +158,17 @@ module Types
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
           initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
+        }
+      end
+    end
+
+    def self.vamc_station_picklist
+      Rails.cache.fetch('VAMC_STATION_OPTION_LIST', expires_in: 1.days) do
+        JSON.parse(File.read('drivers/hmis/lib/pick_list_data/vamc_stations.json'))
+      end.map do |obj|
+        {
+          code: obj['value'],
+          label: obj['text'],
         }
       end
     end
@@ -282,17 +280,84 @@ module Types
     end
 
     def self.file_tag_picklist
-      Hmis::File.all_available_tags.map do |tag|
+      tag_to_option = lambda do |tag|
         {
           code: tag.id,
           label: tag.name,
           group_code: tag.group,
           group_label: tag.group,
-          secondary_label: tag.included_info&.strip&.present? ? "(includes: #{tag.included_info})" : nil,
         }
-      end.
+      end
+
+      other, file_tags = Hmis::File.all_available_tags.partition { |tag| tag.name == 'Other' }
+      picklist = file_tags.
+        map { |tag| tag_to_option.call(tag) }.
         compact.
         sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+
+      # Put 'Other' at the end
+      picklist << tag_to_option.call(other.first) if other.any?
+      picklist.compact
+    end
+
+    def self.open_hoh_enrollments_for_project(project)
+      raise 'Project required' unless project.present?
+
+      # No need for viewable_by here because we know the project is already veiwable by the user
+      enrollments = project.enrollments.open_on_date
+        .heads_of_households
+        .preload(:client)
+        .preload(household: :enrollments)
+
+      enrollments.sort_by_option(:most_recent).map do |en|
+        client = en.client
+        household_size = en.household&.enrollments&.size || 0
+        other_size = household_size - 1 # more than hoh
+        desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
+        {
+          code: en.id,
+          label: "#{client.brief_name} #{desc} (Entered #{en.entry_date.strftime('%m/%d/%Y')})",
+        }
+      end
+    end
+
+    def self.enrollments_for_client(client)
+      raise 'Client required' unless client.present?
+
+      enrollments = client.enrollments.preload(:project, :exit)
+      enrollments.sort_by_option(:most_recent).map do |en|
+        {
+          code: en.id,
+          label: "#{en.project.project_name} (#{[en.entry_date.strftime('%m/%d/%Y'), en.exit_date&.strftime('%m/%d/%Y') || 'Active'].join(' - ')})",
+        }
+      end
+    end
+
+    def self.available_units_for_enrollment(project, household_id: nil)
+      raise 'Project required' unless project.present?
+
+      # Eligible units are unoccupied units, PLUS units occupied by household members
+      unoccupied_units = project.units.unoccupied_on.pluck(:id)
+
+      hh_units = if household_id.present?
+        hh_en_ids = project.enrollments_including_wip.where(household_id: household_id).pluck(:id)
+        Hmis::UnitOccupancy.active.joins(:enrollment).where(enrollment_id: hh_en_ids).pluck(:unit_id)
+      else
+        []
+      end
+
+      Hmis::Unit.where(id: unoccupied_units + hh_units).
+        preload(:unit_type).
+        order(:unit_type_id, :id).
+        map do |unit|
+          {
+            **unit.to_pick_list_option,
+            # If unit is already assigned to other members of this household, show that
+            secondary_label: hh_units.include?(unit.id) ? 'Assigned to Household' : nil,
+            # If household already has some units assigned, select one of them as default
+            initial_selected: unit.id == hh_units.first,
+          }
+        end
     end
   end
 end

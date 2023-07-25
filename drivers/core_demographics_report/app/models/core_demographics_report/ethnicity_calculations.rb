@@ -22,11 +22,11 @@ module
     end
 
     def ethnicity_count(type)
-      ethnicity_breakdowns[type]&.count&.presence || 0
+      mask_small_population(ethnicity_breakdowns[type]&.count&.presence || 0)
     end
 
     def ethnicity_percentage(type)
-      total_count = client_ethnicities.count
+      total_count = mask_small_population(client_ethnicities.count)
       return 0 if total_count.zero?
 
       of_type = ethnicity_count(type)

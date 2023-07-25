@@ -21,7 +21,7 @@ module WarehouseReports
         preload(client: :processed_service_history).
         distinct.
         select(:client_id)
-
+      @filter.errors.add(:project_type_codes, message: 'are required') if @filter.project_type_codes.blank?
       @clients = client_source.where(id: @enrollments).order(:LastName, :FirstName)
 
       respond_to do |format|

@@ -46,9 +46,9 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
   }
 
   updateTable(data, target) {
-    let link_base = target.dataset['table-link'];
+    let link_base = target.dataset['tableLink'];
     let table = this.createTable(data.table, link_base, data.link_params)
-    let table_name = target.dataset['table-name'];
+    let table_name = target.dataset['tableName'];
     if (table_name) {
       let table_header_html = document.createElement('h3');
       let table_header_text = document.createTextNode(table_name);
@@ -66,7 +66,6 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
     let row, cell, link, url;
     data.forEach(function (data_row, i) {
       row = document.createElement('tr');
-
       data_row.forEach(function (data_cell, j) {
         if(i > 0 && j > 0 && link_base) {
           url = new URL(link_base);
@@ -131,7 +130,7 @@ App.StimulusApp.register('chart-loader', class extends Stimulus.Controller {
         if (target) this.headerTarget.textContent = target.text;
         // Update the menu
         this.changerTargets.forEach(el => el.classList.remove('active'))
-        let active_menu_item = this.changerTargets.find(el => el.dataset['menu-item'] == json.chart);
+        let active_menu_item = this.changerTargets.find(el => el.dataset['menuItem'] == json.chart);
         if (active_menu_item) active_menu_item.classList.add('active');
         this.updateTable(json, target);
         this.disableLoader();

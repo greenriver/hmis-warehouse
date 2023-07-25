@@ -24,7 +24,7 @@ module Mutations
 
       # check access based on status
       validation_context = case posting.status
-      when 'assigned_status'
+      when 'assigned_status', 'accepted_pending_status'
         :hmis_user_action if current_user.can_manage_incoming_referrals_for?(posting.project)
       when 'denied_pending_status'
         :hmis_admin_action if current_user.can_manage_denied_referrals?
@@ -34,18 +34,25 @@ module Mutations
       posting.current_user = current_user
       posting.attributes = input.to_params
 
-      # if moving from assigned to accepted_pending
       posting_status_change = posting.changes['status']
 
-      posting.transaction do
+      with_logging_transaction(posting) do |logger|
         posting.save(context: validation_context) # context for validations
         errors.add_ar_errors(posting.errors.errors)
 
+        # if moving from assigned to accepted_pending, enroll household and assign to unit
         if errors.empty? && posting_status_change == ['assigned_status', 'accepted_pending_status']
+          # choose any available unit of type, error if none available
+          unit_to_assign = posting.project&.units&.unoccupied_on&.find_by(unit_type_id: posting.unit_type_id)
+          errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
+          raise ActiveRecord::Rollback if errors.any?
+
+          # build new household of WIP enrollments
           household_id ||= Hmis::Hud::Enrollment.generate_household_id
           build_enrollments(posting).each do |enrollment|
             enrollment.household_id = household_id
             if enrollment.valid?
+              enrollment.assign_unit(unit: unit_to_assign, start_date: enrollment.entry_date, user: current_user)
               enrollment.save_in_progress # this method will unset projectID and calls enrollment.save!
             else
               handle_error('Could not create valid enrollments')
@@ -53,14 +60,27 @@ module Mutations
           end
           posting.update!(household_id: household_id)
         end
+
+        # if moving from accepted_pending to denied_pending, remove WIP Enrollments
+        if errors.empty? && posting_status_change == ['accepted_pending_status', 'denied_pending_status']
+          # This should only happen on a race condition, we don't allow this status change if any members are enrolled
+          errors.add :base, :invalid, full_message: 'Cannot move household to denied pending, because some household members have completed intake assessments. Please exit clients instead.' if posting.enrollments.not_in_progress.exists?
+          raise ActiveRecord::Rollback if errors.any?
+
+          # Note: not checking for can_delete_enrollments permission because it's not needed for deleting WIP enrollments.
+          posting.enrollments.each(&:destroy!)
+        end
+
         raise ActiveRecord::Rollback if errors.any?
+
+        # send to link if:
+        # * the referral came from link
+        # * status has changed (status will be unchanged if user just updated note)
+        send_update(posting, logger) if posting.from_link? && posting_status_change.present?
       end
+
       return { errors: errors } if errors.any?
 
-      # send to link if:
-      # * the referral came from link
-      # * status has changed (status will be unchanged if user just updated note)
-      send_update(posting) if posting.from_link? && posting_status_change.present?
       # resend original referral request
       if posting_status_change == ['denied_pending_status', 'denied_status'] && input.resend_referral_request
         raise unless posting.from_link?
@@ -74,7 +94,17 @@ module Mutations
 
     protected
 
-    def send_update(posting)
+    def with_logging_transaction(posting)
+      logger = HmisExternalApis::OauthDeferredClientLogger.new
+      begin
+        posting.transaction { yield(logger) }
+      ensure
+        # ensure errors are persisted
+        logger.finalize!
+      end
+    end
+
+    def send_update(posting, logger)
       # Contact date should only be present when changing to AcceptedPending or DeniedPending
       contact_date = ['accepted_pending_status', 'denied_pending_status'].include?(posting.status) ? Time.current : nil
 
@@ -87,6 +117,7 @@ module Mutations
         referral_result_id: posting.referral_result_before_type_cast,
         contact_date: contact_date,
         requested_by: current_user.email,
+        logger: logger,
       )
     end
 

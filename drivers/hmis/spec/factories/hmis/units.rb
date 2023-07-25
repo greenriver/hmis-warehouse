@@ -28,5 +28,12 @@ FactoryBot.define do
     unit { association :hmis_unit }
     enrollment { association :hmis_hud_enrollment }
     occupancy_period { association :hmis_active_range }
+    transient do
+      start_date { 1.month.ago }
+      end_date { nil }
+    end
+    after(:create) do |uo, evaluator|
+      uo.occupancy_period.update(start_date: evaluator.start_date, end_date: evaluator.end_date)
+    end
   end
 end

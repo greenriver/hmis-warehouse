@@ -27,6 +27,7 @@ module HmisExternalApis::AcHmis
 
     # map from HudLists.referral_result_map to implementation-specific codes
     REFERRAL_RESULT_CODE_MAP = {
+      1 => 157, # 157 Successful referral: client accepted
       2 => 158, # 158 Unsuccessful referral: client rejected
       3 => 159, # 159 Unsuccessful referral: provider rejected
     }.freeze
@@ -39,7 +40,8 @@ module HmisExternalApis::AcHmis
     # @param denied_reason_text [String]
     # @param status_note [String]
     # @param contact_date [String] required when Posting status is Denied Pending or Accepted Pending
-    def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denial_note: nil, status_note: nil, contact_date: nil, referral_result_id: nil)
+    # @param logger [OauthClientLogger]
+    def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denial_note: nil, status_note: nil, contact_date: nil, referral_result_id: nil, logger: nil)
       payload = {
         posting_id: posting_id,
         posting_status_id: posting_status_id,
@@ -51,7 +53,11 @@ module HmisExternalApis::AcHmis
         requested_by: format_requested_by(requested_by),
       }.compact_blank
 
-      link.update_referral_posting_status(payload)
+      logger ||= HmisExternalApis::OauthClientLogger.new
+      link.with_logger(logger) do
+        Rails.logger.info "Updating status in LINK: #{payload.to_json}"
+        link.update_referral_posting_status(payload)
+      end
     end
   end
 end

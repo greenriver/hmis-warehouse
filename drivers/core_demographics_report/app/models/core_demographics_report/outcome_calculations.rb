@@ -27,10 +27,10 @@ module
         values = outcome_clients[type.to_sym].map(&:last)
         return 0 unless values.count.positive?
 
-        (values.sum.to_f / values.count).round
+        return (values.sum.to_f / values.count).round
       end
 
-      outcome_clients[type]&.count&.presence || 0
+      mask_small_population(outcome_clients[type]&.count&.presence || 0)
     end
 
     def outcome_percentage(type)

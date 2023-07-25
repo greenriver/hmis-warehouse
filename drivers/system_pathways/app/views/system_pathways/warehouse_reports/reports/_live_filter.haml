@@ -1,7 +1,7 @@
 = simple_form_for @filter, as: :filters, url: @report.show_path, method: :get do |f|
   .row
     .col
-      = render 'filters/filter_controls/races/input', f: f, control: OpenStruct.new(label: 'Race')
+      = f.input :races, collection: HudUtility.races(multi_racial: true).except('RaceNone').invert, required: false, input_html: { multiple: true, placeholder: 'Any Race' }, label: 'Race', as: :select_two, placeholder: 'Any Race'
     .col
       = render 'filters/filter_controls/ethnicities/input', f: f, control: OpenStruct.new(label: 'Ethnicity')
     .col

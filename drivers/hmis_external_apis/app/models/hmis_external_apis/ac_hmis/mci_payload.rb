@@ -12,7 +12,7 @@ module HmisExternalApis::AcHmis
       raise(Error, 'DOB is required') unless client.dob.present?
 
       {
-        'userID' => client.user&.user_email || 'greenriver',
+        'userID' => client.user&.user_email&.slice(0, 20),
         'firstName' => client.first_name,
         'middleName' => client.middle_name,
         'lastName' => client.last_name,

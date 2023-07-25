@@ -98,5 +98,22 @@ module Types
         date: GraphQL::Types::ISO8601Date,
       }.freeze
     end
+
+    # Does the current user have the given permission on entity?
+    # @param permission [Symbol] :can_do_foo
+    # @param entity [#record] Client, project, etc
+    def current_permission?(permission:, entity:)
+      return false unless current_user&.present?
+
+      # Just return false if we don't have this permission at all for anything
+      return false unless current_user.send("#{permission}?")
+
+      loader, subject = current_user.entity_access_loader_factory(entity) do |record, association|
+        load_ar_association(record, association)
+      end
+      raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader
+
+      dataloader.with(Sources::UserEntityAccessSource, loader).load([subject, permission])
+    end
   end
 end

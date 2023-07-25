@@ -75,6 +75,11 @@ module Filters
     attribute :lsa_scope, Integer, default: nil
     attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
+    attribute :dates_to_compare, Symbol, default: :entry_to_exit
+    attribute :required_files, Array, default: []
+    attribute :optional_files, Array, default: []
+    attribute :active_roi, Boolean, default: false
+    attribute :mask_small_populations, Boolean, default: false
 
     validates_presence_of :start, :end
 
@@ -157,6 +162,12 @@ module Filters
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
+      self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
+      self.mask_small_populations = filters.dig(:mask_small_populations).in?(['1', 'true', true]) unless filters.dig(:mask_small_populations).nil?
+
+      self.required_files = filters.dig(:required_files)&.reject(&:blank?)&.map(&:to_i).presence || required_files
+      self.optional_files = filters.dig(:optional_files)&.reject(&:blank?)&.map(&:to_i).presence || optional_files
+      self.active_roi = filters.dig(:active_roi).in?(['1', 'true', true]) unless filters.dig(:active_roi).nil?
 
       ensure_dates_work if valid?
       self
@@ -218,6 +229,10 @@ module Filters
           creator_id: creator_id,
           inactivity_days: inactivity_days,
           lsa_scope: lsa_scope,
+          required_files: required_files,
+          optional_files: optional_files,
+          active_roi: active_roi,
+          mask_small_populations: mask_small_populations,
         },
       }
     end
@@ -258,6 +273,9 @@ module Filters
         :cohort_column_voucher_type,
         :cohort_column_housed_date,
         :cohort_column_matched_date,
+        :dates_to_compare,
+        :active_roi,
+        :mask_small_populations,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -283,6 +301,8 @@ module Filters
         prior_living_situation_ids: [],
         length_of_times: [],
         times_homeless_in_last_three_years: [],
+        required_files: [],
+        optional_files: [],
       ]
     end
 
@@ -335,6 +355,10 @@ module Filters
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
         opts['Require Service During Range'] = 'Yes' if require_service_during_range
+        opts['Required Files'] = chosen_required_files if required_files.any?
+        opts['Optional Files'] = chosen_optional_files if required_files.any?
+        opts['With Active ROI'] = 'Yes' if active_roi
+        opts['Mask Small Populations'] = 'Yes' if mask_small_populations
       end
     end
 
@@ -451,10 +475,10 @@ module Filters
 
     # Apply all known scopes
     # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
-    def apply(scope, all_project_types: nil, multi_coc_code_filter: true)
+    def apply(scope, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true)
       @filter = self
       scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
+      scope = filter_for_range(scope) if include_date_range
       scope = if multi_coc_code_filter
         filter_for_cocs(scope)
       else
@@ -487,6 +511,8 @@ module Filters
       scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_cohorts(scope)
+      scope = filter_for_active_roi(scope)
       filter_for_times_homeless(scope)
     end
 
@@ -712,6 +738,10 @@ module Filters
 
     def available_times_homeless_in_last_three_years
       ::HudUtility.times_homeless_options
+    end
+
+    def available_file_tags
+      GrdaWarehouse::AvailableFileTag.grouped
     end
 
     def chosen_times_homeless_in_last_three_years
@@ -1098,6 +1128,10 @@ module Filters
         when 'With CE Assessment'
           'With CE Assessment'
         end
+      when :required_files
+        chosen_required_files
+      when :optional_files
+        chosen_optional_files
       else
         val = send(key)
         val.instance_of?(String) ? val.titleize : val
@@ -1228,6 +1262,18 @@ module Filters
       end.join(', ')
     end
 
+    def chosen_required_files
+      required_files.flat_map do |id|
+        available_file_tags.values.flatten.find { |f| f[:id] == id }[:name]
+      end.join(', ')
+    end
+
+    def chosen_optional_files
+      optional_files.flat_map do |id|
+        available_file_tags.values.flatten.find { |f| f[:id] == id }[:name]
+      end.join(', ')
+    end
+
     def chosen_currently_fleeing
       currently_fleeing.map do |id|
         available_currently_fleeing.invert[id]
@@ -1289,6 +1335,14 @@ module Filters
         with_children: 'Adult and Child Households',
         only_children: 'Child only Households',
       }.invert.freeze
+    end
+
+    def available_dates_to_compare
+      {
+        entry_to_exit: 'Entry to Exit',
+        date_to_street_to_entry: 'Date Homelessness Started to Entry',
+        date_to_street_to_exit: 'Date Homelessness Started to Exit',
+      }
     end
 
     def available_prior_living_situations(grouped: false)
