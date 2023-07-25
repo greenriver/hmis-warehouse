@@ -1,9 +1,13 @@
 module Hmis
   module Reminders
-    Reminder = Struct.new(:id, :topic, :due_date, :overdue, :enrollment, keyword_init: true) do
-      PLACEHOLDER_DATE = Date.current + 100.years
-      def sort_order
-        [due_date || PLACEHOLDER_DATE, id]
+    Reminder = Struct.new(:topic, :due_date, :overdue, :enrollment, keyword_init: true) do
+      # id is used for sorting on the front end
+      def id
+        "#{sortable_date}.#{enrollment.id}.#{topic}"
+      end
+
+      def sortable_date
+        (due_date || (Date.current + 100.years)).iso8601
       end
     end
   end

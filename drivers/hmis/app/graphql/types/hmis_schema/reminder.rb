@@ -18,5 +18,9 @@ module Types
     def client
       object.enrollment.client
     end
+
+    def overdue
+      !!object.overdue
+    end
   end
 end

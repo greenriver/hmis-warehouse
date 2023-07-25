@@ -24,16 +24,12 @@ module Hmis
             current_living_situation_reminder(enrollment),
           ].compact
         end
-        results.sort_by(&:sort_order)
       end
 
       protected
 
       def new_reminder(...)
-        @sequence ||= 0
-        @sequence += 1
         item = Hmis::Reminders::Reminder.new(...)
-        item.id = @sequence.to_s
         item.overdue = item.due_date && today >= item.due_date
         item
       end
@@ -176,28 +172,26 @@ module Hmis
       end
 
       # development cruft
-      # def fake_reminders
-      #   enrollment = enrollments.first
+      # def fake_reminders(enrollment)
       #   due_date = today
       #   [
       #     new_reminder(
       #       topic: ANNUAL_ASSESSMENT_TOPIC,
-      #       due_date: due_date,
+      #       due_date: due_date + 1.month,
       #       enrollment: enrollment,
       #     ),
       #     new_reminder(
       #       topic: AGED_INTO_ADULTHOOD_TOPIC,
-      #       due_date: due_date,
+      #       due_date: due_date - 2.months,
       #       enrollment: enrollment,
       #     ),
       #     new_reminder(
       #       topic: INTAKE_INCOMPLETE_TOPIC,
-      #       due_date: due_date,
+      #       due_date: due_date - 1.month,
       #       enrollment: enrollment,
       #     ),
       #     new_reminder(
       #       topic: EXIT_INCOMPLETE_TOPIC,
-      #       due_date: due_date,
       #       enrollment: enrollment,
       #     ),
       #     new_reminder(
