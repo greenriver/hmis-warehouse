@@ -154,8 +154,8 @@ class PerformanceDashboards::Base
     entries_current_period.where.not(period_exists_sql(previous_period))
   end
 
-  def entries_current_period
-    report_scope.entry_within_date_range(start_date: @filter.start_date, end_date: @filter.end_date).
+  def entries_current_period(all_project_types: false)
+    report_scope(all_project_types: all_project_types).entry_within_date_range(start_date: @filter.start_date, end_date: @filter.end_date).
       with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
   end
 
