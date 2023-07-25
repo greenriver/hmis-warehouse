@@ -15368,7 +15368,7 @@ CREATE VIEW public.hmis_households AS
    FROM (public."Enrollment"
      LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
   WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
-  GROUP BY "Enrollment"."HouseholdID";
+  GROUP BY "Enrollment"."HouseholdID", "Enrollment"."ProjectID", "Enrollment".data_source_id;
 
 
 --
@@ -53940,6 +53940,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230706112135'),
 ('20230706204940'),
 ('20230707143716'),
-('20230710183058');
+('20230710183058'),
+('20230724145057'),
+('20230725163336');
 
 
