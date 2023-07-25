@@ -58,7 +58,7 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q6e' do # FIXME
+    it 'Q6e' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6e',
@@ -247,14 +247,14 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q19a2' do # FIXME
+    it 'Q19a2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
       )
     end
 
-    it 'Q19b' do # FIXME
+    it 'Q19b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19b',
@@ -296,7 +296,7 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q22c' do # FIXME
+    it 'Q22c' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22c',
@@ -408,7 +408,6 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
     it 'Q26e' do
       compare_results(
         file_path: result_file_prefix + results_dir,
