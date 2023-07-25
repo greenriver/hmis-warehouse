@@ -309,8 +309,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22e',
-        # FIXME: previously
-        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
+        # FIXME: waiting on new test kit: https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'B7',
           'D7',
