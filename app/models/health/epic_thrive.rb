@@ -24,49 +24,58 @@ module Health
         'PAT_ID' => :patient_id,
         'row_id' => :id_in_source,
         'RECORDED_TIME' => :thrive_updated_at,
-        # "\"\"" => :reporter
-        # "\"\"" => :housing_status,
-        "\"Within the past 12 months; the food you bought just didn't last and you didn't have money to get more.\""	=>
+        'I am a:' => :reporter,
+        'What is your living situation today?' => :housing_status,
+        "Within the past 12 months; the food you bought just didn't last and you didn't have money to get more."	=>
           :food_insecurity,
-        '\"Within the past 12 months; you worried that your food would run out before you got money to buy more.\"'	=>
+        'Within the past 12 months; you worried that your food would run out before you got money to buy more.'	=>
           :food_worries,
-        '\"Do you have trouble paying for medicines?\"'	=> :trouble_drug_cost,
-        '\"Do you have trouble getting transportation to medical appointments?\"'	=> :trouble_medical_transportation,
-        '\"Do you have trouble paying your heating; water or electricity bill?\"'	=> :trouble_utility_cost,
-        '\"Do you have trouble taking care of a child; family member or friend?\"'	=> :trouble_caring_for_family,
-        '\"Do you have trouble with day-to-day activities such as bathing; preparing meals; shopping; managing finances; etc.?\"'	=> :trouble_with_adl, # Not on paper THRIVE
-        '\"Are you currently unemployed and looking for a job?\"'	=> :unemployed,
-        '\"Are you interested in more education?\"'	=> :interested_in_education,
-        '\"Please check the resources you want help with:\"' => :assistance,
+        'Do you have trouble paying for medicines?'	=> :trouble_drug_cost,
+        'Do you have trouble getting transportation to medical appointments?'	=> :trouble_medical_transportation,
+        'Do you have trouble paying your heating; water or electricity bill?'	=> :trouble_utility_cost,
+        'Do you have trouble taking care of a child; family member or friend?'	=> :trouble_caring_for_family,
+        'Do you have trouble with day-to-day activities such as bathing; preparing meals; shopping; managing finances; etc.?'	=> :trouble_with_adl, # Not on paper THRIVE
+        'Are you currently unemployed and looking for a job?'	=> :unemployed,
+        'Are you interested in more education?'	=> :interested_in_education,
+        'Please check the resources you want help with:' => :assistance,
         'row_created' => :created_at,
         'row_updated' => :updated_at,
+        'Number of positive responses to food security questions' => :positive_food_security_count,
+        'Number of positive responses to housing questions' => :positive_housing_questions_count,
       }.transform_keys(&:to_sym)
     end
 
     def self.update_thrive_assessments!
       HealthThriveAssessment::Assessment.transaction do
-        unprocessed.find_each(&:update_thrive_assessment)
+        unprocessed.find_each(&:update_thrive_assessment!)
       end
     end
 
     def update_thrive_assessment!
+      return unless patient.present?
+
       assessment = thrive_assessment.presence || build_thrive_assessment
 
       @any_answer = false
       @any_decline = false
 
-      # TODO: assessment.reporter =
+      assessment.reporter = case reporter
+      when 'Patient'
+        :patient
+      when 'Parent/Caregiver'
+        :caregiver
+      end
 
       assessment.housing_status = case housing_status
       when '0'
         @any_answer = true
-        assessment.steady
+        :steady
       when '1'
         @any_answer = true
-        assessment.at_risk
+        :at_risk
       when '2'
         @any_answer = true
-        assessment.homeless
+        :homeless
       when 'Declined'
         @any_decline = true
         nil
@@ -75,13 +84,13 @@ module Health
       assessment.food_insecurity = case food_insecurity
       when '0'
         @any_answer = true
-        assessment.food_insecurity_never
+        :never
       when '1'
         @any_answer = true
-        assessment.food_insecurity_sometimes
+        :sometimes
       when '2'
         @any_answer = true
-        assessment.food_insecurity_often
+        :often
       when 'Declined'
         @any_decline = true
         nil
@@ -90,13 +99,13 @@ module Health
       assessment.food_worries = case food_worries
       when '0'
         @any_answer = true
-        assessment.food_worries_never
+        :never
       when '1'
         @any_answer = true
-        assessment.food_worries_sometimes
+        :sometimes
       when '2'
         @any_answer = true
-        assessment.food_worries_often
+        :often
       when 'Declined'
         @any_decline = true
         nil
@@ -110,7 +119,7 @@ module Health
       assessment.unemployed = yes_no(unemployed)
       assessment.interested_in_education = yes_no(interested_in_education)
 
-      help_requests = assessment&.split(';')
+      help_requests = assistance&.split(';')
       if help_requests.present?
         assessment.help_with_housing = help_requests.include?('Housing/Shelter')
         assessment.help_with_food = help_requests.include?('Food')
