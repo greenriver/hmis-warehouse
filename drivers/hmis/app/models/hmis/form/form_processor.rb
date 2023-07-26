@@ -81,6 +81,11 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     owner
   end
 
+  def current_living_situation_factory(create: true)
+    owner.information_date = Date.today if create
+    owner
+  end
+
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     @service_factory ||= owner.owner if owner.is_a? Hmis::Hud::HmisService
   end
@@ -248,6 +253,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
+      CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
     }.freeze
   end
 
@@ -266,6 +272,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :exit_factory,
       :owner_factory,
       :service_factory,
+      :current_living_situation_factory,
       :youth_education_status_factory,
       :employment_education_factory,
     ]

@@ -59,7 +59,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
     ENROLLMENT: { class_name: 'Hmis::Hud::Enrollment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Enrollment' },
-    CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_ad: 'Types::HmisSchema::CurrentLivingSituation' },
+    CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {

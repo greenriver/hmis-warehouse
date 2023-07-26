@@ -118,7 +118,7 @@ class Hmis::EntityAccessLoaderFactory
       else
         block.call(entity, :project)
       end
-    when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService
+    when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService, Hmis::Hud::CurrentLivingSituation
       # This will cascade to enrollment.project
       block.call(entity, :enrollment)
     when Hmis::Hud::Project
@@ -130,6 +130,7 @@ class Hmis::EntityAccessLoaderFactory
     else
       resolve_through_project(entity, &block)
     end
+    puts '~~~~~', resolved, entity.attributes, '~~~~~'
     resolved ? resolve_entity(resolved, safety: safety + 1, &block) : nil
   end
 
