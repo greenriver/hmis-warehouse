@@ -24,7 +24,7 @@ module HmisExternalApis::AcHmis::Migration
       raise 'No remote credential for MCI Unique ID' unless ac_warehouse_cred.present?
 
       # { Client ID => Personal ID }
-      hmis_client_lookup = GrdaWarehouse::Hud::Client.where(data_source_id: data_source_id).
+      hmis_client_lookup = Hmis::Hud::Client.where(data_source_id: data_source_id).
         pluck(:id, :personal_id).to_h
 
       mci_unique_ids = hmis_client_lookup.map do |client_id, personal_id|
