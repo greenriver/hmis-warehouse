@@ -69,6 +69,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
     ENROLLMENT: ENROLLMENT_CONFIG,
+    # These are all basically Enrollment-editing forms ("occurrence point"),
+    # but they need different "roles" so that the frontend can request the correct one.
     MOVE_IN_DATE: ENROLLMENT_CONFIG,
     DATE_OF_ENGAGEMENT: ENROLLMENT_CONFIG,
     UNIT_ASSIGNMENT: ENROLLMENT_CONFIG,

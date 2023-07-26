@@ -32,7 +32,6 @@ module Types
             resolve_custom_data_elements(object)
           end
 
-          # FIXME can we use data loader to load the CDEDs? they only have a relationship via owner_type
           define_method(:resolve_custom_data_elements) do |record, definition_scope: nil|
             # Always resolve all _available_ custom element types for this record type,
             # (even if they have no value), so that they can be shown as empty if missing.
