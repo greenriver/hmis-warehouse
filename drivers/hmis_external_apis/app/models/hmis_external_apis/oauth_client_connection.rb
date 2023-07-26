@@ -7,17 +7,18 @@
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
   class OauthClientConnection
-    attr_accessor :creds, :client_id, :scope, :headers, :base_url, :connection_timeout
+    attr_accessor :creds, :client_id, :scope, :headers, :base_url, :connection_timeout, :logger
 
     # @param creds [::GrdaWarehouse::RemoteCredential]
-    def initialize(creds, connection_timeout: 5)
+    def initialize(creds, connection_timeout: 5, logger: OauthClientLogger.new)
       self.creds = creds
       self.client_id = creds.client_id
       self.scope = creds.oauth_scope
       # normalized base_url
-      self.base_url = creds.base_url.strip.gsub(%r{/*\z}, '')
+      self.base_url = creds.base_url.strip.gsub(/\/*\z/, '')
       self.headers = creds.additional_headers
       self.connection_timeout = connection_timeout
+      self.logger = logger
     end
 
     def get(path)
@@ -44,28 +45,15 @@ module HmisExternalApis
 
     private
 
-    def log_request(url:, method:, payload:, headers:)
-      HmisExternalApis::ExternalRequestLog.create!(
-        initiator: creds,
-        url: url,
-        http_method: method,
-        request: payload || {},
-        request_headers: headers,
-        requested_at: Time.current,
-        response: 'pending', # can't be null
-      )
-    end
-
     # normalize leading/trailing slashes
     def url_for(path)
       return base_url if path.blank?
 
-      base_url + '/' + path.strip.gsub(%r{\A/*}, '')
+      base_url + '/' + path.strip.gsub(/\A\/*/, '')
     end
 
     def request(verb, url, payload = nil)
-      request_log = log_request(url: url, method: verb, payload: payload, headers: merged_headers)
-      result =
+      result, request_log = logger.capture(creds: creds, url: url, method: verb, payload: payload, headers: merged_headers) do
         case verb
         when :get
           access.get(url, headers: merged_headers)
@@ -76,13 +64,6 @@ module HmisExternalApis
         else
           raise "invalid verb #{verb}"
         end
-
-      if result
-        request_log.update!(
-          content_type: result.content_type,
-          response: result.body,
-          http_status: result.status,
-        )
       end
 
       OauthClientResult.new(

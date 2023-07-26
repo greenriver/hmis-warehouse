@@ -16,6 +16,7 @@ module Types
     value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'GEOCODE'
     value 'STATE'
+    value 'VAMC_STATION'
     value 'PRIOR_LIVING_SITUATION'
     value 'CURRENT_LIVING_SITUATION'
     value 'DESTINATION'
@@ -33,8 +34,5 @@ module Types
     value 'AVAILABLE_FILE_TYPES'
     value 'ENROLLMENTS_FOR_CLIENT', 'Enrollments for the client, including WIP and Exited.'
     value 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT', 'Open HoH enrollments at the project.'
-    value 'REFERRAL_RESULT_TYPES', 'Referral Result '
-    value 'ASSIGNED_REFERRAL_POSTING_STATUSES', 'Referral Posting Status'
-    value 'DENIED_PENDING_REFERRAL_POSTING_STATUSES', 'Referral Posting Status'
   end
 end

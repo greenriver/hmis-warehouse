@@ -30,11 +30,11 @@ module
     end
 
     def dv_occurrence_count(type)
-      dv_occurrence_breakdowns[type]&.count&.presence || 0
+      mask_small_population(dv_occurrence_breakdowns[type]&.count&.presence || 0)
     end
 
     def dv_occurrence_percentage(type)
-      total_count = client_dv_occurrences.count
+      total_count = mask_small_population(client_dv_occurrences.count)
       return 0 if total_count.zero?
 
       of_type = dv_occurrence_count(type)
@@ -73,11 +73,11 @@ module
     end
 
     def dv_status_count(type)
-      dv_status_breakdowns[type]&.count&.presence || 0
+      mask_small_population(dv_status_breakdowns[type]&.count&.presence || 0)
     end
 
     def dv_status_percentage(type)
-      total_count = client_dv_stati.count
+      total_count = mask_small_population(client_dv_stati.count)
       return 0 if total_count.zero?
 
       of_type = dv_status_count(type)
