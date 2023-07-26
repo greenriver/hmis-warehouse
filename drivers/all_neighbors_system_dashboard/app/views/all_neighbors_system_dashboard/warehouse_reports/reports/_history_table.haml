@@ -13,13 +13,13 @@
           - @reports.each do |report|
             %tr
               %td
-                = link_to_if(report.completed?, report.status, all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboard_path(report, format: :xlsx))
+                = link_to_if(report.completed?, report.status, all_neighbors_system_dashboard_warehouse_reports_report_path(report, format: :xlsx))
               %th.report-parameters= report.describe_filter_as_html(report.known_params)
               %td.text-nowrap
                 = report.created_at
                 .text-sm.text-muted by #{report.user&.name}
               %td
-                = link_to all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboard_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
+                = link_to all_neighbors_system_dashboard_warehouse_reports_report_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
                   %i.icon-cross
     = render 'common/pagination_bottom', item_name: 'report'
   - else

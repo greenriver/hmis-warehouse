@@ -19,7 +19,7 @@ module AllNeighborsSystemDashboard
         [
           :all_neighbors_system_dashboard,
           :warehouse_reports,
-          :all_neighbors_system_dashboards,
+          :reports,
         ]
       end
 

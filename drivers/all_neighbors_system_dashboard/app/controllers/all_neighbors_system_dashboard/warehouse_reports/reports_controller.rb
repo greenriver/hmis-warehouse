@@ -5,7 +5,7 @@
 ###
 
 module AllNeighborsSystemDashboard::WarehouseReports
-  class AllNeighborsSystemDashboardsController < ApplicationController
+  class ReportsController < ApplicationController
     include WarehouseReportAuthorization
     include BaseFilters
 
@@ -37,7 +37,7 @@ module AllNeighborsSystemDashboard::WarehouseReports
         )
         # Make sure the form will work
         filters
-        respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboards_path)
+        respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_reports_path)
       else
         @pagy, @reports = pagy(report_scope.ordered)
         filters
@@ -58,7 +58,7 @@ module AllNeighborsSystemDashboard::WarehouseReports
 
     def destroy
       @report.destroy
-      respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboards_path)
+      respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_reports_path)
     end
 
     def filter_params
