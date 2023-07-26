@@ -221,6 +221,14 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
+      can_view_open_enrollment_summary: {
+        description: 'Grants access to view open enrollment summaries',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Enrollments',
+        ],
+      },
       can_edit_enrollments: {
         description: 'Grants access to edit enrollments',
         administrative: false,
