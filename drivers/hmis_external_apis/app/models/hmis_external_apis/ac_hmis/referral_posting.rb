@@ -60,7 +60,10 @@ module HmisExternalApis::AcHmis
         'denied_pending_status', # changed mind or mistake, denied from program
       ],
       accepted_status: ['closed_status'], # hoh exited
-      denied_pending_status: ['denied_status'], # denial accepted
+      denied_pending_status: [
+        'denied_status', # denial accepted
+        'assigned_status', # denial rejected ("sent back")
+      ],
       closed_status: ['accepted_status'], # exited enrollment was re-opened
     }.stringify_keys.freeze
 
