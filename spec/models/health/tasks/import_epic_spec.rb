@@ -113,7 +113,6 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
         end
         FileUtils.rm_r(file_path)
       end
-      binding.pry
     end
   end
 end
