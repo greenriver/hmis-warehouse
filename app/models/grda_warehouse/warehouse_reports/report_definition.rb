@@ -1303,7 +1303,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Performance'] << {
           url: 'all_neighbors_system_dashboard/warehouse_reports/all_neighbors_system_dashboards',
           name: 'All Neighbors System Dashboard',
-          description: 'All Neighbors System Dashboard',
+          description: 'Collin and Dallas County TX All Neighbors System Dashboard',
           limitable: true,
           health: false,
         }
