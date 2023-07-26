@@ -24,6 +24,7 @@ module Types
     def value(parent:)
       return if object.repeats
 
+      parent = parent.owner if parent.is_a? Hmis::Hud::HmisService # special case for view
       load_ar_association(object, :values, scope: parent.custom_data_elements)&.first
     end
 
@@ -31,6 +32,7 @@ module Types
     def values(parent:)
       return unless object.repeats
 
+      parent = parent.owner if parent.is_a? Hmis::Hud::HmisService # special case for view
       load_ar_association(object, :values, scope: parent.custom_data_elements)
     end
   end
