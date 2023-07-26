@@ -591,22 +591,22 @@ module Filters
     end
 
     def effective_project_ids_from_project_groups
-      projects = project_group_ids.reject(&:blank?).map(&:to_i)
-      return [] if projects.empty?
+      pgs = project_group_ids.reject(&:blank?).map(&:to_i)
+      return [] if pgs.empty? # if there are no project groups selected, there are no projects
 
       @effective_project_ids_from_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
         merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-        where(id: projects).
+        where(id: pgs).
         pluck(p_t[:id].as('project_id'))
     end
 
     def effective_project_ids_from_secondary_project_groups
-      projects = secondary_project_group_ids.reject(&:blank?).map(&:to_i)
-      return [] if projects.empty?
+      pgs = secondary_project_group_ids.reject(&:blank?).map(&:to_i)
+      return [] if pgs.empty? # if there are no project groups selected, there are no projects
 
       @effective_project_ids_from_secondary_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
         merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-        where(id: projects).
+        where(id: pgs).
         pluck(p_t[:id].as('project_id'))
     end
 
