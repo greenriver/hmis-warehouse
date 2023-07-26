@@ -1,13 +1,14 @@
 module Types
   class HmisSchema::EnrollmentSummary < Types::BaseObject
-    field :id, String, null: true
-    field :entry_date, GraphQL::Types::ISO8601Date, null: true
-    field :project_name, String, null: true
-    field :project_type, Types::HmisSchema::Enums::ProjectType, null: true
-    field :project_id, String, null: true
+    field :id, ID, null: false
+    field :entry_date, GraphQL::Types::ISO8601Date, null: false
+    field :project_name, String, null: false
+    field :project_type, Types::HmisSchema::Enums::ProjectType, null: false
+    field :project_id, String, null: false
     field :move_in_date, GraphQL::Types::ISO8601Date, null: true
-    field :in_progress, Boolean, null: true
-    field :can_view_enrollment, Boolean, null: true
+    field :in_progress, Boolean, null: false
+    field :can_view_enrollment, Boolean, null: false
+    field :primary_key, ID, null: true
 
     def id
       object.enrollment_id
@@ -31,6 +32,10 @@ module Types
 
     def can_view_enrollment
       current_user.can_view_enrollment_details_for?(object)
+    end
+
+    def primary_key
+      can_view_enrollment ? object.id : nil
     end
 
     def project

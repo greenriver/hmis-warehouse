@@ -116,7 +116,6 @@ module Types
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
     field :image, HmisSchema::ClientImage, null: true
-    field :enrollment_summaries, [HmisSchema::EnrollmentSummary], null: false
 
     access_field do
       can :view_partial_ssn
@@ -145,10 +144,6 @@ module Types
 
     def enrollments(**args)
       resolve_enrollments(**args)
-    end
-
-    def enrollment_summaries
-      object.enrollments.not_exited.summary_viewable_by(current_user)
     end
 
     def income_benefits(**args)
