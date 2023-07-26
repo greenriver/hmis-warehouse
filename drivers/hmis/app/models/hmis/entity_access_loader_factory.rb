@@ -130,7 +130,6 @@ class Hmis::EntityAccessLoaderFactory
     else
       resolve_through_project(entity, &block)
     end
-    puts '~~~~~', resolved, entity.attributes, '~~~~~'
     resolved ? resolve_entity(resolved, safety: safety + 1, &block) : nil
   end
 
