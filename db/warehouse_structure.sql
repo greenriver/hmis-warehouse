@@ -15242,7 +15242,7 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT concat("Enrollment"."HouseholdID", max(("Project"."ProjectID")::text), max("Enrollment".data_source_id)) AS id,
+ SELECT concat("Enrollment"."HouseholdID", ':', max(("Project"."ProjectID")::text), ':', max("Enrollment".data_source_id)) AS id,
     "Enrollment"."HouseholdID",
     max(("Project"."ProjectID")::text) AS "ProjectID",
     max("Enrollment".data_source_id) AS data_source_id,
