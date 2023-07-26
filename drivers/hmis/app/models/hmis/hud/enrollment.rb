@@ -70,17 +70,21 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_id: 'Household ID',
   }.freeze
 
-  # hide previous declaration of :viewable_by, we'll use this one
-  # A user can see any enrollment associated with a project they can access
-  replace_scope :viewable_by, ->(user) do
-    return none unless user.permissions?(:can_view_enrollment_details)
+  scope :with_access, ->(user, *permissions) do
+    return none unless user.permissions?(*permissions)
 
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).pluck(:id, :ProjectID)
+    project_ids = Hmis::Hud::Project.with_access(user, *permissions).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
+
+  # hide previous declaration of :viewable_by, we'll use this one
+  # A user can see any enrollment associated with a project they can access
+  replace_scope :viewable_by, ->(user) { with_access(user, :can_view_enrollment_details) }
+
+  scope :summary_viewable_by, ->(user) { with_access(user, :can_view_open_enrollment_summary, :can_view_enrollment_details) }
 
   scope :matching_search_term, ->(search_term) do
     search_term.strip!
@@ -121,6 +125,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
+  scope :not_exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
   scope :active, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
 

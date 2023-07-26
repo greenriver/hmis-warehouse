@@ -148,7 +148,7 @@ module Types
     end
 
     def enrollment_summaries
-      object.enrollments
+      object.enrollments.not_exited.summary_viewable_by(current_user)
     end
 
     def income_benefits(**args)
