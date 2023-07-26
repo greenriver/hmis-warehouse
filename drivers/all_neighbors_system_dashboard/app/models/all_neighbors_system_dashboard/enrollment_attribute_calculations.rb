@@ -33,7 +33,9 @@ module AllNeighborsSystemDashboard
 
       def household_type(enrollment)
         return 'Children Only' if enrollment.children_only?
-        return 'Adults and Children' if enrollment.other_clients_under_18.positive? && enrollment.age > 17
+        # The enrollment isn't children only, but contains at least one child
+        return 'Adults and Children' if enrollment.other_clients_under_18.positive? ||
+          (enrollment.age.present? && enrollment.age < 18)
 
         'Adults Only'
       end
@@ -64,7 +66,7 @@ module AllNeighborsSystemDashboard
         date
       end
 
-      def adjusted_edit_date(filter, enrollment)
+      def adjusted_exit_date(filter, enrollment)
         date = enrollment.exit_date
         return filter.end_date if date.blank?
         return nil if date.present? && date > filter.end_date

@@ -11,6 +11,12 @@ module AllNeighborsSystemDashboard
     include Filter::FilterScopes
     include Reporting::Status
 
+    include ViewConfiguration
+    include SheetGenerator
+
+    include EnrollmentAttributeCalculations
+    include DemographicRatioCalculations
+
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
       return where(user_id: user.id) if user.can_view_assigned_reports?
@@ -21,11 +27,6 @@ module AllNeighborsSystemDashboard
     scope :ordered, -> do
       order(updated_at: :desc)
     end
-
-    include ViewConfiguration
-    include SheetGenerator
-
-    # Report creation
 
     def run_and_save!
       start
@@ -51,13 +52,9 @@ module AllNeighborsSystemDashboard
       all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboard_url(host: ENV.fetch('FQDN'), id: id, protocol: :https, format: :xlsx)
     end
 
-
     def a_t
       @a_t ||= Enrollment.arel_table
     end
-
-    include EnrollmentAttributeCalculations
-    include DemographicRatioCalculations
 
     def populate_universe
       enrollment_scope.find_in_batches do |batch|
@@ -74,7 +71,7 @@ module AllNeighborsSystemDashboard
             entry_date: enrollment.first_date_in_program,
             move_in_date: enrollment.move_in_date,
             exit_date: exit_date(filter, enrollment),
-            adjusted_exit_date: adjusted_edit_date(filter, enrollment),
+            adjusted_exit_date: adjusted_exit_date(filter, enrollment),
             exit_type: exit_type(enrollment),
             destination: enrollment.destination,
             destination_text: HudUtility.destination(enrollment.destination),
