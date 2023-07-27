@@ -82,10 +82,16 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def current_living_situation_factory(create: true)
-    owner.information_date = Date.today if create
-    owner
-  end
+    # If this is a form just for collecting CLS, it is the owner
+    return owner if owner.is_a? Hmis::Hud::CurrentLivingSituation
 
+    # If this is an assessment, CLS may already exist in relationship to the FormProcessor
+    return current_living_situation if current_living_situation.present? || !create
+
+    # If not, create a new CLS
+    self.current_living_situation = enrollment_factory.current_living_situations.build(**common_attributes)
+  end
+  
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     @service_factory ||= owner.owner if owner.is_a? Hmis::Hud::HmisService
   end
