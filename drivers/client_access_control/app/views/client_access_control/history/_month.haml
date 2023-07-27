@@ -1,3 +1,8 @@
+%div
+  %select.js-client-calendar-filter__project-type{name: 'project_types[]', multiple: 'multiple'}
+    - HudUtility.project_types.each do |key, value|
+      %option{value: key}= value
+
 -# year, month = month
 -# For Dev
 - year, month = [2023, 2]
@@ -17,7 +22,18 @@
   :javascript
     var data = #{fakeData.weeks_data.to_json.html_safe}
 
-    var calendar = App.ClientHistoryCalendar(data, '.d3-calendar')
+    $(document).ready(function() {
+      var calendar = new AppClientHistoryCalendar(data, '.d3-calendar')
+      calendar.draw({})
+      $('.js-client-calendar-filter__project-type').select2()
+      $('.js-client-calendar-filter__project-type').on('change', function(e) {
+        console.log('change', $(e.target).val())
+        calendar.draw({projectType: $(e.target).val()})
+      })
+      
+    })
+
+    
     
 
 

@@ -13,25 +13,26 @@ class ClientHistoryMonth
             entry_date: '2023-01-15',
             exit_date: '2023-02-10',
             project_type: 1,
+            project_type_name: HudUtility.project_type_brief(1),
             bed_nights: [
-              '2023-01-30',
+              '2023-01-29',
               '2023-02-01',
               '2023-02-02',
             ],
             current_situations: [
-              '2023-01-30',
+              '2023-01-29',
             ],
             move_in_dates: [
-              '2023-01-30',
+              '2023-01-29',
             ],
             service_dates: [
-              '2023-01-30',
+              '2023-01-29',
             ],
             ce_events: [
-              '2023-01-30',
+              '2023-01-29',
             ],
             custom_events: [
-              '2023-01-30',
+              '2023-01-29',
             ],
           },
         ],
@@ -45,11 +46,12 @@ class ClientHistoryMonth
             entry_date: '2023-01-15',
             exit_date: '2023-02-10',
             project_type: 1,
+            project_type_name: HudUtility.project_type_brief(1),
             bed_nights: [
               '2023-02-06',
               '2023-02-09',
             ],
-            current_living_situations: [
+            current_situations: [
               '2023-02-10',
             ],
           },
@@ -64,10 +66,31 @@ class ClientHistoryMonth
             entry_date: '2023-02-13',
             exit_date: '2023-02-19',
             project_type: 3,
+            project_type_name: HudUtility.project_type_brief(3),
             extension: {
               entry_date: '2023-02-13',
               exit_date: '2023-02-28',
             },
+            bed_nights: [
+              '2023-02-13',
+              '2023-02-14',
+              '2023-02-15',
+            ],
+            current_situations: [
+              '2023-02-13',
+            ],
+            move_in_dates: [
+              '2023-02-13',
+            ],
+            service_dates: [
+              '2023-02-13',
+            ],
+            ce_events: [
+              '2023-02-13',
+            ],
+            custom_events: [
+              '2023-02-13',
+            ],
           },
           {
             project_name: 'RRH Project C',
@@ -75,18 +98,27 @@ class ClientHistoryMonth
             exit_date: nil,
             move_in_date: '2023-02-15',
             project_type: 13,
+            project_type_name: HudUtility.project_type_brief(1),
+            move_in_dates: [
+              '2023-02-16',
+            ],
           },
           {
             project_name: 'Project D',
             entry_date: '2023-02-13',
             exit_date: '2023-02-15',
             project_type: 7,
+            project_type_name: HudUtility.project_type_brief(7),
           },
           {
-            project_name: 'Project E',
+            project_name: 'Project E testing really really long titles. This needs to be very long.',
             entry_date: '2023-02-16',
             exit_date: '2023-02-17',
             project_type: 4,
+            project_type_name: HudUtility.project_type_brief(4),
+            service_dates: [
+              '2023-02-17',
+            ],
           },
         ],
       },
@@ -99,6 +131,7 @@ class ClientHistoryMonth
             entry_date: '2023-02-13',
             exit_date: '2023-02-19',
             project_type: 3,
+            project_type_name: HudUtility.project_type_brief(3),
             extension: {
               entry_date: '2023-02-13',
               exit_date: '2023-02-28',
@@ -110,6 +143,7 @@ class ClientHistoryMonth
             exit_date: nil,
             move_in_date: '2023-02-15',
             project_type: 13,
+            project_type_name: HudUtility.project_type_brief(1),
           },
         ],
       },
@@ -122,6 +156,8 @@ class ClientHistoryMonth
             entry_date: '2023-02-13',
             exit_date: '2023-02-19',
             extension_only: true,
+            project_type: 3,
+            project_type_name: HudUtility.project_type_brief(3),
             extension: {
               entry_date: '2023-02-13',
               exit_date: '2023-02-28',
@@ -133,6 +169,7 @@ class ClientHistoryMonth
             exit_date: nil,
             move_in_date: '2023-02-15',
             project_type: 13,
+            project_type_name: HudUtility.project_type_brief(1),
           },
         ],
       },

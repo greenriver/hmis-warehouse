@@ -1870,7 +1870,8 @@ CREATE TABLE public.users (
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL,
-    credentials character varying
+    credentials character varying,
+    hmis_unique_session_id character varying
 );
 
 
@@ -3488,6 +3489,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230513203001'),
 ('20230514123118'),
 ('20230516131951'),
-('20230623113136');
+('20230623113136'),
+('20230711223507');
 
 
