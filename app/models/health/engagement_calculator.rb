@@ -68,14 +68,12 @@ module Health
       return [:valid, 'PCTP Approved', careplan.show_path, false, nil] if careplan.active?
 
       if careplan.editable?
-        return [:being_updated, 'PCTP Approved', careplan.edit_path, false, "Started on #{careplan.created_at.to_date}"] if @patient.careplans.expired.exists?
+        return [:in_progress, 'PCTP Approved', careplan.edit_path, false, "Patient signed on #{careplan.patient_signed_on.to_date}"] if careplan.completed?
 
         [:in_progress, 'PCTP Approved', careplan.edit_path, false, "Started on #{careplan.created_at.to_date}"]
-      elsif careplan.signed?
-        [:in_progress, 'PCTP Approved', careplan.edit_path, false, "Patient signed on #{careplan.patient_signed_on.to_date}"]
-      elsif careplan.completed?
-        [:expired, 'PCTP Approved', new_client_health_pctp_careplan_path(@client, @patient), false, "Last completed on #{careplan.completed_on}"]
       else
+        return [:expired, 'PCTP Approved', new_client_health_pctp_careplan_path(@client, @patient), false, "Last completed on #{careplan.completed_on}"] if careplan.completed?
+
         [:expired, 'PCTP Approved', new_client_health_pctp_careplan_path(@client, @patient), false, "Incomplete, last updated on #{careplan.updated_at.to_date}"]
       end
     end
