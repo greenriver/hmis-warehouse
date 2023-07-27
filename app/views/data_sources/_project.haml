@@ -12,7 +12,7 @@
         .enrollment__project_type{class: "client__service_type_#{project.act_as_project_type}"}
           .service-type__program-type{data: {toggle: :tooltip, title: HudUtility.project_type(project.act_as_project_type)}}
             = HudUtility.project_type_brief project.act_as_project_type
-    %td= HudUtility.tracking_method project.TrackingMethod
+    %td= HudUtility.tracking_method(project.TrackingMethod || 0)
     %td.text-center
       %span{data: {toggle: :tooltip, title: project.confidential_hint}}
         = checkmark project.confidential

@@ -63,23 +63,6 @@ module HudUtility
     ].freeze
   end
 
-  # Override
-  def tracking_methods
-    # FIXME Do we want the nil mapping?
-    {
-      nil => 'Entry/Exit Date',
-      0 => 'Entry/Exit Date',
-      3 => 'Night-by-Night',
-    }.freeze
-  end
-
-  # 2.02.C
-  def tracking_method(id, reverse = false)
-    map = tracking_methods
-
-    _translate map, id, reverse
-  end
-
   def gender_fields
     gender_id_to_field_name.values.uniq.freeze
   end

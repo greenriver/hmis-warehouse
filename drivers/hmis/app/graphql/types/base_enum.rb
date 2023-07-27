@@ -60,14 +60,12 @@ module Types
 
     def self.hud_enum(hash)
       values = hash.map do |key, desc|
-        next if key.nil? # need because of tracking method nil key
-
         {
           key: desc,
           value: key,
           desc: desc,
         }
-      end.compact
+      end
 
       with_enum_map(Hmis::FieldMap.new(values))
       invalid_value # Always define invalid value on HUD enums
