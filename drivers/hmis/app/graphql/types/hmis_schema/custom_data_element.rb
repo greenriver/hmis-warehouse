@@ -21,7 +21,7 @@ module Types
     # parent is the parent (Enrollment, Client, etc)
 
     def all_values(parent:)
-      parent = parent.owner if parent.is_a? Hmis::Hud::HmisService # special case for view
+      parent = load_ar_association(parent, :owner) if parent.is_a? Hmis::Hud::HmisService # special case for view
       load_ar_association(object, :values, scope: parent.custom_data_elements)
     end
 
