@@ -233,6 +233,10 @@ module HudUtility
     other_situations(as: :prior)
   end
 
+  def valid_destinations
+    destinations
+  end
+
   # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
   # ALL living situations (current/prior/destination)
   def available_situations

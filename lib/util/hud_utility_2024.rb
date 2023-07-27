@@ -202,6 +202,10 @@ module HudUtility2024
     prior_living_situations.keys
   end
 
+  def valid_destinations
+    destinations
+  end
+
   # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
   # Includes ALL situations (prior/current/destination)
   def available_situations
