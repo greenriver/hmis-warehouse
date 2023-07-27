@@ -125,7 +125,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
-  scope :not_exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
   scope :active, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
 

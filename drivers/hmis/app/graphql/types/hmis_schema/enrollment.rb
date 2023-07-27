@@ -132,7 +132,10 @@ module Types
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
 
     def open_enrollment_summary
-      object.client.enrollments.where.not(id: object.id).not_exited.summary_viewable_by(current_user)
+      return [] unless current_user.can_view_open_enrollment_summary_for?(object)
+
+      client = load_ar_association(object, :client)
+      load_ar_association(client, :enrollments).where.not(id: object.id).open_on_date
     end
 
     def reminders
