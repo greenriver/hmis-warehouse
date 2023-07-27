@@ -1217,8 +1217,8 @@ enum CurrentEdStatus {
 HUD Current Living Situation
 """
 type CurrentLivingSituation {
-  CLSSubsidyType: RentalSubsidyType
   client: Client!
+  clsSubsidyType: RentalSubsidyType
   currentLivingSituation: LivingSituation!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
