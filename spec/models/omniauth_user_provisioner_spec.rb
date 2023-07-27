@@ -2,6 +2,9 @@ require 'rails_helper'
 
 RSpec.describe OmniauthUserProvisioner, type: :model do
   include ActiveJob::TestHelper
+  before(:all) do
+    clear_enqueued_jobs
+  end
 
   let(:email) { 'TEST@EXAMPLE.COM' }
   let(:auth) do
