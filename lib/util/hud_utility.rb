@@ -8,8 +8,8 @@
 # further access or translation logic can also go here
 # information from HMIS CSV format specifications version 5
 module HudUtility
-  include ::Concerns::HudLists2022
   include ::Concerns::HudValidationUtil
+  include ::Concerns::HudLists2022
 
   module_function
 
@@ -133,17 +133,6 @@ module HudUtility
       '5',
     ]
   end
-
-  # 3.917.1
-  # Technically this should exclude 13, 12, 22, 23, 26, 27, 30, 17, 24, 37
-  # def living_situation(id, reverse = false)
-  #   map = living_situations
-  #   _translate map, id, reverse
-  # end
-
-  # def living_situations
-  #   ::HudLists.living_situation_map
-  # end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
     map = residence_prior_length_of_stays_brief

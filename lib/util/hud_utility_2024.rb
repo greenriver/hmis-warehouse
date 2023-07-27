@@ -5,8 +5,8 @@
 ###
 
 module HudUtility2024
-  include ::Concerns::HudLists2024
   include ::Concerns::HudValidationUtil
+  include ::Concerns::HudLists2024
 
   module_function
 
@@ -90,51 +90,19 @@ module HudUtility2024
     1
   end
 
-  # FIXME update
+  # TODO(2024) update for APR/CAPER/CE APR
   def no_single_gender_queries
-    [
-      '0,1',
-      '0,1,4',
-      '0,1,4,5',
-      '0,1,5',
-      '0,4',
-      '0,4,5',
-      '1,4',
-      '1,4,5',
-      '4',
-      '4,5',
-    ]
+    HudUtility.no_single_gender_queries
   end
 
-  # FIXME update
+  # TODO(2024) update for APR/CAPER/CE APR
   def questioning_gender_queries
-    [
-      '0,1,4,5,6',
-      '0,1,4,6',
-      '0,1,5,6',
-      '0,1,6',
-      '0,4,5,6',
-      '0,4,6',
-      '0,5,6',
-      '0,6',
-      '1,4,5,6',
-      '1,4,6',
-      '1,5,6',
-      '1,6',
-      '4,5,6',
-      '4,6',
-      '5,6',
-      '6',
-    ]
+    HudUtility.questioning_gender_queries
   end
 
-  # FIXME update
+  # TODO(2024) update for APR/CAPER/CE APR
   def transgender_gender_queries
-    [
-      '0,5',
-      '1,5',
-      '5',
-    ]
+    HudUtility.transgender_gender_queries
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)

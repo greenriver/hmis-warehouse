@@ -52,18 +52,6 @@ module HudCodeGen
       module Concerns::HudLists#{year}
         extend ActiveSupport::Concern
           class_methods do
-            def _translate(map, id, reverse)
-              if reverse
-                rx = forgiving_regex id
-                if rx.is_a?(Regexp)
-                  map.detect { |_, v| v.match?(rx) }.try(&:first)
-                else
-                  map.detect { |_, v| v == rx }.try(&:first)
-                end
-              else
-                map[id] || id
-              end
-            end
     "
 
     all_lists.each do |element|

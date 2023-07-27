@@ -7,6 +7,20 @@
 module Concerns::HudValidationUtil
   extend ActiveSupport::Concern
   class_methods do
+    # Translate function used by HudLists2022/4 concerns
+    def _translate(map, id, reverse)
+      if reverse
+        rx = forgiving_regex id
+        if rx.is_a?(Regexp)
+          map.detect { |_, v| v.match?(rx) }.try(&:first)
+        else
+          map.detect { |_, v| v == rx }.try(&:first)
+        end
+      else
+        map[id] || id
+      end
+    end
+
     def fiscal_year_start
       Date.new(fiscal_year - 1, 10, 1)
     end
