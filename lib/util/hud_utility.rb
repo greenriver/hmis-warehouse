@@ -35,17 +35,6 @@ module HudUtility
     no_yes_reasons_for_missing_data(*args)
   end
 
-  # 2.02.6
-  # I see no usages of setting `translate` to false, so we should be safe to remove it.
-  # def project_type(id, reverse = false, translate = true)
-  #   map = project_types
-  #   if translate
-  #     _translate map, id, reverse
-  #   else
-  #     map
-  #   end
-  # end
-
   def project_type_number(type)
     # attempt to lookup full name
     number = project_type(type, true) # reversed
@@ -64,16 +53,21 @@ module HudUtility
     ].freeze
   end
 
+  # Override
+  def tracking_methods
+    # FIXME Do we want the nil mapping?
+    {
+      nil => 'Entry/Exit Date',
+      0 => 'Entry/Exit Date',
+      3 => 'Night-by-Night',
+    }.freeze
+  end
+
   # 2.02.C
   def tracking_method(id, reverse = false)
     map = tracking_methods
 
     _translate map, id, reverse
-  end
-
-  def tracking_methods
-    # FIXME Do we want the nil mapping?
-    ::HudLists.tracking_method_map.merge(nil => 'Entry/Exit Date')
   end
 
   def gender_fields
@@ -149,7 +143,6 @@ module HudUtility
 
   # 3.917.1
   # Technically this should exclude 13, 12, 22, 23, 26, 27, 30, 17, 24, 37
-  # ???
   # def living_situation(id, reverse = false)
   #   map = living_situations
   #   _translate map, id, reverse
@@ -232,7 +225,6 @@ module HudUtility
 
   # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
   def available_situations
-    ::HudLists.destination_map
     {
       1 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter ',
       2 => 'Transitional housing for homeless persons (including homeless youth)',
@@ -923,7 +915,7 @@ module HudUtility
   # {1 => 'Test (this)'} => {'test_this' => 1}
   # @param name [Symbol] method on HudLists
   def hud_list_map_as_enumerable(name)
-    original = ::HudLists.send(name)
+    original = send(name)
     keyed = original.invert.transform_keys do |key|
       key.downcase.gsub(/[^a-z0-9]+/, ' ').strip.gsub(' ', '_')
     end

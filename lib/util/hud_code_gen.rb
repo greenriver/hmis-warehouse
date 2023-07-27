@@ -5,7 +5,9 @@
 ###
 
 module HudCodeGen
-  FN_NAME_OVERRIDES = {
+  CODEGEN_FILE_HEADER = '# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY'.freeze
+
+  MAP_NAME_OVERRIDES = {
     export_period_types: :period_types,
     no_yes_missings: :yes_no_missing_options,
     no_yes_reasons_for_missing_data: :no_yes_reasons_for_missing_data_options,
@@ -19,14 +21,21 @@ module HudCodeGen
     when_dv_occurreds: :when_occurreds,
     event_types: :events,
     dependent_under6s: :dependent_under_6,
+    hopwa_financial_assistances: :hopwa_financial_assistance_options,
+    ssvf_financial_assistances: :ssvf_financial_assistance_options,
+    path_referrals: :path_referral_options,
+    rhy_referrals: :rhy_referral_options,
+    bed_nights: :bed_night_options,
+    voucher_trackings: :voucher_tracking_options,
+    moving_on_assistances: :moving_on_assistance_options,
   }.stringify_keys.freeze
+
   LOOKUP_FN_OVERRIDES = {
     relationship_to_ho_h: :relationship_to_hoh,
     when_dv_occurred: :when_d_v_occurred,
     event_type: :event,
     dependent_under6: :dependent_under_6,
   }.stringify_keys.freeze
-  CODEGEN_FILE_HEADER = '# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY'.freeze
 
   module_function
 
@@ -129,11 +138,11 @@ module HudCodeGen
     map_name = lookup_fn_name.pluralize
 
     # apply overrides
-    map_name = FN_NAME_OVERRIDES[map_name] if FN_NAME_OVERRIDES.key?(map_name)
+    map_name = MAP_NAME_OVERRIDES[map_name] if MAP_NAME_OVERRIDES.key?(map_name)
     lookup_fn_name = LOOKUP_FN_OVERRIDES[lookup_fn_name] if LOOKUP_FN_OVERRIDES.key?(lookup_fn_name)
 
     # funcs cannot have the same name
-    # map_name = "#{map_name}_options" if map_name == lookup_fn_name
+    map_name = "#{map_name}_options" if map_name == lookup_fn_name
 
     [map_name, lookup_fn_name]
   end

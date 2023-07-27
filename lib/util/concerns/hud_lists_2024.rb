@@ -37,7 +37,7 @@ module Concerns::HudLists2024
     end
 
     # 1.10
-    def no_yes
+    def no_yes_options
       {
         0 => 'No',
         1 => 'Yes',
@@ -45,7 +45,7 @@ module Concerns::HudLists2024
     end
 
     def no_yes(id, reverse = false)
-      _translate no_yes, id, reverse
+      _translate no_yes_options, id, reverse
     end
 
     # 1.2
@@ -739,14 +739,14 @@ module Concerns::HudLists2024
     end
 
     # 4.14
-    def bed_nights
+    def bed_night_options
       {
         200 => 'BedNight',
       }.freeze
     end
 
     def bed_night(id, reverse = false)
-      _translate bed_nights, id, reverse
+      _translate bed_night_options, id, reverse
     end
 
     # 4.18.1
@@ -1045,7 +1045,7 @@ module Concerns::HudLists2024
     end
 
     # C2.2
-    def moving_on_assistances
+    def moving_on_assistance_options
       {
         1 => 'Subsidized housing application assistance',
         2 => 'Financial assistance for Moving On (e.g., security deposit, moving expenses)',
@@ -1056,7 +1056,7 @@ module Concerns::HudLists2024
     end
 
     def moving_on_assistance(id, reverse = false)
-      _translate moving_on_assistances, id, reverse
+      _translate moving_on_assistance_options, id, reverse
     end
 
     # C3.2
@@ -1115,7 +1115,7 @@ module Concerns::HudLists2024
     end
 
     # P1.2
-    def path_services
+    def path_services_options
       {
         1 => 'Re-engagement',
         2 => 'Screening',
@@ -1134,11 +1134,11 @@ module Concerns::HudLists2024
     end
 
     def path_services(id, reverse = false)
-      _translate path_services, id, reverse
+      _translate path_services_options, id, reverse
     end
 
     # P2.2
-    def path_referrals
+    def path_referral_options
       {
         1 => 'Community mental health',
         2 => 'Substance use treatment',
@@ -1155,7 +1155,7 @@ module Concerns::HudLists2024
     end
 
     def path_referral(id, reverse = false)
-      _translate path_referrals, id, reverse
+      _translate path_referral_options, id, reverse
     end
 
     # P2.A
@@ -1210,7 +1210,7 @@ module Concerns::HudLists2024
     end
 
     # R11.A
-    def rhy_numberof_years
+    def rhy_numberof_years_options
       {
         1 => 'Less than one year',
         2 => '1 to 2 years',
@@ -1220,11 +1220,11 @@ module Concerns::HudLists2024
     end
 
     def rhy_numberof_years(id, reverse = false)
-      _translate rhy_numberof_years, id, reverse
+      _translate rhy_numberof_years_options, id, reverse
     end
 
     # R14.2
-    def rhy_services
+    def rhy_services_options
       {
         2 => 'Community service/service learning (CSL)',
         5 => 'Education',
@@ -1245,7 +1245,7 @@ module Concerns::HudLists2024
     end
 
     def rhy_services(id, reverse = false)
-      _translate rhy_services, id, reverse
+      _translate rhy_services_options, id, reverse
     end
 
     # R15.B
@@ -1308,7 +1308,7 @@ module Concerns::HudLists2024
     end
 
     # R2.A
-    def reason_no_services
+    def reason_no_services_options
       {
         1 => 'Out of age range',
         2 => 'Ward of the state',
@@ -1319,7 +1319,7 @@ module Concerns::HudLists2024
     end
 
     def reason_no_services(id, reverse = false)
-      _translate reason_no_services, id, reverse
+      _translate reason_no_services_options, id, reverse
     end
 
     # R20.2
@@ -1484,7 +1484,7 @@ module Concerns::HudLists2024
     end
 
     # V2.2
-    def ssvf_services
+    def ssvf_services_options
       {
         1 => 'Outreach services',
         2 => 'Case management services',
@@ -1499,11 +1499,11 @@ module Concerns::HudLists2024
     end
 
     def ssvf_services(id, reverse = false)
-      _translate ssvf_services, id, reverse
+      _translate ssvf_services_options, id, reverse
     end
 
     # V2.3
-    def hopwa_financial_assistances
+    def hopwa_financial_assistance_options
       {
         1 => 'Rental assistance',
         2 => 'Security deposits',
@@ -1514,7 +1514,7 @@ module Concerns::HudLists2024
     end
 
     def hopwa_financial_assistance(id, reverse = false)
-      _translate hopwa_financial_assistances, id, reverse
+      _translate hopwa_financial_assistance_options, id, reverse
     end
 
     # V2.A
@@ -1576,7 +1576,7 @@ module Concerns::HudLists2024
     end
 
     # V3.3
-    def ssvf_financial_assistances
+    def ssvf_financial_assistance_options
       {
         1 => 'Rental assistance',
         2 => 'Security deposit',
@@ -1597,7 +1597,7 @@ module Concerns::HudLists2024
     end
 
     def ssvf_financial_assistance(id, reverse = false)
-      _translate ssvf_financial_assistances, id, reverse
+      _translate ssvf_financial_assistance_options, id, reverse
     end
 
     # V4.1
@@ -1769,7 +1769,7 @@ module Concerns::HudLists2024
     end
 
     # V7.1
-    def no_points_yes
+    def no_points_yes_options
       {
         0 => 'No (0 points)',
         1 => 'Yes',
@@ -1778,7 +1778,7 @@ module Concerns::HudLists2024
     end
 
     def no_points_yes(id, reverse = false)
-      _translate no_points_yes, id, reverse
+      _translate no_points_yes_options, id, reverse
     end
 
     # V7.A
@@ -1854,7 +1854,7 @@ module Concerns::HudLists2024
     end
 
     # V7.O
-    def dependent_under_6
+    def dependent_under_6_options
       {
         0 => 'No',
         1 => 'Youngest child is under 1 year old',
@@ -1864,11 +1864,11 @@ module Concerns::HudLists2024
     end
 
     def dependent_under_6(id, reverse = false)
-      _translate dependent_under_6, id, reverse
+      _translate dependent_under_6_options, id, reverse
     end
 
     # V8.1
-    def voucher_trackings
+    def voucher_tracking_options
       {
         1 => 'Referral package forwarded to PHA',
         2 => 'Voucher denied by PHA',
@@ -1886,7 +1886,7 @@ module Concerns::HudLists2024
     end
 
     def voucher_tracking(id, reverse = false)
-      _translate voucher_trackings, id, reverse
+      _translate voucher_tracking_options, id, reverse
     end
 
     # V9.1
@@ -1913,7 +1913,7 @@ module Concerns::HudLists2024
     end
 
     # W1.2
-    def hopwa_services
+    def hopwa_services_options
       {
         1 => 'Adult day care and personal assistance',
         2 => 'Case management',
@@ -1933,7 +1933,7 @@ module Concerns::HudLists2024
     end
 
     def hopwa_services(id, reverse = false)
-      _translate hopwa_services, id, reverse
+      _translate hopwa_services_options, id, reverse
     end
 
     # W3
