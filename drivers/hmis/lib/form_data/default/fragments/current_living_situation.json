@@ -5,6 +5,13 @@
   "data_collected_about": "HOH_AND_ADULTS",
   "item": [
     {
+      "type": "DATE",
+      "link_id": "cls-information-date",
+      "text": "Information Date",
+      "mapping": { "field_name": "informationDate" },
+      "required": true
+    },
+    {
       "type": "CHOICE",
       "required": true,
       "link_id": "4.12.2",
