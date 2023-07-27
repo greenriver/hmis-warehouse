@@ -11,7 +11,7 @@ module Types::HmisSchema::Enums::Hud
   class ExportPeriodType < Types::BaseEnum
     description '1.1'
     graphql_name 'ExportPeriodType'
-    hud_enum HudUtility.export_period_types
+    hud_enum HudUtility.period_types
   end
 
   class ExportDirective < Types::BaseEnum
@@ -41,13 +41,13 @@ module Types::HmisSchema::Enums::Hud
   class NoYesMissing < Types::BaseEnum
     description '1.7'
     graphql_name 'NoYesMissing'
-    hud_enum HudUtility.no_yes_missings
+    hud_enum HudUtility.yes_no_missing_options
   end
 
   class NoYesReasonsForMissingData < Types::BaseEnum
     description '1.8'
     graphql_name 'NoYesReasonsForMissingData'
-    hud_enum HudUtility.no_yes_reasons_for_missing_data
+    hud_enum HudUtility.no_yes_reasons_for_missing_data_options
   end
 
   class SourceType < Types::BaseEnum
@@ -131,7 +131,7 @@ module Types::HmisSchema::Enums::Hud
   class NameDataQuality < Types::BaseEnum
     description '3.01.5'
     graphql_name 'NameDataQuality'
-    hud_enum HudUtility.name_data_qualities
+    hud_enum HudUtility.name_data_quality_options
   end
 
   class Destination < Types::BaseEnum
@@ -143,25 +143,25 @@ module Types::HmisSchema::Enums::Hud
   class RelationshipToHoH < Types::BaseEnum
     description '3.15.1'
     graphql_name 'RelationshipToHoH'
-    hud_enum HudUtility.relationship_to_ho_hs
+    hud_enum HudUtility.relationships_to_hoh
   end
 
   class SSNDataQuality < Types::BaseEnum
     description '3.02.2'
     graphql_name 'SSNDataQuality'
-    hud_enum HudUtility.ssn_data_qualities
+    hud_enum HudUtility.ssn_data_quality_options
   end
 
   class DOBDataQuality < Types::BaseEnum
     description '3.03.2'
     graphql_name 'DOBDataQuality'
-    hud_enum HudUtility.dob_data_qualities
+    hud_enum HudUtility.dob_data_quality_options
   end
 
   class TimesHomelessPastThreeYears < Types::BaseEnum
     description '3.917.4'
     graphql_name 'TimesHomelessPastThreeYears'
-    hud_enum HudUtility.times_homeless_past_three_years
+    hud_enum HudUtility.times_homeless_options
   end
 
   class Ethnicity < Types::BaseEnum
@@ -179,13 +179,13 @@ module Types::HmisSchema::Enums::Hud
   class ResidencePriorLengthOfStay < Types::BaseEnum
     description '3.917.2'
     graphql_name 'ResidencePriorLengthOfStay'
-    hud_enum HudUtility.residence_prior_length_of_stays
+    hud_enum HudUtility.length_of_stays
   end
 
   class MonthsHomelessPastThreeYears < Types::BaseEnum
     description '3.917.5'
     graphql_name 'MonthsHomelessPastThreeYears'
-    hud_enum HudUtility.months_homeless_past_three_years
+    hud_enum HudUtility.month_categories
   end
 
   class ReasonNotInsured < Types::BaseEnum
@@ -209,7 +209,7 @@ module Types::HmisSchema::Enums::Hud
   class WhenDVOccurred < Types::BaseEnum
     description '4.11.A'
     graphql_name 'WhenDVOccurred'
-    hud_enum HudUtility.when_dv_occurreds
+    hud_enum HudUtility.when_occurreds
   end
 
   class ContactLocation < Types::BaseEnum
@@ -221,19 +221,19 @@ module Types::HmisSchema::Enums::Hud
   class BedNight < Types::BaseEnum
     description '4.14'
     graphql_name 'BedNight'
-    hud_enum HudUtility.bed_nights
+    hud_enum HudUtility.bed_night_options
   end
 
   class RHYServices < Types::BaseEnum
     description '4.14.B'
     graphql_name 'RHYServices'
-    hud_enum HudUtility.rhy_services
+    hud_enum HudUtility.rhy_services_options
   end
 
   class SSVFFinancialAssistance < Types::BaseEnum
     description '4.15.B'
     graphql_name 'SSVFFinancialAssistance'
-    hud_enum HudUtility.ssvf_financial_assistances
+    hud_enum HudUtility.ssvf_financial_assistance_options
   end
 
   class HousingAssessmentDisposition < Types::BaseEnum
@@ -263,7 +263,7 @@ module Types::HmisSchema::Enums::Hud
   class EventType < Types::BaseEnum
     description '4.20.2'
     graphql_name 'EventType'
-    hud_enum HudUtility.event_types
+    hud_enum HudUtility.events
   end
 
   class ReferralResult < Types::BaseEnum
@@ -329,7 +329,7 @@ module Types::HmisSchema::Enums::Hud
   class MovingOnAssistance < Types::BaseEnum
     description 'C2.2'
     graphql_name 'MovingOnAssistance'
-    hud_enum HudUtility.moving_on_assistances
+    hud_enum HudUtility.moving_on_assistance_options
   end
 
   class CurrentSchoolAttended < Types::BaseEnum
@@ -353,13 +353,13 @@ module Types::HmisSchema::Enums::Hud
   class PATHServices < Types::BaseEnum
     description 'P1.2'
     graphql_name 'PATHServices'
-    hud_enum HudUtility.path_services
+    hud_enum HudUtility.path_services_options
   end
 
   class PATHReferral < Types::BaseEnum
     description 'P2.2'
     graphql_name 'PATHReferral'
-    hud_enum HudUtility.path_referrals
+    hud_enum HudUtility.path_referral_options
   end
 
   class PATHReferralOutcome < Types::BaseEnum
@@ -383,13 +383,13 @@ module Types::HmisSchema::Enums::Hud
   class RHYNumberofYears < Types::BaseEnum
     description 'R11.A'
     graphql_name 'RHYNumberofYears'
-    hud_enum HudUtility.rhy_numberof_years
+    hud_enum HudUtility.rhy_numberof_years_options
   end
 
   class RHYReferral < Types::BaseEnum
     description 'R14.2'
     graphql_name 'RHYReferral'
-    hud_enum HudUtility.rhy_referrals
+    hud_enum HudUtility.rhy_referral_options
   end
 
   class CountExchangeForSex < Types::BaseEnum
@@ -419,7 +419,7 @@ module Types::HmisSchema::Enums::Hud
   class ReasonNoServices < Types::BaseEnum
     description 'R2.A'
     graphql_name 'ReasonNoServices'
-    hud_enum HudUtility.reason_no_services
+    hud_enum HudUtility.reason_no_services_options
   end
 
   class AftercareProvided < Types::BaseEnum
@@ -479,13 +479,13 @@ module Types::HmisSchema::Enums::Hud
   class SSVFServices < Types::BaseEnum
     description 'V2.2'
     graphql_name 'SSVFServices'
-    hud_enum HudUtility.ssvf_services
+    hud_enum HudUtility.ssvf_services_options
   end
 
   class HOPWAFinancialAssistance < Types::BaseEnum
     description 'V2.3'
     graphql_name 'HOPWAFinancialAssistance'
-    hud_enum HudUtility.hopwa_financial_assistances
+    hud_enum HudUtility.hopwa_financial_assistance_options
   end
 
   class SSVFSubType3 < Types::BaseEnum
@@ -527,7 +527,7 @@ module Types::HmisSchema::Enums::Hud
   class NoPointsYes < Types::BaseEnum
     description 'V7.1'
     graphql_name 'NoPointsYes'
-    hud_enum HudUtility.no_points_yes
+    hud_enum HudUtility.no_points_yes_options
   end
 
   class TimeToHousingLoss < Types::BaseEnum
@@ -563,13 +563,13 @@ module Types::HmisSchema::Enums::Hud
   class DependentUnder6 < Types::BaseEnum
     description 'V7.O'
     graphql_name 'DependentUnder6'
-    hud_enum HudUtility.dependent_under6s
+    hud_enum HudUtility.dependent_under_6_options
   end
 
   class VoucherTracking < Types::BaseEnum
     description 'V8.1'
     graphql_name 'VoucherTracking'
-    hud_enum HudUtility.voucher_trackings
+    hud_enum HudUtility.voucher_tracking_options
   end
 
   class CmExitReason < Types::BaseEnum
@@ -581,7 +581,7 @@ module Types::HmisSchema::Enums::Hud
   class HOPWAServices < Types::BaseEnum
     description 'W1.2'
     graphql_name 'HOPWAServices'
-    hud_enum HudUtility.hopwa_services
+    hud_enum HudUtility.hopwa_services_options
   end
 
   class NoAssistanceReason < Types::BaseEnum

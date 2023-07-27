@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # a general clearing house to translate HUD ids of various sorts into strings
 # further access or translation logic can also go here
 # information from HMIS CSV format specifications version 5
