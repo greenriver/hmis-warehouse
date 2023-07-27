@@ -200,6 +200,10 @@ module Health
       edit_client_health_careplan_path(patient.client, id, anchor: anchor)
     end
 
+    def signature_path
+      edit_path(anchor: 'complete')
+    end
+
     def download_partial
       'signable_document'
     end
