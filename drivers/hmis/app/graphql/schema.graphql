@@ -5770,6 +5770,7 @@ HUD Client within a Referral Household
 type ReferralHouseholdMember {
   client: Client!
   id: ID!
+  openEnrollmentSummary: [EnrollmentSummary!]!
   relationshipToHoH: RelationshipToHoH!
 }
 
