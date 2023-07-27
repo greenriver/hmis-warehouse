@@ -100,6 +100,7 @@ module HudCodeGen
     source = File.read("lib/data/#{year}_hud_lists.json")
     skipped = ['race', '3.6.1', '2.4.2', '1.6']
     filename = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud.rb'
+    hud_utility_class = year == '2022' ? 'HudUtility' : "HudUtility#{year}"
 
     seen = []
     arr = []
@@ -120,7 +121,7 @@ module HudCodeGen
       arr.push "  class #{name} < Types::BaseEnum"
       arr.push "    description '#{element['code'] || name}'"
       arr.push "    graphql_name '#{name}'"
-      arr.push "    hud_enum HudUtility.#{map_name}"
+      arr.push "    hud_enum #{hud_utility_class}.#{map_name}"
       arr.push '  end'
       seen << name
     end
