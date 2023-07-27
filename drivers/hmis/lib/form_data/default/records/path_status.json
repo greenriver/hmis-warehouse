@@ -1,0 +1,47 @@
+{
+  "item": [
+    {
+      "type": "DATE",
+      "link_id": "P3.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Date of Status Determination",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "dateOfPathStatus"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "P3.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Client Became Enrolled in PATH?",
+      "readonly_text": "Client Became Enrolled in PATH",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "clientEnrolledInPath"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "P3.A",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Reason Not Enrolled",
+      "pick_list_reference": "ReasonNotEnrolled",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "reasonNotEnrolled"
+      },
+      "enable_when": [
+        {
+          "question": "P3.2",
+          "operator": "EQUAL",
+          "answer_code": "NO"
+        }
+      ]
+    }
+  ]
+}

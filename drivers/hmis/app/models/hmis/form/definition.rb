@@ -35,9 +35,20 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     REFERRAL_REQUEST: 'Referral Request',
     ENROLLMENT: 'Enrollment',
     CURRENT_LIVING_SITUATION: 'Current Living Situation',
+    # Occurrence-point collection forms
+    MOVE_IN_DATE: 'Move-in Date',
+    DATE_OF_ENGAGEMENT: 'Date of Engagement',
+    UNIT_ASSIGNMENT: 'Unit Assignment',
+    PATH_STATUS: 'PATH Status',
   }.freeze
 
   validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
+
+  ENROLLMENT_CONFIG = {
+    class_name: 'Hmis::Hud::Enrollment',
+    permission: :can_edit_enrollments,
+    resolve_as: 'Types::HmisSchema::Enrollment',
+  }.freeze
 
   FORM_ROLE_CONFIG = {
     SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
@@ -58,8 +69,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: :can_manage_incoming_referrals,
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
-    ENROLLMENT: { class_name: 'Hmis::Hud::Enrollment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Enrollment' },
     CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
+    ENROLLMENT: ENROLLMENT_CONFIG,
+    # These are all basically Enrollment-editing forms ("occurrence point"),
+    # but they need different "roles" so that the frontend can request the correct one.
+    MOVE_IN_DATE: ENROLLMENT_CONFIG,
+    DATE_OF_ENGAGEMENT: ENROLLMENT_CONFIG,
+    UNIT_ASSIGNMENT: ENROLLMENT_CONFIG,
+    PATH_STATUS: ENROLLMENT_CONFIG,
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
