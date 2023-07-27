@@ -11,7 +11,16 @@ module HapReport
     include Reporting::Status
     after_initialize :set_attributes
 
-    HAP_FUNDING = 'HAP Funded'.freeze
+    HAP_FUNDING = [
+      'HAP Funded',
+      'HAP Emergency Shelter (entry/exit)',
+      'HAP Emergency Shelter (night by night)',
+      'HAP Case Management',
+      'HAP Bridge Housing',
+      'HAP Penn Free Bridge RRH',
+      'HAP Innovative',
+      'HAP Rental Assistance',
+    ].freeze
 
     attr_accessor :start_date, :end_date, :project_ids
     validates_presence_of :start_date, :end_date, :project_ids
