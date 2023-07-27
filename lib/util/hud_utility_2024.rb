@@ -133,17 +133,6 @@ module HudUtility2024
     ]
   end
 
-  # 3.917.1
-  # Technically this should exclude 13, 12, 22, 23, 26, 27, 30, 17, 24, 37
-  # def living_situation(id, reverse = false)
-  #   map = living_situations
-  #   _translate map, id, reverse
-  # end
-
-  # def living_situations
-  #   ::HudLists.living_situation_map
-  # end
-
   def residence_prior_length_of_stay_brief(id, reverse = false)
     map = residence_prior_length_of_stays_brief
 
@@ -214,7 +203,17 @@ module HudUtility2024
   def available_situations
     current_living_situations.merge(destinations).merge(prior_living_situations)
   end
-  alias living_situations available_situations
+
+  # In keeping with HudUtility 2022, this is a lookup for ALL situations (current/prior/destination)
+  def living_situation(id, reverse = false)
+    map = available_situations
+    _translate map, id, reverse
+  end
+
+  # In keeping with HudUtility 2022, this is a map of ALL situations (current/prior/destination)
+  def living_situations
+    available_situations
+  end
 
   SITUATION_OTHER_RANGE = (1..99)
   SITUATION_HOMELESS_RANGE = (100..199)
