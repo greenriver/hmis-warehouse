@@ -6,7 +6,7 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "cls-information-date",
+      "link_id": "4.12.1",
       "text": "Information Date",
       "mapping": { "field_name": "informationDate" },
       "required": true
