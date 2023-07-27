@@ -8,7 +8,7 @@
 
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
 
-module HudList
+module HudLists
   module_function
 
   # 1.1

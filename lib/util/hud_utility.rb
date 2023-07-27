@@ -3,98 +3,9 @@
 # information from HMIS CSV format specifications version 5
 module HudUtility
   include ::Concerns::HudLists2022
+  include ::Concerns::HudValidationUtil
 
-  # factored out of app/models/grda_warehouse/tasks/identify_duplicates.rb
-  def valid_social?(ssn)
-    # see https://en.wikipedia.org/wiki/Social_Security_number#Structure
-    return false if ssn.blank? || ssn.length != 9
-
-    area_number = ssn.first(3)
-    group_number = ssn[3..4]
-    serial_number = ssn.last(4)
-
-    # Fields can't be all zeros
-    return false if area_number.to_i.zero? || group_number.to_i.zero? || serial_number.to_i.zero?
-    # Fields must be numbers
-    return false unless digits?(area_number) && digits?(group_number) && digits?(serial_number)
-    # 900+ are not assigned, and 666 is excluded
-    return false if area_number.to_i >= 900 || area_number == '666'
-    # Published IDs are not valid
-    return false if known_invalid_ssns.include?(ssn)
-    return false if ssn.split('').uniq.count == 1 # all the same number
-
-    true
-  end
-
-  private def known_invalid_ssns
-    @known_invalid_ssns ||= [].tap do |seq|
-      10.times do |i|
-        seq << ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].rotate(i)[0..8].join
-      end
-      seq.dup.each do |m|
-        seq << m.reverse
-      end
-      seq += ['219099999', '078051120']
-    end
-  end
-
-  private def digits?(value)
-    value.match(/^\d+$/).present?
-  end
-
-  def fiscal_year_start
-    Date.new(fiscal_year - 1, 10, 1)
-  end
-
-  def fiscal_year_end
-    Date.new(fiscal_year, 9, 30)
-  end
-
-  def fiscal_year
-    return Date.current.year if Date.current.month >= 10
-
-    Date.current.year - 1
-  end
-
-  def describe_valid_social_rules
-    [
-      'Cannot contain a non-numeric character.',
-      'Must be 9 digits long.',
-      'First three digits cannot be "000," "666," or in the 900 series.',
-      'The second group / 5th and 6th digits cannot be "00".',
-      'The third group / last four digits cannot be "0000".',
-      'There cannot be repetitive (e.g. "333333333") or sequential (e.g. "345678901" "987654321")',
-      'numbers for all 9 digits.',
-    ]
-  end
-
-  def describe_valid_dob_rules
-    [
-      'Prior to 1/1/1915.',
-      'After the [Date Created] for the record.',
-      'Equal to or after the [Entry Date].',
-    ]
-  end
-
-  # for fuzzy translation from strings back to their controlled vocabulary key
-  def forgiving_regex(str)
-    return str if str.is_a?(Integer)
-
-    Regexp.new '^' + str.strip.gsub(/\W+/, '\W+') + '$', 'i'
-  end
-
-  def _translate(map, id, reverse)
-    if reverse
-      rx = forgiving_regex id
-      if rx.is_a?(Regexp)
-        map.detect { |_, v| v.match?(rx) }.try(&:first)
-      else
-        map.detect { |_, v| v == rx }.try(&:first)
-      end
-    else
-      map[id] || id
-    end
-  end
+  module_function
 
   def race(field, reverse = false, multi_racial: false)
     map = races(multi_racial: multi_racial)
@@ -120,46 +31,28 @@ module HudUtility
     race_none(id, reverse)
   end
 
-  # FIXME: Remove this?
-  def ad_hoc_yes_no_1(id, reverse = false)
-    map = {
-      0 => 'No',
-      1 => 'Yes',
-      8 => "Don't Know",
-      9 => 'Refused',
-      99 => 'Data not collected',
-    }
-
-    _translate map, id, reverse
-  end
-
   def veteran_status(*args)
     no_yes_reasons_for_missing_data(*args)
   end
 
   # 2.02.6
-  # TODO check
-  def project_type(id, reverse = false, translate = true)
-    map = project_types
-    if translate
-      _translate map, id, reverse
-    else
-      map
-    end
-  end
-
-  # TODO confirm works the same
-  def project_type_brief(id)
-    ::HudLists.project_type_brief_map[id]
-  end
+  # I see no usages of setting `translate` to false, so we should be safe to remove it.
+  # def project_type(id, reverse = false, translate = true)
+  #   map = project_types
+  #   if translate
+  #     _translate map, id, reverse
+  #   else
+  #     map
+  #   end
+  # end
 
   def project_type_number(type)
     # attempt to lookup full name
-    number = ::HudLists.project_type_map.invert[type]
+    number = project_type(type, true) # reversed
     return number if number.present?
 
     # perform an acronym lookup
-    ::HudLists.project_type_brief_map.invert[type]
+    project_type_brief(type, true) # reversed
   end
 
   def homeless_project_type_numbers
@@ -181,17 +74,6 @@ module HudUtility
   def tracking_methods
     # FIXME Do we want the nil mapping?
     ::HudLists.tracking_method_map.merge(nil => 'Entry/Exit Date')
-  end
-
-  # 2.02.9
-  def h_o_p_w_a_med_assisted_living_fac(id, reverse = false)
-    map = h_o_p_w_a_med_assisted_living_facs
-
-    _translate map, id, reverse
-  end
-
-  def h_o_p_w_a_med_assisted_living_facs
-    ::HudLists.hopwa_med_assisted_living_fac_map
   end
 
   def gender_fields
@@ -597,169 +479,6 @@ module HudUtility
 
   def permanent_destination_options(version: nil)
     available_situations.select { |id, _| id.in?(permanent_destinations(version: version)) }.to_h
-  end
-
-  # 4.9.D
-  def p_a_t_h_how_confirmed(id, reverse = false)
-    map = ::HudLists.path_how_confirmed_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.9.E
-  def p_a_t_h_s_m_i_information(id, reverse = false)
-    map = ::HudLists.pathsmi_information_map
-
-    _translate map, id, reverse
-  end
-
-  # P1.2
-  def p_a_t_h_services_map
-    ::HudLists.path_services_map
-  end
-
-  def p_a_t_h_services(id, reverse = false)
-    map = p_a_t_h_services_map
-
-    _translate map, id, reverse
-  end
-
-  # R14.2
-  def r_h_y_services_map
-    ::HudLists.rhy_services_map
-  end
-
-  def r_h_y_services(id, reverse = false)
-    map = r_h_y_services_map
-
-    _translate map, id, reverse
-  end
-
-  # W1.2
-  def h_o_p_w_a_services_map
-    ::HudLists.hopwa_services_map
-  end
-
-  def h_o_p_w_a_services(id, reverse = false)
-    map = h_o_p_w_a_services_map
-
-    _translate map, id, reverse
-  end
-
-  # V2.2
-  def s_s_v_f_services_map
-    ::HudLists.ssvf_services_map
-  end
-
-  def s_s_v_f_services(id, reverse = false)
-    map = s_s_v_f_services_map
-
-    _translate map, id, reverse
-  end
-
-  # V2.A
-  def s_s_v_f_sub_type3_map
-    ::HudLists.ssvf_sub_type3_map
-  end
-
-  def s_s_v_f_sub_type3(id, reverse = false)
-    map = s_s_v_f_sub_type3_map
-
-    _translate map, id, reverse
-  end
-
-  # V2.B
-  def s_s_v_f_sub_type4_map
-    ::HudLists.ssvf_sub_type4_map
-  end
-
-  def s_s_v_f_sub_type4(id, reverse = false)
-    map = s_s_v_f_sub_type4_map
-
-    _translate map, id, reverse
-  end
-
-  # V2.C
-  def s_s_v_f_sub_type5_map
-    ::HudLists.ssvf_sub_type5_map
-  end
-
-  def s_s_v_f_sub_type5(id, reverse = false)
-    map = s_s_v_f_sub_type5_map
-
-    _translate map, id, reverse
-  end
-
-  # W2.3
-  def h_o_p_w_a_financial_assistance_map
-    ::HudLists.hopwa_financial_assistance_map
-  end
-
-  def h_o_p_w_a_financial_assistance(id, reverse = false)
-    map = h_o_p_w_a_financial_assistance_map
-
-    _translate map, id, reverse
-  end
-
-  # V3.3
-  def s_s_v_f_financial_assistance_map
-    ::HudLists.ssvf_financial_assistance_map
-  end
-
-  def s_s_v_f_financial_assistance(id, reverse = false)
-    map = s_s_v_f_financial_assistance_map
-
-    _translate map, id, reverse
-  end
-
-  # P2.2
-  def p_a_t_h_referral_map
-    ::HudLists.path_referral_map
-  end
-
-  def p_a_t_h_referral(id, reverse = false)
-    map = p_a_t_h_referral_map
-
-    _translate map, id, reverse
-  end
-
-  # R14.2
-  def r_h_y_referral(id, reverse = false)
-    ::HudLists.rhy_referral_map
-
-    _translate map, id, reverse
-  end
-
-  # P2.A
-  def p_a_t_h_referral_outcome_map
-    ::HudLists.path_referral_outcome_map
-  end
-
-  def p_a_t_h_referral_outcome(id, reverse = false)
-    map = p_a_t_h_referral_outcome_map
-
-    _translate map, id, reverse
-  end
-
-  # R11.A
-  def r_h_y_numberof_years(id, reverse = false)
-    map = ::HudLists.rhy_numberof_years_map
-
-    _translate map, id, reverse
-  end
-
-  # V4.1
-  def percent_a_m_i(id, reverse = false)
-    map = ::HudLists.percent_ami_map
-
-    _translate map, id, reverse
-  end
-
-  # V7.B
-  def annual_percent_a_m_i(id, reverse = false)
-    map = ::HudLists.annual_percent_ami_map
-
-    _translate map, id, reverse
   end
 
   def coc_name(coc_code)
