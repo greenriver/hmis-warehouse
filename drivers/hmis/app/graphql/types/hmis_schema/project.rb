@@ -83,6 +83,7 @@ module Types
       can :manage_denied_referrals
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
+    field :has_units, Boolean, null: false
 
     def hud_id
       object.project_id
@@ -130,6 +131,10 @@ module Types
     # TODO use dataloader
     def units(**args)
       resolve_units(**args)
+    end
+
+    def has_units # rubocop:disable Naming/PredicateName
+      load_ar_association(object, :units).exists?
     end
 
     def households(**args)
