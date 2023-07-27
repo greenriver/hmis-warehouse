@@ -295,22 +295,24 @@ module HudUtility2024
     available_situations.select { |id, _| id.in?(institutional_situations(as: as)) }
   end
 
-  def temporary_and_permanent_housing_situation_options(as:)
-    available_situations.select { |id, _| id.in?(temporary_and_permanent_housing_situations(as: as)) }
+  def temporary_housing_situation_options(as:)
+    available_situations.select { |id, _| id.in?(temporary_situations(as: as)) }
+  end
+
+  def permanent_housing_situation_options(as:)
+    available_situations.select { |id, _| id.in?(permanent_situations(as: as)) }
   end
 
   def other_situation_options(as:)
     available_situations.select { |id, _| id.in?(other_situations(as: as)) }
   end
 
-  # why would you do this without as?
-  def temporary_destination_options(version: nil)
-    available_situations.select { |id, _| id.in?(temporary_destinations(version: version)) }
+  def temporary_destination_options
+    available_situations.select { |id, _| id.in?(temporary_destinations) }
   end
 
-  # why would you do this without as?
-  def permanent_destination_options(version: nil)
-    available_situations.select { |id, _| id.in?(permanent_destinations(version: version)) }
+  def permanent_destination_options
+    available_situations.select { |id, _| id.in?(permanent_destinations) }
   end
 
   def coc_name(coc_code)
