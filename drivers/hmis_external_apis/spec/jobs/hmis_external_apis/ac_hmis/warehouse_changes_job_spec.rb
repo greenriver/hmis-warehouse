@@ -74,7 +74,7 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     stub_api
 
     other_client = create(:hmis_hud_client, data_source: data_source)
-    create(:ac_warehouse_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client, namespace: 'ac_hmis_mci_unique_id')
+    create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
 
     allow(Hmis::MergeClientsJob).to receive(:perform_later).with(client_ids: [client.id, other_client.id].sort, actor_id: user.id)
 
