@@ -308,7 +308,7 @@ module Health
         select(:patient_id)
 
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
-        reviewed.
+        completed.
         allowed_for_engagement.
         where(reviewed_at: (..on.to_time)).
         select(:patient_id)
