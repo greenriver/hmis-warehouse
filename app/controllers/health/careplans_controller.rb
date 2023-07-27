@@ -30,7 +30,7 @@ module Health
       # most-recent careplan
       @careplan = @careplans&.first&.instrument
       @disable_goal_actions = true
-      # @goals = @careplan&.hpc_goals
+      @goals = @careplan&.current_goals_list
 
       # Callbacks don't work in development, so we have to do something like this
       return unless Rails.env.development?

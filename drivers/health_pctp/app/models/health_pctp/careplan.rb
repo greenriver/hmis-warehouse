@@ -104,6 +104,10 @@ module HealthPctp
       client_health_pctp_careplan_path(patient.client, id)
     end
 
+    def current_goals_list
+      care_goal_details
+    end
+
     def expires_on
       patient_signed_on + 1.year
     end

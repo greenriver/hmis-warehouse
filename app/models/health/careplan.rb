@@ -208,6 +208,10 @@ module Health
       client_health_careplan_path(patient.client, id)
     end
 
+    def current_goals_list
+      hpc
+    end
+
     # if the care plan has been signed, return the health file id associated with the most
     # recent signature
     # if it hasn't been signed at all, return nil

@@ -1,6 +1,8 @@
+- index ||= nil
+- goal_label = index.nil? ? '' : "##{index}"
 .card
   .card-header
-    %h3 Goal
+    %h3 Goal #{goal_label}
   .card-body
     .row
       .col
