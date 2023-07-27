@@ -129,8 +129,11 @@ module HudCodeGen
     map_name = lookup_fn_name.pluralize
 
     # apply overrides
-    map_name = FN_NAME_OVERRIDES[map_name] if FN_NAME_OVERRIDES.key(map_name)
-    lookup_fn_name = LOOKUP_FN_OVERRIDES[lookup_fn_name] if LOOKUP_FN_OVERRIDES.key(lookup_fn_name)
+    map_name = FN_NAME_OVERRIDES[map_name] if FN_NAME_OVERRIDES.key?(map_name)
+    lookup_fn_name = LOOKUP_FN_OVERRIDES[lookup_fn_name] if LOOKUP_FN_OVERRIDES.key?(lookup_fn_name)
+
+    # funcs cannot have the same name
+    # map_name = "#{map_name}_options" if map_name == lookup_fn_name
 
     [map_name, lookup_fn_name]
   end

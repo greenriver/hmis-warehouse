@@ -24,7 +24,7 @@ module Concerns::HudLists2024
     end
 
     # 1.1
-    def export_period_types
+    def period_types
       {
         1 => 'Updated',
         3 => 'Reporting period',
@@ -33,7 +33,7 @@ module Concerns::HudLists2024
     end
 
     def export_period_type(id, reverse = false)
-      _translate export_period_types, id, reverse
+      _translate period_types, id, reverse
     end
 
     # 1.10
@@ -125,7 +125,7 @@ module Concerns::HudLists2024
     end
 
     # 1.7
-    def no_yes_missings
+    def yes_no_missing_options
       {
         0 => 'No',
         1 => 'Yes',
@@ -134,11 +134,11 @@ module Concerns::HudLists2024
     end
 
     def no_yes_missing(id, reverse = false)
-      _translate no_yes_missings, id, reverse
+      _translate yes_no_missing_options, id, reverse
     end
 
     # 1.8
-    def no_yes_reasons_for_missing_data
+    def no_yes_reasons_for_missing_data_options
       {
         0 => 'No',
         1 => 'Yes',
@@ -149,7 +149,7 @@ module Concerns::HudLists2024
     end
 
     def no_yes_reasons_for_missing_data(id, reverse = false)
-      _translate no_yes_reasons_for_missing_data, id, reverse
+      _translate no_yes_reasons_for_missing_data_options, id, reverse
     end
 
     # 1.9
@@ -383,7 +383,7 @@ module Concerns::HudLists2024
     end
 
     # 3.01.5
-    def name_data_qualities
+    def name_data_quality_options
       {
         1 => 'Full name reported',
         2 => 'Partial, street name, or code name reported',
@@ -394,11 +394,11 @@ module Concerns::HudLists2024
     end
 
     def name_data_quality(id, reverse = false)
-      _translate name_data_qualities, id, reverse
+      _translate name_data_quality_options, id, reverse
     end
 
     # 3.02.2
-    def ssn_data_qualities
+    def ssn_data_quality_options
       {
         1 => 'Full SSN reported',
         2 => 'Approximate or partial SSN reported',
@@ -409,11 +409,11 @@ module Concerns::HudLists2024
     end
 
     def ssn_data_quality(id, reverse = false)
-      _translate ssn_data_qualities, id, reverse
+      _translate ssn_data_quality_options, id, reverse
     end
 
     # 3.03.2
-    def dob_data_qualities
+    def dob_data_quality_options
       {
         1 => 'Full DOB reported',
         2 => 'Approximate or partial DOB reported',
@@ -424,7 +424,7 @@ module Concerns::HudLists2024
     end
 
     def dob_data_quality(id, reverse = false)
-      _translate dob_data_qualities, id, reverse
+      _translate dob_data_quality_options, id, reverse
     end
 
     # 3.05.1
@@ -505,7 +505,7 @@ module Concerns::HudLists2024
     end
 
     # 3.15.1
-    def relationship_to_ho_hs
+    def relationships_to_hoh
       {
         1 => 'Self (head of household)',
         2 => 'Child',
@@ -516,8 +516,8 @@ module Concerns::HudLists2024
       }.freeze
     end
 
-    def relationship_to_ho_h(id, reverse = false)
-      _translate relationship_to_ho_hs, id, reverse
+    def relationship_to_hoh(id, reverse = false)
+      _translate relationships_to_hoh, id, reverse
     end
 
     # 3.6.1
@@ -572,7 +572,7 @@ module Concerns::HudLists2024
     end
 
     # 3.917.2
-    def residence_prior_length_of_stays
+    def length_of_stays
       {
         2 => 'One week or more, but less than one month',
         3 => 'One month or more, but less than 90 days',
@@ -587,11 +587,11 @@ module Concerns::HudLists2024
     end
 
     def residence_prior_length_of_stay(id, reverse = false)
-      _translate residence_prior_length_of_stays, id, reverse
+      _translate length_of_stays, id, reverse
     end
 
     # 3.917.4
-    def times_homeless_past_three_years
+    def times_homeless_options
       {
         1 => 'One time',
         2 => 'Two times',
@@ -604,11 +604,11 @@ module Concerns::HudLists2024
     end
 
     def times_homeless_past_three_years(id, reverse = false)
-      _translate times_homeless_past_three_years, id, reverse
+      _translate times_homeless_options, id, reverse
     end
 
     # 3.917.5
-    def months_homeless_past_three_years
+    def month_categories
       {
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
@@ -630,7 +630,7 @@ module Concerns::HudLists2024
     end
 
     def months_homeless_past_three_years(id, reverse = false)
-      _translate months_homeless_past_three_years, id, reverse
+      _translate month_categories, id, reverse
     end
 
     # 4.04.A
@@ -687,7 +687,7 @@ module Concerns::HudLists2024
     end
 
     # 4.11.A
-    def when_dv_occurreds
+    def when_occurreds
       {
         1 => 'Within the past three months',
         2 => 'Three to six months ago (excluding six months exactly)',
@@ -699,8 +699,8 @@ module Concerns::HudLists2024
       }.freeze
     end
 
-    def when_dv_occurred(id, reverse = false)
-      _translate when_dv_occurreds, id, reverse
+    def when_d_v_occurred(id, reverse = false)
+      _translate when_occurreds, id, reverse
     end
 
     # 4.12
@@ -811,7 +811,7 @@ module Concerns::HudLists2024
     end
 
     # 4.20.2
-    def event_types
+    def events
       {
         1 => 'Referral to Prevention Assistance project',
         2 => 'Problem Solving/Diversion/Rapid Resolution intervention or service',
@@ -834,8 +834,8 @@ module Concerns::HudLists2024
       }.freeze
     end
 
-    def event_type(id, reverse = false)
-      _translate event_types, id, reverse
+    def event(id, reverse = false)
+      _translate events, id, reverse
     end
 
     # 4.20.D
@@ -1854,7 +1854,7 @@ module Concerns::HudLists2024
     end
 
     # V7.O
-    def dependent_under6s
+    def dependent_under_6
       {
         0 => 'No',
         1 => 'Youngest child is under 1 year old',
@@ -1863,8 +1863,8 @@ module Concerns::HudLists2024
       }.freeze
     end
 
-    def dependent_under6(id, reverse = false)
-      _translate dependent_under6s, id, reverse
+    def dependent_under_6(id, reverse = false)
+      _translate dependent_under_6, id, reverse
     end
 
     # V8.1
