@@ -322,7 +322,7 @@ module Health
         select(:patient_id)
 
       cha_patient_id_scope = Health::CaAssessment.distinct.
-        reviewed.
+        completed.
         allowed_for_engagement.
         reviewed_within(..on.to_time).
         select(:patient_id)
