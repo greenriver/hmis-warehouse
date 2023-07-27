@@ -30,7 +30,6 @@
     {
       "type": "GROUP",
       "link_id": "4.12-conditionals",
-      "component": "INPUT_GROUP",
       "enable_behavior": "ANY",
       "enable_when": [
         {
