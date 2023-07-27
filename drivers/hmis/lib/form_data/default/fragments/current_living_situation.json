@@ -5,46 +5,142 @@
   "data_collected_about": "HOH_AND_ADULTS",
   "item": [
     {
+      "type": "DATE",
+      "link_id": "4.12.1",
+      "text": "Information Date",
+      "mapping": { "field_name": "informationDate" },
+      "required": true
+    },
+    {
       "type": "CHOICE",
-      "required": false,
-      "link_id": "4.12",
-      "text": "Current Living Situation"
+      "required": true,
+      "link_id": "4.12.2",
+      "text": "Current Living Situation",
+      "pick_list_reference": "CURRENT_LIVING_SITUATION",
+      "mapping": { "field_name": "currentLivingSituation" }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "4.12.A",
+      "text": "Rental Subsidy Type",
+      "pick_list_reference": "RentalSubsidyType",
+      "mapping": { "field_name": "CLSSubsidyType" },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "4.12.2",
+          "operator": "EQUAL",
+          "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
+        }
+      ]
     },
     {
       "type": "GROUP",
       "link_id": "4.12-conditionals",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "4.12.2",
+          "operator": "EQUAL",
+          "answer_group_code": "INSTITUTIONAL"
+        },
+        {
+          "question": "4.12.2",
+          "operator": "EQUAL",
+          "answer_group_code": "TEMPORARY"
+        },
+        {
+          "question": "4.12.2",
+          "operator": "EQUAL",
+          "answer_group_code": "PERMANENT"
+        },
+        {
+          "question": "4.12.2",
+          "operator": "EQUAL",
+          "answer_group_code": "TEMPORARY_PERMANENT_OTHER",
+          "_note": "Only present in 2022 spec, remove this when switching to 2024"
+        }
+      ],
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "4.12-A",
-          "text": "Is client going to have to leave their current living situation within 14 days?"
+          "component": "RADIO_BUTTONS",
+          "link_id": "4.12.B",
+          "text": "Is client going to have to leave their current living situation within 14 days?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "field_name": "leaveSituation14Days" }
         },
         {
           "type": "CHOICE",
-          "link_id": "4.12-B",
-          "text": "Has a subsequent residence been identified?"
+          "component": "RADIO_BUTTONS",
+          "link_id": "4.12.C",
+          "text": "Has a subsequent residence been identified?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "field_name": "subsequentResidence" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "4.12.B",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
         },
         {
           "type": "CHOICE",
-          "link_id": "4.12-C",
-          "text": "Does individual or family have resources or support networks to obtain other permanent housing?"
+          "component": "RADIO_BUTTONS",
+          "link_id": "4.12.D",
+          "text": "Does individual or family have resources or support networks to obtain other permanent housing?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "field_name": "resourcesToObtain" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "4.12.B",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
         },
         {
           "type": "CHOICE",
-          "link_id": "4.12-D",
-          "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?"
+          "component": "RADIO_BUTTONS",
+          "link_id": "4.12.E",
+          "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "field_name": "leaseOwn60Day" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "4.12.B",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
         },
         {
           "type": "CHOICE",
-          "link_id": "4.12-E",
-          "text": "Has the client moved 2 or more times in the last 60 days?"
+          "component": "RADIO_BUTTONS",
+          "link_id": "4.12.F",
+          "text": "Has the client moved 2 or more times in the last 60 days?",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "mapping": { "field_name": "movedTwoOrMore" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "4.12.B",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
         }
       ]
     },
     {
       "type": "TEXT",
-      "link_id": "4.12-4",
-      "text": "Location details"
+      "link_id": "4.12.4",
+      "text": "Location details",
+      "mapping": { "field_name": "locationDetails" }
     }
   ]
 }
