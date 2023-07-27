@@ -2810,7 +2810,10 @@ CREATE TABLE public.epic_thrives (
     assistance character varying,
     data_source_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    reporter character varying,
+    positive_food_security_count integer,
+    positive_housing_questions_count integer
 );
 
 
@@ -9182,6 +9185,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230614194646'),
 ('20230706134746'),
 ('20230707132626'),
-('20230712155403');
+('20230712155403'),
+('20230726171015');
 
 
