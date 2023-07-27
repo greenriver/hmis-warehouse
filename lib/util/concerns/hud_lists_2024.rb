@@ -450,7 +450,6 @@ module Concerns::HudLists2024
         17 => 'Other',
         24 => 'Deceased',
         30 => 'No exit interview completed',
-        35 => "Staying or living in a family member's room, apartment or house",
         37 => 'Worker unable to determine',
         99 => 'Data not collected',
         101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',
@@ -543,7 +542,6 @@ module Concerns::HudLists2024
       {
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
-        35 => "Staying or living in a family member's room, apartment or house",
         99 => 'Data not collected',
         101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',
         116 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
@@ -704,12 +702,11 @@ module Concerns::HudLists2024
     end
 
     # 4.12
-    def living_situations
+    def current_living_situations
       {
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
         17 => 'Other',
-        35 => "Staying or living in a family member's room, apartment or house",
         37 => 'Worker unable to determine',
         99 => 'Data not collected',
         101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',
@@ -734,8 +731,8 @@ module Concerns::HudLists2024
       }.freeze
     end
 
-    def living_situation(id, reverse = false)
-      _translate living_situations, id, reverse
+    def current_living_situation(id, reverse = false)
+      _translate current_living_situations, id, reverse
     end
 
     # 4.14

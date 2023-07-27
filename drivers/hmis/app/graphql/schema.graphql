@@ -1829,16 +1829,6 @@ enum Destination {
   SAFE_HAVEN
 
   """
-  (35) Staying or living in a family member's room, apartment or house
-  """
-  STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
-
-  """
-  (36) Staying or living in a friend's room, apartment or house
-  """
-  STAYING_OR_LIVING_IN_A_FRIEND_S_ROOM_APARTMENT_OR_HOUSE
-
-  """
   (22) Staying or living with family, permanent tenure
   """
   STAYING_OR_LIVING_WITH_FAMILY_PERMANENT_TENURE
@@ -1867,11 +1857,6 @@ enum Destination {
   (2) Transitional housing for homeless persons (including homeless youth)
   """
   TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
-
-  """
-  (37) Worker unable to determine
-  """
-  WORKER_UNABLE_TO_DETERMINE
 }
 
 """
@@ -4150,11 +4135,6 @@ enum LivingSituation {
   HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
 
   """
-  (27) Interim Housing
-  """
-  INTERIM_HOUSING
-
-  """
   Invalid Value
   """
   INVALID
@@ -4173,6 +4153,11 @@ enum LivingSituation {
   (26) Moved from one HOPWA funded project to HOPWA PH
   """
   MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_PH
+
+  """
+  (27) Moved from one HOPWA funded project to HOPWA TH
+  """
+  MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_TH
 
   """
   (30) No exit interview completed

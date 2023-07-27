@@ -478,9 +478,6 @@ module Concerns::HudLists2022
         32 => 'Host Home (non-crisis)',
         33 => 'Rental by client, with HCV voucher (tenant or project based)',
         34 => 'Rental by client in a public housing unit',
-        35 => "Staying or living in a family member's room, apartment or house",
-        36 => "Staying or living in a friend's room, apartment or house",
-        37 => 'Worker unable to determine',
         99 => 'Data not collected',
       }.freeze
     end
@@ -518,7 +515,7 @@ module Concerns::HudLists2022
         24 => 'Deceased',
         25 => 'Long-term care facility or nursing home',
         26 => 'Moved from one HOPWA funded project to HOPWA PH',
-        27 => 'Interim Housing',
+        27 => 'Moved from one HOPWA funded project to HOPWA TH',
         28 => 'Rental by client, with GPD TIP housing subsidy',
         29 => 'Residential project or halfway house with no homeless criteria',
         30 => 'No exit interview completed',
