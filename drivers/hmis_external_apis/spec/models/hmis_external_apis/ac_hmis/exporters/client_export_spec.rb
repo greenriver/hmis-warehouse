@@ -38,7 +38,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model d
 
   it 'includes MCIID' do
     mci = create(:mci_external_id, source: client)
-    irrelevant = create(:ac_warehouse_external_id, source: client)
+    irrelevant = create(:mci_unique_id_external_id, source: client)
     subject.run!
     expect(output).to include(mci.value)
     expect(output).to_not include(irrelevant.value)
