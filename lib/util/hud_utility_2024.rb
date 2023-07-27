@@ -34,6 +34,10 @@ module HudUtility2024
     race_none(id, reverse)
   end
 
+  def race_gender_none_options
+    race_nones
+  end
+
   def veteran_status(*args)
     no_yes_reasons_for_missing_data(*args)
   end
@@ -265,7 +269,10 @@ module HudUtility2024
 
     'Other'
   end
-  alias destination_type situation_type
+
+  def destination_type(id)
+    situation_type(id)
+  end
 
   def permanent_destinations
     permanent_situations(as: :destination)

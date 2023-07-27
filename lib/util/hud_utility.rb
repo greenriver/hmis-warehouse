@@ -37,6 +37,10 @@ module HudUtility
     race_none(id, reverse)
   end
 
+  def race_gender_none_options
+    race_nones
+  end
+
   def veteran_status(*args)
     no_yes_reasons_for_missing_data(*args)
   end
