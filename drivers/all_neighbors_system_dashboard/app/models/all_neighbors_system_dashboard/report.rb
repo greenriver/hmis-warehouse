@@ -122,6 +122,7 @@ module AllNeighborsSystemDashboard
 
     def enrollment_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        preload(:enrollment, :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date)
       filter.apply(scope)
@@ -129,6 +130,7 @@ module AllNeighborsSystemDashboard
 
     def event_scope
       GrdaWarehouse::Hud::Event.
+        preload(enrollment: :project).
         within_range(filter.range).
         where(Event: SERVICE_CODE_ID.keys)
     end
