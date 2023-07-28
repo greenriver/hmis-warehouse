@@ -16,7 +16,7 @@
         %br
         .text-danger
           * These are done through the funding periods
-      %td 9. Invoice Timeliness
+      %td 10. Invoice Timeliness
       %td CoC monitoring report/ Agency external audit
       %th.align-middle.text-center{rowspan: 5}
         Weight
@@ -30,7 +30,7 @@
       %td= f.input :invoicing_timeliness, collection: @report.invoicing_timeliness_options, as: :pretty_boolean_group, label: "Choose one:"
       %td= @report.invoicing_timeliness_score
     %tr
-      %td 10. Invoice Accuracy
+      %td 11. Invoice Accuracy
       %td CoC monitoring report/ Agency external audit
       %td
         3 pts: Invoices regularly complete and accurate
@@ -42,26 +42,25 @@
       %td= @report.invoicing_accuracy_score
     %tr
       %td
-        11. Is the project efficient with funds? Does the cost per person served in each project
-        (include HUD funds and match total and compare standard practice: $4,000 per household.
+        12. Is the project efficient with funds? Does the cost per person served in each project (include HUD funds and match total and compare standard practice: $19,968 per person for PSH projects, $13,566 for RRH projects.)
       %td
         Project Application Budget
         %p
-        Most Recently Completed Grant Year Spend divided by Total Number of Households Served
+        Most Recently Completed Grant Year Spend divided by Total Number of Persons Served
       %td
-        6 pts: if standard is met and funding is equal to or less than per person/family ratio
+        6 pts: if standard is met and funding is equal to or less than per person ratio
         %br
-        0 pts: if not met and more funds per person/family
+        0 pts: if not met and more funds per person
       %td
-        = f.input :amount_agency_spent, label: 'Most Recently Completed Grant Year Spend'
-        = f.input :actual_households_served
+        = f.input :amount_agency_spent, label: 'Most Recently Completed Grant Year Spend ($)'
+        = f.input :actual_households_served, label: 'Actual persons served during the grant year'
         %p
         - if @report.cost_efficiency_value.present?
           = "$#{@report.cost_efficiency_value} / Household Served"
       %td= @report.efficiency_score
     %tr
       %td
-        12. Required match based on project budget
+        13. Required match based on project budget
         %p
         Was the match reported at end of operating year greater than the minimum required?
       %td
@@ -76,7 +75,7 @@
       %td= @report.required_match_score
     %tr
       %td
-        13. Project Returns
+        14. Project Returns
         %p
         What % of unobligated funds in the most recent grant application year were returned?
       %td Most Recently Completed Grant Year Funds Returned (sourced from ASPEND) divided by the Contract Budget

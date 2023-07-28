@@ -11,7 +11,7 @@
       %th Score
   %tbody
     %tr
-      %th.bg-info.align-middle.text-center{rowspan: 7} Project Performance
+      %th.bg-info.align-middle.text-center{rowspan: 8} Project Performance
       %td 1. Exits from RRH and retention in PSH
       %td See individual calculations for 1.a. and 1.b.
       %td.bg-info
@@ -35,7 +35,7 @@
         4 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %th.align-middle.text-center{rowspan: 6}
+      %th.align-middle.text-center{rowspan: 7}
         Weight
         %br
         #{@report.project_performance_weight}%
@@ -145,3 +145,17 @@
         0 pts: under 74%
       %td= @report.utilization_rate_value
       %td= @report.utilization_rate_score
+    %tr
+      %td 6. % of "No Concern" the project received as a result of the most recent program monitoring evaluation
+      %td
+        CoC Program Monitoring Report
+      %td
+        3pts: 100-90%
+        %br
+        2pts: 89-85%
+        %br
+        1pt: 84-80%
+        %br
+        0pts: 79-0%
+      %td= f.input :no_concern, collection: @report.no_concern_options, as: :pretty_boolean_group, label: "Choose one:"
+      %td= @report.no_concern_score
