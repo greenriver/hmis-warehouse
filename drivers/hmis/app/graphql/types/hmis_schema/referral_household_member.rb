@@ -16,7 +16,7 @@ module Types
       client = load_ar_association(object, :client)
       return [] unless current_user.can_view_open_enrollment_summary?
 
-      load_ar_association(client, :enrollments).open_on_date
+      load_ar_association(client, :enrollments).open_including_wip
     end
   end
 end

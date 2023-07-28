@@ -84,8 +84,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # A user can see any enrollment associated with a project they can access
   replace_scope :viewable_by, ->(user) { with_access(user, :can_view_enrollment_details) }
 
-  scope :summary_viewable_by, ->(user) { with_access(user, :can_view_open_enrollment_summary, :can_view_enrollment_details) }
-
   scope :matching_search_term, ->(search_term) do
     search_term.strip!
     # If there are Household ID matches, return those only
@@ -125,7 +123,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
-  scope :active, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
+  scope :open_including_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
+  scope :open_excluding_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
 
   def project

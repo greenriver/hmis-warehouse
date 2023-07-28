@@ -2434,7 +2434,6 @@ type EnrollmentSummary {
   id: ID!
   inProgress: Boolean!
   moveInDate: ISO8601Date
-  primaryKey: ID
   projectId: String!
   projectName: String!
   projectType: ProjectType!

@@ -135,7 +135,7 @@ module Types
       return [] unless current_user.can_view_open_enrollment_summary_for?(object)
 
       client = load_ar_association(object, :client)
-      load_ar_association(client, :enrollments).where.not(id: object.id).open_on_date
+      load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
     end
 
     def reminders

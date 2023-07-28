@@ -8,8 +8,6 @@ module Types
     field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     field :in_progress, Boolean, null: false, method: :in_progress?
     field :can_view_enrollment, Boolean, null: false
-    field :primary_key, ID, null: true
-
 
     def project_name
       project.project_name
@@ -31,12 +29,13 @@ module Types
       current_user.can_view_enrollment_details_for?(object)
     end
 
-    def primary_key
-      can_view_enrollment ? object.id : nil
-    end
-
     def project
-      @project ||= object.project
+      if object.in_progress?
+        wip = load_ar_association(object, :wip)
+        load_ar_association(wip, :project)
+      else
+        load_ar_association(object, :project)
+      end
     end
   end
 end
