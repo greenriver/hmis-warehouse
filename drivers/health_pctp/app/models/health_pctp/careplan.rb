@@ -96,6 +96,10 @@ module HealthPctp
       edit_client_health_pctp_careplan_path(patient.client, id, anchor: anchor)
     end
 
+    def signature_path
+      [edit_client_health_pctp_careplan_update_signature_path(patient.client, id), data: { loads_in_ajax_modal: true }]
+    end
+
     def download_partial
       'health_pctp/careplans/downloads'
     end

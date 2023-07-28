@@ -4,6 +4,7 @@ BostonHmis::Application.routes.draw do
       resources :careplans do
         resources :needs
         resources :goals
+        resource :update_signature
         member do
           delete :remove_file
           get :download

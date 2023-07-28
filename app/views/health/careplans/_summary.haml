@@ -39,8 +39,8 @@
                       -#     %i.icon-copy.mr-2
                       -#     Make Copy
                       .w-100
-                        -# TODO: Replace w/ link to a pop-up for just the signature section?
-                        = link_to instrument.edit_path(anchor: 'complete') do
+                        -# Signature path is splatted to allow it to specify a pop-up for the signature section
+                        = link_to *instrument.signature_path do
                           %i.icon-pencil.mr-2
                           Update Signature Dates
                 %td= instrument.initial_date&.to_date
