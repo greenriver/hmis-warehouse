@@ -20,7 +20,7 @@ module Types
     end
 
     def project_id
-      project.project_id
+      project.id
     end
 
     def in_progress
