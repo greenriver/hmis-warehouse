@@ -4261,7 +4261,8 @@ CREATE TABLE public.boston_project_scorecard_reports (
     increased_employment_income double precision,
     increased_other_income double precision,
     invoicing_timeliness integer,
-    invoicing_accuracy integer
+    invoicing_accuracy integer,
+    no_concern integer
 );
 
 
@@ -53942,6 +53943,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230707143716'),
 ('20230710183058'),
 ('20230724145057'),
-('20230725163336');
+('20230725163336'),
+('20230728140151');
 
 

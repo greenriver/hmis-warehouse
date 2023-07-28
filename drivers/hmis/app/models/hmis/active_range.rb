@@ -14,13 +14,15 @@ class Hmis::ActiveRange < Hmis::HmisBase
   UNIQUE_ENTITY_TYPES = [Hmis::UnitOccupancy.name].freeze
   validates_uniqueness_of :entity_id, scope: :entity_type, conditions: -> { where(entity_type: UNIQUE_ENTITY_TYPES) }
 
-  scope :active_on, ->(date = Date.current) do
+  scope :active_on, ->(date = Date.current) { where(Hmis::ActiveRange.arel_active_on(date)) }
+
+  def self.arel_active_on(date)
     # ActiveRange is "active" if the start date is in the past (or today)
     #  AND the end date is in the future (or is nil)
     past_start_date = ar_t[:start_date].lteq(date)
     future_end_date = ar_t[:end_date].eq(nil).or(ar_t[:end_date].gt(date))
 
-    where(past_start_date.and(future_end_date))
+    past_start_date.and(future_end_date)
   end
 
   def self.most_recent_for_entity(entity)

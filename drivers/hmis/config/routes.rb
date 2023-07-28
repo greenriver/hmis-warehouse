@@ -13,9 +13,8 @@ BostonHmis::Application.routes.draw do
                          controllers: { sessions: 'hmis/sessions' },
                          path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
 
-      resources :user, only: [:none] do
-        get :index, on: :collection
-      end
+      resource :user, only: [:show]
+      resource :session_keepalive, only: [:create]
 
       devise_scope :hmis_user do
         match 'logout' => 'sessions#destroy', via: :get if Rails.env.development?

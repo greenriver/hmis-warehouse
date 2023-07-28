@@ -79,6 +79,14 @@
               ]
             }
           ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "unit-tmp",
+          "text": "Select Unit",
+          "mapping": { "field_name": "currentUnit" },
+          "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
+          "required": false
         }
       ]
     }

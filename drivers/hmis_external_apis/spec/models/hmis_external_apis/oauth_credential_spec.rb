@@ -73,4 +73,26 @@ RSpec.describe HmisExternalApis::OauthClientConnection, type: :model do
     expect(HmisExternalApis::ExternalRequestLog.where(initiator: creds).count).to eq(1)
     expect(result.http_status).to eq(expected_status)
   end
+
+  context 'with a deferred logger' do
+    let(:subject) do
+      subject = HmisExternalApis::OauthClientConnection.new(creds)
+      subject.logger = HmisExternalApis::OauthDeferredClientLogger.new
+      subject
+    end
+
+    it 'defers saving log records' do
+      path = '/test/resources/1'
+      stub_request(:get, "#{subject.base_url}#{path}")
+        .to_return(status: 200, body: { helloWorld: 1 }.to_json,
+                   headers: { 'Content-Type' => 'application/json' })
+
+      result = subject.get(path)
+      expect(result.http_status).to eq(200)
+      expect(result.parsed_body).to include('helloWorld')
+      expect(HmisExternalApis::ExternalRequestLog.where(initiator: creds).count).to eq(0)
+      subject.logger.finalize!
+      expect(HmisExternalApis::ExternalRequestLog.where(initiator: creds).count).to eq(1)
+    end
+  end
 end

@@ -105,6 +105,7 @@ class DocumentExportsControllerBase < ApplicationController
       'HealthPctp::DocumentExports::HealthPctpSignaturePdfExport',
       'HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport',
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
+      'ClientDocumentsReport::DocumentExports::ReportExcelExport',
     ]
   end
 end

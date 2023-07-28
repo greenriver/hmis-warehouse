@@ -205,14 +205,10 @@ module FormHelpers
       values: {
         'confidential' => false,
         'enrollmentId' => nil,
-        'effectiveDate' => '2023-03-17',
-        'expirationDate' => nil,
       },
       hud_values: {
         'confidential' => false,
         'enrollmentId' => nil,
-        'effectiveDate' => '2023-03-17',
-        'expirationDate' => nil,
       },
     },
     ENROLLMENT: {
