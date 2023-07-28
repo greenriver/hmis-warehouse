@@ -10,9 +10,6 @@ module Types
     field :can_view_enrollment, Boolean, null: false
     field :primary_key, ID, null: true
 
-    def id
-      object.enrollment_id
-    end
 
     def project_name
       project.project_name
