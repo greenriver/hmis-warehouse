@@ -45,15 +45,13 @@ module HealthPctp::DocumentExports
         )
         header_html = PdfGenerator.html(
           controller: controller_class,
-          template: 'health_pctp/careplans/pdf_header',
-          layout: false,
+          partial: 'health_pctp/careplans/pdf_header',
           user: user,
           assigns: view_assigns,
         )
         footer_html = PdfGenerator.html(
           controller: controller_class,
-          template: 'health_pctp/careplans/pdf_footer',
-          layout: false,
+          partial: 'health_pctp/careplans/pdf_footer',
           user: user,
           assigns: view_assigns,
         )

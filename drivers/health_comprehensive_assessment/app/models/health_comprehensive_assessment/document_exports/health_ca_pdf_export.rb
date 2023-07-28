@@ -45,15 +45,13 @@ module HealthComprehensiveAssessment::DocumentExports
         )
         header_html = PdfGenerator.html(
           controller: controller_class,
-          template: 'health_comprehensive_assessment/assessments/pdf_header',
-          layout: false,
+          partial: 'health_comprehensive_assessment/assessments/pdf_header',
           user: user,
           assigns: view_assigns,
         )
         footer_html = PdfGenerator.html(
           controller: controller_class,
-          template: 'health_comprehensive_assessment/assessments/pdf_footer',
-          layout: false,
+          partial: 'health_comprehensive_assessment/assessments/pdf_footer',
           user: user,
           assigns: view_assigns,
         )
