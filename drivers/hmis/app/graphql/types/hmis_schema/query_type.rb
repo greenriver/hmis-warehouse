@@ -76,6 +76,24 @@ module Types
       Hmis::Hud::Household.viewable_by(current_user).find_by(household_id: id, data_source_id: current_user.hmis_data_source_id)
     end
 
+    field :household_assessments, [Types::HmisSchema::Assessment], 'Get group of assessments that are performed together', null: true do
+      argument :household_id, ID, required: true
+      argument :assessment_role, Types::Forms::Enums::AssessmentRole, required: true
+      argument :assessment_id, ID, required: false
+    end
+
+    def household_assessments(household_id:, assessment_role:, assessment_id: nil)
+      enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
+      raise HmisErrors::ApiError, 'Access denied' unless enrollments.present?
+
+      Hmis::Hud::CustomAssessment.group_household_assessments(
+        household_enrollments: enrollments,
+        assessment_role: assessment_role,
+        assessment_id: assessment_id,
+        threshold: 3.months,
+      )
+    end
+
     field :organization, Types::HmisSchema::Organization, 'Organization lookup', null: true do
       argument :id, ID, required: true
     end

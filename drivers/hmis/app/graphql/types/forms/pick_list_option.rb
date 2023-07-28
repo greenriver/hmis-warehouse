@@ -51,6 +51,7 @@ module Types
       when 'PROJECT'
         Hmis::Hud::Project.viewable_by(user).
           joins(:organization).
+          preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
       when 'ENROLLABLE_PROJECTS'
@@ -63,17 +64,23 @@ module Types
           sort_by_option(:name).
           map(&:to_pick_list_option)
 
+      when 'ALL_UNIT_TYPES'
+        # for referrals between projects
+        # actually return all unit types, regardless of project
+        all_unit_types = Hmis::UnitType.order(:description, :id)
+        return all_unit_types.map(&:to_pick_list_option)
+
       when 'UNIT_TYPES'
         # If no project was specified, return all unit types
         all_unit_types = Hmis::UnitType.order(:description, :id)
         return all_unit_types.map(&:to_pick_list_option) unless relation_id.present?
         return [] unless project.present? # relation id specified but project not found
 
-        unit_types_for_project(project, available_only: false)
+        possible_unit_types_for_project(project)
       when 'AVAILABLE_UNIT_TYPES'
         return [] unless project.present?
 
-        unit_types_for_project(project, available_only: true)
+        available_unit_types_for_project(project)
       when 'UNITS'
         return [] unless project.present?
 
@@ -84,11 +91,33 @@ module Types
         project.units.unoccupied_on.order(:name, :id).map(&:to_pick_list_option)
       when 'AVAILABLE_FILE_TYPES'
         file_tag_picklist
+      when 'PROJECT_HOH_ENROLLMENTS'
+        enrollments = Hmis::Hud::Enrollment
+          .viewable_by(user)
+          .in_project(relation_id)
+          .open_on_date
+          .heads_of_households
+          .preload(:client)
+          .preload(household: :enrollments)
+
+        enrollments.sort_by_option(:most_recent).map do |enrollment|
+          client = enrollment.client
+          household_size = enrollment.household&.enrollments&.size || 0
+          other_size = household_size - 1 # more than hoh
+          desc = other_size > 0 ? "and #{other_size} #{'other'.pluralize(other_size)}" :  ''
+          {
+            code: enrollment.id,
+            label: "#{client.brief_name} #{desc} (Entered #{enrollment.entry_date.strftime('%m/%d/%Y')})",
+          }
+        end
       when 'CLIENT_ENROLLMENTS'
         client = Hmis::Hud::Client.viewable_by(user).find_by(id: relation_id)
         return [] unless client.present?
 
-        client.enrollments.sort_by_option(:most_recent).map do |enrollment|
+        enrollments = client.enrollments
+          .preload(:project, :exit)
+
+        enrollments.sort_by_option(:most_recent).map do |enrollment|
           {
             code: enrollment.id,
             label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
@@ -122,9 +151,8 @@ module Types
       end
     end
 
-    def self.unit_types_for_project(project, available_only: false)
-      units = project.units
-      units = units.unoccupied_on if available_only
+    def self.available_unit_types_for_project(project)
+      units = project.units.unoccupied_on
 
       # Hash { unit type id => num unoccupied }
       unit_type_to_availability = units.group(:unit_type_id).count
@@ -137,6 +165,21 @@ module Types
           option[:secondary_label] = "#{num_left} available"
           option
         end
+    end
+
+    # UNIT_TYPES pick list should only return types that are "mapped" for this project. If there are
+    # no mappings it should return all unit types, which is the default behavior.
+    def self.possible_unit_types_for_project(project)
+      unit_type_scope = Hmis::UnitType.all
+      unit_type_ids = project.unit_type_mappings.active.pluck(:unit_type_id)
+      if unit_type_ids.any?
+        unit_type_ids += project.units.distinct.pluck(:unit_type_id) # include unit types for existing units
+        unit_type_scope = unit_type_scope.where(id: unit_type_ids)
+      end
+
+      unit_type_scope
+        .order(:description, :id)
+        .map(&:to_pick_list_option)
     end
 
     def self.coc_picklist(selected_project)

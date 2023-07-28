@@ -44,10 +44,9 @@ module Mutations
       end
       raise HmisErrors::ApiError, 'Access Denied' unless allowed
 
-      # Build CustomForm
-      # It wont be persisted, but it handles validation and initializes a form processor to process values
-      custom_form = Hmis::Form::CustomForm.new(
-        owner: record,
+      # Build FormProcessor
+      # It wont be persisted, but it handles validation and updating the relevant record(s)
+      form_processor = Hmis::Form::FormProcessor.new(
         definition: definition,
         values: input.values,
         hud_values: input.hud_values,
@@ -55,18 +54,17 @@ module Mutations
 
       # Validate based on FormDefinition
       errors = HmisErrors::Errors.new
-      form_validations = custom_form.collect_form_validations
+      form_validations = form_processor.collect_form_validations
       errors.push(*form_validations)
 
       # Run processor to create/update record(s)
-      custom_form.form_processor.run!(owner: record, user: current_user)
+      form_processor.run!(owner: record, user: current_user)
 
-      # Run both validations
+      # Validate record
       is_valid = record.valid?
-      is_valid = custom_form.valid? && is_valid
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = custom_form.collect_record_validations(user: current_user)
+      record_validations = form_processor.collect_record_validations(user: current_user)
       errors.push(*record_validations)
 
       errors.drop_warnings! if input.confirmed
@@ -82,6 +80,8 @@ module Mutations
           record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
         elsif record.is_a? HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
+        elsif record.is_a? Hmis::Hud::Enrollment
+          record.save_in_progress
         else
           record.save!
           record.touch
@@ -94,9 +94,6 @@ module Mutations
           record.enrollment&.save!
         end
       else
-        # These are potentially unfixable errors. Maybe should be server error instead.
-        # For now, return them all because they are useful in development.
-        errors.add_ar_errors(custom_form.errors&.errors)
         errors.add_ar_errors(record.errors&.errors)
         record = nil
       end
@@ -126,6 +123,10 @@ module Mutations
     end
 
     private def related_id_attributes(class_name, input)
+      project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id) if input.project_id.present?
+      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id) if input.client_id.present?
+      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id) if input.enrollment_id.present?
+
       case class_name
       when 'Hmis::Hud::Project'
         {
@@ -133,14 +134,13 @@ module Mutations
         }
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory'
         {
-          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.ProjectID,
+          project_id: project&.ProjectID,
         }
       when 'HmisExternalApis::AcHmis::ReferralRequest'
         {
-          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.id,
+          project_id: project&.id,
         }
       when 'Hmis::Hud::HmisService'
-        enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)
         custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id)
         {
           enrollment_id: enrollment&.EnrollmentID,
@@ -149,8 +149,13 @@ module Mutations
         }
       when 'Hmis::File'
         {
-          client_id: Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id)&.id,
-          enrollment_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.id,
+          client_id: client&.id,
+          enrollment_id: enrollment&.id,
+        }
+      when 'Hmis::Hud::Enrollment'
+        {
+          project_id: project&.ProjectID,
+          personal_id: client&.personal_id,
         }
       else
         {}

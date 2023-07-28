@@ -26,6 +26,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, dependent: :destroy
+  has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
   has_many :custom_data_elements, as: :owner
 
   has_many :client_projects
@@ -64,6 +65,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
+  end
+
+  scope :with_organization_ids, ->(organization_ids) do
+    joins(:organization).where(o_t[:id].in(Array.wrap(organization_ids)))
   end
 
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
