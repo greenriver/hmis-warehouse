@@ -24,20 +24,21 @@ module Mutations
       # Find or create record
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
+        entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else
-        record = klass.new(
-          **related_id_attributes(klass.name, input),
-          data_source_id: current_user.hmis_data_source_id, # Not all records actually have this, but we need it to check permissions for some of them
-        )
+        entity_for_permissions, attributes = permission_base_and_attributes(klass.name, input, current_user.hmis_data_source_id)
+        record = klass.new(attributes)
       end
+
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
+      raise HmisErrors::ApiError, 'No entity for permission check' unless entity_for_permissions.present?
 
       # Check permission
       allowed = nil
       if definition.allowed_proc.present?
-        allowed = definition.allowed_proc.call(record, current_user)
+        allowed = definition.allowed_proc.call(entity_for_permissions, current_user)
       elsif definition.record_editing_permission.present?
-        allowed = current_user.permissions_for?(record, *Array(definition.record_editing_permission))
+        allowed = current_user.permissions_for?(entity_for_permissions, *Array(definition.record_editing_permission))
       else
         # allow if no permission check defined
         allowed = true
@@ -122,48 +123,44 @@ module Mutations
       record.close_related_funders_and_inventory!
     end
 
-    private def related_id_attributes(class_name, input)
+    # For NEW RECORD CREATION ONLY, get the permission base that should be used to check permissions,
+    # as well as any attributes for related records from the input arg.
+    private def permission_base_and_attributes(class_name, input, data_source_id)
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id) if input.project_id.present?
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id) if input.client_id.present?
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id) if input.enrollment_id.present?
+      organization = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: input.organization_id) if input.organization_id.present?
+      custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id) if input.service_type_id.present?
 
+      ds = { data_source_id: data_source_id }
       case class_name
+      when 'Hmis::Hud::Client'
+        # 'nil' because there is no permission base for client creation. the permission is checked globally.
+        [nil, ds]
       when 'Hmis::Hud::Project'
-        {
-          organization_id: Hmis::Hud::Organization.viewable_by(current_user).find_by(id: input.organization_id)&.OrganizationID,
-        }
+        [organization, { organization_id: organization&.organization_id, **ds }]
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory'
-        {
-          project_id: project&.ProjectID,
-        }
-      when 'HmisExternalApis::AcHmis::ReferralRequest'
-        {
-          project_id: project&.id,
-        }
-      when 'Hmis::Hud::HmisService'
-        custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id)
-        {
-          enrollment_id: enrollment&.EnrollmentID,
-          personal_id: enrollment&.PersonalID,
-          custom_service_type_id: custom_service_type&.id,
-        }
-      when 'Hmis::File'
-        {
-          client_id: client&.id,
-          enrollment_id: enrollment&.id,
-        }
+        [project, { project_id: project&.project_id, **ds }]
       when 'Hmis::Hud::Enrollment'
-        {
-          project_id: project&.ProjectID,
-          personal_id: client&.personal_id,
-        }
+        [project, { project_id: project&.project_id, personal_id: client&.personal_id, **ds }]
       when 'Hmis::Hud::CurrentLivingSituation'
-        {
-          personal_id: enrollment&.PersonalID,
-          enrollment_id: enrollment&.EnrollmentID,
-        }
+        [enrollment, { personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds }]
+      when 'Hmis::Hud::HmisService'
+        [
+          enrollment,
+          {
+            enrollment_id: enrollment&.EnrollmentID,
+            personal_id: enrollment&.PersonalID,
+            custom_service_type_id: custom_service_type&.id,
+            **ds,
+          },
+        ]
+      when 'HmisExternalApis::AcHmis::ReferralRequest'
+        [project, { project_id: project&.id }]
+      when 'Hmis::File'
+        [client, { client_id: client&.id, enrollment_id: enrollment&.id }]
       else
-        {}
+        raise "No permission base specified for creating a new record of type #{class_name}"
       end
     end
   end
