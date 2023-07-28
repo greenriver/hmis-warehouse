@@ -4997,6 +4997,7 @@ type OrganizationsPaginated {
 
 input OutgoingReferralPostingInput {
   enrollmentId: ID
+  note: String
   projectId: ID
   unitTypeId: ID
 }
