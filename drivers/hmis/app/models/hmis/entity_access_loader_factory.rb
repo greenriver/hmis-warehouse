@@ -118,7 +118,7 @@ class Hmis::EntityAccessLoaderFactory
       else
         block.call(entity, :project)
       end
-    when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService
+    when Hmis::Hud::HmisService, Hmis::Hud::Service, Hmis::Hud::CustomService, Hmis::Hud::CurrentLivingSituation
       # This will cascade to enrollment.project
       block.call(entity, :enrollment)
     when Hmis::Hud::Project

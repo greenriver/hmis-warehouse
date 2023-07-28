@@ -221,5 +221,28 @@ module FormHelpers
         'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
       },
     },
+    CURRENT_LIVING_SITUATION: {
+      values: {
+        '4.12.1' => '2023-07-27T05:00:00.000Z',
+        '4.12.2' => 'FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME',
+        '4.12.B' => 'YES',
+        '4.12.C' => 'NO',
+        '4.12.D' => 'CLIENT_REFUSED',
+        '4.12.E' => 'CLIENT_DOESN_T_KNOW',
+        '4.12.F' => 'YES',
+        '4.12.4' => 'test',
+      },
+      hud_values: {
+        'informationDate' => '2023-07-27',
+        'currentLivingSituation' => 'FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME',
+        'CLSSubsidyType' => '_HIDDEN',
+        'leaveSituation14Days' => 'YES',
+        'subsequentResidence' => 'NO',
+        'resourcesToObtain' => 'CLIENT_REFUSED',
+        'leaseOwn60Day' => 'CLIENT_DOESN_T_KNOW',
+        'movedTwoOrMore' => 'YES',
+        'locationDetails' => 'test',
+      },
+    },
   }.freeze
 end

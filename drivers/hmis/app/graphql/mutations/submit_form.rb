@@ -157,6 +157,11 @@ module Mutations
           project_id: project&.ProjectID,
           personal_id: client&.personal_id,
         }
+      when 'Hmis::Hud::CurrentLivingSituation'
+        {
+          personal_id: enrollment&.PersonalID,
+          enrollment_id: enrollment&.EnrollmentID,
+        }
       else
         {}
       end
