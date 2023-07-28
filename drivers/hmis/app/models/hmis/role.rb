@@ -222,7 +222,7 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
       can_view_open_enrollment_summary: {
-        description: 'Grants access to view open enrollment summaries',
+        description: 'Grants access to view minimal information (entry date, project name, move-in date) for all open enrollments for a given client, regardless of whether the user can see those other projects.',
         administrative: false,
         access: [:viewable],
         categories: [
