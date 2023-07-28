@@ -31,14 +31,17 @@ module Mutations
       end
 
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
-      raise HmisErrors::ApiError, 'No entity for permission check' unless entity_for_permissions.present?
 
       # Check permission
       allowed = nil
+      perms_to_check = definition.record_editing_permissions
       if definition.allowed_proc.present?
         allowed = definition.allowed_proc.call(entity_for_permissions, current_user)
-      elsif definition.record_editing_permission.present?
-        allowed = current_user.permissions_for?(entity_for_permissions, *Array(definition.record_editing_permission))
+      elsif perms_to_check.any? && entity_for_permissions.present?
+        allowed = current_user.permissions_for?(entity_for_permissions, *perms_to_check)
+      elsif perms_to_check.any?
+        # if there was no entity specified, perms are checked globally
+        allowed = current_user.permissions?(*perms_to_check)
       else
         # allow if no permission check defined
         allowed = true

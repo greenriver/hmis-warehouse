@@ -177,10 +177,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FORM_ROLE_CONFIG[role.to_sym][:class_name]
   end
 
-  def record_editing_permission
-    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+  def record_editing_permissions
+    return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
 
-    FORM_ROLE_CONFIG[role.to_sym][:permission]
+    Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:permission])
   end
 
   def allowed_proc
