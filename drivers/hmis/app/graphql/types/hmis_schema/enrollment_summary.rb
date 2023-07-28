@@ -6,7 +6,7 @@ module Types
     field :project_type, Types::HmisSchema::Enums::ProjectType, null: false
     field :project_id, String, null: false
     field :move_in_date, GraphQL::Types::ISO8601Date, null: true
-    field :in_progress, Boolean, null: false
+    field :in_progress, Boolean, null: false, method: :in_progress?
     field :can_view_enrollment, Boolean, null: false
     field :primary_key, ID, null: true
 
