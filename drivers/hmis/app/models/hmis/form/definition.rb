@@ -10,6 +10,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
 
+  # convenience attr for passing graphql args
+  attr_accessor :filter_context
+
   has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier
   has_many :form_processors
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
@@ -157,6 +160,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     end
 
     recur_check.call(json)
+  end
+
+  def self.validate_schema(json)
+    schema_path = Rails.root
+      .join('drivers/hmis_external_apis/public/schemas/form_definition.json')
+    HmisExternalApis::JsonValidator.perform(json, schema_path)
   end
 
   def hud_assessment?

@@ -1,0 +1,19 @@
+[
+  {
+    "link_id": "income-and-sources",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        { "variable": "projectType", "operator": "EQUAL", "value": "2" },
+        {
+          "operator": "ANY",
+          "parts": [
+            { "variable": "projectFunderIds", "operator": "INCLUDE", "value": "5" },
+            { "variable": "projectFunderIds", "operator": "INCLUDE", "value": "19" },
+            { "variable": "projectOtherFunders", "operator": "INCLUDE", "value": "HAP Innovative" }
+          ]
+        }
+      ]
+    }
+  }
+]

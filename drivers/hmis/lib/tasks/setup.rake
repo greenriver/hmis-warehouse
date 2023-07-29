@@ -1,7 +1,9 @@
 desc 'Seed form definitions'
 task seed_definitions: [:environment, 'log:info_to_stdout'] do
-  ::HmisUtil::JsonForms.seed_record_form_definitions
-  ::HmisUtil::JsonForms.seed_assessment_form_definitions
+  ::HmisUtil::JsonForms.new.tap do |builder|
+    builder.seed_record_form_definitions
+    builder.seed_assessment_form_definitions
+  end
 end
 
 desc 'Load a particular definition'
@@ -9,7 +11,7 @@ desc 'Load a particular definition'
 task :load_definition, [:identifier, :role] => [:environment, 'log:info_to_stdout'] do |_t, args|
   raise "Usage: rake driver:hmis:load_definition['esg_funding_service','SERVICE']" unless args[:identifier].present? && args[:role].present?
 
-  ::HmisUtil::JsonForms.load_definition(args[:identifier], role: args[:role])
+  ::HmisUtil::JsonForms.new.load_definition(args[:identifier], role: args[:role])
 end
 
 desc 'Seed service types'
