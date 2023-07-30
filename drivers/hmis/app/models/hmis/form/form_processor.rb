@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Stores the actual data that was collected during an assessment. 1:1 with CustomAssessments.
+#   If the assessment is WIP: The data is stored exclusively as JSON blobs in the "values”/”hud_values" cols.
+#   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
 
@@ -91,7 +94,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # If not, create a new CLS
     self.current_living_situation = enrollment_factory.current_living_situations.build(**common_attributes)
   end
-  
+
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     @service_factory ||= owner.owner if owner.is_a? Hmis::Hud::HmisService
   end

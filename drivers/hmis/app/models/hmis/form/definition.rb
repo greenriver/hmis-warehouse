@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# The definition for form fields. The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
-# rails driver:hmis:seed_definitions
+# Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
+#
+# The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
+#   rails driver:hmis:seed_definitions
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums

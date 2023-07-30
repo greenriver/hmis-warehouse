@@ -7,6 +7,7 @@
     "name": { "type": "string" },
     "item": {
       "type": "array",
+      "minItems": 1,
       "items": { "$ref": "#/definitions/form_node" }
     }
   },
@@ -38,9 +39,9 @@
       "required": ["operator"],
       "properties": {
         "_comment": { "type": "string" },
-        "operator": { "enu": ["ANY", "ALL", "EQUAL", "INCLUDE"] },
-        "variable": { "type": "string" },
-        "value": { "type": "string" },
+        "operator": { "enum": ["ANY", "ALL", "EQUAL", "INCLUDE"] },
+        "variable": { "enum": ["projectType", "projectFunderIDs", "projectOtherFunders"] },
+        "value": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
         "parts": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
       }
     },
@@ -90,6 +91,7 @@
         "_comment": { "type": "string" },
         "item": {
           "type": "array",
+          "minItems": 1,
           "items": { "$ref": "#/definitions/form_node" }
         },
         "enable_behavior": { "enum": ["ALL", "ANY"] },

@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Specifies which polymorphic entity (and/or service type) that a given form is applicable to.
 class Hmis::Form::Instance < ::GrdaWarehouseBase
   include Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_form_instances

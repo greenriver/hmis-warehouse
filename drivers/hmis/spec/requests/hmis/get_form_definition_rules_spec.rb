@@ -53,7 +53,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'form definition with projectType rule' do
-      let(:project_type) { '5' }
+      let(:project_type) { 5 }
       before(:each) { assign_rule({ variable: 'projectType', operator: 'EQUAL', value: project_type }) }
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
@@ -66,9 +66,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    describe 'form definition with projectFunderIds rule' do
+    describe 'form definition with projectFunderIDs rule' do
       let(:funder_id) { '1234' }
-      before(:each) { assign_rule({ variable: 'projectFunderIds', operator: 'INCLUDE', value: funder_id }) }
+      before(:each) { assign_rule({ variable: 'projectFunderIDs', operator: 'INCLUDE', value: funder_id }) }
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
       end
@@ -95,7 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'form definition with all rule' do
-      let(:project_type) { '5' }
+      let(:project_type) { 5 }
       let(:funder_id) { '1234' }
       before(:each) do
         assign_rule(
@@ -103,7 +103,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             operator: 'ALL',
             parts: [
               { variable: 'projectType', operator: 'EQUAL', value: project_type },
-              { variable: 'projectFunderIds', operator: 'INCLUDE', value: funder_id },
+              { variable: 'projectFunderIDs', operator: 'INCLUDE', value: funder_id },
             ],
           },
         )
@@ -129,7 +129,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'form definition with any rule' do
-      let(:project_type) { '5' }
+      let(:project_type) { 5 }
       let(:funder_id) { '1234' }
       before(:each) do
         assign_rule(
@@ -137,7 +137,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             operator: 'ANY',
             parts: [
               { variable: 'projectType', operator: 'EQUAL', value: project_type },
-              { variable: 'projectFunderIds', operator: 'INCLUDE', value: funder_id },
+              { variable: 'projectFunderIDs', operator: 'INCLUDE', value: funder_id },
             ],
           },
         )

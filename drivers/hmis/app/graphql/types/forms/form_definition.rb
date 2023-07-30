@@ -55,7 +55,7 @@ module Types
         # { variable: 'projectType', operator: 'EQUAL', value: '1' }
         eval_var(rule.fetch('variable')) == rule.fetch('value')
       when 'INCLUDE'
-        # { variable: 'projectFunderIds', operator: 'INCLUDE', value: '1' }
+        # { variable: 'projectFunderIDs', operator: 'INCLUDE', value: '1' }
         eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
       when 'ANY'
         # { operator: 'ANY', parts: [ ... ] },
@@ -69,21 +69,21 @@ module Types
     end
 
     # @param key [String]
-    # @return String
+    # @return [String, Integer, nil]
     def eval_var(key)
       case key
       when 'projectType'
-        project&.project_type&.to_s
+        project&.project_type
       else
         raise "unknown variable #{key}"
       end
     end
 
     # @param key [String]
-    # @return [String]
+    # @return [Array<String, Integer>]
     def eval_var_multi(key)
       case key
-      when 'projectFunderIds'
+      when 'projectFunderIDs'
         project_funders.map(&:funder_id)
       when 'projectOtherFunders'
         project_funders.map(&:other_funder)
@@ -92,12 +92,12 @@ module Types
       end
     end
 
-    def project_funders
-      project ? load_ar_association(project, :funders) : []
-    end
-
     def project
       object.filter_context&.fetch(:project, nil)
+    end
+
+    def project_funders
+      project ? load_ar_association(project, :funders) : []
     end
   end
 end
