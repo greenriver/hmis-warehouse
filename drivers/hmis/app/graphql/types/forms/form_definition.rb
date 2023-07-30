@@ -73,7 +73,7 @@ module Types
     def eval_var(key)
       case key
       when 'projectType'
-        project.project_type.to_s
+        project&.project_type&.to_s
       else
         raise "unknown variable #{key}"
       end
@@ -93,7 +93,7 @@ module Types
     end
 
     def project_funders
-      load_ar_association(project, :funders)
+      project ? load_ar_association(project, :funders) : []
     end
 
     def project

@@ -9,8 +9,7 @@
           "operator": "ANY",
           "parts": [
             { "variable": "projectFunderIds", "operator": "INCLUDE", "value": "5" },
-            { "variable": "projectFunderIds", "operator": "INCLUDE", "value": "19" },
-            { "variable": "projectOtherFunders", "operator": "INCLUDE", "value": "HAP Innovative" }
+            { "variable": "projectFunderIds", "operator": "INCLUDE", "value": "19" }
           ]
         }
       ]

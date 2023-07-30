@@ -69,6 +69,7 @@ module HmisUtil
       patches.each do |patch|
         id = patch.fetch('link_id')
         node = nodes_by_id.fetch(id)
+        # Could also be deep merge. This is probably more intuitive though
         node.merge!(patch)
       end
       result
