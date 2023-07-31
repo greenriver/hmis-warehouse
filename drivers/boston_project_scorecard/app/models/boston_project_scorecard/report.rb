@@ -139,6 +139,7 @@ module BostonProjectScorecard
         :barrier_id_process,
         :plan_to_address_barriers,
         :required_match_percent_met,
+        :no_concern,
       ].freeze
     end
 

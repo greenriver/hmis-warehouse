@@ -45,6 +45,18 @@ module Types
     field :race, [Types::HmisSchema::Enums::Race], null: false
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :year_entered_service
+    hud_field :year_separated
+    hud_field :world_war_ii, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :korean_war, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :vietnam_war, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :desert_storm, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :afghanistan_oef, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :iraq_oif, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :iraq_ond, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :other_theater, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :military_branch, Types::HmisSchema::Enums::Hud::MilitaryBranch
+    hud_field :discharge_status, Types::HmisSchema::Enums::Hud::DischargeStatus
     field :pronouns, [String], null: false
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
@@ -121,9 +133,13 @@ module Types
       can :view_any_confidential_client_files
     end
 
-    # FIXME: use graphql dataloader
     def external_ids
-      object.external_identifiers
+      collection = Hmis::Hud::ClientExternalIdentifierCollection.new(
+        client: object,
+        ac_hmis_mci_ids: load_ar_association(object, :ac_hmis_mci_ids),
+        warehouse_client_source: load_ar_association(object, :warehouse_client_source),
+      )
+      collection.hmis_identifiers + collection.mci_identifiers
     end
 
     def enrollments(**args)
@@ -147,7 +163,7 @@ module Types
     end
 
     def assessments(**args)
-      resolve_assessments_including_wip(**args)
+      resolve_assessments(**args)
     end
 
     def services(**args)
@@ -169,9 +185,9 @@ module Types
     end
 
     def image
-      return nil unless object.image&.download
-
-      object.image
+      files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
+      file = files.first&.client_file
+      file&.download ? file : nil
     end
 
     def user
@@ -215,11 +231,11 @@ module Types
     end
 
     def phone_numbers
-      load_ar_association(object, :contact_points).filter {|r| r.system == 'phone'}
+      load_ar_association(object, :contact_points).filter { |r| r.system == 'phone' }
     end
 
     def email_addresses
-      load_ar_association(object, :contact_points).filter {|r| r.system == 'email'}
+      load_ar_association(object, :contact_points).filter { |r| r.system == 'email' }
     end
 
     def addresses

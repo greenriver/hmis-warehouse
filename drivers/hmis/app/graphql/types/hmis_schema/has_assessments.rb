@@ -32,10 +32,6 @@ module Types
         scoped_assessments(scope, **args)
       end
 
-      def resolve_assessments_including_wip(scope = object.custom_assessments_including_wip, **args)
-        scoped_assessments(scope, **args)
-      end
-
       private
 
       def scoped_assessments(scope, sort_order: nil, in_progress: nil, filters: nil, roles: nil)

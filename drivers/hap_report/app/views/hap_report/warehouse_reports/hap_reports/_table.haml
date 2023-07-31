@@ -16,6 +16,9 @@
                 = link_to_if(report.completed?, report.status, hap_report_warehouse_reports_hap_report_path(report))
               %th
                 = render 'filters/report_parameters', options: report.options, report: report
+                - if report.eraps.exists?
+                  %p
+                    Includes #{pluralize(report.eraps.count, 'eRAP client')}
               %td.text-nowrap
                 = report.created_at
                 .text-sm.text-muted by #{report.user&.name}
