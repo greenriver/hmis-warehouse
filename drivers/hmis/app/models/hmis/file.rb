@@ -61,7 +61,7 @@ class Hmis::File < GrdaWarehouse::File
       # creation if a new file. (Because of SubmitForm permission_base_and_attributes fn).
       # If the entity_base is a file, we're authorizing someone to edit an existing file.
       file = entity_base if entity_base.is_a?(Hmis::File)
-      client = entity_base.is_a? Hmis::Client ? entity_base : file&.client
+      client = entity_base.is_a? Hmis::Hud::Client ? entity_base : file&.client
 
       # file can be created/edited if user has can_manage_any_client_files for the client
       return true if user.can_manage_any_client_files_for?(client)
