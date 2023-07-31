@@ -8,7 +8,7 @@ module GrdaWarehouse
   class AvailableFileTag < GrdaWarehouseBase
     include DefaultFileTypes
 
-    belongs_to :tag, class_name: 'ActsAsTaggableOn::Tag', primary_key: :name, foreign_key: :name
+    belongs_to :tag, class_name: 'ActsAsTaggableOn::Tag', primary_key: :name, foreign_key: :name, optional: true
 
     scope :ordered, -> do
       order(group: :asc, weight: :asc, name: :asc)
