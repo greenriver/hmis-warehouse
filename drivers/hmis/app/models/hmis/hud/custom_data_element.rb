@@ -45,11 +45,13 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
 
   def validate_exactly_one_value
     values = slice(VALUE_COLUMNS).compact
-    errors.add(:base, :invalid, full_message: 'Exactly one value must be provided') unless values.size == 1
+    # Error if >1 value is set (like value_boolean and value_string)
+    errors.add(:base, :invalid, message: 'has more than one value type') if values.size > 1
     return unless values.size == 1
 
+    # Error if value_string is set but the definition says its a boolean type (for example)
     field_type = values.keys.first.gsub('value_', '')
-    errors.add(:base, :invalid, full_message: "Found value for '#{values.keys.first}' but definition is for type '#{data_element_definition.field_type}") unless data_element_definition.field_type.to_s == field_type.to_s
+    errors.add(:base, :invalid, message: "has a value for '#{values.keys.first}' but definition is for type '#{data_element_definition.field_type}") unless data_element_definition.field_type.to_s == field_type.to_s
   end
 
   def equal_for_merge?(other)
