@@ -1,5 +1,19 @@
 class ClientHistoryMonth
+  CONTACT_TYPES = {
+    'current_situations' => { name: 'Current Living Situation', icon: 'icon-download2' },
+    'move_in_dates' => { name: 'Move-in Date', icon: 'icon-enter' },
+    'extension' => { name: 'Extrapolated', icon: 'icon-cross' },
+    'bed_nights' => { name: 'Bed Night', icon: 'icon-moon-inv' },
+    'service_dates' => { name: 'Service', icon: 'icon-clip-board-check' },
+    'ce_events' => { name: 'CE Event', icon: '' },
+    'custom_events' => { name: 'Custom', icon: '' },
+  }.freeze
+
   def initialize(year, month)
+  end
+
+  def contact_types
+    CONTACT_TYPES
   end
 
   def weeks_data
@@ -33,6 +47,8 @@ class ClientHistoryMonth
             ],
             custom_events: [
               '2023-01-29',
+              '2023-02-02',
+              '2023-02-02',
             ],
           },
         ],
@@ -136,6 +152,26 @@ class ClientHistoryMonth
               entry_date: '2023-02-13',
               exit_date: '2023-02-28',
             },
+            bed_nights: [
+              '2023-02-13',
+              '2023-02-14',
+              '2023-02-15',
+            ],
+            current_situations: [
+              '2023-02-13',
+            ],
+            move_in_dates: [
+              '2023-02-13',
+            ],
+            service_dates: [
+              '2023-02-13',
+            ],
+            ce_events: [
+              '2023-02-13',
+            ],
+            custom_events: [
+              '2023-02-13',
+            ],
           },
           {
             project_name: 'RRH Project C',

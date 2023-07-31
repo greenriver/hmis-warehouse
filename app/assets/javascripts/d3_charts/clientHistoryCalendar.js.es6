@@ -1,25 +1,17 @@
 class AppClientHistoryCalendar {
-  constructor(data, calendar_selector) {
+  constructor(data, eventsData, calendar_selector) {
     console.log('ClientHistoryCalendar')
     console.log('data', data)
+    console.log('eventsData', eventsData)
     console.log('calendar_selector', calendar_selector)
     this.data = data
     this.container = d3.select('.d3-calendar')
   }
 
-  
-
-  // var container = d3.select('.d3-calendar')
-  // var containerBox = container.node().getBoundingClientRect()
-
   getDateFromString(dateString) {
     var parts = dateString.split('-')
     return new Date(parts[0], parts[1]-1, parts[2])
   }
-
-  // getProjectBorderRaius = (days, date) => {
-  //   return days.includes(date) ? '6px' : '0px'
-  // }
 
   includesDate(dates, date) {
     return dates.includes(date)
@@ -40,14 +32,33 @@ class AppClientHistoryCalendar {
     this.data.forEach((weekData, i) => {
       console.log('weekData', weekData)
 
-      var projectData = weekData.projects.filter((p) => {
-        if(filters.projectType && filters.projectType.length) {
-          return filters.projectType.includes(`${p.project_type}`)
+      var projectData = weekData.projects.map((p) => {
+        var opacity = 1
+        var inProjectType = true
+        var inProjectName = true
+        if(filters.projectTypes && filters.projectTypes.length > 0) {
+          opacity = filters.projectTypes.includes(`${p.project_type}`) ? 1 : 0.2
+          inProjectType = filters.projectTypes.includes(`${p.project_type}`)
         }
-        return true
+        if(filters.projectNames && filters.projectNames.length > 0) {
+          opacity = filters.projectNames.includes(p.project_name) && inProjectType ? 1 : 0.2
+          inProjectName = filters.projectNames.includes(p.project_name) && inProjectType
+        }
+        if(filters.contactTypes && filters.contactTypes.length > 0) {
+          filters.contactTypes.every((ct) => {
+            if (p[ct] && p[ct].length > 0 && inProjectType && inProjectName) {
+              opacity = 1
+              return false
+            } else {
+              opacity = 0.2
+              return true
+            }
+          })
+        }
+        p.opacity = opacity
+        return p
+        
       })
-      console.log('projects', projectData)
-      // console.log('weekData again', weekData)
 
       var month = weekData.month
       var dayDomain = weekData.days
@@ -82,6 +93,21 @@ class AppClientHistoryCalendar {
         .domain(dayDomain)
         .range([0,100])
 
+      var labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      var dayLabels = this.container.selectAll(`.${this.prefixClass('day-labels')}`)
+        .data([labels])
+        .enter()
+        .append('div')
+          .attr('class', this.prefixClass('day-labels'))
+
+      dayLabels.selectAll(`.${this.prefixClass('day-label')}`)
+        .data((d) => d)
+        .enter()
+        .append('div')
+          .attr('class', this.prefixClass('day-label'))
+          .style('width', dayScale.bandwidth()+'%')
+          .text((d) => d)
+
       var week = this.container
         .selectAll(`.${this.prefixClass('week', `${i}`)}`)
         .data([weekData])
@@ -108,21 +134,35 @@ class AppClientHistoryCalendar {
         .data(projectData)
         .join(
           function(enter) {
-            return enter.append('div').attr('class', projectClass)
+            return enter.append('div')
+              .attr('class', (d, i) => {
+                return `${projectClass} ${projectClass}__${i}`
+              })
+              .style('opacity', (d) => d.opacity)
           },
           function(update) {
-            return update
+            return update.transition().style('opacity', (d) => d.opacity)
           },
           function(exit) {
-            console.log('exit', exit)
             return exit.remove()
           }
         )
-        // .enter()
-        // .append('div')
-        //   .attr('class', this.prefixClass('project-container'))
-      // projects = week.selectAll(`.${projectClass}`)
-      console.log('project selection', projects)
+
+      // var tooltips = week.selectAll(`.${this.prefixClass('project-tooltip')}`)
+      //   .data(projectData)
+      //   .enter()
+      //   .append('div')
+      //     .attr('class', this.prefixClass('project-tooltip'))
+      //     .text('testing')
+      //     .style('top', (d, i) => {
+      //       var p = d3.select(`.${projectClass}__${i}`)
+      //       var box = p.node().getBoundingClientRect()
+      //       var parentBox = p.node().parentNode.getBoundingClientRect()
+      //       console.log('box', box)
+      //       console.log('parentBox', parentBox)
+      //       return '0px'
+      //     })
+        
       var bars = projects.selectAll(`.${this.prefixClass('project')}`)
         .data((d) => [d])
         .enter()
@@ -148,15 +188,30 @@ class AppClientHistoryCalendar {
           .style('margin-left', barLeft)
           .style('width', barWidth)
 
-      projects.selectAll(`.${this.prefixClass('project', 'extension')}`)
+      const extensionClass = this.prefixClass('project', 'extension')
+      projects.selectAll(`.${extensionClass}`)
         .data((d) => d.extension ? [d] : [])
-        .enter()
-        .append('div')
-          .attr('class', this.prefixClass('project', 'extension'))
-          .style('left', (d) => barLeft(d.extension))
-          .style('width', (d) => barWidth(d.extension))
-          .append('i')
-            .attr('class', (d) => includesEnd(d.extension) ? 'icon-cross' : '')
+        .join(
+          function(enter) {
+            return enter.append('div')
+              .attr('class', extensionClass)
+              .style('left', (d) => barLeft(d.extension))
+              .style('width', (d) => barWidth(d.extension))
+              .append('i')
+                .attr('class', (d) => includesEnd(d.extension) ? 'icon-cross' : '')
+          },
+          function(update) {
+            update.style('opacity', (d) => {
+              if(filters.contactTypes && filters.contactTypes.length > 0) {
+                return filters.contactTypes.includes('extension') ? 1 : 0.2
+              }
+              return 1
+            })
+          },
+          function(exit) {
+            return exit.remove()
+          }
+        )
 
       bars.selectAll(`.${this.prefixClass('project', 'start')}`)
         .data((d) => includesStart(d) && !d.extension_only ? [d] : [])
@@ -170,35 +225,47 @@ class AppClientHistoryCalendar {
         .append('div')
           .attr('class', this.prefixClass('project', 'end'))
 
-      var dayEvents = projects.selectAll(`.${this.prefixClass('project', 'day-events')}`)
+      const dayEventsClass = this.prefixClass('project', 'day-events')
+      const dayEventsStartClass = this.prefixClass('project', 'day-events-has-start')
+      
+      var dayEvents = projects.selectAll(`.${dayEventsClass}`)
         .data((d) => {
           return weekData.days.map((day) => {
             return {day: day, project: d}
           })
         })
-        .enter()
-        .append('div')
-          .attr('class', (d) => {
-            var classes = [this.prefixClass('project', 'day-events')]
-            if(d.day === d.project.entry_date) {
-              classes.push(this.prefixClass('project', 'day-events-has-start'))
-            }
-            return classes.join(' ')
-          })
-          .style('left', (d) => {
-            var left = dayScale(d.day) >= 0 ? dayScale(d.day) : 0
-            if(d.day === d.project.entry_date) {
-              left = left + 1
-            }
-            return left+'%'
-          })
-          .style('max-width', (d) => {
-            var width = dayScale.bandwidth()
-            if(d.day === d.project.entry_date) {
-              width = width - 1
-            }
-            return `${width}%`
-          })
+        .join(
+          function(enter) {
+            return enter.append('div')
+              .attr('class', (d) => {
+                var classes = [dayEventsClass]
+                if(d.day === d.project.entry_date) {
+                  classes.push(dayEventsStartClass)
+                }
+                return classes.join(' ')
+              })
+              .style('left', (d) => {
+                var left = dayScale(d.day) >= 0 ? dayScale(d.day) : 0
+                if(d.day === d.project.entry_date) {
+                  left = left + 1
+                }
+                return left+'%'
+              })
+              .style('max-width', (d) => {
+                var width = dayScale.bandwidth()
+                if(d.day === d.project.entry_date) {
+                  width = width - 1
+                }
+                return `${width}%`
+              })
+          },
+          function(update) {
+            return update
+          },
+          function(exit) {
+            return exit.remove()
+          }
+        )
 
       var projectLabels = projects.selectAll(`.${this.prefixClass('project', 'label')}`)
         .data((d) => [d])
@@ -220,41 +287,44 @@ class AppClientHistoryCalendar {
       projectLabels.append('strong').html((d) => d.project_type_name)
       projectLabels.append('span').html((d) => d.project_name)
 
-      const events = [
-        'bed_nights', 
-        'current_situations', 
-        'move_in_dates',
-        'service_dates',
-        'ce_events',
-        'custom_events',
-      ]
-
-      const eventIcons = {
-        bed_nights: 'icon-moon-inv',
-        current_situations: 'icon-download2',
-        move_in_dates: 'icon-enter',
-        service_dates: 'icon-clip-board-check',
-        ce_events: '',
-        custom_events: '',
-      } 
+      const events = Object.keys(eventsData).filter((e) => e != 'extension')
 
       events.forEach((event) => {
-        dayEvents.selectAll(`.${this.prefixClass('day-event', event)}`)
+        var dayClass = this.prefixClass('day-event')
+        var eventClass = this.prefixClass('day-event', event)
+        
+        dayEvents.selectAll(`.${dayClass}.${eventClass}`)
           .data((d) => {
             return (d.project[event]||[]).filter((n) => n === d.day).map((n) => {
-              return {project_type: d.project.project_type, date: n}
+              var datum = {project_type: d.project.project_type, date: n, opacity: 1}
+              if(filters.contactTypes && filters.contactTypes.length > 0) {
+                datum.opacity = filters.contactTypes.includes(event) ? 1 : 0.2
+              }
+              return datum
             })
           })
-          .enter()
-          .append('div')
-            .attr('class', (d) => {
-              return `project-type-${d.project_type} ${this.prefixClass('day-event')}`
-            })
-            .append('span')
-              .attr('class', `${this.prefixClass('day-event', event)}`)
-              .append('i')
-                .attr('class', eventIcons[event])
+          .join(
+            function(enter) {
+              return enter.append('div')
+                .attr('class', (d) => {
+                  return `project-type-${d.project_type} ${dayClass} ${eventClass}`
+                })
+                .append('span')
+                  .attr('class', eventClass)
+                  .append('i')
+                    .attr('class', (eventsData[event]||{}).icon)
+            },
+            function(update) {
+              return update.transition()
+                .style('opacity', (d) => d.opacity)
+            },
+            function(exit) {
+              return exit.remove()
+            }
+          )
+          
       })
+
 
     })
 

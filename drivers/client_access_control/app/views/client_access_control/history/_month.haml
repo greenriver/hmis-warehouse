@@ -1,35 +1,93 @@
-%div
-  %select.js-client-calendar-filter__project-type{name: 'project_types[]', multiple: 'multiple'}
-    - HudUtility.project_types.each do |key, value|
-      %option{value: key}= value
-
--# year, month = month
 -# For Dev
 - year, month = [2023, 2]
 - fakeData = ClientHistoryMonth.new(year, month)
 - start_of_month = Date.new(year, month, 1)
 - date_range = (start_of_month.beginning_of_week..start_of_month.end_of_month.end_of_week)
-%h3= start_of_month.strftime '%B %Y'
--#= link_to client_history_path(@client, month_index: )
-%button.btn.btn-light Prev
-%button.btn.btn-light Next
--#
 
-.d3-calendar.client__calendar{style: 'margin-top:40px;'}
+.row
+  .col-lg-7.col-md-12.mb-lg-6.mb-4
+    .p-4.client__calendar-card.client__calendar-card__filters
+      %h5.mt-0 Filters
+      .row
+        .col-xl-4.col-lg-12.col-sm-4.col-xs-12
+          %label Project Type
+          %select.js-client-calendar-filter__project-type{name: 'project_types[]', multiple: 'multiple', data: {name: 'projectTypes'}}
+            - HudUtility.project_types.each do |key, value|
+              %option{value: key}= value
+        .col-xl-4.col-lg-12.col-sm-4.col-xs-12
+          - projects = fakeData.weeks_data.map{|week| week[:projects]}.flatten.map{|project| project[:project_name]}.uniq
+          %label Project
+          %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projectNames'}}
+            - projects.each do |project|
+              %option{value: project}= project
+        .col-xl-4.col-lg-12.col-sm-4.col-xs-12
+          %label Contact Type
+          %select.js-client-calendar-filter__contact-type{name: 'contact_types[]', multiple: 'multiple', data: {name: 'contactTypes'}}
+            - fakeData.contact_types.each do |key, value|
+              %option{value: key}= value[:name]  
+  .col-lg-5.col-md-12.mb-6
+    .p-4.client__calendar-card.client__calendar-card__contact-key
+      %h5.mt-0 Service History Key
+      .d-flex.flex-wrap
+        - keys = fakeData.contact_types.keys.in_groups_of(2, false)
+        
+        - keys.each do |key_group|
+          .d-flex.w-100.justify-content-between
+            - key_group.each do |key|
+              - value = fakeData.contact_types[key]
+              .mb-4.w-50.d-flex.align-items-center
+                .d-flex.justify-content-center.client__calendar-card__contact-key__key
+                  .client__calendar-day-event
+                    %span{class: "client__calendar-day-event__#{key}"}
+                      %i{class: value[:icon]}
+                %span= value[:name]
+
+.client__calendar-header.mb-6.d-flex.justify-content-between.align-items-center
+  .d-flex
+    %h3.mr-4= start_of_month.strftime '%B %Y'
+    = link_to '#', class: 'mr-4', data: {confirm: 'TODO'} do
+      %i.icon-calendar
+    = link_to '#', class: 'mr-4', data: {confirm: 'TODO'} do
+      %i.icon-angle-left
+    = link_to '#', class: 'mr-4', data: {confirm: 'TODO'} do
+      %i.icon-angle-right
+  .d-flex
+    = link_to '#', class: 'mr-4 btn btn-outline-primary', data: {confirm: 'TODO'} do
+      %i.icon-arrow-left2
+      First Interaction
+    = link_to '#', class: 'btn btn-outline-secondary', data: {confirm: 'TODO'} do
+      Today
+
+.d3-calendar.client__calendar
 
 
 - content_for :page_js do
   :javascript
     var data = #{fakeData.weeks_data.to_json.html_safe}
+    var eventsData = #{fakeData.contact_types.to_json.html_safe}
 
     $(document).ready(function() {
-      var calendar = new AppClientHistoryCalendar(data, '.d3-calendar')
-      calendar.draw({})
-      $('.js-client-calendar-filter__project-type').select2()
-      $('.js-client-calendar-filter__project-type').on('change', function(e) {
-        console.log('change', $(e.target).val())
-        calendar.draw({projectType: $(e.target).val()})
+      var calendar = new AppClientHistoryCalendar(data, eventsData, '.d3-calendar')
+
+      // we will need to set filters on page load
+      var filters = {}
+      var filterNodes = [
+        $('.js-client-calendar-filter__project-type'),
+        $('.js-client-calendar-filter__project'),
+        $('.js-client-calendar-filter__contact-type'),
+      ]
+      filterNodes.forEach(function(f) {
+        console.log('f', f)
+        f.select2()
+        f.on('change', function(e) {
+          var target = $(e.target)
+          var filterName = target.data('name')
+          filters[filterName] = target.val()
+          calendar.draw(filters)
+        })
       })
+      
+      calendar.draw(filters)
       
     })
 

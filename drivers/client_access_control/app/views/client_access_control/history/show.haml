@@ -3,7 +3,7 @@
 = render 'clients/breadcrumbs'
 = render 'clients/aliases'
 = render 'clients/tab_navigation', current: polymorphic_path(history_path_generator, client_id: @client)
-%h1= title
+-#%h1= title
 - if @month_index.present? && @months[@month_index].present?
   = render 'month', month: @months.reverse[@month_index]
 - else

@@ -75,11 +75,51 @@
   border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+.client__calendar-card {
+  border-radius: 4px;
+  border: 1px solid #DCDCDC;
+  background: #FFF;
+  height: 100%;
+}
+
+.client__calendar-card__filters {
+
+}
+
+.client__calendar-card__contact-key {
+  
+}
+
+.client__calendar-card__contact-key__key {
+  width: 30px;
+}
+
+.client__calendar-header {
+  a:not(.btn) {
+    color: rgba(0, 0, 0, 0.5)
+  }
+}
+
+.client__calendar-project-tooltip {
+  width: 300px;
+  background-color: red;
+  position: absolute;
+}
+
 .client__calendar-week {
   position: relative;
   padding-top: 38px;
   padding-bottom: 8px;
   min-height: 170px;
+}
+
+.client__calendar-day-labels {
+  display: flex;
+}
+
+.client__calendar-day-label {
+  padding: 0px 4px;
+  font-weight: bold;
 }
 
 .client__calendar-day {
@@ -90,6 +130,7 @@
   top: 0px;
   bottom: 0px;
   z-index: 0;
+  font-weight: bold;
 }
 
 $client-calendar-border-radius: 6px;
@@ -134,6 +175,25 @@ $client-calendar-project-height: 50px;
     right: -5px; 
     color: #6A1B9A;
     top: -5px;
+  }
+}
+
+span.client__calendar-day-event__extension {
+  position: relative;
+  padding-left: 8px;
+  &:after {
+    content: ' ';
+    display: block;
+    height: 4px;
+    background-color: #6A1B9A;
+    position: absolute;
+    left: 1px;
+    width: 50%;
+    top: 50%;
+    margin-top: -1px;
+  }
+  i {
+    color: #6A1B9A;
   }
 }
 
@@ -206,25 +266,21 @@ $client-calendar-project-height: 50px;
 .client__calendar-day-event {
   display: inline-block;
   margin-right: 8px;
-  // margin-bottom: 4px;
   line-height: 1;
   flex: 0 0 auto;
-  // &:first-child {
-  //   margin-left: 8px;
-  // }
   span {
     display: inline-block;
   }
 }
 
-.client__calendar-day-event__bed_nights {
+span.client__calendar-day-event__bed_nights {
   i {
     color: #388E3C;
     font-size: 16px;
   }
 }
 
-.client__calendar-day-event__current_situations {
+span.client__calendar-day-event__current_situations {
   background-color: #F57C00;
   border-radius: 5px;
   width: 20px;
@@ -237,7 +293,7 @@ $client-calendar-project-height: 50px;
   }
 }
 
-.client__calendar-day-event__move_in_dates {
+span.client__calendar-day-event__move_in_dates {
   background-color: #E91E63;
   border-radius: 5px;
   text-align: center;
@@ -250,14 +306,14 @@ $client-calendar-project-height: 50px;
   }
 }
 
-.client__calendar-day-event__service_dates {
+span.client__calendar-day-event__service_dates {
   i{
     color: #9F2500;
     font-size: 18px;
   }
 }
 
-.client__calendar-day-event__ce_events {
+span.client__calendar-day-event__ce_events {
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -265,7 +321,7 @@ $client-calendar-project-height: 50px;
   i{display: none}
 }
 
-.client__calendar-day-event__custom_events {
+span.client__calendar-day-event__custom_events {
   width: 0;
   height: 0;
   border-left: 7px solid transparent;
