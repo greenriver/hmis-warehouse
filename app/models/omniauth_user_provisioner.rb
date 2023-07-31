@@ -20,6 +20,10 @@ class OmniauthUserProvisioner
     new_authorization_created = false
     new_user_created = false
 
+    # The email is normalized here since we are skipping devise's normalization
+    normalized_email = normalize_email_for_devise(user_scope, auth['info']['email'])
+    raise if normalized_email.blank?
+
     OauthIdentity.transaction do
       attrs = { provider: auth.provider, uid: auth.uid }
       # create an orphan authorization to lock before creating a user
@@ -33,7 +37,7 @@ class OmniauthUserProvisioner
       # load or create a user record
       if identity.user_id.nil?
         new_authorization_created = true
-        user = user_scope.find_or_build_for_oauth(email: auth['info']['email'])
+        user = user_scope.find_or_build_for_oauth(email: normalized_email)
         new_user_created = user.new_record?
       else
         user = user_scope.find(identity.user_id)
@@ -41,7 +45,7 @@ class OmniauthUserProvisioner
 
       # treat oauth hash as authoritative for user info
       user.assign_attributes(
-        email: auth['info']['email'],
+        email: normalized_email,
         phone: auth.extra.raw_info[:phone_number],
         first_name: auth['info']['first_name'],
         last_name: auth['info']['last_name'],
@@ -49,6 +53,7 @@ class OmniauthUserProvisioner
 
       user.skip_confirmation! unless user.confirmed?
       user.skip_reconfirmation!
+      # validate: false skips devise's normalization
       user.save!(validate: false)
       identity.raw_info = auth['extra'].merge(auth['credentials'])
       identity.user_id = user.id
@@ -69,6 +74,14 @@ class OmniauthUserProvisioner
   end
 
   protected
+
+  # mirror devise's configured behavior
+  def normalize_email_for_devise(user_class, email)
+    user_class
+      .send(:devise_parameter_filter)
+      .filter(email: email)
+      .fetch(:email)
+  end
 
   def log(msg)
     method_name = caller_locations(1, 1)[0].label
