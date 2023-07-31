@@ -9,7 +9,6 @@ BostonHmis::Application.routes.draw do
           delete :remove_file
           get :download
           patch :upload
-          get :new_pdf
         end
       end
     end
