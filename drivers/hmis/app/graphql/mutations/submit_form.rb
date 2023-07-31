@@ -138,7 +138,10 @@ module Mutations
       ds = { data_source_id: data_source_id }
       case class_name
       when 'Hmis::Hud::Client'
-        # 'nil' because there is no permission base for client creation. the permission is checked globally.
+        # 'nil' because there is no permission base for client creation; the permission is checked globally.
+        [nil, ds]
+      when 'Hmis::Hud::Organization'
+        # 'nil' because there is no permission base for organization creation; the permission is checked globally.
         [nil, ds]
       when 'Hmis::Hud::Project'
         [organization, { organization_id: organization&.organization_id, **ds }]
