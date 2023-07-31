@@ -14,6 +14,7 @@ module Types
     field :create_enrollment, mutation: Mutations::CreateEnrollment
     field :add_to_household, mutation: Mutations::AddToHousehold
     field :update_relationship_to_ho_h, mutation: Mutations::UpdateRelationshipToHoH
+    field :update_custom_enrollment_value, mutation: Mutations::UpdateCustomEnrollmentValue
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :delete_organization, mutation: Mutations::DeleteOrganization
     field :delete_project, mutation: Mutations::DeleteProject

@@ -73,6 +73,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on Enrollment {
               id
             }
+            ... on CurrentLivingSituation {
+              id
+            }
           }
           #{error_fields}
         }
@@ -91,6 +94,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :SERVICE,
       :FILE,
       :ENROLLMENT,
+      :CURRENT_LIVING_SITUATION,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }

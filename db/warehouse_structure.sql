@@ -963,7 +963,8 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "UserID" character varying(32) NOT NULL,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    at_occurrence boolean DEFAULT false NOT NULL
 );
 
 
@@ -53993,6 +53994,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230707143716'),
 ('20230710183058'),
 ('20230724145057'),
+('20230725160948'),
 ('20230725163336'),
 ('20230728140151');
 
