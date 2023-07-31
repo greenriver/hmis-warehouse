@@ -49,7 +49,7 @@ module AllNeighborsSystemDashboard
     end
 
     def url
-      all_neighbors_system_dashboard_warehouse_reports_all_neighbors_system_dashboard_url(host: ENV.fetch('FQDN'), id: id, protocol: :https, format: :xlsx)
+      all_neighbors_system_dashboard_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: :https, format: :xlsx)
     end
 
     def a_t
@@ -59,9 +59,11 @@ module AllNeighborsSystemDashboard
     def populate_universe
       enrollment_scope.find_in_batches do |batch|
         enrollments = {}
+        ce_infos = ce_infos_for_batch(filter, batch)
+        return_dates = return_dates_for_batch(filter, batch)
         batch.each do |enrollment|
           source_enrollment = enrollment.enrollment
-          ce_info = ce_info(filter, enrollment)
+          ce_info = ce_infos[enrollment.id]
           enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
             household_id: enrollment.household_id,
@@ -85,7 +87,7 @@ module AllNeighborsSystemDashboard
             ce_entry_date: ce_info&.entry_date,
             ce_referral_date: ce_info&.ce_event&.event_date,
             ce_referral_id: ce_info&.ce_event&.event_id,
-            return_date: return_date(filter, enrollment),
+            return_date: return_dates[enrollment.id],
             project_id: source_enrollment.project_id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
             project_type: enrollment.project_type,

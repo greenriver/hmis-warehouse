@@ -116,47 +116,66 @@ module AllNeighborsSystemDashboard
         enrollment.client.race_description
       end
 
-      def ce_info(filter, housing_enrollment)
+      def ce_infos_for_batch(filter, batch)
         household_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.
+          preload(:enrollment).
           entry.
-          where(household_id: housing_enrollment.household_id, data_source_id: housing_enrollment.data_source_id).
-          where(she_t[:exit_date].eq(nil).or(she_t[:exit_date].gteq(filter.start_date)))
-
-        # Find the earliest most recent active enrollment for the household in the CE Project set with an entry on or before
-        # the the entry into housing, and if there is an exit, it is after the report start
-        ce_enrollment = household_enrollments.
-          where(entry_date: (.. housing_enrollment.entry_date)).
           where(project_id: filter.secondary_project_ids).
-          order(entry_date: :asc).
-          index_by(&:client_id). # index keeps last value, so this will find the most recent enrollment for each client
-          values.min_by(&:entry_date) # find the earliest enrollment
-
-        # Find the most recent referral event associated with any active household enrollment in the reporting period
-        ce_event = GrdaWarehouse::Hud::Event.
-          where(enrollment_id: household_enrollments.map { |she| she.enrollment.enrollment_id }).
+          where(household_id: batch.map(&:household_id), data_source_id: batch.map(&:data_source_id)).
+          where(she_t[:exit_date].eq(nil).or(she_t[:exit_date].gteq(filter.start_date))).
+          order(she_t[:entry_date].desc).
+          group_by { |enrollment| [enrollment.household_id, enrollment.data_source_id] }
+        ce_events =  GrdaWarehouse::Hud::Event.
+          where(enrollment_id: household_enrollments.values.map { |she| she.enrollment.enrollment_id }).
           where(event: SERVICE_CODE_ID.keys, event_date: filter.range).
-          order(event_date: :desc).first # most recent event
+          order(event_date: :asc).
+          group_by { |event| [event.enrollment_id, event.data_source_id] }.
+          transform_values(&:last)
+        {}.tap do |h|
+          batch.each do |housing_enrollment|
+            # Find the earliest most recent active enrollment for the household in the CE Project set with an entry on or before
+            # the the entry into housing, and if there is an exit, it is after the report start
+            ce_enrollment = household_enrollments[[housing_enrollment.household_id, housing_enrollment.data_source_id]]&.
+              select { |enrollment| enrollment.entry_date <= housing_enrollment.entry_date }&.
+              first
+            next unless ce_enrollment.present?
 
-        OpenStruct.new(
-          entry_date: ce_enrollment&.entry_date,
-          ce_event: ce_event,
-        )
+            h[housing_enrollment.id] = OpenStruct.new(
+              entry_date: ce_enrollment&.entry_date,
+              ce_event: ce_events[[ce_enrollment.enrollment.enrollment_id, ce_enrollment.enrollment.data_source_id]],
+            )
+          end
+        end
       end
 
-      def return_date(filter, housing_enrollment)
-        # Find the entry date into a homeless project if the client exits the housing enrollment to a permanent
-        # destination, and then returns to to homelessness. For entries into PH the  re-enrollment must be more
-        # than 14 days from the exit date.
-        return unless housing_enrollment.exit_date.present? && housing_enrollment.destination.in?([26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34]) # From SPM M2
+      def return_dates_for_batch(filter, batch)
+        exited_enrollments = batch.
+          select do |enrollment|
+          enrollment.exit_date.present? &&
+            enrollment.destination.in?([26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34]) # From SPM M2
+        end.index_by(&:client_id)
 
-        delayed_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
         re_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.
           entry.
-          where(client_id: housing_enrollment.client_id, entry_date: (housing_enrollment.exit_date .. filter.end_date))
-        returns = re_enrollments.where.not(project_type: delayed_project_types).
-          or(re_enrollments.where(project_type: delayed_project_types, entry_date: housing_enrollment.exit_date + 14.days))
+          where(client_id: exited_enrollments.values.map(&:client_id), entry_date: filter.range).
+          group_by(&:client_id).
+          map do |k, v|
+          exit_date = exited_enrollments[k].exit_date
+          transformed = v.select do |enrollment|
+            enrollment.entry_date + 14.days >= exit_date ||
+            (enrollment.entry_date >= exit_date && !enrollment.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]))
+          end
+          [k, transformed] if transformed.present?
+        end.compact.to_h
 
-        returns.minimum(:entry_date)
+        {}.tap do |h|
+          exited_enrollments.values.each do |housing_enrollment|
+            candidates = re_enrollments[housing_enrollment.client_id]
+            next unless candidates.present?
+
+            h[housing_enrollment.id] = candidates.map(&:entry_date).min
+          end
+        end
       end
 
       def enrollment_data
