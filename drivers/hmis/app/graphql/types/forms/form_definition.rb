@@ -84,7 +84,7 @@ module Types
     def eval_var_multi(key)
       case key
       when 'projectFunderIDs'
-        project_funders.map(&:funder_id)
+        project_funders.map(&:funder)
       when 'projectOtherFunders'
         project_funders.map(&:other_funder)
       else
