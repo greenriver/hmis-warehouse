@@ -276,7 +276,7 @@ module Types::HmisSchema::Enums::Hud
   class RentalSubsidyType < Types::BaseEnum
     description '3.12.A'
     graphql_name 'RentalSubsidyType'
-    hud_enum ::HudLists2024.rental_subsidy_type_map
+    hud_enum HudUtility2024.rental_subsidy_types
   end
 
   class IncarceratedParentStatus < Types::BaseEnum
