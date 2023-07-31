@@ -272,6 +272,13 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility.referral_results
   end
 
+  # Only present in 2024 spec
+  class RentalSubsidyType < Types::BaseEnum
+    description '3.12.A'
+    graphql_name 'RentalSubsidyType'
+    hud_enum ::HudLists2024.rental_subsidy_type_map
+  end
+
   class IncarceratedParentStatus < Types::BaseEnum
     description '4.33.A'
     graphql_name 'IncarceratedParentStatus'

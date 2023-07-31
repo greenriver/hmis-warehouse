@@ -34,6 +34,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FILE: 'File',
     REFERRAL_REQUEST: 'Referral Request',
     ENROLLMENT: 'Enrollment',
+    CURRENT_LIVING_SITUATION: 'Current Living Situation',
     # Occurrence-point collection forms
     MOVE_IN_DATE: 'Move-in Date',
     DATE_OF_ENGAGEMENT: 'Date of Engagement',
@@ -68,6 +69,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: :can_manage_incoming_referrals,
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
+    CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
     ENROLLMENT: ENROLLMENT_CONFIG,
     # These are all basically Enrollment-editing forms ("occurrence point"),
     # but they need different "roles" so that the frontend can request the correct one.

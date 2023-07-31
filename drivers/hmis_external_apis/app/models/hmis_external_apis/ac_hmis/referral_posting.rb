@@ -89,11 +89,8 @@ module HmisExternalApis::AcHmis
       self.status_updated_at ||= created_at
     end
 
-    INACTIVE_STATUSES = [:closed_status, :accepted_by_other_program_status, :denied_status].freeze
-    scope :active, -> { where.not(status: INACTIVE_STATUSES) }
-
-    OUTGOING_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
-    scope :outgoing, -> { where(status: OUTGOING_STATUSES) }
+    ACTIVE_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
+    scope :active, -> { where(status: ACTIVE_STATUSES) }
 
     private def validate_status_change
       return unless status_changed? && status.present? && status_was.present?
