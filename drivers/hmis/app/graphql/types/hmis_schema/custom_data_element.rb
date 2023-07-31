@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::CustomDataElement < Types::BaseObject
-    field :id, ID, null: false
+    field :id, ID, null: false, extras: [:parent]
     field :key, String, null: false
     field :field_type, HmisSchema::Enums::CustomDataElementType, null: false
     field :label, String, null: false
@@ -22,7 +22,15 @@ module Types
 
     def all_values(parent:)
       parent = load_ar_association(parent, :owner) if parent.is_a? Hmis::Hud::HmisService # special case for view
-      load_ar_association(object, :values, scope: parent.custom_data_elements)
+      ids = parent.custom_data_elements.pluck(:id)
+      # get all values existing for this CustomDataElementDefinition, and filter
+      # it down to only elemnts that are relevant to this parent
+      load_ar_association(object, :values).where(id: ids)
+    end
+
+    # Unique ID based on values
+    def id(parent:)
+      [object.id, *all_values(parent: parent).map(&:id)].join(':')
     end
 
     # If this custom element allows multiple values, 'values' is set (repeats: true)
