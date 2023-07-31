@@ -124,7 +124,7 @@ module PerformanceMeasurement
     def self.known_params
       return ::Filters::HudFilterBase.new.known_params if PerformanceMeasurement::Goal.include_project_options?
 
-      [:end, :coc_code]
+      [:end, :coc_code, :comparison_pattern]
     end
 
     # The filter user is dependent on the configuration
