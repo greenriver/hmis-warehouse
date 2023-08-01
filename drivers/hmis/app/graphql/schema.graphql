@@ -2312,6 +2312,7 @@ type Enrollment {
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   moveInDate: ISO8601Date
+  openEnrollmentSummary: [EnrollmentSummary!]!
   percentAmi: PercentAMI
   physicalDisabilityFam: NoYesMissing
   previousStreetEssh: NoYesMissing
@@ -2411,6 +2412,17 @@ enum EnrollmentStatus {
   Exit Incomplete
   """
   OWN_EXIT_INCOMPLETE
+}
+
+type EnrollmentSummary {
+  canViewEnrollment: Boolean!
+  entryDate: ISO8601Date!
+  id: ID!
+  inProgress: Boolean!
+  moveInDate: ISO8601Date
+  projectId: String!
+  projectName: String!
+  projectType: ProjectType!
 }
 
 input EnrollmentsForClientFilterOptions {
@@ -4982,6 +4994,7 @@ type OrganizationsPaginated {
 
 input OutgoingReferralPostingInput {
   enrollmentId: ID
+  note: String
   projectId: ID
   unitTypeId: ID
 }
@@ -5521,6 +5534,7 @@ type QueryAccess {
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
   id: ID!
 }
@@ -5789,6 +5803,7 @@ HUD Client within a Referral Household
 type ReferralHouseholdMember {
   client: Client!
   id: ID!
+  openEnrollmentSummary: [EnrollmentSummary!]!
   relationshipToHoH: RelationshipToHoH!
 }
 

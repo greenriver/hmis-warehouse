@@ -2,7 +2,6 @@ require 'rails_helper'
 
 RSpec.describe Message, type: :model do
   include ActiveJob::TestHelper
-  ActiveJob::Base.queue_adapter = :test
   describe 'When user email schedule set to immediate: ' do
     let!(:user) { create :user, email: 'noreply-for-testing@greenriver.com', email_schedule: 'immediate' }
 

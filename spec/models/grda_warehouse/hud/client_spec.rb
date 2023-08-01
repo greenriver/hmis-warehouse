@@ -2,7 +2,6 @@ require 'rails_helper'
 include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
-  ActiveJob::Base.queue_adapter = :test
   let(:client) { build :grda_warehouse_hud_client }
   let(:client_signed_yesterday) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday }
   let(:client_signed_2_years_ago) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date }

@@ -129,6 +129,15 @@ module Types
 
     field :reminders, [HmisSchema::Reminder], null: false
 
+    field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+
+    def open_enrollment_summary
+      return [] unless current_user.can_view_open_enrollment_summary_for?(object)
+
+      client = load_ar_association(object, :client)
+      load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
+    end
+
     def reminders
       # assumption is this is called on a single record; we aren't solving n+1 queries
       project = object.project
