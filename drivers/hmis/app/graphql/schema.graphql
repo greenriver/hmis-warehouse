@@ -1961,7 +1961,6 @@ type Disability {
   disabilityResponse: DisabilityResponse!
   disabilityType: DisabilityType!
   enrollment: Enrollment!
-  hivAids: NoYesReasonsForMissingData
   id: ID!
   indefiniteAndImpairs: Int
   informationDate: ISO8601Date!
