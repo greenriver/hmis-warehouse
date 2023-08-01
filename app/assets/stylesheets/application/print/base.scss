@@ -80,6 +80,17 @@
     }
   }
 
+  .l-print.coverSheet.ca-print__section {
+    h1 {
+      font-size: 24px;
+      border-bottom: none;
+      text-align: center;
+    }
+    p {
+      font-size: 17px;
+    }
+  }
+
   .pctc-print__detail-label {
     font-size: 12px;
     font-weight: bold;
