@@ -66,14 +66,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    describe 'form definition with projectFunderIDs rule' do
-      let(:funder_id) { '1234' }
-      before(:each) { assign_rule({ variable: 'projectFunderIDs', operator: 'INCLUDE', value: funder_id }) }
+    describe 'form definition with projectFunders rule' do
+      let(:funder) { 1234 }
+      before(:each) { assign_rule({ variable: 'projectFunders', operator: 'INCLUDE', value: funder }) }
       it 'excludes filtered items' do
         expect(query_form_definition_items.size).to eq(base_items.size - 1)
       end
       describe 'with matches' do
-        before(:each) { create :hmis_hud_funder, data_source: ds1, project: p1, funder_id: funder_id }
+        before(:each) { create :hmis_hud_funder, data_source: ds1, project: p1, funder: funder }
         it 'includes all items' do
           expect(query_form_definition_items.size).to eq(base_items.size)
         end
@@ -96,14 +96,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     describe 'form definition with all rule' do
       let(:project_type) { 5 }
-      let(:funder_id) { '1234' }
+      let(:funder) { 1234 }
       before(:each) do
         assign_rule(
           {
             operator: 'ALL',
             parts: [
               { variable: 'projectType', operator: 'EQUAL', value: project_type },
-              { variable: 'projectFunderIDs', operator: 'INCLUDE', value: funder_id },
+              { variable: 'projectFunders', operator: 'INCLUDE', value: funder },
             ],
           },
         )
@@ -120,7 +120,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       describe 'with complete match' do
         before(:each) do
           p1.update!(project_type: project_type)
-          create :hmis_hud_funder, data_source: ds1, project: p1, funder_id: funder_id
+          create :hmis_hud_funder, data_source: ds1, project: p1, funder: funder
         end
         it 'includes all items' do
           expect(query_form_definition_items.size).to eq(base_items.size)
@@ -130,14 +130,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     describe 'form definition with any rule' do
       let(:project_type) { 5 }
-      let(:funder_id) { '1234' }
+      let(:funder) { 1234 }
       before(:each) do
         assign_rule(
           {
             operator: 'ANY',
             parts: [
               { variable: 'projectType', operator: 'EQUAL', value: project_type },
-              { variable: 'projectFunderIDs', operator: 'INCLUDE', value: funder_id },
+              { variable: 'projectFunders', operator: 'INCLUDE', value: funder },
             ],
           },
         )

@@ -69,6 +69,10 @@ module Types
       # If there was no definition, find the appropriate definition to use
       project = load_ar_association(object, :project)
       Hmis::Form::Definition.find_definition_for_role(role, project: project)
+
+      record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record.filter_context = { project: project }
+      record
     end
 
     def in_progress
