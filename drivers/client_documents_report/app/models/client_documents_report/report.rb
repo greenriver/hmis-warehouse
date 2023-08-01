@@ -83,8 +83,7 @@ module ClientDocumentsReport
       else
         filter.optional_files
       end
-      tag_names = GrdaWarehouse::AvailableFileTag.where(id: ids).pluck(:name)
-      ActsAsTaggableOn::Tag.where(name: tag_names)
+      ActsAsTaggableOn::Tag.where(id: ids)
     end
 
     def total_optional_documents
