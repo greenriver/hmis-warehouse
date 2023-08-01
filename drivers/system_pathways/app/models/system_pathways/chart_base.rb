@@ -311,15 +311,15 @@ module SystemPathways::ChartBase
     end
 
     private def races
-      @races ||= HudLists.race_map
+      @races ||= HudUtility.races
     end
 
     private def ethnicities
-      @ethnicities ||= HudLists.ethnicity_map
+      @ethnicities ||= HudUtility.ethnicities
     end
 
     private def veteran_statuses
-      @veteran_statuses ||= HudLists.no_yes_reasons_for_missing_data_map
+      @veteran_statuses ||= HudUtility.no_yes_reasons_for_missing_data_options
     end
 
     private def chronic_at_entries
@@ -331,7 +331,7 @@ module SystemPathways::ChartBase
     end
 
     private def disabling_conditions
-      @disabling_conditions ||= HudLists.no_yes_reasons_for_missing_data_map
+      @disabling_conditions ||= HudUtility.no_yes_reasons_for_missing_data_options
     end
 
     private def as_table(data, headers)

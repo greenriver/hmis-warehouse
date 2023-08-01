@@ -15,7 +15,7 @@ module Hmis
       end
 
       def perform
-        results = enrollments.flat_map do |enrollment|
+        enrollments.flat_map do |enrollment|
           [
             annual_assessment_reminder(enrollment),
             aged_into_adulthood_reminder(enrollment),
@@ -43,7 +43,7 @@ module Hmis
       end
 
       def data_stages(keys)
-        @mapped ||= HudUtility.hud_list_map_as_enumerable(:data_collection_stage_map).symbolize_keys
+        @mapped ||= HudUtility.hud_list_map_as_enumerable(:data_collection_stages).symbolize_keys
         @mapped.fetch_values(*keys.map(&:to_sym))
       end
 
