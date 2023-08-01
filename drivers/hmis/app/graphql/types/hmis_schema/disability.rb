@@ -21,6 +21,13 @@ module Types
     hud_field :disability_response, HmisSchema::Enums::Hud::DisabilityResponse
     hud_field :indefinite_and_impairs
     hud_field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false
+    hud_field :hiv_aids, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    hud_field :t_cell_count_available, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    hud_field :t_cell_count, Integer, null: true
+    hud_field :t_cell_source, HmisSchema::Enums::Hud::TCellSourceViralLoadSource, null: true
+    hud_field :viral_load_available, HmisSchema::Enums::Hud::ViralLoadAvailable, null: true
+    hud_field :viral_load, Integer, null: true
+    hud_field :anti_retroviral, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted

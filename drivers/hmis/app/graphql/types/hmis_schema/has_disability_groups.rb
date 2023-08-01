@@ -27,7 +27,7 @@ module Types
       # on the same Information Date / Data Collection Stage / Enrollment.
       # Each struct contains a `disabilities` array field, which has
       # information about all six disability types.
-      def resolve_disability_groups(scope = object.disabilities, **_args)
+      def resolve_disability_groups(scope = load_ar_association(object, :disabilities), **_args)
         # FIXME: we should key by SOURCE ASSESSMENT if possible, since there can be 2 update assessments on the same day.
         key_fields = [
           :enrollment_id, # Don't move! below code depends on item being first in array
@@ -42,6 +42,12 @@ module Types
           :id,
           :date_updated,
           :date_created,
+          :t_cell_count_available,
+          :t_cell_count,
+          :t_cell_source,
+          :viral_load_available,
+          :viral_load,
+          :anti_retroviral,
         ]
         result_aggregations = result_fields.map { |f| nf('json_agg', [d_t[f]]).to_sql }
 

@@ -105,6 +105,19 @@ module Types
       indefinite_and_impairs_for_type(10)
     end
 
+    [
+      :t_cell_count_available,
+      :t_cell_count,
+      :t_cell_source,
+      :viral_load_available,
+      :viral_load,
+      :anti_retroviral,
+    ].each do |field|
+      define_method(field) do
+        object.disabilities.find { |r| r.disability_type == 8 }&.send(field)
+      end
+    end
+
     private def response_for_type(disability_type)
       object.disabilities.find { |r| r.disability_type == disability_type }&.disability_response
     end
