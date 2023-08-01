@@ -221,7 +221,7 @@
           %td
             = @assessment.substance_use_responses.select{|k, v| v == @assessment.substance_use}.keys.first
 .pt-4.ca-print__section
-  %h2 Tabacco Use
+  %h2 Tobacco Use
   .pctc-print__table.top
     %table
       %tbody
@@ -288,7 +288,7 @@
             - else
               %td
             %td= checkmark(treatment.completed?)
-        - 5.times.each do
+        - 3.times.each do
           %tr
             - 6.times do
               %td
