@@ -9,25 +9,7 @@
     .pctc-print__detail-label Review Date
     .pctc-print__detail-value= @careplan.reviewed_by_rn_on
 
-- care_team_cols = [:name, :phone, :email]
 .pctc-print__table
-  %table
-    %thead
-      %tr
-        %th.pctc-print__table-title.pt-8{colspan: care_team_cols.size + 1} Care team
-      %tr.pctc-print__table-header
-        %th{style: 'width:25%;'} Care Team Members
-        %th{style: 'width:25%;'} Name
-        %th{style: 'width:25%;'} Phone Number
-        %th{style: 'width:25%;'} Email
-    %tbody
-      - @careplan.care_team_members.each do |key, label|
-        %tr
-          %th= label
-          - care_team_cols.each do |kind|
-            %td= @careplan.send("#{key}_#{kind}".to_sym)
-
-.pctc-print__table.pctc-print__table-no-end
   %table
     %thead
       %tr
@@ -37,78 +19,9 @@
         %th
           ="#{@careplan.enrollee_overview_label}".html_safe
       %tr
-        %td= @careplan.overview
-          
-
-.pctc-print__table
-  %table
-    %thead
-      %tr
-        %th.pctc-print__table-title.pt-8{colspan: 2} Identifying Information
-    %tbody
-      - @careplan.identifying_information.each do |key, (labels, kind, collection, input_html, controlled)|
-        - if labels.is_a?(Array)
-          - label = labels.first
-          - hint = labels.last
-        -else
-          - label = labels
-        %tr
-          %th{style: 'width:40%;'}
-            %span= label
-            - if hint.present?
-              %span.hint= hint
-          %td= @careplan.send(key.to_sym)
-
-.pctc-print__table
-  %table
-    %thead
-      %tr
-        %th.pctc-print__table-title.pt-8{colspan: 2} Demographic Information
-    %tbody
-      - @careplan.demographic_information_1.each do |key, (labels, kind, collection, input_html, controlled)|
-        - if labels.is_a?(Array)
-          - label = labels.first
-          - hint = labels.last
-        -else
-          - label = labels
-        %tr
-          %th{style: 'width:40%;'}
-            %span= label
-            - if hint.present?
-              %br
-              %span.hint= hint
-          %td
-            - value = @careplan.send(key.to_sym)
-            - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
-            - if collection.present? && collection.values.include?('other') && value == 'other'
-              = display_value || value
-              %div= @careplan.send("#{key}_other".to_sym)
-            - else
-              = display_value || value
-      %tr
-        %th{style: 'width:40%;'} Race
         %td
-          - display_values = @careplan.race_responses.select{|k, v| @careplan.race&.include?(v)}.keys
-          = display_values.join(', ')
-      - @careplan.demographic_information_2.each do |key, (labels, kind, collection, input_html, controlled)|
-        - if labels.is_a?(Array)
-          - label = labels.first
-          - hint = labels.last
-        -else
-          - label = labels
-        %tr
-          %th{style: 'width:40%;'}
-            %span= label
-            - if hint.present?
-              %span.hint= hint
-          %td
-            - value = @careplan.send(key.to_sym)
-            - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
-            - if collection.present? && collection.values.include?('other') && value == 'other'
-              = display_value || value
-              %div= @careplan.send("#{key}_other".to_sym)
-            - else
-              = display_value || value
+          %div{style: 'min-height:155px;'}
+            = @careplan.overview
 
 - self_ident_rows = [:strengths, :weaknesses, :interests, :choices, :care_goals, :personal_goals, :cultural_considerations]
 .pctc-print__table
@@ -196,25 +109,8 @@
           = @careplan.goals_label
       %tr
         %td{colspan: 2}
-          %div{style: 'min-height:425px;'}= @careplan.goals
-:ruby
-  goal_item_labels = [
-    'Domain',
-    'Goal',
-    'Status',
-    'Estimated Completion Date',
-    'Start Date',
-    'End Date',
-    'Barriers',
-    'Plan for Follow-up',
-    'Comments',
-    'Source of Identification',
-    'Priority',
-    'Plans/Interventions',
-    'Responsible Party',
-    'Times',
-    'Interval'
-  ]
+          %div{style: 'min-height:250px;'}= @careplan.goals
+
 - goals = @careplan.care_goal_details.order(id: :desc)
 - extra_goals = 0
 - if goals.count%2 == 0
@@ -244,26 +140,11 @@
       goal.interval
     ]
   .pctc-print__table
-    %table
-      %thead 
-        %tr
-          %th.pctc-print__table-title.pt-8{colspan: 2} Goal
-      %tbody
-        - goal_items.each_with_index do |value, i|
-          %tr
-            %th= goal_item_labels[i]
-            %td= value
+    = render 'goal_card_pdf', goal: goal
+
 - extra_goals.times do |time|
-  .pctc-print__table
-    %table
-      %thead
-        %tr
-          %th.pctc-print__table-title.pt-8{colspan: 2} Goal
-      %tbody
-        - goal_item_labels.each do |label|
-          %tr
-            %th= label
-            %td
+  = render 'goal_card_pdf', goal: HealthPctp::CareGoal.new
+
 .page-break-after
 .pt-8.pctc-print__table
   %table

@@ -1,0 +1,107 @@
+- title = 'BH COMMUNITY_PARTNERS: FINAL STANDARD CARE PLAN 2023'
+- content_for :title, title
+
+.l-print.coverSheet
+  .l-print__section
+    %h1= title
+
+  - if ENV['CAREPLAN_LOGO'].present?
+    %div{style: "text-align:center;"}
+      = image_tag(inline_asset_base64("theme/logo/#{ENV['CAREPLAN_LOGO']}"), style: 'width: 70%;')
+
+  %p.muted.l-print__section
+    This document is a
+    %b Person-Centered Treatment Plan
+    prepared by Boston Coordinated Care Hub, a MassHealth Behavioral Health Community Partner (BH CP) that works with ACOs
+    and MCOs to provide care management and coordination to MassHealth members with complex behavioral health conditions.
+    This document summarizes a member's Comprehensive Assessment and conveys important information including the member's
+    preferences, needs, goals, and plans to achieve prioritized goals. If you are tne PCP. please res[pmd woth any edits
+    or input on this care plan (Fax Number: 857-654-1456).
+
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: 2} Identifying Information
+    %tbody
+      - @careplan.identifying_information.each do |key, (labels, kind, collection, input_html, controlled)|
+        - if labels.is_a?(Array)
+          - label = labels.first
+          - hint = labels.last
+        -else
+          - label = labels
+        %tr
+          %th{style: 'width:40%;'}
+            %span= label
+            - if hint.present?
+              %span.hint= hint
+          %td= @careplan.send(key.to_sym)
+
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: 2} Demographic Information
+    %tbody
+      - @careplan.demographic_information_1.each do |key, (labels, kind, collection, input_html, controlled)|
+        - if labels.is_a?(Array)
+          - label = labels.first
+          - hint = labels.last
+        -else
+          - label = labels
+        %tr
+          %th{style: 'width:40%;'}
+            %span= label
+            - if hint.present?
+              %br
+              %span.hint= hint
+          %td
+            - value = @careplan.send(key.to_sym)
+            - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+            - if collection.present? && collection.values.include?('other') && value == 'other'
+              = display_value || value
+              %div= @careplan.send("#{key}_other".to_sym)
+            - else
+              = display_value || value
+      %tr
+        %th{style: 'width:40%;'} Race
+        %td
+          - display_values = @careplan.race_responses.select{|k, v| @careplan.race&.include?(v)}.keys
+          = display_values.join(', ')
+      - @careplan.demographic_information_2.each do |key, (labels, kind, collection, input_html, controlled)|
+        - if labels.is_a?(Array)
+          - label = labels.first
+          - hint = labels.last
+        -else
+          - label = labels
+        %tr
+          %th{style: 'width:40%;'}
+            %span= label
+            - if hint.present?
+              %span.hint= hint
+          %td
+            - value = @careplan.send(key.to_sym)
+            - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+            - if collection.present? && collection.values.include?('other') && value == 'other'
+              = display_value || value
+              %div= @careplan.send("#{key}_other".to_sym)
+            - else
+              = display_value || value
+
+- care_team_cols = [:name, :phone, :email]
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: care_team_cols.size + 1} Care team
+      %tr.pctc-print__table-header
+        %th{style: 'width:25%;'} Care Team Members
+        %th{style: 'width:25%;'} Name
+        %th{style: 'width:25%;'} Phone Number
+        %th{style: 'width:25%;'} Email
+    %tbody
+      - @careplan.care_team_members.each do |key, label|
+        %tr
+          %th= label
+          - care_team_cols.each do |kind|
+            %td= @careplan.send("#{key}_#{kind}".to_sym)

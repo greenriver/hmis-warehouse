@@ -32,13 +32,19 @@ module HealthPctp::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = 'health_pctp/careplans/edit_pdf'
         layout = 'layouts/careplan_pdf'
         # https://stackoverflow.com/questions/55865582/set-dynamic-header-and-footer-data-on-pdf-generation-from-rails-grover-gem
 
+        coverpage_html = PdfGenerator.html(
+          controller: controller_class,
+          template: 'health_pctp/careplans/pdf_coverpage',
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         html = PdfGenerator.html(
           controller: controller_class,
-          template: template_file,
+          template: 'health_pctp/careplans/edit_pdf',
           layout: layout,
           user: user,
           assigns: view_assigns,
@@ -71,39 +77,23 @@ module HealthPctp::DocumentExports
           },
         }
 
+        pdf = CombinePDF.new
+        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(coverpage_html, options: options), allow_optional_content: true)
+        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: options), allow_optional_content: true)
+        pdf << CombinePDF.parse(careplan.health_file.content, allow_optional_content: true) if careplan.healh_file.present?
+
         file_name = "#{_('Care Plan / Patient-Centered Treatment Plan')} #{DateTime.current.to_s(:db)}"
-
-        if careplan.health_file.present?
-          pdf = CombinePDF.new
-          pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: options), allow_optional_content: true)
-          pdf << CombinePDF.parse(careplan.health_file.content, allow_optional_content: true)
-          PdfGenerator.new.perform(
-            html: '',
-            file_name: file_name,
-            pdf_data: pdf.to_pdf,
-          ) do |io|
-            self.pdf_file = io
-          end
-        else
-
-          PdfGenerator.new.perform(
-            html: html,
-            file_name: file_name,
-            options: options,
-          ) do |io|
-            self.pdf_file = io
-          end
-
+        PdfGenerator.new.perform(
+          html: '',
+          file_name: file_name,
+          pdf_data: pdf.to_pdf,
+        ) do |io|
+          self.pdf_file = io
         end
       end
     end
 
-    # protected def report_class
-    #   HmisDataQualityTool::Report
-    # end
-
     private def controller_class
-      # HmisDataQualityTool::WarehouseReports::ReportsController
       HealthPctp::CareplansController
     end
   end
