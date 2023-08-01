@@ -22,10 +22,10 @@ module Types
 
     def all_values(parent:)
       parent = load_ar_association(parent, :owner) if parent.is_a? Hmis::Hud::HmisService # special case for view
-      ids = load_ar_association(parent, :custom_data_elements).pluck(:id)
+      ids = load_ar_association(parent, :custom_data_elements).map(&:id).to_set
       # get all values existing for this CustomDataElementDefinition, and filter
       # it down to only elemnts that are relevant to this parent
-      load_ar_association(object, :values).where(id: ids)
+      load_ar_association(object, :values).filter { |v| v.id.in?(ids) }
     end
 
     # Unique ID based on values
