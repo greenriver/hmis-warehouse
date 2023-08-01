@@ -7,10 +7,6 @@
       = link_to new_client_health_pctp_careplan_path(@client, @patient), class: 'btn btn-secondary btn-sm' do
         %i.icon-plus
         Create a Care Plan
-      .ml-4
-        = link_to new_pdf_client_health_pctp_careplan_path(@client, @patient), class: 'btn btn-secondary btn-sm' do
-          %i.icon-download2
-          Pre-filled Care Plan
   .c-card__content.c-card__content--flush.table-responsive
     - if @careplans.present?
       %table.table
