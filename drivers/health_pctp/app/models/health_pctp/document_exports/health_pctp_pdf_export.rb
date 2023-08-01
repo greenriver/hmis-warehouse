@@ -64,8 +64,6 @@ module HealthPctp::DocumentExports
 
         options_no_header = {
           print_background: true,
-          display_header_footer: true,
-          footer_template: footer_html,
           prefer_css_page_size: true,
           scale: 1,
           margin: {
@@ -77,7 +75,9 @@ module HealthPctp::DocumentExports
         }
 
         options = options_no_header.merge(
+          display_header_footer: true,
           header_template: header_html,
+          footer_template: footer_html,
         )
 
         pdf = CombinePDF.new
