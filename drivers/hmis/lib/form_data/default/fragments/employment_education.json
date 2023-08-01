@@ -19,12 +19,12 @@
           {
             "operator": "ANY",
             "parts": [
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 20 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 22 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 23 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 24 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 26  },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 33  }
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 20 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 22 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 23 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 24 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 26  },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 33  }
             ]
           },
           {
@@ -55,10 +55,10 @@
           {
             "operator": "ANY",
             "parts": [
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 20 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 23 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 24 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 26  }
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 20 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 23 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 24 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 26  }
             ]
           },
           {
@@ -87,18 +87,18 @@
           {
             "operator": "ANY",
             "parts": [
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 20 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 22 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 23 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 24 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 26 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 33 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 37 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 38 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 39 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 40 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 41 },
-              { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 42 }
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 20 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 22 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 23 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 24 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 26 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 33 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 37 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 38 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 39 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 40 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 41 },
+              { "variable": "projectFunders", "operator": "INCLUDE", "value": 42 }
             ]
           },
           {
