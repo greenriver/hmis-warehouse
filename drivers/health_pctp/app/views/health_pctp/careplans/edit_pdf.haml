@@ -9,6 +9,24 @@
     .pctc-print__detail-label Review Date
     .pctc-print__detail-value= @careplan.reviewed_by_rn_on
 
+- care_team_cols = [:name, :phone, :email]
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: care_team_cols.size + 1} Care team
+      %tr.pctc-print__table-header
+        %th{style: 'width:25%;'} Care Team Members
+        %th{style: 'width:25%;'} Name
+        %th{style: 'width:25%;'} Phone Number
+        %th{style: 'width:25%;'} Email
+    %tbody
+      - @careplan.care_team_members.each do |key, label|
+        %tr
+          %th= label
+          - care_team_cols.each do |kind|
+            %td= @careplan.send("#{key}_#{kind}".to_sym)
+
 .pctc-print__table
   %table
     %thead

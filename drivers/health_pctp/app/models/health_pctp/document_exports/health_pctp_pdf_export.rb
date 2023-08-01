@@ -62,10 +62,9 @@ module HealthPctp::DocumentExports
           assigns: view_assigns,
         )
 
-        options = {
+        options_no_header = {
           print_background: true,
           display_header_footer: true,
-          header_template: header_html,
           footer_template: footer_html,
           prefer_css_page_size: true,
           scale: 1,
@@ -77,8 +76,12 @@ module HealthPctp::DocumentExports
           },
         }
 
+        options = options_no_header.merge(
+          header_template: header_html,
+        )
+
         pdf = CombinePDF.new
-        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(coverpage_html, options: options), allow_optional_content: true)
+        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(coverpage_html, options: options_no_header), allow_optional_content: true)
         pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: options), allow_optional_content: true)
         pdf << CombinePDF.parse(careplan.health_file.content, allow_optional_content: true) if careplan.health_file.present?
 
