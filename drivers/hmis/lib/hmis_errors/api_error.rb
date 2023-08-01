@@ -9,7 +9,8 @@ module HmisErrors
     attr_reader :display_message
     INTERNAL_ERROR_DISPLAY_MESSAGE = 'An error occurred'.freeze
 
-    def initialize(display_message: INTERNAL_ERROR_DISPLAY_MESSAGE)
+    def initialize(msg = nil, display_message: INTERNAL_ERROR_DISPLAY_MESSAGE)
+      super(msg)
       @display_message = display_message
     end
   end

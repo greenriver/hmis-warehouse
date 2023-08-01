@@ -52,10 +52,10 @@ module Types
       operator = rule.fetch('operator')
       case operator
       when 'EQUAL'
-        # { variable: 'projectType', operator: 'EQUAL', value: '1' }
+        # { variable: 'projectType', operator: 'EQUAL', value: 1 }
         eval_var(rule.fetch('variable')) == rule.fetch('value')
       when 'INCLUDE'
-        # { variable: 'projectFunderIDs', operator: 'INCLUDE', value: '1' }
+        # { variable: 'projectFunders', operator: 'INCLUDE', value: 1 }
         eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
       when 'ANY'
         # { operator: 'ANY', parts: [ ... ] },
@@ -83,10 +83,10 @@ module Types
     # @return [Array<String, Integer>]
     def eval_var_multi(key)
       case key
-      when 'projectFunderIDs'
-        project_funders.map(&:funder)
+      when 'projectFunders'
+        project_funders.map { |f| f.funder&.to_i }.compact_blank
       when 'projectOtherFunders'
-        project_funders.map(&:other_funder)
+        project_funders.map(&:other_funder).compact_blank
       else
         raise "unknown variable #{key}"
       end

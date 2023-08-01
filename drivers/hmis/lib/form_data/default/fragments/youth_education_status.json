@@ -7,7 +7,7 @@
   "rule": {
     "operator": "ALL",
     "parts": [
-      { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 43 },
+      { "variable": "projectFunders", "operator": "INCLUDE", "value": 43 },
       {
         "operator": "ANY",
         "parts": [
