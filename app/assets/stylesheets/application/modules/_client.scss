@@ -137,12 +137,14 @@ $client-calendar-border-radius: 6px;
 $client-calendar-project-height: 50px;
 
 .client__calendar-project-container {
+  display: block;
   position: relative;
   // height: $client-calendar-project-height;
   margin-bottom: 8px;
 }
 
 .client__calendar-project {
+  display: block;
   position: relative;
   z-index: 1;
   
@@ -157,6 +159,41 @@ $client-calendar-project-height: 50px;
   &.client__calendar-project__has-end {
     border-top-right-radius: $client-calendar-border-radius;
     border-bottom-right-radius: $client-calendar-border-radius;
+  }
+}
+
+.client__calendar-tooltip-trigger {
+  display: block;
+  position: absolute;
+  background-color: transparent;
+  z-index: 3;
+}
+
+.client_access_control_history.show {
+  .popover .arrow {
+    display: none;
+  }
+  .popover {
+    white-space: normal;
+  }
+  .popover-body {
+    padding: 0px;
+  }
+  
+}
+
+.client__calendar-tooltip__table {
+  width: 300px;
+  margin-bottom: 0px;
+  thead tr th {
+    border-bottom: none;
+    border-top: none;
+  }
+  th span {
+    font-weight: normal;
+  }
+  tbody tr td:first-child {
+    border-right: 1px solid #DDDDDD;
   }
 }
 
@@ -231,7 +268,7 @@ span.client__calendar-day-event__extension {
   position: absolute;
   left: 0px;
   bottom: 0px;
-  z-index: 3;
+  z-index: 2;
   padding-left: 12px;
   padding-right: 12px;
   padding-bottom: 2px;
@@ -252,7 +289,7 @@ span.client__calendar-day-event__extension {
 .client__calendar-project__day-events {
   position: absolute;
   top: 0px;
-  z-index: 3;
+  z-index: 2;
   padding: 4px 8px;
   display: flex;
   align-items: center;

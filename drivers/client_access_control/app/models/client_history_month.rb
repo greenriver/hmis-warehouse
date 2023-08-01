@@ -143,6 +143,7 @@ class ClientHistoryMonth
         days: ['2023-02-19', '2023-02-20', '2023-02-21', '2023-02-22', '2023-02-23', '2023-02-24', '2023-02-25'],
         projects: [
           {
+            project_id: 1,
             project_name: 'Project B',
             entry_date: '2023-02-13',
             exit_date: '2023-02-19',

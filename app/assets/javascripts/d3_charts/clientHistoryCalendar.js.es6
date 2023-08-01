@@ -137,8 +137,7 @@ class AppClientHistoryCalendar {
             return enter.append('div')
               .attr('class', (d, i) => {
                 return `${projectClass} ${projectClass}__${i}`
-              })
-              .style('opacity', (d) => d.opacity)
+              }).style('opacity', (d) => d.opacity)
           },
           function(update) {
             return update.transition().style('opacity', (d) => d.opacity)
@@ -147,21 +146,6 @@ class AppClientHistoryCalendar {
             return exit.remove()
           }
         )
-
-      // var tooltips = week.selectAll(`.${this.prefixClass('project-tooltip')}`)
-      //   .data(projectData)
-      //   .enter()
-      //   .append('div')
-      //     .attr('class', this.prefixClass('project-tooltip'))
-      //     .text('testing')
-      //     .style('top', (d, i) => {
-      //       var p = d3.select(`.${projectClass}__${i}`)
-      //       var box = p.node().getBoundingClientRect()
-      //       var parentBox = p.node().parentNode.getBoundingClientRect()
-      //       console.log('box', box)
-      //       console.log('parentBox', parentBox)
-      //       return '0px'
-      //     })
         
       var bars = projects.selectAll(`.${this.prefixClass('project')}`)
         .data((d) => [d])
@@ -187,6 +171,34 @@ class AppClientHistoryCalendar {
           })
           .style('margin-left', barLeft)
           .style('width', barWidth)
+          
+      var tooltipTriggers = projects.selectAll(`.${this.prefixClass('tooltip-trigger')}`)
+        .data((d, i) => {
+          d.index = i
+          return [d]
+        })
+        .enter()
+        .append('a')
+          .attr('class', this.prefixClass('tooltip-trigger'))
+          .attr('href', 'javascript:void(0)')
+          .attr('tabindex', '0')
+          .style('left', (d) => d.extension_only ? barLeft(d.extension) : barLeft(d))
+          .style('top', 0)
+          .style('bottom', 0)
+          .style('width', (d) => d.extension_only ? barWidth(d.extension) : barWidth(d))
+
+      console.log('tooltipTriggers', tooltipTriggers)
+      tooltipTriggers.each(function(d, index) {
+        console.log('d', d)
+        console.log('test class name', `#client__calendar-tooltip__${i}_${d.index}`)
+        $(this).popover({
+          trigger: 'click',
+          content: $(`#client__calendar-tooltip__${i}_${d.index}`),
+          title: '',
+          placement: 'bottom',
+          html: true,
+        })
+      })
 
       const extensionClass = this.prefixClass('project', 'extension')
       projects.selectAll(`.${extensionClass}`)
