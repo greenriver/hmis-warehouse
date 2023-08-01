@@ -30,12 +30,12 @@ module Types
 
     # Disability Type 8
     field :hiv_aids, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    # ADD t_cell_count_available
-    # ADD t_cell_count
-    # ADD t_cell_source
-    # ADD viral_load_available
-    # ADD viral_load
-    # ADD anti_retroviral
+    field :t_cell_count_available, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :t_cell_count, Integer, null: true
+    field :t_cell_source, HmisSchema::Enums::Hud::TCellSourceViralLoadSource, null: true
+    field :viral_load_available, HmisSchema::Enums::Hud::ViralLoadAvailable, null: true
+    field :viral_load, Integer, null: true
+    field :anti_retroviral, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     # Disability Type 9
     field :mental_health_disorder, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
