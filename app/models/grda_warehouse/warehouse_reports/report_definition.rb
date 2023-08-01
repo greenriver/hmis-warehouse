@@ -1081,7 +1081,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Operational'] << {
           url: 'client_documents_report/warehouse_reports/reports',
           name: 'Client Documents Report',
-          description: 'Identify clients who have or are missing documents.',
+          description: 'Identify clients who have or are missing files or documents.',
           limitable: true,
           health: false,
         }
