@@ -1952,6 +1952,7 @@ type DisabilitiesPaginated {
 }
 
 type Disability {
+  antiRetroviral: NoYesReasonsForMissingData
   client: Client!
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
@@ -1960,10 +1961,16 @@ type Disability {
   disabilityResponse: DisabilityResponse!
   disabilityType: DisabilityType!
   enrollment: Enrollment!
+  hivAids: NoYesReasonsForMissingData
   id: ID!
   indefiniteAndImpairs: Int
   informationDate: ISO8601Date!
+  tCellCount: Int
+  tCellCountAvailable: NoYesReasonsForMissingData
+  tCellSource: TCellSourceViralLoadSource
   user: User
+  viralLoad: Int
+  viralLoadAvailable: ViralLoadAvailable
 }
 
 """
