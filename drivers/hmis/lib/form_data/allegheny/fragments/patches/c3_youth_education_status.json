@@ -1,0 +1,20 @@
+[
+  {
+    "link_id": "c3-youth-education-status",
+    "rule": {
+      "operator": "ALL",
+      "_comment": "RRH, HP, and SSO funded by YHDP",
+      "parts": [
+        { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 43 },
+        {
+          "operator": "ANY",
+          "parts": [
+            { "variable": "projectType", "operator": "EQUAL", "value": 6 },
+            { "variable": "projectType", "operator": "EQUAL", "value": 12 },
+            { "variable": "projectType", "operator": "EQUAL", "value": 13 }
+          ]
+        }
+      ]
+    }
+  }
+]

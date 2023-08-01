@@ -19,13 +19,16 @@
       "fragment": "#disability"
     },
     {
+      "fragment": "#w4_w6_hopwa_disability"
+    },
+    {
       "fragment": "#health_and_dv"
     },
     {
-      "fragment": "#youth_education_status"
+      "fragment": "#c3_youth_education_status"
     },
     {
-      "fragment": "#employment_education"
+      "fragment": "#r4_r5_r6_employment_education"
     }
   ]
 }
