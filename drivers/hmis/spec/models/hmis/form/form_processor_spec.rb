@@ -1134,6 +1134,39 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
   end
 
+  describe 'Form processing for New Client Enrollment' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :NEW_CLIENT_ENROLLMENT) }
+    let(:complete_hud_values) do
+      {
+        'Enrollment.entryDate' => Date.yesterday.strftime('%Y-%m-%d'),
+        'Enrollment.relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+        'Client.firstName' => 'First',
+        'Client.lastName' => 'Last',
+        'Client.nameDataQuality' => 'FULL_NAME_REPORTED',
+        'Client.dob' => nil,
+        'Client.dobDataQuality' => nil,
+        'Client.ssn' => nil,
+        'Client.ssnDataQuality' => nil,
+        'Client.race' => [],
+        'Client.ethnicity' => nil,
+        'Client.gender' => [],
+        'Client.pronouns' => [],
+        'Client.veteranStatus' => nil,
+      }
+    end
+
+    it 'creates a new Enrollment AND a new Client' do
+      enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, project: p1)
+      process_record(record: enrollment, hud_values: complete_hud_values, user: hmis_user)
+      expect(enrollment.relationship_to_hoh).to eq(1)
+      expect(enrollment.entry_date.strftime('%Y-%m-%d')).to eq(complete_hud_values['Enrollment.entryDate'])
+      expect(enrollment.client).to be_present
+      expect(enrollment.client.persisted?).to eq(true)
+      expect(enrollment.client.first_name).to eq('First')
+      expect(enrollment.client.last_name).to eq('Last')
+    end
+  end
+
   describe 'Form processing for Projects' do
     let(:complete_hud_values) do
       {

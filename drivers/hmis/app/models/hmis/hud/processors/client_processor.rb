@@ -57,7 +57,7 @@ module Hmis::Hud::Processors
     end
 
     def factory_name
-      :owner_factory
+      :client_factory
     end
 
     def schema

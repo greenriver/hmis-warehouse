@@ -28,6 +28,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT: 'Project',
     ORGANIZATION: 'Organization',
     CLIENT: 'Client',
+    NEW_CLIENT_ENROLLMENT: 'New Client Enrollment',
     FUNDER: 'Funder',
     INVENTORY: 'Inventory',
     PROJECT_COC: 'Project CoC',
@@ -71,6 +72,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
     ENROLLMENT: ENROLLMENT_CONFIG,
+    # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
+    NEW_CLIENT_ENROLLMENT: { **ENROLLMENT_CONFIG, permission: [:can_edit_clients, :can_edit_enrollments] },
     # These are all basically Enrollment-editing forms ("occurrence point"),
     # but they need different "roles" so that the frontend can request the correct one.
     MOVE_IN_DATE: ENROLLMENT_CONFIG,

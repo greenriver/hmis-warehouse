@@ -107,6 +107,23 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
+  def client_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
+    # The enrollment has already been created, so we can just return it
+    @client_factory ||= case owner
+    when Hmis::Hud::Client
+      owner
+    when Hmis::Hud::Enrollment
+      # An 'enrollment form' can create a new client.
+      # If building a new client, we need to set personal ID here
+      # (rather than in ensure_id validation hook) so that it gets set
+      # correctly as the Enrollment.personal_id too.
+      owner.client || owner.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
+    when Hmis::Hud::CustomAssessment
+      # An assessments can modify the client it's associated with
+      owner.client
+    end
+  end
+
   def common_attributes
     {
       data_collection_stage: custom_assessment&.data_collection_stage,
