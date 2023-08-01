@@ -4,4 +4,9 @@ namespace :import do
   task :ac_projects, [] => [:environment] do
     HmisExternalApis::AcHmis::ImportProjectsJob.perform_now
   end
+
+  desc 'Import AC Custom Data Elements'
+  task :ac_custom_data_elements, [] => [:environment] do
+    HmisExternalApis::AcHmis::ImportCustomDataDelementsJob.perform_now
+  end
 end
