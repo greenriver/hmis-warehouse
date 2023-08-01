@@ -2,7 +2,6 @@ require 'rails_helper'
 include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
-  ActiveJob::Base.queue_adapter = :test
   let(:vispdat) { create :vispdat }
 
   describe 'youth?' do

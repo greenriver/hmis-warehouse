@@ -50,6 +50,7 @@ module Mutations
         project: project,
         unit_type_id: input.unit_type_id,
         data_source: enrollment.data_source,
+        resource_coordinator_notes: input.note,
       )
       posting.current_user = current_user
 

@@ -81,6 +81,7 @@ module OmniAuth
         Sentry.capture_message(message)
         if exception
           log :error, "#{message}: #{exception.class}, #{exception.message}"
+          Sentry.capture_exception(exception)
         else
           log :error, message
         end
