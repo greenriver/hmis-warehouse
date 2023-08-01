@@ -20,7 +20,11 @@
           %tbody
             - @report.available_outcome_types.each do |title, id|
               %tr
-                %th= title
+                %th
+                  = title.html_safe
+                  - if id.to_s.in?(['returns_1_2_years', 'returns_1_years'])
+                    - time = if id.to_s == 'returns_1_2_years' then 'year' else 'month' end
+                    %i.icon-info{data: {toggle: :tooltip, title: "Returns to are calculated by looking for clients who had no homeless service within the #{time} prior to the report range, but entered a project in the selected universe during the report range."}}
                 %td
                   = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.outcome_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "outcome_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
                   - if id.to_s == 'average_los'

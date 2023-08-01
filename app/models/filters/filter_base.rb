@@ -741,7 +741,14 @@ module Filters
     end
 
     def available_file_tags
-      GrdaWarehouse::AvailableFileTag.grouped
+      # acts_as_taggable_tags = ActsAsTaggableOn::Tag.all.index_by(&:name)
+      GrdaWarehouse::AvailableFileTag.preload(:tag).grouped.
+        map do |group, tags|
+        [
+          group,
+          tags.map { |tag| [tag.name, tag.tag.id] },
+        ]
+      end.to_h
     end
 
     def chosen_times_homeless_in_last_three_years
@@ -1264,13 +1271,13 @@ module Filters
 
     def chosen_required_files
       required_files.flat_map do |id|
-        available_file_tags.values.flatten.find { |f| f[:id] == id }[:name]
+        available_file_tags.values.flatten(1).find { |f| f.last == id }&.first
       end.join(', ')
     end
 
     def chosen_optional_files
       optional_files.flat_map do |id|
-        available_file_tags.values.flatten.find { |f| f[:id] == id }[:name]
+        available_file_tags.values.flatten(1).find { |f| f.last == id }&.first
       end.join(', ')
     end
 
