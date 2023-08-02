@@ -10,8 +10,8 @@ module Types
   class HmisSchema::Event < Types::BaseObject
     description 'HUD Event'
     field :id, ID, null: false
-    field :enrollment, HmisSchema::Enrollment, null: false
-    field :client, HmisSchema::Client, null: false
+    ar_field :enrollment, HmisSchema::Enrollment, null: false
+    ar_field :client, HmisSchema::Client, null: false
     field :event_date, GraphQL::Types::ISO8601DateTime, null: false
     field :event, HmisSchema::Enums::Hud::EventType, null: false
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult, null: true
@@ -22,18 +22,6 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :user, HmisSchema::User, null: true
-
-    def enrollment
-      load_ar_association(object, :enrollment)
-    end
-
-    def client
-      load_ar_association(object, :client)
-    end
-
-    def user
-      load_ar_association(object, :user)
-    end
+    ar_field :user, HmisSchema::User, null: true
   end
 end

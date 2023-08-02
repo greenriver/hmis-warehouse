@@ -13,9 +13,9 @@ module Types
     end
 
     field :id, ID, null: false
-    field :enrollment, HmisSchema::Enrollment, null: false
-    field :client, HmisSchema::Client, null: false
-    field :user, HmisSchema::User, null: true
+    ar_field :enrollment, HmisSchema::Enrollment, null: false
+    ar_field :client, HmisSchema::Client, null: false
+    ar_field :user, HmisSchema::User, null: true
     hud_field :information_date
 
     # Income
@@ -104,17 +104,5 @@ module Types
     hud_field :date_deleted
 
     # TODO ADD: source assessment
-
-    def enrollment
-      load_ar_association(object, :enrollment)
-    end
-
-    def client
-      load_ar_association(object, :client)
-    end
-
-    def user
-      load_ar_association(object, :user)
-    end
   end
 end

@@ -33,22 +33,13 @@ module Types
       @audit_event_type ||= BaseAuditEvent.build(self, **args)
     end
 
-    def self.yes_no_missing_field(name, description = nil, **kwargs)
-      field name, Boolean, description, **kwargs
-
-      define_method name do
-        resolve_yes_no_missing(object.send(name))
+    def self.ar_field(name, type = nil, **field_options, &block)
+      field(name, type, **field_options) do
+        instance_eval(&block) if block_given?
       end
-    end
 
-    def resolve_yes_no_missing(value, yes_value: 1, no_value: 0, null_value: 99)
-      case value
-      when yes_value
-        true
-      when no_value
-        false
-      when null_value
-        nil
+      define_method(name) do
+        load_ar_association(object, name)
       end
     end
 

@@ -15,9 +15,9 @@ module Types
     description 'HUD Employment Education'
 
     field :id, ID, null: false
-    field :enrollment, HmisSchema::Enrollment, null: false
-    field :user, HmisSchema::User, null: true
-    field :client, HmisSchema::Client, null: false
+    ar_field :enrollment, HmisSchema::Enrollment, null: false
+    ar_field :user, HmisSchema::User, null: true
+    ar_field :client, HmisSchema::Client, null: false
     hud_field :information_date
     hud_field :last_grade_completed, HmisSchema::Enums::Hud::LastGradeCompleted
     hud_field :school_status, HmisSchema::Enums::Hud::SchoolStatus
@@ -28,17 +28,5 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
-
-    def enrollment
-      load_ar_association(object, :enrollment)
-    end
-
-    def client
-      load_ar_association(object, :client)
-    end
-
-    def user
-      load_ar_association(object, :user)
-    end
   end
 end

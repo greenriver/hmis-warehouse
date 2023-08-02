@@ -12,7 +12,7 @@ module Types
     field :id, ID, null: false
     field :content_type, String, null: false
     field :enrollment_id, ID, null: true
-    field :enrollment, Types::HmisSchema::Enrollment, null: true
+    ar_field :enrollment, Types::HmisSchema::Enrollment, null: true
     field :effective_date, GraphQL::Types::ISO8601Date, null: true
     field :expiration_date, GraphQL::Types::ISO8601Date, null: true
     field :confidential, Boolean, null: true
@@ -27,7 +27,7 @@ module Types
 
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    hud_field :user, HmisSchema::User, null: true
+    ar_field :user, HmisSchema::User, null: true
 
     # Object is a Hmis::File
 
@@ -72,9 +72,10 @@ module Types
     # HUD User that most recently touched the record, to match convention on HUD-like types
     def user
       unless_redacted do
-        return unless object.user.present?
+        user = load_ar_association(object, :user)
+        return unless user.present?
 
-        user_last_touched = object.updated_by || object.user
+        user_last_touched = load_ar_association(object, :updated_by) || user
         user_last_touched.hmis_data_source_id = current_user.hmis_data_source_id
         Hmis::Hud::User.from_user(user_last_touched)
       end
@@ -82,11 +83,11 @@ module Types
 
     # Application user that uploaded the file
     def uploaded_by
-      unless_redacted { object.user }
+      unless_redacted { load_ar_association(object, :user) }
     end
 
     def updated_by
-      unless_redacted { object.updated_by }
+      unless_redacted { load_ar_association(object, :updated_by) }
     end
 
     def own_file

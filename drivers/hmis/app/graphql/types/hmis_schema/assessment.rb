@@ -19,15 +19,15 @@ module Types
 
     description 'Custom Assessment'
     field :id, ID, null: false
-    field :enrollment, HmisSchema::Enrollment, null: false
+    ar_field :enrollment, HmisSchema::Enrollment, null: false
+    ar_field :user, HmisSchema::User, null: true
+    ar_field :client, HmisSchema::Client, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true
     field :enrollment_coc, String, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :user, HmisSchema::User, null: true
-    field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
     access_field do
       can :edit_enrollments
@@ -35,12 +35,12 @@ module Types
       can :delete_assessments
     end
     # Related records that were created by this Assessment, if applicable
-    field :income_benefit, Types::HmisSchema::IncomeBenefit, null: true
-    field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
-    field :exit, Types::HmisSchema::Exit, null: true
+    ar_field :income_benefit, Types::HmisSchema::IncomeBenefit, null: true
+    ar_field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
+    ar_field :exit, Types::HmisSchema::Exit, null: true
+    ar_field :youth_education_status, Types::HmisSchema::YouthEducationStatus, null: true
+    ar_field :employment_education, Types::HmisSchema::EmploymentEducation, null: true
     field :disability_group, Types::HmisSchema::DisabilityGroup, null: true
-    field :youth_education_status, Types::HmisSchema::YouthEducationStatus, null: true
-    field :employment_education, Types::HmisSchema::EmploymentEducation, null: true
     custom_data_elements_field
 
     field :role, Types::Forms::Enums::AssessmentRole, null: false
@@ -75,27 +75,6 @@ module Types
       object.in_progress?
     end
 
-    def income_benefit
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
-
-      load_ar_association(form_processor, :income_benefit)
-    end
-
-    def health_and_dv
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
-
-      load_ar_association(form_processor, :health_and_dv)
-    end
-
-    def exit
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
-
-      load_ar_association(form_processor, :exit)
-    end
-
     def disability_group
       form_processor = load_ar_association(object, :form_processor)
       return unless form_processor.present?
@@ -115,18 +94,13 @@ module Types
       # Build DisabilityGroup from the scope
       disability_groups = resolve_disability_groups(scope)
 
-      # Error if there is more than one group. Could happen if records have different Data Collection Stages or Information dates or Users, which they shouldn't.
-      raise 'Multiple disability groups constructed for one assessment' if disability_groups.size > 1
+      # Could happen if records have different Data Collection Stages or Information dates or Users, which they shouldn't.
+      # This should be addressed by changing the resolve_disability_groups logic to resolve
+      # purely based on which disabilities are linked to this assessment via the form_processor,
+      # since those relationships have already been created via the MigrateAssessmentsJob.
+      Rails.logger.error 'Multiple disability groups constructed for one assessment' if disability_groups.size > 1
 
       disability_groups.first
-    end
-
-    def enrollment
-      load_ar_association(object, :enrollment)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
   end
 end
