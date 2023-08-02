@@ -66,6 +66,7 @@ module Types
           desc: desc,
         }
       end
+
       with_enum_map(Hmis::FieldMap.new(values))
       invalid_value # Always define invalid value on HUD enums
     end
