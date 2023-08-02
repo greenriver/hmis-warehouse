@@ -16,14 +16,10 @@ module Types
     field :category, String, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :user, HmisSchema::User, null: true
-
-    def user
-      load_ar_association(object, :user)
-    end
+    ar_field :user, HmisSchema::User, null: true
 
     def category
-      object.category.name
+      load_ar_association(object, :category).name
     end
 
     def hud_type_provided

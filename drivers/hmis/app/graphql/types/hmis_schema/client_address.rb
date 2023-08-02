@@ -19,8 +19,8 @@ module Types
     field :notes, String, null: true
     field :use, HmisSchema::Enums::ClientAddressUse
     field :address_type, HmisSchema::Enums::ClientAddressType
-    field :client, HmisSchema::Client, null: false
-    field :user, HmisSchema::User, null: true
+    ar_field :client, HmisSchema::Client, null: false
+    ar_field :user, HmisSchema::User, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true

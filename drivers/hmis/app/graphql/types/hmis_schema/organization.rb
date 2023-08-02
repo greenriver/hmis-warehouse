@@ -25,7 +25,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
+    ar_field :user, HmisSchema::User, null: true
     custom_data_elements_field
     access_field do
       can :delete_organization

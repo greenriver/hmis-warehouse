@@ -116,7 +116,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
+    ar_field :user, HmisSchema::User, null: true
     field :intake_assessment, HmisSchema::Assessment, null: true
     field :exit_assessment, HmisSchema::Assessment, null: true
     access_field do
@@ -125,7 +125,7 @@ module Types
     end
     custom_data_elements_field
 
-    field :current_unit, HmisSchema::Unit, null: true
+    ar_field :current_unit, HmisSchema::Unit, null: true
 
     field :reminders, [HmisSchema::Reminder], null: false
 
@@ -229,14 +229,6 @@ module Types
 
     def health_and_dvs(**args)
       resolve_health_and_dvs(**args)
-    end
-
-    def user
-      load_ar_association(object, :user)
-    end
-
-    def current_unit
-      load_ar_association(object, :current_unit)
     end
   end
 end

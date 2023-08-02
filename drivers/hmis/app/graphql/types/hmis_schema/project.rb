@@ -39,7 +39,7 @@ module Types
     field :hud_id, ID, null: false
     hud_field :project_name
     hud_field :project_type, Types::HmisSchema::Enums::ProjectType
-    hud_field :organization, Types::HmisSchema::Organization, null: false
+    ar_field :organization, Types::HmisSchema::Organization, null: false
     inventories_field
     project_cocs_field
     funders_field
@@ -59,7 +59,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
+    ar_field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
@@ -102,10 +102,6 @@ module Types
       end
 
       resolve_enrollments(scope, **args)
-    end
-
-    def organization
-      load_ar_association(object, :organization)
     end
 
     def inventories(**args)

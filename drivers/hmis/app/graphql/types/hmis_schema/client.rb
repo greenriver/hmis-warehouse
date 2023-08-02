@@ -114,7 +114,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
+    ar_field :user, HmisSchema::User, null: true
     field :image, HmisSchema::ClientImage, null: true
 
     access_field do
@@ -188,10 +188,6 @@ module Types
       files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
       file = files.first&.client_file
       file&.download ? file : nil
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
 
     def ssn
