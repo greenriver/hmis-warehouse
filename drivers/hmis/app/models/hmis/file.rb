@@ -58,12 +58,13 @@ class Hmis::File < GrdaWarehouse::File
   def self.authorize_proc
     ->(entity_base, user) do
       # If the entity_base is a file, we're authorizing someone to edit an existing file.
-      if entity_base.is_a?(Hmis::File)
+      case entity_base
+      when Hmis::File
         file = entity_base
         client = file.client
       # If the entity_base is a client, that means we're trying to authorize the
-      # creation if a new file. (SubmitForm defines the permission base to use)
-      elsif entity_base.is_a?(Hmis::Hud::Client)
+      # creation of a new file. (SubmitForm defines the permission base to use)
+      when Hmis::Hud::Client
         client = entity_base
       else
         raise "Unexpected entity base for file permissions: #{entity_base&.class}"

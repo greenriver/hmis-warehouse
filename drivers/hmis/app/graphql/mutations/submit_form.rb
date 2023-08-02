@@ -26,8 +26,7 @@ module Mutations
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
         entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else
-        entity_for_permissions, attributes = permission_base_and_attributes(klass.name, input, current_user.hmis_data_source_id)
-        record = klass.new(attributes)
+        entity_for_permissions, record = permission_base_and_record(klass, input, current_user.hmis_data_source_id)
       end
 
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
@@ -128,7 +127,7 @@ module Mutations
 
     # For NEW RECORD CREATION ONLY, get the permission base that should be used to check permissions,
     # as well as any attributes for related records from the input arg.
-    private def permission_base_and_attributes(class_name, input, data_source_id)
+    private def permission_base_and_record(klass, input, data_source_id)
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id) if input.project_id.present?
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id) if input.client_id.present?
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id) if input.enrollment_id.present?
@@ -136,37 +135,36 @@ module Mutations
       custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id) if input.service_type_id.present?
 
       ds = { data_source_id: data_source_id }
-      case class_name
+      case klass.name
       when 'Hmis::Hud::Client'
         # 'nil' because there is no permission base for client creation; the permission is checked globally.
-        [nil, ds]
+        [nil, klass.new(ds)]
       when 'Hmis::Hud::Organization'
         # 'nil' because there is no permission base for organization creation; the permission is checked globally.
-        [nil, ds]
+        [nil, klass.new(ds)]
       when 'Hmis::Hud::Project'
-        [organization, { organization_id: organization&.organization_id, **ds }]
+        [organization, klass.new({ organization_id: organization&.organization_id, **ds })]
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory'
-        [project, { project_id: project&.project_id, **ds }]
+        [project, klass.new({ project_id: project&.project_id, **ds })]
       when 'Hmis::Hud::Enrollment'
-        [project, { project_id: project&.project_id, personal_id: client&.personal_id, **ds }]
+        [project, klass.new({ project_id: project&.project_id, personal_id: client&.personal_id, **ds })]
       when 'Hmis::Hud::CurrentLivingSituation'
-        [enrollment, { personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds }]
+        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       when 'Hmis::Hud::HmisService'
         [
-          enrollment,
-          {
-            enrollment_id: enrollment&.EnrollmentID,
-            personal_id: enrollment&.PersonalID,
-            custom_service_type_id: custom_service_type&.id,
-            **ds,
-          },
+          enrollment, klass.new({
+                                  enrollment_id: enrollment&.EnrollmentID,
+                                  personal_id: enrollment&.PersonalID,
+                                  custom_service_type_id: custom_service_type&.id,
+                                  **ds,
+                                })
         ]
       when 'HmisExternalApis::AcHmis::ReferralRequest'
-        [project, { project_id: project&.id }]
+        [project, klass.new({ project_id: project&.id })]
       when 'Hmis::File'
-        [client, { client_id: client&.id, enrollment_id: enrollment&.id }]
+        [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
       else
-        raise "No permission base specified for creating a new record of type #{class_name}"
+        raise "No permission base specified for creating a new record of type #{klass.name}"
       end
     end
   end
