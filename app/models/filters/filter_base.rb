@@ -1373,6 +1373,19 @@ module Filters
               id,
             ]
           end.to_h,
+          # TODO(2024)
+          # 'Temporary' => HudUtility.temporary_housing_situation_options(as: :prior).map do |id, title|
+          #   [
+          #     "#{title} (#{id})",
+          #     id,
+          #   ]
+          # end.to_h,
+          # 'Permanent' => HudUtility.permanent_housing_situation_options(as: :prior).map do |id, title|
+          #   [
+          #     "#{title} (#{id})",
+          #     id,
+          #   ]
+          # end.to_h,
           'Other' => HudUtility.other_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",

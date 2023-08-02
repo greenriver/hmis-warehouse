@@ -1845,16 +1845,6 @@ enum Destination {
   SAFE_HAVEN
 
   """
-  (35) Staying or living in a family member's room, apartment or house
-  """
-  STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
-
-  """
-  (36) Staying or living in a friend's room, apartment or house
-  """
-  STAYING_OR_LIVING_IN_A_FRIEND_S_ROOM_APARTMENT_OR_HOUSE
-
-  """
   (22) Staying or living with family, permanent tenure
   """
   STAYING_OR_LIVING_WITH_FAMILY_PERMANENT_TENURE
@@ -1883,11 +1873,6 @@ enum Destination {
   (2) Transitional housing for homeless persons (including homeless youth)
   """
   TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
-
-  """
-  (37) Worker unable to determine
-  """
-  WORKER_UNABLE_TO_DETERMINE
 }
 
 """
@@ -1952,6 +1937,7 @@ type DisabilitiesPaginated {
 }
 
 type Disability {
+  antiRetroviral: NoYesReasonsForMissingData
   client: Client!
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
@@ -1963,13 +1949,19 @@ type Disability {
   id: ID!
   indefiniteAndImpairs: Int
   informationDate: ISO8601Date!
+  tCellCount: Int
+  tCellCountAvailable: NoYesReasonsForMissingData
+  tCellSource: TCellSourceViralLoadSource
   user: User
+  viralLoad: Int
+  viralLoadAvailable: ViralLoadAvailable
 }
 
 """
 Group of disability records that were collected at the same time
 """
 type DisabilityGroup {
+  antiRetroviral: NoYesReasonsForMissingData
   chronicHealthCondition: NoYesReasonsForMissingData
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
@@ -1995,7 +1987,12 @@ type DisabilityGroup {
   physicalDisabilityIndefiniteAndImpairs: NoYesReasonsForMissingData
   substanceUseDisorder: DisabilityResponse
   substanceUseDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
+  tCellCount: Int
+  tCellCountAvailable: NoYesReasonsForMissingData
+  tCellSource: TCellSourceViralLoadSource
   user: User
+  viralLoad: Int
+  viralLoadAvailable: ViralLoadAvailable
 }
 
 """
@@ -4203,11 +4200,6 @@ enum LivingSituation {
   HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
 
   """
-  (27) Interim Housing
-  """
-  INTERIM_HOUSING
-
-  """
   Invalid Value
   """
   INVALID
@@ -4226,6 +4218,11 @@ enum LivingSituation {
   (26) Moved from one HOPWA funded project to HOPWA PH
   """
   MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_PH
+
+  """
+  (27) Moved from one HOPWA funded project to HOPWA TH
+  """
+  MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_TH
 
   """
   (30) No exit interview completed
@@ -7360,6 +7357,31 @@ enum SubsidyInformation {
 }
 
 """
+W4.B
+"""
+enum TCellSourceViralLoadSource {
+  """
+  (2) Client Report
+  """
+  CLIENT_REPORT
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Medical Report
+  """
+  MEDICAL_REPORT
+
+  """
+  (3) Other
+  """
+  OTHER
+}
+
+"""
 2.02.8
 """
 enum TargetPopulation {
@@ -7715,6 +7737,46 @@ type ValueBound {
   type: BoundType!
   valueDate: ISO8601Date
   valueNumber: Int
+}
+
+"""
+W4.3
+"""
+enum ViralLoadAvailable {
+  """
+  (1) Available
+  """
+  AVAILABLE
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (0) Not available
+  """
+  NOT_AVAILABLE
+
+  """
+  (2) Undetectable
+  """
+  UNDETECTABLE
 }
 
 """

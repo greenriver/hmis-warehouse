@@ -91,7 +91,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # If not, create a new CLS
     self.current_living_situation = enrollment_factory.current_living_situations.build(**common_attributes)
   end
-  
+
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     @service_factory ||= owner.owner if owner.is_a? Hmis::Hud::HmisService
   end
