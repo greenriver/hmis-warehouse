@@ -126,7 +126,7 @@ module Mutations
     end
 
     # For NEW RECORD CREATION ONLY, get the permission base that should be used to check permissions,
-    # as well as any attributes for related records from the input arg.
+    # as well the initial record, initialized with any related record attributes.
     private def permission_base_and_record(klass, input, data_source_id)
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id) if input.project_id.present?
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id) if input.client_id.present?
