@@ -2248,6 +2248,11 @@ type EnableWhen {
   compareQuestion: String
 
   """
+  The Local Constant that determines whether item is enabled/disabled
+  """
+  localConstant: String
+
+  """
   How to evaluate the question's answer
   """
   operator: EnableOperator!
@@ -2255,7 +2260,7 @@ type EnableWhen {
   """
   The linkId of question that determines whether item is enabled/disabled
   """
-  question: String!
+  question: String
 }
 
 """
@@ -7699,6 +7704,11 @@ type ValueBound {
   severity: ValidationSeverity!
   type: BoundType!
   valueDate: ISO8601Date
+
+  """
+  Name of Local Constant to use for comparison
+  """
+  valueLocalConstant: String
   valueNumber: Int
 }
 

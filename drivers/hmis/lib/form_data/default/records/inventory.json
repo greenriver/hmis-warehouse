@@ -41,30 +41,44 @@
           "type": "CHOICE",
           "required": true,
           "link_id": "hhtype",
-          "component": "RADIO_BUTTONS",
+          "component": "DROPDOWN",
           "text": "Household Type",
           "pick_list_reference": "HouseholdType",
           "mapping": { "field_name": "householdType" }
         },
         {
           "type": "CHOICE",
-          "_comment": "TODO: ES ONLY",
           "required": false,
           "link_id": "es-availability",
           "component": "RADIO_BUTTONS",
           "text": "Availability",
           "pick_list_reference": "Availability",
-          "mapping": { "field_name": "availability" }
+          "mapping": { "field_name": "availability" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "local_constant": "$projectType",
+              "operator": "EQUAL",
+              "answer_code": "ES"
+            }
+          ]
         },
         {
           "type": "CHOICE",
-          "_comment": "TODO: ES ONLY",
           "required": false,
           "link_id": "es-bed-type",
           "component": "RADIO_BUTTONS",
           "text": "ES Bed Type",
           "pick_list_reference": "BedType",
-          "mapping": { "field_name": "esBedType" }
+          "mapping": { "field_name": "esBedType" },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "local_constant": "$projectType",
+              "operator": "EQUAL",
+              "answer_code": "ES"
+            }
+          ]
         },
         {
           "type": "DATE",

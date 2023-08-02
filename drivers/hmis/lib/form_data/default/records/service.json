@@ -1,39 +1,6 @@
 {
   "item": [
     {
-      "type": "DATE",
-      "link_id": "entry-date",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$entryDate"
-        }
-      ]
-    },
-    {
-      "type": "STRING",
-      "link_id": "hud-record-type",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$hudRecordType"
-        }
-      ]
-    },
-    {
-      "type": "STRING",
-      "link_id": "hud-type-provided",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$hudTypeProvided"
-        }
-      ]
-    },
-    {
       "type": "STRING",
       "required": true,
       "link_id": "otherTypeProvided",
@@ -44,12 +11,12 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "SSVF_SERVICE__OTHER_NON_TFA_SUPPORTIVE_SERVICE_APPROVED_BY_VA"
         },
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "HUD_VASH_OTH_VOUCHER_TRACKING__OTHER"
         }
@@ -66,7 +33,7 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "MOVING_ON_ASSISTANCE__OTHER"
         }
@@ -84,7 +51,7 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS"
         }
@@ -102,7 +69,7 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS"
         }
@@ -120,7 +87,7 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS"
         }
@@ -138,7 +105,7 @@
         {
           "id": "min-start-date",
           "type": "MIN",
-          "question": "entry-date"
+          "value_local_constant": "$entryDate"
         }
       ]
     },
@@ -154,17 +121,17 @@
       "service_detail_type": "CLIENT",
       "enable_when": [
         {
-          "question": "hud-record-type",
+          "local_constant": "$hudRecordType",
           "operator": "EQUAL",
           "answer_code": "HOPWA_FINANCIAL_ASSISTANCE"
         },
         {
-          "question": "hud-record-type",
+          "local_constant": "$hudRecordType",
           "operator": "EQUAL",
           "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
         },
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES"
         }
@@ -182,7 +149,7 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-record-type",
+          "local_constant": "$hudRecordType",
           "operator": "EQUAL",
           "answer_code": "PATH_REFERRAL"
         }
