@@ -8,13 +8,15 @@ module HmisUtil
   class JsonForms
     DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
 
-    def self.fragment_map
-      @@fragment_map ||= begin # rubocop:disable Style/ClassVars
+    protected
+
+    def fragment_map
+      @fragment_map ||= begin
         fragments = {}
         Dir.glob("#{DATA_DIR}/default/fragments/*.json") do |file_path|
           identifier = File.basename(file_path, '.json')
           file = File.read(file_path)
-          fragments["##{identifier}"] = JSON.parse(file)
+          fragments[identifier] = JSON.parse(file)
         end
 
         if ENV['CLIENT'].present?
@@ -22,16 +24,22 @@ module HmisUtil
             identifier = File.basename(file_path, '.json')
             puts "Loading #{ENV['CLIENT']} override for #{identifier} fragment"
             file = File.read(file_path)
-            fragments["##{identifier}"] = JSON.parse(file)
+            fragments[identifier] = JSON.parse(file)
+          end
+          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/patches/*.json") do |file_path|
+            identifier = File.basename(file_path, '.json')
+            puts "Applying #{ENV['CLIENT']} patch for #{identifier} fragment"
+            file = File.read(file_path)
+            fragment = fragments.fetch(identifier)
+            fragments[identifier] = apply_patches(fragment, JSON.parse(file))
           end
         end
-
         fragments
       end
     end
 
-    def self.record_forms
-      @@record_forms ||= begin # rubocop:disable Style/ClassVars
+    def record_forms
+      @record_forms ||= begin
         forms = {}
         Dir.glob("#{DATA_DIR}/default/records/*.json") do |file_path|
           identifier = File.basename(file_path, '.json')
@@ -47,16 +55,38 @@ module HmisUtil
             forms[identifier] = JSON.parse(file)
           end
         end
-
         forms
       end
     end
 
-    def self.apply_fragment(item)
+    def apply_patches(tree, patches)
+      nodes_by_id = {}
+      result = tree.deep_dup
+      walk_nodes(result) do |node|
+        id = node['link_id']
+        nodes_by_id[id] = node
+      end
+      patches.each do |patch|
+        id = patch.fetch('link_id')
+        node = nodes_by_id.fetch(id)
+        # Could also be deep merge. This is probably more intuitive though
+        node.merge!(patch)
+      end
+      result
+    end
+
+    def walk_nodes(node, &block)
+      block.call(node)
+      children = node['item']
+      children&.each { |child| walk_nodes(child, &block) }
+    end
+
+    def apply_fragment(item)
       return item unless item['fragment']
 
       additional_children = item['item']
-      fragment = fragment_map[item['fragment']]
+      fragment_key = item['fragment']&.gsub(/^#/, '')
+      fragment = fragment_map[fragment_key]
       raise "Fragment not found #{item['fragment']}" unless fragment.present?
 
       merged = { **item.except('fragment'), **fragment }
@@ -66,7 +96,7 @@ module HmisUtil
     end
 
     # Load form definitions for editing and creating records
-    def self.seed_record_form_definitions
+    public def seed_record_form_definitions
       record_forms.each do |identifier, form_definition|
         role = identifier.upcase.to_sym
         next unless Hmis::Form::Definition::FORM_ROLES.key?(role)
@@ -81,7 +111,7 @@ module HmisUtil
         form_definition['item'] = form_definition['item'].map { |item| apply_fragment(item) }
         # Validate form structure
         Hmis::Form::Definition.validate_json(form_definition)
-        definition.definition = form_definition.to_json
+        definition.definition = form_definition
         definition.save!
 
         # Make this form the default instance for this role
@@ -92,7 +122,7 @@ module HmisUtil
       puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
     end
 
-    def self.load_definition(identifier, role:)
+    public def load_definition(identifier, role:)
       form_definition = record_forms[identifier.to_s]
       raise "Not found: #{identifier}" unless form_definition.present?
       raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role.to_sym)
@@ -105,12 +135,12 @@ module HmisUtil
         version: 0,
         status: 'draft',
       ).first_or_create!
-      record.definition = form_definition.to_json
+      record.definition = form_definition
       record.save!
     end
 
     # Load form definitions for HUD assessments
-    def self.seed_assessment_form_definitions
+    public def seed_assessment_form_definitions
       roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL]
       identifiers = []
       roles.each do |role|
@@ -123,6 +153,11 @@ module HmisUtil
 
         # Validate form structure
         Hmis::Form::Definition.validate_json(form_definition)
+        schema_errors = Hmis::Form::Definition.validate_schema(form_definition)
+        if schema_errors.present?
+          pp schema_errors
+          raise "schema invalid for role: #{role}"
+        end
 
         # Load definition into database
         identifier = "base-#{role.to_s.downcase}"
@@ -133,7 +168,7 @@ module HmisUtil
           role: role,
           status: 'draft',
         )
-        definition.definition = form_definition.to_json
+        definition.definition = form_definition
         definition.save!
 
         # Make this form the default instance for this role
