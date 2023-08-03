@@ -17,6 +17,10 @@ module InactiveClientReport
       @filter = filter
     end
 
+    def self.name
+      _('Client Activity Report')
+    end
+
     def self.url
       'inactive_client_report/warehouse_reports/reports'
     end
@@ -47,13 +51,13 @@ module InactiveClientReport
     end
 
     protected def build_control_sections
+      options = {
+        include_reporting_period: false,
+        include_comparison_period: false,
+        include_require_service_during_range: false,
+      }
       [
-        build_general_control_section(
-          include_comparison_period: false,
-          include_inactivity_days: true,
-          labels: { inactivity_days: 'Days since most recent contact' },
-          hints: { inactivity_days: 'Limit universe to clients who have not had a Bed-Night, Current Living Situation, or Event collected in the selected number of days before the report end date' },
-        ),
+        build_general_control_section(options: options),
         build_coc_control_section,
       ]
     end
@@ -63,7 +67,7 @@ module InactiveClientReport
     end
 
     def clients
-      GrdaWarehouse::Hud::Client.where(id: enrollments.pluck(:client_id)).
+      GrdaWarehouse::Hud::Client.where(id: report_scope.pluck(:client_id)).
         preload(
           :processed_service_history,
           service_history_entry_ongoing: :project,
@@ -82,6 +86,7 @@ module InactiveClientReport
         most_recent_cls(client),
         most_recent_bed_night(client),
         most_recent_ce_assessment(client),
+        max_entry_date(client),
       ].compact.max
     end
 
@@ -97,37 +102,59 @@ module InactiveClientReport
       activities[:assessments][client.id]
     end
 
+    def max_entry_date(client)
+      activities[:entries][client.id]
+    end
+
     def activities
       @activities ||= {
         cls: max_current_living_situation_by_client_id,
         bed_nights: max_bed_night_by_client_id,
         assessments: max_assessment_by_client_id,
+        entries: max_entries_by_client_id,
       }
     end
 
+    def client_scope
+      GrdaWarehouse::Hud::Client.
+        joins(service_history_entries: :project).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: report_scope.select(:client_id))).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
+    end
+
     def max_current_living_situation_by_client_id
-      clients.joins(:source_current_living_situations).
-        group(:id).
+      client_scope.
+        joins(:source_current_living_situations).
+        group(c_t[:id]).
         maximum(cls_t[:InformationDate])
     end
 
     def max_bed_night_by_client_id
-      GrdaWarehouse::Hud::Client.
+      client_scope.
         joins(:source_services).
         merge(GrdaWarehouse::Hud::Service.bed_night).
-        group(:id).
+        group(c_t[:id]).
         maximum(s_t[:DateProvided])
     end
 
     def max_assessment_by_client_id
-      GrdaWarehouse::Hud::Client.
+      client_scope.
         joins(:source_assessments).
-        group(:id).
+        group(c_t[:id]).
         maximum(as_t[:AssessmentDate])
     end
 
-    def enrollments
-      filter.apply(report_scope_base)
+    private def max_entries_by_client_id
+      report_scope.
+        order(entry_date: :asc).
+        pluck(:client_id, :entry_date).
+        to_h # Keeps the last instance for each client_id
+    end
+
+    def report_scope
+      scope = filter.apply(report_scope_base, include_date_range: false)
+      # Apply a single date filter
+      scope.ongoing(on_date: filter.on)
     end
 
     def report_scope_base

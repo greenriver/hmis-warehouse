@@ -14,13 +14,13 @@ module InactiveClientReport::WarehouseReports
     before_action :set_report
 
     def index
-      @excel_export = ::ClientDocumentsReport::DocumentExports::ReportExcelExport.new
+      @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
       respond_to do |format|
         format.html do
           @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
         end
         format.xlsx do
-          filename = "Inactive Client Report - #{Time.current.to_s(:db)}.xlsx"
+          filename = "#{@report.name} - #{Time.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

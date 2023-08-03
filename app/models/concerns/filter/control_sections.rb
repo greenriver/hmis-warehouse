@@ -21,7 +21,15 @@ module
       ]
     end
 
-    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false, include_mask_small_populations: false, labels: {}, hints: {})
+    protected def build_general_control_section(options: {}, labels: {}, hints: {})
+      defaults = {
+        include_reporting_period: true,
+        include_comparison_period: true,
+        include_inactivity_days: false,
+        include_mask_small_populations: false,
+        include_require_service_during_range: true,
+      }
+      selected = defaults.merge(options)
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
           id: 'project_types',
@@ -42,7 +50,7 @@ module
           value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
           hint: hints[:ce_cls_as_homeless] || "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HudUtility.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
         )
-        if include_inactivity_days
+        if selected[:include_inactivity_days]
           section.add_control(
             id: 'inactivity_days',
             label: labels[:inactivity_days] || 'Homeless History Lookback',
@@ -50,30 +58,41 @@ module
             hint: hints[:inactivity_days] || 'Time away before a client is considered newly homeless',
           )
         end
-        section.add_control(
-          id: 'require_service_during_range',
-          label: labels[:require_service_during_range] || 'Require Service?',
-          value: @filter.require_service_during_range,
-          hint: hints[:require_service_during_range] || 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
-        )
+        if selected[:include_require_service_during_range]
+          section.add_control(
+            id: 'require_service_during_range',
+            label: labels[:require_service_during_range] || 'Require Service?',
+            value: @filter.require_service_during_range,
+            hint: hints[:require_service_during_range] || 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
+          )
+        end
         section.add_control(
           id: 'active_roi',
           label: labels[:active_roi] || 'Require Active Release of Information?',
           value: @filter.active_roi,
           hint: hints[:active_roi] || 'If checked, a client must have an active ROI to be included in the universe.',
         )
-        section.add_control(
-          id: 'reporting_period',
-          required: true,
-          value: @filter.date_range_words,
-        )
-        if include_comparison_period
+        if selected[:include_reporting_period]
           section.add_control(
-            id: 'comparison_period',
-            value: nil,
+            id: 'reporting_period',
+            required: true,
+            value: @filter.date_range_words,
+          )
+          if selected[:include_comparison_period]
+            section.add_control(
+              id: 'comparison_period',
+              value: nil,
+            )
+          end
+        else
+          section.add_control(
+            id: 'on',
+            label: 'Report Date',
+            required: true,
+            value: @filter.on,
           )
         end
-        if include_mask_small_populations
+        if selected[:include_mask_small_populations]
           section.add_control(
             id: 'mask_small_populations',
             label: labels[:mask_small_populations] || 'Mask Small Populations?',

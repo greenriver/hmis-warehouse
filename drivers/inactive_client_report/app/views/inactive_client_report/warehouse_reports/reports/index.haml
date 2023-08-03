@@ -1,4 +1,4 @@
-- title = _('Inactive Client Report')
+- title = @report.class.name
 - content_for :title, title
 
 - @layout__plain_inner = true
@@ -32,6 +32,7 @@
                 %th Ongoing Enrollments
                 %th Days Homeless in the Last 3 Years
                 %th Days Since Most-Recent Contact
+                %th Most-Recent Entry Date
                 %th Most-Recent Current Living Situation
                 %th Most-Recent Bed Night
                 %th Most-Recent CE Assessment
@@ -51,6 +52,7 @@
                       %br
                   %td= client.processed_service_history&.days_homeless_last_three_years
                   %td= number_with_delimiter @report.days_since_most_recent_contact(client)
+                  %td= @report.max_entry_date(client)
                   %td= @report.most_recent_cls(client)
                   %td= @report.most_recent_bed_night(client)
                   %td= @report.most_recent_ce_assessment(client)

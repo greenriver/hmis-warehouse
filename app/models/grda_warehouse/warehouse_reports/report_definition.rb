@@ -1089,7 +1089,7 @@ module GrdaWarehouse::WarehouseReports
       if RailsDrivers.loaded.include?(:inactive_client_report)
         r_list['Operational'] << {
           url: 'inactive_client_report/warehouse_reports/reports',
-          name: 'Inactive Client Report',
+          name: _('Client Activity Report'),
           description: 'Identify clients who are enrolled but have not had recent contact with the homeless side of HMIS.',
           limitable: true,
           health: false,

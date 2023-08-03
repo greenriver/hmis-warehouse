@@ -1,4 +1,4 @@
-## Inactive Client Report
+## Client Activity Report
 
 This driver provides a report for tracking down clients who are still enrolled but no longer active at the project, or in the homeless side of HMIS.  This was originally built for Boston CoC with the following scope:
 
