@@ -2,7 +2,7 @@
   "type": "GROUP",
   "link_id": "employment-education",
   "text": "Employment Education",
-  "data_collected_about": "ALL_CLIENTS",
+  "data_collected_about": "HOH_AND_ADULTS",
   "prefill": "EMPLOYMENT_EDUCATION",
   "item": [
     {

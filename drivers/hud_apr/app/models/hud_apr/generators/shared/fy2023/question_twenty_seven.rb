@@ -27,7 +27,8 @@ module HudApr::Generators::Shared::Fy2023
     end
 
     private def youth_filter
-      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false))
+      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false)).
+        and(a_t[:dob_quality].in([1, 2]))
     end
 
     private def q27a_youth_age
@@ -44,16 +45,7 @@ module HudApr::Generators::Shared::Fy2023
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      youth_or_unknown = universe.members.where(
-        youth_filter.
-          and(a_t[:dob_quality].in([1, 2])).
-            or(
-              a_t[:dob_quality].in([8, 9, 99]).
-              or(a_t[:dob_quality].eq(nil)).
-              or(a_t[:age].lt(0)).
-              or(a_t[:age].eq(nil)),
-            ),
-      )
+      youth = universe.members.where(youth_filter)
 
       q27_populations.values.each_with_index do |population_clause, col_index|
         youth_age_ranges.values.each_with_index do |response_clause, row_index|
@@ -62,7 +54,7 @@ module HudApr::Generators::Shared::Fy2023
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = youth_or_unknown.
+          members = youth.
             where(population_clause).
             where(response_clause)
           value = members.count
@@ -513,7 +505,7 @@ module HudApr::Generators::Shared::Fy2023
         {
           'Other Source' => income_types(:exit).slice(*other_sources).values,
           'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
-          'Unduplicated Total Youth' => Arel.sql('1=1'),
+          'Unduplicated Total Youth' => youth_filter,
         },
       )
     end
@@ -680,7 +672,7 @@ module HudApr::Generators::Shared::Fy2023
           or(a_t[:project_type].in(move_in_projects).
             and(a_t[:move_in_date].lteq(@report.end_date).
               and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))))),
-        'Total persons' => Arel.sql('1=1'),
+        'Total persons' => youth_filter,
       }.freeze
     end
 
@@ -783,7 +775,7 @@ module HudApr::Generators::Shared::Fy2023
         'Transgender' => a_t[:gender_multi].in(::HudUtility.transgender_gender_queries),
         'Client Doesn\'t Know/Client Refused' => a_t[:gender_multi].in(['8', '9']),
         'Data Not Collected' => a_t[:gender_multi].eq('99'),
-        'Total' => Arel.sql('1=1'),
+        'Total' => youth_filter,
       }.freeze
     end
 
@@ -791,9 +783,9 @@ module HudApr::Generators::Shared::Fy2023
       {
         '12-17' => a_t[:age].between(12..17).and(a_t[:dob_quality].in([1, 2])),
         '18-24' => a_t[:age].between(18..24).and(a_t[:dob_quality].in([1, 2])),
-        "Client Doesn't Know/Client Refused" => a_t[:dob_quality].in([8, 9]),
-        'Data Not Collected' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
-        'Total' => Arel.sql('1=1'), # include everyone
+        "Client Doesn't Know/Client Refused" => Arel.sql('0=1'), # Not used in APR
+        'Data Not Collected' => Arel.sql('0=1'), # Not used in APR
+        'Total' => youth_filter,
       }
     end
 
@@ -842,7 +834,7 @@ module HudApr::Generators::Shared::Fy2023
 
     private def q27e_populations
       {
-        'Total' => Arel.sql('1=1'),
+        'Total' => youth_filter,
         'Leavers' => leavers_clause,
         'Stayers' => stayers_clause,
       }

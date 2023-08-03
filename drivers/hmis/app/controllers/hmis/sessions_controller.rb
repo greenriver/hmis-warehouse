@@ -25,7 +25,8 @@ class Hmis::SessionsController < Devise::SessionsController
     self.resource = warden.authenticate!(auth_options)
     sign_in(:hmis_user, resource)
     set_csrf_cookie
-    render json: { name: resource.name, email: resource.email }
+    response.headers['X-app-user-id'] = resource&.id
+    render json: resource.current_user_api_values
   end
 
   # DELETE /hmis/logout

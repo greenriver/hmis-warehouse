@@ -24,6 +24,7 @@ module WarehouseReports::ClientDetails
 
     def index
       @report = report_source.new(filter: @filter, user: current_user)
+      @filter.errors.add(:project_type_codes, message: 'are required') if @filter.project_type_codes.blank?
 
       respond_to do |format|
         format.html {}
