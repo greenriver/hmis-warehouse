@@ -110,7 +110,7 @@ module HmisUtil
 
         form_definition['item'] = form_definition['item'].map { |item| apply_fragment(item) }
         # Validate form structure
-        Hmis::Form::Definition.validate_json(form_definition)
+        validate_definition(form_definition, role)
         definition.definition = form_definition
         definition.save!
 
@@ -152,12 +152,7 @@ module HmisUtil
         form_definition['item'] = form_definition['item'].map { |item| apply_fragment(item) }
 
         # Validate form structure
-        Hmis::Form::Definition.validate_json(form_definition)
-        schema_errors = Hmis::Form::Definition.validate_schema(form_definition)
-        if schema_errors.present?
-          pp schema_errors
-          raise "schema invalid for role: #{role}"
-        end
+        validate_definition(form_definition, role)
 
         # Load definition into database
         identifier = "base-#{role.to_s.downcase}"
@@ -176,6 +171,15 @@ module HmisUtil
         instance.save!
       end
       puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
+    end
+
+    def validate_definition(json, role)
+      Hmis::Form::Definition.validate_json(json)
+      schema_errors = Hmis::Form::Definition.validate_schema(json)
+      if schema_errors.present?
+        pp schema_errors
+        raise "schema invalid for role: #{role}"
+      end
     end
   end
 end
