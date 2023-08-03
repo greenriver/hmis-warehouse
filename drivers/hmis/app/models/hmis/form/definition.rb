@@ -4,11 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# The definition for form fields. The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
-# rails driver:hmis:seed_definitions
+# Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
+#
+# The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
+#   rails driver:hmis:seed_definitions
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
+
+  # convenience attr for passing graphql args
+  attr_accessor :filter_context
 
   has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier
   has_many :form_processors
@@ -159,6 +164,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     recur_check.call(json)
   end
 
+  def self.validate_schema(json)
+    schema_path = Rails.root
+      .join('drivers/hmis_external_apis/public/schemas/form_definition.json')
+    HmisExternalApis::JsonValidator.perform(json, schema_path)
+  end
+
   def hud_assessment?
     HUD_ASSESSMENT_FORM_ROLES.keys.include?(role.to_sym)
   end
@@ -177,10 +188,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FORM_ROLE_CONFIG[role.to_sym][:class_name]
   end
 
-  def record_editing_permission
-    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+  def record_editing_permissions
+    return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
 
-    FORM_ROLE_CONFIG[role.to_sym][:permission]
+    Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:permission])
   end
 
   def allowed_proc
@@ -236,7 +247,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   private def definition_struct
-    @definition_struct ||= Oj.load(definition, mode: :compat, object_class: OpenStruct)
+    @definition_struct ||= Oj.load(definition.to_json, mode: :compat, object_class: OpenStruct)
   end
 
   # Hash { link_id => FormItem }
