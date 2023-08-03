@@ -32,7 +32,7 @@
         {
           "id": "max-dob",
           "type": "MAX",
-          "question": "today"
+          "value_local_constant": "$today"
         }
       ]
     },

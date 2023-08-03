@@ -58,7 +58,7 @@
           "question": "4.12.2",
           "operator": "EQUAL",
           "answer_group_code": "TEMPORARY_PERMANENT_OTHER",
-          "_note": "Only present in 2022 spec, remove this when switching to 2024"
+          "_comment": "Only present in 2022 spec, remove this when switching to 2024"
         }
       ],
       "item": [
