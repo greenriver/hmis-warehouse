@@ -1,0 +1,31 @@
+.mt-3.d-flex
+  .mr-8
+    .pctc-print__detail-label Initial Date
+    .pctc-print__detail-value= @assessment.created_at.to_date
+  .mr-8
+    - if @assessment.reviewed_at.present?
+      .pctc-print__detail-label Reviewed on
+      .pctc-print__detail-value= @assessment.reviewed_at.to_date
+    - elsif @assessment.completed_at.present?
+      .pctc-print__detail-label Completed on
+      .pctc-print__detail-value= @assessment.completed_at.to_date
+
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: 2}
+          Identifying Information
+      = render 'pdf_field_section', fields: @assessment.identifying_information
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: 2}
+          Demographic Information
+      %tr
+        %th{style: 'width:40%;'} Race
+        %td
+          - display_values = @assessment.race_responses.select{|k, v| @assessment.race.include?(v)}.keys
+          = display_values.join(', ')
+      = render 'pdf_field_section', fields: @assessment.demographic_information

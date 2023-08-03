@@ -32,14 +32,26 @@ module HealthComprehensiveAssessment::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = 'health_comprehensive_assessment/assessments/edit_pdf'
         layout = 'layouts/careplan_pdf'
         # https://stackoverflow.com/questions/55865582/set-dynamic-header-and-footer-data-on-pdf-generation-from-rails-grover-gem
 
+        first_page_html = PdfGenerator.html(
+          controller: controller_class,
+          template: 'health_comprehensive_assessment/assessments/pdf_first_page',
+          layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
         html = PdfGenerator.html(
           controller: controller_class,
-          template: template_file,
+          template: 'health_comprehensive_assessment/assessments/edit_pdf',
           layout: layout,
+          user: user,
+          assigns: view_assigns,
+        )
+        first_page_header_html = PdfGenerator.html(
+          controller: controller_class,
+          partial: 'health_comprehensive_assessment/assessments/pdf_first_page_header',
           user: user,
           assigns: view_assigns,
         )
@@ -55,23 +67,39 @@ module HealthComprehensiveAssessment::DocumentExports
           user: user,
           assigns: view_assigns,
         )
-        PdfGenerator.new.perform(
-          html: html,
-          file_name: "#{_('Comprehensive Assessment')} #{DateTime.current.to_s(:db)}",
-          options: {
-            print_background: true,
-            display_header_footer: true,
-            header_template: header_html,
-            footer_template: footer_html,
-            prefer_css_page_size: true,
-            scale: 1,
-            margin: {
-              top: '0.8in',
-              bottom: '1.2in',
-              left: '.4in',
-              right: '.4in',
-            },
+
+        options_no_header = {
+          print_background: true,
+          prefer_css_page_size: true,
+          scale: 1,
+          margin: {
+            top: '0.8in',
+            bottom: '1.2in',
+            left: '.4in',
+            right: '.4in',
           },
+        }
+
+        first_page_options = options_no_header.merge(
+          display_header_footer: true,
+          header_template: first_page_header_html,
+          footer_template: footer_html,
+        )
+
+        body_options = options_no_header.merge(
+          display_header_footer: true,
+          header_template: header_html,
+          footer_template: footer_html,
+        )
+        pdf = CombinePDF.new
+        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(first_page_html, options: first_page_options), allow_optional_content: true)
+        pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: body_options), allow_optional_content: true)
+
+        file_name = "#{_('Comprehensive Assessment')} #{DateTime.current.to_s(:db)}"
+        PdfGenerator.new.perform(
+          html: '',
+          file_name: file_name,
+          pdf_data: pdf.to_pdf,
         ) do |io|
           self.pdf_file = io
         end
