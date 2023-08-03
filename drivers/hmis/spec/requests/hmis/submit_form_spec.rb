@@ -202,7 +202,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         it 'should fail if user lacks permission' do
-          remove_permissions(access_control, *Array(definition.record_editing_permission))
+          remove_permissions(access_control, *definition.record_editing_permissions)
           expect_gql_error post_graphql(input: { input: test_input }) { mutation }
         end
 
