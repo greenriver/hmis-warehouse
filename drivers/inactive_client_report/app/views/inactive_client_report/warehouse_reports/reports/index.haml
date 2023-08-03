@@ -18,8 +18,13 @@
             .h1.hero-value-prs1.mr-3= number_with_delimiter @report.total_client_count
             .hero-label-prs1.h5-prs1 Unique Clients
     .main-inner-prs1
-      .text-right.mb-4
-        = render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
+      .d-flex
+        .mr-4
+          .alert.alert-info
+            %i.icon-info.mr-4
+            Please note, while the clients included in the report are limited to those with enrollments in the chosen universe, some activitie are included that may be outside the chosen universe.
+        .ml-auto.mb-4
+          = render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
       - if @report.total_client_count.positive?
         = render 'common/pagination_top', item_name: 'client'
         .card

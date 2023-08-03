@@ -12,6 +12,7 @@ module InactiveClientReport
     include ArelHelper
 
     attr_accessor :filter
+    attr_accessor :client_ids # used to speed up calculations when paginated
 
     def initialize(filter)
       @filter = filter
@@ -67,7 +68,7 @@ module InactiveClientReport
     end
 
     def clients
-      GrdaWarehouse::Hud::Client.where(id: report_scope.pluck(:client_id)).
+      GrdaWarehouse::Hud::Client.where(id: report_scope.select(:client_id)).
         preload(
           :processed_service_history,
           service_history_entry_ongoing: :project,
@@ -116,10 +117,12 @@ module InactiveClientReport
     end
 
     def client_scope
-      GrdaWarehouse::Hud::Client.
+      scope = GrdaWarehouse::Hud::Client.
         joins(service_history_entries: :project).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: report_scope.select(:client_id))).
         merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
+      scope = scope.where(id: client_ids) if client_ids.present?
+      scope
     end
 
     def max_current_living_situation_by_client_id
@@ -145,7 +148,9 @@ module InactiveClientReport
     end
 
     private def max_entries_by_client_id
-      report_scope.
+      scope = report_scope
+      scope = scope.where(client_id: client_ids) if client_ids.present?
+      scope.
         order(entry_date: :asc).
         pluck(:client_id, :entry_date).
         to_h # Keeps the last instance for each client_id

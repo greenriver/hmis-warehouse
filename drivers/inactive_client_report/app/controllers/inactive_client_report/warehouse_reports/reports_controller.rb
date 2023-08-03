@@ -18,6 +18,7 @@ module InactiveClientReport::WarehouseReports
       respond_to do |format|
         format.html do
           @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
+          @report.client_ids = @clients.map(&:id)
         end
         format.xlsx do
           filename = "#{@report.name} - #{Time.current.to_s(:db)}.xlsx"
