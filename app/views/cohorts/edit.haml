@@ -23,11 +23,11 @@
       %p The following are the new mechanism for adding access to cohorts.  During the transition period, please assign both methods of access.
       -# END_ACL
       - users = @cohort.users_with_access(access_type: :edit)
-        - if users.count > 0
-          %p The following users already have access to participate in this cohort:
-          %ul
-            - users.each do |u|
-              %li= u.name_with_email
+      - if users.count > 0
+        %p The following users already have access to participate in this cohort:
+        %ul
+          - users.each do |u|
+            %li= u.name_with_email
         = f.input :participator_ids, collection: @users, as: :select_two, selected: @participator_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant participation-level access to users', hint: 'Specified user will have access to participate in this cohort.'
         - users = @cohort.users_with_access(access_type: :view)
         - if users.count > 0

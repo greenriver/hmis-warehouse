@@ -15,7 +15,7 @@ module ReportGenerators::SystemPerformance::Fy2019
     # Scope coming in is based on GrdaWarehouse::ServiceHistoryEnrollment
     def add_filters(scope:)
       # Limit to only those projects the user who queued the report can see
-      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user, permission: :can_view_assigned_reports)))
+      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user, permission: :can_view_assigned_reports))
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
         project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
@@ -23,7 +23,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       end
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(Project: { id: project_ids})
+        scope = scope.joins(:project).where(Project: { id: project_ids })
       end
       scope = scope.where(data_source_id: @report.options['data_source_id'].to_i) if @report.options['data_source_id'].present?
       scope = scope.where(data_source_id: @report.options['data_source_ids'].select(&:present?).map(&:to_i)) if @report.options['data_source_ids']&.select(&:present?).present?
@@ -139,7 +139,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         where(destination_id: destination_ids).
         distinct.
         pluck(:destination_id, :id_in_source).
-        group_by(&:first).transform_values{ |v| v.map(&:last).uniq }
+        group_by(&:first).transform_values { |v| v.map(&:last).uniq }
     end
   end
 end

@@ -9,7 +9,7 @@
       %span.icon-cross
       Delete #{item.name}
 
- - if path_to_add_users
+- if path_to_add_users
   = simple_form_for :user_members, url: path_to_add_users do |f|
     .d-flex
       .ml-auto.w-50

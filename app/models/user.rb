@@ -13,6 +13,7 @@ class User < ApplicationRecord
 
   USER_PERMISSION_PREFIX = 'user_permissions'
   USER_PROJECT_ID_PREFIX = "#{USER_PERMISSION_PREFIX}_project_ids".freeze
+  EXPIRY_MINUTES = 5
 
   has_many :user_group_members, dependent: :destroy, inverse_of: :user
   has_many :user_groups, through: :user_group_members
@@ -29,7 +30,8 @@ class User < ApplicationRecord
   # of their roles
   def load_effective_permissions
     {}.tap do |h|
-      roles.each do |role|
+      role_source = if using_acls? then roles else legacy_roles end
+      role_source.each do |role|
         Role.permissions(exclude_health: true).each do |permission|
           h[permission] ||= role.send(permission)
         end
@@ -77,7 +79,7 @@ class User < ApplicationRecord
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
-      joins(:roles).
+      joins(:legacy_roles).
         where(roles: { permission => true })
     end
   end
@@ -87,7 +89,9 @@ class User < ApplicationRecord
   end
 
   def entity_groups_for_permission(permission)
-    Rails.cache.fetch("#{user_permission_prefix}_entity_groups_#{permission}", expires_in: 5.minutes) do
+    return access_groups.joins(access_controls: :role).merge(Role.where(permission => true)).pluck(:id) if Rails.env.test?
+
+    Rails.cache.fetch("#{user_permission_prefix}_entity_groups_#{permission}", expires_in: EXPIRY_MINUTES.minutes) do
       access_groups.joins(access_controls: :role).merge(Role.where(permission => true)).pluck(:id)
     end
   end
@@ -97,13 +101,17 @@ class User < ApplicationRecord
   end
 
   def viewable_project_ids(context)
-    Rails.cache.fetch("#{user_project_id_prefix}_#{context}", expires_in: 5.minutes) do
+    return GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context) if Rails.env.test?
+
+    Rails.cache.fetch("#{user_project_id_prefix}_#{context}", expires_in: EXPIRY_MINUTES.minutes) do
       GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context)
     end
   end
 
   def editable_project_ids
-    Rails.cache.fetch("#{user_project_id_prefix}_editable", expires_in: 5.minutes) do
+    return GrdaWarehouse::Hud::Project.project_ids_editable_by(self) if Rails.env.test?
+
+    Rails.cache.fetch("#{user_project_id_prefix}_editable", expires_in: EXPIRY_MINUTES.minutes) do
       GrdaWarehouse::Hud::Project.project_ids_editable_by(self)
     end
   end

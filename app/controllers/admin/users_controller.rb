@@ -98,7 +98,7 @@ module Admin
 
           # TODO: START_ACL remove when ACL transition complete
           # Restore any health roles we previously had
-          @user.roles = (@user.roles + existing_health_roles).uniq
+          @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
           @user.set_viewables viewable_params
           # END_ACL
         end

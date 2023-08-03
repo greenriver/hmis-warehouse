@@ -72,7 +72,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
       # Instance Methods
       def show_demographics_to?(user)
         return false unless user.can_view_clients?
-        return false unless ! user.using_acls? && user.can_view_client_enrollments_with_roi?
+        return false if user.using_acls? && ! (user.can_view_clients? || user.can_view_client_enrollments_with_roi?)
 
         visible_because_of_permission?(user) || visible_because_of_relationship?(user)
       end
@@ -105,7 +105,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
         if user.using_acls?
           (source_enrollments.joins(:project).pluck(p_t[:id]) & user.viewable_project_ids(:can_view_clients).to_a).present?
         else
-          visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all).pluck(:id)).present?
+          visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all, permission: :can_view_clients).pluck(:id)).present?
           visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
 
           visible_because_of_enrollments || visible_because_of_data_sources

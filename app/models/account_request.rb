@@ -41,7 +41,7 @@ class AccountRequest < ApplicationRecord
     # TODO: START_ACL remove when ACL transition complete
     roles = Role.where(id: role_ids)
     access_groups = AccessGroup.where(id: access_group_ids)
-    user.roles = roles
+    user.legacy_roles = roles
     user.access_groups = access_groups
     # END_ACL
     acls = AccessControl.where(id: access_control_ids)

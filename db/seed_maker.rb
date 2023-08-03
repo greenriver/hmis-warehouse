@@ -324,7 +324,7 @@ class SeedMaker
       can_manage_health_agency: true,
     )
     u = User.not_system.first
-    u.roles << health_admin
+    u.health_roles << health_admin
     Health::AgencyUserSaver.new(user_id: u.id, agency_ids: Health::Agency.pluck(:id)).save
   end
 
