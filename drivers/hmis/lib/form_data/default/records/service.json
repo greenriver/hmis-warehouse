@@ -101,13 +101,7 @@
       "mapping": {
         "field_name": "dateProvided"
       },
-      "_DISABLED_bounds": [
-        {
-          "id": "min-start-date",
-          "type": "MIN",
-          "value_local_constant": "$entryDate"
-        }
-      ]
+      "_comment": "bounds: [ { id: 'min-start-date', type: 'MIN', value_local_constant: '$entryDate'}]"
     },
     {
       "type": "CURRENCY",

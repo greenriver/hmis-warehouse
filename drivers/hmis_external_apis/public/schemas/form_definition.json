@@ -15,22 +15,32 @@
     "mapping": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["field_name"],
       "properties": {
         "_comment": { "type": "string" },
         "record_type": { "type": "string" },
-        "field_name": { "type": "string" }
+        "field_name": { "type": "string" },
+        "custom_field_key": { "type": "string" }
+      }
+    },
+    "pick_list_option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": { "type": "string" }
       }
     },
     "bounds": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "type", "question"],
+      "required": ["id", "type"],
       "properties": {
         "_comment": { "type": "string" },
         "id": { "type": "string" },
         "type": { "type": "string" },
-        "question": { "type": "string" }
+        "question": { "type": "string" },
+        "value_local_constant": { "type": "string" },
+        "offset": { "type": "integer" }
       }
     },
     "rule": {
@@ -53,7 +63,8 @@
         "_comment": { "type": "string" },
         "initial_behavior": { "type": "string" },
         "value_local_constant": { "type": "string" },
-        "value_number": { "type": "integer" }
+        "value_number": { "type": "integer" },
+        "value_boolean": { "type": "boolean" }
       }
     },
     "enable_when": {
@@ -62,6 +73,8 @@
       "properties": {
         "_comment": { "type": "string" },
         "question": { "type": "string" },
+        "compare_question": { "type": "string" },
+        "local_constant": { "type": "string" },
         "operator": { "type": "string" },
         "answer_code": { "type": "string" },
         "answer_codes": { "type": "array", "items": { "type": "string" } },
@@ -142,6 +155,13 @@
         "rule": { "$ref": "#/definitions/rule" },
         "disabled_display": { "type": "string" },
         "bounds": { "type": "array", "items": { "$ref": "#/definitions/bounds" } },
+        "repeats": { "type": "boolean" },
+        "size": { "type": "string" },
+        "service_detail_type": { "type": "string" },
+        "pick_list_options": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/pick_list_option" }
+        },
         "initial": { "type": "array", "items": { "$ref": "#/definitions/initial" } },
         "autofill_values": {
           "type": "array",
