@@ -83,7 +83,6 @@ module HealthComprehensiveAssessment::DocumentExports
         first_page_options = options_no_header.merge(
           display_header_footer: true,
           header_template: first_page_header_html,
-          footer_template: footer_html,
         )
 
         body_options = options_no_header.merge(
