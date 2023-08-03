@@ -8,27 +8,39 @@
 
 module Types
   class HmisSchema::CustomDataElement < Types::BaseObject
-    # object is an OpenStruct, see HasCustomDataElements
-
-    field :id, ID, null: false
+    field :id, ID, null: false, extras: [:parent]
     field :key, String, null: false
+    field :field_type, HmisSchema::Enums::CustomDataElementType, null: false
     field :label, String, null: false
     field :repeats, Boolean, null: false
-    field :value, HmisSchema::CustomDataElementValue, null: true
-    field :values, [HmisSchema::CustomDataElementValue], null: true
+    field :at_occurrence, Boolean, null: false
+    field :value, HmisSchema::CustomDataElementValue, null: true, extras: [:parent]
+    field :values, [HmisSchema::CustomDataElementValue], null: true, extras: [:parent]
 
-    # If this custom element only allows one value, 'value' is set
-    def value
-      return if object.repeats
+    # object is a CustomDataElementDefinition
+    # parent is the parent (Enrollment, Client, etc)
 
-      object.values&.first
+    def all_values(parent:)
+      parent = load_ar_association(parent, :owner) if parent.is_a? Hmis::Hud::HmisService # special case for view
+      ids = load_ar_association(parent, :custom_data_elements).map(&:id).to_set
+      # get all values existing for this CustomDataElementDefinition, and filter
+      # it down to only elemnts that are relevant to this parent
+      load_ar_association(object, :values).filter { |v| v.id.in?(ids) }
+    end
+
+    # Unique ID based on values
+    def id(parent:)
+      [object.id, *all_values(parent: parent).map(&:id)].join(':')
     end
 
     # If this custom element allows multiple values, 'values' is set (repeats: true)
-    def values
-      return unless object.repeats
+    def values(parent:)
+      object.repeats ? all_values(parent: parent) : nil
+    end
 
-      object.values || []
+    # If this custom element only allows one value, 'value' is set
+    def value(parent:)
+      object.repeats ? nil : all_values(parent: parent)&.first
     end
   end
 end

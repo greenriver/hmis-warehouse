@@ -137,6 +137,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size)
       end.to perform_under(300).ms
     end
+
+    describe 'with filters' do
+      let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+      let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+      let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c1, user: u1, household_id: '1' }
+      let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c2, user: u1, household_id: '1' }
+      let!(:e3) do
+        e = create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c2, user: u1, household_id: '1'
+        e.save_in_progress
+        e
+      end
+
+      it 'should only return a household once if there are both WIP and completed members' do
+        _, result = post_graphql({ id: p2.id.to_s, filters: { status: ['ACTIVE', 'INCOMPLETE'] } }) { query }
+        expect(Hmis::Hud::Household.where(household_id: '1').count).to eq(1)
+        expect(result.dig('data', 'project', 'households', 'nodes').count).to eq(1)
+      end
+    end
   end
 end
 

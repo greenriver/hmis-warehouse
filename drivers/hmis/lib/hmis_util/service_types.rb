@@ -13,7 +13,7 @@ module HmisUtil
       system_user.hmis_data_source_id = data_source_id
       hud_user = Hmis::Hud::User.from_user(system_user)
 
-      HudLists.record_type_map.except(12, 13).each do |record_type, category_name|
+      HudUtility.record_types.except(12, 13).each do |record_type, category_name|
         category = Hmis::Hud::CustomServiceCategory.where(
           name: category_name,
           data_source_id: data_source_id,

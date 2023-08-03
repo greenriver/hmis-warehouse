@@ -10,6 +10,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     :DateCreated,
     :DateUpdated,
     :ProjectID, # allowed to be null if wip record is present
+    :LastPermanentZIP,
   ].freeze
 
   def configuration

@@ -738,7 +738,8 @@ CREATE TABLE public.hmis_roles (
     can_manage_incoming_referrals boolean DEFAULT false,
     can_manage_outgoing_referrals boolean DEFAULT false,
     can_manage_denied_referrals boolean DEFAULT false,
-    can_enroll_clients boolean DEFAULT false
+    can_enroll_clients boolean DEFAULT false,
+    can_view_open_enrollment_summary boolean DEFAULT false
 );
 
 
@@ -2800,6 +2801,20 @@ CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.ac
 
 
 --
+-- Name: index_active_users_on_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_users_on_email ON public.users USING btree (email) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: index_active_users_on_lower_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_users_on_lower_email ON public.users USING btree (btrim(lower((email)::text))) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: index_activity_logs_on_controller_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3154,13 +3169,6 @@ CREATE UNIQUE INDEX index_users_on_confirmation_token ON public.users USING btre
 --
 
 CREATE INDEX index_users_on_deleted_at ON public.users USING btree (deleted_at);
-
-
---
--- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
 
 
 --
@@ -3553,6 +3561,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230525153134'),
 ('20230623113136'),
 ('20230711223507'),
-('20230723145218');
+('20230723145218'),
+('20230726183720'),
+('20230730013646'),
+('20230730013746'),
+('20230730021030');
 
 

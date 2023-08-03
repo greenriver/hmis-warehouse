@@ -126,6 +126,8 @@ module HmisExternalApis::AcHmis::Importers
       project_ids.length != walkin.length and raise(AbortImportException, 'Project upsert should have been the same length as the parsed csv')
 
       project_ids.zip(walkin).each do |(project_id, bool_str)|
+        next unless bool_str.present?
+
         cde = Hmis::Hud::CustomDataElement
           .where(
             owner_type: 'Hmis::Hud::Project',

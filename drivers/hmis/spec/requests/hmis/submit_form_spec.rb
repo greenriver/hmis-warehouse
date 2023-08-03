@@ -73,6 +73,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on Enrollment {
               id
             }
+            ... on CurrentLivingSituation {
+              id
+            }
           }
           #{error_fields}
         }
@@ -91,6 +94,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :SERVICE,
       :FILE,
       :ENROLLMENT,
+      :CURRENT_LIVING_SITUATION,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -198,7 +202,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         it 'should fail if user lacks permission' do
-          remove_permissions(access_control, *Array(definition.record_editing_permission))
+          remove_permissions(access_control, *definition.record_editing_permissions)
           expect_gql_error post_graphql(input: { input: test_input }) { mutation }
         end
 

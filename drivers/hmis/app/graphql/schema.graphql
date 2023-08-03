@@ -1218,6 +1218,7 @@ HUD Current Living Situation
 """
 type CurrentLivingSituation {
   client: Client!
+  clsSubsidyType: RentalSubsidyType
   currentLivingSituation: LivingSituation!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -1286,12 +1287,27 @@ enum CurrentSchoolAttended {
 }
 
 type CustomDataElement {
+  atOccurrence: Boolean!
+  fieldType: CustomDataElementType!
   id: ID!
   key: String!
   label: String!
   repeats: Boolean!
   value: CustomDataElementValue
   values: [CustomDataElementValue!]
+}
+
+"""
+Allowed values for CustomDataElementDefinition.type
+"""
+enum CustomDataElementType {
+  boolean
+  date
+  float
+  integer
+  json
+  string
+  text
 }
 
 type CustomDataElementValue {
@@ -1829,16 +1845,6 @@ enum Destination {
   SAFE_HAVEN
 
   """
-  (35) Staying or living in a family member's room, apartment or house
-  """
-  STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
-
-  """
-  (36) Staying or living in a friend's room, apartment or house
-  """
-  STAYING_OR_LIVING_IN_A_FRIEND_S_ROOM_APARTMENT_OR_HOUSE
-
-  """
   (22) Staying or living with family, permanent tenure
   """
   STAYING_OR_LIVING_WITH_FAMILY_PERMANENT_TENURE
@@ -1867,11 +1873,6 @@ enum Destination {
   (2) Transitional housing for homeless persons (including homeless youth)
   """
   TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
-
-  """
-  (37) Worker unable to determine
-  """
-  WORKER_UNABLE_TO_DETERMINE
 }
 
 """
@@ -1936,6 +1937,7 @@ type DisabilitiesPaginated {
 }
 
 type Disability {
+  antiRetroviral: NoYesReasonsForMissingData
   client: Client!
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
@@ -1947,13 +1949,19 @@ type Disability {
   id: ID!
   indefiniteAndImpairs: Int
   informationDate: ISO8601Date!
+  tCellCount: Int
+  tCellCountAvailable: NoYesReasonsForMissingData
+  tCellSource: TCellSourceViralLoadSource
   user: User
+  viralLoad: Int
+  viralLoadAvailable: ViralLoadAvailable
 }
 
 """
 Group of disability records that were collected at the same time
 """
 type DisabilityGroup {
+  antiRetroviral: NoYesReasonsForMissingData
   chronicHealthCondition: NoYesReasonsForMissingData
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
@@ -1979,7 +1987,12 @@ type DisabilityGroup {
   physicalDisabilityIndefiniteAndImpairs: NoYesReasonsForMissingData
   substanceUseDisorder: DisabilityResponse
   substanceUseDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
+  tCellCount: Int
+  tCellCountAvailable: NoYesReasonsForMissingData
+  tCellSource: TCellSourceViralLoadSource
   user: User
+  viralLoad: Int
+  viralLoadAvailable: ViralLoadAvailable
 }
 
 """
@@ -2247,6 +2260,11 @@ type EnableWhen {
   compareQuestion: String
 
   """
+  The Local Constant that determines whether item is enabled/disabled
+  """
+  localConstant: String
+
+  """
   How to evaluate the question's answer
   """
   operator: EnableOperator!
@@ -2254,7 +2272,7 @@ type EnableWhen {
   """
   The linkId of question that determines whether item is enabled/disabled
   """
-  question: String!
+  question: String
 }
 
 """
@@ -2311,6 +2329,7 @@ type Enrollment {
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   moveInDate: ISO8601Date
+  openEnrollmentSummary: [EnrollmentSummary!]!
   percentAmi: PercentAMI
   physicalDisabilityFam: NoYesMissing
   previousStreetEssh: NoYesMissing
@@ -2410,6 +2429,17 @@ enum EnrollmentStatus {
   Exit Incomplete
   """
   OWN_EXIT_INCOMPLETE
+}
+
+type EnrollmentSummary {
+  canViewEnrollment: Boolean!
+  entryDate: ISO8601Date!
+  id: ID!
+  inProgress: Boolean!
+  moveInDate: ISO8601Date
+  projectId: String!
+  projectName: String!
+  projectType: ProjectType!
 }
 
 input EnrollmentsForClientFilterOptions {
@@ -3058,9 +3088,19 @@ enum FormRole {
   CLIENT
 
   """
+  (CURRENT_LIVING_SITUATION) Current Living Situation
+  """
+  CURRENT_LIVING_SITUATION
+
+  """
   (CUSTOM) Custom Assessment
   """
   CUSTOM
+
+  """
+  (DATE_OF_ENGAGEMENT) Date of Engagement
+  """
+  DATE_OF_ENGAGEMENT
 
   """
   (ENROLLMENT) Enrollment
@@ -3093,9 +3133,19 @@ enum FormRole {
   INVENTORY
 
   """
+  (MOVE_IN_DATE) Move-in Date
+  """
+  MOVE_IN_DATE
+
+  """
   (ORGANIZATION) Organization
   """
   ORGANIZATION
+
+  """
+  (PATH_STATUS) PATH Status
+  """
+  PATH_STATUS
 
   """
   (POST_EXIT) Post-Exit Assessment
@@ -3121,6 +3171,11 @@ enum FormRole {
   (SERVICE) Service
   """
   SERVICE
+
+  """
+  (UNIT_ASSIGNMENT) Unit Assignment
+  """
+  UNIT_ASSIGNMENT
 
   """
   (UPDATE) Update Assessment
@@ -4150,11 +4205,6 @@ enum LivingSituation {
   HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
 
   """
-  (27) Interim Housing
-  """
-  INTERIM_HOUSING
-
-  """
   Invalid Value
   """
   INVALID
@@ -4173,6 +4223,11 @@ enum LivingSituation {
   (26) Moved from one HOPWA funded project to HOPWA PH
   """
   MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_PH
+
+  """
+  (27) Moved from one HOPWA funded project to HOPWA TH
+  """
+  MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_TH
 
   """
   (30) No exit interview completed
@@ -4710,6 +4765,12 @@ type Mutation {
     """
     input: UpdateClientImageInput!
   ): UpdateClientImagePayload
+  updateCustomEnrollmentValue(
+    """
+    Parameters for UpdateCustomEnrollmentValue
+    """
+    input: UpdateCustomEnrollmentValueInput!
+  ): UpdateCustomEnrollmentValuePayload
 
   """
   Update a referral posting
@@ -4950,6 +5011,7 @@ type OrganizationsPaginated {
 
 input OutgoingReferralPostingInput {
   enrollmentId: ID
+  note: String
   projectId: ID
   unitTypeId: ID
 }
@@ -5138,6 +5200,7 @@ type Project {
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
+  hasUnits: Boolean!
   households(filters: HouseholdFilterOptions, limit: Int, offset: Int, sortOrder: HouseholdSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!
@@ -5488,6 +5551,7 @@ type QueryAccess {
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
   id: ID!
 }
@@ -5756,6 +5820,7 @@ HUD Client within a Referral Household
 type ReferralHouseholdMember {
   client: Client!
   id: ID!
+  openEnrollmentSummary: [EnrollmentSummary!]!
   relationshipToHoH: RelationshipToHoH!
 }
 
@@ -6155,6 +6220,71 @@ enum ReminderTopic {
   current_living_situation
   exit_incomplete
   intake_incomplete
+}
+
+"""
+3.12.A
+"""
+enum RentalSubsidyType {
+  """
+  (436) Emergency Housing Voucher
+  """
+  EMERGENCY_HOUSING_VOUCHER
+
+  """
+  (437) Family Unification Program Voucher (FUP)
+  """
+  FAMILY_UNIFICATION_PROGRAM_VOUCHER_FUP
+
+  """
+  (438) Foster Youth to Independence Initiative (FYI)
+  """
+  FOSTER_YOUTH_TO_INDEPENDENCE_INITIATIVE_FYI
+
+  """
+  (428) GPD TIP housing subsidy
+  """
+  GPD_TIP_HOUSING_SUBSIDY
+
+  """
+  (433) HCV voucher (tenant or project based) (not dedicated)
+  """
+  HCV_VOUCHER_TENANT_OR_PROJECT_BASED_NOT_DEDICATED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (440) Other permanent housing dedicated for formerly homeless persons
+  """
+  OTHER_PERMANENT_HOUSING_DEDICATED_FOR_FORMERLY_HOMELESS_PERSONS
+
+  """
+  (439) Permanent Supportive Housing
+  """
+  PERMANENT_SUPPORTIVE_HOUSING
+
+  """
+  (434) Public housing unit
+  """
+  PUBLIC_HOUSING_UNIT
+
+  """
+  (420) Rental by client, with other ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_OTHER_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (431) RRH or equivalent subsidy
+  """
+  RRH_OR_EQUIVALENT_SUBSIDY
+
+  """
+  (419) VASH housing subsidy
+  """
+  VASH_HOUSING_SUBSIDY
 }
 
 """
@@ -7154,7 +7284,7 @@ type SubmitFormPayload {
 """
 Union type of allowed records for form submission response
 """
-union SubmitFormResult = Client | Enrollment | File | Funder | Inventory | Organization | Project | ProjectCoc | ReferralRequest | Service
+union SubmitFormResult = Client | CurrentLivingSituation | Enrollment | File | Funder | Inventory | Organization | Project | ProjectCoc | ReferralRequest | Service
 
 """
 Autogenerated input type of SubmitHouseholdAssessments
@@ -7229,6 +7359,31 @@ enum SubsidyInformation {
   (2) With the subsidy they had at project entry 1
   """
   WITH_THE_SUBSIDY_THEY_HAD_AT_PROJECT_ENTRY_1
+}
+
+"""
+W4.B
+"""
+enum TCellSourceViralLoadSource {
+  """
+  (2) Client Report
+  """
+  CLIENT_REPORT
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (1) Medical Report
+  """
+  MEDICAL_REPORT
+
+  """
+  (3) Other
+  """
+  OTHER
 }
 
 """
@@ -7417,6 +7572,36 @@ type UpdateClientImagePayload {
 }
 
 """
+Autogenerated input type of UpdateCustomEnrollmentValue
+"""
+input UpdateCustomEnrollmentValueInput {
+  """
+  A unique identifier for the client performing the mutation.
+  """
+  clientMutationId: String
+  customDataElementDefinitionId: ID!
+  enrollmentId: ID!
+  valueBoolean: Boolean
+  valueDate: ISO8601Date
+  valueFloat: Float
+  valueInteger: Int
+  valueString: String
+  valueText: String
+}
+
+"""
+Autogenerated return type of UpdateCustomEnrollmentValue.
+"""
+type UpdateCustomEnrollmentValuePayload {
+  """
+  A unique identifier for the client performing the mutation.
+  """
+  clientMutationId: String
+  enrollment: Enrollment!
+  errors: [ValidationError!]!
+}
+
+"""
 Autogenerated return type of UpdateReferralPosting.
 """
 type UpdateReferralPostingPayload {
@@ -7556,7 +7741,52 @@ type ValueBound {
   severity: ValidationSeverity!
   type: BoundType!
   valueDate: ISO8601Date
+
+  """
+  Name of Local Constant to use for comparison
+  """
+  valueLocalConstant: String
   valueNumber: Int
+}
+
+"""
+W4.3
+"""
+enum ViralLoadAvailable {
+  """
+  (1) Available
+  """
+  AVAILABLE
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (0) Not available
+  """
+  NOT_AVAILABLE
+
+  """
+  (2) Undetectable
+  """
+  UNDETECTABLE
 }
 
 """

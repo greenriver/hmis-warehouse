@@ -43,7 +43,7 @@ module HmisExternalApis::AcHmis::Importers::Migration
         .where(namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE)
         .where(value: lookup.keys)
 
-      Rails.logger.warn("We could not find any matching MCI unique IDs. That doesn't seem right") if result.none?
+      Rails.logger.warn("We could not find any matching MCI unique IDs. That doesn't seem right. You may need to run InitialMciUniqueIdCreationJob.") if result.none?
 
       result
     end
