@@ -363,14 +363,14 @@ module Filters
       active_roi: 'With Active ROI',
       mask_small_populations: 'Mask Small Populations',
       secondary_projects: 'Secondary Projects',
-      secondary_project_groups: "Secondary Project Groups",
+      secondary_project_groups: 'Secondary Project Groups',
     }.freeze
 
     private def label(key, labels)
       labels[key] || DEFAULT_LABELS[key]
     end
 
-    def selected_params_for_display(single_date: false, labels: {})
+    def selected_params_for_display(single_date: false, labels: {}) # rubocop:disable Metrics/AbcSize
       {}.tap do |opts|
         if single_date
           opts[label(:on_date, labels)] = on
