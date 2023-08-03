@@ -700,12 +700,31 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       unit = create(:hmis_unit, project: p1)
       e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
       e2.save!
+      e2.reload
       old_uo = e2.active_unit_occupancy
       expect(unit.current_occupants.count).to eq(1)
 
       hud_values = complete_hud_values.merge('currentUnit' => unit.id)
       process_record(record: e2, hud_values: hud_values, user: hmis_user)
       expect(e2.active_unit_occupancy).to eq(old_uo)
+    end
+
+    it 'closes old unit occupancy if unit assignment changed' do
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
+      unit = create(:hmis_unit, project: p1)
+      e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
+      e2.save!
+      e2.reload
+      old_uo = e2.active_unit_occupancy
+      expect(old_uo.end_date).to be_nil
+      expect(unit.current_occupants.count).to eq(1)
+
+      new_unit = create(:hmis_unit, project: p1)
+      hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
+      process_record(record: e2, hud_values: hud_values, user: hmis_user)
+      expect(old_uo.end_date).to be_present
+      expect(e2.active_unit_occupancy).not_to eq(old_uo)
+      expect(e2.current_unit).to eq(new_unit)
     end
 
     it 'errors if unit already occupied by another household' do
