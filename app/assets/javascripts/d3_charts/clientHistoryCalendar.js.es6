@@ -46,7 +46,8 @@ class AppClientHistoryCalendar {
         }
         if(filters.contactTypes && filters.contactTypes.length > 0) {
           filters.contactTypes.every((ct) => {
-            if (p[ct] && p[ct].length > 0 && inProjectType && inProjectName) {
+            var hasContactType = ct == 'extension' ? p[ct] : p[ct] && p[ct].length > 0
+            if (hasContactType && inProjectType && inProjectName) {
               opacity = 1
               return false
             } else {
@@ -187,12 +188,9 @@ class AppClientHistoryCalendar {
           .style('bottom', 0)
           .style('width', (d) => d.extension_only ? barWidth(d.extension) : barWidth(d))
 
-      console.log('tooltipTriggers', tooltipTriggers)
       tooltipTriggers.each(function(d, index) {
-        console.log('d', d)
-        console.log('test class name', `#client__calendar-tooltip__${i}_${d.index}`)
         $(this).popover({
-          trigger: 'click',
+          trigger: 'focus',
           content: $(`#client__calendar-tooltip__${i}_${d.index}`),
           title: '',
           placement: 'bottom',

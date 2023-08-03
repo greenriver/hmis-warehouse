@@ -197,6 +197,16 @@ $client-calendar-project-height: 50px;
   }
 }
 
+td.client__calendar-tooltip__table__icon {
+  font-weight: bold;
+}
+
+td.client__calendar-tooltip__table__mro {
+  font-weight: bold;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
 .client__calendar-project__extension {
   height: $client-calendar-project-height;
   position: absolute;
@@ -232,6 +242,10 @@ span.client__calendar-day-event__extension {
   i {
     color: #6A1B9A;
   }
+}
+
+.client__calendar-tooltip__table span.client__calendar-day-event__extension:after {
+  margin-top: -2px;
 }
 
 .client__calendar-project__name {

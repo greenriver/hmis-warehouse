@@ -15,6 +15,19 @@ module ClientAccessControl
     before_action :set_dates, only: [:show]
     after_action :log_client
 
+    def format_date_string(date_string)
+      rslt = ''
+      if date_string.present?
+        parts = date_string.split('-').map(&:to_i)
+        if parts.size == 3
+          date = Date.new(parts[0], parts[1], parts[2])
+          rslt = date.strftime('%m/%d/%Y')
+        end
+      end
+      rslt
+    end
+    helper_method :format_date_string
+
     def show
       @ordered_dates = @dates.keys.sort
       @start = @ordered_dates.first || Date.current
@@ -141,6 +154,7 @@ module ClientAccessControl
           enrollment.service_history_services.each do |service|
             @dates[service.date] ||= []
             next unless enrollment.project.night_by_night?
+
             @dates[service.date] << {
               date: service.date,
               record_type: service.record_type,

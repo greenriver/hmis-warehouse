@@ -35,12 +35,8 @@
           .d-flex.w-100.justify-content-between
             - key_group.each do |key|
               - value = fakeData.contact_types[key]
-              .mb-4.w-50.d-flex.align-items-center
-                .d-flex.justify-content-center.client__calendar-card__contact-key__key
-                  .client__calendar-day-event
-                    %span{class: "client__calendar-day-event__#{key}"}
-                      %i{class: value[:icon]}
-                %span= value[:name]
+              .mb-4.w-50
+                = render 'event_icon', key: key, name: value[:name], icon: value[:icon]
 
 .client__calendar-header.mb-6.d-flex.justify-content-between.align-items-center
   .d-flex
@@ -59,21 +55,26 @@
       Today
 
 .d3-calendar.client__calendar
-- fakeData.weeks_data.each_with_index do |week, week_i|
-  - week[:projects].each_with_index do |project, project_i|
-    %div{id: "client__calendar-tooltip__#{week_i}_#{project_i}"}
-      %table.table.client__calendar-tooltip__table
-        %thead
-          %th{class: "project-type-#{project[:project_type]}", colspan: 2}
-            = project[:project_type_name]
-            %span= project[:project_name]
-        %tbody
-          %tr
-            %td Entry Date
-            %td= project[:entry_date]
-          %tr
-            %td Exit Date
-            %td= project[:exit_date]
+.d-none
+  - fakeData.weeks_data.each_with_index do |week, week_i|
+    - week[:projects].each_with_index do |project, project_i|
+      %div{id: "client__calendar-tooltip__#{week_i}_#{project_i}"}
+        %table.table.client__calendar-tooltip__table
+          %thead
+            %th{class: "project-type-#{project[:project_type]}", colspan: 2}
+              = project[:project_type_name]
+              %span= project[:project_name]
+          %tbody
+            %tr
+              %td Entry Date
+              %td= format_date_string(project[:entry_date])
+            %tr
+              %td Exit Date
+              %td= format_date_string(project[:exit_date])
+            - fakeData.contact_types.each do |key, values|
+              - if project[key.to_sym].present?
+                = render key.to_s, key: key, values: values, project: project
+            
 
 - content_for :page_js do
   :javascript

@@ -1,0 +1,9 @@
+%tr
+  %td{colspan: 2}
+    = render 'event_icon', key: key, name: values[:name], icon: values[:icon]
+%tr
+  %td Start Date
+  %td= project[:extension][:entry_date]
+%tr
+  %td End Date
+  %td= project[:extension][:exit_date]

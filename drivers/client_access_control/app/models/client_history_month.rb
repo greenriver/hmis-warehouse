@@ -50,6 +50,11 @@ class ClientHistoryMonth
               '2023-02-02',
               '2023-02-02',
             ],
+            custom_events_names: [
+              'Food/Meals',
+              'Food/Meals',
+              'Food/Meals',
+            ],
           },
         ],
       },
@@ -64,11 +69,31 @@ class ClientHistoryMonth
             project_type: 1,
             project_type_name: HudUtility.project_type_brief(1),
             bed_nights: [
-              '2023-02-06',
-              '2023-02-09',
+              '2023-01-29',
+              '2023-02-01',
+              '2023-02-02',
             ],
             current_situations: [
-              '2023-02-10',
+              '2023-01-29',
+            ],
+            move_in_dates: [
+              '2023-01-29',
+            ],
+            service_dates: [
+              '2023-01-29',
+            ],
+            ce_events: [
+              '2023-01-29',
+            ],
+            custom_events: [
+              '2023-01-29',
+              '2023-02-02',
+              '2023-02-02',
+            ],
+            custom_events_names: [
+              'Food/Meals',
+              'Food/Meals',
+              'Food/Meals',
             ],
           },
         ],
@@ -91,21 +116,7 @@ class ClientHistoryMonth
               '2023-02-13',
               '2023-02-14',
               '2023-02-15',
-            ],
-            current_situations: [
-              '2023-02-13',
-            ],
-            move_in_dates: [
-              '2023-02-13',
-            ],
-            service_dates: [
-              '2023-02-13',
-            ],
-            ce_events: [
-              '2023-02-13',
-            ],
-            custom_events: [
-              '2023-02-13',
+              '2023-02-16',
             ],
           },
           {
@@ -157,21 +168,7 @@ class ClientHistoryMonth
               '2023-02-13',
               '2023-02-14',
               '2023-02-15',
-            ],
-            current_situations: [
-              '2023-02-13',
-            ],
-            move_in_dates: [
-              '2023-02-13',
-            ],
-            service_dates: [
-              '2023-02-13',
-            ],
-            ce_events: [
-              '2023-02-13',
-            ],
-            custom_events: [
-              '2023-02-13',
+              '2023-02-16',
             ],
           },
           {
@@ -199,6 +196,12 @@ class ClientHistoryMonth
               entry_date: '2023-02-13',
               exit_date: '2023-02-28',
             },
+            bed_nights: [
+              '2023-02-13',
+              '2023-02-14',
+              '2023-02-15',
+              '2023-02-16',
+            ],
           },
           {
             project_name: 'RRH Project C',
