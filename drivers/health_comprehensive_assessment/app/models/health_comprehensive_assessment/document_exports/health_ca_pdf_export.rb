@@ -72,24 +72,32 @@ module HealthComprehensiveAssessment::DocumentExports
           print_background: true,
           prefer_css_page_size: true,
           scale: 1,
-          margin: {
-            top: '0.8in',
-            bottom: '1.2in',
-            left: '.4in',
-            right: '.4in',
-          },
         }
 
         first_page_options = options_no_header.merge(
           display_header_footer: true,
           header_template: first_page_header_html,
+          footer_template: "<html><head><meta charset='UTF-8' /></head><body></body></html>",
+          margin: {
+            top: '0.8in',
+            bottom: '.4in',
+            left: '.4in',
+            right: '.4in',
+          },
         )
 
         body_options = options_no_header.merge(
           display_header_footer: true,
           header_template: header_html,
           footer_template: footer_html,
+          margin: {
+            top: '0.8in',
+            bottom: '1.2in',
+            left: '.4in',
+            right: '.4in',
+          },
         )
+
         pdf = CombinePDF.new
         pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(first_page_html, options: first_page_options), allow_optional_content: true)
         pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: body_options), allow_optional_content: true)
