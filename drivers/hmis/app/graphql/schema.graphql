@@ -2276,6 +2276,7 @@ type Enrollment {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date
+  dateOfEngagement: ISO8601Date
   dateOfPathStatus: ISO8601Date
   dateToStreetEssh: ISO8601Date
   dateUpdated: ISO8601DateTime!
@@ -2289,6 +2290,7 @@ type Enrollment {
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitAssessment: Assessment
   exitDate: ISO8601Date
+  exitDestination: Destination
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
   formerWardChildWelfare: NoYesReasonsForMissingData
   formerWardJuvenileJustice: NoYesReasonsForMissingData
@@ -2308,6 +2310,7 @@ type Enrollment {
   losUnderThreshold: NoYesMissing
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
+  moveInDate: ISO8601Date
   percentAmi: PercentAMI
   physicalDisabilityFam: NoYesMissing
   previousStreetEssh: NoYesMissing
@@ -2316,6 +2319,7 @@ type Enrollment {
   reasonNotEnrolled: ReasonNotEnrolled
   referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
+  reminders: [Reminder!]!
   runawayYouth: NoYesReasonsForMissingData
   services(filters: ServicesForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   sexualOrientation: SexualOrientation
@@ -5045,11 +5049,6 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
-
-  """
-  Referral Posting Status
-  """
-  ASSIGNED_REFERRAL_POSTING_STATUSES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
 
@@ -5064,11 +5063,6 @@ enum PickListType {
   AVAILABLE_UNIT_TYPES
   COC
   CURRENT_LIVING_SITUATION
-
-  """
-  Referral Posting Status
-  """
-  DENIED_PENDING_REFERRAL_POSTING_STATUSES
   DESTINATION
 
   """
@@ -5103,15 +5097,11 @@ enum PickListType {
   """
   PROJECT
   REFERRAL_OUTCOME
-
-  """
-  Referral Result 
-  """
-  REFERRAL_RESULT_TYPES
   STATE
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
   SUB_TYPE_PROVIDED_5
+  VAMC_STATION
 }
 
 """
@@ -6148,6 +6138,23 @@ enum RelationshipToHoH {
   (5) Unrelated household member
   """
   UNRELATED_HOUSEHOLD_MEMBER
+}
+
+type Reminder {
+  client: Client!
+  dueDate: ISO8601Date
+  enrollment: Enrollment!
+  id: ID!
+  overdue: Boolean!
+  topic: ReminderTopic!
+}
+
+enum ReminderTopic {
+  aged_into_adulthood
+  annual_assessment
+  current_living_situation
+  exit_incomplete
+  intake_incomplete
 }
 
 """

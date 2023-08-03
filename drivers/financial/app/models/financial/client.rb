@@ -32,9 +32,9 @@ module Financial
         # Find a match based on exact match of name, and DOB
         client.client_id = ::GrdaWarehouse::Hud::Client.source.
           find_by(
-            c_t[:FirstName].matches(client.client_first_name.downcase),
-            c_t[:LastName].matches(client.client_last_name.downcase),
-            dob: client.client_birthdate.to_date,
+            c_t[:FirstName].matches(client.client_first_name&.downcase),
+            c_t[:LastName].matches(client.client_last_name&.downcase),
+            dob: client.client_birthdate&.to_date,
           )&.
           destination_client&.
           id

@@ -21,7 +21,7 @@ module
       ]
     end
 
-    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false)
+    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false, include_mask_small_populations: false)
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
           id: 'project_types',
@@ -57,6 +57,12 @@ module
           hint: 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
         )
         section.add_control(
+          id: 'active_roi',
+          label: 'Require Active Release of Information?',
+          value: @filter.active_roi,
+          hint: 'If checked, a client must have an active ROI to be included in the universe.',
+        )
+        section.add_control(
           id: 'reporting_period',
           required: true,
           value: @filter.date_range_words,
@@ -65,6 +71,13 @@ module
           section.add_control(
             id: 'comparison_period',
             value: nil,
+          )
+        end
+        if include_mask_small_populations
+          section.add_control(
+            id: 'mask_small_populations',
+            label: 'Mask Small Populations?',
+            value: @filter.mask_small_populations ? 'Yes' : nil,
           )
         end
       end
@@ -240,6 +253,19 @@ module
         hint: 'Chronically Homeless at Entry as defined in the HUD HMIS Glossary.',
       )
       section
+    end
+
+    protected def build_files_control_section
+      ::Filters::UiControlSection.new(id: 'files').tap do |section|
+        section.add_control(
+          id: 'required_files',
+          value: @filter.chosen_required_files,
+        )
+        section.add_control(
+          id: 'optional_files',
+          value: @filter.chosen_optional_files,
+        )
+      end
     end
   end
 end
