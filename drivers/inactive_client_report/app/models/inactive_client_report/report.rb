@@ -48,7 +48,12 @@ module InactiveClientReport
 
     protected def build_control_sections
       [
-        build_general_control_section(include_comparison_period: false, include_inactivity_days: true),
+        build_general_control_section(
+          include_comparison_period: false,
+          include_inactivity_days: true,
+          labels: { inactivity_days: 'Days since most recent contact' },
+          hints: { inactivity_days: 'Limit universe to clients who have not had a Bed-Night, Current Living Situation, or Event collected in the selected number of days before the report end date' },
+        ),
         build_coc_control_section,
       ]
     end

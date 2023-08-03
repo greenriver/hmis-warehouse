@@ -21,46 +21,46 @@ module
       ]
     end
 
-    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false, include_mask_small_populations: false)
+    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false, include_mask_small_populations: false, labels: {}, hints: {})
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
           id: 'project_types',
           required: true,
-          label: 'Population by Project Type',
+          label: labels[:project_types] || 'Population by Project Type',
           short_label: 'Project Type',
           value: describe_project_type_control_section,
         )
         section.add_control(
           id: 'coordinated_assessment_living_situation_homeless',
-          label: 'Including CE homeless at entry?',
+          label: labels[:coordinated_assessment_living_situation_homeless] || 'Including CE homeless at entry?',
           value: @filter.coordinated_assessment_living_situation_homeless ? 'Yes' : nil,
-          hint: "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HudUtility.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
+          hint: hints[:coordinated_assessment_living_situation_homeless] || "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HudUtility.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
         )
         section.add_control(
           id: 'ce_cls_as_homeless',
-          label: 'Including CE Current Living Situation Homeless',
+          label: labels[:ce_cls_as_homeless] || 'Including CE Current Living Situation Homeless',
           value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
-          hint: "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HudUtility.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
+          hint: hints[:ce_cls_as_homeless] || "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HudUtility.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
         )
         if include_inactivity_days
           section.add_control(
             id: 'inactivity_days',
-            label: 'Homeless History Lookback',
+            label: labels[:inactivity_days] || 'Homeless History Lookback',
             value: @filter.inactivity_days,
-            hint: 'Time away before a client is considered newly homeless',
+            hint: hints[:inactivity_days] || 'Time away before a client is considered newly homeless',
           )
         end
         section.add_control(
           id: 'require_service_during_range',
-          label: 'Require Service?',
+          label: labels[:require_service_during_range] || 'Require Service?',
           value: @filter.require_service_during_range,
-          hint: 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
+          hint: hints[:require_service_during_range] || 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
         )
         section.add_control(
           id: 'active_roi',
-          label: 'Require Active Release of Information?',
+          label: labels[:active_roi] || 'Require Active Release of Information?',
           value: @filter.active_roi,
-          hint: 'If checked, a client must have an active ROI to be included in the universe.',
+          hint: hints[:active_roi] || 'If checked, a client must have an active ROI to be included in the universe.',
         )
         section.add_control(
           id: 'reporting_period',
@@ -76,7 +76,7 @@ module
         if include_mask_small_populations
           section.add_control(
             id: 'mask_small_populations',
-            label: 'Mask Small Populations?',
+            label: labels[:mask_small_populations] || 'Mask Small Populations?',
             value: @filter.mask_small_populations ? 'Yes' : nil,
           )
         end
