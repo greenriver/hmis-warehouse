@@ -35,9 +35,22 @@ module InactiveClientReport::WarehouseReports
     end
 
     def filter_params
+      return default_filter_options unless params[:filters].present?
+
       params.permit(filters: @filter.known_params)
     end
     helper_method :filter_params
+
+    private def default_filter_options
+      {
+        filters: {
+          require_service_during_range: false,
+          inactivity_days: 90,
+          end_date: Date.yesterday,
+          start_date: 3.months.ago.to_date,
+        },
+      }
+    end
 
     private def filter_class
       ::Filters::FilterBase
