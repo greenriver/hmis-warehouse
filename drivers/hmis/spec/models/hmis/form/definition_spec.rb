@@ -33,7 +33,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   it 'should return the right definition if a project\'s type has a specific assessment' do
-    fi1.update(entity_type: 'ProjectType', entity_id: p1.project_type)
+    fi1.update(entity: nil, project_type: p1.project_type)
     expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
   end
 
@@ -53,7 +53,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should return the most specific definition with the correct role' do
-      fi2.update(entity_type: 'ProjectType', entity_id: p1.project_type)
+      fi2.update(entity: nil, project_type: p1.project_type)
       fd2.update(role: fd1.role)
       expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
     end
