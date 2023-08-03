@@ -27,12 +27,20 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   # Find instances that match a project based on Project Type and Funder
   scope :for_project_by_type_or_funder, ->(project) do
-    funders = project.funders.pluck(:funder).compact
-    matches_funder = fi_t[:funder].in(funders).or(fi_t[:funder].eq(nil))
+    # Project Type matches, or project type is not specified
     matches_type = fi_t[:project_type].eq(project.project_type).or(fi_t[:project_type].eq(nil))
 
+    funders = project.funders.pluck(:funder).compact
+    matches_funder = if funders.any?
+      # Funder matches, or funder is not specified
+      fi_t[:funder].in(funders).or(fi_t[:funder].eq(nil))
+    else
+      # Funder is not specified
+      fi_t[:funder].eq(nil)
+    end
+
     funder_or_project_type_exists = fi_t[:funder].not_eq(nil).or(fi_t[:project_type].not_eq(nil))
-    where(funder_or_project_type_exists.and(matches_type.or(matches_funder)))
+    where(funder_or_project_type_exists.and(matches_type.and(matches_funder)))
   end
 
   # Find instances that are for a Service Type

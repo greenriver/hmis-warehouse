@@ -218,8 +218,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # Instance: use this service definition for BedNights in ES projects
       create(
         :hmis_form_instance,
-        entity_type: 'ProjectType',
-        entity_id: 1, # ES
+        entity: nil,
+        project_type: 1, # ES
         definition_identifier: service_form_definition.identifier,
         custom_service_category_id: bednight_service_category.id,
       )
@@ -228,6 +228,42 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
       # PH project
       expect(picklist_option_codes(p2)).to be_empty
+    end
+
+    it 'works when instance is associated by service category and funder' do
+      # Instance: use this service definition for funder 43 projects
+      create(
+        :hmis_form_instance,
+        entity: nil,
+        funder: 43,
+        definition_identifier: service_form_definition.identifier,
+        custom_service_category_id: bednight_service_category.id,
+      )
+
+      create(:hmis_hud_funder, funder: 43, project: p1, data_source: p1.data_source)
+      expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p2)).to be_empty
+    end
+
+    it 'works when instance is associated by service category and Project Type AND Funder' do
+      # Instance: use this service definition for projets of type 12 funded by 43
+      create(
+        :hmis_form_instance,
+        entity: nil,
+        project_type: 12,
+        funder: 43,
+        definition_identifier: service_form_definition.identifier,
+        custom_service_category_id: bednight_service_category.id,
+      )
+
+      p1.update(project_type: 12)
+      p2.update(project_type: 1)
+      p3.update(project_type: 12)
+      create(:hmis_hud_funder, funder: 43, project: p1, data_source: p1.data_source)
+      create(:hmis_hud_funder, funder: 43, project: p2, data_source: p2.data_source)
+      expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p2)).to be_empty # funder matches, type doesn't
+      expect(picklist_option_codes(p3)).to be_empty # type matches, funder doesn't
     end
 
     it 'works when instance is associated by service category and project' do
