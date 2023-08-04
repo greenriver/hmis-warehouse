@@ -15211,7 +15211,9 @@ CREATE TABLE public.hmis_form_instances (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     custom_service_type_id integer,
-    custom_service_category_id integer
+    custom_service_category_id integer,
+    funder integer,
+    project_type integer
 );
 
 
@@ -15448,9 +15450,9 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT concat("Enrollment"."HouseholdID", max(("Enrollment"."ProjectID")::text), max("Enrollment".data_source_id)) AS id,
+ SELECT concat("Enrollment"."HouseholdID", ':', max(("Project"."ProjectID")::text), ':', max("Enrollment".data_source_id)) AS id,
     "Enrollment"."HouseholdID",
-    max(("Enrollment"."ProjectID")::text) AS "ProjectID",
+    max(("Project"."ProjectID")::text) AS "ProjectID",
     max("Enrollment".data_source_id) AS data_source_id,
     min("Enrollment"."EntryDate") AS earliest_entry,
         CASE
@@ -15461,10 +15463,12 @@ CREATE VIEW public.hmis_households AS
     NULL::text AS "DateDeleted",
     max("Enrollment"."DateUpdated") AS "DateUpdated",
     min("Enrollment"."DateCreated") AS "DateCreated"
-   FROM (public."Enrollment"
+   FROM (((public."Enrollment"
      LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+     LEFT JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project"."DateDeleted" IS NULL) AND (("Project".id = hmis_wips.project_id) OR (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text)))))
   WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
-  GROUP BY "Enrollment"."HouseholdID", "Enrollment"."ProjectID", "Enrollment".data_source_id;
+  GROUP BY "Enrollment"."HouseholdID", "Project"."ProjectID", "Enrollment".data_source_id;
 
 
 --
@@ -54092,6 +54096,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230724145057'),
 ('20230725160948'),
 ('20230725163336'),
-('20230728140151');
+('20230726180446'),
+('20230728140151'),
+('20230803172055'),
+('20230803173117');
 
 

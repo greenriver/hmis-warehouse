@@ -25,6 +25,10 @@ module Hmis::Concerns::HmisArelHelper
       Hmis::Form::Definition.arel_table
     end
 
+    def fi_t
+      Hmis::Form::Instance.arel_table
+    end
+
     def hs_t
       Hmis::Hud::HmisService.arel_table
     end
