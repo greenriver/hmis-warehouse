@@ -8,8 +8,14 @@
 
 module Types
   class Forms::EnableWhen < Types::BaseObject
-    field :question, String, 'The linkId of question that determines whether item is enabled/disabled', null: false
+    # Source value (1 must be specified)
+    field :question, String, 'The linkId of question that determines whether item is enabled/disabled', null: true
+    field :local_constant, String, 'The Local Constant that determines whether item is enabled/disabled', null: true
+
+    # Operator
     field :operator, Forms::Enums::EnableOperator, 'How to evaluate the question\'s answer', null: false
+
+    # Value to compare to  (1 must be specified)
     field :answer_code, String, 'If question is choice type, value for comparison', null: true
     field :answer_codes, [String], 'If question is choice type, and operator is IN, values for comparison', null: true
     field :answer_group_code, String, 'If question is choice type and has grouped options, value for comparison', null: true
