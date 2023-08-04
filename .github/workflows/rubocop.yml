@@ -48,6 +48,6 @@ jobs:
 
       - id: rubocop
         name: Run Rubocop
-        uses: jitterbit/get-changed-files@v1
+        uses: masesgroup/retrieve-changed-files@v2
       - run: |
           bundle exec rubocop ${{ steps.rubocop.outputs.all }}
