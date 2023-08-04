@@ -1,4 +1,4 @@
-name: Bundle Audit and Brakeman
+name: Rubocop
 on:
   push:
     branches:
