@@ -25,22 +25,31 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   # Find instances that are for a specific Organization
   scope :for_organization, ->(organization_id) { for_organizations.where(entity_id: organization_id) }
 
-  # Find instances that match a project based on Project Type and Funder
-  scope :for_project_by_type_or_funder, ->(project) do
-    # Project Type matches, or project type is not specified
-    matches_type = fi_t[:project_type].eq(project.project_type).or(fi_t[:project_type].eq(nil))
-
+  # Find instances that match a project based on Project Type _and_ Funder
+  scope :for_project_by_funder_and_project_type, ->(project) do
     funders = project.funders.pluck(:funder).compact
-    matches_funder = if funders.any?
-      # Funder matches, or funder is not specified
-      fi_t[:funder].in(funders).or(fi_t[:funder].eq(nil))
-    else
-      # Funder is not specified
-      fi_t[:funder].eq(nil)
-    end
+    return none unless funders.any? && project.project_type.present?
 
-    funder_or_project_type_exists = fi_t[:funder].not_eq(nil).or(fi_t[:project_type].not_eq(nil))
-    where(funder_or_project_type_exists.and(matches_type.and(matches_funder)))
+    where(fi_t[:project_type].eq(project.project_type).and(fi_t[:funder].in(funders)))
+  end
+
+  # Find instances that match a project based on Funder
+  scope :for_project_by_funder, ->(project) do
+    funders = project.funders.pluck(:funder).compact
+    return none unless funders.any?
+
+    # Excludes instances where project type is specified. If funder and project type are
+    # both present, they must BOTH match for the instance to be used.
+    where(fi_t[:funder].in(funders).and(fi_t[:project_type].eq(nil)))
+  end
+
+  # Find instances that match a project based on Funder
+  scope :for_project_by_project_type, ->(project_type) do
+    return none if project_type.nil?
+
+    # Excludes instances where funder is specified. If funder and project type are
+    # both present, they must BOTH match for the instance to be used.
+    where(fi_t[:project_type].eq(project_type).and(fi_t[:funder].eq(nil)))
   end
 
   # Find instances that are for a Service Type
@@ -54,9 +63,12 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   end
 
   scope :for_project_through_entities, ->(project) do
+    # From most specific => least specific
     ids = Hmis::Form::Instance.for_project(project.id).pluck(:id)
     ids += Hmis::Form::Instance.for_organization(project.organization.id).pluck(:id)
-    ids += Hmis::Form::Instance.for_project_by_type_or_funder(project).pluck(:id)
+    ids += Hmis::Form::Instance.for_project_by_funder_and_project_type(project).pluck(:id)
+    ids += Hmis::Form::Instance.for_project_by_funder(project).pluck(:id)
+    ids += Hmis::Form::Instance.for_project_by_project_type(project.project_type).pluck(:id)
     ids += defaults.pluck(:id)
     where(id: ids)
   end

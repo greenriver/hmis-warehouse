@@ -107,9 +107,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     instance_scope = [
       base_scope.for_project(project.id),
       base_scope.for_organization(project.organization.id),
-      base_scope.for_project_by_type_or_funder(project),
+      base_scope.for_project_by_funder_and_project_type(project),
+      base_scope.for_project_by_funder(project),
+      base_scope.for_project_by_project_type(project.project_type),
       base_scope.defaults,
     ].detect(&:exists?)
+
     return none unless instance_scope.present?
 
     where(identifier: instance_scope.pluck(:definition_identifier))
