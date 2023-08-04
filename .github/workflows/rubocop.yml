@@ -52,5 +52,6 @@ jobs:
       - id: rubocop
         name: Run Rubocop
         run: |
-          num=`echo ${{ steps.changed-files.outputs.added_modified }} | wc -w`
-          if [ $num -gt 0 ]; then bundle exec rubocop ${{ steps.changed-files.outputs.added_modified }}; else echo "No changed ruby files"; fi
+          files=`${{ steps.changed-files.outputs.added_modified }} | tr " " "\n" | grep -E "**/*.rb|**/*.haml" | tr "\n" " "`
+          num=`echo $files | wc -w`
+          if [ $num -gt 0 ]; then bundle exec rubocop $files; else echo "No changed ruby files"; fi
