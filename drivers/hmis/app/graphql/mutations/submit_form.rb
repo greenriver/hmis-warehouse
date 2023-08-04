@@ -83,7 +83,7 @@ module Mutations
           record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
         elsif record.is_a? HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
-        elsif record.is_a? Hmis::Hud::Enrollment
+        elsif record.is_a?(Hmis::Hud::Enrollment) && record.new_record?
           record.save_in_progress
         else
           record.save!
