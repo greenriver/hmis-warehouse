@@ -101,7 +101,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
-    # The enrollment has already been created, so we can just return it
     @enrollment_factory ||= case owner
     when Hmis::Hud::CustomAssessment
       owner.enrollment
@@ -111,7 +110,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def client_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
-    # The enrollment has already been created, so we can just return it
     @client_factory ||= case owner
     when Hmis::Hud::Client
       owner
@@ -122,7 +120,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # correctly as the Enrollment.personal_id too.
       owner.client || owner.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
     when Hmis::Hud::CustomAssessment
-      # An assessments can modify the client it's associated with
+      # An assessment can modify the client that it's associated with
       owner.client
     end
   end
