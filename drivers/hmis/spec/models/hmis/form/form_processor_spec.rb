@@ -642,8 +642,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     form_processor = Hmis::Form::FormProcessor.new
     form_processor.hud_values = hud_values
     form_processor.run!(owner: record, user: user)
-    form_processor.owner.save! if save
-    record.reload if save
+    form_processor.owner.save!(context: :form_submission) if save
     form_processor
   end
 
@@ -722,6 +721,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       new_unit = create(:hmis_unit, project: p1)
       hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
       process_record(record: e2, hud_values: hud_values, user: hmis_user)
+      e2.reload
       expect(old_uo.end_date).to be_present
       expect(e2.active_unit_occupancy).not_to eq(old_uo)
       expect(e2.current_unit).to eq(new_unit)
@@ -1177,12 +1177,21 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'creates a new Enrollment AND a new Client' do
       enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, project: p1)
       process_record(record: enrollment, hud_values: complete_hud_values, user: hmis_user)
+      enrollment.client.save! # need to save manually, no autosave
       expect(enrollment.relationship_to_hoh).to eq(1)
       expect(enrollment.entry_date.strftime('%Y-%m-%d')).to eq(complete_hud_values['Enrollment.entryDate'])
       expect(enrollment.client).to be_present
       expect(enrollment.client.persisted?).to eq(true)
       expect(enrollment.client.first_name).to eq('First')
       expect(enrollment.client.last_name).to eq('Last')
+    end
+
+    it 'validates Client record' do
+      enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, project: p1)
+      form_processor = Hmis::Form::FormProcessor.new
+      form_processor.hud_values = complete_hud_values.merge('Client.nameDataQuality' => 'INVALID')
+      form_processor.run!(owner: enrollment, user: hmis_user)
+      expect(enrollment.valid?(:form_submission)).to eq(false)
     end
   end
 
@@ -1535,6 +1544,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           cded.key => [old1.value_string, old2.value_string],
         )
         process_record(record: record, hud_values: hud_values, user: hmis_user)
+        record.reload
 
         expect(record.custom_data_elements.size).to eq(2)
         # Old records should remain, with updated timestamps

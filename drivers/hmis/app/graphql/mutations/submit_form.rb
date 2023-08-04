@@ -64,7 +64,7 @@ module Mutations
       form_processor.run!(owner: record, user: current_user)
 
       # Validate record
-      is_valid = record.valid?
+      is_valid = record.valid?(:form_submission)
 
       # Collect validations and warnings from AR Validator classes
       record_validations = form_processor.collect_record_validations(user: current_user)
@@ -78,13 +78,15 @@ module Mutations
         # Perform any side effects
         perform_side_effects(record)
 
-        if record.is_a? Hmis::Hud::HmisService
+        case record
+        when Hmis::Hud::HmisService
           record.owner.save! # Save the actual service record
           record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
-        elsif record.is_a? HmisExternalApis::AcHmis::ReferralRequest
+        when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
-        elsif record.is_a?(Hmis::Hud::Enrollment) && record.new_record?
-          record.save_in_progress
+        when Hmis::Hud::Enrollment
+          record.save_in_progress if record.new_record?
+          record.client.save! # Enrollment form may update client, so we need to save it explicitly
         else
           record.save!
           record.touch
