@@ -24,17 +24,6 @@
     },
     {
       "type": "DATE",
-      "link_id": "today",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$today"
-        }
-      ]
-    },
-    {
-      "type": "DATE",
       "link_id": "entry-date",
       "text": "Entry Date",
       "mapping": {
@@ -51,7 +40,7 @@
         {
           "id": "max-entry-date",
           "type": "MAX",
-          "question": "today"
+          "value_local_constant": "$today"
         }
       ]
     },

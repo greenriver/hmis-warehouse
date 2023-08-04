@@ -884,18 +884,6 @@
         "description": "Rental by client in a public housing unit"
       },
       {
-        "key": 35,
-        "description": "Staying or living in a family member's room, apartment or house"
-      },
-      {
-        "key": 36,
-        "description": "Staying or living in a friend's room, apartment or house"
-      },
-      {
-        "key": 37,
-        "description": "Worker unable to determine"
-      },
-      {
         "key": 99,
         "description": "Data not collected"
       }
@@ -1191,7 +1179,7 @@
       },
       {
         "key": 27,
-        "description": "Interim Housing"
+        "description": "Moved from one HOPWA funded project to HOPWA TH"
       },
       {
         "key": 28,

@@ -761,7 +761,7 @@ module GrdaWarehouse::Hud
               d = project[h.to_s].presence
               d && DateTime.parse(d).strftime('%Y-%m-%d %H:%M:%S')
             when :current_continuum_project
-              ::HudUtility.ad_hoc_yes_no_1 project[h.to_s].presence&.to_i
+              ::HudUtility.ad_hoc_yes_no project[h.to_s].presence&.to_i
             when :fed_partner_program
               ::HudUtility.funding_source project[h.to_s].presence&.to_i
             else

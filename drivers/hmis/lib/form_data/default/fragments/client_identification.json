@@ -20,7 +20,10 @@
       "required": false,
       "link_id": "dob",
       "text": "Date of Birth",
-      "mapping": { "field_name": "dob" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "dob"
+      },
       "enable_when": [
         {
           "question": "see-dob",
@@ -32,7 +35,7 @@
         {
           "id": "max-dob",
           "type": "MAX",
-          "question": "today"
+          "value_local_constant": "$today"
         }
       ]
     },
@@ -46,7 +49,10 @@
           "required": false,
           "link_id": "dob-dq",
           "text": "DOB Data Quality",
-          "mapping": { "field_name": "dobDataQuality" },
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "dobDataQuality"
+          },
           "pick_list_reference": "DOBDataQuality"
         }
       ],
@@ -74,7 +80,10 @@
       "required": false,
       "link_id": "ssn",
       "text": "Social Security Number",
-      "mapping": { "field_name": "ssn" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "ssn"
+      },
       "component": "SSN",
       "enable_when": [
         {
@@ -94,7 +103,10 @@
           "required": false,
           "link_id": "ssn-dq",
           "text": "SSN Data Quality",
-          "mapping": { "field_name": "ssnDataQuality" },
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "ssnDataQuality"
+          },
           "pick_list_reference": "SSNDataQuality"
         }
       ],

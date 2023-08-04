@@ -738,10 +738,6 @@
         "description": "No exit interview completed"
       },
       {
-        "key": 35,
-        "description": "Staying or living in a family member's room, apartment or house"
-      },
-      {
         "key": 37,
         "description": "Worker unable to determine"
       },
@@ -1024,7 +1020,7 @@
     ]
   },
   {
-    "name": "LivingSituation",
+    "name": "CurrentLivingSituation",
     "code": "4.12",
     "values": [
       {
@@ -1038,10 +1034,6 @@
       {
         "key": 17,
         "description": "Other"
-      },
-      {
-        "key": 35,
-        "description": "Staying or living in a family member's room, apartment or house"
       },
       {
         "key": 37,
@@ -1140,10 +1132,6 @@
       {
         "key": 9,
         "description": "Client prefers not to answer"
-      },
-      {
-        "key": 35,
-        "description": "Staying or living in a family member's room, apartment or house"
       },
       {
         "key": 99,

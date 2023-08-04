@@ -746,11 +746,11 @@ module BostonReports
     end
 
     private def races
-      ::HudLists.race_map
+      ::HudUtility.races
     end
 
     private def ethnicities
-      ::HudLists.ethnicity_map.select { |id, _| id.in?([0, 1]) }
+      ::HudUtility.ethnicities.select { |id, _| id.in?([0, 1]) }
     end
 
     def cohort_names
@@ -876,7 +876,7 @@ module BostonReports
 
     def pit_ethnicities
       @pit_ethnicities ||= {}.tap do |counts|
-        ::HudLists.ethnicity_map.select { |id, _| id.in?([0, 1]) }.each do |key, label|
+        ::HudUtility.ethnicities.select { |id, _| id.in?([0, 1]) }.each do |key, label|
           counts[label] ||= { ids: Set.new, count: 0, pit_dates: pit_dates }
           # client_id is in the first column, ethnicity in the last
           pit_clients.each do |row|

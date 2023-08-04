@@ -10,7 +10,10 @@
       "link_id": "race",
       "text": "Race",
       "repeats": true,
-      "mapping": { "field_name": "race" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "race"
+      },
       "pick_list_reference": "Race"
     },
     {
@@ -19,7 +22,10 @@
       "link_id": "ethnicity",
       "text": "Ethnicity",
       "repeats": false,
-      "mapping": { "field_name": "ethnicity" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "ethnicity"
+      },
       "pick_list_reference": "Ethnicity"
     },
     {
@@ -28,7 +34,10 @@
       "link_id": "gender",
       "text": "Gender",
       "repeats": true,
-      "mapping": { "field_name": "gender" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "gender"
+      },
       "pick_list_reference": "Gender"
     },
     {
@@ -37,7 +46,10 @@
       "link_id": "pronouns",
       "text": "Pronouns",
       "repeats": true,
-      "mapping": { "field_name": "pronouns" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "pronouns"
+      },
       "pick_list_options": [
         {
           "code": "she/her"
@@ -56,7 +68,10 @@
       "repeats": false,
       "link_id": "veteran-status",
       "text": "Veteran Status",
-      "mapping": { "field_name": "veteranStatus" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "veteranStatus"
+      },
       "pick_list_reference": "NoYesReasonsForMissingData"
     }
   ]
