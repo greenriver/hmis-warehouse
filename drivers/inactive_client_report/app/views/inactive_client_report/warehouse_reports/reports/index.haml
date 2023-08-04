@@ -55,7 +55,7 @@
                     - client.service_history_entry_ongoing.map { |en| en&.project&.name(current_user, include_project_type: true) }.compact.each do |p|
                       = p
                       %br
-                  %td= client.processed_service_history&.days_homeless_last_three_years
+                  %td= number_with_delimiter client.processed_service_history&.days_homeless_last_three_years
                   %td= number_with_delimiter @report.days_since_most_recent_contact(client)
                   %td= @report.max_entry_date(client)
                   %td= @report.most_recent_cls(client)
