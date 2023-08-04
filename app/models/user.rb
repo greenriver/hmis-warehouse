@@ -51,4 +51,5 @@ class User < ApplicationRecord
 
     Hmis::User.find(id)&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
   end
+
 end
