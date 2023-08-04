@@ -21,14 +21,9 @@ module HealthPctp::DocumentExports
       @careplan ||= patient.pctps.find(params['id'])
     end
 
-    protected def careplan_logo
-      @careplan_logo ||= GrdaWarehouse::PublicFile.find_by(name: 'patient/careplan_logo')&.content
-    end
-
     protected def view_assigns
       {
         careplan: careplan,
-        careplan_logo: careplan_logo,
         user: user,
         title: _('Care Plan / Patient-Centered Treatment Plan'),
         pdf: true,

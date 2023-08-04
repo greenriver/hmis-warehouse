@@ -5,9 +5,9 @@
   .l-print__section
     %h1= title
 
-  - if @careplan_logo.present?
+  - if @careplan.careplan_logo.present?
     %div{style: "text-align:center;"}
-      %img{src: "data:image/png;base64,#{Base64.strict_encode64(@careplan_logo)}"}
+      %img{src: "data:image/png;base64,#{Base64.strict_encode64(@careplan.careplan_logo)}"}
 
   %p.muted.l-print__section
     This document is a
