@@ -20,6 +20,8 @@ jobs:
       - id: checkout
         name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - id: dependencies
         name: Set up dependencies
         run: |
