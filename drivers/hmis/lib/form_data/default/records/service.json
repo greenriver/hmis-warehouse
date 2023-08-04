@@ -101,7 +101,23 @@
       "mapping": {
         "field_name": "dateProvided"
       },
-      "_comment": "bounds: [ { id: 'min-start-date', type: 'MIN', value_local_constant: '$entryDate'}]"
+      "bounds": [
+        {
+          "id": "min-service-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-service-date",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        },
+        {
+          "id": "max-service-date-exit-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
+        }
+      ]
     },
     {
       "type": "CURRENCY",
