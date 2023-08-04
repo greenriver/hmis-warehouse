@@ -3138,6 +3138,11 @@ enum FormRole {
   MOVE_IN_DATE
 
   """
+  (NEW_CLIENT_ENROLLMENT) New Client Enrollment
+  """
+  NEW_CLIENT_ENROLLMENT
+
+  """
   (ORGANIZATION) Organization
   """
   ORGANIZATION
@@ -6119,6 +6124,11 @@ enum ReferralSource {
 Related record type for a group of questions in an assessment
 """
 enum RelatedRecordType {
+  """
+  Client
+  """
+  CLIENT
+
   """
   CurrentLivingSituation
   """

@@ -9,7 +9,10 @@
       "component": "NAME",
       "repeats": true,
       "link_id": "names",
-      "mapping": { "field_name": "names" }
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "names"
+      }
     }
   ]
 }
