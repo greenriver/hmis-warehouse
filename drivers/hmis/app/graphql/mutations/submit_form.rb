@@ -85,8 +85,8 @@ module Mutations
         when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         when Hmis::Hud::Enrollment
+          record.client.save! if record.client.changed? # Enrollment form may create or update client
           record.save_in_progress if record.new_record?
-          record.client.save! # Enrollment form may update client, so we need to save it explicitly
         else
           record.save!
           record.touch
