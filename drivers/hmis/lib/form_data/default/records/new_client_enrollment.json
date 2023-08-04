@@ -1,20 +1,14 @@
 {
   "item": [
     {
-      "type": "DATE",
-      "link_id": "today",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$today"
-        }
-      ]
-    },
-    {
       "type": "STRING",
       "link_id": "household-id",
       "hidden": true,
+      "_comment": "needed to set household id property if adding new client/enrollment to an existing household",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "householdId"
+      },
       "initial": [
         {
           "initial_behavior": "OVERWRITE",
@@ -46,7 +40,7 @@
             {
               "id": "max-entry-date",
               "type": "MAX",
-              "question": "today"
+              "value_local_constant": "$today"
             }
           ]
         },
@@ -67,7 +61,7 @@
               "_comment": "set to HoH if this is a new enrollment in a new household",
               "autofill_when": [
                 {
-                  "question": "household-id",
+                  "local_constant": "$householdId",
                   "operator": "EXISTS",
                   "answer_boolean": false
                 }
