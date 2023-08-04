@@ -17,6 +17,11 @@ jobs:
     # Docker Hub image that the job executes in
     container: ruby:3.1.4-alpine3.18
     steps:
+      - id: checkout
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
       - id: dependencies
         name: Set up dependencies
         run: |
@@ -36,11 +41,6 @@ jobs:
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
           gem install bundler --version=2.4.6
-      - id: checkout
-        name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
       - id: gems
         name: Install gems
         run: |
@@ -48,12 +48,9 @@ jobs:
           bundle install --jobs 4 --retry 3
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v37
-        with:
-          since_last_remote_commit: true
-          files: |
-            **/*.{rb,haml}
+        uses: masesgroup/retrieve-changed-files@v2
       - id: rubocop
         name: Run Rubocop
         run: |
-          bundle exec rubocop ${{ steps.changed-files.outputs.all_changed_files }}
+          num=`echo ${{ steps.changed-files.outputs.added_modified }} | wc -w`
+          if [ $num -gt 0 ]; then bundle exec rubocop ${{ steps.changed-files.outputs.added_modified }}; else echo "No changed ruby files"; fi
