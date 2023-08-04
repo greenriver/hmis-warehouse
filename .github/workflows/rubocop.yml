@@ -52,7 +52,7 @@ jobs:
       - id: rubocop
         name: Run Rubocop
         run: |
-          files=`"${{ steps.changed-files.outputs.added_modified }}" | tr " " "\n" | grep "**/*.rb | tr "\n" " ./"`
+          files=`echo "${{ steps.changed-files.outputs.added_modified }}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo pwd
           echo $files
