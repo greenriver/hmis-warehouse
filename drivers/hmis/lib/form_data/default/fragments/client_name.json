@@ -14,28 +14,40 @@
           "required": false,
           "link_id": "first-name",
           "text": "First Name",
-          "mapping": { "field_name": "firstName" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "firstName"
+          }
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "middle-name",
           "text": "Middle Name",
-          "mapping": { "field_name": "middleName" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "middleName"
+          }
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "last-name",
           "text": "Last Name",
-          "mapping": { "field_name": "lastName" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "lastName"
+          }
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "name-suffix",
           "text": "Suffix",
-          "mapping": { "field_name": "nameSuffix" },
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "nameSuffix"
+          },
           "size": "XSMALL"
         }
       ]
@@ -50,7 +62,10 @@
           "required": false,
           "link_id": "name-dq",
           "text": "Name Data Quality",
-          "mapping": { "field_name": "nameDataQuality" },
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "nameDataQuality"
+          },
           "pick_list_reference": "NameDataQuality"
         }
       ]

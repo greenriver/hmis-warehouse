@@ -55,7 +55,7 @@ module Hmis::Hud::Processors
       return if active_unit_occupancy&.unit_id == unit.id
 
       # If assigned to a different unit: unassign
-      enrollment.active_unit_occupancy&.assign_attributes(end_date: Date.current)
+      enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
 
       # Assign to specified unit
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: @processor.current_user)

@@ -496,7 +496,6 @@ RSpec.shared_context 'datalab rrh coc 1 and 2 apr', shared_context: :metadata do
     end
 
     it 'Q27i' do
-      binding.pry
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27i',

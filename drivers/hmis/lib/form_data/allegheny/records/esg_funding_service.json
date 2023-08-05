@@ -2,17 +2,6 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "entry-date",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$entryDate"
-        }
-      ]
-    },
-    {
-      "type": "DATE",
       "link_id": "fa-start-date",
       "required": true,
       "text": "Start Date",
@@ -21,7 +10,7 @@
         {
           "id": "min-start-date",
           "type": "MIN",
-          "question": "entry-date"
+          "value_local_constant": "$entryDate"
         },
         {
           "id": "max-start-date",

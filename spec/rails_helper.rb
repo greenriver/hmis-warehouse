@@ -84,8 +84,10 @@ RSpec.configure do |config|
     AccessGroup.maintain_system_groups
 
     if ENV['ENABLE_HMIS_API'] == 'true'
-      HmisUtil::JsonForms.seed_record_form_definitions
-      HmisUtil::JsonForms.seed_assessment_form_definitions
+      ::HmisUtil::JsonForms.new.tap do |builder|
+        builder.seed_record_form_definitions
+        builder.seed_assessment_form_definitions
+      end
     end
   end
 end

@@ -33,7 +33,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   it 'should return the right definition if a project\'s type has a specific assessment' do
-    fi1.update(entity_type: 'ProjectType', entity_id: p1.project_type)
+    fi1.update(entity: nil, project_type: p1.project_type)
     expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
   end
 
@@ -53,7 +53,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should return the most specific definition with the correct role' do
-      fi2.update(entity_type: 'ProjectType', entity_id: p1.project_type)
+      fi2.update(entity: nil, project_type: p1.project_type)
       fd2.update(role: fd1.role)
       expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
     end
@@ -67,6 +67,33 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       fd2.update(role: fd1.role, version: 1)
       fd1.update(version: 2)
       expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1, version: 1)).to eq(fd2)
+    end
+  end
+
+  describe 'with funder and project type instances' do
+    let(:role) { :SERVICE }
+    it 'applies correct specificity (project > org > funder&ptype > funder > ptype)' do
+      base_fd = Hmis::Form::Definition.find_definition_for_role(role) # created by hmis base setup
+
+      p1 = create(:hmis_hud_project, project_type: 1)
+      p2 = create(:hmis_hud_project, project_type: 1, funders: [43])
+      p3 = create(:hmis_hud_project, project_type: 2, funders: [43])
+      p4 = create(:hmis_hud_project, project_type: 2)
+      p5 = create(:hmis_hud_project, project_type: 1, funders: [43])
+      p6 = create(:hmis_hud_project, project_type: 1, funders: [43])
+
+      fi1 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: nil)
+      fi2 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43)
+      fi3 = create(:hmis_form_instance, role: role, entity: nil, project_type: nil, funder: 43)
+      fi4 = create(:hmis_form_instance, role: role, entity: p5)
+      fi5 = create(:hmis_form_instance, role: role, entity: p6.organization)
+
+      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p1)).to eq(fi1.definition)
+      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p2)).to eq(fi2.definition)
+      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p3)).to eq(fi3.definition)
+      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p4)).to eq(base_fd)
+      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p5)).to eq(fi4.definition)
+      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p6)).to eq(fi5.definition)
     end
   end
 end
