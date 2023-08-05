@@ -1,0 +1,171 @@
+{
+  "type": "GROUP",
+  "link_id": "R18",
+  "text": "Counseling",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 22
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 26
+          }
+        ]
+      },
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 2
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R18.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Counseling received by client",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "counselingReceived"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R18A.group",
+      "component": "INPUT_GROUP",
+      "_comment": "TODO: make this one multiple-choice field, update processor",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R18.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "R18.A1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Client received individual counseling",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "individualCounseling"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R18.A2",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Client received family counseling",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "familyCounseling"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R18.A3",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Client received group counseling, including peer counseling",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "groupCounseling"
+          }
+        }
+      ]
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "R18.B",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Number of sessions received by exit",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "sessionCountAtExit"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R18.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "R18.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Total number of sessions planned in youth's treatment or service plan",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "sessionsInPlan"
+      }
+    },
+    {
+      "type": "BOOLEAN",
+      "link_id": "R18.3",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "A plan is in place to start or continue counseling after exit",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "postExitCounselingPlan"
+      }
+    }
+  ]
+}

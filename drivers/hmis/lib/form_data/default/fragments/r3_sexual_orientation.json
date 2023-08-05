@@ -1,0 +1,91 @@
+{
+  "type": "GROUP",
+  "link_id": "R3",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 22
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 26
+          }
+        ]
+      },
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 2
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R3.1",
+      "required": false,
+      "text": "Sexual Orientation",
+      "pick_list_reference": "SexualOrientation",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "sexualOrientation"
+      }
+    },
+    {
+      "type": "STRING",
+      "link_id": "R3.A",
+      "required": false,
+      "text": "If other, please describe",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "sexualOrientationOther"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R3.1",
+          "operator": "EQUAL",
+          "answer_code": "OTHER"
+        }
+      ]
+    }
+  ]
+}

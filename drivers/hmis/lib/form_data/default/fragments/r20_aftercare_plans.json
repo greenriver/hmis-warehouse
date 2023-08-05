@@ -1,0 +1,155 @@
+{
+  "type": "GROUP",
+  "link_id": "R20",
+  "text": "Aftercare Plans",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 22
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 26
+          }
+        ]
+      },
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 2
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "DATE",
+      "link_id": "R20.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Aftercare Date",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "aftercareDate"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R10.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R20.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Aftercare was provided",
+      "pick_list_reference": "AftercareProvided",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "aftercareProvided"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "aftercare-provided-group",
+      "component": "INPUT_GROUP",
+      "text": "Identify the primary way it was provided",
+      "_comment": "TODO: make this one single-choice field, update processor",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "R20.2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R20.A.1",
+          "text": "Via email/social media",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "emailSocialMedia"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R20.A.2",
+          "text": "Via telephone",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "telephone"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R20.A.3",
+          "text": "In person: one-on-one",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "inPersonIndividual"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R20.A.4",
+          "text": "In person: group",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "inPersonGroup"
+          }
+        }
+      ]
+    }
+  ]
+}

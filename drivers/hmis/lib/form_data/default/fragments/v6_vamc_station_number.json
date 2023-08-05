@@ -1,0 +1,127 @@
+{
+  "link_id": "V6.1",
+  "type": "CHOICE",
+  "required": false,
+  "warn_if_empty": true,
+  "text": "VAMC Station Number",
+  "pick_list_reference": "VamcsStationNumber",
+  "mapping": {
+    "record_type": "ENROLLMENT",
+    "field_name": "vamcStation"
+  },
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 20
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 27
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 30
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 33
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 37
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 38
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 39
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 40
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 41
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 42
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDES",
+            "value": 45
+          }
+        ]
+      },
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 2
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 3
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 6
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 8
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 9
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 13
+          }
+        ]
+      }
+    ]
+  }
+}

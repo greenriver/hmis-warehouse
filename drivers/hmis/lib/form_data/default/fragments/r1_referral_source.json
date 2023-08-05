@@ -1,0 +1,84 @@
+{
+  "type": "GROUP",
+  "link_id": "R1",
+  "text": "RHY Referral Source",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R1.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "RHY Referral Source",
+      "pick_list_reference": "ReferralSource",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "referralSource"
+      },
+      "rule": {
+        "operator": "ALL",
+        "parts": [
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectFunders",
+                "operator": "EQUAL",
+                "value": 22
+              },
+              {
+                "variable": "projectFunders",
+                "operator": "EQUAL",
+                "value": 23
+              },
+              {
+                "variable": "projectFunders",
+                "operator": "EQUAL",
+                "value": 24
+              },
+              {
+                "variable": "projectFunders",
+                "operator": "EQUAL",
+                "value": 26
+              }
+            ]
+          },
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 0
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 1
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 2
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 12
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "R1.A",
+      "required": false,
+      "text": "Number of times approached by Outreach prior to entering project",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "countOutreachReferralApproaches"
+      }
+    }
+  ]
+}

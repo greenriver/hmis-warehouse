@@ -1,0 +1,90 @@
+{
+  "type": "GROUP",
+  "link_id": "R17",
+  "text": "Project Completion Status",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 26
+          }
+        ]
+      },
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 2
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R17.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Project Completion Status",
+      "pick_list_reference": "ProjectCompletionStatus",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "projectCompletionStatus"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R17.A",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Reason for involuntary discharge",
+      "pick_list_reference": "ExpelledReason",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "earlyExitReason"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R17.1",
+          "operator": "EQUAL",
+          "answer_code": "YOUTH_WAS_EXPELLED_OR_OTHERWISE_INVOLUNTARILY_DISCHARGED_FROM_PROJECT"
+        }
+      ]
+    }
+  ]
+}

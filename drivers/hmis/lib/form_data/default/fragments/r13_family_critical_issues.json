@@ -1,0 +1,148 @@
+{
+  "type": "GROUP",
+  "component": "INPUT_GROUP",
+  "link_id": "R13",
+  "text": "Family Critical Issues",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 22
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "EQUAL",
+            "value": 26
+          }
+        ]
+      },
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 2
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "pick_list_reference": "NoYesMissing",
+      "component": "CHECKBOX",
+      "link_id": "R13.9",
+      "required": false,
+      "warn_if_empty": false,
+      "text": "Unemployment - Family member",
+      "helper_text": "Issues associated with the inability to of an adult member in the youth’s family to find and secure steady employment.",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "unemploymentFam"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "pick_list_reference": "NoYesMissing",
+      "component": "CHECKBOX",
+      "link_id": "R13.11",
+      "required": false,
+      "warn_if_empty": false,
+      "text": "Mental Health Disorder - Family member",
+      "helper_text": "Issues related to a family member’s mental health status.",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "mentalHealthDisorderFam"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "pick_list_reference": "NoYesMissing",
+      "component": "CHECKBOX",
+      "link_id": "R13.15",
+      "required": false,
+      "warn_if_empty": false,
+      "text": "Physical Disability - Family member",
+      "helper_text": "Issues related to a family member’s physical disability or impairment.",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "physicalDisabilityFam"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "pick_list_reference": "NoYesMissing",
+      "component": "CHECKBOX",
+      "link_id": "R13.21",
+      "required": false,
+      "warn_if_empty": false,
+      "text": "Alcohol or Substance Use Disorder - Family member",
+      "helper_text": "Any misuse of alcohol, or legal or illegal drugs within the household.",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "alcoholDrugUseDisorderFam"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "pick_list_reference": "NoYesMissing",
+      "component": "CHECKBOX",
+      "link_id": "R13.22",
+      "required": false,
+      "warn_if_empty": false,
+      "text": "Insufficient Income to Support Youth - Family member",
+      "helper_text": "Issues related to insufficient incomes of the parents/legal guardians to support the basic needs of the youth (e.g., food, clothing, and shelter).",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "insufficientIncome"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "pick_list_reference": "NoYesMissing",
+      "component": "CHECKBOX",
+      "link_id": "R13.24",
+      "required": false,
+      "warn_if_empty": false,
+      "text": "Incarcerated Parent of Youth",
+      "helper_text": "Issues related to the incarceration of a parent or legal guardian.",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "incarceratedParent"
+      }
+    }
+  ]
+}
