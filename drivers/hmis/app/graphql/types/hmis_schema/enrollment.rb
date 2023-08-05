@@ -110,7 +110,7 @@ module Types
     field :insufficient_income, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :incarcerated_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
     # V6
-    field :vamc_station, HmisSchema::Enums::Hud::VamcsStationNumber, null: true
+    field :vamc_station, HmisSchema::Enums::Hud::VamcStationNumber, null: true
     # V7
     field :target_screen_reqd, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :time_to_housing_loss, HmisSchema::Enums::Hud::TimeToHousingLoss, null: true

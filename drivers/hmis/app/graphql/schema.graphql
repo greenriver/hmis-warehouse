@@ -2434,7 +2434,7 @@ type Enrollment {
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   unemploymentFam: NoYesMissing
   user: User
-  vamcStation: VamcsStationNumber
+  vamcStation: VamcStationNumber
   youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
 }
 
@@ -7974,7 +7974,7 @@ type ValueBound {
 """
 V6.1
 """
-enum VamcsStationNumber {
+enum VamcStationNumber {
   """
   (99) Data not collected
   """

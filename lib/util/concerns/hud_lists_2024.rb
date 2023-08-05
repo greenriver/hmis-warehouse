@@ -1600,7 +1600,7 @@ module Concerns::HudLists2024
     end
 
     # V6.1
-    def vamcs_station_numbers
+    def vamc_station_numbers
       {
         402 => '(402) Togus, ME',
         405 => '(405) White River Junction, VT',
@@ -1748,8 +1748,8 @@ module Concerns::HudLists2024
       }.freeze
     end
 
-    def vamcs_station_number(id, reverse = false)
-      _translate vamcs_station_numbers, id, reverse
+    def vamc_station_number(id, reverse = false)
+      _translate vamc_station_numbers, id, reverse
     end
 
     # V7.1

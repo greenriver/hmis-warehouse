@@ -3250,7 +3250,7 @@
     ]
   },
   {
-    "name": "VamcsStationNumber",
+    "name": "VamcStationNumber",
     "code": "V6.1",
     "values": [
       {
