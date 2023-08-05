@@ -4,11 +4,17 @@ RSpec.describe GrdaWarehouse::YouthIntake::Base, type: :model do
   let(:agency_1) { create :agency }
   let(:agency_2) { create :agency }
   let(:owner_role) { create :can_view_own_agency_youth_intake }
-  let(:owner_user) { create :user, legacy_roles: [owner_role], agency: agency_1 }
-  let(:agency_user) { create :user, legacy_roles: [owner_role], agency: agency_1 }
-  let(:non_agency_user) { create :user, legacy_roles: [owner_role], agency: agency_2 }
+  let(:owner_user) { create :user, agency: agency_1 }
+  let(:agency_user) { create :user, agency: agency_1 }
+  let(:non_agency_user) { create :user, agency: agency_2 }
   let(:warehouse_client) { create :authoritative_warehouse_client }
   let!(:intake) { create :intake, :existing_intake, user: owner_user, client: warehouse_client.destination }
+
+  before do
+    owner_user.legacy_roles = [owner_role]
+    agency_user.legacy_roles = [owner_role]
+    non_agency_user.legacy_roles = [owner_role]
+  end
 
   it 'grants access to owner' do
     scope = GrdaWarehouse::YouthIntake::Base.visible_by?(owner_user)

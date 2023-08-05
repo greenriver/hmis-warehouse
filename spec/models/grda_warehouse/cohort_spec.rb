@@ -6,9 +6,9 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let(:cohort_viewer) { create :cohort_client_viewer }
 
   let(:user) { create :user }
-  let(:admin) { create :user, legacy_roles: [cohort_manager] }
-  let(:editor) { create :user, legacy_roles: [cohort_editor] }
-  let(:viewer) { create :user, legacy_roles: [cohort_viewer] }
+  let(:admin) { create :user }
+  let(:editor) { create :user }
+  let(:viewer) { create :user }
 
   let(:client) { create :hud_client }
   let(:cohort) { create :cohort }
@@ -18,6 +18,9 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let(:rank) { build :rank, cohort: cohort }
 
   before(:each) do
+    admin.legacy_roles = [cohort_manager]
+    editor.legacy_roles = [cohort_editor]
+    viewer.legacy_roles = [cohort_viewer]
     user.add_viewable(cohort)
     admin.add_viewable(cohort)
   end

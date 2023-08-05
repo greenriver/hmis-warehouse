@@ -57,7 +57,11 @@ RSpec.describe SourceClientsController, type: :request do
 
   describe 'logged in, and can create clients' do
     let(:role) { create :can_create_clients }
-    let(:user) { create :user, legacy_roles: [role] }
+    let(:user) { create :user }
+
+    before do
+      user.legacy_roles = [role]
+    end
 
     it 'allows edit' do
       sign_in user

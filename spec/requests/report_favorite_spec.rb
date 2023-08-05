@@ -3,10 +3,11 @@ require 'rails_helper'
 RSpec.describe 'Report Favorite', type: :request do
   let(:agency) { create :agency }
   let(:role) { create :report_viewer }
-  let(:user) { create :user, legacy_roles: [role], agency: agency }
+  let(:user) { create :user, agency: agency }
   let!(:report) { create :core_demographics_report }
 
   before do
+    user.legacy_roles = [role]
     GrdaWarehouse::Config.delete_all
     GrdaWarehouse::Config.invalidate_cache
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
