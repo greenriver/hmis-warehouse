@@ -362,7 +362,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :viewable_by_entity, ->(user, permission: :can_view_projects) do
-      return none unless ! user.using_acls? && user&.send("#{permission}?")
+      return none unless user&.send("#{permission}?")
 
       # TODO: START_ACL cleanup after migration to ACLs
       if user.using_acls?
@@ -631,7 +631,7 @@ module GrdaWarehouse::Hud
       return [] if group_ids.empty?
 
       GrdaWarehouse::GroupViewableEntity.where(
-        access_group_id: group_ids,
+        collection_id: group_ids,
         entity_type: 'GrdaWarehouse::Hud::Project',
       ).pluck(:entity_id)
     end
@@ -656,7 +656,7 @@ module GrdaWarehouse::Hud
 
       entity_class.where(
         id: GrdaWarehouse::GroupViewableEntity.where(
-          access_group_id: group_ids,
+          collection_id: group_ids,
           entity_type: entity_class.sti_name,
         ).select(:entity_id),
       ).joins(:projects).pluck(p_t[:id])

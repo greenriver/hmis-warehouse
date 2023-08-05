@@ -7755,8 +7755,8 @@ CREATE TABLE public.financial_clients (
     zip_code character varying,
     service_provder_company character varying,
     head_of_household integer,
-    was_the_client_screened_for_homelessness integer,
-    do_you_have_a_voucher integer,
+    deleted_was_the_client_screened_for_homelessness integer,
+    does_the_client_have_a_tenant_based_housing_voucher integer,
     if_yes_what_pha_issued_the_voucher character varying,
     if_yes_what_type_of_voucher_was_issued character varying,
     voucher_type_other character varying,
@@ -7779,8 +7779,8 @@ CREATE TABLE public.financial_clients (
     dv_survivor integer,
     most_recent_living_situation character varying,
     most_recent_living_situation_other character varying,
-    housed_date timestamp without time zone,
-    are_rental_arrears_owed integer,
+    date_of_referral_to_wit timestamp without time zone,
+    delete_are_rental_arrears_owed integer,
     rent_owed_rental_arrears numeric,
     total_time_housed integer,
     hmis_id_if_applicable character varying,
@@ -7788,7 +7788,9 @@ CREATE TABLE public.financial_clients (
     housed_after_24_months integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    was_the_client_screened_for_homelessness character varying,
+    are_rental_arrears_owed character varying
 );
 
 
@@ -8056,7 +8058,8 @@ CREATE TABLE public.group_viewable_entities (
     access_group_id integer NOT NULL,
     entity_id integer NOT NULL,
     entity_type character varying NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    collection_id bigint
 );
 
 
@@ -44347,6 +44350,13 @@ CREATE INDEX index_grades_on_type ON public.grades USING btree (type);
 
 
 --
+-- Name: index_group_viewable_entities_on_collection_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_group_viewable_entities_on_collection_id ON public.group_viewable_entities USING btree (collection_id);
+
+
+--
 -- Name: index_hap_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54095,6 +54105,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230725160948'),
 ('20230725163336'),
 ('20230726180446'),
-('20230728140151');
+('20230728140151'),
+('20230804124734'),
+('20230804232249');
 
 

@@ -3,26 +3,26 @@ require 'rails_helper'
 RSpec.describe AccessControl, type: :model do
   let!(:data_source) { create :data_source_fixed_id }
   let!(:organization) { create :grda_warehouse_hud_organization }
-  let!(:hidden_project) { create :grda_warehouse_hud_project, organization: organization }
-  let!(:viewable_project) { create :grda_warehouse_hud_project, organization: organization }
-  let!(:editable_project) { create :grda_warehouse_hud_project, organization: organization }
+  let!(:hidden_project) { create :grda_warehouse_hud_project, organization: organization, project_name: 'Hidden Project' }
+  let!(:viewable_project) { create :grda_warehouse_hud_project, organization: organization, project_name: 'Viewable Project' }
+  let!(:editable_project) { create :grda_warehouse_hud_project, organization: organization, project_name: 'Editable Project' }
   let!(:view_project_role) { create :role, can_view_projects: true }
   let!(:edit_project_role) { create :role, can_edit_projects: true }
-  let!(:view_user) { create :user, first_name: 'View', last_name: 'User' }
-  let!(:edit_user) { create :user, first_name: 'Edit', last_name: 'User' }
-  let!(:no_access_user) { create :user, first_name: 'No Access', last_name: 'User' }
-  let!(:view_one_edit_one_user) { create :user, first_name: 'View and Edit', last_name: 'User' }
+  let!(:view_user) { create :user, first_name: 'View', last_name: 'User', permission_context: 'acls' }
+  let!(:edit_user) { create :user, first_name: 'Edit', last_name: 'User', permission_context: 'acls' }
+  let!(:no_access_user) { create :user, first_name: 'No Access', last_name: 'User', permission_context: 'acls' }
+  let!(:view_one_edit_one_user) { create :user, first_name: 'View and Edit', last_name: 'User', permission_context: 'acls' }
   let!(:view_project_user_group) { create :user_group }
   let!(:edit_project_user_group) { create :user_group }
-  let!(:view_project_entity_group) { create :access_group }
-  let!(:edit_project_entity_group) { create :access_group }
-  let!(:view_project_access_control) { create :access_control, role: view_project_role, access_group: view_project_entity_group, user_group: view_project_user_group }
-  let!(:edit_project_access_control) { create :access_control, role: edit_project_role, access_group: edit_project_entity_group, user_group: edit_project_user_group }
+  let!(:view_project_collection) { create :collection }
+  let!(:edit_project_collection) { create :collection }
+  let!(:view_project_access_control) { create :access_control, role: view_project_role, collection: view_project_collection, user_group: view_project_user_group }
+  let!(:edit_project_access_control) { create :access_control, role: edit_project_role, collection: edit_project_collection, user_group: edit_project_user_group }
 
   describe 'Checking access' do
     before do
-      view_project_entity_group.set_viewables({ projects: [viewable_project.id] })
-      edit_project_entity_group.set_viewables({ projects: [editable_project.id] })
+      view_project_collection.set_viewables({ projects: [viewable_project.id] })
+      edit_project_collection.set_viewables({ projects: [editable_project.id] })
       view_project_user_group.add(view_user)
       view_project_user_group.add(view_one_edit_one_user)
       edit_project_user_group.add(edit_user)

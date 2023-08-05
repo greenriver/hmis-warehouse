@@ -204,20 +204,31 @@ class Collection < ApplicationRecord
         scope.where.not(entity_id: ids).destroy_all
         # Allow re-use of previous assignments
         (ids - scope.pluck(:entity_id)).each do |id|
-          scope.with_deleted.
+          gve = scope.with_deleted.
             where(entity_id: id).
-            first_or_create.
-            restore
+            first_or_initialize do |g|
+              # set access group id because it is required, but no longer used
+              g.access_group_id = 0
+              g.collection_id = self.id
+            end
+          gve.restore if gve.deleted?
+          gve.save!
         end
       end
     end
   end
 
   def add_viewable(viewable)
-    group_viewable_entities.with_deleted.where(
+    gve = group_viewable_entities.with_deleted.where(
       entity_type: viewable.class.sti_name,
       entity_id: viewable.id,
-    ).first_or_create.restore
+    ).first_or_initialize do |g|
+      # set access group id because it is required, but no longer used
+      g.access_group_id = 0
+    end
+    gve.restore if gve.deleted?
+    gve.save!
+    gve
   end
 
   def remove_viewable(viewable)

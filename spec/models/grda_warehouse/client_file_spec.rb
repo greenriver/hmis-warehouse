@@ -178,7 +178,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
 
     describe 'when user has can_manage_client_files' do
       before :each do
-        user.roles << can_manage_client_files
+        user.legacy_roles << can_manage_client_files
       end
       it 'can see all files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
@@ -187,7 +187,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     end
     describe 'when user has can_manage_window_client_files' do
       before :each do
-        user.roles << can_manage_window_client_files
+        user.legacy_roles << can_manage_window_client_files
       end
 
       it 'can see own files' do
@@ -339,7 +339,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       end
       let(:config) { create :config }
       before :each do
-        user.roles << can_see_own_file_uploads
+        user.legacy_roles << can_see_own_file_uploads
       end
       it 'can see own files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
@@ -367,7 +367,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       end
       let(:config) { create :config }
       before :each do
-        user.roles << can_generate_homeless_verification_pdfs
+        user.legacy_roles << can_generate_homeless_verification_pdfs
       end
       it 'can see own history files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
