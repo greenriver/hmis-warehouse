@@ -31,8 +31,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         AccessGroup.where(name: 'All Data Sources').first.users << user
         sign_in user
       end
@@ -45,8 +45,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -66,7 +66,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -86,8 +86,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -152,8 +152,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         AccessGroup.where(name: 'All Data Sources').first.users << user
         sign_in user
       end
@@ -166,8 +166,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can search only window clients' do
@@ -212,7 +212,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -228,8 +228,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -280,8 +280,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         AccessGroup.where(name: 'All Data Sources').first.users << user
         sign_in user
       end
@@ -294,8 +294,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -315,7 +315,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -331,8 +331,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -373,8 +373,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         AccessGroup.where(name: 'All Data Sources').first.users << user
         sign_in user
       end
@@ -387,8 +387,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -408,7 +408,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -424,8 +424,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -468,8 +468,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         AccessGroup.where(name: 'All Data Sources').first.users << user
         sign_in user
       end
@@ -482,8 +482,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -514,7 +514,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -530,8 +530,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -565,8 +565,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user has a role granting visibility by coc release' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         AccessGroup.where(name: 'All Data Sources').first.users << user
         sign_in user
       end
@@ -690,7 +690,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
+        user.legacy_roles << can_view_clients
         AccessGroup.where(name: 'All Data Sources').first.users << user
         sign_in user
       end
@@ -707,7 +707,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
+        user.legacy_roles << can_view_clients
         sign_in user
       end
       it 'user can not search for clients' do
@@ -736,7 +736,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see only window clients' do
@@ -752,8 +752,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
-        user.roles << can_search_window
+        user.legacy_roles << can_view_clients
+        user.legacy_roles << can_search_window
         sign_in user
       end
       it 'user can see window clients in search results' do
@@ -787,7 +787,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
     describe 'and the user has a role granting visibility by coc release' do
       before do
-        user.roles << can_view_clients
+        user.legacy_roles << can_view_clients
         sign_in user
       end
       it 'user can not search for all clients' do
