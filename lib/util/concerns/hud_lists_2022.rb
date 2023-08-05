@@ -1707,7 +1707,7 @@ module Concerns::HudLists2022
         '636A8' => '(636A8) Iowa City, IA',
         '657A4' => '(657A4) Poplar Bluff, MO',
         '657A5' => '(657A5) Marion, IL',
-        99 => 'not collected',
+        99 => 'Data not collected',
       }.freeze
     end
 
