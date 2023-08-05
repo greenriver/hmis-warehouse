@@ -73,9 +73,10 @@ module GrdaWarehouse::Hud
     # TODO: START_ACL cleanup after migration to ACLs
     scope :viewable_by, ->(user, permission: :can_view_assigned_reports) do
       return none unless user.present?
-      return none unless ! user.using_acls? && user.send("#{permission}?")
 
       if user.using_acls?
+        return none unless user.send("#{permission}?")
+
         # if we have an access control with the All Data Sources system group
         # and the requested permission, return current scope
         # Otherwise, just return the project CoCs for the CoC Codes assigned

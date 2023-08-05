@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe 'Report Favorite', type: :request do
   let(:agency) { create :agency }
   let(:role) { create :report_viewer }
-  let(:user) { create :user, roles: [role], agency: agency }
+  let(:user) { create :user, legacy_roles: [role], agency: agency }
   let!(:report) { create :core_demographics_report }
 
   before do

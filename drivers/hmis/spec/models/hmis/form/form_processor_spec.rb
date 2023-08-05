@@ -5,6 +5,7 @@
 ###
 
 require 'rails_helper'
+require_relative '../../../requests/hmis/login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
@@ -13,9 +14,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let!(:fd) { create :hmis_form_definition }
   let(:c1) { create :hmis_hud_client_complete, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-
-  let!(:no_permission_role) { create :role }
-  let!(:empty_access_group) { create :hmis_access_group }
 
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID'.freeze # Invalid enum representation
@@ -28,8 +26,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   end
 
   before do
-    empty_access_group.set_viewables({ data_sources: [ds.id] })
-    setup_access_control(user, no_permission_role, empty_access_group)
+    create_access_control(hmis_user, ds1, with_permission: [:can_edit_project_details, :can_view_clients, :can_view_dob, :can_view_enrollment_details])
   end
 
   it 'ingests EnrollmentCoC into the hud tables' do

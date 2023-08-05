@@ -16,7 +16,7 @@ RSpec.describe Clients::NotesController, type: :request do
 
   before do
     sign_in admin
-    admin.roles << admin_role
+    admin.legacy_roles << admin_role
   end
 
   describe 'DELETE #destroy' do

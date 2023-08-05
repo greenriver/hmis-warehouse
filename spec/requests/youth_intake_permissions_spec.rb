@@ -4,9 +4,9 @@ RSpec.describe 'Youth Intake Permissions', type: :request do
   let(:agency_1) { create :agency }
   let(:agency_2) { create :agency }
   let(:owner_role) { create :can_edit_own_agency_youth_intake }
-  let(:owner_user) { create :user, roles: [owner_role], agency: agency_1 }
-  let(:agency_user) { create :user, roles: [owner_role], agency: agency_1 }
-  let(:non_agency_user) { create :user, roles: [owner_role], agency: agency_2 }
+  let(:owner_user) { create :user, legacy_roles: [owner_role], agency: agency_1 }
+  let(:agency_user) { create :user, legacy_roles: [owner_role], agency: agency_1 }
+  let(:non_agency_user) { create :user, legacy_roles: [owner_role], agency: agency_2 }
   let(:warehouse_client) { create :authoritative_warehouse_client }
   let!(:intake) { create :intake, :existing_intake, user: owner_user, client: warehouse_client.destination }
 

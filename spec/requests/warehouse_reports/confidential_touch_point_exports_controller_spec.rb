@@ -12,7 +12,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     let(:other_report_viewer) { create :report_viewer }
 
     before(:each) do
-      user.roles << admin_role
+      user.legacy_roles << admin_role
       add_random_user_with_report_access
 
       sign_in(user)
@@ -64,7 +64,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     before(:each) do
       add_random_user_with_report_access
 
-      user.roles << role
+      user.legacy_roles << role
       sign_in(user)
     end
 
@@ -86,7 +86,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
 
     before(:each) do
       add_random_user_with_report_access
-      user.roles << role
+      user.legacy_roles << role
       sign_in(user)
     end
 
@@ -110,7 +110,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     # You have to have someone else in the DB with access
     # to this report or the test passes, but doesn't actually
     # check access correctly
-    other_user.roles << other_report_viewer
+    other_user.legacy_roles << other_report_viewer
     other_user.add_viewable(report)
   end
 end

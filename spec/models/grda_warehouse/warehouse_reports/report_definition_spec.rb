@@ -28,10 +28,10 @@ RSpec.describe model, type: :model do
 
       describe 'admin user' do
         before do
-          user.roles << admin_role
+          user.legacy_roles << admin_role
         end
         after do
-          user.roles = []
+          user.legacy_roles = []
         end
         it 'sees both' do
           expect(user_ids[user]).to eq ids[r1, r2]
@@ -49,7 +49,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned a report with a role granting access' do
         before :each do
-          user.roles << assigned_report_viewer
+          user.legacy_roles << assigned_report_viewer
           user.add_viewable(r1)
         end
         it 'sees r1 with proper role' do

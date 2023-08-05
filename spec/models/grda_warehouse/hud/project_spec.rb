@@ -64,12 +64,12 @@ RSpec.describe model, type: :model do
 
       describe 'admin user' do
         before do
-          user.roles << admin_role
+          user.legacy_roles << admin_role
           AccessGroup.maintain_system_groups
           user.access_groups = AccessGroup.all
         end
         after do
-          user.roles = []
+          user.legacy_roles = []
           user.access_groups = []
         end
         it 'sees all 8' do
@@ -239,10 +239,10 @@ RSpec.describe model, type: :model do
 
       describe 'user with permission to view confidential project names' do
         before do
-          user.roles << can_view_confidential_projects
+          user.legacy_roles << can_view_confidential_projects
         end
         after do
-          user.roles = []
+          user.legacy_roles = []
         end
 
         describe 'assigned to confidential project' do
@@ -261,11 +261,11 @@ RSpec.describe model, type: :model do
 
         describe 'when given permission to report on confidential projects' do
           before do
-            user.roles << can_report_on_confidential_projects
+            user.legacy_roles << can_report_on_confidential_projects
             user.add_viewable(p1)
           end
           after do
-            user.roles = []
+            user.legacy_roles = []
           end
           it 'does include p1 in viewable_by' do
             expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to include p1.id

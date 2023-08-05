@@ -38,7 +38,7 @@ RSpec.describe Admin::AvailableFileTagsController, type: :request do
 
   before(:each) do
     sign_in admin
-    admin.roles << admin_role
+    admin.legacy_roles << admin_role
   end
 
   describe 'GET #index' do

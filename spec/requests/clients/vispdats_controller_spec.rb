@@ -19,7 +19,7 @@ RSpec.describe Clients::VispdatsController, type: :request do
   let(:vispdat_editor) { create :vispdat_editor }
 
   before(:each) do
-    user.roles << vispdat_editor
+    user.legacy_roles << vispdat_editor
     sign_in user
   end
 
