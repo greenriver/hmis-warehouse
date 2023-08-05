@@ -31,7 +31,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has permission to see full dashboard, but not any data assignments' do
       before do
         role.update(can_view_full_client_dashboard: true)
-        user.roles = [role]
+        user.legacy_roles = [role]
       end
       it 'user cannot see any clients' do
         expect(GrdaWarehouse::Hud::Client.source.count).to eq(1)
@@ -44,7 +44,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has permission to see limited dashboard, but not any data assignments' do
       before do
         role.update(can_view_limited_client_dashboard: true)
-        user.roles = [role]
+        user.legacy_roles = [role]
       end
       it 'user cannot see any clients' do
         expect(GrdaWarehouse::Hud::Client.source.count).to eq(1)
@@ -56,7 +56,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'and the user has permission to see clients in wrong CoC, but not any data assignments' do
       before do
-        user.roles = []
+        user.legacy_roles = []
         user.coc_codes = ['MA-501']
         destination_client.update(
           housing_release_status: GrdaWarehouse::Hud::Client.full_release_string,
@@ -75,7 +75,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has permission to see full dashboard can see client based on project enrollment' do
       before do
         role.update(can_view_full_client_dashboard: true, can_view_clients: true)
-        user.roles = [role]
+        user.legacy_roles = [role]
         user.add_viewable(visible_project)
       end
       it 'user can see one client' do
@@ -89,7 +89,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has permission to see limited dashboard, but not any data assignments' do
       before do
         role.update(can_view_limited_client_dashboard: true)
-        user.roles = [role]
+        user.legacy_roles = [role]
       end
       it 'user cannot see any clients' do
         expect(GrdaWarehouse::Hud::Client.source.count).to eq(1)
@@ -101,7 +101,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'and the user has permission to see clients in wrong CoC, but not any data assignments' do
       before do
-        user.roles = []
+        user.legacy_roles = []
         user.coc_codes = ['MA-501']
         destination_client.update(
           housing_release_status: GrdaWarehouse::Hud::Client.full_release_string,

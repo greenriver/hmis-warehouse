@@ -42,7 +42,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
   end
 
   configs_variations.each do |variation|
-    context 'when using variable configs' do
+    context "when using variable configs #{variation}" do
       before(:all) do
         if variation[:cas_available_method] == :project_group
           @cas_project_group = GrdaWarehouse::ProjectGroup.new(name: 'test group for cas sync config')
@@ -65,15 +65,16 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
 
       describe 'and the user has a fairly admin-like role' do
         before do
-          user.roles << can_view_clients
-          user.roles << can_search_window
-          user.roles << can_view_all_reports
-          user.roles << can_edit_users
-          user.roles << can_manage_config
-          user.roles << can_edit_data_sources
+          user.legacy_roles << can_view_clients
+          user.legacy_roles << can_search_window
+          user.legacy_roles << can_view_all_reports
+          user.legacy_roles << can_edit_users
+          user.legacy_roles << can_manage_config
+          user.legacy_roles << can_edit_data_sources
           GrdaWarehouse::DataSource.all.each do |ds|
             user.add_viewable(ds)
           end
+          user.access_groups.reload
           sign_in user
         end
 
