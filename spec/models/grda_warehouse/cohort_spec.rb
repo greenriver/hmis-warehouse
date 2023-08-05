@@ -6,9 +6,9 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let(:cohort_viewer) { create :cohort_client_viewer }
 
   let(:user) { create :user }
-  let(:admin) { create :user, roles: [cohort_manager] }
-  let(:editor) { create :user, roles: [cohort_editor] }
-  let(:viewer) { create :user, roles: [cohort_viewer] }
+  let(:admin) { create :user, legacy_roles: [cohort_manager] }
+  let(:editor) { create :user, legacy_roles: [cohort_editor] }
+  let(:viewer) { create :user, legacy_roles: [cohort_viewer] }
 
   let(:client) { create :hud_client }
   let(:cohort) { create :cohort }

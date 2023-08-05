@@ -66,10 +66,11 @@ module GrdaWarehouse
 
     scope :viewable_by, ->(user) do
       return none unless user.present?
-      return none unless ! user.using_acls? && viewable_permissions.map { |perm| user.send("#{perm}?") }.any? # TODO: START_ACL cleanup after permission migration is complete
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
+        return none unless viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
+
         ids = viewable_permissions.flat_map do |perm|
           group_ids = user.entity_groups_for_permission(perm)
           next [] if group_ids.empty?

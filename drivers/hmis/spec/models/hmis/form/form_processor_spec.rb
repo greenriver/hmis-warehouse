@@ -15,7 +15,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
 
   let!(:no_permission_role) { create :role }
-  let!(:empty_access_group) { create :access_group }
+  let!(:empty_collection) { create :collection }
 
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID'.freeze # Invalid enum representation
@@ -28,8 +28,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   end
 
   before do
-    empty_access_group.set_viewables({ data_sources: [ds.id] })
-    setup_access_control(user, no_permission_role, empty_access_group)
+    empty_collection.set_viewables({ data_sources: [ds1.id] })
+    setup_access_control(user, no_permission_role, empty_collection)
   end
 
   it 'ingests EnrollmentCoC into the hud tables' do

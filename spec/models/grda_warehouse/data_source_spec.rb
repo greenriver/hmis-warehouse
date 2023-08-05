@@ -44,12 +44,12 @@ RSpec.describe model, type: :model do
 
       describe 'admin user' do
         before do
-          user.roles << admin_role
+          user.legacy_roles << admin_role
           AccessGroup.maintain_system_groups
           user.access_groups = AccessGroup.all
         end
         after do
-          user.roles = []
+          user.legacy_roles = []
           user.access_groups = []
         end
         it 'sees both' do
