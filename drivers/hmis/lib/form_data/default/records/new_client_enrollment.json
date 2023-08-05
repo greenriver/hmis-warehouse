@@ -1,0 +1,95 @@
+{
+  "item": [
+    {
+      "type": "STRING",
+      "link_id": "household-id",
+      "hidden": true,
+      "_comment": "needed to set household id property if adding new client/enrollment to an existing household",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "householdId"
+      },
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$householdId"
+        }
+      ]
+    },
+    {
+      "link_id": "enrollment-details",
+      "text": "Enrollment Details",
+      "type": "GROUP",
+      "item": [
+        {
+          "type": "DATE",
+          "link_id": "entry-date",
+          "text": "Entry Date",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "entryDate"
+          },
+          "required": true,
+          "initial": [
+            {
+              "initial_behavior": "OVERWRITE",
+              "value_local_constant": "$today"
+            }
+          ],
+          "bounds": [
+            {
+              "id": "max-entry-date",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "relationship-to-hoh",
+          "text": "Relationship to HoH",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "relationshipToHoH"
+          },
+          "pick_list_reference": "RelationshipToHoH",
+          "required": false,
+          "autofill_values": [
+            {
+              "value_code": "SELF_HEAD_OF_HOUSEHOLD",
+              "autofill_behavior": "ALL",
+              "_comment": "set to HoH if this is a new enrollment in a new household",
+              "autofill_when": [
+                {
+                  "local_constant": "$householdId",
+                  "operator": "EXISTS",
+                  "answer_boolean": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "unit",
+          "text": "Select Unit",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "currentUnit"
+          },
+          "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
+          "required": false
+        }
+      ]
+    },
+    {
+      "fragment": "#client_name"
+    },
+    {
+      "fragment": "#client_identification"
+    },
+    {
+      "fragment": "#client_demographics"
+    }
+  ]
+}
