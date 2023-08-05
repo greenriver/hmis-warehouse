@@ -50841,10 +50841,17 @@ CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports U
 
 
 --
+-- Name: one_entity_per_type_per_collection; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_entity_per_type_per_collection ON public.group_viewable_entities USING btree (collection_id, entity_id, entity_type) WHERE (collection_id IS NOT NULL);
+
+
+--
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type);
+CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type) WHERE (access_group_id <> 0);
 
 
 --
@@ -54111,6 +54118,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230803172055'),
 ('20230803173117'),
 ('20230804124734'),
-('20230804232249');
+('20230804232249'),
+('20230805224003');
 
 

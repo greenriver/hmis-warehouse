@@ -71,7 +71,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
       # Instance Methods
       def show_demographics_to?(user)
-        return false unless user.can_view_clients?
+        return false if ! user.using_acls? && user.can_view_clients?
         return false if user.using_acls? && ! (user.can_view_clients? || user.can_view_client_enrollments_with_roi?)
 
         visible_because_of_permission?(user) || visible_because_of_relationship?(user)
@@ -81,8 +81,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
         # TODO: START_ACL cleanup after ACL migration is complete
         visible = false
         visible ||= visible_because_of_window?(user) unless user.using_acls?
-        visible ||= visible_because_of_release?(user) ||
-          visible_because_of_data_assignment?(user)
+        visible ||= visible_because_of_release?(user)
+        visible ||= visible_because_of_data_assignment?(user)
         visible
         # END_ACL
       end

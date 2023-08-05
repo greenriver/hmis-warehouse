@@ -54,12 +54,12 @@ module ClientAccessControl
     # Given a user, which source clients should be exposed in detail?
     # NOTE: this always uses can_view_clients OR can_view_client_enrollments_with_roi
     def clients_source_visible_to(user, client_ids: nil)
-      return ::GrdaWarehouse::Hud::Client.none unless user.can_access_some_version_of_clients?
-
       # TODO: START_ACL cleanup after ACL migration is complete
       if user.using_acls?
         visible_client_scope(user, client_ids: client_ids)
       else
+        return ::GrdaWarehouse::Hud::Client.none unless user.can_access_some_version_of_clients?
+
         data_source_ids = legacy_authoritative_viewable_ds_ids(user)
         data_source_ids += window_data_source_ids unless ::GrdaWarehouse::Config.get(:window_access_requires_release)
         legacy_visible_client_scope(user, data_source_ids, client_ids: client_ids)

@@ -8,10 +8,10 @@ RSpec.describe AccessControl, type: :model do
   let!(:editable_project) { create :grda_warehouse_hud_project, organization: organization, project_name: 'Editable Project' }
   let!(:view_project_role) { create :role, can_view_projects: true }
   let!(:edit_project_role) { create :role, can_edit_projects: true }
-  let!(:view_user) { create :user, first_name: 'View', last_name: 'User', permission_context: 'acls' }
-  let!(:edit_user) { create :user, first_name: 'Edit', last_name: 'User', permission_context: 'acls' }
-  let!(:no_access_user) { create :user, first_name: 'No Access', last_name: 'User', permission_context: 'acls' }
-  let!(:view_one_edit_one_user) { create :user, first_name: 'View and Edit', last_name: 'User', permission_context: 'acls' }
+  let!(:view_user) { create :acl_user, first_name: 'View', last_name: 'User' }
+  let!(:edit_user) { create :acl_user, first_name: 'Edit', last_name: 'User' }
+  let!(:no_access_user) { create :acl_user, first_name: 'No Access', last_name: 'User' }
+  let!(:view_one_edit_one_user) { create :acl_user, first_name: 'View and Edit', last_name: 'User' }
   let!(:view_project_user_group) { create :user_group }
   let!(:edit_project_user_group) { create :user_group }
   let!(:view_project_collection) { create :collection }
