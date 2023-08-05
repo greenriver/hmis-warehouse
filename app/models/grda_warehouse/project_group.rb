@@ -47,7 +47,7 @@ module GrdaWarehouse
 
       if user.using_acls?
         ids = editable_permissions.flat_map do |perm|
-          group_ids = user.entity_groups_for_permission(perm)
+          group_ids = user.collections_for_permission(perm)
           next [] if group_ids.empty?
 
           GrdaWarehouse::GroupViewableEntity.where(

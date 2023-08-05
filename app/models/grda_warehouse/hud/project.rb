@@ -627,7 +627,7 @@ module GrdaWarehouse::Hud
       return [] unless user.present?
       return [] unless user.send("#{permission}?")
 
-      group_ids = user.entity_groups_for_permission(permission)
+      group_ids = user.collections_for_permission(permission)
       return [] if group_ids.empty?
 
       GrdaWarehouse::GroupViewableEntity.where(
@@ -640,7 +640,7 @@ module GrdaWarehouse::Hud
       return [] unless user.present?
       return [] unless user.send("#{permission}?")
 
-      group_ids = user.entity_groups_for_permission(permission)
+      group_ids = user.collections_for_permission(permission)
       return [] if group_ids.empty?
 
       coc_codes = AccessGroup.where(id: group_ids).pluck(:coc_codes).flatten
@@ -651,7 +651,7 @@ module GrdaWarehouse::Hud
       return [] unless user.present?
       return [] unless user.send("#{permission}?")
 
-      group_ids = user.entity_groups_for_permission(permission)
+      group_ids = user.collections_for_permission(permission)
       return [] if group_ids.empty?
 
       entity_class.where(

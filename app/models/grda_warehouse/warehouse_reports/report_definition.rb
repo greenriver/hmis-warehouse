@@ -23,7 +23,7 @@ module GrdaWarehouse::WarehouseReports
       return none if user.using_acls? && !user.can_view_assigned_reports?
 
       if user.using_acls?
-        group_ids = user.entity_groups_for_permission(:can_view_assigned_reports)
+        group_ids = user.collections_for_permission(:can_view_assigned_reports)
         return none if group_ids.empty?
 
         joins(:group_viewable_entities).

@@ -88,11 +88,12 @@ class User < ApplicationRecord
     "#{USER_PERMISSION_PREFIX}_user_#{id}"
   end
 
-  def entity_groups_for_permission(permission)
-    return collections.joins(access_controls: :role).merge(Role.where(permission => true)).pluck(:id) if Rails.env.test?
+  def collections_for_permission(permission)
+    scope = collections.joins(access_controls: :role).merge(Role.where(permission => true))
+    return scope.pluck(:id) if Rails.env.test?
 
     Rails.cache.fetch("#{user_permission_prefix}_entity_groups_#{permission}", expires_in: EXPIRY_MINUTES.minutes) do
-      collections.joins(access_controls: :role).merge(Role.where(permission => true)).pluck(:id)
+      scope.pluck(:id)
     end
   end
 

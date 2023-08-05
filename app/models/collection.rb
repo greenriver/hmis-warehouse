@@ -130,7 +130,7 @@ class Collection < ApplicationRecord
     system_user_role = Role.system_user_role
     system_user_access_group = system_collection(:system_user)
     system_user_group = UserGroup.system_user
-    AccessControl.where(role_id: system_user_role.id, access_group_id: system_user_access_group.id, user_group_id: system_user_group.id).first_or_create
+    AccessControl.where(role_id: system_user_role.id, collection_id: system_user_access_group.id, user_group_id: system_user_group.id).first_or_create
 
     if group.blank? || group == :reports
       # Reports

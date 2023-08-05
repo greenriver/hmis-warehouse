@@ -544,9 +544,9 @@ module UserConcern
       Rails.cache.fetch(key, expires_in: 1.minutes) do
         # TODO: START_ACL cleanup after ACL migration is complete
         if using_acls?
-          collections.flat_map(&:coc_codes).compact.uniq
+          collections.flat_map(&:coc_codes).reject(&:blank?).uniq
         else
-          (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact.uniq
+          (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).reject(&:blank?).uniq
         end
         # END_ACL
       end

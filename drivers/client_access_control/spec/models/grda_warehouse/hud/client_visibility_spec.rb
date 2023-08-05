@@ -14,20 +14,22 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     before do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache
-      AccessGroup.maintain_system_groups
+      Collection.maintain_system_groups
     end
     let!(:config) { create :config_b }
-    let!(:user) { create :user }
+    let!(:user) { create :user, permission_context: 'acls' }
 
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
       end
     end
+
     describe 'and the user has a role granting can view clients' do
       before do
-        user.legacy_roles << can_view_clients
+        setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
       end
+
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(2)
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).pluck(:id)).to include(window_source_client.id)
@@ -35,7 +37,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       describe 'and the user has all data source group' do
         before do
-          AccessGroup.where(name: 'All Data Sources').first.users << user
+          Collection.where(name: 'All Data Sources').first.users << user
         end
         it 'user can see all clients' do
           expect(GrdaWarehouse::Hud::Client.source.source_visible_to(user).count).to eq(4)
@@ -92,7 +94,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has a role granting can view clients' do
       before do
         user.legacy_roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        Collection.where(name: 'All Data Sources').first.users << user
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -184,7 +186,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has a role granting can view clients' do
       before do
         user.legacy_roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        Collection.where(name: 'All Data Sources').first.users << user
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -255,7 +257,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has a role granting can view clients' do
       before do
         user.legacy_roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        Collection.where(name: 'All Data Sources').first.users << user
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -327,7 +329,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has a role granting can view clients' do
       before do
         user.legacy_roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        Collection.where(name: 'All Data Sources').first.users << user
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -509,7 +511,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has a role granting can view clients' do
       before do
         user.legacy_roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        Collection.where(name: 'All Data Sources').first.users << user
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)

@@ -55,6 +55,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
       data_source_id: non_window_visible_data_source.id,
       DOB: 51.years.ago,
       SSN: nil,
+      LastName: 'Moss',
     )
   end
   let!(:non_window_enrollment) do
@@ -135,6 +136,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
       data_source_id: window_visible_data_source.id,
       DOB: 50.years.ago,
       SSN: nil,
+      LastName: 'Foss',
     )
   end
   let!(:window_enrollment_2) do
@@ -169,20 +171,27 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
 
   # roles
   let!(:can_view_clients) { create :role, can_view_clients: true }
-  let!(:can_search_window) { create :role, can_search_window: true }
+  let!(:can_create_clients) { create :role, can_create_clients: true }
+  let!(:can_search_window) { create :role, can_search_window: true } # START_ACL remove after ACL migration
   let!(:can_use_strict_search) { create :role, can_use_strict_search: true }
   let!(:can_use_separated_consent) { create :role, can_use_separated_consent: true }
-  let!(:can_view_all_reports) { create :role, can_view_all_reports: true }
+  let!(:can_view_all_reports) { create :role, can_view_all_reports: true, can_view_assigned_reports: true }
   let!(:can_edit_users) { create :role, can_edit_users: true }
   let!(:can_manage_config) { create :role, can_manage_config: true }
   let!(:can_edit_data_sources) { create :role, can_edit_data_sources: true, can_view_projects: true }
   let!(:can_search_own_clients) { create :role, can_search_own_clients: true }
+  let!(:can_search_clients_with_roi) { create :role, can_search_clients_with_roi: true }
+  let!(:can_view_client_enrollments_with_roi) { create :role, can_view_client_enrollments_with_roi: true }
+  let!(:can_edit_clients) { create :can_edit_clients }
+  let!(:no_permission_role) { create :role }
 
   # groups
+  let!(:no_data_source_access_group) { create :access_group }
   let!(:window_data_source_viewable) { create :access_group }
   let!(:window_organization_viewable) { create :access_group }
   let!(:window_project_viewable) { create :access_group }
   let!(:window_coc_code_viewable) { create :access_group, coc_codes: ['AA-000'] }
+  let!(:coc_code_viewable) { create :access_group }
   before(:each) do
     window_data_source_viewable.add_viewable(window_visible_data_source)
     window_organization_viewable.add_viewable(window_organization)

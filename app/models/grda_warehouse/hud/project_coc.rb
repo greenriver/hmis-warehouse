@@ -84,7 +84,7 @@ module GrdaWarehouse::Hud
         if user.roles.merge(Role.where(permission => true)).merge(AccessControl.where(access_group: all_data_sources.id)).exists?
           current_scope
         else
-          group_ids = user.entity_groups_for_permission(permission)
+          group_ids = user.collections_for_permission(permission)
           return none if group_ids.empty?
 
           coc_codes = AccessGroup.where(id: group_ids).pluck(:coc_codes).flatten
