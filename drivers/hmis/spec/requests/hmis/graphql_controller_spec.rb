@@ -28,7 +28,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  let!(:access_control) { create_access_control(hmis_user, ds1) }
+  # FIXME: this isn't correct
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_edit_project_details, :can_view_clients, :can_view_dob, :can_view_enrollment_details]) }
+
   before(:all) do
     cleanup_test_environment
   end
@@ -37,9 +39,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
-    empty_access_group.set_viewables({ data_sources: [ds1.id] })
-    setup_access_control(user, no_permission_role, empty_access_group)
-    hmis_login(user)
+    hmis_login(hmis_user)
   end
 
   describe 'Projects query' do

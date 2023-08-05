@@ -11,7 +11,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
   describe 'GET #index' do
     context 'User with access to administrative events' do
       before(:each) do
-        user.roles << role
+        user.legacy_roles << role
         sign_in user
       end
 
@@ -36,7 +36,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
   describe 'POST #create' do
     before(:each) do
-      user.roles << role
+      user.legacy_roles << role
       sign_in user
       # allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user) # Stub the instance method :current_user
     end
@@ -72,7 +72,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
   describe 'PATCH #update' do
     before(:each) do
-      user.roles << role
+      user.legacy_roles << role
       sign_in user
     end
 
@@ -125,7 +125,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
   describe '#destroy' do
     before(:each) do
-      user.roles << role
+      user.legacy_roles << role
       sign_in user
       delete admin_administrative_event_path(administrative_event)
     end

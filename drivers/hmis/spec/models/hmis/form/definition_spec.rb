@@ -22,11 +22,11 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   let!(:fd1) { create :hmis_form_definition, role: 'INTAKE' }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
   let!(:no_permission_role) { create :role }
-  let!(:empty_access_group) { create :access_group }
+  let!(:empty_collection) { create :collection }
 
   before do
-    empty_access_group.set_viewables({ data_sources: [ds1.id] })
-    setup_access_control(user, no_permission_role, empty_access_group)
+    empty_collection.set_viewables({ data_sources: [ds1.id] })
+    setup_access_control(user, no_permission_role, empty_collection)
   end
 
   it 'should return the right definition if a project has a specific assessment' do

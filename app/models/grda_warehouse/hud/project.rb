@@ -362,10 +362,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :viewable_by_entity, ->(user, permission: :can_view_projects) do
-      return none unless user&.send("#{permission}?")
-
       # TODO: START_ACL cleanup after migration to ACLs
       if user.using_acls?
+        return none unless user&.send("#{permission}?")
+
         ids = user.viewable_project_ids(permission)
         # If have a set (not a nil) and it's empty, this user can't access any projects
         return none if ids.is_a?(Set) && ids.empty?

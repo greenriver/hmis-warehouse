@@ -156,7 +156,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged in, and can search window' do
     let(:role) { create :can_search_window }
-    let(:user) { create :user, roles: [role] }
+    let(:user) { create :user, legacy_roles: [role] }
 
     it 'allows index' do
       sign_in user
@@ -239,7 +239,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     # implies 'can_see_this_client_demographics!'
     let(:role) { create :vt_can_view_clients }
     let(:role_search) { create :can_search_window }
-    let(:user) { create :user, roles: [role, role_search] }
+    let(:user) { create :user, legacy_roles: [role, role_search] }
 
     it 'allows index' do
       sign_in user
@@ -322,7 +322,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     let(:role) { create :can_edit_clients }
     let(:role2) { create :vt_can_view_clients }
     let(:role_search) { create :can_search_window }
-    let(:user) { create :user, roles: [role, role2, role_search] }
+    let(:user) { create :user, legacy_roles: [role, role2, role_search] }
 
     it 'allows index' do
       sign_in user
@@ -401,7 +401,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged in, and can create clients' do
     let(:role) { create :can_create_clients }
-    let(:user) { create :user, roles: [role] }
+    let(:user) { create :user, legacy_roles: [role] }
 
     it 'allows index' do
       sign_in user
