@@ -1141,10 +1141,12 @@ class Role < ApplicationRecord
 
   # Only used in the Healthcare context (once ACL migration is complete) START_ACL
   def add(users)
-    self.users = (self.users + Array.wrap(users)).uniq
+    self.health_users = (health_users + Array.wrap(users)).uniq
+    self.legacy_users = (legacy_users + Array.wrap(users)).uniq # START_ACL remove after ACL migration is complete
   end
 
   def remove(users)
-    self.users = (self.users - Array.wrap(users))
+    self.health_users = (health_users - Array.wrap(users))
+    self.legacy_users = (legacy_users - Array.wrap(users)) # START_ACL remove after ACL migration is complete
   end
 end

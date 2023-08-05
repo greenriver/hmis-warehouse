@@ -21,7 +21,7 @@ module Admin
     end
 
     def edit
-      @users = User.joins(:roles).merge(Role.where(id: @role.id)) # TODO: START_ACL remove when ACL transition complete
+      @users = User.joins(:legacy_roles).merge(Role.where(id: @role.id)) # TODO: START_ACL remove when ACL transition complete
     end
 
     def update
