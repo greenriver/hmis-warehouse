@@ -25,10 +25,11 @@ module HmisExternalApis::AcHmis::Importers
       start
       sanity_check
       ProjectsImportAttempt.transaction do
+        EsgFundingAssistanceLoader
+          .perform(rows: records_from_csv('ESGFundingAssistance.csv'))
         # import_referral_requests
         # import_referral_postings
         # import_referral_household_members
-        import_esg_funding_assistance
       end
       analyze
       finish
@@ -40,66 +41,8 @@ module HmisExternalApis::AcHmis::Importers
 
     protected
 
-    def import_referral_requests
-      raise "tbd"
-      file = 'ReferralRequests.csv'
-    end
-
-    # referrals and referral postings
-    def import_referral_postings
-      raise "tbd"
-
-      file = 'ReferralPostings.csv'
-      col_map = [
-        ["identifier", 'postingId']
-        # ["status", 'postingStatusId'], # fixme enum
-        # ["referral_id", ], #fixme needs lookup
-        # ["project_id"], mapping
-        # "referral_request_id",
-        # "unit_type_id",
-        # "HouseholdID",
-        # "resource_coordinator_notes",
-        # "status_updated_at",
-        # "status_updated_by_id",
-        # "status_note",
-        # "status_note_updated_by_id",
-        # "denial_reason",
-        # "referral_result",
-        # "denial_note",
-        # "status_note_updated_at",
-        # "data_source_id"
-      ]
-      rows = records_from_csv(file).each do |csv_row|
-        attrs = {}
-        col_map.each do |attr, csv_col|
-          attrs[attr] = csv_row.fetch(csv_col)
-        end
-        #
-        # map status
-        # map referral_id
-        # map unit_type
-        attrs
-      end
-
-      columns_to_update = rows.first.keys - ['identifier']
-      result = HmisExternalApis::AcHmis::ReferralPosting.import!(
-        records,
-        validate: false,
-        batch_size: 1_000,
-        on_duplicate_key_update: {
-          conflict_target: 'identifier',
-          columns: columns_to_update,
-        },
-      )
-    end
-
-    def import_referral_household_members
-      raise "tbd"
-      file = 'ReferralHouseholdMembers.csv'
-    end
-
-    def import_esg_funding_assistance
-      file = 'ESGFundingAssistance.csv'
+    def run_loader(loader_class)
+      loader_class.perform(rows: rows)
     end
 
     def importer_name
@@ -115,6 +58,8 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def sanity_check
+      return
+
       msg = []
       [
         'ReferralPostings.csv',
@@ -134,7 +79,6 @@ module HmisExternalApis::AcHmis::Importers
       attempt.save!
       raise AbortImportException, msg
     end
-
 
     def analyze
       Rails.logger.info 'Analyzing imported tables'
@@ -181,58 +125,6 @@ module HmisExternalApis::AcHmis::Importers
         headers: true,
         skip_lines: /\A\s*\z/,
       }
-    end
-
-    def generic_upsert(file:, conflict_target:, klass:, ignore_columns: [])
-      Rails.logger.info "Upserting #{file}"
-
-      csv = records_from_csv(file)
-
-      columns_to_update = csv.headers - conflict_target - ignore_columns
-
-      records = csv.each.map(&:to_h)
-      records.each do |r|
-        r['data_source_id'] = data_source.id
-      end
-
-      if ignore_columns.present?
-        records.each do |r|
-          ignore_columns.each do |col|
-            r.delete(col)
-          end
-        end
-      end
-
-      if extra_columns.present?
-        records.each do |r|
-          extra_columns.each do |col|
-            r.delete(col)
-          end
-        end
-      end
-
-      result = klass.import(
-        records,
-        validate: false,
-        batch_size: 1_000,
-        on_duplicate_key_update: {
-          conflict_target: conflict_target,
-          columns: columns_to_update,
-        },
-      )
-
-      if result.failed_instances.present?
-        msg = "Failed: #{result.failed_instances}. Aborting"
-        raise AbortImportException, msg
-      end
-
-      attempt.update_attribute(:status, "finished #{file}")
-
-      Rails.logger.info "Upserted #{result.ids.length} records"
-
-      result
-    ensure
-      self.extra_columns = []
     end
 
     def cded

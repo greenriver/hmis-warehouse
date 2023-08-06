@@ -1,0 +1,2 @@
+EnrollmentID, PaymentStartDate, PaymentEndDate, FundingSource, PaymentType, Amount, DateCreated, DateUpdated, UserID
+123, 2020-01-01, 2020-01-01, State of Pennsylvania ESG CV 2, Arrears, 100.50
