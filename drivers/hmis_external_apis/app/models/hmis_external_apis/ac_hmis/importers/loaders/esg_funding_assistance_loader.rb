@@ -5,6 +5,7 @@
 ###
 
 # matriculation to new platform
+# creates CustomService and CustomDataElements
 module HmisExternalApis::AcHmis::Importers::Loaders
   class EsgFundingAssistanceLoader < BaseLoader
 
@@ -21,8 +22,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           col.assign_value(row: row, record: record)
         end
         record.personal_id = personal_id_by_enrollment_id.fetch(record.enrollment_id)
-        record.user_id ||= system_user.id
-        record.date_provided = Date.current # FIXME- this isn't right?
+        record.user_id ||= system_user_id
+        record.date_provided = Date.current # FIXME - this isn't right?
         record
       end
 
@@ -43,12 +44,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         category = Hmis::Hud::CustomServiceCategory.where(
           name: 'ESG Funding Assistance',
           data_source_id: data_source.id
-        ).first_or_create!(user: system_user)
+        ).first_or_create!(user_id: system_user_id)
         Hmis::Hud::CustomServiceType.where(
           name: 'ESG Funding Assistance',
           custom_service_category_id: category.id,
           data_source_id: data_source.id
-        ).first_or_create!(user: system_user)
+        ).first_or_create!(user_id: system_user_id)
       end
     end
 
@@ -59,7 +60,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def columns
       [
         attr_col('EnrollmentID'),
-        attr_col('PersonalID'),
         attr_col('PaymentStartDate', map_to: 'FAStartDate'),
         attr_col('PaymentEndDate', map_to: 'FAEndDate'),
         attr_col('Amount', map_to: 'FAAmount'),
@@ -78,7 +78,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         key: :funding_source,
         label: 'Funding Source',
         data_source_id: data_source.id
-      ).first_or_create!(user: system_user)
+      ).first_or_create!(user_id: system_user_id)
     end
 
     def payment_type_cde_def
@@ -88,7 +88,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         key: :payment_type,
         label: 'Payment Type',
         data_source_id: data_source.id
-      ).first_or_create!(user: system_user)
+      ).first_or_create!(user_id: system_user_id)
     end
   end
 end

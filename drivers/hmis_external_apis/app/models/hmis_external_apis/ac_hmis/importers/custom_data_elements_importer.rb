@@ -23,15 +23,27 @@ module HmisExternalApis::AcHmis::Importers
 
     def run!
       start
-      sanity_check
-      ProjectsImportAttempt.transaction do
-        EsgFundingAssistanceLoader
-          .perform(rows: records_from_csv('ESGFundingAssistance.csv'))
-        # import_referral_requests
-        # import_referral_postings
-        # import_referral_household_members
+      items = [
+        [EsgFundingAssistanceLoader, 'ESGFundingAssistance.csv'],
+        [EmergencyShelterAllowanceGrantLoader, 'EmergencyShelterAllowanceGrant.csv'],
+      ]
+      check_file_names(items.map&:last)
+
+      items.each do |loader, filename|
+        rows = records_from_csv(file_name)
+        loader.validate(rows)
       end
-      analyze
+
+      table_names = []
+      ProjectsImportAttempt.transaction do
+        items.each do |loader, filename|
+          rows = records_from_csv(file_name)
+          result = loader.perform(rows: rows)
+          handle_import_result(result)
+          table_names += loader.table_names
+        end
+      end
+      analyze(table_names)
       finish
     rescue AbortImportException => e
       @notifier.ping("Failure in #{importer_name}", { exception: e })
@@ -41,8 +53,15 @@ module HmisExternalApis::AcHmis::Importers
 
     protected
 
-    def run_loader(loader_class)
-      loader_class.perform(rows: rows)
+    def run_loader(loader, file_name)
+      EsgFundingAssistanceLoader
+        .perform(rows: records_from_csv('ESGFundingAssistance.csv'))
+    end
+
+    def handle_import_result(result)
+      return unless result.failed_instances.present?
+      msg = "Failed: #{result.failed_instances}. Aborting"
+      raise AbortImportException, msg
     end
 
     def importer_name
@@ -57,15 +76,8 @@ module HmisExternalApis::AcHmis::Importers
       attempt.save!
     end
 
-    def sanity_check
-      return
-
-      msg = []
-      [
-        'ReferralPostings.csv',
-        'ReferralHouseholdMembers.csv',
-        'ReferralRequests.csv',
-      ].each do |fn|
+    def check_file_names(file_names)
+      file_names.each do |fn|
         msg << "#{fn} was not present." unless File.exist?("#{dir}/#{fn}")
       end
       return unless msg.present?
@@ -80,9 +92,15 @@ module HmisExternalApis::AcHmis::Importers
       raise AbortImportException, msg
     end
 
-    def analyze
+    def analyze(table_names)
+      # assume all tables are in same db
       Rails.logger.info 'Analyzing imported tables'
+      names = table_names.map(connection.quote_table_name(names))
       ProjectsImportAttempt.connection.exec_query('ANALYZE "Funder", "Project", "Organization", "CustomDataElements";')
+    end
+
+    def connection
+      ProjectsImportAttempt.connection
     end
 
     def finish
@@ -125,24 +143,6 @@ module HmisExternalApis::AcHmis::Importers
         headers: true,
         skip_lines: /\A\s*\z/,
       }
-    end
-
-    def cded
-      return @cded if @cded.present?
-
-      @cded = Hmis::Hud::CustomDataElementDefinition.where(owner_type: 'Hmis::Hud::Project', key: 'direct_entry', data_source_id: data_source.id).first_or_initialize
-
-      return @cded unless @cded.new_record?
-
-      @cded.update!(
-        field_type: 'boolean',
-        key: 'direct_entry',
-        label: 'Direct Entry',
-        repeats: false,
-        user: sys_user,
-      )
-
-      @cded
     end
 
     def sys_user

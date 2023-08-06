@@ -10,12 +10,17 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       new.perform(...)
     end
 
+    # fixme dry this up
+    def row_value(row, field:)
+      row[field]&.strip&.presence
+    end
+
     class BaseColumn
       attr_accessor :field
       protected
 
-      def row_value(row, key)
-        row[key]&.strip&.presence
+      def row_value(row, field:)
+        row[field]&.strip&.presence
       end
     end
 
@@ -31,17 +36,42 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       def assign_value(row:, record:)
         case map_to
         when String, Symbol
-          record[map_to] = row_value(row, field)
+          record[map_to] = row_value(row, field: field)
         when nil
-          record[field] = row_value(row, field)
+          record[field] = row_value(row, field: field)
         else
           raise
         end
       end
     end
 
-    # field is stored as CDE on record
-    class CommonDataElementColumn < BaseColumn
+  #   class CommonDataElementColumn < BaseColumn
+  #     attr_accessor :definition, :default_attrs
+
+  #     def initialize(field, definition:, default_attrs:)
+  #       self.field = field
+  #       self.definition = definition
+  #       self.default_attrs = default_attrs
+  #     end
+
+  #     # assign col from row into record
+  #     def assign_value(row:, record:)
+  #       value =  row_value(row, field: 'FundingSource')
+  #       return unless value
+
+  #       cde_attrs = default_attrs.merge({
+  #         owner_type: model_class.class_name,
+  #         value_string: value,
+  #         data_element_definition_id: definition.id,
+  #         DateCreated: row_value(row, field: 'DateCreated'),
+  #         DateUpdated: row_value(row, field: 'DateUpdated'),
+  #       })
+  #       record.custom_data_elements.build(cde_attrs)
+  #     end
+  #   end
+
+    # field is as related CDE on record, importing both record and related CDE recursively
+    class RelatedCommonDataElementColumn < BaseColumn
       attr_accessor :definition, :default_attrs
       def initialize(field, definition:, default_attrs:)
         self.field = field
@@ -51,15 +81,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       # assign col from row into record
       def assign_value(row:, record:)
-        value =  row_value(row, 'FundingSource')
+        value =  row_value(row, field: 'FundingSource')
         return unless value
 
         cde_attrs = default_attrs.merge({
           owner_type: model_class.class_name,
           value_string: value,
           data_element_definition_id: definition.id,
-          DateCreated: row_value(row, 'DateCreated'),
-          DateUpdated: row_value(row, 'DateUpdated'),
+          DateCreated: row_value(row, field: 'DateCreated'),
+          DateUpdated: row_value(row, field: 'DateUpdated'),
         })
         record.custom_data_elements.build(cde_attrs)
       end
@@ -72,11 +102,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def cde_col(...)
-      CommonDataElementColumn.new(...)
+      RelatedCommonDataElementColumn.new(...)
     end
 
-    def system_user
-      Hmis::Hud::User.system_user(data_source_id: data_source.id)
+    def system_user_id
+      @system_user_id || Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
     end
 
     def data_source
@@ -86,7 +116,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def default_attrs
       {
         data_source_id: data_source.id,
-        UserID: system_user.UserID
+        UserID: system_user_id
       }
     end
   end
