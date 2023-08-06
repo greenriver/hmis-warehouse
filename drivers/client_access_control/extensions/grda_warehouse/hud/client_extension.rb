@@ -71,8 +71,12 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
       # Instance Methods
       def show_demographics_to?(user)
-        return false if ! user.using_acls? && user.can_view_clients?
-        return false if user.using_acls? && ! (user.can_view_clients? || user.can_view_client_enrollments_with_roi?)
+        # START_ACLS cleanup after ACL migration is complete
+        if user.using_acls?
+          return false unless user.can_view_clients? || user.can_view_client_enrollments_with_roi?
+        else
+          return false unless user.can_view_clients?
+        end
 
         visible_because_of_permission?(user) || visible_because_of_relationship?(user)
       end

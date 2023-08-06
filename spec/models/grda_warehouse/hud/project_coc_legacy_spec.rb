@@ -4,7 +4,7 @@ model = GrdaWarehouse::Hud::ProjectCoc
 RSpec.describe model, type: :model do
   let!(:admin_role) { create :admin_role }
 
-  let!(:user) { create :acl_user }
+  let!(:user) { create :user }
 
   let!(:pc1) { create :hud_project_coc, CoCCode: 'foo' }
   let!(:pc2) { create :hud_project_coc, CoCCode: 'bar' }
