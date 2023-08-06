@@ -153,7 +153,13 @@ class User < ApplicationRecord
 
   # list any cohort this user has some level of access to
   def cohorts
-    GrdaWarehouse::Cohort.where(id: access_groups.flat_map(&:cohort_ids))
+    # START_ACL cleanup after ACL migration is complete
+    if using_acls?
+      GrdaWarehouse::Cohort.where(id: collections.flat_map(&:cohort_ids))
+    else
+      GrdaWarehouse::Cohort.where(id: access_groups.flat_map(&:cohort_ids))
+    end
+    # END_ACL
   end
 
   # list any project groups the user has some level of access to

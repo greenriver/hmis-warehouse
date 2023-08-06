@@ -243,7 +243,7 @@ module GrdaWarehouse::Hud
       return [] if group_ids.empty?
 
       GrdaWarehouse::GroupViewableEntity.where(
-        access_group_id: group_ids,
+        collection_id: group_ids,
         entity_type: 'GrdaWarehouse::Hud::Organization',
       ).pluck(:entity_id)
     end
@@ -257,7 +257,7 @@ module GrdaWarehouse::Hud
 
       entity_class.where(
         id: GrdaWarehouse::GroupViewableEntity.where(
-          access_group_id: group_ids,
+          collection_id: group_ids,
           entity_type: entity_class.sti_name,
         ).select(:entity_id),
       ).joins(:organizations).pluck(o_t[:id])
@@ -272,7 +272,7 @@ module GrdaWarehouse::Hud
 
       GrdaWarehouse::Hud::Project.where(
         id: GrdaWarehouse::GroupViewableEntity.where(
-          access_group_id: group_ids,
+          collection_id: group_ids,
           entity_type: GrdaWarehouse::Hud::Project.sti_name,
         ).select(:entity_id),
       ).joins(:organization).pluck(o_t[:id])

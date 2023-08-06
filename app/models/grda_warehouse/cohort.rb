@@ -76,7 +76,7 @@ module GrdaWarehouse
           next [] if group_ids.empty?
 
           GrdaWarehouse::GroupViewableEntity.where(
-            access_group_id: group_ids,
+            collection_id: group_ids,
             entity_type: 'GrdaWarehouse::Cohort',
           ).pluck(:entity_id)
         end.compact

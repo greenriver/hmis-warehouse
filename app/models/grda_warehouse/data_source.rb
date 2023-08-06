@@ -70,9 +70,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :viewable_by, ->(user, permission: :can_view_projects) do
     # TODO: START_ACL cleanup after migration to ACLs
-    return none if user.using_acls? && ! user&.send("#{permission}?")
-
     if user.using_acls?
+      return none unless user&.send("#{permission}?")
+
       ids = data_source_ids_viewable_by(user, permission: permission)
       # If have a set (not a nil) and it's empty, this user can't access any projects
       return none if ids.is_a?(Set) && ids.empty?
@@ -192,7 +192,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return [] if group_ids.empty?
 
     GrdaWarehouse::GroupViewableEntity.where(
-      access_group_id: group_ids,
+      collection_id: group_ids,
       entity_type: 'GrdaWarehouse::DataSource',
     ).pluck(:entity_id)
   end
@@ -206,7 +206,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
     entity_class.where(
       id: GrdaWarehouse::GroupViewableEntity.where(
-        access_group_id: group_ids,
+        collection_id: group_ids,
         entity_type: entity_class.sti_name,
       ).select(:entity_id),
     ).joins(:data_source).pluck(ds_t[:id])
