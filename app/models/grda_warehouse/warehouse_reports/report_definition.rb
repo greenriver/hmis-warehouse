@@ -20,16 +20,17 @@ module GrdaWarehouse::WarehouseReports
     # TODO: START_ACL cleanup after migration to ACLs
     scope :viewable_by, ->(user) do
       return none unless user
-      return none if user.using_acls? && !user.can_view_assigned_reports?
 
       if user.using_acls?
+        return none unless user.can_view_assigned_reports?
+
         group_ids = user.collections_for_permission(:can_view_assigned_reports)
         return none if group_ids.empty?
 
         joins(:group_viewable_entities).
           merge(
             GrdaWarehouse::GroupViewableEntity.where(
-              access_group_id: group_ids,
+              collection_id: group_ids,
               entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
             ),
           )
