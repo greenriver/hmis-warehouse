@@ -80,14 +80,14 @@ module GrdaWarehouse::Hud
         # if we have an access control with the All Data Sources system group
         # and the requested permission, return current scope
         # Otherwise, just return the project CoCs for the CoC Codes assigned
-        all_data_sources = AccessGroup.system_access_group(:data_sources)
-        if user.roles.merge(Role.where(permission => true)).merge(AccessControl.where(access_group: all_data_sources.id)).exists?
+        all_data_sources = Collection.system_collection(:data_sources)
+        if user.roles.merge(Role.where(permission => true)).merge(AccessControl.where(collection_id: all_data_sources.id)).exists?
           current_scope
         else
           group_ids = user.collections_for_permission(permission)
           return none if group_ids.empty?
 
-          coc_codes = AccessGroup.where(id: group_ids).pluck(:coc_codes).flatten
+          coc_codes = Collection.where(id: group_ids).pluck(:coc_codes).flatten
           GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)
         end
       else

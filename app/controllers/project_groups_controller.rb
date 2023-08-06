@@ -36,6 +36,7 @@ class ProjectGroupsController < ApplicationController
         @project_group.replace_access(User.find(users), scope: :editor)
         @project_group.maintain_projects!
         AccessGroup.maintain_system_groups(group: :project_groups)
+        Collection.maintain_system_groups(group: :project_groups)
       end
     rescue Exception => e
       flash[:error] = e.message

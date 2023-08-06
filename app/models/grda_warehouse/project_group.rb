@@ -43,15 +43,16 @@ module GrdaWarehouse
     # TODO: START_ACL cleanup after migration to ACLs
     scope :editable_by, ->(user) do
       return none unless user.present?
-      return none unless ! user.using_acls? && editable_permissions.map { |perm| user.send("#{perm}?") }.any?
 
       if user.using_acls?
+        return unless editable_permissions.map { |perm| user.send("#{perm}?") }.any?
+
         ids = editable_permissions.flat_map do |perm|
           group_ids = user.collections_for_permission(perm)
           next [] if group_ids.empty?
 
           GrdaWarehouse::GroupViewableEntity.where(
-            access_group_id: group_ids,
+            collection_id: group_ids,
             entity_type: 'GrdaWarehouse::ProjectGroup',
           ).pluck(:entity_id)
         end.compact

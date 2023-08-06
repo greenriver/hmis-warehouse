@@ -7,11 +7,10 @@ RSpec.describe model, type: :model do
   end
   let!(:admin_role) { create :admin_role }
 
-  let!(:user) { create :acl_user }
+  let!(:user) { create :user }
 
   let!(:ec1) { create :hud_enrollment_coc, CoCCode: 'foo' }
   let!(:ec2) { create :hud_enrollment_coc, CoCCode: 'bar' }
-  let!(:coc_code_collection) { create :collection }
 
   user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
   ids      = ->(*ecs) { ecs.map(&:id).sort }
@@ -26,11 +25,13 @@ RSpec.describe model, type: :model do
 
       describe 'admin user' do
         before do
-          Collection.maintain_system_groups
-          setup_access_control(user, admin_role, Collection.system_collection(:data_sources))
+          user.legacy_roles << admin_role
+          AccessGroup.maintain_system_groups
+          user.access_groups = AccessGroup.all
         end
         after do
-          user.user_group_members.destroy_all
+          user.legacy_roles = []
+          user.access_groups = []
         end
         it 'sees both' do
           expect(user_ids[user]).to eq ids[ec1, ec2]
@@ -39,8 +40,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to coc foo' do
         before do
-          coc_code_collection.update(coc_codes: ['foo'])
-          setup_access_control(user, admin_role, coc_code_collection)
+          user.coc_codes = ['foo']
         end
         it 'sees ec1' do
           expect(user_ids[user]).to eq ids[ec1]

@@ -627,11 +627,11 @@ module GrdaWarehouse::Hud
       return [] unless user.present?
       return [] unless user.send("#{permission}?")
 
-      group_ids = user.collections_for_permission(permission)
-      return [] if group_ids.empty?
+      collection_ids = user.collections_for_permission(permission)
+      return [] if collection_ids.empty?
 
       GrdaWarehouse::GroupViewableEntity.where(
-        collection_id: group_ids,
+        collection_id: collection_ids,
         entity_type: 'GrdaWarehouse::Hud::Project',
       ).pluck(:entity_id)
     end
@@ -640,10 +640,10 @@ module GrdaWarehouse::Hud
       return [] unless user.present?
       return [] unless user.send("#{permission}?")
 
-      group_ids = user.collections_for_permission(permission)
-      return [] if group_ids.empty?
+      collection_ids = user.collections_for_permission(permission)
+      return [] if collection_ids.empty?
 
-      coc_codes = Collection.where(id: group_ids).pluck(:coc_codes).reject(&:blank?).flatten
+      coc_codes = Collection.where(id: collection_ids).pluck(:coc_codes).reject(&:blank?).flatten
       GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).joins(:project).pluck(p_t[:id])
     end
 
@@ -651,12 +651,12 @@ module GrdaWarehouse::Hud
       return [] unless user.present?
       return [] unless user.send("#{permission}?")
 
-      group_ids = user.collections_for_permission(permission)
-      return [] if group_ids.empty?
+      collection_ids = user.collections_for_permission(permission)
+      return [] if collection_ids.empty?
 
       entity_class.where(
         id: GrdaWarehouse::GroupViewableEntity.where(
-          collection_id: group_ids,
+          collection_id: collection_ids,
           entity_type: entity_class.sti_name,
         ).select(:entity_id),
       ).joins(:projects).pluck(p_t[:id])

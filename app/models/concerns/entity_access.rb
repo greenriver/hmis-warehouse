@@ -32,7 +32,7 @@ module EntityAccess
 
   def viewable_access_control
     @viewable_access_control ||= AccessControl.where(
-      access_group: system_entity_group,
+      collection: system_entity_group,
       role: viewable_role,
       user_group: system_viewable_user_group,
     ).first_or_create
@@ -40,7 +40,7 @@ module EntityAccess
 
   def editable_access_control
     @editable_access_control ||= AccessControl.where(
-      access_group: system_entity_group,
+      collection: system_entity_group,
       role: editable_role,
       user_group: system_editable_user_group,
     ).first_or_create
@@ -83,8 +83,8 @@ module EntityAccess
   end
 
   def users_with_access(access_type:)
-    access_group_ids = group_viewable_entities.pluck(:access_group_id)
-    return [] unless access_group_ids
+    collection_ids = group_viewable_entities.pluck(:collection_id)
+    return [] unless collection_ids
 
     permissions = case access_type
     when :view
@@ -99,8 +99,8 @@ module EntityAccess
       r_t[perm].eq(true).to_sql
     end
     User.diet.
-      joins(:roles, :access_groups).
+      joins(:roles, :collections).
       where(Arel.sql(ors.join(' or '))).
-      merge(Collection.where(id: access_group_ids)).to_a.uniq
+      merge(Collection.where(id: collection_ids)).to_a.uniq
   end
 end

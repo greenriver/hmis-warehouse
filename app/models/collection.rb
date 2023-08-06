@@ -19,7 +19,7 @@ class Collection < ApplicationRecord
   has_many :data_sources, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::DataSource'
   has_many :organizations, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Organization'
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Project'
-  has_many :project_collections, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectCollection'
+  has_many :project_access_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectAccessGroup'
   has_many :reports, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
   has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
   has_many :cohorts, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Cohort'
@@ -191,7 +191,7 @@ class Collection < ApplicationRecord
         :data_sources,
         :organizations,
         :projects,
-        :project_collections,
+        :project_access_groups,
         :reports,
         :cohorts,
         :project_groups,
@@ -269,8 +269,8 @@ class Collection < ApplicationRecord
             ds.projects.map(&:ProjectName),
           ]
         end
-      when :project_collection
-        project_collections.preload(:projects).map do |pag|
+      when :project_access_group
+        project_access_groups.preload(:projects).map do |pag|
           [
             pag.name,
             pag.projects.map(&:ProjectName),
@@ -308,7 +308,7 @@ class Collection < ApplicationRecord
       data_sources: 'GrdaWarehouse::DataSource',
       organizations: 'GrdaWarehouse::Hud::Organization',
       projects: 'GrdaWarehouse::Hud::Project',
-      project_collections: 'GrdaWarehouse::ProjectCollection',
+      project_access_groups: 'GrdaWarehouse::ProjectAccessGroup',
       reports: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
       project_groups: 'GrdaWarehouse::ProjectGroup',
       cohorts: 'GrdaWarehouse::Cohort',
