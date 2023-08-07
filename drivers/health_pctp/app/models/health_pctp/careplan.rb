@@ -331,5 +331,9 @@ module HealthPctp
         'If the client is seeking substance use and/or dual-diagnosis treatment such as inpatient detox, residential treatment or partial hospitalization or day ' +
         'program, client will contact PAATHS for assistance.'
     end
+
+    def careplan_logo
+      @careplan_logo ||= GrdaWarehouse::PublicFile.find_by(name: 'patient/careplan_logo')&.content
+    end
   end
 end
