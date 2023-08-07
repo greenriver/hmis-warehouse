@@ -7755,8 +7755,8 @@ CREATE TABLE public.financial_clients (
     zip_code character varying,
     service_provder_company character varying,
     head_of_household integer,
-    was_the_client_screened_for_homelessness integer,
-    do_you_have_a_voucher integer,
+    deleted_was_the_client_screened_for_homelessness integer,
+    does_the_client_have_a_tenant_based_housing_voucher integer,
     if_yes_what_pha_issued_the_voucher character varying,
     if_yes_what_type_of_voucher_was_issued character varying,
     voucher_type_other character varying,
@@ -7779,8 +7779,8 @@ CREATE TABLE public.financial_clients (
     dv_survivor integer,
     most_recent_living_situation character varying,
     most_recent_living_situation_other character varying,
-    housed_date timestamp without time zone,
-    are_rental_arrears_owed integer,
+    date_of_referral_to_wit timestamp without time zone,
+    delete_are_rental_arrears_owed integer,
     rent_owed_rental_arrears numeric,
     total_time_housed integer,
     hmis_id_if_applicable character varying,
@@ -7788,7 +7788,9 @@ CREATE TABLE public.financial_clients (
     housed_after_24_months integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    was_the_client_screened_for_homelessness character varying,
+    are_rental_arrears_owed character varying
 );
 
 
@@ -15448,9 +15450,9 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT concat("Enrollment"."HouseholdID", max(("Enrollment"."ProjectID")::text), max("Enrollment".data_source_id)) AS id,
+ SELECT concat("Enrollment"."HouseholdID", ':', max(("Project"."ProjectID")::text), ':', max("Enrollment".data_source_id)) AS id,
     "Enrollment"."HouseholdID",
-    max(("Enrollment"."ProjectID")::text) AS "ProjectID",
+    max(("Project"."ProjectID")::text) AS "ProjectID",
     max("Enrollment".data_source_id) AS data_source_id,
     min("Enrollment"."EntryDate") AS earliest_entry,
         CASE
@@ -15461,10 +15463,12 @@ CREATE VIEW public.hmis_households AS
     NULL::text AS "DateDeleted",
     max("Enrollment"."DateUpdated") AS "DateUpdated",
     min("Enrollment"."DateCreated") AS "DateCreated"
-   FROM (public."Enrollment"
+   FROM (((public."Enrollment"
      LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+     LEFT JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project"."DateDeleted" IS NULL) AND (("Project".id = hmis_wips.project_id) OR (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text)))))
   WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
-  GROUP BY "Enrollment"."HouseholdID", "Enrollment"."ProjectID", "Enrollment".data_source_id;
+  GROUP BY "Enrollment"."HouseholdID", "Project"."ProjectID", "Enrollment".data_source_id;
 
 
 --
@@ -54092,6 +54096,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230724145057'),
 ('20230725160948'),
 ('20230725163336'),
-('20230728140151');
+('20230726180446'),
+('20230728140151'),
+('20230804124734');
 
 
