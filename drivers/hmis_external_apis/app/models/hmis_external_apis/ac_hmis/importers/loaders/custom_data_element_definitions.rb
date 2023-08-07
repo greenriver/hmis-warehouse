@@ -15,7 +15,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def find_or_create(owner_type:, key:)
       config = configs.detect { |i| owner_type == i.fetch(:owner_type) && key.to_sym == i.fetch(:key) }
-      raise unless config
+      raise "CDE definition not found #{config.inspect}" unless config
 
       Hmis::Hud::CustomDataElementDefinition
         .where(config.merge(data_source_id: data_source_id))
@@ -43,16 +43,16 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :esg_allowance_grant_reason_not_referred, label: 'ESG Allowance Grant Reason Not Referred' },
 
         # Enrollment: reason_for_exit_type
-        { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :reason_for_exit_type, label: 'Voluntary Exit or an Involuntary Termination' },
+        { owner_type: 'Hmis::Hud::Exit', field_type: :string, key: :reason_for_exit_type, label: 'Voluntary Exit or an Involuntary Termination' },
 
         # Enrollment: reason_for_exit_voluntary
-        { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :reason_for_exit_voluntary, label: 'Voluntary Exit Reason' },
+        { owner_type: 'Hmis::Hud::Exit', field_type: :string, key: :reason_for_exit_voluntary, label: 'Voluntary Exit Reason' },
 
         # Enrollment: reason_for_exit_involuntary
-        { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :reason_for_exit_involuntary, label: 'Involuntary Termination Reason' },
+        { owner_type: 'Hmis::Hud::Exit', field_type: :string, key: :reason_for_exit_involuntary, label: 'Involuntary Termination Reason' },
 
         # Enrollment: reason_for_exit_other
-        { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :reason_for_exit_other, label: 'Other Exit Reason' },
+        { owner_type: 'Hmis::Hud::Exit', field_type: :string, key: :reason_for_exit_other, label: 'Other Exit Reason' },
 
         # IncomeBenefit: federal_poverty_level
         { owner_type: 'Hmis::Hud::IncomeBenefit', field_type: :string, key: :federal_poverty_level, label: 'Federal Poverty Level' },

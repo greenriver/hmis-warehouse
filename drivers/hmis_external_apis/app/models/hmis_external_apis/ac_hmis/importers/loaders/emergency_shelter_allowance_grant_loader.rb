@@ -35,10 +35,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             value: row_value(row, field: 'REASONNOTREFERRED'),
             definition_key: :esg_allowance_grant_reason_not_referred,
           ),
-        ].compact_blank.each do |record|
-          # finalize record attributes
-          record[:owner_id] = owner_id
-        end
+        ].compact_blank.each { |r| r[:owner_id] = owner_id }
       end
     end
 
