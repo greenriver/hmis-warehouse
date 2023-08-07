@@ -213,7 +213,7 @@ module Health
     end
 
     def current_goals_list
-      hpc
+      hpc_goals
     end
 
     # if the care plan has been signed, return the health file id associated with the most
