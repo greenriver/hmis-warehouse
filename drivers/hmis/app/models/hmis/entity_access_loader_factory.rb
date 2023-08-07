@@ -59,7 +59,7 @@ class Hmis::EntityAccessLoaderFactory
       [loader.new(@user), entity]
     else
       # recurse
-      resolve_association(entity, safety: safety + 1, &block)
+      resolve_association(entity, safety: safety, &block)
     end
   end
 
