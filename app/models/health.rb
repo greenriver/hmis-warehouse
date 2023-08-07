@@ -30,6 +30,7 @@ module Health
       'SSM.csv' => Health::EpicSsm,
       'QA_enc.csv' => Health::EpicCaseNoteQualifyingActivity,
       'covid_vaccine.csv' => Health::Vaccination,
+      'thrive.csv' => Health::EpicThrive,
     }.freeze
   end
 end

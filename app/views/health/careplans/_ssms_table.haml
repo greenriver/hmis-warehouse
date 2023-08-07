@@ -1,4 +1,4 @@
-- if @patient&.ssms&.any?
+- if @patient&.ssms&.any? || @patient&.thrive_assessments&.any?
   %table.table.table-sm.datatable-ssm
     %thead
       %tr
@@ -6,6 +6,13 @@
         %th Date Completed
         %th Case Manager
     %tbody
+      - @patient&.thrive_assessments&.each do |assessment|
+        %tr
+          %td
+            = link_to client_health_thrive_assessment_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true } do
+              %h4.mb-0.mt-0 THRIVE
+          %td= assessment.completed_on || 'in progress'
+          %td= assessment&.user&.name
       - @patient&.ssms&.each do |form|
         %tr
           - if form.is_a? Health::SelfSufficiencyMatrixForm
@@ -28,4 +35,4 @@
             %td= form.staff
 
 - else
-  %p.no-data No Self-Sufficiency Assessment on file
+  %p.no-data No HRSNs on file
