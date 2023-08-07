@@ -66,6 +66,7 @@ module Health
     end
 
     def destroy
+      @patient.ca_assessments.find_by(instrument: @cha)&.destroy
       @cha.destroy
       respond_with @cha, location: polymorphic_path(careplans_path_generator)
     end

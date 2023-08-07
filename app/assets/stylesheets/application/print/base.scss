@@ -32,4 +32,142 @@
     padding-bottom: 0;
   }
 
+  h1.ca-print__header {
+    font-size: 12px;
+    font-family: sans-serif;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    color: #091F2F;
+    text-transform: none;
+  }
+
+  .ca-print__section {
+    h1 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #454545;
+      border-bottom: 2px solid #E7E7E7;
+      text-transform: none;
+      padding: 10px 0px;
+      margin-bottom: 10px;
+      font-family: sans-serif;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: bold;
+      color: #454545;
+      border-bottom: 2px solid #E7E7E7;
+      padding: 10px 0px;
+      margin-bottom: 10px;
+      font-family: sans-serif;
+    }
+    h2.nb {
+      border-bottom: none;
+    }
+    h3 {
+      font-size: 14px;
+      font-weight: bold;
+      color: #454545;
+      color: #000;
+      font-family: sans-serif;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 14px;
+      color: #000;
+      font-family: sans-serif;
+    }
+    ul{
+      margin-left: 0px;
+      padding-left: 0px;
+      padding: 10px 0px
+    }
+    li {
+      list-style-type: none;
+      padding-left: 10px;
+      margin-bottom: 16px;
+    }
+  }
+
+  .l-print.coverSheet.ca-print__section {
+    h1 {
+      font-size: 24px;
+      border-bottom: none;
+      text-align: center;
+    }
+    p {
+      font-size: 17px;
+    }
+  }
+
+  .pctc-print__detail-label {
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .pctc-print__detail-value {
+    font-size: 12px;
+  }
+
+  .pctc-print__signature-line {
+    width: 350px;
+    border-bottom: 1px solid #000;
+    height: 1px;
+  }
+
+
+  .pctc-print__table {
+    page-break-inside: avoid;
+    table {
+      width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+      font-size: 12px;
+    }
+    th {
+      font-weight: bold;
+      span.hint {
+        font-size: 12px;
+        font-weight: normal;
+      }
+    }
+
+    &.breakable {
+      page-break-inside: auto;
+    }
+    &.top th,
+    &.top td {
+      vertical-align: top;
+    }
+
+    &.pctc-print__table-no-end {
+      page-break-after: always;
+      table tbody td,
+      table tbody th {
+        border-bottom: none;
+      }
+    }
+    
+    th.pctc-print__table-title {
+      border-bottom: 2px solid #E7E7E7;
+      font-weight: bold;
+      font-size: 20px;
+      padding: 4px 0px;
+      color: #454545;
+    }
+
+    tr.pctc-print__table-header {
+      th, td {
+        background-color: #EEE;
+      }
+    }
+    tr.pctc-print__table-subheader {
+      th, td {
+        background-color: rgba(238, 238, 238, 0.50);
+      }
+    }
+  }
+
 }

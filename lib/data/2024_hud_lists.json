@@ -3296,7 +3296,7 @@
     ]
   },
   {
-    "name": "VamcsStationNumber",
+    "name": "VamcStationNumber",
     "code": "V6.1",
     "values": [
       {
@@ -3869,7 +3869,7 @@
       },
       {
         "key": 99,
-        "description": "not collected"
+        "description": "Data not collected"
       }
     ]
   },

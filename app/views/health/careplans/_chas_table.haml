@@ -1,4 +1,4 @@
-- if @patient.chas.any?
+- if @patient.ca_assessments.any?
   %table.table.table-sm.datatable-ssm
     %thead
       %tr
@@ -6,6 +6,19 @@
         %th Status
         %th Completed By
     %tbody
+      - @patient&.comprehensive_assessments&.each do |assessment|
+        %tr
+          %td
+            = link_to client_health_comprehensive_assessment_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true } do
+              %h4.mb-0.mt-0 CA
+          %td
+            - if assessment.reviewed_on.present?
+              = "Reviewed on #{assessment.reviewed_on.to_date}"
+            - elsif assessment.completed_on.present?
+              = "Completed on #{assessment.completed_on.to_date}"
+            - else
+              In Progress
+          %td= assessment&.user&.name
       - @patient.chas.each do |form|
         - if form.is_a? Health::ComprehensiveHealthAssessment
           %tr
@@ -31,4 +44,4 @@
                 = "Reviewed by #{form.reviewer_name}"
             %td= form&.staff
 - else
-  %p.no-data No Comprehensive Health Assessment on file
+  %p.no-data No CAs on file

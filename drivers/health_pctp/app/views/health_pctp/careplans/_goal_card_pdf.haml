@@ -1,0 +1,46 @@
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: 6} Goal
+    %tbody
+      %tr
+        %th Domain
+        %td{colspan: 5}= goal.domain_responses.invert[goal.domain]
+      %tr
+        %th Goal
+        %td{colspan: 5}= goal.goal
+      %tr
+        %th Status
+        %td{colspan: 5}= goal.status_responses.invert[goal.status]
+      %tr
+        %th Estimated Completion Date
+        %td= goal.estimated_completion_date
+        %th Start Date
+        %td= goal.start_date
+        %th End Date
+        %td= goal.end_date
+      %tr
+        %th Barriers
+        %td{colspan: 5}= goal.barriers
+      %tr
+        %th Plan for Follow-up
+        %td{colspan: 5}= goal.followup
+      %tr
+        %th Comments
+        %td{colspan: 5}= goal.comments
+      %tr
+        %th Source of Identification
+        %td{colspan: 2}= goal.source_responses.invert[goal.source]
+        %th Priority
+        %td{colspan: 2}= goal.priority_responses.invert[goal.priority]
+      %tr
+        %th Plans/Interventions
+        %td{colspan: 5}= goal.plan
+        %tr
+          %th Responsible Party
+          %td= goal.responsible_party
+          %th Times
+          %td= goal.times
+          %th Interval
+          %td= goal.interval

@@ -1103,6 +1103,16 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:inactive_client_report)
+        r_list['Operational'] << {
+          url: 'inactive_client_report/warehouse_reports/reports',
+          name: _('Client Activity Report'),
+          description: 'Identify clients who are enrolled but have not had recent contact with the homeless side of HMIS.',
+          limitable: true,
+          health: false,
+        }
+      end
+
       if RailsDrivers.loaded.include?(:public_reports)
         # Only attempt this if the driver is loaded, and only install the reports
         # if the bucket can be setup correctly
@@ -1420,6 +1430,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'ma_reports/warehouse_reports/monthly_project_utilizations' unless RailsDrivers.loaded.include?(:ma_reports)
       cleanup << 'system_pathways/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:system_pathways)
       cleanup << 'client_documents_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:client_documents_report)
+      cleanup << 'inactive_client_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:inactive_client_report)
       cleanup << 'all_neighbors_system_dashboard/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:all_neighbors_system_dashboard)
 
       cleanup.each do |url|
