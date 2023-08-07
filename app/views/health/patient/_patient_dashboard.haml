@@ -9,25 +9,6 @@
         %section#ed_ip_visits.jEdIpVists{data: {path: client_health_ed_ip_visits_path(@client.to_param, format: :json)}}
           %h2 ED & IP Visits
           .jEdIpVisitChart.opaque-area-chart
-  .row
-    .col-sm-12
-      .ss-matrix__container
-        .clearfix
-          %h4 Self Sufficiency Scores
-          .d3-ss__legend.pull-right.clearfix
-        - if @client.health_self_sufficiency_scores.any?
-          .d3-ss__labels
-            %p.text-right 0 = no response
-            .clearfix
-              .pull-left ← Less Sufficient
-              .pull-right More Sufficient →
-          .d3-ss-matrix__chart
-          .d3-ss__labels
-            .clearfix
-              .pull-left ← Less Sufficient
-              .pull-right More Sufficient →
-        - else
-          %p None on file
 
 - content_for :page_js do
   :javascript
@@ -41,7 +22,4 @@
         viewBoxSizing: true
       }
       var pc = new App.D3Chart.PatientCharts([hsChart])
-      var ssData = #{@client.health_self_sufficiency_scores.to_json.html_safe}
-      var chart = new App.D3Chart.SelfSufficiencyScores('.d3-ss-matrix__chart', '.d3-ss__legend', {top: 20, right: 10, bottom: 20, left: 150}, ssData);
-      chart.draw();
     })

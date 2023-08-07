@@ -1,0 +1,27 @@
+= render 'field_section', f: f, fields: @assessment.advanced_directive_responses
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jHasAdvancedDirective').change(function() {
+        if(this.value == 'yes') {
+          $('.jYesDirective').slideDown();
+          $('.jNoDirective').slideUp();
+        }
+        if(this.value == 'no') {
+          $('.jNoDirective').slideDown();
+          $('.jYesDirective').slideUp();
+        }
+      });
+
+      $('.jHasAdvancedDirective').each(function() {
+        if(this.value == 'yes') {
+          $('.jNoDirective').hide();
+        } else if(this.value == 'no') {
+          $('.jYesDirective').hide();
+        } else {
+          $('.jYesDirective').hide();
+          $('.jNoDirective').hide();
+        }
+      });
+    });
