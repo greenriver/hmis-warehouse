@@ -525,10 +525,10 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility.address_data_qualities
   end
 
-  class VamcsStationNumber < Types::BaseEnum
+  class VamcStationNumber < Types::BaseEnum
     description 'V6.1'
-    graphql_name 'VamcsStationNumber'
-    hud_enum HudUtility.vamcs_station_numbers
+    graphql_name 'VamcStationNumber'
+    hud_enum HudUtility.vamc_station_numbers
   end
 
   class NoPointsYes < Types::BaseEnum
