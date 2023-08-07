@@ -1,0 +1,13 @@
+.jNeed
+  .row
+    .col-3
+      = f.input :domain, as: :grouped_select_two, collection: @need.domain_responses, group_method: :last, label: 'Domain'
+    .col-3
+      = f.input :start_date, as: :date_picker
+    .col-3
+      = f.input :end_date, as: :date_picker
+    .col-3
+      = f.input :status, as: :select_two, collection: @need.status_responses
+  .row
+    .col
+      = f.input :need_or_condition, as: :text, label: "Identified need or condition"

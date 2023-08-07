@@ -1,0 +1,9 @@
+<% if @need.errors.any? %>
+  $('.jNeed').replaceWith("<%=j render 'new' %>")
+  $('.jNeed .alert.alert-danger').remove()
+  $('.jNeed').prepend('<div class="alert alert-danger"><%= @need.errors.full_messages.join(', ') %></div>')
+<% else %>
+  html = "<%= j render 'health_pctp/careplans/needs' %>"
+  $('.modal:visible .close').trigger('click')
+  $('.jNeeds').replaceWith(html)
+<% end %>

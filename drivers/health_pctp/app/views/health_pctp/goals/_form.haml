@@ -1,0 +1,38 @@
+.jGoal
+  .row
+    .col
+      = f.input :domain, as: :select_two, collection: @goal.domain_responses
+    .col
+      = f.input :goal, as: :text
+    .col
+      = f.input :status, as: :select_two, collection: @goal.status_responses
+  .row
+    .col
+      = f.input :estimated_completion_date, as: :date_picker
+    .col
+      = f.input :start_date, as: :date_picker
+    .col
+      = f.input :end_date, as: :date_picker
+  .row
+    .col
+      = f.input :barriers
+    .col
+      = f.input :followup, as: :text, label: 'Plan for Follow-up'
+    .col
+      = f.input :comments, as: :text
+  .row
+    .col
+      = f.input :source, as: :select_two, collection: @goal.source_responses, label: 'Source of Identification'
+    .col
+      = f.input :priority, as: :select_two, collection: @goal.priority_responses, label: 'Level of priority according to Enrollee'
+  .row
+    .col
+      %h4 Interventions
+      = f.input :plan, as: :text, label: 'Plans/Interventions'
+  .row
+    .col
+      = f.input :responsible_party
+    .col
+      = f.input :times
+    .col
+      = f.input :interval, placeholder: '(ie., daily, weekly, monthly)'

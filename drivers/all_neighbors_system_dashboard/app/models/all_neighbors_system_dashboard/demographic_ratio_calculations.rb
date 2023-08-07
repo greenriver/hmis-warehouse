@@ -72,7 +72,7 @@ module AllNeighborsSystemDashboard
       def project_category(project_type)
         case project_type
         when 14
-          _('Neighbors Dashboard Coordinated Entry')          
+          _('Neighbors Dashboard Coordinated Entry')
         else
           'Homeless'
         end

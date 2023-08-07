@@ -49,6 +49,7 @@ module Health
     end
 
     def destroy
+      @patient.hrsn_screenings.find_by(instrument: @form)&.destroy
       @form.destroy!
       redirect_to polymorphic_path(careplans_path_generator)
     end
