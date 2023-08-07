@@ -7,7 +7,7 @@
 module Admin::AccessControls
   class UsersController < ApplicationController
     include ActionView::Helpers::TextHelper
-    before_action :require_can_edit_access_groups!
+    before_action :require_can_edit_collections!
     before_action :set_access_control_list
 
     def create

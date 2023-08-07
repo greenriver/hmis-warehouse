@@ -52,12 +52,15 @@
               = link_to user_permission_report_warehouse_reports_user_path(user), data: {loads_in_pjax_modal: true}, class: 'btn btn-xs btn-primary btn-muted btn-hmis' do
                 View Details
             %td
-              - if user.roles.count == Role.count
-                All Roles
+              - if user.using_acls?
+                TODO
               - else
-                %ul
-                  - user.roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.uniq.each do |i|
-                    %li= i
+                - if user.legacy_roles.count == Role.count
+                  All Roles
+                - else
+                  %ul
+                    - user.legacy_roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.uniq.each do |i|
+                      %li= i
             %td
               - if user.collections.general.count == Collection.general.count
                 All Collections

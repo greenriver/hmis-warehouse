@@ -53,8 +53,13 @@
                   %em
                     = link_to 'Agency not assigned!', edit_admin_user_path(id: user), class: 'text-danger'
             %td
-              - user.roles.uniq.each do |r|
-                .mb-1= r.name
+              -# TODO: START_ACL cleanup after ACL transition
+              - if user.using_acls?
+                - user.roles.uniq.each do |r|
+                  .mb-1= r.name
+              - else
+                - user.legacy_roles.uniq.each do |r|
+                  .mb-1= r.name
             %td
               -# TODO: START_ACL cleanup after ACL transition
               - names = user.access_groups.general.map(&:name)

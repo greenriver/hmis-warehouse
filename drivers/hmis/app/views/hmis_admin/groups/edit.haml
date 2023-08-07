@@ -1,9 +1,9 @@
-- title = "Edit Group #{@group.name}"
+- title = "Edit Collection #{@group.name}"
 - content_for :title, title
 
 = content_for :crumbs do
   = link_to hmis_admin_groups_path do
-    &laquo; Manage Groups
+    &laquo; Manage Collections
 
 .o-page
   .o-page__title
@@ -14,4 +14,4 @@
   .form-inputs.mt-4
     = render 'form', f: f
   .form_actions.mt-4
-    = f.button :submit, value: 'Update Group'
+    = f.button :submit, value: 'Update Collection'

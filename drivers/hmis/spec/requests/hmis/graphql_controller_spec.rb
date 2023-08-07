@@ -40,7 +40,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
-    hmis_login(hmis_user)
+    hmis_login(user)
   end
 
   describe 'Projects query' do

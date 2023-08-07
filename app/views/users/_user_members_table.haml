@@ -1,4 +1,7 @@
-- user_ids = item.users.active.distinct.pluck(:id)
+- user_ids = if defined?(users_lambda)
+  - users_lambda.call(item)
+- else
+  - item.users.active.distinct.pluck(:id)
 - user_count = user_ids.count
 - if user_count.zero?
   .mt-6

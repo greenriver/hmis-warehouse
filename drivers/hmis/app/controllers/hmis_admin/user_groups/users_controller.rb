@@ -4,11 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisAdmin::AccessControls
+module HmisAdmin::UserGroups
   class UsersController < ApplicationController
     include ActionView::Helpers::TextHelper
-    before_action :require_can_edit_access_groups!
-    before_action :set_access_control_list
+    include EnforceHmisEnabled
+
+    before_action :require_hmis_admin_access!
+    before_action :set_user_group
 
     def create
       # add any users passed through to the Access Control List
@@ -16,22 +18,22 @@ module HmisAdmin::AccessControls
       users = Hmis::User.where(id: user_ids)
       return unless users.any?
 
-      @access_control.add(users)
+      @user_group.add(users)
       flash[:notice] = "#{pluralize(users.count, 'user')} added"
-      redirect_to edit_hmis_admin_access_control_path(@access_control)
+      redirect_to edit_hmis_admin_access_control_path(@user_group)
     end
 
     def destroy
       users = Hmis::User.where(id: params[:id].to_i)
       return unless users.any?
 
-      @access_control.remove(users)
+      @user_group.remove(users)
       flash[:notice] = "#{users.first.name} removed"
-      redirect_to edit_hmis_admin_access_control_path(@access_control)
+      redirect_to edit_hmis_admin_user_group_path(@user_group)
     end
 
-    private def set_access_control_list
-      @access_control = Hmis::AccessControl.find(params[:access_control_id].to_i)
+    private def set_user_group
+      @user_group = Hmis::UserGroup.find(params[:user_group_id].to_i)
     end
 
     private def clean_params

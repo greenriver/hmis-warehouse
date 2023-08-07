@@ -58,13 +58,13 @@ module Admin
 
     private def viewable_params
       params.require(:collection).permit(
-        # FIXME: do we need something for CoC Codes here?
         data_sources: [],
         organizations: [],
         projects: [],
-        project_collections: [],
+        project_access_groups: [],
         reports: [],
         cohorts: [],
+        project_groups: [],
       )
     end
 
@@ -87,14 +87,12 @@ module Admin
 
       @organizations = {
         as: :grouped_select,
-        collection_method: :last,
+        group_method: :last,
         selected: @collection&.organizations&.map(&:id) || [],
-        collection: [],
-        # FIXME
-        # GrdaWarehouse::Hud::Organization.
-        #   order(:name).
-        #   preload(:data_source).
-        #   group_by { |o| o.data_source&.name },
+        collection: GrdaWarehouse::Hud::Organization.
+          order(:name).
+          preload(:data_source).
+          group_by { |o| o.data_source&.name },
         label_method: ->(organization) { organization.name(ignore_confidential_status: true) },
         placeholder: 'Organization',
         multiple: true,
@@ -106,14 +104,12 @@ module Admin
 
       @projects = {
         as: :grouped_select,
-        collection_method: :last,
+        group_method: :last,
         selected: @collection&.projects&.map(&:id) || [],
-        collection: [],
-        # FIXME
-        # GrdaWarehouse::Hud::Project.
-        #   order(:name).
-        #   preload(:organization, :data_source).
-        #   group_by { |p| "#{p.data_source&.name} / #{p.organization&.name(ignore_confidential_status: true)}" },
+        collection: GrdaWarehouse::Hud::Project.
+          order(:name).
+          preload(:organization, :data_source).
+          group_by { |p| "#{p.data_source&.name} / #{p.organization&.name(ignore_confidential_status: true)}" },
         label_method: ->(project) { project.name(ignore_confidential_status: true) },
         placeholder: 'Project',
         multiple: true,

@@ -10,8 +10,8 @@ class Hmis::AccessControl < ApplicationRecord
 
   belongs_to :access_group, class_name: '::Hmis::AccessGroup'
   belongs_to :role, class_name: 'Hmis::Role'
-  has_many :user_group_members, class_name: '::Hmis::UserAccessControl', inverse_of: :access_control
-  has_many :users, through: :user_group_members
+  belongs_to :user_group, class_name: '::Hmis::UserGroup', required: false
+  has_many :users, through: :user_group
 
   def add(users)
     Array.wrap(users).uniq.each do |user|

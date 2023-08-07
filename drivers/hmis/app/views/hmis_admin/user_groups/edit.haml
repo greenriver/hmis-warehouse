@@ -1,0 +1,17 @@
+- title = "Edit Group #{@user_group.name}"
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to hmis_admin_user_groups_path do
+    &laquo; Manage User Groups
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+
+= simple_form_for @user_group, as: :user_group, url: hmis_admin_user_group_path do |f|
+  = f.error_notification
+  .form-inputs.mt-4
+    = render 'form', f: f
+  .form_actions.mt-4
+    = f.button :submit, value: 'Update User Group'

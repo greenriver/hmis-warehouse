@@ -22,8 +22,8 @@
                 = link_to edit_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
                   %span.icon-pencil
                   Edit Access Control List
-                - unless acl.users.count.positive?
-                  = link_to admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control for collection '#{acl.collection.name}', role '#{acl.role.name}', and user group #{acl.user_group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
-                    %span.icon-cross
-                    Delete
+
+                = link_to admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control for collection '#{acl.collection.name}', role '#{acl.role.name}', and user group #{acl.user_group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
+                  %span.icon-cross
+                  Delete
 = render 'common/pagination_bottom', item_name: 'access control'

@@ -38,9 +38,10 @@ BostonHmis::Application.routes.draw do
     namespace :hmis_admin do
       resources :roles
       resources :groups
-      resources :access_controls do
-        resources :users, only: [:create, :destroy], controller: 'access_controls/users'
+      resources :user_groups do
+        resources :users, only: [:create, :destroy], controller: 'user_groups/users'
       end
+      resources :access_controls
     end
   end
 end

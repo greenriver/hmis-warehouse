@@ -73,7 +73,7 @@ module Admin
         return
       end
 
-      existing_health_roles = @user.roles.health.to_a # TODO: START_ACL remove when ACL transition complete
+      existing_health_roles = @user.health_roles.to_a # TODO: START_ACL remove when ACL transition complete
       begin
         User.transaction do
           @user.skip_reconfirmation!

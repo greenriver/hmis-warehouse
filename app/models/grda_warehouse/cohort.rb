@@ -28,11 +28,14 @@ module GrdaWarehouse
     belongs_to :tags, class_name: 'CasAccess::Tag', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
 
+    # FIXME: this isn't correct yet to support both versions of access
     has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::Cohort') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
     # NOTE: these are in the app DB
     has_many :access_groups, through: :group_viewable_entities
+    has_many :collections, through: :group_viewable_entities
     has_many :access_controls, through: :access_groups
     has_many :users, through: :access_controls
+    # END FIXME
 
     attr_accessor :client_ids, :participator_ids, :viewer_ids, :user_ids # TODO: START_ACL remove :user_ids after permission migration is complete
 
