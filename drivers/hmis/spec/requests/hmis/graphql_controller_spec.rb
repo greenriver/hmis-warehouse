@@ -30,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   # FIXME: this isn't correct
   # authenticate_hmis_user! is failing
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_edit_project_details, :can_view_clients, :can_view_dob, :can_view_enrollment_details]) }
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
 
   before(:all) do
     cleanup_test_environment

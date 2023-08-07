@@ -13,8 +13,8 @@ class Admin::AccessControlsController < ApplicationController
 
   def index
     @access_controls = access_control_scope.
-      joins(:role, :access_group).
-      order(r_t[:name].asc, ag_t[:name].asc).
+      joins(:role, :collection).
+      order(r_t[:name].asc, collection_t[:name].asc).
       filtered(params[:filter])
     @pagy, @access_controls = pagy(@access_controls)
   end
@@ -37,7 +37,7 @@ class Admin::AccessControlsController < ApplicationController
     @access_control.update(access_control_params)
     @access_control.save
 
-    respond_with(@access_control, location: admin_access_control_path)
+    respond_with(@access_control, location: admin_access_controls_path)
   end
 
   def destroy

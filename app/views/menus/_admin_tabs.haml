@@ -7,7 +7,7 @@
     - if can_edit_roles?
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_roles_path))}
         = link_to 'Roles', admin_roles_path, class: 'nav-link'
-    - if can_edit_access_groups?
+    - if can_edit_collections?
       -# TODO: START_ACL remove after acl transition
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_groups_path))}
         = link_to 'Groups', admin_groups_path, class: 'nav-link'

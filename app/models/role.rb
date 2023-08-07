@@ -97,7 +97,7 @@ class Role < ApplicationRecord
       :can_edit_users,
       :can_manage_config,
       :can_manage_sessions,
-      :can_edit_access_groups,
+      :can_edit_collections,
     ]
   end
 
@@ -228,7 +228,7 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
-      can_edit_access_groups: {
+      can_edit_collections: {
         description: 'Ability to add and remove groups and assign entities to all groups',
         administrative: true,
         categories: [

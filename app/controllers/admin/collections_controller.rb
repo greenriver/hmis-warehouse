@@ -44,7 +44,7 @@ module Admin
     end
 
     private def collection_scope
-      AccessCollection.general
+      Collection.general
     end
 
     private def collection_params
@@ -89,10 +89,12 @@ module Admin
         as: :grouped_select,
         collection_method: :last,
         selected: @collection&.organizations&.map(&:id) || [],
-        collection: GrdaWarehouse::Hud::Organization.
-          order(:name).
-          preload(:data_source).
-          collection_by { |o| o.data_source&.name },
+        collection: [],
+        # FIXME
+        # GrdaWarehouse::Hud::Organization.
+        #   order(:name).
+        #   preload(:data_source).
+        #   group_by { |o| o.data_source&.name },
         label_method: ->(organization) { organization.name(ignore_confidential_status: true) },
         placeholder: 'Organization',
         multiple: true,
@@ -106,10 +108,12 @@ module Admin
         as: :grouped_select,
         collection_method: :last,
         selected: @collection&.projects&.map(&:id) || [],
-        collection: GrdaWarehouse::Hud::Project.
-          order(:name).
-          preload(:organization, :data_source).
-          collection_by { |p| "#{p.data_source&.name} / #{p.organization&.name(ignore_confidential_status: true)}" },
+        collection: [],
+        # FIXME
+        # GrdaWarehouse::Hud::Project.
+        #   order(:name).
+        #   preload(:organization, :data_source).
+        #   group_by { |p| "#{p.data_source&.name} / #{p.organization&.name(ignore_confidential_status: true)}" },
         label_method: ->(project) { project.name(ignore_confidential_status: true) },
         placeholder: 'Project',
         multiple: true,
@@ -119,17 +123,17 @@ module Admin
         },
       }
 
-      @project_collections = {
-        selected: @collection&.project_collections&.map(&:id) || [],
-        collection: GrdaWarehouse::ProjectAccessCollection.
+      @project_access_groups = {
+        selected: @collection&.project_access_groups&.map(&:id) || [],
+        collection: GrdaWarehouse::ProjectAccessGroup.
           order(:name).
           pluck(:name, :id),
-        id: :project_collections,
-        placeholder: 'Project Collection',
+        id: :project_access_groups,
+        placeholder: 'Project Group',
         multiple: true,
         input_html: {
-          class: 'jUserViewable jProjectAccessCollections',
-          name: 'collection[project_collections][]',
+          class: 'jUserViewable jProjectAccessGroups',
+          name: 'collection[project_access_groups][]',
         },
       }
 
@@ -149,8 +153,8 @@ module Admin
       @reports = {
         selected: @collection&.reports&.map(&:id) | [],
         collection: reports_scope.
-          order(:report_collection, :name).map do |rd|
-            ["#{rd.report_collection}: #{rd.name}", rd.id]
+          order(:report_group, :name).map do |rd|
+            ["#{rd.report_group}: #{rd.name}", rd.id]
           end,
         placeholder: 'Report',
         multiple: true,
@@ -166,16 +170,16 @@ module Admin
         },
       }
 
-      @project_collections = {
-        selected: @collection&.project_collections&.map(&:id) || [],
-        collection: GrdaWarehouse::ProjectCollection.
+      @project_groups = {
+        selected: @collection&.project_groups&.map(&:id) || [],
+        collection: GrdaWarehouse::ProjectGroup.
           order(:name).
           pluck(:name, :id),
-        placeholder: 'Project Collection',
+        placeholder: 'Project Group',
         multiple: true,
         input_html: {
           class: 'jUserViewable jProjectCollections',
-          name: 'collection[project_collections][]',
+          name: 'collection[project_groups][]',
         },
       }
 
