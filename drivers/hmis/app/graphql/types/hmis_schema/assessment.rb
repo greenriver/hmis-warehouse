@@ -65,7 +65,7 @@ module Types
       # TODO: check if form is retired? For non-WIP assessments, we should
       # really be choosing the "latest" form, which may not be the one on the FormProcessor.
       form_processor = load_ar_association(object, :form_processor)
-      definition = load_ar_association(form_processor, :definition)
+      definition = load_ar_association(form_processor, :definition) if form_processor
       definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project)
       definition.filter_context = { project: project }
       definition

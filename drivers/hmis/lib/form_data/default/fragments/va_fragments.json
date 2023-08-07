@@ -24,7 +24,7 @@
           "link_id": "V6.1",
           "required": false,
           "text": "VAMC Station Number",
-          "pick_list_reference": "VAMC_STATION",
+          "pick_list_reference": "VamcStationNumber",
           "mapping": { "record_type": "ENROLLMENT", "field_name": "VAMCStation" }
         },
 

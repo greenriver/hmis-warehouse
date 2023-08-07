@@ -1600,7 +1600,7 @@ module Concerns::HudLists2024
     end
 
     # V6.1
-    def vamcs_station_numbers
+    def vamc_station_numbers
       {
         402 => '(402) Togus, ME',
         405 => '(405) White River Junction, VT',
@@ -1744,12 +1744,12 @@ module Concerns::HudLists2024
         '636A8' => '(636A8) Iowa City, IA',
         '657A4' => '(657A4) Poplar Bluff, MO',
         '657A5' => '(657A5) Marion, IL',
-        99 => 'not collected',
+        99 => 'Data not collected',
       }.freeze
     end
 
-    def vamcs_station_number(id, reverse = false)
-      _translate vamcs_station_numbers, id, reverse
+    def vamc_station_number(id, reverse = false)
+      _translate vamc_station_numbers, id, reverse
     end
 
     # V7.1
