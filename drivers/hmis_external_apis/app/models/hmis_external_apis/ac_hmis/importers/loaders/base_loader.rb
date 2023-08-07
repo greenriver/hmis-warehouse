@@ -17,12 +17,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     class BaseColumn
       attr_accessor :field
-      protected
 
       def row_value(row, field:)
         row[field]&.strip&.presence
       end
     end
+
 
     # 1:1 mapping of field to record attribute
     class AttributeColumn < BaseColumn
@@ -44,31 +44,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         end
       end
     end
-
-  #   class CommonDataElementColumn < BaseColumn
-  #     attr_accessor :definition, :default_attrs
-
-  #     def initialize(field, definition:, default_attrs:)
-  #       self.field = field
-  #       self.definition = definition
-  #       self.default_attrs = default_attrs
-  #     end
-
-  #     # assign col from row into record
-  #     def assign_value(row:, record:)
-  #       value =  row_value(row, field: 'FundingSource')
-  #       return unless value
-
-  #       cde_attrs = default_attrs.merge({
-  #         owner_type: model_class.class_name,
-  #         value_string: value,
-  #         data_element_definition_id: definition.id,
-  #         DateCreated: row_value(row, field: 'DateCreated'),
-  #         DateUpdated: row_value(row, field: 'DateUpdated'),
-  #       })
-  #       record.custom_data_elements.build(cde_attrs)
-  #     end
-  #   end
 
     # field is as related CDE on record, importing both record and related CDE recursively
     class RelatedCommonDataElementColumn < BaseColumn
@@ -97,6 +72,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
+
     def attr_col(...)
       AttributeColumn.new(...)
     end
@@ -119,5 +95,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         UserID: system_user_id
       }
     end
+
+    def today
+      @today ||= Date.current
+    end
+
   end
 end

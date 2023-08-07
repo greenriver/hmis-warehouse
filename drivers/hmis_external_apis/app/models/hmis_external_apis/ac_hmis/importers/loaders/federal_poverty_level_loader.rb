@@ -7,15 +7,14 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class FederalPovertyLevelLoader < BaseLoader
-
-    def validate_rows(rows)
+    #def validate_rows(rows)
       # fixme validate that enrollment/benefit ids match and are all present
-      #rows.each do |row|
+      # rows.each do |row|
       #  cols.each do |col|
       #    col.validate(row)
       #  end
-      #end
-    end
+      # end
+    #end
 
     def perform(rows:)
       owner_id_by_benefit_id = owner_class
@@ -41,7 +40,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       model_class.import(
         records,
         validate: false,
-        batch_size: 1_000
+        batch_size: 1_000,
       )
     end
 
@@ -73,6 +72,5 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     #     cde_col('FederalPovertyLevel')
     #   ]
     # end
-
   end
 end

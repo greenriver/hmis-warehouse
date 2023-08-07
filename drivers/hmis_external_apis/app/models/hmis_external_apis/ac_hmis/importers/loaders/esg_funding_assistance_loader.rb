@@ -8,7 +8,6 @@
 # creates CustomService and CustomDataElements
 module HmisExternalApis::AcHmis::Importers::Loaders
   class EsgFundingAssistanceLoader < BaseLoader
-
     def perform(rows:)
       personal_id_by_enrollment_id = Hmis::Hud::Enrollment
         .where(data_source: data_source)
@@ -72,7 +71,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def funding_source_cde_def
-      @payment_type_cde_def ||= Hmis::Hud::CustomDataElementDefinition.where(
+      @funding_source_cde_def ||= Hmis::Hud::CustomDataElementDefinition.where(
         owner_type: model_class.name,
         field_type: :string,
         key: :funding_source,

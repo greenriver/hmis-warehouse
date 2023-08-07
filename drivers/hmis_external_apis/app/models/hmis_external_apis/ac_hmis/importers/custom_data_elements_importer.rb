@@ -29,15 +29,15 @@ module HmisExternalApis::AcHmis::Importers
       ]
       check_file_names(items.map&:last)
 
-      items.each do |loader, filename|
-        rows = records_from_csv(file_name)
-        loader.validate(rows)
-      end
+      # items.each do |loader, filename|
+      #   rows = records_from_csv(file_name)
+      #   loader.validate(rows)
+      # end
 
       table_names = []
       ProjectsImportAttempt.transaction do
         items.each do |loader, filename|
-          rows = records_from_csv(file_name)
+          rows = records_from_csv(filename)
           result = loader.perform(rows: rows)
           handle_import_result(result)
           table_names += loader.table_names
@@ -53,13 +53,9 @@ module HmisExternalApis::AcHmis::Importers
 
     protected
 
-    def run_loader(loader, file_name)
-      EsgFundingAssistanceLoader
-        .perform(rows: records_from_csv('ESGFundingAssistance.csv'))
-    end
-
     def handle_import_result(result)
       return unless result.failed_instances.present?
+
       msg = "Failed: #{result.failed_instances}. Aborting"
       raise AbortImportException, msg
     end
@@ -96,7 +92,7 @@ module HmisExternalApis::AcHmis::Importers
       # assume all tables are in same db
       Rails.logger.info 'Analyzing imported tables'
       names = table_names.map(connection.quote_table_name(names))
-      ProjectsImportAttempt.connection.exec_query('ANALYZE "Funder", "Project", "Organization", "CustomDataElements";')
+      connection.exec_query("ANALYZE #{names.join(',')};")
     end
 
     def connection
