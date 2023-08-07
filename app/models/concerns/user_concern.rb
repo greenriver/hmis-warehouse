@@ -132,7 +132,8 @@ module UserConcern
     end
 
     def using_acls?
-      permission_context.to_s == 'acls'
+      # Note using hash syntax to get around lack of column for some data migrations
+      self[:permission_context].to_s == 'acls'
     end
 
     # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
