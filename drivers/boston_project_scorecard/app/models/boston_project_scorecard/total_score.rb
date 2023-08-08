@@ -16,12 +16,14 @@ module BostonProjectScorecard
           increased_other_income_score,
           days_to_lease_up_score,
           utilization_rate_score,
+          no_concern_score,
         ].compact.sum
       end
 
       def project_performance_available
         max = 54
         max -= 24 unless rrh? || psh?
+        max -= 3 if no_concern_score.nil?
 
         max
       end
