@@ -5,7 +5,6 @@
 ###
 
 # matriculation to new platform
-# creates CustomService and CustomDataElements
 module HmisExternalApis::AcHmis::Importers::Loaders
   class EmergencyShelterAllowanceGrantLoader < CustomDataElementBaseLoader
     protected
