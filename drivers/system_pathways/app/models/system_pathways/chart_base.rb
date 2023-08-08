@@ -60,6 +60,7 @@ module SystemPathways::ChartBase
       scope = filter_for_ethnicity(scope)
       scope = filter_for_veteran_status(scope)
       scope = filter_for_ce_involvement(scope)
+      scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_chronic_at_entry(scope)
       scope = filter_for_disabling_condition(scope)
@@ -189,6 +190,19 @@ module SystemPathways::ChartBase
       scope = scope.where(ce_assessment: true) if filter.involves_ce == 'With CE Assessment'
       scope = scope.where(ce_assessment: true) if show_filter&.involves_ce == 'With CE Assessment'
       scope = scope.where(ce_assessment: true) if details_filter&.involves_ce == 'With CE Assessment'
+
+      scope
+    end
+
+    private def filter_for_household_type(scope)
+      scope = case show_filter.household_type
+      when :without_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :adults_only))
+      when :with_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :adults_and_children))
+      when :only_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :children_only))
+      end
 
       scope
     end
