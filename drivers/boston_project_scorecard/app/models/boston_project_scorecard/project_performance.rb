@@ -14,6 +14,7 @@ module BostonProjectScorecard
           'Providers with 85% to 89% "no concern"': 2,
           'Providers with 80% to 84% "no concern"': 1,
           'Providers with 79% or less "no concern"': 0,
+          'Not Applicable': -1,
         }
       end
 
@@ -113,6 +114,8 @@ module BostonProjectScorecard
       end
 
       def no_concern_score
+        return nil if no_concern.negative?
+
         no_concern
       end
     end
