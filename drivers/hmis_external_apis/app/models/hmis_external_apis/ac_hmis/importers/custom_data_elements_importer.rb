@@ -31,6 +31,7 @@ module HmisExternalApis::AcHmis::Importers
         [RentalAssistanceEndDateLoader, 'RentalAssistanceEndDate.csv'],
         [WalkInEnrollmentUnitTypesLoader, 'WalkInEnrollmentUnitTypes.csv'],
         [ClientAddressLoader, 'ClientAddress.csv'],
+        [ClientContactsLoader, 'ClientContacts.csv'],
       ]
       check_file_names(items.map(&:last))
 
