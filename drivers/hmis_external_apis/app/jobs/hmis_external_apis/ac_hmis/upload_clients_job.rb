@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# job =  HmisExternalApis::AcHmis::UploadClientsJob.new
 module HmisExternalApis::AcHmis
   class UploadClientsJob < ApplicationJob
     include NotifierConfig
