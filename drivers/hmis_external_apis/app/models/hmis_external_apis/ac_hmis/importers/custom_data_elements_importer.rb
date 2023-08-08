@@ -24,15 +24,14 @@ module HmisExternalApis::AcHmis::Importers
     def run!
       start
       items = [
-        [EsgFundingAssistanceLoader, 'ESGFundingAssistance.csv'],
         [EmergencyShelterAllowanceGrantLoader, 'EmergencyShelterAllowanceGrant.csv'],
+        [EsgFundingAssistanceLoader, 'ESGFundingAssistance.csv'],
+        [FederalPovertyLevelLoader, 'FederalPovertyLevelLoader.csv'],
+        [ReasonForExitLoader, 'ReasonForExitLoader.csv'],
+        [RentalAssistanceEndDateLoader, 'RentalAssistanceEndDateLoader.csv'],
+        [WalkInEnrollmentUnitTypesLoader, 'WalkInEnrollmentUnitTypesLoader.csv'],
       ]
-      check_file_names(items.map&:last)
-
-      # items.each do |loader, filename|
-      #   rows = records_from_csv(file_name)
-      #   loader.validate(rows)
-      # end
+      check_file_names(items.map(&:last))
 
       table_names = []
       ProjectsImportAttempt.transaction do
@@ -102,23 +101,6 @@ module HmisExternalApis::AcHmis::Importers
     def finish
       attempt.status = ProjectsImportAttempt::SUCCEEDED
       attempt.save!
-    end
-
-    def check_columns(file:, expected_columns:, critical_columns:, rows:)
-      raise AbortImportException, "There was no data in #{file}." if rows.empty?
-
-      keys = rows.first.to_h.keys
-
-      missing_columns = expected_columns - keys
-      missing_critical_columns = critical_columns - keys
-
-      self.extra_columns = keys - expected_columns
-
-      Rails.logger.warn("Skipping extra columns (#{extra_columns.join(', ')}) in #{file}") if extra_columns.present?
-
-      raise(AbortImportException, "There were critical missing columns in #{file}: #{missing_critical_columns.join(', ')}.") if missing_critical_columns.present?
-
-      Rails.logger.warn("There were non-critical missing columns in #{file}: #{missing_columns.join(', ')}.") if missing_columns.present?
     end
 
     def records_from_csv(file)
