@@ -30,6 +30,7 @@ module Health
 
     def create
       @release_form = @patient.release_forms.build(form_params)
+      @release_form.participation_signature_on = @release_form.signature_on
       set_upload_object
       @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file.present?
       @release_form.reviewed_by = current_user if reviewed?
@@ -51,6 +52,7 @@ module Health
     def update
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.assign_attributes(form_params)
+      @release_form.participation_signature_on = @release_form.signature_on
       # NOTE: for future people troubleshooting why the submission isn't "remote" when a file is attached
       # https://stackoverflow.com/questions/65135135/rails-6-remote-true-and-multipart-true-file-uploads-not-working
       @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file&.new_record?
@@ -73,7 +75,6 @@ module Health
 
     private def form_params
       local_params = params.require(:form).permit(
-        :participation_signature_on,
         :signature_on,
         :reviewed_by_supervisor,
         health_file_attributes: [
