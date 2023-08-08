@@ -50,7 +50,7 @@
       "properties": {
         "_comment": { "type": "string" },
         "operator": { "enum": ["ANY", "ALL", "EQUAL", "INCLUDE"] },
-        "variable": { "enum": ["projectType", "projectFunders", "projectOtherFunders"] },
+        "variable": { "enum": ["projectType", "projectFunders", "projectOtherFunders", "projectFunderComponents"] },
         "value": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
         "parts": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
       }

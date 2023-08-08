@@ -1,9 +1,23 @@
 {
   "type": "GROUP",
-  "link_id": "youth-education-status",
+  "link_id": "c3-youth-education-status",
   "text": "Education Status",
   "data_collected_about": "HOH",
   "prefill": "YOUTH_EDUCATION_STATUS",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      { "variable": "projectFunders", "operator": "INCLUDE", "value": 43 },
+      {
+        "operator": "ANY",
+        "parts": [
+          { "variable": "projectType", "operator": "EQUAL", "value": 6 },
+          { "variable": "projectType", "operator": "EQUAL", "value": 12 },
+          { "variable": "projectType", "operator": "EQUAL", "value": 13 }
+        ]
+      }
+    ]
+  },
   "item": [
     {
       "type": "CHOICE",

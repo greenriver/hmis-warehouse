@@ -1,0 +1,58 @@
+{
+  "type": "GROUP",
+  "link_id": "4.11",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "4.11.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Domestic Violence Victim/Survivor",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "HEALTH_AND_DV",
+        "field_name": "domesticViolenceVictim"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "4.11.2-conditionals",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "4.11.2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "4.11.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "When did the experience occur?",
+          "brief_text": "When DV Occurred",
+          "mapping": {
+            "record_type": "HEALTH_AND_DV",
+            "field_name": "whenOccurred"
+          },
+          "pick_list_reference": "WhenDVOccurred"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.11.B",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Are you currently fleeing?",
+          "brief_text": "Currently Fleeing DV",
+          "mapping": {
+            "record_type": "HEALTH_AND_DV",
+            "field_name": "currentlyFleeing"
+          },
+          "pick_list_reference": "NoYesReasonsForMissingData"
+        }
+      ]
+    }
+  ]
+}

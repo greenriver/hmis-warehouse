@@ -27,6 +27,10 @@ module Types
     # @param items [Array<Hash>]
     # @return items [Array<Hash>]
     def eval_items(items)
+      # Comment in to disable rule filtering, to help with
+      # testing all available form items
+      return items if Rails.env.development?
+
       items.filter do |item|
         if eval_rule(item['rule'])
           if item['item']
@@ -85,6 +89,8 @@ module Types
       case key
       when 'projectFunders'
         project_funders.map { |f| f.funder&.to_i }.compact_blank
+      when 'projectFunderComponents'
+        project_funders.map { |f| HudUtility.funder_component(f.funder&.to_i) }.compact_blank
       when 'projectOtherFunders'
         project_funders.map(&:other_funder).compact_blank
       else

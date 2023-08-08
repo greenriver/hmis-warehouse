@@ -1,7 +1,7 @@
 {
   "type": "GROUP",
   "link_id": "c3-youth-education-status",
-  "text": "Education Status",
+  "text": "Youth Education Status",
   "data_collected_about": "HOH",
   "prefill": "YOUTH_EDUCATION_STATUS",
   "rule": {

@@ -871,4 +871,22 @@ module HudUtility
 
     keyed
   end
+
+  private def funder_description_to_component(description)
+    return unless description.include?(' - ')
+
+    description.split(' - ')[0]
+  end
+  def funder_components
+    funding_sources.
+      transform_values { |d| funder_description_to_component(d) }.
+      compact.
+      each_with_object({}) { |(k, v), h| (h[v] ||= []) << k }
+  end
+
+  def funder_component(funder)
+    funding_sources.
+      transform_values { |d| funder_description_to_component(d) }.
+      compact[funder]
+  end
 end

@@ -3995,6 +3995,7 @@ type IncomeBenefit {
   client: Client!
   cobra: NoYesMissing
   connectionWithSoar: NoYesReasonsForMissingData
+  customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime

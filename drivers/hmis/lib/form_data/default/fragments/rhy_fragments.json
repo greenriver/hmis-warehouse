@@ -36,31 +36,6 @@
           "text": "Mental Health Status",
           "pick_list_reference": "HealthStatus",
           "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "mentalHealthStatus" }
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "R10.1",
-          "required": false,
-          "warn_if_empty": true,
-          "text": "Pregnancy Status",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "pregnancyStatus" }
-        },
-        {
-          "type": "DATE",
-          "link_id": "R10.A",
-          "required": false,
-          "warn_if_empty": true,
-          "text": "Due Date",
-          "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "dueDate" },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "R10.1",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
         }
       ]
     },

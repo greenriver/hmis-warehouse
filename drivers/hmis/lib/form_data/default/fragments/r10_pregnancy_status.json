@@ -1,9 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "V6",
-  "text": "VAMC Station Number",
-  "data_collected_about": "HOH",
-  "prefill": "ENROLLMENT",
+  "link_id": "R10",
   "rule": {
     "operator": "ALL",
     "parts": [
@@ -13,27 +10,27 @@
           {
             "variable": "projectFunders",
             "operator": "INCLUDE",
-            "value": 20
+            "value": 22
           },
           {
             "variable": "projectFunders",
             "operator": "INCLUDE",
-            "value": 27
+            "value": 23
           },
           {
             "variable": "projectFunders",
             "operator": "INCLUDE",
-            "value": 30
+            "value": 24
           },
           {
             "variable": "projectFunders",
             "operator": "INCLUDE",
-            "value": 33
+            "value": 25
           },
           {
-            "variable": "projectFunderComponents",
+            "variable": "projectFunders",
             "operator": "INCLUDE",
-            "value": "VA: Grant Per Diem"
+            "value": 26
           }
         ]
       },
@@ -58,32 +55,12 @@
           {
             "variable": "projectType",
             "operator": "EQUAL",
-            "value": 3
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 6
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 8
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 9
+            "value": 4
           },
           {
             "variable": "projectType",
             "operator": "EQUAL",
             "value": 12
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 13
           }
         ]
       }
@@ -91,16 +68,41 @@
   },
   "item": [
     {
-      "link_id": "V6.1",
       "type": "CHOICE",
+      "link_id": "R10.1",
       "required": false,
       "warn_if_empty": true,
-      "text": "VAMC Station Number",
-      "pick_list_reference": "VamcStationNumber",
+      "text": "Pregnancy Status",
+      "pick_list_reference": "NoYesReasonsForMissingData",
       "mapping": {
-        "record_type": "ENROLLMENT",
-        "field_name": "vamcStation"
+        "record_type": "HEALTH_AND_DV",
+        "field_name": "pregnancyStatus"
       }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R10.1-conditionals",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R10.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "DATE",
+          "link_id": "R10.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Due Date",
+          "mapping": {
+            "record_type": "HEALTH_AND_DV",
+            "field_name": "dueDate"
+          }
+        }
+      ]
     }
   ]
 }

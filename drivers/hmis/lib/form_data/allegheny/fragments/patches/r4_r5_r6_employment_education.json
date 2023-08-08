@@ -3,16 +3,12 @@
     "link_id": "R4.1",
     "rule": {
       "operator": "ALL",
-      "_comment": "RRH, HP, and SSO funded by YHDP",
+      "_comment": "YHDP-funded",
       "parts": [
-        { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 43 },
         {
-          "operator": "ANY",
-          "parts": [
-            { "variable": "projectType", "operator": "EQUAL", "value": 6 },
-            { "variable": "projectType", "operator": "EQUAL", "value": 12 },
-            { "variable": "projectType", "operator": "EQUAL", "value": 13 }
-          ]
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
         }
       ]
     }
@@ -21,16 +17,12 @@
     "link_id": "R5.1",
     "rule": {
       "operator": "ALL",
-      "_comment": "RRH, HP, and SSO funded by YHDP",
+      "_comment": "YHDP-funded",
       "parts": [
-        { "variable": "projectFunderIDs", "operator": "INCLUDE", "value": 43 },
         {
-          "operator": "ANY",
-          "parts": [
-            { "variable": "projectType", "operator": "EQUAL", "value": 6 },
-            { "variable": "projectType", "operator": "EQUAL", "value": 12 },
-            { "variable": "projectType", "operator": "EQUAL", "value": 13 }
-          ]
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
         }
       ]
     }
@@ -42,41 +34,10 @@
       "parts": [
         {
           "operator": "ALL",
-          "_comment": "RRH, HP, and SSO funded by YHDP",
-          "parts": [
-            {
-              "variable": "projectFunderIDs",
-              "operator": "INCLUDE",
-              "value": 43
-            },
-            {
-              "operator": "ANY",
-              "parts": [
-                {
-                  "variable": "projectType",
-                  "operator": "EQUAL",
-                  "value": 6
-                },
-                {
-                  "variable": "projectType",
-                  "operator": "EQUAL",
-                  "value": 12
-                },
-                {
-                  "variable": "projectType",
-                  "operator": "EQUAL",
-                  "value": 13
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "operator": "ALL",
           "_comment": "VA GPD Low Demand",
           "parts": [
             {
-              "variable": "projectFunderIDs",
+              "variable": "projectFunders",
               "operator": "INCLUDE",
               "value": 38
             },
@@ -95,17 +56,17 @@
               "operator": "ANY",
               "parts": [
                 {
-                  "variable": "projectFunderIDs",
+                  "variable": "projectFunders",
                   "operator": "INCLUDE",
                   "value": 37
                 },
                 {
-                  "variable": "projectFunderIDs",
+                  "variable": "projectFunders",
                   "operator": "INCLUDE",
                   "value": 39
                 },
                 {
-                  "variable": "projectFunderIDs",
+                  "variable": "projectFunders",
                   "operator": "INCLUDE",
                   "value": 41
                 }
@@ -120,8 +81,13 @@
         },
         {
           "operator": "ANY",
-          "_comment": "Custom funders. Project type is not specified because these funders only ever fund one project type.",
+          "_comment": "Custom funders & YHDP. Project type is not specified because these funders only ever fund one project type.",
           "parts": [
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 43
+            },
             {
               "variable": "projectOtherFunders",
               "operator": "INCLUDE",

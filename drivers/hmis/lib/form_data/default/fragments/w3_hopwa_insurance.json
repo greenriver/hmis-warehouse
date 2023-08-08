@@ -1,7 +1,7 @@
 {
   "type": "GROUP",
-  "link_id": "hopwa-disability",
-  "text": "HOPWA Fragments for Disability",
+  "link_id": "hopwa-insurance",
+  "text": "HOPWA Insurance Questions",
   "data_collected_about": "ALL_CLIENTS_WITH_HIV_AIDS",
   "prefill": "INCOME_BENEFIT",
   "item": [
