@@ -1,12 +1,47 @@
 [
   {
     "link_id": "income-and-sources",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Permanent Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted street outreach"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Transitional Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Homelessness Prevention"
+        }
+      ]
+    },
     "append_items": [
-      {
-        "link_id": "income-and-sources-spacer",
-        "type": "DISPLAY",
-        "text": "<br />"
-      },
       {
         "link_id": "ac-federal-poverty-level",
         "text": "Federal Poverty Level",

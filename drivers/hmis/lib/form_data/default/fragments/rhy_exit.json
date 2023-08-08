@@ -1,0 +1,27 @@
+{
+  "type": "GROUP",
+  "link_id": "rhy-exit",
+  "text": "RHY Exit Questions",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "prefill": "EXIT",
+  "item": [
+    {
+      "fragment": "#r15_sexual_exploitation"
+    },
+    {
+      "fragment": "#r16_labor_exploitation"
+    },
+    {
+      "fragment": "#r17_project_completion_status"
+    },
+    {
+      "fragment": "#r18_counseling"
+    },
+    {
+      "fragment": "#r19_safe_and_appropriate_exit"
+    },
+    {
+      "fragment": "#r20_aftercare_plans"
+    }
+  ]
+}

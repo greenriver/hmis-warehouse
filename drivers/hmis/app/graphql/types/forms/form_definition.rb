@@ -58,9 +58,15 @@ module Types
       when 'EQUAL'
         # { variable: 'projectType', operator: 'EQUAL', value: 1 }
         eval_var(rule.fetch('variable')) == rule.fetch('value')
+      when 'NOT_EQUAL'
+        # { variable: 'projectType', operator: 'NOT_EQUAL', value: 1 }
+        eval_var(rule.fetch('variable')) != rule.fetch('value')
       when 'INCLUDE'
         # { variable: 'projectFunders', operator: 'INCLUDE', value: 1 }
         eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
+      when 'NOT_INCLUDE'
+        # { variable: 'projectFunders', operator: 'NOT_INCLUDE', value: 1 }
+        !eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
       when 'ANY'
         # { operator: 'ANY', parts: [ ... ] },
         rule.fetch('parts').any? { |r| eval_rule(r) }

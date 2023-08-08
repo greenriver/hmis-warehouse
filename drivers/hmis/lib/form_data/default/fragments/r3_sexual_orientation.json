@@ -3,55 +3,67 @@
   "link_id": "R3",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
-    "operator": "ALL",
+    "operator": "ANY",
     "parts": [
       {
-        "operator": "ANY",
-        "parts": [
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 22
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 23
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 24
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 26
-          }
-        ]
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "_comment": "YHDP",
+        "value": 43
       },
       {
-        "operator": "ANY",
+        "operator": "ALL",
+        "_comment": "RHY programs",
         "parts": [
           {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 0
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 22
+              },
+              {
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 23
+              },
+              {
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 24
+              },
+              {
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 26
+              }
+            ]
           },
           {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 1
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 2
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 12
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 0
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 1
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 2
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 12
+              }
+            ]
           }
         ]
       }
@@ -70,20 +82,26 @@
       }
     },
     {
-      "type": "STRING",
-      "link_id": "R3.A",
-      "required": false,
-      "text": "If other, please describe",
-      "mapping": {
-        "record_type": "ENROLLMENT",
-        "field_name": "sexualOrientationOther"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
+      "type": "GROUP",
+      "link_id": "R31.conditionals",
+      "item": [
         {
-          "question": "R3.1",
-          "operator": "EQUAL",
-          "answer_code": "OTHER"
+          "type": "STRING",
+          "link_id": "R3.A",
+          "required": false,
+          "text": "If other, please describe",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "sexualOrientationOther"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R3.1",
+              "operator": "EQUAL",
+              "answer_code": "OTHER"
+            }
+          ]
         }
       ]
     }

@@ -4,6 +4,15 @@
       "fragment": "#destination"
     },
     {
+      "fragment": "#rhy_exit"
+    },
+    {
+      "fragment": "#c3_youth_education_status"
+    },
+    {
+      "fragment": "#r4_r5_r6_employment_education"
+    },
+    {
       "fragment": "#income_and_sources"
     },
     {

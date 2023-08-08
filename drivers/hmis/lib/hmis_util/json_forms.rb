@@ -31,19 +31,13 @@ module HmisUtil
           fragments[identifier] = JSON.parse(file)
         end
 
+        # If we're in a client env, override any fragments
         if ENV['CLIENT'].present?
           Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
             puts "Loading #{ENV['CLIENT']} override for #{identifier} fragment"
             file = File.read(file_path)
             fragments[identifier] = JSON.parse(file)
-          end
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/patches/*.json") do |file_path|
-            identifier = File.basename(file_path, '.json')
-            puts "Applying #{ENV['CLIENT']} patch for #{identifier} fragment"
-            file = File.read(file_path)
-            fragment = fragments.fetch(identifier)
-            fragments[identifier] = apply_patches(fragment, JSON.parse(file))
           end
         end
         fragments
@@ -71,7 +65,7 @@ module HmisUtil
       end
     end
 
-    def apply_patches(tree, patches)
+    def apply_patches!(tree, patches)
       nodes_by_id = {}
       result = tree.deep_dup
       walk_nodes(result) do |node|
@@ -80,7 +74,8 @@ module HmisUtil
       end
       patches.each do |patch|
         id = patch.fetch('link_id')
-        node = nodes_by_id.fetch(id)
+        node = nodes_by_id[id]
+        next unless node.present? # ok to skip, just means that this form doesn't contain this link id
 
         children, patch_to_apply = patch.partition { |k, _| ['append_items', 'prepend_items'].include?(k) }.map(&:to_h)
         # Could also be deep merge. This is probably more intuitive though
@@ -95,13 +90,21 @@ module HmisUtil
       result
     end
 
+    def apply_all_patches!(definition)
+      Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/patches/*.json") do |file_path|
+        # patch_name = File.basename(file_path, '.json')
+        file = File.read(file_path)
+        definition['item'].each { |item| apply_patches!(item, JSON.parse(file)) }
+      end
+    end
+
     def walk_nodes(node, &block)
       block.call(node)
       children = node['item']
       children&.each { |child| walk_nodes(child, &block) }
     end
 
-    def apply_fragment(base_item)
+    def resolve_fragments!(base_item)
       walk_nodes(base_item) do |item|
         next unless item['fragment'].present?
 
@@ -124,25 +127,21 @@ module HmisUtil
       end
     end
 
+    def resolve_all_fragments!(definition)
+      definition['item'].each { |i| resolve_fragments!(i) }
+    end
+
     # Load form definitions for editing and creating records
     public def seed_record_form_definitions
       record_forms.each do |identifier, form_definition|
         role = identifier.upcase.to_sym
         next unless Hmis::Form::Definition::FORM_ROLES.key?(role)
 
-        definition = Hmis::Form::Definition.find_or_create_by(
+        load_definition(
+          form_definition: form_definition,
           identifier: identifier,
-          version: 0,
           role: role,
-          status: 'draft',
         )
-
-        form_definition['item'].each { |i| apply_fragment(i) }
-
-        # Validate form structure
-        validate_definition(form_definition, role)
-        definition.definition = form_definition
-        definition.save!
 
         # Make this form the default instance for this role
         instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
@@ -152,15 +151,17 @@ module HmisUtil
       puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
     end
 
-    public def load_definition(identifier, role:)
-      form_definition = record_forms[identifier.to_s]
-      raise "Not found: #{identifier}" unless form_definition.present?
+    public def load_definition(form_definition:, identifier:, role:)
       raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role.to_sym)
 
-      # Apply fragments and patches
-      form_definition['item'].each { |i| apply_fragment(i) }
+      # Resolve all fragments, so we have a full definition
+      resolve_all_fragments!(form_definition)
+      # Apply any client-specific patches
+      apply_all_patches!(form_definition)
+      # Validate final definition
+      validate_definition(form_definition, role)
 
-      Hmis::Form::Definition.validate_json(form_definition)
+      # Create or update definition
       record = Hmis::Form::Definition.where(
         identifier: identifier,
         role: role,
@@ -183,25 +184,17 @@ module HmisUtil
           nil # no client override, which is fine
         end
         file ||= File.read("#{DATA_DIR}/default/assessments/#{filename}")
-
-        # Replace fragment references in JSON
         form_definition = JSON.parse(file)
-        form_definition['item'].each { |i| apply_fragment(i) }
-
-        # Validate form structure
-        validate_definition(form_definition, role)
 
         # Load definition into database
         identifier = "base-#{role.to_s.downcase}"
         identifiers << identifier
-        definition = Hmis::Form::Definition.find_or_create_by(
+
+        load_definition(
+          form_definition: form_definition,
           identifier: identifier,
-          version: 0,
           role: role,
-          status: 'draft',
         )
-        definition.definition = form_definition
-        definition.save!
 
         # Make this form the default instance for this role
         instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)

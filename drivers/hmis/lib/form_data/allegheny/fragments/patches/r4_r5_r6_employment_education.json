@@ -14,121 +14,60 @@
     }
   },
   {
-    "link_id": "R5.1",
+    "link_id": "R6",
     "rule": {
-      "operator": "ALL",
-      "_comment": "YHDP-funded",
+      "operator": "ANY",
+      "_comment": "Custom funders, YHDP or VA GPD. Project type is not specified because these funders only ever fund one project type.",
       "parts": [
         {
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 43
-        }
-      ]
-    }
-  },
-  {
-    "link_id": "R5.1",
-    "rule": {
-      "operator": "ANY",
-      "parts": [
-        {
-          "operator": "ALL",
-          "_comment": "VA GPD Low Demand",
-          "parts": [
-            {
-              "variable": "projectFunders",
-              "operator": "INCLUDE",
-              "value": 38
-            },
-            {
-              "variable": "projectType",
-              "operator": "EQUAL",
-              "value": 8
-            }
-          ]
         },
         {
-          "operator": "ALL",
-          "_comment": "VA GPD Bridge, VA GPD Service Intensive Transitional, VA GPD Hospital to Housing",
-          "parts": [
-            {
-              "operator": "ANY",
-              "parts": [
-                {
-                  "variable": "projectFunders",
-                  "operator": "INCLUDE",
-                  "value": 37
-                },
-                {
-                  "variable": "projectFunders",
-                  "operator": "INCLUDE",
-                  "value": 39
-                },
-                {
-                  "variable": "projectFunders",
-                  "operator": "INCLUDE",
-                  "value": 41
-                }
-              ]
-            },
-            {
-              "variable": "projectType",
-              "operator": "EQUAL",
-              "value": 2
-            }
-          ]
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: Grant Per Diem"
         },
         {
-          "operator": "ANY",
-          "_comment": "Custom funders & YHDP. Project type is not specified because these funders only ever fund one project type.",
-          "parts": [
-            {
-              "variable": "projectFunders",
-              "operator": "INCLUDE",
-              "value": 43
-            },
-            {
-              "variable": "projectOtherFunders",
-              "operator": "INCLUDE",
-              "value": "HAP Emergency Shelter (entry/exit)"
-            },
-            {
-              "variable": "projectOtherFunders",
-              "operator": "INCLUDE",
-              "value": "HAP Emergency Shelter (night by night)"
-            },
-            {
-              "variable": "projectOtherFunders",
-              "operator": "INCLUDE",
-              "value": "HAP Case Management"
-            },
-            {
-              "variable": "projectOtherFunders",
-              "operator": "INCLUDE",
-              "value": "HAP Bridge Housing"
-            },
-            {
-              "variable": "projectOtherFunders",
-              "operator": "INCLUDE",
-              "value": "HAP Penn Free Bridge RRH"
-            },
-            {
-              "variable": "projectOtherFunders",
-              "operator": "INCLUDE",
-              "value": "HAP Innovative"
-            },
-            {
-              "variable": "projectOtherFunders",
-              "operator": "INCLUDE",
-              "value": "HAP Rental Assistance "
-            },
-            {
-              "variable": "projectOtherFunders",
-              "operator": "INCLUDE",
-              "value": "Needs-Based Block Grant Homelessness Prevention"
-            }
-          ]
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Bridge Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Penn Free Bridge RRH"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Innovative"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Rental Assistance "
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "Needs-Based Block Grant Homelessness Prevention"
         }
       ]
     }
