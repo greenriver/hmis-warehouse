@@ -1,7 +1,6 @@
 {
   "type": "GROUP",
   "link_id": "R17",
-  "text": "Project Completion Status",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
     "operator": "ALL",
@@ -56,6 +55,7 @@
   "item": [
     {
       "type": "CHOICE",
+      "component":"DROPDOWN",
       "link_id": "R17.1",
       "required": false,
       "warn_if_empty": true,
@@ -67,22 +67,28 @@
       }
     },
     {
-      "type": "CHOICE",
-      "link_id": "R17.A",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Reason for involuntary discharge",
-      "pick_list_reference": "ExpelledReason",
-      "mapping": {
-        "record_type": "EXIT",
-        "field_name": "earlyExitReason"
-      },
+      "type": "GROUP",
+      "link_id": "R17.1.conditional",
       "enable_behavior": "ALL",
       "enable_when": [
         {
           "question": "R17.1",
           "operator": "EQUAL",
           "answer_code": "YOUTH_WAS_EXPELLED_OR_OTHERWISE_INVOLUNTARILY_DISCHARGED_FROM_PROJECT"
+        }
+      ],
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "R17.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Reason for involuntary discharge",
+          "pick_list_reference": "ExpelledReason",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "earlyExitReason"
+          }
         }
       ]
     }

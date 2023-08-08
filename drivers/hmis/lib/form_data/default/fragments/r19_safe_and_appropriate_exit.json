@@ -58,6 +58,7 @@
       "type": "CHOICE",
       "link_id": "R19.1",
       "required": false,
+      "component": "RADIO_BUTTONS",
       "warn_if_empty": true,
       "text": "Exit destination safe - as determined by the client",
       "pick_list_reference": "NoYesReasonsForMissingData",

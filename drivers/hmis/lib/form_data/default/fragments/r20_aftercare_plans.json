@@ -1,7 +1,6 @@
 {
   "type": "GROUP",
   "link_id": "R20",
-  "text": "Aftercare Plans",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
     "operator": "ALL",
@@ -60,25 +59,6 @@
   },
   "item": [
     {
-      "type": "DATE",
-      "link_id": "R20.1",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Aftercare Date",
-      "mapping": {
-        "record_type": "EXIT",
-        "field_name": "aftercareDate"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "R10.1",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ]
-    },
-    {
       "type": "CHOICE",
       "link_id": "R20.2",
       "required": false,
@@ -92,62 +72,87 @@
     },
     {
       "type": "GROUP",
-      "link_id": "aftercare-provided-group",
-      "component": "INPUT_GROUP",
-      "text": "Identify the primary way it was provided",
-      "_comment": "TODO: make this one single-choice field, update processor",
+      "link_id": "R20.2.conditionals",
       "enable_behavior": "ANY",
       "enable_when": [
         {
           "question": "R20.2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
+          "operator": "EXISTS",
+          "answer_boolean": true
         }
       ],
       "item": [
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "R20.A.1",
-          "text": "Via email/social media",
+          "type": "DATE",
+          "link_id": "R20.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Aftercare Information Date",
           "mapping": {
             "record_type": "EXIT",
-            "field_name": "emailSocialMedia"
+            "field_name": "aftercareDate"
           }
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "R20.A.2",
-          "text": "Via telephone",
-          "mapping": {
-            "record_type": "EXIT",
-            "field_name": "telephone"
-          }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "R20.A.3",
-          "text": "In person: one-on-one",
-          "mapping": {
-            "record_type": "EXIT",
-            "field_name": "inPersonIndividual"
-          }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "R20.A.4",
-          "text": "In person: group",
-          "mapping": {
-            "record_type": "EXIT",
-            "field_name": "inPersonGroup"
-          }
+          "type": "GROUP",
+          "link_id": "aftercare-provided-group",
+          "component": "INPUT_GROUP",
+          "text": "Identify the primary way it was provided",
+          "_comment": "TODO: make this one single-choice field, update processor",
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "R20.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ],
+          "item": [
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesMissing",
+              "component": "CHECKBOX",
+              "link_id": "R20.A.1",
+              "text": "Via email/social media",
+              "mapping": {
+                "record_type": "EXIT",
+                "field_name": "emailSocialMedia"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesMissing",
+              "component": "CHECKBOX",
+              "link_id": "R20.A.2",
+              "text": "Via telephone",
+              "mapping": {
+                "record_type": "EXIT",
+                "field_name": "telephone"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesMissing",
+              "component": "CHECKBOX",
+              "link_id": "R20.A.3",
+              "text": "In person: one-on-one",
+              "mapping": {
+                "record_type": "EXIT",
+                "field_name": "inPersonIndividual"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "pick_list_reference": "NoYesMissing",
+              "component": "CHECKBOX",
+              "link_id": "R20.A.4",
+              "text": "In person: group",
+              "mapping": {
+                "record_type": "EXIT",
+                "field_name": "inPersonGroup"
+              }
+            }
+          ]
         }
       ]
     }
