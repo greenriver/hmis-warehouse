@@ -16,7 +16,6 @@ module Types
     value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'GEOCODE'
     value 'STATE'
-    value 'VAMC_STATION'
     value 'PRIOR_LIVING_SITUATION'
     value 'CURRENT_LIVING_SITUATION'
     value 'DESTINATION'

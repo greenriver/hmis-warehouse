@@ -15,5 +15,6 @@ module Importing
     def max_attempts
       1
     end
+
   end
 end

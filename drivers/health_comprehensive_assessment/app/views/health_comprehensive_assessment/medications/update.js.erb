@@ -1,0 +1,9 @@
+<% if @medication.errors.any? %>
+  $('.jMedication').replaceWith("<%=j render 'new' %>")
+  $('.jMedication .alert.alert-danger').remove()
+  $('.jMedication').prepend('<div class="alert alert-danger"><%= @medication.errors.full_messages.join(', ') %></div>')
+<% else %>
+  html = "<%= j render 'health_comprehensive_assessment/assessments/medications' %>"
+  $('.modal:visible .close').trigger('click')
+  $('.jMedications').replaceWith(html)
+<% end %>
