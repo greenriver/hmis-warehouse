@@ -29,7 +29,7 @@ module Types
     def eval_items(items)
       # Comment in to disable rule filtering, to help with
       # testing all available form items
-      return items if Rails.env.development?
+      # return items if Rails.env.development?
 
       items.filter do |item|
         if eval_rule(item['rule'])
@@ -85,7 +85,7 @@ module Types
       when 'projectType'
         project&.project_type
       else
-        raise "unknown variable #{key}"
+        raise "unknown variable for eval_var #{key}"
       end
     end
 
@@ -100,7 +100,7 @@ module Types
       when 'projectOtherFunders'
         project_funders.map(&:other_funder).compact_blank
       else
-        raise "unknown variable #{key}"
+        raise "unknown variable for eval_var_multi #{key}"
       end
     end
 

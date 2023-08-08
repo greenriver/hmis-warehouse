@@ -65,18 +65,20 @@ module HmisUtil
       end
     end
 
-    def apply_patches!(tree, patches)
+    def apply_patches(tree, patches)
       nodes_by_id = {}
       result = tree.deep_dup
       walk_nodes(result) do |node|
         id = node['link_id']
         nodes_by_id[id] = node
       end
+      applied_patches = []
       patches.each do |patch|
         id = patch.fetch('link_id')
         node = nodes_by_id[id]
         next unless node.present? # ok to skip, just means that this form doesn't contain this link id
 
+        applied_patches << id
         children, patch_to_apply = patch.partition { |k, _| ['append_items', 'prepend_items'].include?(k) }.map(&:to_h)
         # Could also be deep merge. This is probably more intuitive though
         node.merge!(patch_to_apply)
@@ -87,15 +89,21 @@ module HmisUtil
         node['item'].unshift(*children['prepend_items']) if children['prepend_items'].present?
         node['item'].push(*children['append_items']) if children['append_items'].present?
       end
-      result
+      [result, applied_patches]
     end
 
-    def apply_all_patches!(definition)
+    def apply_all_patches!(definition, identifier:)
+      applied_patches = []
       Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/patches/*.json") do |file_path|
         # patch_name = File.basename(file_path, '.json')
         file = File.read(file_path)
-        definition['item'].each { |item| apply_patches!(item, JSON.parse(file)) }
+        definition['item'].each do |item|
+          result, applied = apply_patches(item, JSON.parse(file))
+          item.replace(result)
+          applied_patches.push(*applied)
+        end
       end
+      puts "Patches applied to #{identifier}: #{applied_patches.compact.uniq.join(', ')}" if applied_patches.any?
     end
 
     def walk_nodes(node, &block)
@@ -157,7 +165,7 @@ module HmisUtil
       # Resolve all fragments, so we have a full definition
       resolve_all_fragments!(form_definition)
       # Apply any client-specific patches
-      apply_all_patches!(form_definition)
+      apply_all_patches!(form_definition, identifier: identifier)
       # Validate final definition
       validate_definition(form_definition, role)
 

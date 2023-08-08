@@ -22,22 +22,22 @@
             "parts": [
               {
                 "variable": "projectFunders",
-                "operator": "EQUAL",
+                "operator": "INCLUDE",
                 "value": 22
               },
               {
                 "variable": "projectFunders",
-                "operator": "EQUAL",
+                "operator": "INCLUDE",
                 "value": 23
               },
               {
                 "variable": "projectFunders",
-                "operator": "EQUAL",
+                "operator": "INCLUDE",
                 "value": 24
               },
               {
                 "variable": "projectFunders",
-                "operator": "EQUAL",
+                "operator": "INCLUDE",
                 "value": 26
               }
             ]
