@@ -462,7 +462,7 @@ module PerformanceMetrics
 
     # @return filtered scope
     def report_scope
-      filter.apply(report_scope_source, all_project_types: all_project_types)
+      filter.apply(report_scope_source, report_scope_source)
     end
 
     def enrollment_scope

@@ -128,7 +128,11 @@ module AllNeighborsSystemDashboard
         preload(:enrollment, :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date)
-      filter.apply(scope)
+      filter.apply(scope, report_scope_source)
+    end
+
+    def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     def event_scope
