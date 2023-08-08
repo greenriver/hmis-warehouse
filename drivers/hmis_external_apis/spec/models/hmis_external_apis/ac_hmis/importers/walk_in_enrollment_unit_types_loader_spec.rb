@@ -13,7 +13,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::WalkInEnrollmentUni
   let(:rows) do
     [
       {
-        'PROEJCTID' => enrollment.project.project_id,
+        'PROJECTID' => enrollment.project.project_id,
         'ENROLLMENTID' => enrollment.enrollment_id,
         'UNITTYPEID' => '12/08/2021',
       }

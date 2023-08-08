@@ -26,10 +26,11 @@ module HmisExternalApis::AcHmis::Importers
       items = [
         [EmergencyShelterAllowanceGrantLoader, 'EmergencyShelterAllowanceGrant.csv'],
         [EsgFundingAssistanceLoader, 'ESGFundingAssistance.csv'],
-        [FederalPovertyLevelLoader, 'FederalPovertyLevelLoader.csv'],
-        [ReasonForExitLoader, 'ReasonForExitLoader.csv'],
-        [RentalAssistanceEndDateLoader, 'RentalAssistanceEndDateLoader.csv'],
-        [WalkInEnrollmentUnitTypesLoader, 'WalkInEnrollmentUnitTypesLoader.csv'],
+        [FederalPovertyLevelLoader, 'FederalPovertyLevel.csv'],
+        [ReasonForExitLoader, 'ReasonForExit.csv'],
+        [RentalAssistanceEndDateLoader, 'RentalAssistanceEndDate.csv'],
+        [WalkInEnrollmentUnitTypesLoader, 'WalkInEnrollmentUnitTypes.csv'],
+        [ClientAddressLoader, 'ClientAddress.csv'],
       ]
       check_file_names(items.map(&:last))
 
