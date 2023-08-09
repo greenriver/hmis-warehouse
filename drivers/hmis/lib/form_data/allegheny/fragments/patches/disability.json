@@ -3,6 +3,7 @@
     "link_id": "disability",
     "rule": {
       "operator": "ALL",
+      "_comment": "FIXME: remove all these, and add funder logic to 4.x fragments",
       "parts": [
         {
           "variable": "projectOtherFunders",

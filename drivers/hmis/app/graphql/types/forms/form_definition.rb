@@ -28,7 +28,7 @@ module Types
     def eval_items(items)
       # Comment in to disable rule filtering, to help with
       # testing all available form items
-      return items if Rails.env.development?
+      # return items if Rails.env.development?
 
       items.filter do |item|
         if eval_rule(item['rule'])
