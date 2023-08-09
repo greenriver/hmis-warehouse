@@ -132,7 +132,7 @@ module HmisUtil
     # Fragments are for re-using questions across different assessments.
     # Patches are for applying installation-specific changes to those patches.
     #
-    # First, we "resolve" any patches that are referenced throughout the form.
+    # First, we resolve any fragments that are referenced throughout the form.
     # Next, we apply any installation-specific patches, which could make
     # any arbitrary changes to any item (by Link ID)
     #
