@@ -1,0 +1,138 @@
+{
+  "item": [
+    {
+      "type": "DATE",
+      "link_id": "date-provided",
+      "text": "Date Provided",
+      "mapping": {
+        "field_name": "dateProvided"
+      },
+      "bounds": [
+        {
+          "id": "min-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-date",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "flex-funds-group",
+      "component": "INPUT_GROUP",
+      "text": "Direct financial assistance provided (check all that apply)",
+      "readonly_text": "Financial assistance provided",
+      "item": [
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-movein",
+          "text": "Move-in (including first, last and security)"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-rent",
+          "text": "Rent"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-rent-arrears",
+          "text": "Rent Arrears"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-rent-utilities",
+          "text": "Utilities"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-transportation",
+          "text": "Transportation"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-education",
+          "text": "Education"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-legal",
+          "text": "Legal"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-child-care",
+          "text": "Child care"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-work",
+          "text": "Work"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-medical",
+          "text": "Medical"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-cell-phone",
+          "text": "Cell phone"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-food",
+          "text": "Food/Groceries"
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "ff-other",
+          "text": "Other"
+        },
+        {
+          "type": "TEXT",
+          "link_id": "ff-other-describe",
+          "text": "Describe other assistance provided",
+          "brief_text": "Other assistance",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "ff-other",
+              "answer_code": "YES",
+              "operator": "EQUAL"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
