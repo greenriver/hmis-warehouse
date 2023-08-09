@@ -114,7 +114,7 @@ module BostonProjectScorecard
       end
 
       def no_concern_score
-        return nil if no_concern.negative?
+        return nil if no_concern&.negative?
 
         no_concern
       end
