@@ -73,10 +73,8 @@
     },
     {
       "type": "GROUP",
-      "link_id": "R18A.group",
-      "component": "INPUT_GROUP",
-      "_comment": "TODO: make this one multiple-choice field, update processor",
-      "enable_behavior": "ALL",
+      "link_id": "R18.1.conditionals",
+      "enable_behavior": "ANY",
       "enable_when": [
         {
           "question": "R18.1",
@@ -87,61 +85,27 @@
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "R18.A1",
+          "link_id": "R18.A",
           "required": false,
           "warn_if_empty": true,
-          "text": "Client received individual counseling",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
+          "repeats": true,
+          "text": "Type(s) of counseling received",
+          "pick_list_reference": "CounselingMethod",
           "mapping": {
             "record_type": "EXIT",
-            "field_name": "individualCounseling"
+            "field_name": "counselingMethods"
           }
         },
         {
-          "type": "CHOICE",
-          "link_id": "R18.A2",
+          "type": "INTEGER",
+          "link_id": "R18.B",
           "required": false,
           "warn_if_empty": true,
-          "text": "Client received family counseling",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
+          "text": "Number of sessions received by exit",
           "mapping": {
             "record_type": "EXIT",
-            "field_name": "familyCounseling"
+            "field_name": "sessionCountAtExit"
           }
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "R18.A3",
-          "required": false,
-          "warn_if_empty": true,
-          "text": "Client received group counseling, including peer counseling",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "mapping": {
-            "record_type": "EXIT",
-            "field_name": "groupCounseling"
-          }
-        }
-      ]
-    },
-    {
-      "type": "INTEGER",
-      "link_id": "R18.B",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Number of sessions received by exit",
-      "mapping": {
-        "record_type": "EXIT",
-        "field_name": "sessionCountAtExit"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "R18.1",
-          "operator": "EQUAL",
-          "answer_code": "YES"
         }
       ]
     },

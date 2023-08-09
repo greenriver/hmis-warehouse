@@ -44,9 +44,10 @@ module Types
     hud_field :labor_exploit_past_three_months, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     # R18
     hud_field :counseling_received, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :individual_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :family_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :group_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
+    field :counseling_methods, [Types::HmisSchema::Enums::CounselingMethod]
+    # hud_field :individual_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
+    # hud_field :family_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
+    # hud_field :group_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
     hud_field :session_count_at_exit, Int
     hud_field :post_exit_counseling_plan, Types::HmisSchema::Enums::Hud::NoYesMissing
     hud_field :sessions_in_plan, Int
@@ -59,10 +60,11 @@ module Types
     # R20
     hud_field :aftercare_date, GraphQL::Types::ISO8601Date
     hud_field :aftercare_provided, Types::HmisSchema::Enums::Hud::AftercareProvided
-    hud_field :email_social_media, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :telephone, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :in_person_individual, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :in_person_group, Types::HmisSchema::Enums::Hud::NoYesMissing
+    field :aftercare_methods, [Types::HmisSchema::Enums::AftercareMethod]
+    # hud_field :email_social_media, Types::HmisSchema::Enums::Hud::NoYesMissing
+    # hud_field :telephone, Types::HmisSchema::Enums::Hud::NoYesMissing
+    # hud_field :in_person_individual, Types::HmisSchema::Enums::Hud::NoYesMissing
+    # hud_field :in_person_group, Types::HmisSchema::Enums::Hud::NoYesMissing
     # V1
     hud_field :cm_exit_reason, Types::HmisSchema::Enums::Hud::CmExitReason
     hud_field :date_updated

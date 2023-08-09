@@ -889,4 +889,23 @@ module HudUtility
       transform_values { |d| funder_description_to_component(d) }.
       compact[funder]
   end
+
+  # field name => ID from Data Dictionary
+  def aftercare_method_fields
+    {
+      email_social_media: 1,
+      telephone: 2,
+      in_person_individual: 3,
+      in_person_group: 4,
+    }
+  end
+
+  # field name => ID from Data Dictionary
+  def counseling_method_fields
+    {
+      individual_counseling: 1,
+      family_counseling: 2,
+      group_counseling: 3,
+    }
+  end
 end
