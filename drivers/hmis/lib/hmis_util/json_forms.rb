@@ -129,15 +129,16 @@ module HmisUtil
 
     # This function creates/updates a FormDefinition, and applies any fragments and patches.
     #
-    # Fragments are for re-using questions across different assessments.
-    # Patches are for applying installation-specific changes to those patches.
+    # FRAGMENTS are for re-using questions across forms.
+    # PATCHES are for applying installation-specific changes to any item in the form.
     #
     # First, we resolve any fragments that are referenced throughout the form.
     # Next, we apply any installation-specific patches, which could make
-    # any arbitrary changes to any item (by Link ID)
+    # any arbitrary changes to any item (by Link ID), including inserting additional items.
     #
-    # This approach lets you do something like change the link id for a fragment (at resolution time)
-    # and then apply a patch just to that version. A use-case would be if you
+    # This approach lets you do something like change the link_id for a fragment (by specifying
+    # a different link_id on the assessment),
+    # and then apply a patch just to that link id. A use-case would be if you
     # want to change something about Disability fragment just for Intake,
     # not other assessments.
     public def load_definition(form_definition:, identifier:, role:)
