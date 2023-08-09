@@ -194,7 +194,11 @@ module MaReports::MonthlyPerformance
 
     def enrollment_scope_without_preloads
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
-      filter.apply(scope)
+      filter.apply(scope, report_scope_source)
+    end
+
+    def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     def average(value, count)

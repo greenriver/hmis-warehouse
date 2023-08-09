@@ -195,16 +195,16 @@ module SystemPathways::ChartBase
     end
 
     private def filter_for_household_type(scope)
-      scope = case show_filter.household_type
+      case show_filter.household_type
       when :without_children
         scope.merge(SystemPathways::Enrollment.where(household_type: :adults_only))
       when :with_children
         scope.merge(SystemPathways::Enrollment.where(household_type: :adults_and_children))
       when :only_children
         scope.merge(SystemPathways::Enrollment.where(household_type: :children_only))
+      else
+        scope
       end
-
-      scope
     end
 
     private def filter_for_head_of_household(scope)

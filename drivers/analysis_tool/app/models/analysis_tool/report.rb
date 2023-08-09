@@ -171,7 +171,7 @@ module AnalysisTool
 
     # @return filtered scope
     def report_scope(all_project_types: false)
-      filter.apply(report_scope_source, all_project_types: all_project_types)
+      filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
     end
 
     def report_scope_source
