@@ -1,13 +1,12 @@
 class ChangeVamcStationToString < ActiveRecord::Migration[6.1]
-  def up
-    # V6.1 list includes non-integer values such as '589A5'
+  # V6.1 list includes non-integer values such as '589A5'. Change it to a string col.
+  def change
+    view_maintainer = Bi::ViewMaintainer.new
+    view_maintainer.remove_views
     add_column :Enrollment, :VAMCStation_new, :string, null: true
     GrdaWarehouse::Hud::Enrollment.update_all('VAMCStation_new = VAMCStation')
-    remove_column :Enrollment, :VAMCStation, :integer, null: true
+    rename_column :Enrollment, :VAMCStation, :VAMCStation_deleted
     rename_column :Enrollment, :VAMCStation_new, :VAMCStation
-  end
-
-  def down
-    change_column :Enrollment, :VAMCStation, :integer
+    view_maintainer.create_views
   end
 end
