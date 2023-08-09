@@ -10,18 +10,6 @@ module HmisUtil
 
     protected
 
-    # Fragments are for re-using questions across different assessments.
-    # Patches are for applying installation-specific changes to those patches.
-    #
-    # Note: patches don't necessarily need to be tied to fragments, maybe
-    # we should decouple them so patches can be organized however.
-    #
-    # Another thought: instead of doing it this way, resolve all the fragments
-    # on the assessment FIRST, then apply the patches. That would let you
-    # do something like change the link id for a fragment (at resolution time)
-    # and then apply a patch just to that version. A use-case would be if you
-    # want to change something about Disability fragment just for Intake,
-    # not other assessments.
     def fragment_map
       @fragment_map ||= begin
         fragments = {}
@@ -139,26 +127,19 @@ module HmisUtil
       definition['item'].each { |i| resolve_fragments!(i) }
     end
 
-    # Load form definitions for editing and creating records
-    public def seed_record_form_definitions
-      record_forms.each do |identifier, form_definition|
-        role = identifier.upcase.to_sym
-        next unless Hmis::Form::Definition::FORM_ROLES.key?(role)
-
-        load_definition(
-          form_definition: form_definition,
-          identifier: identifier,
-          role: role,
-        )
-
-        # Make this form the default instance for this role
-        instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
-        instance.save!
-      end
-
-      puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
-    end
-
+    # This function creates/updates a FormDefinition, and applies any fragments and patches.
+    #
+    # Fragments are for re-using questions across different assessments.
+    # Patches are for applying installation-specific changes to those patches.
+    #
+    # First, we "resolve" any patches that are referenced throughout the form.
+    # Next, we apply any installation-specific patches, which could make
+    # any arbitrary changes to any item (by Link ID)
+    #
+    # This approach lets you do something like change the link id for a fragment (at resolution time)
+    # and then apply a patch just to that version. A use-case would be if you
+    # want to change something about Disability fragment just for Intake,
+    # not other assessments.
     public def load_definition(form_definition:, identifier:, role:)
       raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role.to_sym)
 
@@ -178,6 +159,26 @@ module HmisUtil
       ).first_or_create!
       record.definition = form_definition
       record.save!
+    end
+
+    # Load form definitions for editing and creating records
+    public def seed_record_form_definitions
+      record_forms.each do |identifier, form_definition|
+        role = identifier.upcase.to_sym
+        next unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+
+        load_definition(
+          form_definition: form_definition,
+          identifier: identifier,
+          role: role,
+        )
+
+        # Make this form the default instance for this role
+        instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
+        instance.save!
+      end
+
+      puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
     end
 
     # Load form definitions for HUD assessments
