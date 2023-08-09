@@ -50,6 +50,24 @@
           "record_type": "INCOME_BENEFIT",
           "custom_field_key": "federal_poverty_level"
         },
+        "enable_behavior": "ANY",
+        "enable_when": [
+          {
+            "question": "4.02.2",
+            "operator": "EQUAL",
+            "answer_code": "YES"
+          },
+          {
+            "question": "4.02.2",
+            "operator": "EQUAL",
+            "answer_code": "NO"
+          },
+          {
+            "question": "4.02.2",
+            "operator": "EXISTS",
+            "answer_boolean": false
+          }
+        ],
         "pick_list_options": [
           {
             "code": "Less than 100%"
@@ -59,12 +77,6 @@
           },
           {
             "code": "Greater than 200%"
-          },
-          {
-            "code": "Client doesn't know"
-          },
-          {
-            "code": "Client prefers not to answer"
           },
           {
             "code": "Data not collected"

@@ -157,8 +157,9 @@
       }
     },
     {
-      "type": "BOOLEAN",
       "link_id": "R18.3",
+      "type": "CHOICE",
+      "pick_list_reference": "NoYesMissing",
       "required": false,
       "warn_if_empty": true,
       "text": "A plan is in place to start or continue counseling after exit",

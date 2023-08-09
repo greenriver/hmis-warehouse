@@ -30,8 +30,7 @@
         "record_type": "EXIT",
         "field_name": "destination"
       },
-      "required": false,
-      "warn_if_empty": true
+      "required": true
     },
     {
       "type": "GROUP",
@@ -56,18 +55,6 @@
           }
         }
       ]
-    },
-    {
-      "fragment": "#r17_project_completion_status"
-    },
-    {
-      "fragment": "#r18_counseling"
-    },
-    {
-      "fragment": "#r19_safe_and_appropriate_exit"
-    },
-    {
-      "fragment": "#r20_aftercare_plans"
     }
   ]
 }

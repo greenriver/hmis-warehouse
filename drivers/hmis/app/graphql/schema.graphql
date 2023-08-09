@@ -2785,6 +2785,7 @@ type Exit {
   coercedToContinueWork: NoYesReasonsForMissingData
   counselingReceived: NoYesMissing
   countOfExchangeForSex: CountExchangeForSex
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -2811,7 +2812,7 @@ type Exit {
   posPeerConnections: WorkerResponse
   postExitCounselingPlan: NoYesMissing
   projectCompletionStatus: ProjectCompletionStatus
-  sessionCountAtExit: NoYesMissing
+  sessionCountAtExit: Int
   sessionsInPlan: Int
   subsidyInformation: SubsidyInformation
   telephone: NoYesMissing

@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::Exit < Types::BaseObject
+    include Types::HmisSchema::HasCustomDataElements
+
     def self.configuration
       Hmis::Hud::Exit.hmis_configuration(version: '2022')
     end
@@ -45,7 +47,7 @@ module Types
     hud_field :individual_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
     hud_field :family_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
     hud_field :group_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :session_count_at_exit, Types::HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :session_count_at_exit, Int
     hud_field :post_exit_counseling_plan, Types::HmisSchema::Enums::Hud::NoYesMissing
     hud_field :sessions_in_plan, Int
     # R19
@@ -66,6 +68,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    custom_data_elements_field
 
     def enrollment
       load_ar_association(object, :enrollment)
