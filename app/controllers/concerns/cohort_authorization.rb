@@ -51,7 +51,7 @@ module CohortAuthorization
 
     def set_users
       @users = User.active.not_system
-      @participator_ids = @cohort.editable_access_control.user_ids
+      @participant_ids = @cohort.editable_access_control.user_ids
       @viewer_ids = @cohort.viewable_access_control.user_ids
     end
 

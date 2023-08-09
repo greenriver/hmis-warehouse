@@ -155,12 +155,13 @@ class CohortsController < ApplicationController
 
   def update
     # TODO: START_ACL replace when ACL transition complete
-    # cohort_options = cohort_params.except(:participator_ids, :viewer_ids)
-    cohort_options = cohort_params.except(:user_ids, :participator_ids, :viewer_ids)
+    # cohort_options = cohort_params.except(:participant_ids, :viewer_ids)
+    cohort_options = cohort_params.except(:user_ids, :participant_ids, :viewer_ids)
     # END_ACL
     cohort_options = cohort_options.except(:name) if @cohort.system_cohort
 
-    participator_ids = cohort_params[:participator_ids].reject(&:blank?).map(&:to_i)
+    # FIXME participant_ids
+    participant_ids = cohort_params[:participant_ids].reject(&:blank?).map(&:to_i)
     viewer_ids = cohort_params[:viewer_ids].reject(&:blank?).map(&:to_i)
     @cohort.update(cohort_options)
 
@@ -169,7 +170,7 @@ class CohortsController < ApplicationController
     @cohort.update_access(user_ids)
     # END_ACL
 
-    @cohort.replace_access(User.find(participator_ids), scope: :editor)
+    @cohort.replace_access(User.find(participant_ids), scope: :editor)
     @cohort.replace_access(User.find(viewer_ids), scope: :viewer)
 
     @cohort.delay.maintain if @cohort.auto_maintained?
@@ -194,7 +195,7 @@ class CohortsController < ApplicationController
       :project_group_id,
       :enforce_project_visibility_on_cells,
       user_ids: [], # TODO: START_ACL remove when ACL transition complete
-      participator_ids: [],
+      participant_ids: [],
       viewer_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:cohort).permit(opts)

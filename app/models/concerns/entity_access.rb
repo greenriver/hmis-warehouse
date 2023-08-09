@@ -36,7 +36,7 @@ module EntityAccess
 
   def viewable_access_control
     @viewable_access_control ||= AccessControl.where(
-      collection: system_entity_group,
+      collection: system_collection,
       role: viewable_role,
       user_group: system_viewable_user_group,
     ).first_or_create
@@ -44,14 +44,18 @@ module EntityAccess
 
   def editable_access_control
     @editable_access_control ||= AccessControl.where(
-      collection: system_entity_group,
+      collection: system_collection,
       role: editable_role,
       user_group: system_editable_user_group,
     ).first_or_create
   end
 
-  def system_entity_group
-    @system_entity_group ||= Collection.where(system: ['Entities'], name: name).first_or_create
+  def system_collection
+    @system_collection ||= begin
+      collection = Collection.where(system: ['Entities'], name: name).first_or_create
+      collection.set_viewables(cohorts: [id])
+      collection
+    end
   end
 
   def system_viewable_user_group
@@ -87,7 +91,7 @@ module EntityAccess
   end
 
   def users_with_access(access_type:)
-    collection_ids = group_viewable_entities.pluck(:collection_id)
+    collection_ids = group_viewable_entities.where.not(collection_id: nil).pluck(:collection_id)
     return [] unless collection_ids
 
     permissions = case access_type
@@ -102,9 +106,12 @@ module EntityAccess
     ors = permissions.map do |perm|
       r_t[perm].eq(true).to_sql
     end
+    role_ids = Role.where(Arel.sql(ors.join(' or '))).pluck(:id)
+
+    # FIXME: Need all Access Controls that contain one of the roles, one of the collections, then get their users
+
     User.diet.
-      joins(:roles, :collections).
-      where(Arel.sql(ors.join(' or '))).
-      merge(Collection.where(id: collection_ids)).to_a.uniq
+      joins(:access_controls).
+      merge(AccessControl.where(role_id: role_ids, collection_id: collection_ids)).to_a.uniq
   end
 end

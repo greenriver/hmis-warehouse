@@ -21,10 +21,18 @@ module GrdaWarehouse
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
     has_many :clients, through: :projects
 
+    # START_ACL remove after migration to ACLs
     has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::ProjectGroup') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
     # NOTE: these are in the app DB
     has_many :access_groups, through: :group_viewable_entities
     has_many :access_controls, through: :access_groups
+    # has_many :users, through: :access_controls
+    # END_ACL
+
+    has_many :acl_group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::Cohort') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :collection_id
+    # NOTE: these are in the app DB
+    has_many :collections, through: :acl_group_viewable_entities
+    has_many :access_controls, through: :collections
     has_many :users, through: :access_controls
 
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
