@@ -128,7 +128,7 @@ class AppClientHistoryCalendar {
           .style('width', dayScale.bandwidth()+'%')
           .append('span')
             .text((d) => this.getDateFromString(d).getDate())
-            .attr('class', (d) => this.getDateFromString(d).getMonth() === month ? this.prefixClass('date') : `${this.prefixClass('date')} ${this.prefixClass('date', 'previous-month')}`)
+            .attr('class', (d) => this.getDateFromString(d).getMonth() === (month - 1) ? this.prefixClass('date') : `${this.prefixClass('date')} ${this.prefixClass('date', 'previous-month')}`)
 
       var projectClass = this.prefixClass('project-container')
       var projects = week.selectAll(`.${projectClass}`)
@@ -181,6 +181,7 @@ class AppClientHistoryCalendar {
         .enter()
         .append('a')
           .attr('class', this.prefixClass('tooltip-trigger'))
+          .attr('data-trigger-content', (d) => `#client__calendar-tooltip__${i}_${d.index}`)
           .attr('href', 'javascript:void(0)')
           .attr('tabindex', '0')
           .style('left', (d) => d.extension_only ? barLeft(d.extension) : barLeft(d))

@@ -1,0 +1,24 @@
+.client__calendar-header.mb-6.d-flex.justify-content-between.align-items-center
+  .d-flex
+    %h3.mr-4= data.title
+    = link_to '#', class: 'mr-4 dropdown-toggle', id: 'client__calendar-datepicker', data: {toggle: 'dropdown'} do
+      %i.icon-calendar
+    .dropdown-menu#client__calendar-datepicker__dropdown
+      %div{data: {provide: :datepicker}, id: 'client__calendar-datepicker__input'}
+
+    
+    - prev_date = data.previous_date
+    - if prev_date.present?
+      = link_to client_history_path(@client, month: prev_date.month, year: prev_date.year), class: 'mr-4' do
+        %i.icon-angle-left
+    - next_date = data.next_date
+    - if next_date.present?
+      = link_to client_history_path(@client, month: next_date.month, year: next_date.year), class: 'mr-4' do
+        %i.icon-angle-right
+  .d-flex
+    - first_date = data.first_date
+    = link_to client_history_path(@client, month: first_date.month, year: first_date.year), class: 'mr-4 btn btn-outline-primary' do
+      %i.icon-arrow-left2
+      First Interaction
+    = link_to client_history_path(@client, month: Date.today.month, year: Date.today.year), class: 'btn btn-outline-secondary' do
+      Today

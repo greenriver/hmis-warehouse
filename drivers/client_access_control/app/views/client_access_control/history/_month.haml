@@ -1,89 +1,87 @@
--# For Dev
-- year, month = [2023, 2]
-- fakeData = ClientHistoryMonth.new(year, month)
-- start_of_month = Date.new(year, month, 1)
-- date_range = (start_of_month.beginning_of_week..start_of_month.end_of_month.end_of_week)
+- fakeData = ClientHistoryMonth.new(@year, @month)
+- weeks_data = fakeData.weeks_data
 
-.row
-  .col-lg-7.col-md-12.mb-lg-6.mb-4
-    .p-4.client__calendar-card.client__calendar-card__filters
-      %h5.mt-0 Filters
-      .row
-        .col-xl-4.col-lg-12.col-sm-4.col-xs-12
-          %label Project Type
-          %select.js-client-calendar-filter__project-type{name: 'project_types[]', multiple: 'multiple', data: {name: 'projectTypes'}}
-            - HudUtility.project_types.each do |key, value|
-              %option{value: key}= value
-        .col-xl-4.col-lg-12.col-sm-4.col-xs-12
-          - projects = fakeData.weeks_data.map{|week| week[:projects]}.flatten.map{|project| project[:project_name]}.uniq
-          %label Project
-          %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projectNames'}}
-            - projects.each do |project|
-              %option{value: project}= project
-        .col-xl-4.col-lg-12.col-sm-4.col-xs-12
-          %label Contact Type
-          %select.js-client-calendar-filter__contact-type{name: 'contact_types[]', multiple: 'multiple', data: {name: 'contactTypes'}}
-            - fakeData.contact_types.each do |key, value|
-              %option{value: key}= value[:name]  
-  .col-lg-5.col-md-12.mb-6
-    .p-4.client__calendar-card.client__calendar-card__contact-key
-      %h5.mt-0 Service History Key
-      .d-flex.flex-wrap
-        - keys = fakeData.contact_types.keys.in_groups_of(2, false)
-        
-        - keys.each do |key_group|
-          .d-flex.w-100.justify-content-between
-            - key_group.each do |key|
-              - value = fakeData.contact_types[key]
-              .mb-4.w-50
-                = render 'event_icon', key: key, name: value[:name], icon: value[:icon]
+- unless weeks_data.present?
+  = render 'month_nav', data: fakeData
+  .mt-8
+    No data
+- else
+  .row
+    .col-lg-7.col-md-12.mb-lg-6.mb-4
+      .p-4.client__calendar-card.client__calendar-card__filters
+        %h5.mt-0 Filters
+        .row
+          .col-xl-4.col-lg-12.col-sm-4.col-xs-12
+            %label Project Type
+            %select.js-client-calendar-filter__project-type{name: 'project_types[]', multiple: 'multiple', data: {name: 'projectTypes'}}
+              - HudUtility.project_types.each do |key, value|
+                %option{value: key}= value
+          .col-xl-4.col-lg-12.col-sm-4.col-xs-12
+            - projects = weeks_data.map{|week| week[:projects]}.flatten.map{|project| project[:project_name]}.uniq
+            %label Project
+            %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projectNames'}}
+              - projects.each do |project|
+                %option{value: project}= project
+          .col-xl-4.col-lg-12.col-sm-4.col-xs-12
+            %label Contact Type
+            %select.js-client-calendar-filter__contact-type{name: 'contact_types[]', multiple: 'multiple', data: {name: 'contactTypes'}}
+              - fakeData.contact_types.each do |key, value|
+                %option{value: key}= value[:name]  
+    .col-lg-5.col-md-12.mb-6
+      .p-4.client__calendar-card.client__calendar-card__contact-key
+        %h5.mt-0 Service History Key
+        .d-flex.flex-wrap
+          - keys = fakeData.contact_types.keys.in_groups_of(2, false)
+          
+          - keys.each do |key_group|
+            .d-flex.w-100.justify-content-between
+              - key_group.each do |key|
+                - value = fakeData.contact_types[key]
+                .mb-4.w-50
+                  = render 'event_icon', key: key, name: value[:name], icon: value[:icon]
 
-.client__calendar-header.mb-6.d-flex.justify-content-between.align-items-center
-  .d-flex
-    %h3.mr-4= start_of_month.strftime '%B %Y'
-    = link_to '#', class: 'mr-4', data: {confirm: 'TODO'} do
-      %i.icon-calendar
-    = link_to '#', class: 'mr-4', data: {confirm: 'TODO'} do
-      %i.icon-angle-left
-    = link_to '#', class: 'mr-4', data: {confirm: 'TODO'} do
-      %i.icon-angle-right
-  .d-flex
-    = link_to '#', class: 'mr-4 btn btn-outline-primary', data: {confirm: 'TODO'} do
-      %i.icon-arrow-left2
-      First Interaction
-    = link_to '#', class: 'btn btn-outline-secondary', data: {confirm: 'TODO'} do
-      Today
+  = render 'month_nav', data: fakeData
 
-.d3-calendar.client__calendar
-.d-none
-  - fakeData.weeks_data.each_with_index do |week, week_i|
-    - week[:projects].each_with_index do |project, project_i|
-      %div{id: "client__calendar-tooltip__#{week_i}_#{project_i}"}
-        %table.table.client__calendar-tooltip__table
-          %thead
-            %th{class: "project-type-#{project[:project_type]}", colspan: 2}
-              = project[:project_type_name]
-              %span= project[:project_name]
-          %tbody
-            %tr
-              %td Entry Date
-              %td= format_date_string(project[:entry_date])
-            %tr
-              %td Exit Date
-              %td= format_date_string(project[:exit_date])
-            - fakeData.contact_types.each do |key, values|
-              - if project[key.to_sym].present?
-                = render key.to_s, key: key, values: values, project: project
-            
+  .d3-calendar.client__calendar
+  .d-none
+    - weeks_data.each_with_index do |week, week_i|
+      - week[:projects].each_with_index do |project, project_i|
+        %div{id: "client__calendar-tooltip__#{week_i}_#{project_i}"}
+          %table.table.client__calendar-tooltip__table
+            %thead
+              %th{class: "project-type-#{project[:project_type]}", colspan: 2}
+                = project[:project_type_name]
+                %span= project[:project_name]
+            %tbody
+              %tr
+                %td Entry Date
+                %td= format_date_string(project[:entry_date])
+              %tr
+                %td Exit Date
+                %td= format_date_string(project[:exit_date])
+              - fakeData.contact_types.each do |key, values|
+                - if project[key.to_sym].present?
+                  = render key.to_s, key: key, values: values, project: project
+              
 
 - content_for :page_js do
   :javascript
-    var data = #{fakeData.weeks_data.to_json.html_safe}
+    var data = #{weeks_data.to_json.html_safe}
     var eventsData = #{fakeData.contact_types.to_json.html_safe}
 
     $(document).ready(function() {
       var calendar = new AppClientHistoryCalendar(data, eventsData, '.d3-calendar')
-
+      
+      $('#client__calendar-datepicker__input').datepicker()
+        .on('changeDate', function(e) {
+          var date = e.date
+          var month = date.getMonth()+1
+          var year = date.getFullYear()
+          var url = new URL(document.location.href)
+          url.searchParams.append('month', month)
+          url.searchParams.append('year', year)
+          document.location.href = url
+        })
       // we will need to set filters on page load
       var filters = {}
       var filterNodes = [
@@ -92,7 +90,6 @@
         $('.js-client-calendar-filter__contact-type'),
       ]
       filterNodes.forEach(function(f) {
-        console.log('f', f)
         f.select2()
         f.on('change', function(e) {
           var target = $(e.target)

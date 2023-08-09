@@ -37,7 +37,10 @@ module ClientAccessControl
         [date.year, date.month]
       end.
         uniq
-      @month_index = params[:month_index].present? ? (params[:month_index].to_i || 0) : nil
+      # @month_index = params[:month_index].present? ? (params[:month_index].to_i || 0) : nil
+      @month = params[:month]&.to_i || 1
+      @year = params[:year]&.to_i || 2022
+      @current_date = Date.new(@year, @month, 1)
     end
 
     def queue
