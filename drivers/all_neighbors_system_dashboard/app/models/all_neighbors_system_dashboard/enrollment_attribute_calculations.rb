@@ -215,7 +215,7 @@ module AllNeighborsSystemDashboard
         # Source ProjectIDs are used in the report
         project_ids_from_groups = GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids_from_secondary_project_groups).pluck(:project_id)
         member_ids = universe.members.where(a_t[:project_id].in(project_ids_from_groups)).pluck(:universe_membership_id)
-        Enrollment.find(member_ids)
+        Enrollment.where(id: member_ids).to_a
       end
     end
   end
