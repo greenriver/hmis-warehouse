@@ -13,14 +13,36 @@
     "operator": "ANY",
     "parts": [
       {
-        "variable": "projectFunders",
+        "_comment": "HHS: PATH – Collection required for all components",
+        "variable": "projectFunderComponents",
         "operator": "INCLUDE",
-        "value": 33
+        "value": "HHS: PATH"
       },
       {
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 21
+        "operator": "ALL",
+        "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 33
+          },
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 12
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 13
+              }
+            ]
+          }
+        ]
       }
     ]
   }
