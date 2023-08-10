@@ -6,8 +6,8 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     let!(:other_tag) { create :available_file_tag, consent_form: false, name: 'Other Tag' }
     let!(:file) { create :client_file, effective_date: 5.days.ago }
     let!(:second_file) { create :client_file, effective_date: 3.days.ago, client: file.client }
-    let(:third_file) { create :client_file, effective_date: 1.days.ago, client: file.client }
-    let(:config) { create :config }
+    let!(:third_file) { create :client_file, effective_date: 1.days.ago, client: file.client }
+    let!(:config) { create :config }
     before :each do
       file.save!
     end
@@ -201,7 +201,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           GrdaWarehouse::Config.delete_all
           GrdaWarehouse::Config.invalidate_cache
         end
-        let(:config) { create :config }
+        let!(:config) { create :config }
         before :each do
           config.update(consent_visible_to_all: true)
           GrdaWarehouse::Config.invalidate_cache
@@ -233,7 +233,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           GrdaWarehouse::Config.delete_all
           GrdaWarehouse::Config.invalidate_cache
         end
-        let(:config) { create :config }
+        let!(:config) { create :config }
         before :each do
           config.update(verified_homeless_history_method: :release)
         end
@@ -248,7 +248,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
               GrdaWarehouse::Config.delete_all
               GrdaWarehouse::Config.invalidate_cache
             end
-            let(:config_b) { create :config }
+            let!(:config_b) { create :config }
             before :each do
               config_b.update(verified_homeless_history_method: :release)
               config_b.update(verified_homeless_history_visible_to_all: true)
@@ -319,7 +319,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           GrdaWarehouse::Config.delete_all
           GrdaWarehouse::Config.invalidate_cache
         end
-        let(:config) { create :config }
+        let!(:config) { create :config }
         before :each do
           config.update(verified_homeless_history_visible_to_all: true)
         end
@@ -337,7 +337,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let(:config) { create :config }
+      let!(:config) { create :config }
       before :each do
         user.legacy_roles << can_see_own_file_uploads
       end
@@ -365,7 +365,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let(:config) { create :config }
+      let!(:config) { create :config }
       before :each do
         user.legacy_roles << can_generate_homeless_verification_pdfs
       end
