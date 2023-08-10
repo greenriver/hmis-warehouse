@@ -103,4 +103,31 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p6)).to eq(fi5.definition)
     end
   end
+
+  describe 'find_definition_for_service_type' do
+    let(:role) { :SERVICE }
+    it 'only service defintions for the specified service type are returned (regression test)' do
+      cst1 = create(:hmis_custom_service_type, name: 'My service', data_source: ds1)
+      p1 = create(:hmis_hud_project, project_type: 1)
+      p2 = create(:hmis_hud_project, project_type: 1, funders: [43])
+      p3 = create(:hmis_hud_project, project_type: 2)
+
+      create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43) # should never be chosen
+      expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p1)).to be_nil
+
+      # form by category
+      fd1 = create(:hmis_form_definition, identifier: 'custom-service-def', role: role)
+      create(:hmis_form_instance, role: role, definition: fd1, custom_service_category: cst1.category, entity: nil, project_type: nil, funder: nil)
+      expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p1)).to eq(fd1)
+      expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p2)).to eq(fd1)
+      expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p3)).to eq(fd1)
+
+      # form by type (more specific, so should be chosen over category form)
+      fd2 = create(:hmis_form_definition, identifier: 'custom-service-def2', role: role)
+      create(:hmis_form_instance, role: role, definition: fd2, custom_service_type: cst1, entity: nil, project_type: nil, funder: nil)
+      expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p1)).to eq(fd2)
+      expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p2)).to eq(fd2)
+      expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p3)).to eq(fd2)
+    end
+  end
 end
