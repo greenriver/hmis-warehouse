@@ -25,15 +25,6 @@ GIT
       multi_json
 
 GIT
-  remote: https://github.com/greenriver/nominatim.git
-  revision: 9b5dcb4967b11fc252a470e28e0799f36a4c9f31
-  branch: aw/faraday-2
-  specs:
-    nominatim (0.0.7)
-      faraday (>= 2)
-      multi_json
-
-GIT
   remote: https://github.com/greenriver/pg_fixtures.git
   revision: 48c46a77893f472890cb06366d89eba6492d8c27
   specs:
@@ -1109,7 +1100,6 @@ DEPENDENCIES
   net-sftp
   net-ssh (~> 7)
   nokogiri (>= 1.13.10)
-  nominatim!
   oauth2
   oj
   omniauth (~> 2.1)
