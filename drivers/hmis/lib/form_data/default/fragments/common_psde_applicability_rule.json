@@ -1,6 +1,4 @@
 {
-  "type": "GROUP",
-  "link_id": "4.11",
   "rule": {
     "operator": "ANY",
     "parts": [
@@ -27,7 +25,7 @@
       },
       {
         "operator": "ALL",
-        "_comment": "HUD: ESG – Collection required for all components ",
+        "_comment": "HUD: ESG – Collection required for all components except ES-NbN",
         "parts": [
           {
             "variable": "projectFunderComponents",
@@ -39,6 +37,11 @@
             "operator": "NOT_INCLUDE",
             "_comment": "Exclude RUSH since it follows the next rule",
             "value": 53
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 1
           }
         ]
       },
@@ -165,6 +168,27 @@
         "value": "HHS: PATH"
       },
       {
+        "operator": "ANY",
+        "_comment": "HHS: RHY – Collection only required for MGH, TLP, and Demo",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 26
+          }
+        ]
+      },
+      {
         "operator": "ALL",
         "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
         "parts": [
@@ -209,59 +233,5 @@
         "value": 27
       }
     ]
-  },
-  "item": [
-    {
-      "type": "CHOICE",
-      "link_id": "4.11.2",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Domestic Violence Victim/Survivor",
-      "pick_list_reference": "NoYesReasonsForMissingData",
-      "mapping": {
-        "record_type": "HEALTH_AND_DV",
-        "field_name": "domesticViolenceVictim"
-      }
-    },
-    {
-      "type": "GROUP",
-      "link_id": "4.11.2-conditionals",
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "4.11.2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ],
-      "item": [
-        {
-          "type": "CHOICE",
-          "link_id": "4.11.A",
-          "required": false,
-          "warn_if_empty": true,
-          "text": "When did the experience occur?",
-          "brief_text": "When DV Occurred",
-          "mapping": {
-            "record_type": "HEALTH_AND_DV",
-            "field_name": "whenOccurred"
-          },
-          "pick_list_reference": "WhenDVOccurred"
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.11.B",
-          "required": false,
-          "warn_if_empty": true,
-          "text": "Are you currently fleeing?",
-          "brief_text": "Currently Fleeing DV",
-          "mapping": {
-            "record_type": "HEALTH_AND_DV",
-            "field_name": "currentlyFleeing"
-          },
-          "pick_list_reference": "NoYesReasonsForMissingData"
-        }
-      ]
-    }
-  ]
+  }
 }

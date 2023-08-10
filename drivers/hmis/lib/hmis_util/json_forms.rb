@@ -114,31 +114,39 @@ module HmisUtil
       children&.each { |child| walk_nodes(child, &block) }
     end
 
-    def resolve_fragments!(base_item)
-      walk_nodes(base_item) do |item|
-        next unless item['fragment'].present?
+    def resolve_fragment!(item, safety: 0)
+      raise 'Safety count exceeded' if safety > 5
+      return unless item['fragment'].present?
 
-        fragment_key = item['fragment']&.gsub(/^#/, '')
-        fragment = fragment_map[fragment_key]
-        raise "Fragment not found #{item['fragment']}" unless fragment.present?
+      fragment_key = item['fragment']&.gsub(/^#/, '')
+      fragment = fragment_map[fragment_key]
+      raise "Fragment not found #{item['fragment']}" unless fragment.present?
 
-        fragment_items = fragment['item'] || [] # child items of the fragment
-        additional_items = item['item'] || [] # any items that should be appended
+      fragment_items = fragment['item'] || [] # child items of the fragment
+      additional_items = item['item'] || [] # any items that should be appended
 
-        # Reverse merge so that any keys specified in 'item' overried the fragment values.
-        # This can be useful in changing the link id, text, etc.
-        # This is a shallow merge.
-        item.reverse_merge!(fragment)
-        # If this item was adding any additional items, we need to add the fragment items
-        # since they wouldn't have been copied by the shallow merge
-        item['item'].unshift(*fragment_items) if additional_items.any? && fragment_items.any?
-        # Remove the fragment field
-        item.delete('fragment')
-      end
+      # Reverse merge so that any keys specified in 'item' overried the fragment values.
+      # This can be useful in changing the link id, text, etc.
+      # This is a shallow merge.
+      item.reverse_merge!(fragment)
+      # If this item was adding any additional items, we need to add the fragment items
+      # since they wouldn't have been copied by the shallow merge
+      item['item'].unshift(*fragment_items) if additional_items.any? && fragment_items.any?
+
+      # Remove the fragment field
+      item.delete('fragment')
+
+      return unless fragment['fragment'].present?
+
+      # If the fragment ALSO had a fragment key on it, resolve that.
+      item['fragment'] = fragment['fragment']
+      resolve_fragment!(item, safety: safety + 1)
     end
 
     def resolve_all_fragments!(definition)
-      definition['item'].each { |i| resolve_fragments!(i) }
+      walk_nodes(definition) do |item|
+        resolve_fragment!(item)
+      end
     end
 
     # This function creates/updates a FormDefinition, and applies any fragments and patches.

@@ -4,6 +4,7 @@
   "text": "Non-Cash Benefits",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": "INCOME_BENEFIT",
+  "fragment": "#common_psde_applicability_rule",
   "item": [
     {
       "type": "CHOICE",
