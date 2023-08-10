@@ -1,0 +1,132 @@
+{
+  "type": "GROUP",
+  "link_id": "W5",
+  "text": "Housing Assessment at Exit",
+  "data_collected_about": "ALL_CLIENTS",
+  "rule": {
+    "operator": "ANY",
+    "parts": [
+      {
+        "operator": "ALL",
+        "_comment": "HUD: CoC – Collection required only for Homelessness Prevention component; HUD: ESG – Collection required only for Homelessness Prevention component; HUD: ESG-RUSH – Collection required for Homelessness Prevention component",
+        "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          },
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "HUD: CoC"
+              },
+              {
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "HUD: ESG"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: HOPWA – Collection required for all components",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: HOPWA"
+          },
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 1
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 2
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 3
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 6
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 12
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "W5.1",
+      "text": "Housing Assessment at Exit",
+      "pick_list_reference": "HousingAssessmentAtExit",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "housingAssessment"
+      },
+      "required": false,
+      "warn_if_empty": true
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "W5.A",
+      "text": "Subsidy Information",
+      "pick_list_reference": "SubsidyInformationA",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "subsidyInformation"
+      },
+      "required": false,
+      "warn_if_empty": true,
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "W5.1",
+          "operator": "EQUAL",
+          "answer_code": "ABLE_TO_MAINTAIN_THE_HOUSING_THEY_HAD_AT_PROJECT_ENTRY"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "W5.B",
+      "text": "Subsidy Information",
+      "pick_list_reference": "SubsidyInformationB",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "subsidyInformation"
+      },
+      "required": false,
+      "warn_if_empty": true,
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "W5.1",
+          "operator": "EQUAL",
+          "answer_code": "MOVED_TO_NEW_HOUSING_UNIT"
+        }
+      ]
+    }
+  ]
+}
