@@ -10,18 +10,18 @@ module BostonProjectScorecard
     included do
       def project_performance_score
         [
-          rrh_exits_to_ph_score,
-          psh_stayers_or_to_ph_score,
-          increased_employment_income_score,
-          increased_other_income_score,
-          days_to_lease_up_score,
-          utilization_rate_score,
-          no_concern_score,
+          rrh_exits_to_ph_score, # max 12 (incompatible with psh_stayers_or_to_ph_score)
+          psh_stayers_or_to_ph_score, # max 12 (incompatible with rrh_exits_to_ph_score)
+          increased_employment_income_score, # max 12
+          increased_other_income_score, # max 12
+          days_to_lease_up_score, # max 12
+          utilization_rate_score, # max 6
+          no_concern_score, # max 3
         ].compact.sum
       end
 
       def project_performance_available
-        max = 54
+        max = 57
         max -= 24 unless rrh? || psh?
         max -= 3 if no_concern_score.nil?
 
