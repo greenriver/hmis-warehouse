@@ -98,6 +98,8 @@ module EntityAccess
       viewable_permissions
     when :edit
       editable_permissions
+    when :access
+      viewable_permissions + editable_permissions
     else
       raise 'Unknown access type'
     end
