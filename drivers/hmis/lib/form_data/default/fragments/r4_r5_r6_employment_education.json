@@ -102,11 +102,6 @@
               {
                 "variable": "projectType",
                 "operator": "EQUAL",
-                "value": 1
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
                 "value": 2
               },
               {
@@ -161,17 +156,12 @@
               {
                 "variable": "projectType",
                 "operator": "EQUAL",
-                "value": 1
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
                 "value": 2
               },
               {
                 "variable": "projectType",
                 "operator": "EQUAL",
-                "value": 6
+                "value": 3
               },
               {
                 "variable": "projectType",

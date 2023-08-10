@@ -41,11 +41,6 @@
           {
             "variable": "projectType",
             "operator": "EQUAL",
-            "value": 1
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
             "value": 2
           },
           {

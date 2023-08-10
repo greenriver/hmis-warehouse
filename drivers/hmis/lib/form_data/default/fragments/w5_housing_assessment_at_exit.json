@@ -47,7 +47,7 @@
               {
                 "variable": "projectType",
                 "operator": "EQUAL",
-                "value": 1
+                "value": 0
               },
               {
                 "variable": "projectType",
