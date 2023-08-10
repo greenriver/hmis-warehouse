@@ -31,10 +31,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # Enrollment: rental_assistance_end_date
         { owner_type: 'Hmis::Hud::Enrollment', field_type: :date, key: :rental_assistance_end_date, label: 'Rental Assistance End Date', at_occurrence: true },
         # Enrollment: esg_allowance_grant_referred
-        { owner_type: 'Hmis::Hud::Enrollment', field_type: :integer, key: :esg_allowance_grant_referred, label: 'ESG Allowance Grant Referred' },
+        { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :esg_allowance_grant_referred, label: 'ESG Allowance Grant Referred' },
 
         # Enrollment: esg_allowance_grant_received
-        { owner_type: 'Hmis::Hud::Enrollment', field_type: :integer, key: :esg_allowance_grant_received, label: 'ESG Allowance Grant Received' },
+        { owner_type: 'Hmis::Hud::Enrollment', field_type: :integer, string: :esg_allowance_grant_received, label: 'ESG Allowance Grant Received' },
 
         # Enrollment: esg_allowance_grant_received_amount
         { owner_type: 'Hmis::Hud::Enrollment', field_type: :float, key: :esg_allowance_grant_received_amount, label: 'ESG Allowance Grant Received Amount' },

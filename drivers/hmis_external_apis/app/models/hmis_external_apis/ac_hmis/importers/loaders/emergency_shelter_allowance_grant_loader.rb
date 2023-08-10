@@ -19,10 +19,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         owner_id = owner_id_by_enrollment_id.fetch(enrollment_id)
         [
           new_cde_record(
+            # FIXME - need to map integer value, mapping not yet provided
             value: row_value(row, field: 'REFERREDTOALLOWANCEGRANT'),
             definition_key: :esg_allowance_grant_referred,
           ),
           new_cde_record(
+            # FIXME - need to map integer value, mapping not yet provided
             value: row_value(row, field: 'RECEVIEDFUNDING'),
             definition_key: :esg_allowance_grant_received,
           ),

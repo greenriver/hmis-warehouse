@@ -36,20 +36,9 @@ module HmisExternalApis::AcHmis::Importers
       s3_zip_files_importer = new
       s3_zip_files_importer.importer_class = ProjectsImporter
       s3_zip_files_importer.skip_lambda = ->(s3_object) do
-        # skip if this this s3 key was already imported
         ProjectsImportAttempt.given(s3_object).to_skip.any?
       end
 
-      s3_zip_files_importer.run!
-    end
-
-    def custom_data_elements
-      s3_zip_files_importer = new
-      s3_zip_files_importer.importer_class = CustomDataElementImporter
-      s3_zip_files_importer.skip_lambda = ->(s3_object) do
-        # skip if this this s3 key was already imported
-        ProjectsImportAttempt.given(s3_object).to_skip.any?
-      end
       s3_zip_files_importer.run!
     end
 
