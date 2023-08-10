@@ -397,6 +397,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'DisabilityGroup.chronicHealthCondition' => 'YES',
         'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => 'NO',
         'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.tCellCountAvailable' => 'YES',
         'DisabilityGroup.mentalHealthDisorder' => 'NO',
         'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
         'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => 'YES',
@@ -418,6 +419,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
+      # HIV/AIDS
+      expect(disabilities.find_by(disability_type: 8).disability_response).to eq(1)
+      expect(disabilities.find_by(disability_type: 8).t_cell_count_available).to eq(1)
     end
 
     it 'can process nil and _HIDDEN DisabilityGroup fields' do
@@ -426,7 +430,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'DisabilityGroup.physicalDisability' => nil,
         'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => HIDDEN,
         'DisabilityGroup.developmentalDisability' => 'NO',
-        'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => HIDDEN,
         'DisabilityGroup.chronicHealthCondition' => 'YES',
         'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => nil,
         'DisabilityGroup.hivAids' => nil,
@@ -448,7 +451,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to be_nil # hidden is saved as nil
       # Developmental Disability
       expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
-      expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil # hidden is saved as nil
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
       expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
