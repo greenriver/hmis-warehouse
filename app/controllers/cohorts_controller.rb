@@ -160,9 +160,6 @@ class CohortsController < ApplicationController
     # END_ACL
     cohort_options = cohort_options.except(:name) if @cohort.system_cohort
 
-    # FIXME participant_ids
-    participant_ids = cohort_params[:participant_ids].reject(&:blank?).map(&:to_i)
-    viewer_ids = cohort_params[:viewer_ids].reject(&:blank?).map(&:to_i)
     @cohort.update(cohort_options)
 
     # TODO: START_ACL remove when ACL transition complete
@@ -170,7 +167,10 @@ class CohortsController < ApplicationController
     @cohort.update_access(user_ids)
     # END_ACL
 
+    participant_ids = cohort_params[:participant_ids].reject(&:blank?).map(&:to_i)
     @cohort.replace_access(User.find(participant_ids), scope: :editor)
+
+    viewer_ids = cohort_params[:viewer_ids].reject(&:blank?).map(&:to_i)
     @cohort.replace_access(User.find(viewer_ids), scope: :viewer)
 
     @cohort.delay.maintain if @cohort.auto_maintained?

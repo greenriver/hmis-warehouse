@@ -29,11 +29,10 @@ module GrdaWarehouse
     # has_many :users, through: :access_controls
     # END_ACL
 
-    has_many :acl_group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::Cohort') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :collection_id
     # NOTE: these are in the app DB
-    has_many :collections, through: :acl_group_viewable_entities
+    has_many :collections, through: :group_viewable_entities
     has_many :access_controls, through: :collections
-    has_many :users, through: :access_controls
+    # has_many :users, through: :access_controls
 
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_many :cohorts, class_name: 'GrdaWarehouse::Cohort'

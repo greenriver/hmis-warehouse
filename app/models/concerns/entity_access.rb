@@ -17,14 +17,13 @@ module EntityAccess
   # NOTE: this will remove any existing who are not included
   def replace_access(users, scope:)
     users = Array.wrap(users)
-    # Ensure access controls are present
-    viewable_access_control
-    editable_access_control
 
     user_group = case scope
     when :editor
+      editable_access_control # Ensure access controls are present
       system_editable_user_group
     when :viewer
+      viewable_access_control # Ensure access controls are present
       system_viewable_user_group
     else
       raise 'Unknown access type'

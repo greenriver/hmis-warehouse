@@ -17,9 +17,8 @@
     .col-sm-6
       %h3 Access
       -# TODO: START_ACL remove after ACL transition
-      %p This method of access is being deprecated
       .well
-        = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: 'Specified user and members of specified groups will have access to this cohort.'
+        = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: 'Specified user and members of specified groups will have access to this cohort. This method of access is being deprecated, to be replaced with the fields below.'
       %p The following are the new mechanism for adding access to cohorts.  During the transition period, please assign both methods of access.
       -# END_ACL
       - users = @cohort.users_with_access(access_type: :edit)
@@ -30,7 +29,6 @@
             %li= u.name_with_email
       = f.input :participant_ids, collection: @users, as: :select_two, selected: @participant_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant participation-level access to users', hint: 'Specified user will have access to participate in this cohort.'
       - users = @cohort.users_with_access(access_type: :view)
-      - console
       - if users.count > 0
         %p The following users already have access to view this cohort:
         %ul

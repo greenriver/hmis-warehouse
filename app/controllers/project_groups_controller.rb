@@ -57,10 +57,13 @@ class ProjectGroupsController < ApplicationController
       filter.coc_codes = []
       @project_group.options = filter.to_h
       if @project_group.save
+        # START_ACL remove when ACL transition complete
+        users = user_params[:users]&.reject(&:empty?)
+        @project_group.update_access(users.map(&:to_i)) if users.present?
+        # END_ACL
         if user_params.key?(:editor_ids)
-          users = user_params[:editor_ids]&.reject(&:empty?)&.map(&:to_i)
-          @project_group.update_access(users.map(&:to_i)) # TODO: START_ACL remove when ACL transition complete
-          @project_group.replace_access(User.find(users), scope: :editor)
+          user_ids = user_params[:editor_ids]&.reject(&:empty?)&.map(&:to_i)
+          @project_group.replace_access(User.where(id: user_ids).to_a, scope: :editor) if user_ids.present?
         end
         @project_group.maintain_projects!
       end
@@ -114,6 +117,7 @@ class ProjectGroupsController < ApplicationController
   def user_params
     params.require(:filters).
       permit(
+        users: [],
         editor_ids: [],
       )
   end

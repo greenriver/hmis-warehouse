@@ -777,7 +777,6 @@ module GrdaWarehouse
     def self.editable_permissions
       [
         :can_manage_cohort_data,
-        :can_view_cohorts,
         editable_permission,
       ]
     end
