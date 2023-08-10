@@ -12,7 +12,7 @@
             = link_to client_health_thrive_assessment_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true } do
               %h4.mb-0.mt-0 THRIVE
           %td= assessment.completed_on || 'in progress'
-          %td= assessment&.user&.name
+          %td= assessment&.user&.name || assessment.external_name
       - @patient&.ssms&.each do |form|
         %tr
           - if form.is_a? Health::SelfSufficiencyMatrixForm
