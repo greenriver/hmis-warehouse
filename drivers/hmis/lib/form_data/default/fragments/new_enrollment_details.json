@@ -1,0 +1,70 @@
+{
+  "link_id": "new-enrollment-details",
+  "type": "GROUP",
+  "item": [
+    {
+      "link_id": "household-id",
+      "hidden": true,
+      "type": "STRING",
+      "_comment": "This will be present if creating a new Enrollment in an existing Houshold",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "householdId"
+      },
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$householdId"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "entry-date",
+      "text": "Entry Date",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "entryDate"
+      },
+      "required": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$today"
+        }
+      ],
+      "bounds": [
+        {
+          "id": "max-entry-date",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "relationship-to-hoh",
+      "required": true,
+      "text": "Relationship to HoH",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "relationshipToHoH"
+      },
+      "pick_list_reference": "RelationshipToHoH",
+      "autofill_values": [
+        {
+          "_comment": "set to HoH if this is a new enrollment in a new household",
+          "value_code": "SELF_HEAD_OF_HOUSEHOLD",
+          "autofill_behavior": "ALL",
+          "autofill_when": [
+            {
+              "question": "household-id",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

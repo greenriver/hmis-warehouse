@@ -1,0 +1,18 @@
+[
+  {
+    "link_id": "new-enrollment-details",
+    "append_items": [
+      {
+        "type": "CHOICE",
+        "link_id": "unit-selection-for-new-enrollment",
+        "required": true,
+        "text": "Select Unit",
+        "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
+        "mapping": {
+          "record_type": "ENROLLMENT",
+          "field_name": "currentUnit"
+        }
+      }
+    ]
+  }
+]
