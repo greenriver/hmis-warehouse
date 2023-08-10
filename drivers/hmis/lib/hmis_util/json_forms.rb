@@ -53,6 +53,20 @@ module HmisUtil
       end
     end
 
+    def service_forms
+      @service_forms ||= begin
+        forms = {}
+        if ENV['CLIENT'].present?
+          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/services/*.json") do |file_path|
+            identifier = File.basename(file_path, '.json')
+            file = File.read(file_path)
+            forms[identifier] = JSON.parse(file)
+          end
+        end
+        forms
+      end
+    end
+
     def apply_patches(tree, patches)
       nodes_by_id = {}
       result = tree.deep_dup
@@ -141,7 +155,7 @@ module HmisUtil
     # and then apply a patch just to that link id. A use-case would be if you
     # want to change something about Disability fragment just for Intake,
     # not other assessments.
-    public def load_definition(form_definition:, identifier:, role:)
+    def load_definition(form_definition:, identifier:, role:)
       raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role.to_sym)
 
       # Resolve all fragments, so we have a full definition
@@ -164,9 +178,10 @@ module HmisUtil
 
     # Load form definitions for editing and creating records
     public def seed_record_form_definitions
-      record_forms.each do |identifier, form_definition|
+      record_forms.merge(service_forms).each do |identifier, form_definition|
         role = identifier.upcase.to_sym
-        next unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+        role = :SERVICE if service_forms.key?(identifier)
+        raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
 
         load_definition(
           form_definition: form_definition,
@@ -174,9 +189,12 @@ module HmisUtil
           role: role,
         )
 
-        # Make this form the default instance for this role
-        instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
-        instance.save!
+        # Make this form the default instance  for this role. Don't do it for service forms since those
+        # need specialized instances based on service type.
+        unless service_forms.key?(identifier)
+          instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
+          instance.save!
+        end
       end
 
       puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"

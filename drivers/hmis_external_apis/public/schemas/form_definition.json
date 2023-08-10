@@ -90,6 +90,9 @@
       "properties": {
         "_comment": { "type": "string" },
         "value_code": { "type": "string" },
+        "value_number": { "type": "integer" },
+        "value_boolean": { "type": "boolean" },
+        "value_question": { "type": "string" },
         "autofill_readonly": { "type": "boolean" },
         "autofill_behavior": { "type": "string" },
         "autofill_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
