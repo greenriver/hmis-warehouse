@@ -23,8 +23,8 @@ module HmisExternalApis::AcHmis::Importers
 
     def run!
       start
-      items = [
-        [EmergencyShelterAllowanceGrantLoader, 'EmergencyShelterAllowanceGrant.csv'],
+      single_file_imports = [
+        [EmergencyShelterAllowanceGrantLoader, -> 'EmergencyShelterAllowanceGrant.csv'],
         [EsgFundingAssistanceLoader, 'ESGFundingAssistance.csv'],
         [FederalPovertyLevelLoader, 'FederalPovertyLevel.csv'],
         [ReasonForExitLoader, 'ReasonForExit.csv'],
@@ -33,16 +33,27 @@ module HmisExternalApis::AcHmis::Importers
         [ClientAddressLoader, 'ClientAddress.csv'],
         [ClientContactsLoader, 'ClientContacts.csv'],
       ]
-      check_file_names(items.map(&:last))
+      check_file_names(single_file_imports.map(&:last))
 
       table_names = []
       ProjectsImportAttempt.transaction do
-        items.each do |loader, filename|
+        single_file_imports.each do |loader, filename|
           rows = records_from_csv(filename)
           result = loader.perform(rows: rows)
           handle_import_result(result)
           table_names += loader.table_names
         end
+
+        result = ReferralPostingsLoader.perform(
+          posting_rows: records_from_csv('ReferralPostings.csv'),
+          household_member_rows: records_from_csv('ReferralHouseholdMembers.csv'),
+          # clobber: clobber_referrals
+        )
+        handle_import_result(result)
+        ReferralRequestsLoader.perform(
+          rows: records_from_csv('ReferralRequests.csv'),
+          # clobber: clobber_referrals
+        )
       end
       analyze(table_names)
       finish
