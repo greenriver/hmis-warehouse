@@ -14,8 +14,8 @@
 
 - if path_to_add_users
   = simple_form_for :user_members, url: path_to_add_users do |f|
-    .d-flex
-      .ml-auto.w-50
+    .d-flex.mt-6
+      .mr-4.w-50
         = f.input :user_ids, collection: User.not_system.active.where.not(id: item.user_ids), as: :select_two, input_html: { multiple: true }, label: 'Users to Add'
       .ml-4
         = f.button :submit, 'Add Users', class: 'btn btn-secondary mt-no-label'

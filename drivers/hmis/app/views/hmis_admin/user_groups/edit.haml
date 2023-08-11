@@ -12,6 +12,9 @@
 = simple_form_for @user_group, as: :user_group, url: hmis_admin_user_group_path do |f|
   = f.error_notification
   .form-inputs.mt-4
-    = render 'form', f: f
+    = f.input :name
+
   .form_actions.mt-4
     = f.button :submit, value: 'Update User Group'
+
+= render 'users/user_members_table', item: @user_group, path_to_add_users: hmis_admin_user_group_users_path(@user_group), path_to_delete_item: hmis_admin_user_group_path(@user_group), delete_user_lambda: ->(user) { hmis_admin_user_group_user_path(@user_group, user) }

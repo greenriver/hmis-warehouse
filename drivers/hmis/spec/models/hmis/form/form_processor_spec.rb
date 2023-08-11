@@ -25,10 +25,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     cleanup_test_environment
   end
 
-  before do
-    create_access_control(hmis_user, ds1, with_permission: [:can_edit_project_details, :can_view_clients, :can_view_dob, :can_view_enrollment_details])
-  end
-
   it 'ingests EnrollmentCoC into the hud tables' do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
     assessment.form_processor.hud_values = {

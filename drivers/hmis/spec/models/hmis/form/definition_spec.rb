@@ -24,11 +24,6 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   let!(:no_permission_role) { create :role }
   let!(:empty_collection) { create :collection }
 
-  before do
-    empty_collection.set_viewables({ data_sources: [ds1.id] })
-    setup_access_control(user, no_permission_role, empty_collection)
-  end
-
   it 'should return the right definition if a project has a specific assessment' do
     expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
   end

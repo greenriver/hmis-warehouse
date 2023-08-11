@@ -20,7 +20,7 @@ module HmisAdmin::UserGroups
 
       @user_group.add(users)
       flash[:notice] = "#{pluralize(users.count, 'user')} added"
-      redirect_to edit_hmis_admin_access_control_path(@user_group)
+      redirect_to edit_hmis_admin_user_group_path(@user_group)
     end
 
     def destroy
