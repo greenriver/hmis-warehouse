@@ -1,9 +1,9 @@
-- fakeData = ClientHistoryMonth.new(@year, @month, @filters)
-- weeks_data = fakeData.weeks_data
+- data = ClientAccessControl::ClientHistoryMonth.new(@year, @month, @filters)
+- weeks_data = data.weeks_data(month: @month, year: @year, client: @client, user: current_user)
 
 
 - unless weeks_data.present?
-  = render 'month_nav', data: fakeData
+  = render 'month_nav', data: data
   .mt-8
     No data
 - else
@@ -19,7 +19,7 @@
                 %option{value: key, selected: @filters[:project_types].include?(key.to_s)}= value
           .col-xl-4.col-lg-12.col-sm-4.col-xs-12
             - projects = weeks_data.map{|week| week[:projects].map{|p| {id: p[:project_id], name: p[:project_name]}}}.flatten.group_by{|p| p[:id]}.values.map(&:first).sort_by{|p| p[:name]}
-            
+
             %label Project
             %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projects'}}
               - projects.each do |project|
@@ -27,22 +27,22 @@
           .col-xl-4.col-lg-12.col-sm-4.col-xs-12
             %label Contact Type
             %select.js-client-calendar-filter__contact-type{name: 'contact_types[]', multiple: 'multiple', data: {name: 'contactTypes'}}
-              - fakeData.contact_types.each do |key, value|
-                %option{value: key, selected: @filters[:contact_types].include?(key)}= value[:name]  
+              - data.contact_types.each do |key, value|
+                %option{value: key, selected: @filters[:contact_types].include?(key)}= value[:name]
     .col-lg-5.col-md-12.mb-6
       .p-4.client__calendar-card.client__calendar-card__contact-key
         %h5.mt-0 Service History Key
         .d-flex.flex-wrap
-          - keys = fakeData.contact_types.keys.in_groups_of(2, false)
-          
+          - keys = data.contact_types.keys.in_groups_of(2, false)
+
           - keys.each do |key_group|
             .d-flex.w-100.justify-content-between
               - key_group.each do |key|
-                - value = fakeData.contact_types[key]
+                - value = data.contact_types[key]
                 .mb-4.w-50
                   = render 'event_icon', key: key, name: value[:name], icon: value[:icon]
 
-  = render 'month_nav', data: fakeData
+  = render 'month_nav', data: data
 
   .d3-calendar.client__calendar
   .d-none
@@ -57,19 +57,19 @@
             %tbody
               %tr
                 %td Entry Date
-                %td= format_date_string(project[:entry_date])
+                %td= project[:entry_date]&.to_date
               %tr
                 %td Exit Date
-                %td= format_date_string(project[:exit_date])
-              - fakeData.contact_types.each do |key, values|
+                %td= project[:exit_date]&.to_date
+              - data.contact_types.each do |key, values|
                 - if project[key.to_sym].present?
                   = render key.to_s, key: key, values: values, project: project
-              
+
 
 - content_for :page_js do
   :javascript
     var data = #{weeks_data.to_json.html_safe}
-    var eventsData = #{fakeData.contact_types.to_json.html_safe}
+    var eventsData = #{data.contact_types.to_json.html_safe}
 
     $(document).ready(function() {
       var calendar = new AppClientHistoryCalendar(data, eventsData, '.d3-calendar')
@@ -83,16 +83,16 @@
         url.searchParams.set('contact_types', filters['contactTypes'])
         document.location.href = url
       }
-      
+
       $('.js-client__calendar-nav').on('click', function(e) {
         e.preventDefault()
         var target = $(e.currentTarget)
         var month = target.data('month')
         var year = target.data('year')
-        
+
         navigateCalendar(month, year)
       })
-      
+
       $('#client__calendar-datepicker__input').datepicker()
         .on('changeDate', function(e) {
           var date = e.date
@@ -100,7 +100,7 @@
           var year = date.getFullYear()
           navigateCalendar(month, year)
         })
-      
+
       var filters = {projectTypes: [], projects: [], contactTypes: []}
       var filterNodes = [
         $('.js-client-calendar-filter__project-type'),
@@ -118,12 +118,7 @@
         })
       })
       console.log('filters on load', filters)
-      
+
       calendar.draw(filters)
-      
+
     })
-
-    
-    
-
-

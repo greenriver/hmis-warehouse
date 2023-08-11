@@ -2,4 +2,4 @@
   %td
     = render 'event_icon', key: key, name: values[:name], icon: values[:icon]
   %td
-    = format_date_string(project[:current_situations]&.last)
+    = project[:current_situations]&.last&.to_date

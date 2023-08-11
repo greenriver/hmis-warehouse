@@ -14,4 +14,4 @@
         = project[name_key][date_index]
       - else
         = values[:name]
-    %td= format_date_string(date)
+    %td= date&.to_date

@@ -36,9 +36,9 @@
   color: black;
 }
 .service-type__program-type {
-  // background-color: #E6E6E6;
-  // @include tag-pill;
-  // color: black;
+  background-color: #E6E6E6;
+  @include tag-pill;
+  color: black;
 }
 .client__client_unique_id
 {
@@ -62,7 +62,7 @@
   // border-left: 1px solid $body-bg;
   // border-right: 1px solid $body-bg;
   padding: 0px;
-  
+
 }
 
 .client__month_of_service-table th {
@@ -87,7 +87,7 @@
 }
 
 .client__calendar-card__contact-key {
-  
+
 }
 
 .client__calendar-card__contact-key__key {
@@ -147,7 +147,7 @@ $client-calendar-project-height: 50px;
   display: block;
   position: relative;
   z-index: 1;
-  
+
   height: $client-calendar-project-height;
   &.client__calendar-project__no-events {
     height: $client-calendar-project-height/2;
@@ -179,7 +179,7 @@ $client-calendar-project-height: 50px;
   .popover-body {
     padding: 0px;
   }
-  
+
 }
 
 .client__calendar-tooltip__table {
@@ -207,7 +207,7 @@ td.client__calendar-tooltip__table__mro {
   padding-bottom: 4px;
 }
 
-.client__calendar-project__extension {
+.client__calendar-project__extrapolation {
   height: $client-calendar-project-height;
   position: absolute;
   top:0;
@@ -219,13 +219,13 @@ td.client__calendar-tooltip__table__mro {
   z-index: 2;
   i {
     position: absolute;
-    right: -5px; 
+    right: -5px;
     color: #6A1B9A;
     top: -5px;
   }
 }
 
-span.client__calendar-day-event__extension {
+span.client__calendar-day-event__extrapolation {
   position: relative;
   padding-left: 8px;
   &:after {
@@ -244,7 +244,7 @@ span.client__calendar-day-event__extension {
   }
 }
 
-.client__calendar-tooltip__table span.client__calendar-day-event__extension:after {
+.client__calendar-tooltip__table span.client__calendar-day-event__extrapolation:after {
   margin-top: -2px;
 }
 

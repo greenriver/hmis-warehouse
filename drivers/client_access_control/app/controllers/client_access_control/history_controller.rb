@@ -15,18 +15,20 @@ module ClientAccessControl
     before_action :set_dates, only: [:show]
     after_action :log_client
 
-    def format_date_string(date_string)
-      rslt = ''
-      if date_string.present?
-        parts = date_string.split('-').map(&:to_i)
-        if parts.size == 3
-          date = Date.new(parts[0], parts[1], parts[2])
-          rslt = date.strftime('%m/%d/%Y')
-        end
-      end
-      rslt
-    end
-    helper_method :format_date_string
+    # Removed from UI to use standard OP date format
+    # Leaving here in case we need to restore
+    # def format_date_string(date_string)
+    #   rslt = ''
+    #   if date_string.present?
+    #     parts = date_string.split('-').map(&:to_i)
+    #     if parts.size == 3
+    #       date = Date.new(parts[0], parts[1], parts[2])
+    #       rslt = date.strftime('%m/%d/%Y')
+    #     end
+    #   end
+    #   rslt
+    # end
+    # helper_method :format_date_string
 
     def show
       @ordered_dates = @dates.keys.sort

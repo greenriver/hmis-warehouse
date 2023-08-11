@@ -45,13 +45,13 @@ class AppClientHistoryCalendar {
         }
         if(filters.contactTypes && filters.contactTypes.length > 0) {
           filters.contactTypes.every((ct) => {
-            inContactType = ct == 'extension' ? p[ct] : p[ct] && p[ct].length > 0
+            inContactType = ct == 'extrapolation' ? p[ct] : p[ct] && p[ct].length > 0
             return !inContactType
           })
         }
         p.opacity = inProjectType && inProjectName && inContactType ? 1 : 0.2
         return p
-        
+
       })
 
       var month = weekData.month
@@ -108,10 +108,10 @@ class AppClientHistoryCalendar {
           .enter()
           .append('div')
             .attr('class', `${this.prefixClass('week', `${i}`)} ${this.prefixClass('week')}`)
-      
+
       week = this.container
         .selectAll(`.${this.prefixClass('week', `${i}`)}`)
-      
+
       var days = week.selectAll(`.${this.prefixClass('day')}`)
         .data(dayDomain)
         .enter()
@@ -140,32 +140,32 @@ class AppClientHistoryCalendar {
             return exit.remove()
           }
         )
-        
+
       var bars = projects.selectAll(`.${this.prefixClass('project')}`)
         .data((d) => [d])
         .enter()
         .append('div')
           .attr('class', (d) => {
-            if(d.extension_only) {
+            if(d.extrapolation_only) {
               var classes = [this.prefixClass('project')]
             } else {
               var classes = [this.prefixClass('project'), 'project-type-'+d.project_type]
             }
-            
+
             if(includesStart(d)) {
               classes.push(this.prefixClass('project', 'has-start'))
             }
             if(includesEnd(d)) {
               classes.push(this.prefixClass('project', 'has-end'))
             }
-            if(!d.bed_nights && !d.extension && !d.current_situations && !d.move_in_dates && !d.service_dates && !d.ce_events && !d.custom_events) {
+            if(!d.bed_nights && !d.extrapolation && !d.current_situations && !d.move_in_dates && !d.service_dates && !d.ce_events && !d.custom_events) {
               classes.push(this.prefixClass('project', 'no-events'))
             }
             return classes.join(' ')
           })
           .style('margin-left', barLeft)
           .style('width', barWidth)
-          
+
       var tooltipTriggers = projects.selectAll(`.${this.prefixClass('tooltip-trigger')}`)
         .data((d, i) => {
           d.index = i
@@ -177,10 +177,10 @@ class AppClientHistoryCalendar {
           .attr('data-trigger-content', (d) => `#client__calendar-tooltip__${i}_${d.index}`)
           .attr('href', 'javascript:void(0)')
           .attr('tabindex', '0')
-          .style('left', (d) => d.extension_only ? barLeft(d.extension) : barLeft(d))
+          .style('left', (d) => d.extrapolation_only ? barLeft(d.extrapolation) : barLeft(d))
           .style('top', 0)
           .style('bottom', 0)
-          .style('width', (d) => d.extension_only ? barWidth(d.extension) : barWidth(d))
+          .style('width', (d) => d.extrapolation_only ? barWidth(d.extrapolation) : barWidth(d))
 
       tooltipTriggers.each(function(d, index) {
         $(this).popover({
@@ -192,22 +192,22 @@ class AppClientHistoryCalendar {
         })
       })
 
-      const extensionClass = this.prefixClass('project', 'extension')
-      projects.selectAll(`.${extensionClass}`)
-        .data((d) => d.extension ? [d] : [])
+      const extrapolationClass = this.prefixClass('project', 'extrapolation')
+      projects.selectAll(`.${extrapolationClass}`)
+        .data((d) => d.extrapolation ? [d] : [])
         .join(
           function(enter) {
             return enter.append('div')
-              .attr('class', extensionClass)
-              .style('left', (d) => barLeft(d.extension))
-              .style('width', (d) => barWidth(d.extension))
+              .attr('class', extrapolationClass)
+              .style('left', (d) => barLeft(d.extrapolation))
+              .style('width', (d) => barWidth(d.extrapolation))
               .append('i')
-                .attr('class', (d) => includesEnd(d.extension) ? 'icon-cross' : '')
+                .attr('class', (d) => includesEnd(d.extrapolation) ? 'icon-cross' : '')
           },
           function(update) {
             update.style('opacity', (d) => {
               if(filters.contactTypes && filters.contactTypes.length > 0) {
-                return filters.contactTypes.includes('extension') ? 1 : 0.2
+                return filters.contactTypes.includes('extrapolation') ? 1 : 0.2
               }
               return 1
             })
@@ -218,7 +218,7 @@ class AppClientHistoryCalendar {
         )
 
       bars.selectAll(`.${this.prefixClass('project', 'start')}`)
-        .data((d) => includesStart(d) && !d.extension_only ? [d] : [])
+        .data((d) => includesStart(d) && !d.extrapolation_only ? [d] : [])
         .enter()
         .append('div')
           .attr('class', this.prefixClass('project', 'start'))
@@ -231,7 +231,7 @@ class AppClientHistoryCalendar {
 
       const dayEventsClass = this.prefixClass('project', 'day-events')
       const dayEventsStartClass = this.prefixClass('project', 'day-events-has-start')
-      
+
       var dayEvents = projects.selectAll(`.${dayEventsClass}`)
         .data((d) => {
           return weekData.days.map((day) => {
@@ -291,12 +291,12 @@ class AppClientHistoryCalendar {
       projectLabels.append('strong').html((d) => d.project_type_name)
       projectLabels.append('span').html((d) => d.project_name)
 
-      const events = Object.keys(eventsData).filter((e) => e != 'extension')
+      const events = Object.keys(eventsData).filter((e) => e != 'extrapolation')
 
       events.forEach((event) => {
         var dayClass = this.prefixClass('day-event')
         var eventClass = this.prefixClass('day-event', event)
-        
+
         dayEvents.selectAll(`.${dayClass}.${eventClass}`)
           .data((d) => {
             return (d.project[event]||[]).filter((n) => n === d.day).map((n) => {
@@ -326,7 +326,7 @@ class AppClientHistoryCalendar {
               return exit.remove()
             }
           )
-          
+
       })
 
 
