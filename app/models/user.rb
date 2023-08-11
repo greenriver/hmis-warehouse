@@ -164,16 +164,34 @@ class User < ApplicationRecord
 
   # list any project groups the user has some level of access to
   def project_groups
-    GrdaWarehouse::ProjectGroup.where(id: access_groups.flat_map(&:project_group_ids))
+    # START_ACL cleanup after ACL migration is complete
+    if using_acls?
+      GrdaWarehouse::ProjectGroup.where(id: collections.flat_map(&:project_group_ids))
+    else
+      GrdaWarehouse::ProjectGroup.where(id: access_groups.flat_map(&:project_group_ids))
+    end
+    # END_ACL
   end
 
   # list any data sources the user has some level of access to
   def data_sources
-    GrdaWarehouse::DataSource.where(id: access_groups.flat_map(&:data_source_ids))
+    # START_ACL cleanup after ACL migration is complete
+    if using_acls?
+      GrdaWarehouse::DataSource.where(id: collections.flat_map(&:data_source_ids))
+    else
+      GrdaWarehouse::DataSource.where(id: access_groups.flat_map(&:data_source_ids))
+    end
+    # END_ACL
   end
 
   # list any reports the user has some level of access to
   def reports
-    GrdaWarehouse::WarehouseReports::ReportDefinition.where(id: access_groups.flat_map(&:report_ids))
+    # START_ACL cleanup after ACL migration is complete
+    if using_acls?
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(id: collections.flat_map(&:report_ids))
+    else
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(id: access_groups.flat_map(&:report_ids))
+    end
+    # END_ACL
   end
 end
