@@ -26,78 +26,42 @@ class ClientAccessControl::ClientHistoryMonth
     { month: date.month, year: date.year }
   end
 
-  def previous_date
-    return @date - 1.month if first_date <= @date - 1.month
+  def previous_date(client)
+    return @date - 1.month if min_date(client) <= @date - 1.month
   end
 
   def next_date
     return @date + 1.month if Date.today.end_of_month >= (@date + 1.month).end_of_month
   end
 
-  def first_date
-    Date.new(2022, 1, 1)
-  end
-
   def contact_types
     CONTACT_TYPES
   end
 
-  def fake_project(date_range)
-    project_names = ('A'..'Z').to_a
-    project_index = rand(0..project_names.size - 1)
-    entry_date_index = rand(0..date_range.size - 1)
-    exit_date_index = rand(entry_date_index..date_range.size - 1)
-    {
-      project_name: "Project #{project_names[project_index]}",
-      project_id: project_index.to_s,
-      project_type: (project_index > 13 ? project_index % 13 : project_index + 1).to_s,
-      entry_date: date_range[entry_date_index].strftime('%Y-%m-%d'),
-      exit_date: date_range[exit_date_index].strftime('%Y-%m-%d'),
-      current_situations: [
-        date_range[entry_date_index].strftime('%Y-%m-%d'),
-      ],
-    }
+  def available_projects(month:, year:, client:, user:)
+    @available_projects ||= GrdaWarehouse::Hud::Project.viewable_by(user).
+      joins(:service_history_enrollments).
+      merge(
+        GrdaWarehouse::ServiceHistoryEnrollment.open_between(
+          start_date: date_range_for(month: month, year: year).first,
+          end_date: date_range_for(month: month, year: year).last,
+        ).where(client_id: client.id),
+      ).distinct.to_a.
+      sort_by { |p| p.name(user) }
   end
 
-  def fake_data
-    end_date = Date.new(2023, 7, 1)
-    months = (first_date..end_date.end_of_month).to_a
-    months.map do |month|
-      end_of_week = month.end_of_month.end_of_week(:sunday)
-      date = month.beginning_of_week(:sunday)
-      weeks = []
-      while date <= end_of_week
-        weeks.push(date)
-        date += 1.day
-      end
-      month_weeks = weeks.in_groups_of(7)
-      month_data = {
-        month: month.month,
-        year: month.year,
-        weeks: [],
-      }
-      month_weeks.map do |mw|
-        month_data[:weeks].push(
-          {
-            year: month.year,
-            month: month.month,
-            days: mw.map { |n| n.strftime('%Y-%m-%d') },
-            projects: Array.new(5).map do |_|
-              fake_project(mw)
-            end,
-          },
-        )
-      end
-      month_data
-    end
+  def available_project_types(month:, year:, client:, user:)
+    project_types = available_projects(month: month, year: year, client: client, user: user).map(&:project_type_to_use)
+    HudUtility.project_types.select { |k, _| k.in?(project_types) }
   end
 
   # Return first and last date of extrapolation, if any overlap the week
-  private def extrapolated(month:, year:, client:, week:)
+  private def extrapolated(month:, year:, client:, week:, user:)
     @extrapolated ||= GrdaWarehouse::ServiceHistoryService.
       extrapolated.
       joins(service_history_enrollment: :project).
       references(service_history_enrollment: :project).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
       service_within_date_range(
         start_date: date_range_for(month: month, year: year).first,
         end_date: date_range_for(month: month, year: year).last,
@@ -107,9 +71,10 @@ class ClientAccessControl::ClientHistoryMonth
     @extrapolated
   end
 
-  private def enrollments(month:, year:, client:, week:)
+  private def enrollments(month:, year:, client:, week:, user:)
     @enrollments ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.
       joins(:project).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
       open_between(
         start_date: date_range_for(month: month, year: year).first,
         end_date: date_range_for(month: month, year: year).last,
@@ -120,36 +85,40 @@ class ClientAccessControl::ClientHistoryMonth
     end
   end
 
-  private def services(month:, year:, client:, week:)
+  private def services(month:, year:, client:, week:, user:)
     @services ||= GrdaWarehouse::Hud::Service.
       joins(enrollment: [:project, { service_history_enrollment: :client }]).
       references(enrollment: [:project, { service_history_enrollment: :client }]).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
       where(date_provided: date_range_for(month: month, year: year)).
       where(she_t[:client_id].eq(client.id)).to_a
     @services.select { |item| item.date_provided.in?(week) }
   end
 
-  private def current_living_situations(month:, year:, client:, week:)
+  private def current_living_situations(month:, year:, client:, week:, user:)
     @current_living_situations ||= GrdaWarehouse::Hud::CurrentLivingSituation.
       joins(enrollment: [:project, { service_history_enrollment: :client }]).
       references(enrollment: [:project, { service_history_enrollment: :client }]).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
       where(InformationDate: date_range_for(month: month, year: year)).
       where(she_t[:client_id].eq(client.id)).to_a
     @current_living_situations.select { |item| item.information_date.in?(week) }
   end
 
-  private def events(month:, year:, client:, week:)
+  private def events(month:, year:, client:, week:, user:)
     @events ||= GrdaWarehouse::Hud::Event.
       joins(enrollment: [:project, { service_history_enrollment: :client }]).
       references(enrollment: [:project, { service_history_enrollment: :client }]).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
       where(EventDate: date_range_for(month: month, year: year)).
       where(she_t[:client_id].eq(client.id)).to_a
     @events.select { |item| item.event_date.in?(week) }
   end
 
-  private def custom_services(month:, year:, client:, week:)
+  private def custom_services(month:, year:, client:, week:, user:)
     @custom_services ||= client.source_custom_b_services.
       joins(enrollment: [:project, { service_history_enrollment: :client }]).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
       where(date: date_range_for(month: month, year: year)).to_a
     @custom_services.select { |item| item.date.in?(week) }
   end
@@ -158,12 +127,17 @@ class ClientAccessControl::ClientHistoryMonth
     Date.new(year, month, 1) .. Date.new(year, month, -1)
   end
 
-  private def min_date(client)
-    GrdaWarehouse::ServiceHistoryServiceMaterialized.where(client_id: client.id).minimum(:date)
+  def min_date(client)
+    GrdaWarehouse::ServiceHistoryEnrollment.entry.where(client_id: client.id).minimum(:entry_date) || Date.current
   end
 
-  private def max_date(client)
-    GrdaWarehouse::ServiceHistoryServiceMaterialized.where(client_id: client.id).maximum(:date)
+  # The lesser of today or the max exit date
+  def max_date(client)
+    (
+      GrdaWarehouse::ServiceHistoryEnrollment.exit.
+        where(client_id: client.id).pluck(:exit_date) +
+      [Date.current]
+    ).compact.min
   end
 
   def weeks_data(month:, year:, client:, user:)
@@ -176,25 +150,27 @@ class ClientAccessControl::ClientHistoryMonth
           days: week,
         }
         projects = {}
-        enrollments(month: month, year: year, client: client, week: week).each do |she|
+        enrollments(month: month, year: year, client: client, week: week, user: user).each do |she|
           project = she.project
           project_type = project.project_type_to_use
           projects[she.id] ||= {
+            project_id: project.id.to_s,
             project_name: project.name(user),
-            project_type: project_type,
+            project_type: project_type.to_s,
             project_type_name: HudUtility.project_type_brief(project_type),
             entry_date: she.entry_date,
             exit_date: she.exit_date,
           }
         end
 
-        services(month: month, year: year, client: client, week: week).each do |service|
+        services(month: month, year: year, client: client, week: week, user: user).each do |service|
           she = service.enrollment.service_history_enrollment
           project = service.enrollment.project
           project_type = project.project_type_to_use
           projects[she.id] ||= {
+            project_id: project.id.to_s,
             project_name: project.name(user),
-            project_type: project_type,
+            project_type: project_type.to_s,
             project_type_name: HudUtility.project_type_brief(project_type),
             entry_date: she.entry_date,
             exit_date: she.exit_date,
@@ -208,7 +184,7 @@ class ClientAccessControl::ClientHistoryMonth
           end
         end
 
-        extrapolated_by_enrollment = extrapolated(month: month, year: year, client: client, week: week).
+        extrapolated_by_enrollment = extrapolated(month: month, year: year, client: client, week: week, user: user).
           group_by(&:service_history_enrollment)
 
         extrapolated_by_enrollment.each do |she, services|
@@ -217,8 +193,9 @@ class ClientAccessControl::ClientHistoryMonth
           project_type = project.project_type_to_use
 
           projects[she.id] ||= {
+            project_id: project.id.to_s,
             project_name: project.name(user),
-            project_type: project_type,
+            project_type: project_type.to_s,
             project_type_name: HudUtility.project_type_brief(project_type),
             entry_date: she.entry_date,
             exit_date: she.exit_date,
@@ -229,13 +206,14 @@ class ClientAccessControl::ClientHistoryMonth
           }
         end
 
-        current_living_situations(month: month, year: year, client: client, week: week).each do |cls|
+        current_living_situations(month: month, year: year, client: client, week: week, user: user).each do |cls|
           she = cls.enrollment.service_history_enrollment
           project = cls.enrollment.project
           project_type = project.project_type_to_use
           projects[she.id] ||= {
+            project_id: project.id.to_s,
             project_name: project.name(user),
-            project_type: project_type,
+            project_type: project_type.to_s,
             project_type_name: HudUtility.project_type_brief(project_type),
             entry_date: she.entry_date,
             exit_date: she.exit_date,
@@ -244,13 +222,14 @@ class ClientAccessControl::ClientHistoryMonth
           projects[she.id][:current_situations] << cls.information_date
         end
 
-        events(month: month, year: year, client: client, week: week).each do |event|
+        events(month: month, year: year, client: client, week: week, user: user).each do |event|
           she = event.enrollment.service_history_enrollment
           project = event.enrollment.project
           project_type = project.project_type_to_use
           projects[she.id] ||= {
+            project_id: project.id.to_s,
             project_name: project.name(user),
-            project_type: project_type,
+            project_type: project_type.to_s,
             project_type_name: HudUtility.project_type_brief(project_type),
             entry_date: she.entry_date,
             exit_date: she.exit_date,
@@ -259,13 +238,14 @@ class ClientAccessControl::ClientHistoryMonth
           projects[she.id][:events] << event.event_date
         end
 
-        custom_services(month: month, year: year, client: client, week: week).each do |service|
+        custom_services(month: month, year: year, client: client, week: week, user: user).each do |service|
           she = service.enrollment.service_history_enrollment
           project = service.enrollment.project
           project_type = project.project_type_to_use
           projects[she.id] ||= {
+            project_id: project.id.to_s,
             project_name: project.name(user),
-            project_type: project_type,
+            project_type: project_type.to_s,
             project_type_name: HudUtility.project_type_brief(project_type),
             entry_date: she.entry_date,
             exit_date: she.exit_date,
@@ -481,10 +461,60 @@ class ClientAccessControl::ClientHistoryMonth
     #     },
     #   ]
     # else
-    #   data = fake_data.select do |month|
+    #   data = fake_data(client).select do |month|
     #     month[:month] == @month && month[:year] == @year
     #   end.first || {}
     #   data[:weeks]
     # end
   end
+
+  # def fake_project(date_range)
+  #   project_names = ('A'..'Z').to_a
+  #   project_index = rand(0..project_names.size - 1)
+  #   entry_date_index = rand(0..date_range.size - 1)
+  #   exit_date_index = rand(entry_date_index..date_range.size - 1)
+  #   {
+  #     project_name: "Project #{project_names[project_index]}",
+  #     project_id: project_index.to_s,
+  #     project_type: (project_index > 13 ? project_index % 13 : project_index + 1).to_s,
+  #     entry_date: date_range[entry_date_index].strftime('%Y-%m-%d'),
+  #     exit_date: date_range[exit_date_index].strftime('%Y-%m-%d'),
+  #     current_situations: [
+  #       date_range[entry_date_index].strftime('%Y-%m-%d'),
+  #     ],
+  #   }
+  # end
+
+  # def fake_data(client)
+  #   end_date = Date.new(2023, 7, 1)
+  #   months = (min_date(client)..end_date.end_of_month).to_a
+  #   months.map do |month|
+  #     end_of_week = month.end_of_month.end_of_week(:sunday)
+  #     date = month.beginning_of_week(:sunday)
+  #     weeks = []
+  #     while date <= end_of_week
+  #       weeks.push(date)
+  #       date += 1.day
+  #     end
+  #     month_weeks = weeks.in_groups_of(7)
+  #     month_data = {
+  #       month: month.month,
+  #       year: month.year,
+  #       weeks: [],
+  #     }
+  #     month_weeks.map do |mw|
+  #       month_data[:weeks].push(
+  #         {
+  #           year: month.year,
+  #           month: month.month,
+  #           days: mw.map { |n| n.strftime('%Y-%m-%d') },
+  #           projects: Array.new(5).map do |_|
+  #             fake_project(mw)
+  #           end,
+  #         },
+  #       )
+  #     end
+  #     month_data
+  #   end
+  # end
 end

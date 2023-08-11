@@ -1,35 +1,31 @@
 - data = ClientAccessControl::ClientHistoryMonth.new(@year, @month, @filters)
 - weeks_data = data.weeks_data(month: @month, year: @year, client: @client, user: current_user)
 
-
 - unless weeks_data.present?
   = render 'month_nav', data: data
   .mt-8
     No data
 - else
   .row
-    .col-lg-7.col-md-12.mb-lg-6.mb-4
+    .col-lg-5.col-md-12.mb-lg-6.mb-4
       .p-4.client__calendar-card.client__calendar-card__filters
         %h5.mt-0 Filters
-        .row
-          .col-xl-4.col-lg-12.col-sm-4.col-xs-12
-            %label Project Type
-            %select.js-client-calendar-filter__project-type{name: 'project_types[]', multiple: 'multiple', data: {name: 'projectTypes'}}
-              - HudUtility.project_types.each do |key, value|
-                %option{value: key, selected: @filters[:project_types].include?(key.to_s)}= value
-          .col-xl-4.col-lg-12.col-sm-4.col-xs-12
-            - projects = weeks_data.map{|week| week[:projects].map{|p| {id: p[:project_id], name: p[:project_name]}}}.flatten.group_by{|p| p[:id]}.values.map(&:first).sort_by{|p| p[:name]}
-
-            %label Project
-            %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projects'}}
-              - projects.each do |project|
-                %option{value: project[:id], selected: @filters[:projects].include?(project[:id].to_s)}= project[:name]
-          .col-xl-4.col-lg-12.col-sm-4.col-xs-12
-            %label Contact Type
-            %select.js-client-calendar-filter__contact-type{name: 'contact_types[]', multiple: 'multiple', data: {name: 'contactTypes'}}
-              - data.contact_types.each do |key, value|
-                %option{value: key, selected: @filters[:contact_types].include?(key)}= value[:name]
-    .col-lg-5.col-md-12.mb-6
+        .mb-4
+          %label Project Type
+          %select.js-client-calendar-filter__project-type{name: 'project_types[]', multiple: 'multiple', data: {name: 'projectTypes'}}
+            - data.available_project_types(month: @month, year: @year, client: @client, user: current_user).each do |key, value|
+              %option{value: key, selected: @filters[:project_types].include?(key.to_s)}= value
+        .mb-4
+          %label Project
+          %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projects'}}
+            - data.available_projects(month: @month, year: @year, client: @client, user: current_user).each do |project|
+              %option{value: project.id.to_s, selected: @filters[:projects].include?(project.id.to_s)}= project.name(current_user)
+        .mb-4
+          %label Contact Type
+          %select.js-client-calendar-filter__contact-type{name: 'contact_types[]', multiple: 'multiple', data: {name: 'contactTypes'}}
+            - data.contact_types.each do |key, value|
+              %option{value: key, selected: @filters[:contact_types].include?(key)}= value[:name]
+    .col-lg-4.col-md-12.mb-6
       .p-4.client__calendar-card.client__calendar-card__contact-key
         %h5.mt-0 Service History Key
         .d-flex.flex-wrap
@@ -41,6 +37,10 @@
                 - value = data.contact_types[key]
                 .mb-4.w-50
                   = render 'event_icon', key: key, name: value[:name], icon: value[:icon]
+    .col-lg-3.col-md-12.mb-6
+      .p-4.client__calendar-card.client__calendar-card__contact-key
+        %h5.mt-0 Generate Homeless Verification PDF
+        = render 'pdf_generation_form'
 
   = render 'month_nav', data: data
 
@@ -68,8 +68,11 @@
 
 - content_for :page_js do
   :javascript
-    var data = #{weeks_data.to_json.html_safe}
-    var eventsData = #{data.contact_types.to_json.html_safe}
+    var data = #{weeks_data.to_json.html_safe};
+    var eventsData = #{data.contact_types.to_json.html_safe};
+    var max_date = '#{data.max_date(@client).strftime('%m/%d/%Y')}';
+    var min_date = '#{data.min_date(@client).strftime('%m/%d/%Y')}';
+    var current_date = '#{Date.new(@year, @month, 1).strftime('%m/%d/%Y')}';
 
     $(document).ready(function() {
       var calendar = new AppClientHistoryCalendar(data, eventsData, '.d3-calendar')
@@ -93,13 +96,19 @@
         navigateCalendar(month, year)
       })
 
-      $('#client__calendar-datepicker__input').datepicker()
-        .on('changeDate', function(e) {
-          var date = e.date
-          var month = date.getMonth()+1
-          var year = date.getFullYear()
-          navigateCalendar(month, year)
-        })
+      var datepicker = $('#client__calendar-datepicker__input').datepicker({
+        startDate: min_date,
+        endDate: max_date,
+        startView: 'months',
+        minViewMode: 'months'
+      });
+      datepicker.datepicker('update', current_date);
+      datepicker.on('changeDate', function(e) {
+        var date = e.date
+        var month = date.getMonth()+1
+        var year = date.getFullYear()
+        navigateCalendar(month, year)
+      })
 
       var filters = {projectTypes: [], projects: [], contactTypes: []}
       var filterNodes = [
@@ -111,14 +120,17 @@
         filters[f.data('name')] = f.val()
         f.select2()
         f.on('change', function(e) {
-          var target = $(e.target)
-          var filterName = target.data('name')
-          filters[filterName] = target.val()
-          calendar.draw(filters)
+          var target = $(e.target);
+          var filterName = target.data('name');
+          filters[filterName] = target.val();
+          calendar.draw(filters);
+          var url = new URL(document.location.href);
+          var filter_type = filterName.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+          url.searchParams.set(filter_type, filters[filterName]);
+          window.history.pushState({}, 'FilterUpdate', url);
         })
       })
       console.log('filters on load', filters)
 
       calendar.draw(filters)
-
     })

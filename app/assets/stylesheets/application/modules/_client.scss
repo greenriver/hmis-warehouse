@@ -44,10 +44,15 @@
 {
   font-size: 0.8rem;
 }
+#client__calendar-datepicker__dropdown .datepicker-inline {
+  width: auto;
+}
+
 .client__calendar-date
 {
   // padding: 0.2em;
 }
+
 .client__calendar-date__previous-month {
   color: rgba(0, 0, 0, 0.30);
 }

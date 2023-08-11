@@ -12,7 +12,6 @@ module ClientAccessControl
     skip_before_action :authenticate_user!, only: [:pdf]
     before_action :require_can_see_this_client_demographics!, except: [:pdf]
     before_action :set_client, except: [:pdf]
-    before_action :set_dates, only: [:show]
     after_action :log_client
 
     # Removed from UI to use standard OP date format
@@ -31,17 +30,8 @@ module ClientAccessControl
     # helper_method :format_date_string
 
     def show
-      @ordered_dates = @dates.keys.sort
-      @start = @ordered_dates.first || Date.current
-      @end = @ordered_dates.last || Date.current
-      @date_range = (@start.beginning_of_month..@end.end_of_month)
-      @months = @date_range.map do |date|
-        [date.year, date.month]
-      end.
-        uniq
-
-      @month = params[:month]&.to_i || 1
-      @year = params[:year]&.to_i || 2022
+      @month = params[:month]&.to_i || Date.current.month
+      @year = params[:year]&.to_i || Date.current.year
       @filters = {
         project_types: (params[:project_types] || '').split(','),
         projects: (params[:projects] || '').split(','),
@@ -142,52 +132,6 @@ module ClientAccessControl
         @client.update(generate_history_pdf: false)
       end
       head :ok
-    end
-
-    def set_dates
-      @dates = {}
-      enrollment_scope.
-        includes(:service_history_services, :organization, :project).references(:organization, :project).
-        each do |enrollment|
-          project_type = enrollment.send(enrollment.class.project_type_column)
-          project_name = enrollment.project&.name(current_user)
-          @dates[enrollment.date] ||= []
-          record = {
-            date: enrollment.date,
-            record_type: enrollment.record_type,
-            project_type: project_type,
-            project_name: project_name,
-            organization_name: nil,
-          }
-          record[:organization_name] = enrollment.organization.OrganizationName unless project_name == ::GrdaWarehouse::Hud::Project.confidential_project_name
-          @dates[enrollment.date] << record
-          enrollment.service_history_services.each do |service|
-            @dates[service.date] ||= []
-            next unless enrollment.project.night_by_night?
-
-            @dates[service.date] << {
-              date: service.date,
-              record_type: service.record_type,
-              project_type: project_type,
-              project_name: project_name,
-              organization_name: nil,
-            }
-          end
-        end
-      # TODO: this is a temporary permission until we determine what the permission should actually be
-      # this maps back to who can setup the import file
-      return unless current_user&.can_manage_config?
-
-      @client.generic_services.find_each do |service|
-        @dates[service.date] ||= []
-        @dates[service.date] << {
-          date: service.date,
-          record_type: 'service',
-          project_type: 7, # HUD project_types "Other"
-          project_name: service.category, # this is more generic than service.name
-          organization_name: nil,
-        }
-      end
     end
 
     def set_pdf_dates
