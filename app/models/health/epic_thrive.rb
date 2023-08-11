@@ -54,7 +54,8 @@ module Health
     def update_thrive_assessment!
       return unless patient.present?
 
-      assessment = thrive_assessment.presence || build_thrive_assessment
+      assessment = thrive_assessment.presence || build_thrive_assessment(patient_id: patient.id, user_id: 0)
+      # TODO: Store username from EPIC
 
       @any_answer = false
       @any_decline = false
