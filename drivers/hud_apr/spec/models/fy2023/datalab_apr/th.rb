@@ -19,8 +19,8 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
         question: 'Q4a',
         skip: [
           'L2', # Is the generator name, so not expected to match
-          # FIXME this needs to exclude children who entered after the HoH even if the HoH is CH at entry
-          'P2', # Pending AirTable regarding children of CH HoH submitted 1/14/2023 https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec3mJbXygkAoje1t (30)
+          # FIXME: this needs to exclude children who entered after the HoH even if the HoH is CH at entry
+          'P2', # AirTable regarding children of CH HoH submitted 1/14/2023 https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec3mJbXygkAoje1t (30)
         ],
       )
     end
@@ -309,8 +309,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22e',
-        # FIXME: previously
-        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
+        # FIXME: waiting on new test kit: https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'B7',
           'D7',
@@ -396,6 +395,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26a',
+        # FIXME: this is still not passing
         # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'B3',
@@ -412,6 +412,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26b',
+        # FIXME:
         # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'B3',

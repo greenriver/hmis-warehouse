@@ -106,6 +106,7 @@ class DocumentExportsControllerBase < ApplicationController
       'HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport',
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
       'ClientDocumentsReport::DocumentExports::ReportExcelExport',
+      'InactiveClientReport::DocumentExports::ReportExcelExport',
     ]
   end
 end
