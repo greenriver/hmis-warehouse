@@ -1,9 +1,9 @@
 class AppClientHistoryCalendar {
   constructor(data, eventsData, calendar_selector) {
-    console.log('ClientHistoryCalendar')
-    console.log('data', data)
-    console.log('eventsData', eventsData)
-    console.log('calendar_selector', calendar_selector)
+    // console.log('ClientHistoryCalendar')
+    // console.log('data', data)
+    // console.log('eventsData', eventsData)
+    // console.log('calendar_selector', calendar_selector)
     this.data = data
     this.container = d3.select('.d3-calendar')
   }
@@ -26,11 +26,9 @@ class AppClientHistoryCalendar {
   }
 
   draw(filters) {
-
-    console.log('filters', filters)
-
+    // console.log('filters', filters)
     this.data.forEach((weekData, i) => {
-      console.log('weekData', weekData)
+      // console.log('weekData', weekData)
 
       var projectData = weekData.projects.map((p) => {
         var opacity = 1
