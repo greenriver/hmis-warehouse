@@ -65,7 +65,7 @@ module Types
         eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
       when 'NOT_INCLUDE'
         # { variable: 'projectFunders', operator: 'NOT_INCLUDE', value: 1 }
-        !eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
+        eval_var_multi(rule.fetch('variable')).exclude?(rule.fetch('value'))
       when 'ANY'
         # { operator: 'ANY', parts: [ ... ] },
         rule.fetch('parts').any? { |r| eval_rule(r) }
