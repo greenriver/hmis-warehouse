@@ -54,8 +54,13 @@ jobs:
         ports:
           - 6379:6379
 
-      sftp:
-        image: justinhimself/sftp
+      hmis-warehouse-sftp:
+        image: ghcr.io/greenriver/openpath-sftp:1.0
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        ports:
+          - '2222:22'
 
       minio:
         image: ghcr.io/greenriver/openpath-minio:1.0

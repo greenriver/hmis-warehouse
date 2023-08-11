@@ -238,13 +238,13 @@ module PublicReports
     private def end_iteration(date)
       return date.end_of_quarter unless yearly?
 
-      return date.end_of_year
+      return [date.end_of_year, filter_object.end_date].min
     end
 
     private def summary
       date = pit_counts.map(&:first).last
       start_date = date.beginning_of_year
-      end_date = date.end_of_year
+      end_date = [date.end_of_year, filter_object.end_date].min
       scope = homeless_scope.entry.
         with_service_between(
           start_date: start_date,
@@ -325,7 +325,7 @@ module PublicReports
     private def pit_counts
       pit_count_dates.map do |date|
         start_date = date.beginning_of_year
-        end_date = date.end_of_year
+        end_date = [date.end_of_year, filter_object.end_date].min
         count = homeless_scope.entry.
           with_service_between(
             start_date: start_date,
@@ -344,7 +344,7 @@ module PublicReports
     private def inflow_out_flow_counts
       pit_count_dates.map do |date|
         start_date = date.beginning_of_year
-        end_date = date.end_of_year
+        end_date = [date.end_of_year, filter_object.end_date].min
         in_count = homeless_scope.first_date.
           started_between(start_date: start_date, end_date: end_date).
           select(:client_id).
@@ -406,9 +406,10 @@ module PublicReports
           start_date = beginning_iteration(date)
           end_date = end_iteration(date)
 
-          adult = adult_only_household_ids(start_date, end_date).count
-          both = adult_and_child_household_ids(start_date, end_date).count
-          child = child_only_household_ids(start_date, end_date).count
+          # Only count unique HoHs
+          adult = adult_only_household_ids(start_date, end_date).values.uniq.count
+          both = adult_and_child_household_ids(start_date, end_date).values.uniq.count
+          child = child_only_household_ids(start_date, end_date).values.uniq.count
           total = adult + both + child
           (adult, both, child) = enforce_min_threshold([adult, both, child], 'household_type')
           word = 'Household'
@@ -737,7 +738,7 @@ module PublicReports
             service_scope: shs_scope,
           ).
             joins(:client)
-          adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date))
+          adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date).keys)
 
           homeless_chart_breakdowns(
             section_title: 'Persons in Households Without Children',
@@ -774,7 +775,7 @@ module PublicReports
             service_scope: shs_scope,
           ).
             joins(:client)
-          adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date))
+          adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date).keys)
 
           homeless_chart_breakdowns(
             section_title: 'Persons in households with at least one child and one adult',
@@ -808,7 +809,7 @@ module PublicReports
             service_scope: shs_scope,
           ).
             joins(:client)
-          child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date))
+          child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date).keys)
           homeless_chart_breakdowns(
             section_title: 'Persons in Child-Only Households',
             charts: charts,
@@ -898,13 +899,14 @@ module PublicReports
         joins(:service_history_services).
         merge(shs_scope).
         order(shs_t[:date].asc).
-        pluck(cl(she_t[:household_id], she_t[:enrollment_group_id]), shs_t[:age], shs_t[:client_id]).
-        each do |hh_id, age, client_id|
+        pluck(cl(she_t[:household_id], she_t[:enrollment_group_id]), shs_t[:age], shs_t[:client_id], she_t[:head_of_household]).
+        each do |hh_id, age, client_id, hoh|
           next if age.blank? || age.negative?
 
           key = [hh_id, client_id]
-          households[hh_id] ||= []
-          households[hh_id] << age unless counted_ids.include?(key)
+          households[hh_id] ||= { ages: [], hoh_client_id: nil }
+          households[hh_id][:ages] << age unless counted_ids.include?(key)
+          households[hh_id][:hoh_client_id] = client_id if hoh
           counted_ids << key
         end
       households
@@ -912,33 +914,33 @@ module PublicReports
     memoize :households
 
     private def adult_and_child_household_ids(start_date, end_date)
-      adult_and_child_households = Set.new
+      adult_and_child_households = {}
       households(start_date, end_date).each do |hh_id, household|
-        child_present = household.any? { |age| age < 18 }
-        adult_present = household.any? { |age| age >= 18 }
-        adult_and_child_households << hh_id if child_present && adult_present
+        child_present = household[:ages].any? { |age| age < 18 }
+        adult_present = household[:ages].any? { |age| age >= 18 }
+        adult_and_child_households[hh_id] = household[:hoh_client_id] if child_present && adult_present
       end
       adult_and_child_households
     end
     memoize :adult_and_child_household_ids
 
     private def child_only_household_ids(start_date, end_date)
-      child_only_households = Set.new
+      child_only_households = {}
       households(start_date, end_date).each do |hh_id, household|
-        child_present = household.any? { |age| age < 18 }
-        adult_present = household.any? { |age| age >= 18 }
-        child_only_households << hh_id if child_present && ! adult_present
+        child_present = household[:ages].any? { |age| age < 18 }
+        adult_present = household[:ages].any? { |age| age >= 18 }
+        child_only_households[hh_id] = household[:hoh_client_id] if child_present && ! adult_present
       end
       child_only_households
     end
     memoize :child_only_household_ids
 
     private def adult_only_household_ids(start_date, end_date)
-      adult_only_household_ids = Set.new
+      adult_only_household_ids = {}
       households(start_date, end_date).each do |hh_id, household|
-        child_present = household.any? { |age| age < 18 }
+        child_present = household[:ages].any? { |age| age < 18 }
         # Include clients of unknown age
-        adult_only_household_ids << hh_id unless child_present
+        adult_only_household_ids[hh_id] = household[:hoh_client_id] unless child_present
       end
       adult_only_household_ids
     end

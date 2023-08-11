@@ -666,6 +666,58 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(enrollment.entry_date.strftime('%Y-%m-%d')).to eq(complete_hud_values['entryDate'])
       end
     end
+
+    it 'assigns a unit' do
+      # Assign existing enrollment to unit 1
+      unit = create(:hmis_unit, project: p1)
+      hud_values = complete_hud_values.merge('currentUnit' => unit.id)
+      process_record(record: e1, hud_values: hud_values, user: hmis_user)
+      unit.reload
+      expect(e1.current_unit).to eq(unit)
+      expect(unit.current_occupants).to contain_exactly(e1)
+
+      # Assign new enrollment to unit 1 (same household)
+      new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, client: c1, project: p1, household_id: e1.household_id)
+      process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user)
+      unit.reload
+      expect(new_enrollment.current_unit).to eq(unit)
+      expect(unit.current_occupants.pluck(:id).sort).to eq([e1.id, new_enrollment.id].sort)
+    end
+
+    it 'processing without saving does not persist unit assignment' do
+      # Assign existing enrollment to unit 1
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
+      unit = create(:hmis_unit, project: p1)
+      expect(e2.current_unit).to be_nil
+      hud_values = complete_hud_values.merge('currentUnit' => unit.id)
+      process_record(record: e2, hud_values: hud_values, user: hmis_user, save: false)
+      e2.reload
+      expect(e2.current_unit).to be_nil
+    end
+
+    it 'does not change unit occupancy if unchanged' do
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
+      unit = create(:hmis_unit, project: p1)
+      e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
+      e2.save!
+      old_uo = e2.active_unit_occupancy
+      expect(unit.current_occupants.count).to eq(1)
+
+      hud_values = complete_hud_values.merge('currentUnit' => unit.id)
+      process_record(record: e2, hud_values: hud_values, user: hmis_user)
+      expect(e2.active_unit_occupancy).to eq(old_uo)
+    end
+
+    it 'errors if unit already occupied by another household' do
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
+      unit = create(:hmis_unit, project: p1)
+      e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
+      e2.save!
+      new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, client: c1, project: p1, household_id: e1.household_id)
+
+      hud_values = complete_hud_values.merge('currentUnit' => unit.id)
+      expect { process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user) }.to raise_error(StandardError)
+    end
   end
 
   describe 'Form processing for Clients' do

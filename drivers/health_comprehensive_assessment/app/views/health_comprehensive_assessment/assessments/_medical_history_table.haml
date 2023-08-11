@@ -1,0 +1,18 @@
+%table.table
+  %thead
+    %tr
+      %th Medical Issue (ICD# where applicable)
+      %th Status
+      %th Notes (including family history, if available)
+  %tbody
+    - @assessment.health_conditions.each do |section, conditions|
+      %tr
+        %th{colspan:3}= section
+      - conditions.each do |key, label|
+        %tr
+          %td= label
+          %td= f.input "#{key}_status", as: :pretty_boolean_group, collection: @assessment.health_condition_statuses, label: false
+          - if key == 'other'
+            %td= f.input "#{key}_notes", as: :text, placeholder: 'Specify condition', label: false
+          - else
+            %td= f.input "#{key}_notes", as: :text, label: false

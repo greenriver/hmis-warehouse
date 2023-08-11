@@ -26,4 +26,5 @@
       .pctp__signature-document-date.ml-2
         %strong
           (PCP signature #{pcp_sig.updated_at.to_date})
-
+= link_to polymorphic_path([:coversheet] + careplan_path_generator, id: careplan) do
+  PDF: Coversheet

@@ -32,8 +32,10 @@ RSpec.describe Hmis::Unit, type: :model do
     let!(:uo2) { create :hmis_unit_occupancy, unit: unit1, enrollment: e2 }
 
     it 'counts occupants' do
-      expect(unit1.occupants.count).to eq(2)
-      expect(unit1.occupants).to contain_exactly(e1, e2)
+      expect(unit1.current_occupants).to contain_exactly(e1, e2)
+
+      expect(e1.current_unit).to eq(unit1)
+      expect(e2.current_unit).to eq(unit1)
     end
 
     it 'handles overlapping occupancy periods' do
@@ -45,7 +47,7 @@ RSpec.describe Hmis::Unit, type: :model do
       expect(unit1.occupants_on(9.days.ago)).to contain_exactly(e1, e2)
       expect(unit1.occupants_on(3.days.ago)).to contain_exactly(e2)
       expect(unit1.occupants_on(2.days.ago)).to be_empty # exclusive
-      expect(unit1.occupants).to be_empty # defaults to today
+      expect(unit1.current_occupants).to be_empty # defaults to today
 
       expect(Hmis::Unit.occupied_on(2.months.ago)).to be_empty
       expect(Hmis::Unit.occupied_on(1.months.ago)).to contain_exactly(unit1)
@@ -57,8 +59,18 @@ RSpec.describe Hmis::Unit, type: :model do
 
   describe 'with no occupants' do
     it 'counts occupants' do
-      expect(unit1.occupants.count).to eq(0)
-      expect(unit1.occupants).to be_empty
+      expect(unit1.current_occupants).to be_empty
+    end
+  end
+
+  describe 'with historical occupancy' do
+    let!(:uo1) { create :hmis_unit_occupancy, unit: unit1, enrollment: e1, start_date: 1.month.ago, end_date: 1.week.ago }
+    let!(:uo2) { create :hmis_unit_occupancy, unit: unit1, enrollment: e2, start_date: 2.days.ago, end_date: nil }
+
+    it 'counts occupants' do
+      expect(unit1.current_occupants).to contain_exactly(e2)
+      expect(e1.current_unit).to be_nil # nil because no longer assigned
+      expect(e2.current_unit).to eq(unit1)
     end
   end
 
