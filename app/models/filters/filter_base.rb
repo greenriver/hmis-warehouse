@@ -535,8 +535,10 @@ module Filters
 
     # Apply all known scopes
     # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
-    def apply(scope, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true)
+    def apply(scope, report_scope_source, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
+      @report_scope_source = report_scope_source
       @filter = self
+
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope) if include_date_range
       scope = if multi_coc_code_filter
@@ -563,8 +565,11 @@ module Filters
       scope = filter_for_indefinite_disabilities(scope)
       scope = filter_for_dv_status(scope)
       scope = filter_for_dv_currently_fleeing(scope)
-      scope = filter_for_chronic_at_entry(scope)
-      scope = filter_for_chronic_status(scope)
+      scope = if chronic_at_entry
+        filter_for_chronic_at_entry(scope)
+      else
+        filter_for_chronic_status(scope)
+      end
       scope = filter_for_rrh_move_in(scope)
       scope = filter_for_psh_move_in(scope)
       scope = filter_for_first_time_homeless_in_past_two_years(scope)
@@ -574,6 +579,10 @@ module Filters
       scope = filter_for_cohorts(scope)
       scope = filter_for_active_roi(scope)
       filter_for_times_homeless(scope)
+    end
+
+    def report_scope_source
+      @report_scope_source ||= GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     def all_projects?
@@ -1001,7 +1010,7 @@ module Filters
         label_text = k
         if inline
           wrapper_classes << 'd-flex'
-          label_text += ':'
+          label_text += ':' if label_text.present?
         end
         content_tag(:div, class: wrapper_classes) do
           label = content_tag(:label, label_text, class: 'label label-default parameter-label')

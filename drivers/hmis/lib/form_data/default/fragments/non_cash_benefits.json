@@ -4,6 +4,7 @@
   "text": "Non-Cash Benefits",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": "INCOME_BENEFIT",
+  "fragment": "#common_psde_applicability_rule",
   "item": [
     {
       "type": "CHOICE",
@@ -13,7 +14,10 @@
       "warn_if_empty": true,
       "text": "Non-Cash Benefits from Any Source",
       "pick_list_reference": "NoYesReasonsForMissingData",
-      "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "benefitsFromAnySource" },
+      "mapping": {
+        "record_type": "INCOME_BENEFIT",
+        "field_name": "benefitsFromAnySource"
+      },
       "autofill_values": [
         {
           "value_code": "YES",
@@ -79,7 +83,10 @@
           "link_id": "4.03.3",
           "component": "CHECKBOX",
           "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)",
-          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "snap" }
+          "mapping": {
+            "record_type": "INCOME_BENEFIT",
+            "field_name": "snap"
+          }
         },
         {
           "type": "CHOICE",
@@ -87,7 +94,10 @@
           "link_id": "4.03.4",
           "component": "CHECKBOX",
           "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)",
-          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "wic" }
+          "mapping": {
+            "record_type": "INCOME_BENEFIT",
+            "field_name": "wic"
+          }
         },
         {
           "type": "CHOICE",
@@ -95,7 +105,10 @@
           "link_id": "4.03.5",
           "component": "CHECKBOX",
           "text": "TANF Child Care services",
-          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "tanfChildCare" }
+          "mapping": {
+            "record_type": "INCOME_BENEFIT",
+            "field_name": "tanfChildCare"
+          }
         },
         {
           "type": "CHOICE",
@@ -103,7 +116,10 @@
           "link_id": "4.03.6",
           "component": "CHECKBOX",
           "text": "TANF transportation services",
-          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "tanfTransportation" }
+          "mapping": {
+            "record_type": "INCOME_BENEFIT",
+            "field_name": "tanfTransportation"
+          }
         },
         {
           "type": "CHOICE",
@@ -111,7 +127,10 @@
           "link_id": "4.03.7",
           "component": "CHECKBOX",
           "text": "Other TANF-funded services",
-          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "otherTanf" }
+          "mapping": {
+            "record_type": "INCOME_BENEFIT",
+            "field_name": "otherTanf"
+          }
         },
         {
           "type": "CHOICE",
@@ -119,7 +138,10 @@
           "link_id": "4.03.8",
           "component": "CHECKBOX",
           "text": "Other source",
-          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "otherBenefitsSource" }
+          "mapping": {
+            "record_type": "INCOME_BENEFIT",
+            "field_name": "otherBenefitsSource"
+          }
         },
         {
           "type": "STRING",
@@ -128,7 +150,10 @@
           "brief_text": "Other benefits source",
           "required": false,
           "warn_if_empty": true,
-          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "otherBenefitsSourceIdentify" },
+          "mapping": {
+            "record_type": "INCOME_BENEFIT",
+            "field_name": "otherBenefitsSourceIdentify"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {

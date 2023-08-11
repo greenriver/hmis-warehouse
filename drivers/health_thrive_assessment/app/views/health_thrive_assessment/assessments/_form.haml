@@ -3,7 +3,7 @@
     .mb-6
       %small
         Entered by
-        = @assessment.user.name
+        = @assessment.user&.name || @assessment.external_name
     - if @blank_thrive_url.present?
       .mb-6.ml-auto
         = link_to @blank_thrive_url, class: 'btn btn-secondary' do

@@ -84,6 +84,13 @@ module AllNeighborsSystemDashboard::WarehouseReports
       AllNeighborsSystemDashboard::Report
     end
 
+    private def set_filter
+      @filter = filter_class.new(user_id: current_user.id)
+      @filter.update(enforce_one_year_range: false)
+      @filter.set_from_params(filter_params[:filters]) if filter_params[:filters].present?
+      @comparison_filter = @filter.to_comparison
+    end
+
     private def filter_class
       ::Filters::FilterBase
     end
