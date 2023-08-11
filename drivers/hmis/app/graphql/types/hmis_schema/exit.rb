@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::Exit < Types::BaseObject
+    include Types::HmisSchema::HasCustomDataElements
+
     def self.configuration
       Hmis::Hud::Exit.hmis_configuration(version: '2022')
     end
@@ -26,6 +28,9 @@ module Types
     # W5
     hud_field :housing_assessment, Types::HmisSchema::Enums::Hud::HousingAssessmentAtExit
     hud_field :subsidy_information, Types::HmisSchema::Enums::Hud::SubsidyInformation
+    # Expose A and B as separate fields so we get the enums in the schema
+    hud_field :subsidy_information_a, Types::HmisSchema::Enums::Hud::SubsidyInformationA, method: :subsidy_information
+    hud_field :subsidy_information_b, Types::HmisSchema::Enums::Hud::SubsidyInformationB, method: :subsidy_information
     # R17
     hud_field :project_completion_status, Types::HmisSchema::Enums::Hud::ProjectCompletionStatus
     hud_field :early_exit_reason, Types::HmisSchema::Enums::Hud::ExpelledReason
@@ -42,10 +47,8 @@ module Types
     hud_field :labor_exploit_past_three_months, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     # R18
     hud_field :counseling_received, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :individual_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :family_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :group_counseling, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :session_count_at_exit, Types::HmisSchema::Enums::Hud::NoYesMissing
+    field :counseling_methods, [Types::HmisSchema::Enums::CounselingMethod]
+    hud_field :session_count_at_exit, Int
     hud_field :post_exit_counseling_plan, Types::HmisSchema::Enums::Hud::NoYesMissing
     hud_field :sessions_in_plan, Int
     # R19
@@ -57,15 +60,13 @@ module Types
     # R20
     hud_field :aftercare_date, GraphQL::Types::ISO8601Date
     hud_field :aftercare_provided, Types::HmisSchema::Enums::Hud::AftercareProvided
-    hud_field :email_social_media, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :telephone, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :in_person_individual, Types::HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :in_person_group, Types::HmisSchema::Enums::Hud::NoYesMissing
+    field :aftercare_methods, [Types::HmisSchema::Enums::AftercareMethod]
     # V1
     hud_field :cm_exit_reason, Types::HmisSchema::Enums::Hud::CmExitReason
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    custom_data_elements_field
 
     def enrollment
       load_ar_association(object, :enrollment)

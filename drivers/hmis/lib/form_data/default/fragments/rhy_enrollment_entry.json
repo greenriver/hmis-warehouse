@@ -1,0 +1,16 @@
+{
+  "type": "GROUP",
+  "link_id": "rhy-entry",
+  "text": "RHY Entry Questions",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "prefill": "ENROLLMENT",
+  "_comment": "TODO: add R11, R12",
+  "item": [
+    {
+      "fragment": "#r3_sexual_orientation"
+    },
+    {
+      "fragment": "#r13_family_critical_issues"
+    }
+  ]
+}

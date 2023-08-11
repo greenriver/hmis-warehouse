@@ -7,11 +7,17 @@
 module Hmis::Hud::Processors
   class DisabilityGroupProcessor < Base
     def process(field, value)
-      disability_type, disability_field, enum_type = field_mapping[field]
-      return unless disability_type.present?
-
-      disability_value = attribute_value_for_enum(enum_type, value)
-      @processor.send(disability_type).assign_attributes(disability_field => disability_value)
+      if field_mapping.key?(field)
+        disability_type, disability_field, enum_type = field_mapping[field]
+        disability_value = attribute_value_for_enum(enum_type, value)
+        @processor.send(disability_type).assign_attributes(disability_field => disability_value)
+      elsif hiv_aids_fields.include?(field)
+        attribute_name = ar_attribute_name(field)
+        attribute_value = attribute_value_for_enum(graphql_enum(field), value)
+        @processor.send(:hiv_aids_factory).assign_attributes(attribute_name => attribute_value)
+      else
+        raise "Unknown field for DisabilityGroup: #{field}"
+      end
     end
 
     def information_date(date)
@@ -34,6 +40,10 @@ module Hmis::Hud::Processors
     # Custom field on disabilities not supported yet. Needs to be treated specially since there are multiple factories
     def process_custom_field(_, _)
       false
+    end
+
+    def schema
+      Types::HmisSchema::DisabilityGroup
     end
 
     def field_mapping
@@ -59,6 +69,17 @@ module Hmis::Hud::Processors
           'substanceUseDisorderIndefiniteAndImpairs' => [:substance_use_disorder_factory, :indefinite_and_impairs, standard_enum],
         }.freeze
       end
+    end
+
+    def hiv_aids_fields
+      @hiv_aids_fields ||= [
+        :tCellCountAvailable,
+        :tCellCount, :tCellSource,
+        :viralLoadAvailable,
+        :viralLoad,
+        :viralLoadSource,
+        :antiRetroviral
+      ].map(&:to_s).freeze
     end
   end
 end

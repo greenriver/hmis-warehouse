@@ -6,59 +6,10 @@
   "prefill": "HEALTH_AND_DV",
   "item": [
     {
-      "type": "DISPLAY",
-      "link_id": "4.11.2-display",
-      "text": "Domestic Violence Victim/Survivor should be indicated as “Yes” if the person has experienced any domestic violence, dating violence, sexual assault, stalking or other dangerous or life-threatening conditions that relate to violence against the individual or a family member, including a child, that has either taken place within the individual's or family's primary nighttime residence."
+      "fragment": "#r10_pregnancy_status"
     },
     {
-      "type": "CHOICE",
-      "component": "RADIO_BUTTONS",
-      "link_id": "4.11.2",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Domestic Violence Victim/Survivor",
-      "pick_list_reference": "NoYesReasonsForMissingData",
-      "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "domesticViolenceVictim" }
-    },
-    {
-      "type": "CHOICE",
-      "link_id": "4.11.A",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "When did the experience occur?",
-      "brief_text": "When DV Occurred",
-      "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "whenOccurred" },
-      "pick_list_reference": "WhenDVOccurred",
-      "disabled_display": "PROTECTED",
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "4.11.2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ]
-    },
-    {
-      "type": "CHOICE",
-      "component": "RADIO_BUTTONS",
-      "link_id": "4.11.B",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Are you currently fleeing?",
-      "brief_text": "Currently Fleeing DV",
-      "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "currentlyFleeing" },
-      "pick_list_reference": "NoYesReasonsForMissingData",
-      "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
-      "disabled_display": "PROTECTED",
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "4.11.2",
-          "operator": "EQUAL",
-          "answer_code": "YES"
-        }
-      ]
+      "fragment": "#4_11_dv"
     }
   ]
 }
