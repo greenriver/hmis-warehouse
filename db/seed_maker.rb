@@ -24,12 +24,13 @@ class SeedMaker
         user.last_name = 'Admin'
         user.password = user.password_confirmation = initial_password
         user.confirmed_at = Time.now
-        user_group = UserGroup.where(name: 'Fake Admins').first_or_create
-        all_ds_entity_group = AccessGroup.where(name: 'All Data Sources').first
-        AccessControl.create(role: admin, access_group: all_ds_entity_group, user_group: user_group).add(user)
-        AccessControl.create(role: dnd_staff, access_group: all_ds_entity_group, user_group: user_group).add(user)
+        user.permission_context = 'acls'
         user.agency_id = agency.id
         user.save!
+        user_group = UserGroup.where(name: 'Fake Admins').first_or_create
+        all_ds_entity_collection = Collection.system_collections(:data_sources)
+        AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group).add(user)
+        AccessControl.create(role: dnd_staff, collection: all_ds_entity_collection, user_group: user_group).add(user)
         puts "Created initial admin email: #{user.email}  password: #{user.password}"
       end
     end
