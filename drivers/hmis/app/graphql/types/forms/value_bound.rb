@@ -18,6 +18,7 @@ module Types
     # Note: only one of the below attributes should be specified
     field :value_number, Integer, null: true
     field :value_date, GraphQL::Types::ISO8601Date, null: true
+    field :value_local_constant, String, 'Name of Local Constant to use for comparison', null: true
     field :question, String, 'Link ID of dependent question, if this items value should be compared to another items value', null: true
 
     def severity

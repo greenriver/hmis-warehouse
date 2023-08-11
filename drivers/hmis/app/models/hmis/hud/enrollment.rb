@@ -60,6 +60,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
+  validates_associated :client, on: :form_submission
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   alias_to_underscore [:EnrollmentCoC]
 
@@ -70,17 +71,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_id: 'Household ID',
   }.freeze
 
-  # hide previous declaration of :viewable_by, we'll use this one
-  # A user can see any enrollment associated with a project they can access
-  replace_scope :viewable_by, ->(user) do
-    return none unless user.permissions?(:can_view_enrollment_details)
+  scope :with_access, ->(user, *permissions) do
+    return none unless user.permissions?(*permissions)
 
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).pluck(:id, :ProjectID)
+    project_ids = Hmis::Hud::Project.with_access(user, *permissions).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
+
+  # hide previous declaration of :viewable_by, we'll use this one
+  # A user can see any enrollment associated with a project they can access
+  replace_scope :viewable_by, ->(user) { with_access(user, :can_view_enrollment_details) }
 
   scope :matching_search_term, ->(search_term) do
     search_term.strip!
@@ -121,7 +124,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
-  scope :active, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
+  scope :open_including_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
+  scope :open_excluding_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
 
   def project
@@ -215,12 +219,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def assign_unit(unit:, start_date:, user:)
+    current_occupancy = active_unit_occupancy.present? if active_unit_occupancy&.occupancy_period&.active?
+    # ignore: this enrollment is already assigned to this unit
+    return if current_occupancy.present? && current_occupancy.unit == unit
+
+    # error: this enrollment is already assigned to a different unit
+    raise 'Enrollment is already assigned to a different unit' if current_occupancy.present?
+
+    # error: the unit is occupied by someone who is NOT in this household
     occupants = unit.occupants_on(start_date)
-    return if occupants.include?(self) # already assigned, ignore
+    raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
-    raise 'Unit already assigned to another household' if occupants.where.not(household_id: household_id).present?
-
-    build_active_unit_occupancy(
+    unit_occupancies.build(
       unit: unit,
       occupancy_period_attributes: {
         start_date: start_date,

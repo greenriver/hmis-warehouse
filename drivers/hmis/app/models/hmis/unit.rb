@@ -85,7 +85,7 @@ class Hmis::Unit < Hmis::HmisBase
   # Class method so can use with data loader
   def self.display_name(id:, name: nil, unit_type: nil)
     return name if name.present?
-    return "#{unit_type.description} (#{id})" if unit_type.present?
+    return "#{unit_type.description} (ID: #{id})" if unit_type.present?
 
     "Unit #{id}"
   end

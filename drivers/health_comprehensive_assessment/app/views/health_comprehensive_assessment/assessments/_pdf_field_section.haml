@@ -1,0 +1,25 @@
+- fields.each do |key, (labels, kind, collection, input_html, controlled)|
+  - input_html = input_html || {}
+  - if labels.is_a?(Array)
+    - label = labels.first
+    - hint = labels.last
+  -else
+    - label = labels
+  %tr
+    %th{style: 'width:40%;'}
+      %span= label
+      - if hint.present?
+        %br
+        %span.hint= hint
+    %td
+      - value = @assessment.send(key.to_sym)
+      - display_value = collection.present? ? collection.select{|k, v| v == value || v.to_s == value}.keys.first : value
+      - if display_value.is_a?(Array)
+        - display_value = display_value.join(', ')
+      - if collection.present? && collection.values.include?('other') && value == 'other'
+        = display_value
+        %div= @assessment.send("#{key}_other".to_sym)
+      - else
+        = display_value
+        
+

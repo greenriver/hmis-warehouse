@@ -1073,7 +1073,8 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "UserID" character varying(32) NOT NULL,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    at_occurrence boolean DEFAULT false NOT NULL
 );
 
 
@@ -2824,6 +2825,103 @@ ALTER SEQUENCE public.anomalies_id_seq OWNED BY public.anomalies.id;
 
 
 --
+-- Name: ansd_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ansd_enrollments (
+    id bigint NOT NULL,
+    report_id bigint,
+    enrollment_id bigint,
+    project_id character varying,
+    project_name character varying,
+    project_type integer,
+    household_id character varying,
+    household_type character varying,
+    prior_living_situation_category character varying,
+    entry_date date,
+    move_in_date date,
+    exit_date date,
+    adjusted_exit_date date,
+    exit_type character varying,
+    destination integer,
+    destination_text character varying,
+    relationship character varying,
+    client_id character varying,
+    age integer,
+    gender character varying,
+    primary_race character varying,
+    race_list character varying,
+    ethnicity character varying,
+    ce_entry_date date,
+    ce_referral_date date,
+    ce_referral_id character varying,
+    return_date date,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ansd_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ansd_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ansd_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ansd_enrollments_id_seq OWNED BY public.ansd_enrollments.id;
+
+
+--
+-- Name: ansd_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ansd_events (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    event_id character varying,
+    event_date date,
+    event character varying,
+    location character varying,
+    project_name character varying,
+    project_type character varying,
+    referral_result integer,
+    result_date date,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ansd_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ansd_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ansd_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ansd_events_id_seq OWNED BY public.ansd_events.id;
+
+
+--
 -- Name: api_client_data_source_ids; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4261,7 +4359,8 @@ CREATE TABLE public.boston_project_scorecard_reports (
     increased_employment_income double precision,
     increased_other_income double precision,
     invoicing_timeliness integer,
-    invoicing_accuracy integer
+    invoicing_accuracy integer,
+    no_concern integer
 );
 
 
@@ -6094,9 +6193,6 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
-    "order" integer DEFAULT 0 NOT NULL,
-    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
-    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -7659,8 +7755,8 @@ CREATE TABLE public.financial_clients (
     zip_code character varying,
     service_provder_company character varying,
     head_of_household integer,
-    was_the_client_screened_for_homelessness integer,
-    do_you_have_a_voucher integer,
+    deleted_was_the_client_screened_for_homelessness integer,
+    does_the_client_have_a_tenant_based_housing_voucher integer,
     if_yes_what_pha_issued_the_voucher character varying,
     if_yes_what_type_of_voucher_was_issued character varying,
     voucher_type_other character varying,
@@ -7683,8 +7779,8 @@ CREATE TABLE public.financial_clients (
     dv_survivor integer,
     most_recent_living_situation character varying,
     most_recent_living_situation_other character varying,
-    housed_date timestamp without time zone,
-    are_rental_arrears_owed integer,
+    date_of_referral_to_wit timestamp without time zone,
+    delete_are_rental_arrears_owed integer,
     rent_owed_rental_arrears numeric,
     total_time_housed integer,
     hmis_id_if_applicable character varying,
@@ -7692,7 +7788,9 @@ CREATE TABLE public.financial_clients (
     housed_after_24_months integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    was_the_client_screened_for_homelessness character varying,
+    are_rental_arrears_owed character varying
 );
 
 
@@ -7960,7 +8058,8 @@ CREATE TABLE public.group_viewable_entities (
     access_group_id integer NOT NULL,
     entity_id integer NOT NULL,
     entity_type character varying NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    collection_id bigint
 );
 
 
@@ -15115,7 +15214,9 @@ CREATE TABLE public.hmis_form_instances (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     custom_service_type_id integer,
-    custom_service_category_id integer
+    custom_service_category_id integer,
+    funder integer,
+    project_type integer
 );
 
 
@@ -15352,9 +15453,9 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT concat("Enrollment"."HouseholdID", max(("Enrollment"."ProjectID")::text), max("Enrollment".data_source_id)) AS id,
+ SELECT concat("Enrollment"."HouseholdID", ':', max(("Project"."ProjectID")::text), ':', max("Enrollment".data_source_id)) AS id,
     "Enrollment"."HouseholdID",
-    max(("Enrollment"."ProjectID")::text) AS "ProjectID",
+    max(("Project"."ProjectID")::text) AS "ProjectID",
     max("Enrollment".data_source_id) AS data_source_id,
     min("Enrollment"."EntryDate") AS earliest_entry,
         CASE
@@ -15365,10 +15466,12 @@ CREATE VIEW public.hmis_households AS
     NULL::text AS "DateDeleted",
     max("Enrollment"."DateUpdated") AS "DateUpdated",
     min("Enrollment"."DateCreated") AS "DateCreated"
-   FROM (public."Enrollment"
+   FROM (((public."Enrollment"
      LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+     LEFT JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project"."DateDeleted" IS NULL) AND (("Project".id = hmis_wips.project_id) OR (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text)))))
   WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
-  GROUP BY "Enrollment"."HouseholdID", "Enrollment"."ProjectID", "Enrollment".data_source_id;
+  GROUP BY "Enrollment"."HouseholdID", "Project"."ProjectID", "Enrollment".data_source_id;
 
 
 --
@@ -22948,6 +23051,20 @@ ALTER TABLE ONLY public.anomalies ALTER COLUMN id SET DEFAULT nextval('public.an
 
 
 --
+-- Name: ansd_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ansd_enrollments ALTER COLUMN id SET DEFAULT nextval('public.ansd_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: ansd_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ansd_events ALTER COLUMN id SET DEFAULT nextval('public.ansd_events_id_seq'::regclass);
+
+
+--
 -- Name: api_client_data_source_ids id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26068,6 +26185,22 @@ ALTER TABLE ONLY public.administrative_events
 
 ALTER TABLE ONLY public.anomalies
     ADD CONSTRAINT anomalies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ansd_enrollments ansd_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ansd_enrollments
+    ADD CONSTRAINT ansd_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ansd_events ansd_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ansd_events
+    ADD CONSTRAINT ansd_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -43106,6 +43239,27 @@ CREATE INDEX index_anomalies_on_status ON public.anomalies USING btree (status);
 
 
 --
+-- Name: index_ansd_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ansd_enrollments_on_enrollment_id ON public.ansd_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_ansd_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ansd_enrollments_on_report_id ON public.ansd_enrollments USING btree (report_id);
+
+
+--
+-- Name: index_ansd_events_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ansd_events_on_enrollment_id ON public.ansd_events USING btree (enrollment_id);
+
+
+--
 -- Name: index_api_client_data_source_ids_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44195,6 +44349,13 @@ CREATE INDEX index_generic_services_on_client_id ON public.generic_services USIN
 --
 
 CREATE INDEX index_grades_on_type ON public.grades USING btree (type);
+
+
+--
+-- Name: index_group_viewable_entities_on_collection_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_group_viewable_entities_on_collection_id ON public.group_viewable_entities USING btree (collection_id);
 
 
 --
@@ -50680,10 +50841,17 @@ CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports U
 
 
 --
+-- Name: one_entity_per_type_per_collection; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_entity_per_type_per_collection ON public.group_viewable_entities USING btree (collection_id, entity_id, entity_type) WHERE (collection_id IS NOT NULL);
+
+
+--
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type);
+CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type) WHERE (access_group_id <> 0);
 
 
 --
@@ -53936,11 +54104,21 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230623200215'),
 ('20230626005404'),
 ('20230626012029'),
+('20230630183647'),
 ('20230630203515'),
 ('20230706112135'),
 ('20230706204940'),
 ('20230707143716'),
 ('20230710183058'),
-('20230724145057');
+('20230724145057'),
+('20230725160948'),
+('20230725163336'),
+('20230726180446'),
+('20230728140151'),
+('20230803172055'),
+('20230803173117'),
+('20230804124734'),
+('20230804232249'),
+('20230805224003');
 
 

@@ -42,7 +42,7 @@ module HmisExternalApis::AcHmis
         assigned_to_other_program_status: 60,
         # closed: 65,
       },
-      referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_result_map),
+      referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_results),
     )
 
     # Referrals in Denied Pending status can either be move to Denied (denial accepted) or to Assigned (denial rejected)
@@ -60,7 +60,10 @@ module HmisExternalApis::AcHmis
         'denied_pending_status', # changed mind or mistake, denied from program
       ],
       accepted_status: ['closed_status'], # hoh exited
-      denied_pending_status: ['denied_status'], # denial accepted
+      denied_pending_status: [
+        'denied_status', # denial accepted
+        'assigned_status', # denial rejected ("sent back")
+      ],
       closed_status: ['accepted_status'], # exited enrollment was re-opened
     }.stringify_keys.freeze
 
@@ -86,11 +89,8 @@ module HmisExternalApis::AcHmis
       self.status_updated_at ||= created_at
     end
 
-    INACTIVE_STATUSES = [:closed_status, :accepted_by_other_program_status, :denied_status].freeze
-    scope :active, -> { where.not(status: INACTIVE_STATUSES) }
-
-    OUTGOING_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
-    scope :outgoing, -> { where(status: OUTGOING_STATUSES) }
+    ACTIVE_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
+    scope :active, -> { where(status: ACTIVE_STATUSES) }
 
     private def validate_status_change
       return unless status_changed? && status.present? && status_was.present?

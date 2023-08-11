@@ -174,7 +174,9 @@ module Types
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
       project = Hmis::Hud::Enrollment.find_by(id: enrollment_id)&.project if enrollment_id.present?
 
-      Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record.filter_context = { project: project }
+      record
     end
 
     field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do

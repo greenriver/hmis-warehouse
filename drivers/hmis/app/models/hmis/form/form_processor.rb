@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Stores the actual data that was collected during an assessment. 1:1 with CustomAssessments.
+#   If the assessment is WIP: The data is stored exclusively as JSON blobs in the "values”/”hud_values" cols.
+#   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
 
@@ -81,18 +84,44 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     owner
   end
 
+  def current_living_situation_factory(create: true)
+    # If this is a form just for collecting CLS, it is the owner
+    return owner if owner.is_a? Hmis::Hud::CurrentLivingSituation
+
+    # If this is an assessment, CLS may already exist in relationship to the FormProcessor
+    return current_living_situation if current_living_situation.present? || !create
+
+    # If not, create a new CLS
+    self.current_living_situation = enrollment_factory.current_living_situations.build(**common_attributes)
+  end
+
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     @service_factory ||= owner.owner if owner.is_a? Hmis::Hud::HmisService
   end
 
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
-    # The enrollment has already been created, so we can just return it
     @enrollment_factory ||= case owner
     when Hmis::Hud::CustomAssessment
       owner.enrollment
     when Hmis::Hud::Enrollment
       owner
+    end
+  end
+
+  def client_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
+    @client_factory ||= case owner
+    when Hmis::Hud::Client
+      owner
+    when Hmis::Hud::Enrollment
+      # An 'enrollment form' can create a new client.
+      # If building a new client, we need to set personal ID here
+      # (rather than in ensure_id validation hook) so that it gets set
+      # correctly as the Enrollment.personal_id too.
+      owner.client || owner.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
+    when Hmis::Hud::CustomAssessment
+      # An assessment can modify the client that it's associated with
+      owner.client
     end
   end
 
@@ -248,6 +277,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
+      CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
     }.freeze
   end
 
@@ -266,6 +296,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :exit_factory,
       :owner_factory,
       :service_factory,
+      :current_living_situation_factory,
       :youth_education_status_factory,
       :employment_education_factory,
     ]

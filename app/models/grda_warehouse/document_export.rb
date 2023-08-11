@@ -12,7 +12,11 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
   end
 
   def download_url
-    download_document_export_url(id, host: ENV['FQDN'], protocol: 'https' )
+    download_document_export_url(id, host: ENV['FQDN'], protocol: 'https')
+  end
+
+  def regenerate?
+    false
   end
 
   protected def filter
