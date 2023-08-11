@@ -9,16 +9,16 @@
     
     - prev_date = data.previous_date
     - if prev_date.present?
-      = link_to client_history_path(@client, month: prev_date.month, year: prev_date.year), class: 'mr-4' do
+      = link_to client_history_path(@client, **data.filter_params(prev_date)), class: 'mr-4 js-client__calendar-nav', data: data.filter_params(prev_date) do
         %i.icon-angle-left
     - next_date = data.next_date
     - if next_date.present?
-      = link_to client_history_path(@client, month: next_date.month, year: next_date.year), class: 'mr-4' do
+      = link_to client_history_path(@client, **data.filter_params(next_date)), class: 'mr-4 js-client__calendar-nav', data: data.filter_params(next_date) do
         %i.icon-angle-right
   .d-flex
     - first_date = data.first_date
-    = link_to client_history_path(@client, month: first_date.month, year: first_date.year), class: 'mr-4 btn btn-outline-primary' do
+    = link_to client_history_path(@client, **data.filter_params(first_date)), class: 'mr-4 btn btn-outline-primary js-client__calendar-nav', data: data.filter_params(first_date) do
       %i.icon-arrow-left2
       First Interaction
-    = link_to client_history_path(@client, month: Date.today.month, year: Date.today.year), class: 'btn btn-outline-secondary' do
+    = link_to client_history_path(@client, **data.filter_params(Date.today)), class: 'btn btn-outline-secondary js-client__calendar-nav', data: data.filter_params(Date.today) do
       Today

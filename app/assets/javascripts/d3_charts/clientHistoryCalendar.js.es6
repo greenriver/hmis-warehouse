@@ -36,27 +36,20 @@ class AppClientHistoryCalendar {
         var opacity = 1
         var inProjectType = true
         var inProjectName = true
+        var inContactType = true
         if(filters.projectTypes && filters.projectTypes.length > 0) {
-          opacity = filters.projectTypes.includes(`${p.project_type}`) ? 1 : 0.2
-          inProjectType = filters.projectTypes.includes(`${p.project_type}`)
+          inProjectType = filters.projectTypes.includes(p.project_type)
         }
-        if(filters.projectNames && filters.projectNames.length > 0) {
-          opacity = filters.projectNames.includes(p.project_name) && inProjectType ? 1 : 0.2
-          inProjectName = filters.projectNames.includes(p.project_name) && inProjectType
+        if(filters.projects && filters.projects.length > 0) {
+          inProjectName = filters.projects.includes(p.project_id)
         }
         if(filters.contactTypes && filters.contactTypes.length > 0) {
           filters.contactTypes.every((ct) => {
-            var hasContactType = ct == 'extension' ? p[ct] : p[ct] && p[ct].length > 0
-            if (hasContactType && inProjectType && inProjectName) {
-              opacity = 1
-              return false
-            } else {
-              opacity = 0.2
-              return true
-            }
+            inContactType = ct == 'extension' ? p[ct] : p[ct] && p[ct].length > 0
+            return !inContactType
           })
         }
-        p.opacity = opacity
+        p.opacity = inProjectType && inProjectName && inContactType ? 1 : 0.2
         return p
         
       })

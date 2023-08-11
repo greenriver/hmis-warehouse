@@ -1,5 +1,6 @@
-- fakeData = ClientHistoryMonth.new(@year, @month)
+- fakeData = ClientHistoryMonth.new(@year, @month, @filters)
 - weeks_data = fakeData.weeks_data
+
 
 - unless weeks_data.present?
   = render 'month_nav', data: fakeData
@@ -15,18 +16,19 @@
             %label Project Type
             %select.js-client-calendar-filter__project-type{name: 'project_types[]', multiple: 'multiple', data: {name: 'projectTypes'}}
               - HudUtility.project_types.each do |key, value|
-                %option{value: key}= value
+                %option{value: key, selected: @filters[:project_types].include?(key.to_s)}= value
           .col-xl-4.col-lg-12.col-sm-4.col-xs-12
-            - projects = weeks_data.map{|week| week[:projects]}.flatten.map{|project| project[:project_name]}.uniq
+            - projects = weeks_data.map{|week| week[:projects].map{|p| {id: p[:project_id], name: p[:project_name]}}}.flatten.group_by{|p| p[:id]}.values.map(&:first).sort_by{|p| p[:name]}
+            
             %label Project
-            %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projectNames'}}
+            %select.js-client-calendar-filter__project{name: 'projects[]', multiple: 'multiple', data: {name: 'projects'}}
               - projects.each do |project|
-                %option{value: project}= project
+                %option{value: project[:id], selected: @filters[:projects].include?(project[:id].to_s)}= project[:name]
           .col-xl-4.col-lg-12.col-sm-4.col-xs-12
             %label Contact Type
             %select.js-client-calendar-filter__contact-type{name: 'contact_types[]', multiple: 'multiple', data: {name: 'contactTypes'}}
               - fakeData.contact_types.each do |key, value|
-                %option{value: key}= value[:name]  
+                %option{value: key, selected: @filters[:contact_types].include?(key)}= value[:name]  
     .col-lg-5.col-md-12.mb-6
       .p-4.client__calendar-card.client__calendar-card__contact-key
         %h5.mt-0 Service History Key
@@ -71,25 +73,42 @@
 
     $(document).ready(function() {
       var calendar = new AppClientHistoryCalendar(data, eventsData, '.d3-calendar')
+
+      var navigateCalendar = function(month, year) {
+        var url = new URL(document.location.href)
+        url.searchParams.set('month', month)
+        url.searchParams.set('year', year)
+        url.searchParams.set('project_types', filters['projectTypes'])
+        url.searchParams.set('projects', filters['projects'])
+        url.searchParams.set('contact_types', filters['contactTypes'])
+        document.location.href = url
+      }
+      
+      $('.js-client__calendar-nav').on('click', function(e) {
+        e.preventDefault()
+        var target = $(e.currentTarget)
+        var month = target.data('month')
+        var year = target.data('year')
+        
+        navigateCalendar(month, year)
+      })
       
       $('#client__calendar-datepicker__input').datepicker()
         .on('changeDate', function(e) {
           var date = e.date
           var month = date.getMonth()+1
           var year = date.getFullYear()
-          var url = new URL(document.location.href)
-          url.searchParams.append('month', month)
-          url.searchParams.append('year', year)
-          document.location.href = url
+          navigateCalendar(month, year)
         })
-      // we will need to set filters on page load
-      var filters = {}
+      
+      var filters = {projectTypes: [], projects: [], contactTypes: []}
       var filterNodes = [
         $('.js-client-calendar-filter__project-type'),
         $('.js-client-calendar-filter__project'),
         $('.js-client-calendar-filter__contact-type'),
       ]
       filterNodes.forEach(function(f) {
+        filters[f.data('name')] = f.val()
         f.select2()
         f.on('change', function(e) {
           var target = $(e.target)
@@ -98,6 +117,7 @@
           calendar.draw(filters)
         })
       })
+      console.log('filters on load', filters)
       
       calendar.draw(filters)
       
