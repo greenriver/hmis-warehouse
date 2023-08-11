@@ -1,7 +1,6 @@
 {
   "type": "GROUP",
   "link_id": "current-living-situation",
-  "text": "Current Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
   "item": [
     {

@@ -6,11 +6,22 @@
         "type": "CHOICE",
         "link_id": "unit-selection-for-new-enrollment",
         "required": true,
-        "text": "Select Unit",
+        "text": "Unit",
         "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
         "mapping": {
           "record_type": "ENROLLMENT",
           "field_name": "currentUnit"
+        },
+        "rule": {
+          "operator": "ALL",
+          "_comment": "Exclude this for the internal CE project, which doesnt have units",
+          "parts": [
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
+          ]
         }
       }
     ]
