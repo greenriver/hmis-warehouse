@@ -10,11 +10,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
        'ReferralRequests.csv'
     end
 
-    # @param posting_rows[Array<Hash>]
-    # @param household_member_rows[Array<Hash>]
-    # @param clobber [Boolean] destroy existing records?
-    def perform(rows:, clobber: false)
-      records = build_records(rows: rows)
+    def perform
+      records = build_records
       # destroy existing records and re-import
       model_class.where(project_id: project_scope.select(:id)).destroy_all if clobber
       model_class.import(records, validate: false, batch_size: 1_000)
@@ -30,7 +27,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       HmisExternalApis::AcHmis::ReferralRequest
     end
 
-    def build_records(rows:)
+    def build_records
       projects_by_id = project_scope
         .pluck(:project_id, :id)
         .to_h

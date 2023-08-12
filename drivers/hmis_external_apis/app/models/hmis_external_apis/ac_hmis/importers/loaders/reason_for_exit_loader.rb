@@ -7,13 +7,13 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ReasonForExitLoader < CustomDataElementBaseLoader
-  def filename
-    'ReasonForExit.csv'
-  end
+    def filename
+      'ReasonForExit.csv'
+    end
 
     protected
 
-    def build_records(rows)
+    def build_records
       # fixme validate that enrollment/exit ids match and are all present
       owner_id_by_exit_id = owner_class
         .where(data_source: data_source)
@@ -30,11 +30,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           ),
           new_cde_record(
             value: row_value(row, field: 'ReasonForExit'),
-            # FIXME: confirm that I'm understanding the intention of the CDEs here
             definition_key: voluntary_termination_value =~ /\Ay/i ? :reason_for_exit_voluntary : :reason_for_exit_involuntary,
           ),
           new_cde_record(
-            value: row_value(row, field: 'ReasonForExitOther'),
+            value: row_value(row, field: 'ReasonForExitOther', required: false),
             definition_key: :reason_for_exit_other,
           ),
         ].compact_blank.each { |r| r[:owner_id] = owner_id }

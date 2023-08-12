@@ -7,15 +7,27 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter, type: :model do
-  let!(:ds) { create(:hmis_data_source) }
-  let(:dir) { 'drivers/hmis_external_apis/spec/fixtures/hmis_external_apis/ac_hmis/importers/custom_data_elements' }
-  let(:mper_creds) { create(:ac_hmis_mper_credential) }
+  include AcHmisLoaderHelpers
+  let(:ds) { create(:hmis_data_source) }
+  let(:client) { create(:hmis_hud_client, data_source: ds) }
+  let(:rows) do
+    [
+      {
+        'PersonalID' => client.PersonalID,
+        'PHONE_TYPE' => 'Home',
+        'SYSTM' => 'PHONE',
+        'VALUE' => '8675309',
+        'DateCreated' => '2014-10-07 16:10:39',
+        'DateUpdated' => '2014-10-07 16:10:39',
+      },
+    ]
+  end
 
-  it 'has a smoke test' do
-    Dir.chdir(dir) do
-      importer = HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter.new(dir: '.', key: 'data.zip', etag: '12345')
+  it 'imports rows' do
+    with_csv_files({ 'ClientContacts.csv' => rows }) do |dir|
+      importer = described_class.new(dir: dir, key: 'data.zip', etag: '12345')
       importer.run!
     end
-    expect(GrdaWarehouse::Hud::CustomDataELement.count).to eq(1)
+    expect(client.contact_points.size).to eq(1)
   end
 end

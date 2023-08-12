@@ -7,13 +7,13 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class FederalPovertyLevelLoader < CustomDataElementBaseLoader
-  def filename
-  'FederalPovertyLevel.csv'
-  end
+    def filename
+      'FederalPovertyLevel.csv'
+    end
 
     protected
 
-    def build_records(rows)
+    def build_records
       # fixme validate that enrollment/benefit ids match and are all present
       owner_id_by_benefit_id = owner_class
         .where(data_source: data_source)
@@ -22,7 +22,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       rows.map do |row|
         benefits_id = row_value(row, field: 'INCOMEBENEFITSID')
         new_cde_record(
-          value: row_value(row, field: 'FEDERALPOVERTYLEVEL'),
+          value: row_value(row, field: 'FEDERALPOVERTYLEVEL', required: false),
           definition_key: :federal_poverty_level,
         ).merge(
           owner_id: owner_id_by_benefit_id.fetch(benefits_id),

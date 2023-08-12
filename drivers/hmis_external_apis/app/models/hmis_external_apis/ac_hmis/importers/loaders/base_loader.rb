@@ -20,7 +20,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     protected
 
     def parse_date(str)
-      Date.parse(str)
+      DateTime.parse(str)
     end
 
     def cde_definition(owner_type:, key:)
@@ -56,6 +56,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def today
       @today ||= Date.current
+    end
+
+    def yn_boolean(str)
+      case str.downcase
+      when /^(y|yes)$/
+        true
+      when /^(n|No)$/
+        false
+      end
     end
   end
 end

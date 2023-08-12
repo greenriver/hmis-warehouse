@@ -7,11 +7,12 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::FederalPovertyLevelLoader, type: :model do
+  include AcHmisLoaderHelpers
+
   let(:ds) { create(:hmis_data_source) }
   let(:client) { create(:hmis_hud_client, data_source: ds) }
   let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
   let(:income_benefits) { create(:hmis_income_benefit, data_source: ds, client: client, enrollment: enrollment) }
-  let(:dir) { 'drivers/hmis_external_apis/spec/fixtures/hmis_external_apis/ac_hmis/importers/custom_data_elements' }
 
   let(:rows) do
     [
@@ -24,7 +25,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::FederalPovertyLevel
   end
 
   it 'imports rows' do
-    subject.perform(reader: reader)
+    with_csv_files({ 'FederalPovertyLevel.csv' => rows }) do |dir|
+      described_class.perform(reader: csv_reader(dir))
+    end
     expect(income_benefits.custom_data_elements.size).to eq(1) # each col is a CDE
   end
 end

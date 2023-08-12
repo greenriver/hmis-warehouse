@@ -7,6 +7,8 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoader, type: :model do
+  include AcHmisLoaderHelpers
+
   let(:ds) { create(:hmis_data_source) }
   let(:client) { create(:hmis_hud_client, data_source: ds) }
   let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
@@ -55,10 +57,12 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   end
 
   it 'imports rows' do
-    subject.perform(
-      posting_rows: posting_rows,
-      household_member_rows: household_member_rows,
-    )
+    with_csv_files(
+      { 'ReferralPostings.csv' => posting_rows,
+        'ReferralHouseholdMembers.csv' => household_member_rows },
+    ) do |dir|
+      described_class.perform(reader: csv_reader(dir))
+    end
     expect(enrollment.external_referrals.size).to eq(1)
   end
 end

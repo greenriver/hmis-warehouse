@@ -7,6 +7,8 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralRequestsLoader, type: :model do
+  include AcHmisLoaderHelpers
+
   let(:ds) { create(:hmis_data_source) }
   let(:project) { create :hmis_hud_project, data_source: ds }
   let(:referral_request_id) { Hmis::Hud::Base.generate_uuid }
@@ -18,8 +20,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralRequestsLoa
     record = mper.create_external_id(source: create(:hmis_unit_type), value: '22')
     record.value
   end
-
-  let(:reader) do
+  let(:rows) do
     [
       {
         'REFERRAL_REQUEST_ID' => referral_request_id,
@@ -35,7 +36,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralRequestsLoa
   end
 
   it 'imports rows' do
-    subject.perform(reader: reader)
+    with_csv_files({ 'ReferralRequests.csv' => rows }) do |dir|
+      described_class.perform(reader: csv_reader(dir))
+    end
     expect(project.external_referral_requests.size).to eq(1)
   end
 end

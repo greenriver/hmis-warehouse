@@ -16,9 +16,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def each
       records_from_csv(filename).each.with_index do |row, idx|
         yield(row)
-      rescue StandardError
-        line_number = idx + 2 # header and 0-based offset
-        raise "Error processing #{filename}:#{line_number}"
+      rescue StandardError => e
+        # wrap row-level exceptions with file / line number
+        line_number = idx + 1
+        wrapped = RuntimeError.new("[#{filename}:#{line_number}] #{e.message}")
+        wrapped.set_backtrace(e.backtrace)
+        raise wrapped
       end
     end
 

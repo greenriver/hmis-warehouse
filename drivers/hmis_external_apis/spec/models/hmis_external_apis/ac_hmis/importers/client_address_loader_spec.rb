@@ -7,6 +7,8 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ClientAddressLoader, type: :model do
+  include AcHmisLoaderHelpers
+
   let(:ds) { create(:hmis_data_source) }
   let(:client) { create(:hmis_hud_client, data_source: ds) }
   let(:rows) do
@@ -29,7 +31,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ClientAddressLoader
   end
 
   it 'imports rows' do
-    subject.perform(rows: rows)
+    with_csv_files({ 'ClientAddress.csv' => rows }) do |dir|
+      described_class.perform(reader: csv_reader(dir))
+    end
     expect(client.addresses.size).to eq(1)
   end
 end

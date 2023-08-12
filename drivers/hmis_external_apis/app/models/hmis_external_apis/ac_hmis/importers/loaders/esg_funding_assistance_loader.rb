@@ -39,14 +39,16 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         record.attributes = {
           enrollment_id: row_value(row, field: 'ENROLLMENTID'),
           fa_start_date: parse_date(row_value(row, field: 'PAYMENTSTARTDATE')),
-          fa_end_date: parse_date(row_value(row, field: 'PAYMENTENDDATE')),
-          fa_amount: row_value(row, field: 'AMOUNT'),
+          fa_end_date: parse_date(row_value(row, field: 'PAYMENTENDDATE', required: false)),
+          fa_amount: row_value(row, field: 'AMOUNT', required: false),
           date_created: parse_date(row_value(row, field: 'DATECREATED')),
           date_updated: parse_date(row_value(row, field: 'DATEUPDATED')),
-          user_id: row_value(row, field: 'USERID') || system_user_id,
+          user_id: row_value(row, field: 'USERID', required: false) || system_user_id,
         }
 
-        record.custom_data_elements = build_cdes(row)
+        cde_attrs(row).each do |attrs|
+          record.custom_data_elements.build(attrs)
+        end
         record.personal_id = personal_id_by_enrollment_id.fetch(record.enrollment_id)
         record.service_type = custom_service_type
         record.date_provided = today # FIXME - this isn't right?
@@ -55,29 +57,28 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       end
     end
 
-    def build_cdes(row)
+    def cde_attrs(row)
       [
-        ['FUNDINGSOURCE', :funding_source],
-        ['PAYMENTTYPE', :payment_type],
-      ].map do |field, definition_key|
-        value = row_value(row, field: field)
+        [row_value(row, field: 'FUNDINGSOURCE'), :funding_source],
+        [row_value(row, field: 'PAYMENTTYPE', required: false), :payment_type],
+      ].map do |value, definition_key|
+        next unless value
+
         definition = cde_definition(owner_type: model_class.name, key: definition_key)
-        attrs = {
-          owner_type: model_class.name,
+        {
           data_element_definition_id: definition.id,
-          date_created: parse_date(row_value(row, field: 'DATECREATED')),
-          date_updated: parse_date(row_value(row, field: 'DATEUPDATED')),
           value_string: value,
+          DateCreated: parse_date(row_value(row, field: 'DATECREATED')),
+          DateUpdated: parse_date(row_value(row, field: 'DATEUPDATED')),
         }.merge(default_attrs)
-        Hmis::Hud::CustomDataElement.new(attrs)
-      end
+      end.compact
     end
 
     def custom_service_type
       @custom_service_type ||= begin
         category = Hmis::Hud::CustomServiceCategory.where(
           name: 'ESG Funding Assistance',
-          data_source_id: data_source.id
+          data_source_id: data_source.id,
         ).first_or_create!(user_id: system_user_id)
         Hmis::Hud::CustomServiceType.where(
           name: 'ESG Funding Assistance',

@@ -27,11 +27,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
         attrs = {
           ContactPointID: Hmis::Hud::Base.generate_uuid,
-          UserID: row_value(row, field: 'UserID') || system_user_id,
+          UserID: row_value(row, field: 'UserID', required: false) || system_user_id,
           PersonalID: row_value(row, field: 'PersonalID'),
           use: use_value(row),
           system: row_value(row, field: 'SYSTM').downcase,
-          notes: row_value(row, field: 'NOTES'),
+          notes: row_value(row, field: 'NOTES', required: false),
           value: value,
           DateCreated: row_value(row, field: 'DateCreated'),
           DateUpdated: row_value(row, field: 'DateUpdated'),

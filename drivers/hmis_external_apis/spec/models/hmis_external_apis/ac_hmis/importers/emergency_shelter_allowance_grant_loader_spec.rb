@@ -7,6 +7,8 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EmergencyShelterAllowanceGrantLoader, type: :model do
+  include AcHmisLoaderHelpers
+
   let(:ds) { create(:hmis_data_source) }
   let(:client) { create(:hmis_hud_client, data_source: ds) }
   let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
@@ -23,7 +25,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EmergencyShelterAll
   end
 
   it 'imports rows' do
-    subject.perform(rows: rows)
+    with_csv_files({ 'EmergencyShelterAllowanceGrant.csv' => rows }) do |dir|
+      described_class.perform(reader: csv_reader(dir))
+    end
     expect(enrollment.custom_data_elements.size).to eq(4) # each col is a CDE
   end
 end

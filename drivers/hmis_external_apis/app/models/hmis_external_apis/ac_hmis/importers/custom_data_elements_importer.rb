@@ -24,26 +24,30 @@ module HmisExternalApis::AcHmis::Importers
     def run!
       start
       loaders = [
-        EmergencyShelterAllowanceGrantLoader, # -> 'EmergencyShelterAllowanceGrant.csv'
-        EsgFundingAssistanceLoader, # 'ESGFundingAssistance.csv'
-        FederalPovertyLevelLoader, # 'FederalPovertyLevel.csv'
-        ReasonForExitLoader, # 'ReasonForExit.csv'
-        RentalAssistanceEndDateLoader, # 'RentalAssistanceEndDate.csv'
-        WalkInEnrollmentUnitTypesLoader, # 'WalkInEnrollmentUnitTypes.csv'
-        ClientAddressLoader, # 'ClientAddress.csv'
-        ClientContactsLoader, # 'ClientContacts.csv'
-        ReferralPostingsLoader,
-        ReferralRequestsLoader,
+        Loaders::EmergencyShelterAllowanceGrantLoader, # -> 'EmergencyShelterAllowanceGrant.csv'
+        Loaders::EsgFundingAssistanceLoader, # 'ESGFundingAssistance.csv'
+        Loaders::FederalPovertyLevelLoader, # 'FederalPovertyLevel.csv'
+        Loaders::ReasonForExitLoader, # 'ReasonForExit.csv'
+        Loaders::RentalAssistanceEndDateLoader, # 'RentalAssistanceEndDate.csv'
+        Loaders::WalkInEnrollmentUnitTypesLoader, # 'WalkInEnrollmentUnitTypes.csv'
+        Loaders::ClientAddressLoader, # 'ClientAddress.csv'
+        Loaders::ClientContactsLoader, # 'ClientContacts.csv'
+        Loaders::ReferralPostingsLoader, # needs to run after WalkInEnrollmentUnitTypesLoader to avoid deleting UnitOccupancy
+        Loaders::ReferralRequestsLoader, # needs to run after ReferralPostingsLoader to reference referralIDs
       ]
 
-      # skip loaders that have no data files
-      loaders = loaders.filter(&:data_file_provided?)
-
       table_names = []
+      clobber = true
       ProjectsImportAttempt.transaction do
-        loaders.each do |loader|
-          reader = CsvReader.new(dir)
-          result = loader.perform(reader: reader, clobber: clobber)
+        loaders.each do |loader_class|
+          loader = loader_class.new(
+            reader: Loaders::CsvReader.new(dir),
+            clobber: clobber
+          )
+          # skip loaders that have no data files in the archive
+          next unless loader.data_file_provided?
+
+          result = loader.perform
           handle_import_result(result)
           table_names += loader.table_names
         end
@@ -80,7 +84,7 @@ module HmisExternalApis::AcHmis::Importers
     def analyze(table_names)
       # assume all tables are in same db
       Rails.logger.info 'Analyzing imported tables'
-      names = table_names.map(connection.quote_table_name(names))
+      names = table_names.map { |n| connection.quote_table_name(n) }
       connection.exec_query("ANALYZE #{names.join(',')};")
     end
 

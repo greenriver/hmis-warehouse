@@ -6,10 +6,7 @@
 
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ReferralPostingsLoader < BaseLoader
-    # @param reader [CsvReader]
-    # @param clobber [Boolean] destroy existing records?
-    def perform(reader:, clobber: false)
-      self.reader = reader
+    def perform
       init_enrollment_ids_by_referral_id
       records = build_referral_records
       # destroy existing records and re-import
@@ -58,18 +55,14 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           enrollment_id: referral_enrollment_id(referral_id),
           referral_date: parse_date(row_value(row, field: 'REFERRAL_DATE')),
           service_coordinator: row_value(row, field: 'SERVICE_COORDINATOR'),
-          referral_notes: row_value(row, field: 'REFERRAL_NOTES'),
-          chronic: yn_boolean(row_value(row, field: 'CHRONIC')),
-          score: row_value(row, field: 'SCORE'),
-          needs_wheelchair_accessible_unit: yn_boolean(row_value(row, field: 'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT')),
+          referral_notes: row_value(row, field: 'REFERRAL_NOTES', required: false),
+          chronic: yn_boolean(row_value(row, field: 'CHRONIC', required: false)),
+          score: row_value(row, field: 'SCORE', required: false),
+          needs_wheelchair_accessible_unit: yn_boolean(row_value(row, field: 'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT', required: false)),
           household_members: household_members,
           postings: postings,
         )
       end
-    end
-
-    def yn_boolean(str)
-      str ? str.downcase == 'yes' : nil
     end
 
     def referral_household_id(referral_id)
@@ -80,7 +73,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @enrollment_ids_by_referral_id.fetch(referral_id)[0]
     end
 
-    # we don't have enrolment id on the referrals csv so we have to infer it
+    # we don't have enrollment id on the referrals csv so we have to infer it
     # from the referral.project_id and MCI ID on household member.
     # Assumes the MCI ID is the PersonalID
     def init_enrollment_ids_by_referral_id
@@ -161,8 +154,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           status: posting_status(row),
           project_id: projects_by_project_id.fetch(row_value(row, field: 'PROGRAM_ID')),
           unit_type_id: unit_types_by_mper.fetch(row_value(row, field: 'UNIT_TYPE_ID')),
-          resource_coordinator_notes: row_value(row, field: 'RESOURCE_COORDINATOR_NOTES'),
-          referral_result: row_value(row, field: 'REFERRAL_RESULT'),
+          resource_coordinator_notes: row_value(row, field: 'RESOURCE_COORDINATOR_NOTES', required: false),
           status_updated_at: parse_date(row_value(row, field: 'ASSIGNED_AT') || row_value(row, field: 'STATUS_UPDATED_AT')),
           HouseholdID: referral_household_id(row_value(row, field: 'REFERRAL_ID')),
           # fields not used in CSV

@@ -7,6 +7,8 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::WalkInEnrollmentUnitTypesLoader, type: :model do
+  include AcHmisLoaderHelpers
+
   let(:ds) { create(:hmis_data_source) }
   let(:client) { create(:hmis_hud_client, data_source: ds) }
   let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
@@ -15,13 +17,15 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::WalkInEnrollmentUni
       {
         'PROJECTID' => enrollment.project.project_id,
         'ENROLLMENTID' => enrollment.enrollment_id,
-        'UNITTYPEID' => '12/08/2021',
+        'UNITTYPEID' => '31',
       }
     ]
   end
 
   it 'imports rows' do
-    subject.perform(rows: rows)
+    with_csv_files({ 'WalkInEnrollmentUnitTypes.csv' => rows }) do |dir|
+      described_class.perform(reader: csv_reader(dir))
+    end
     expect(enrollment.unit_occupancies.size).to eq(1)
   end
 end

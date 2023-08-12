@@ -13,7 +13,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
-    def build_records(rows)
+    def build_records
       # FIXME- should check that enrollment is HOH
       owner_id_by_enrollment_id = Hmis::Hud::Enrollment
         .where(data_source: data_source)
