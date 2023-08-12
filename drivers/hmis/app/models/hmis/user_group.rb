@@ -29,7 +29,7 @@ class Hmis::UserGroup < ApplicationRecord
       merge(Hmis::UserGroupMember.where(user_id: user_id))
   end
 
-  def self.system_user
+  def self.system_user_group
     group = find_by(name: 'System User Group', system: true)
     return group if group.present?
 
