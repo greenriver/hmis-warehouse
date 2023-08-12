@@ -7,9 +7,13 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class EmergencyShelterAllowanceGrantLoader < CustomDataElementBaseLoader
+    def filename
+       'EmergencyShelterAllowanceGrant.csv'
+    end
+
     protected
 
-    def build_records(rows)
+    def build_records
       owner_id_by_enrollment_id = Hmis::Hud::Enrollment
         .where(data_source: data_source)
         .pluck(:enrollment_id, :id)

@@ -12,13 +12,19 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EsgFundingAssistanc
   let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
   let(:rows) do
     [
-      { 'EnrollmentID' => enrollment.enrollment_id, ' PaymentStartDate' => ' 2020-01-01', ' PaymentEndDate' => ' 2020-01-01', ' FundingSource' => ' State of Pennsylvania ESG CV 2', ' PaymentType' => ' Arrears', ' Amount' => ' 100.50', ' DateCreated' => nil, ' DateUpdated' => nil, ' UserID' => nil },
+      { 'ENROLLMENTID' => enrollment.enrollment_id, 'PAYMENTSTARTDATE' => ' 2020-01-01', ' PAYMENTENDDATE' => ' 2020-01-01', 'FUNDINGSOURCE' => 'State of Pennsylvania ESG CV 2', 'PAYMENTTYPE' => 'Arrears', 'AMOUNT' => ' 100.50', 'DATECREATED' => nil, 'DATEUPDATED' => nil, 'USERID' => nil },
     ]
   end
 
   it 'imports rows' do
-    subject.perform(rows: rows)
+    with_csv_files({'ESGFundingAssistance.csv' => rows}) do |dir|
+      described_class.perform(reader: csv_reader(dir))
+    end
     enrollment_ids = Hmis::Hud::CustomService.pluck(:enrollment_id).compact_blank
     expect(enrollment_ids.size).to eq(rows.size)
   end
+end
+
+RSpec.configure do |c|
+  c.include AcHmisLoaderHelpers
 end

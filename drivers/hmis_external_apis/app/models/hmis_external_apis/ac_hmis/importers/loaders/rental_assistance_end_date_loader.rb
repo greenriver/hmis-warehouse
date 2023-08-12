@@ -7,6 +7,10 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class RentalAssistanceEndDateLoader < CustomDataElementBaseLoader
+    def filename
+       'RentalAssistanceEndDate.csv'
+    end
+
     protected
 
     def build_records(rows)

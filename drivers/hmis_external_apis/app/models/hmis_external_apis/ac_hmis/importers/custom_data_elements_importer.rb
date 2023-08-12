@@ -23,39 +23,32 @@ module HmisExternalApis::AcHmis::Importers
 
     def run!
       start
-      single_file_imports = [
-        [EmergencyShelterAllowanceGrantLoader, -> 'EmergencyShelterAllowanceGrant.csv'],
-        [EsgFundingAssistanceLoader, 'ESGFundingAssistance.csv'],
-        [FederalPovertyLevelLoader, 'FederalPovertyLevel.csv'],
-        [ReasonForExitLoader, 'ReasonForExit.csv'],
-        [RentalAssistanceEndDateLoader, 'RentalAssistanceEndDate.csv'],
-        [WalkInEnrollmentUnitTypesLoader, 'WalkInEnrollmentUnitTypes.csv'],
-        [ClientAddressLoader, 'ClientAddress.csv'],
-        [ClientContactsLoader, 'ClientContacts.csv'],
+      loaders = [
+        EmergencyShelterAllowanceGrantLoader, # -> 'EmergencyShelterAllowanceGrant.csv'
+        EsgFundingAssistanceLoader, # 'ESGFundingAssistance.csv'
+        FederalPovertyLevelLoader, # 'FederalPovertyLevel.csv'
+        ReasonForExitLoader, # 'ReasonForExit.csv'
+        RentalAssistanceEndDateLoader, # 'RentalAssistanceEndDate.csv'
+        WalkInEnrollmentUnitTypesLoader, # 'WalkInEnrollmentUnitTypes.csv'
+        ClientAddressLoader, # 'ClientAddress.csv'
+        ClientContactsLoader, # 'ClientContacts.csv'
+        ReferralPostingsLoader,
+        ReferralRequestsLoader,
       ]
-      check_file_names(single_file_imports.map(&:last))
+
+      # skip loaders that have no data files
+      loaders = loaders.filter(&:data_file_provided?)
 
       table_names = []
       ProjectsImportAttempt.transaction do
-        single_file_imports.each do |loader, filename|
-          rows = records_from_csv(filename)
-          result = loader.perform(rows: rows)
+        loaders.each do |loader|
+          reader = CsvReader.new(dir)
+          result = loader.perform(reader: reader, clobber: clobber)
           handle_import_result(result)
           table_names += loader.table_names
         end
-
-        result = ReferralPostingsLoader.perform(
-          posting_rows: records_from_csv('ReferralPostings.csv'),
-          household_member_rows: records_from_csv('ReferralHouseholdMembers.csv'),
-          # clobber: clobber_referrals
-        )
-        handle_import_result(result)
-        ReferralRequestsLoader.perform(
-          rows: records_from_csv('ReferralRequests.csv'),
-          # clobber: clobber_referrals
-        )
       end
-      analyze(table_names)
+      analyze(table_names.uniq)
       finish
     rescue AbortImportException => e
       @notifier.ping("Failure in #{importer_name}", { exception: e })
@@ -82,22 +75,6 @@ module HmisExternalApis::AcHmis::Importers
       attempt.attempted_at = Time.current
       attempt.status = ProjectsImportAttempt::STARTED
       attempt.save!
-    end
-
-    def check_file_names(file_names)
-      file_names.each do |fn|
-        msg << "#{fn} was not present." unless File.exist?("#{dir}/#{fn}")
-      end
-      return unless msg.present?
-
-      msg = msg.join('. ')
-
-      Rails.logger.error(msg)
-      attempt.attempted_at = Time.now
-      attempt.status = ProjectsImportAttempt::FAILED
-      attempt.result = { error: msg }
-      attempt.save!
-      raise AbortImportException, msg
     end
 
     def analyze(table_names)

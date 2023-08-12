@@ -6,9 +6,13 @@
 
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
-  class ClientAddressLoader < BaseLoader
-    def perform(rows:)
-      records = build_records(rows)
+  class ClientAddressLoader < SingleFileLoader
+  def filename
+      'ClientAddress.csv'
+  end
+
+    def perform
+      records = build_records
       # destroy existing records and re-import
       model_class.where(data_source: data_source).destroy_all
       model_class.import(records, validate: false, batch_size: 1_000)
@@ -16,7 +20,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
-    def build_records(rows)
+    def build_records
       rows.map do |row|
         default_attrs.merge({
           AddressID: Hmis::Hud::Base.generate_uuid,

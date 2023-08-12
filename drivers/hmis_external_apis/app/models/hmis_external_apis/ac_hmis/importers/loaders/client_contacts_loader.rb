@@ -6,9 +6,13 @@
 
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
-  class ClientContactsLoader < BaseLoader
-    def perform(rows:)
-      records = build_records(rows)
+
+  class ClientContactsLoader < SingleFileLoader
+    def filename
+       'ClientContacts.csv'
+    end
+    def perform
+      records = build_records
       # destroy existing records and re-import
       model_class.where(data_source: data_source).destroy_all
       model_class.import(records.compact, validate: false, batch_size: 1_000)
@@ -16,7 +20,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
-    def build_records(rows)
+    def build_records
       rows.map do |row|
         value = phone_value(row)
         next unless value

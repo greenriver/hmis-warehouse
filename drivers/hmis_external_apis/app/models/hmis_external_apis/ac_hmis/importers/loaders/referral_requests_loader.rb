@@ -5,7 +5,11 @@
 ###
 
 module HmisExternalApis::AcHmis::Importers::Loaders
-  class ReferralRequestsLoader < BaseLoader
+  class ReferralRequestsLoader < SingleFileLoader
+    def filename
+       'ReferralRequests.csv'
+    end
+
     # @param posting_rows[Array<Hash>]
     # @param household_member_rows[Array<Hash>]
     # @param clobber [Boolean] destroy existing records?
@@ -42,16 +46,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           unit_type_id: unit_types_by_mper.fetch(row_value(row, field: 'UNIT_TYPE_ID')),
           requested_on: parse_date(row_value(row, field: 'REQUESTED_ON')),
           needed_by: parse_date(row_value(row, field: 'NEEDED_BY')),
-          requestor_name: row_value(row, field: 'REQUESTOR_NAME'),
-          requestor_phone: row_value(row, field: 'REQUESTOR_PHONE'),
-          requestor_email: row_value(row, field: 'REQUESTOR_EMAIL'),
+          requestor_name: row_value(row, field: 'REQUESTOR_NAME', required: false),
+          requestor_phone: row_value(row, field: 'REQUESTOR_PHONE', required: false),
+          requestor_email: row_value(row, field: 'REQUESTOR_EMAIL', required: false),
         }
       end
-    end
-
-    # @param str [String ] 07-DEC-22
-    def parse_date(str)
-      Date.strptime(str, '%d-%b-%y')
     end
   end
 end

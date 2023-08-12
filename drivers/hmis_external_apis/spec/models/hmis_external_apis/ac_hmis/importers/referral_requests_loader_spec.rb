@@ -19,7 +19,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralRequestsLoa
     record.value
   end
 
-  let(:rows) do
+  let(:reader) do
     [
       {
         'REFERRAL_REQUEST_ID' => referral_request_id,
@@ -35,7 +35,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralRequestsLoa
   end
 
   it 'imports rows' do
-    subject.perform( rows: rows)
+    subject.perform(reader: reader)
     expect(project.external_referral_requests.size).to eq(1)
   end
 end

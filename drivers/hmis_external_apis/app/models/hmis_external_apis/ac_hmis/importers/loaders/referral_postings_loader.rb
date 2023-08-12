@@ -6,24 +6,47 @@
 
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ReferralPostingsLoader < BaseLoader
-    # @param posting_rows[Array<Hash>]
-    # @param household_member_rows[Array<Hash>]
+    # @param reader [CsvReader]
     # @param clobber [Boolean] destroy existing records?
-    def perform(posting_rows:, household_member_rows:, clobber: false)
-      @enrollment_ids_by_referral_id = build_enrollment_ids_by_referral_id(posting_rows: posting_rows, household_member_rows: household_member_rows)
-      records = build_referral_records(posting_rows: posting_rows, household_member_rows: household_member_rows)
+    def perform(reader:, clobber: false)
+      self.reader = reader
+      init_enrollment_ids_by_referral_id
+      records = build_referral_records
       # destroy existing records and re-import
       model_class.where(data_source: data_source).destroy_all if clobber
       model_class.import(records, validate: false, recursive: true, batch_size: 1_000)
     end
 
+    POSTINGS_FILENAME = 'ReferralPostings.csv'
+    HOUSEHOLD_MEMBERS_FILENAME = 'ReferralHouseholdMembers.csv'
+
+    def data_file_provided?
+      reader.file_present?(POSTINGS_FILENAME) &&
+      reader.file_present?(HOUSEHOLD_MEMBERS_FILENAME)
+    end
+
+    def table_names
+      [
+        HmisExternalApis::AcHmis::ReferralHouseholdMember.table_name,
+        HmisExternalApis::AcHmis::ReferralPosting.table_name,
+      ]
+    end
+
     protected
+
+    def posting_rows
+      reader.rows(POSTINGS_FILENAME)
+    end
+
+    def household_member_rows
+      reader.rows(HOUSEHOLD_MEMBERS_FILENAME)
+    end
 
     def model_class
       HmisExternalApis::AcHmis::Referral
     end
 
-    def build_referral_records(posting_rows:, household_member_rows:)
+    def build_referral_records
       household_member_rows_by_referral = household_member_rows.group_by { |row| row_value(row, field: 'REFERRAL_ID') }
       posting_rows.map do |row|
         referral_id = row_value(row, field: 'REFERRAL_ID')
@@ -49,11 +72,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       str ? str.downcase == 'yes' : nil
     end
 
-    # @param str [String ] 07-DEC-22
-    def parse_date(str)
-      Date.strptime(str, '%d-%b-%y')
-    end
-
     def referral_household_id(referral_id)
       @enrollment_ids_by_referral_id.fetch(referral_id)[1]
     end
@@ -65,21 +83,20 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # we don't have enrolment id on the referrals csv so we have to infer it
     # from the referral.project_id and MCI ID on household member.
     # Assumes the MCI ID is the PersonalID
-    def build_enrollment_ids_by_referral_id(posting_rows:, household_member_rows:)
+    def init_enrollment_ids_by_referral_id
       # {[personal_id, project_id] => [enrollment_id, household_id]}
       ids_by_personal_id_project_id = Hmis::Hud::Enrollment
         .where(data_source: data_source)
         .pluck(:personal_id, :project_id, :id, :household_id)
         .to_h { |personal_id, project_id, id, household_id| [[personal_id, project_id], [id, household_id]] }
 
-      project_ids_by_referral_id = {}
-      posting_rows.each do |row|
+      project_ids_by_referral_id = posting_rows.map do |row|
         referral_id = row_value(row, field: 'REFERRAL_ID')
         project_id = row_value(row, field: 'PROGRAM_ID')
-        project_ids_by_referral_id[referral_id] = project_id
-      end
+        [referral_id, project_id]
+      end.to_h
 
-      household_member_rows.map do |row|
+      @enrollment_ids_by_referral_id = household_member_rows.map do |row|
         mci_id = row_value(row, field: 'MCI_ID')
         referral_id = row_value(row, field: 'REFERRAL_ID')
         project_id = project_ids_by_referral_id.fetch(referral_id)
@@ -153,7 +170,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           # denial_reason: row_value(row, field: 'DENIAL_REASON'),
           # denial_note:  row_value(row, field: 'STATUS_NOTE/DENIAL_NOTE'),
         )
-
         record
       end
     end

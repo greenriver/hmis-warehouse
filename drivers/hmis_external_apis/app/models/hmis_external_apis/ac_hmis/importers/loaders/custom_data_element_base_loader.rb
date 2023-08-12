@@ -7,9 +7,9 @@
 # matriculation to new platform
 # creates CustomService and CustomDataElements
 module HmisExternalApis::AcHmis::Importers::Loaders
-  class CustomDataElementBaseLoader < BaseLoader
-    def perform(rows:)
-      records = build_records(rows)
+  class CustomDataElementBaseLoader < SingleFileLoader
+    def perform
+      records = build_records
       # destroy existing records and re-import
       model_class
         .where(data_source: data_source)
@@ -19,15 +19,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     protected
-
-    def cde_definition(owner_type:, key:)
-      @cache ||= {}
-      @cache[[owner_type, key]] ||= cde_definitions.find_or_create(owner_type: owner_type, key: key)
-    end
-
-    def cde_definitions
-      @cde_definitions ||= CustomDataElementDefinitions.new(data_source_id: data_source.id, system_user_id: system_user_id)
-    end
 
     def new_cde_record(value:, definition_key:)
       return unless value

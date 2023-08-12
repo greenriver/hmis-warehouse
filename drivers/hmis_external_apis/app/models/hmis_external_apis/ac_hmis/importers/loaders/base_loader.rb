@@ -6,14 +6,37 @@
 
 module HmisExternalApis::AcHmis::Importers::Loaders
   class BaseLoader
+    attr_reader :reader, :clobber
+
     def self.perform(...)
-      new.perform(...)
+      new(...).perform
+    end
+
+    def initialize(reader:, clobber: false)
+      @reader = reader
+      @clobber = clobber
     end
 
     protected
 
-    def row_value(row, field:)
-      row[field]&.strip&.presence
+    def parse_date(str)
+      Date.parse(str)
+    end
+
+    def cde_definition(owner_type:, key:)
+      @cache ||= {}
+      @cache[[owner_type, key]] ||= cde_definitions.find_or_create(owner_type: owner_type, key: key)
+    end
+
+    def cde_definitions
+      @cde_definitions ||= CustomDataElementDefinitions.new(data_source_id: data_source.id, system_user_id: system_user_id)
+    end
+
+    def row_value(row, field:, required: true)
+      value = row[field]&.strip&.presence
+      raise "field '#{field}' is missing" if required && !value
+
+      value
     end
 
     def system_user_id

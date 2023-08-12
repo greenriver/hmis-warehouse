@@ -56,6 +56,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
         # IncomeBenefit: federal_poverty_level
         { owner_type: 'Hmis::Hud::IncomeBenefit', field_type: :string, key: :federal_poverty_level, label: 'Federal Poverty Level' },
+
+        { owner_type: 'Hmis::Hud::CustomService', field_type: :string, key: :payment_type, label: 'Payment Type' },
+        { owner_type: 'Hmis::Hud::CustomService', field_type: :string, key: :funding_source, label: 'Funding Source' },
       ]
     end
   end

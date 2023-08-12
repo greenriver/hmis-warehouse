@@ -7,6 +7,10 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class FederalPovertyLevelLoader < CustomDataElementBaseLoader
+  def filename
+  'FederalPovertyLevel.csv'
+  end
+
     protected
 
     def build_records(rows)

@@ -124,7 +124,3 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 end
-
-RSpec.configure do |c|
-  c.include GraphqlHelpers
-end

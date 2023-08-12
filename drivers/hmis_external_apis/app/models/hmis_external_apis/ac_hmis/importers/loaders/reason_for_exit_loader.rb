@@ -7,6 +7,10 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ReasonForExitLoader < CustomDataElementBaseLoader
+  def filename
+    'ReasonForExit.csv'
+  end
+
     protected
 
     def build_records(rows)

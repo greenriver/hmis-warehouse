@@ -6,9 +6,13 @@
 
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
-  class WalkInEnrollmentUnitTypesLoader < BaseLoader
-    def perform(rows:)
-      records = build_records(rows)
+  class WalkInEnrollmentUnitTypesLoader < SingleFileLoader
+    def filename
+       'WalkInEnrollmentUnitTypes.csv'
+    end
+
+    def perform
+      records = build_records
       # destroy existing records and re-import
       enrollments = Hmis::Hud::Enrollment.where(data_source: data_source)
       model_class
@@ -19,7 +23,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
-    def build_records(rows)
+    def build_records
       # FIXME should check PROJECTID
       # FIXME should check UNITTYPEID
       enrollments_by_enrollment_id = Hmis::Hud::Enrollment
