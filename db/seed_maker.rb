@@ -16,25 +16,25 @@ class SeedMaker
     dnd_staff = Role.where(name: 'CoC Staff').first_or_create
 
     # Add a user.  This should not be added in production
-    unless Rails.env =~ /production|staging/
-      agency = Agency.where(name: 'Sample Agency').first_or_create
-      initial_password = Faker::Internet.password(min_length: 16)
-      user = User.new
-      user.email = 'noreply@example.com'
-      user.first_name = 'Sample'
-      user.last_name = 'Admin'
-      user.password = user.password_confirmation = initial_password
-      user.confirmed_at = Time.now
-      user.permission_context = 'acls'
-      user.agency_id = agency.id
-      user.save!
-      user_group = UserGroup.where(name: 'Fake Admins').first_or_create
-      user_group.add(user)
-      all_ds_entity_collection = Collection.system_collections(:data_sources)
-      AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group)
-      AccessControl.create(role: dnd_staff, collection: all_ds_entity_collection, user_group: user_group)
-      puts "Created initial admin email: #{user.email}  password: #{user.password}"
-      end
+    return if Rails.env =~ /production|staging/
+
+    agency = Agency.where(name: 'Sample Agency').first_or_create
+    initial_password = Faker::Internet.password(min_length: 16)
+    user = User.new
+    user.email = 'noreply@example.com'
+    user.first_name = 'Sample'
+    user.last_name = 'Admin'
+    user.password = user.password_confirmation = initial_password
+    user.confirmed_at = Time.now
+    user.permission_context = 'acls'
+    user.agency_id = agency.id
+    user.save!
+    user_group = UserGroup.where(name: 'Fake Admins').first_or_create
+    user_group.add(user)
+    all_ds_entity_collection = Collection.system_collections(:data_sources)
+    AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group)
+    AccessControl.create(role: dnd_staff, collection: all_ds_entity_collection, user_group: user_group)
+    puts "Created initial admin email: #{user.email}  password: #{user.password}"
   end
 
   def health_disenrollment_reasons
