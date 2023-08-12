@@ -8,32 +8,32 @@ require 'faker'
 
 class SeedMaker
   def setup_fake_user
-    unless User.find_by(email: 'noreply@example.com').present?
-      # Add roles
-      admin = Role.where(name: 'Admin').first_or_create
-      admin.update(can_edit_users: true, can_edit_roles: true)
-      dnd_staff = Role.where(name: 'CoC Staff').first_or_create
+    return if User.find_by(email: 'noreply@example.com').present?
 
-      # Add a user.  This should not be added in production
-      unless Rails.env =~ /production|staging/
-        agency = Agency.where(name: 'Sample Agency').first_or_create
-        initial_password = Faker::Internet.password(min_length: 16)
-        user = User.new
-        user.email = 'noreply@example.com'
-        user.first_name = 'Sample'
-        user.last_name = 'Admin'
-        user.password = user.password_confirmation = initial_password
-        user.confirmed_at = Time.now
-        user.permission_context = 'acls'
-        user.agency_id = agency.id
-        user.save!
-        user_group = UserGroup.where(name: 'Fake Admins').first_or_create
-        all_ds_entity_collection = Collection.system_collections(:data_sources)
-        AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group).add(user)
-        AccessControl.create(role: dnd_staff, collection: all_ds_entity_collection, user_group: user_group).add(user)
-        puts "Created initial admin email: #{user.email}  password: #{user.password}"
+    # Add roles
+    admin = Role.where(name: 'Admin').first_or_create
+    admin.update(can_edit_users: true, can_edit_roles: true)
+    dnd_staff = Role.where(name: 'CoC Staff').first_or_create
+
+    # Add a user.  This should not be added in production
+    unless Rails.env =~ /production|staging/
+      agency = Agency.where(name: 'Sample Agency').first_or_create
+      initial_password = Faker::Internet.password(min_length: 16)
+      user = User.new
+      user.email = 'noreply@example.com'
+      user.first_name = 'Sample'
+      user.last_name = 'Admin'
+      user.password = user.password_confirmation = initial_password
+      user.confirmed_at = Time.now
+      user.permission_context = 'acls'
+      user.agency_id = agency.id
+      user.save!
+      user_group = UserGroup.where(name: 'Fake Admins').first_or_create
+      all_ds_entity_collection = Collection.system_collections(:data_sources)
+      AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group).add(user)
+      AccessControl.create(role: dnd_staff, collection: all_ds_entity_collection, user_group: user_group).add(user)
+      puts "Created initial admin email: #{user.email}  password: #{user.password}"
       end
-    end
   end
 
   def health_disenrollment_reasons
@@ -283,13 +283,13 @@ class SeedMaker
   end
 
   def install_shapes
-    if GrdaWarehouse::Shape::Installer.any_needed?
-      begin
-        Rake::Task['grda_warehouse:get_shapes'].invoke
-      rescue Exception => e
-        Rails.logger.tagged('shapes') do
-          Rails.logger.fatal "Could not run shape importer: #{e.message}"
-        end
+    return unless GrdaWarehouse::Shape::Installer.any_needed?
+
+    begin
+      Rake::Task['grda_warehouse:get_shapes'].invoke
+    rescue Exception => e
+      Rails.logger.tagged('shapes') do
+        Rails.logger.fatal "Could not run shape importer: #{e.message}"
       end
     end
   end
