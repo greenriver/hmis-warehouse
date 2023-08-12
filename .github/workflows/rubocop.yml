@@ -21,7 +21,7 @@ jobs:
         name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - id: dependencies
         name: Set up dependencies
         run: |
@@ -55,4 +55,4 @@ jobs:
           files=`echo "${{ steps.changed-files.outputs.added_modified }}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo $files
-          if [ $num -gt 0 ]; then bundle exec rubocop $files; else echo "No changed ruby files"; fi
+          if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi
