@@ -347,7 +347,7 @@ module GrdaWarehouse::Hud
     # A single scope to determine if a user can access a project within a particular context
     #
     # @param user [User] user viewing the project
-    # @param confidential_scope_limiter [Symbol] a symbolized scope name that is merged into the vieable projects
+    # @param confidential_scope_limiter [Symbol] a symbolized scope name that is merged into the viewable projects
     #   within the context of reporting confidential_scope_limiter is almost always non_confidential
     #   within the client dashboard context, confidential_scope_limiter is :all, which includes confidential projects
     #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names

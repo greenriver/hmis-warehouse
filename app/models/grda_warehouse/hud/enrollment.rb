@@ -150,9 +150,9 @@ module GrdaWarehouse::Hud
     end
 
     scope :visible_in_window_to, ->(user) do
-      # FIXME: is this correct? visible_to also includes logic to include
-      # visible_in_window, but is this supposed to only return window data?
-      # like this, I believe it returns both window and assigned data
+      # visible_to also includes logic to include visible_in_window
+      # Now that we are using ACLs the expectation is that you grant access
+      # to the data a user should be able to see
       visible_to(user)
     end
 

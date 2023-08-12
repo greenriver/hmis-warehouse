@@ -44,6 +44,11 @@ module GrdaWarehouse
     has_many :organization_contacts, through: :projects
 
     scope :viewable_by, ->(user) do
+      # TODO: We may want to build a read-only version of project groups
+      # so someone can see the makeup of the project groups assigned to them,
+      # but be able to add or remove projects.
+      # This probably doesn't need a new permission, project groups would just be visible
+      # if the user has access to use any project groups for reporting.
       editable_by(user)
     end
 
