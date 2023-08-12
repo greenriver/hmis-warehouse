@@ -16,7 +16,7 @@ module Admin::AccessControls
       users = User.where(id: user_ids)
       return unless users.any?
 
-      @access_control.add(users)
+      @access_control.user_group.add(users)
       flash[:notice] = "#{pluralize(users.count, 'user')} added"
       redirect_to edit_admin_access_control_path(@access_control)
     end
@@ -25,7 +25,7 @@ module Admin::AccessControls
       users = User.where(id: params[:id].to_i)
       return unless users.any?
 
-      @access_control.remove(users)
+      @access_control.user_group.remove(users)
       flash[:notice] = "#{users.first.name} removed"
       redirect_to edit_admin_access_control_path(@access_control)
     end

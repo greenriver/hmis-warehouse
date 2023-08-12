@@ -29,9 +29,10 @@ class SeedMaker
       user.agency_id = agency.id
       user.save!
       user_group = UserGroup.where(name: 'Fake Admins').first_or_create
+      user_group.add(user)
       all_ds_entity_collection = Collection.system_collections(:data_sources)
-      AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group).add(user)
-      AccessControl.create(role: dnd_staff, collection: all_ds_entity_collection, user_group: user_group).add(user)
+      AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group)
+      AccessControl.create(role: dnd_staff, collection: all_ds_entity_collection, user_group: user_group)
       puts "Created initial admin email: #{user.email}  password: #{user.password}"
       end
   end

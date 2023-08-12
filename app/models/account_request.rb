@@ -46,7 +46,7 @@ class AccountRequest < ApplicationRecord
     # END_ACL
     acls = AccessControl.where(id: access_control_ids)
     acls.each do |acl|
-      acl.add(user)
+      acl.user_group.add(user)
     end
     update(
       status: :accepted,
