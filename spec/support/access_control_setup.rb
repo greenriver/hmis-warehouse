@@ -6,7 +6,7 @@ module AccessControlSetup
       collection_id: collection.id,
       user_group_id: user_group.id,
     ).first_or_create!
-    access_control.add(user)
+    user_group.add(user)
     user.collections.reload
     access_control
   end
