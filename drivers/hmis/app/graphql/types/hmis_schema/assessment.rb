@@ -116,7 +116,7 @@ module Types
       disability_groups = resolve_disability_groups(scope)
 
       # Error if there is more than one group. Could happen if records have different Data Collection Stages or Information dates or Users, which they shouldn't.
-      raise 'Multiple disability groups constructed for one assessment' if disability_groups.size > 1
+      # raise 'Multiple disability groups constructed for one assessment' if disability_groups.size > 1
 
       disability_groups.first
     end

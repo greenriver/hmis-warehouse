@@ -3,7 +3,7 @@
   "link_id": "disability",
   "text": "Disability",
   "data_collected_about": "ALL_CLIENTS",
-  "prefill": "DISABILITY_GROUP",
+  "prefill": true,
   "rule": {
     "operator": "ANY",
     "parts": [

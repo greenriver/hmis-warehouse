@@ -3,7 +3,7 @@
   "link_id": "health-insurance",
   "text": "Health Insurance",
   "data_collected_about": "ALL_CLIENTS",
-  "prefill": "INCOME_BENEFIT",
+  "prefill": true,
   "fragment": "#common_psde_applicability_rule",
   "item": [
     {
