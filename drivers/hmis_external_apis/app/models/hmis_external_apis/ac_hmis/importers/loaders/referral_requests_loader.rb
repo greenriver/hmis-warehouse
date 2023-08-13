@@ -12,12 +12,28 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def perform
       records = build_records
-      # destroy existing records and re-import
-      model_class.where(project_id: project_scope.select(:id)).destroy_all if clobber
-      model_class.import(records, validate: false, batch_size: 1_000)
+      if clobber
+        # destroy existing records and re-import
+        model_class.where(project_id: project_scope.select(:id)).destroy_all if clobber
+        model_class.import(records, validate: false, batch_size: 1_000)
+      elsif records.any?
+        model_class.import(
+          records,
+          validate: false,
+          batch_size: 1_000,
+          on_duplicate_key_update: {
+            conflict_target: :identifier,
+            columns: records[0].keys
+          }
+        )
+      end
     end
 
     protected
+
+    def supports_upsert?
+      true
+    end
 
     def project_scope
       Hmis::Hud::Project.where(data_source: data_source)

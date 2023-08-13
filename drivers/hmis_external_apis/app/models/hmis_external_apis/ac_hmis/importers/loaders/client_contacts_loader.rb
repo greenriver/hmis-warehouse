@@ -14,7 +14,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def perform
       records = build_records
       # destroy existing records and re-import
-      model_class.where(data_source: data_source).destroy_all
+      model_class.where(data_source: data_source).destroy_all if clobber
       model_class.import(records.compact, validate: false, batch_size: 1_000)
     end
 

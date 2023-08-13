@@ -12,15 +12,20 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       new(...).perform
     end
 
-    def initialize(reader:, clobber: false)
+    def initialize(reader:, clobber: true)
       @reader = reader
       @clobber = clobber
+      raise "upsert not supported" if !clobber && !supports_upsert?
     end
 
     protected
 
+    def supports_upsert?
+      false
+    end
+
     # 'YYYY-MM-DD HH24:MM:SS'
-    DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'.freeze
+    DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'
     def parse_date(str)
       raise ArgumentError, "Invalid date-time format. Expected 'YYYY-MM-DD HH24:MM:SS'" unless str =~ /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/
 

@@ -17,7 +17,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       enrollments = Hmis::Hud::Enrollment.where(data_source: data_source)
       model_class
         .where(enrollment_id: enrollments.select(:id))
-        .destroy_all
+        .destroy_all if clobber
       model_class.import(records, validate: false, batch_size: 1_000)
     end
 

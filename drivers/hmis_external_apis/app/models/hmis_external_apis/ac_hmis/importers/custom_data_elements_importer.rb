@@ -10,15 +10,13 @@ module HmisExternalApis::AcHmis::Importers
 
     AbortImportException = Class.new(StandardError)
 
-    attr_accessor :attempt
-    attr_accessor :data_source
-    attr_accessor :dir
-    attr_accessor :extra_columns
+    attr_accessor :attempt, :data_source, :dir, :extra_columns
 
-    def initialize(dir:, key:, etag:)
+    def initialize(dir:, key:, etag:, clobber: )
       self.attempt = ProjectsImportAttempt.where(etag: etag, key: key).first_or_initialize
       self.data_source = HmisExternalApis::AcHmis.data_source
       self.dir = dir
+      self.clobber = clobber
     end
 
     def run!

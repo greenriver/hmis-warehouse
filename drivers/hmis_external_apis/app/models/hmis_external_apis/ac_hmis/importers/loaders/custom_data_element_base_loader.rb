@@ -14,7 +14,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       model_class
         .where(data_source: data_source)
         .where(owner_type: owner_class.name)
-        .destroy_all
+        .destroy_all if clobber
       model_class.import(records, validate: false, batch_size: 1_000)
     end
 
