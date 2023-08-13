@@ -23,16 +23,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
         owner_id = owner_id_by_enrollment_id.fetch(enrollment_id)
         new_cde_record(
-          value: rental_assistance_end_date(row),
+          value: parse_date(row_value(row, field: 'RENTALASSISTANCEENDDATE')),
           definition_key: :rental_assistance_end_date,
         ).merge(owner_id: owner_id)
       end
-    end
-
-    def rental_assistance_end_date(row)
-      # '12/08/2021'
-      value = row_value(row, field: 'RENTALASSISTANCEENDDATE')
-      value ? Date.strptime(value, '%m/%d/%Y').to_s(:db) : nil
     end
 
     def owner_class

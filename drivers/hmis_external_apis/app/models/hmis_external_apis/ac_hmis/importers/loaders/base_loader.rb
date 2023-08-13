@@ -19,8 +19,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
+    # 'YYYY-MM-DD HH24:MM:SS'
+    DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'
     def parse_date(str)
-      DateTime.parse(str)
+      raise ArgumentError, "Invalid date-time format. Expected 'YYYY-MM-DD HH24:MM:SS'" unless str =~ /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/
+
+      DateTime.strptime(str, DATE_TIME_FMT)
     end
 
     def cde_definition(owner_type:, key:)
@@ -50,7 +54,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def default_attrs
       {
         data_source_id: data_source.id,
-        UserID: system_user_id,
+        user_id: system_user_id,
       }
     end
 
@@ -65,6 +69,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       when /^(n|No)$/
         false
       end
+    end
+
+    def project_unit_tracker
+      @project_unit_tracker = ProjectUnitTracker.new(data_source)
     end
   end
 end

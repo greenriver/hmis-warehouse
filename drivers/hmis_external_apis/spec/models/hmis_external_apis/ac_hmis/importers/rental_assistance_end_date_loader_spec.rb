@@ -16,7 +16,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::RentalAssistanceEnd
     [
       {
         'ENROLLMENTID' => enrollment.enrollment_id,
-        'RENTALASSISTANCEENDDATE' => '12/08/2021',
+        'RENTALASSISTANCEENDDATE' => '2022-12-01 14:00:00',
       }
     ]
   end

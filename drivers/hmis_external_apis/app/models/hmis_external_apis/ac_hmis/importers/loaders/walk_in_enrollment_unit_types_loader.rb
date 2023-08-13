@@ -8,7 +8,7 @@
 module HmisExternalApis::AcHmis::Importers::Loaders
   class WalkInEnrollmentUnitTypesLoader < SingleFileLoader
     def filename
-       'WalkInEnrollmentUnitTypes.csv'
+      'WalkInEnrollmentUnitTypes.csv'
     end
 
     def perform
@@ -26,14 +26,16 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def build_records
       # FIXME should check PROJECTID
       # FIXME should check UNITTYPEID
-      enrollments_by_enrollment_id = Hmis::Hud::Enrollment
+      pks_by_enrollment_id = Hmis::Hud::Enrollment
         .where(data_source: data_source)
         .pluck(:enrollment_id, :id)
         .to_h
       rows.map do |row|
+        enrollment_pk = pks_by_enrollment_id.fetch(row_value(row, field: 'ENROLLMENTID'))
+        unit_type_id = row_value(row, field: 'UNITTYPEID')
         {
-          enrollment_id: enrollments_by_enrollment_id.fetch(row_value(row, field: 'ENROLLMENTID')),
-          unit_id: row_value(row, field: 'UNITTYPEID'),
+          enrollment_id: enrollment_pk,
+          unit_id: project_unit_tracker.next_unit_id(enrollment_pk: enrollment_pk, unit_type_mper_id: unit_type_id),
         }
       end
     end

@@ -15,13 +15,13 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EsgFundingAssistanc
     [
       {
         'ENROLLMENTID' => enrollment.enrollment_id,
-        'PAYMENTSTARTDATE' => ' 2020-01-01',
-        'PAYMENTENDDATE' => ' 2020-01-01',
+        'PAYMENTSTARTDATE' => '2022-12-01 14:00:00 ',
+        'PAYMENTENDDATE' => '2022-12-01 14:00:00',
         'FUNDINGSOURCE' => 'State of Pennsylvania ESG CV 2',
         'PAYMENTTYPE' => 'Arrears',
         'AMOUNT' => ' 100.50',
-        'DATECREATED' => '2020-01-01',
-        'DATEUPDATED' => '2020-01-01',
+        'DATECREATED' => '2022-12-01 14:00:00',
+        'DATEUPDATED' => '2022-12-01 14:00:00',
         'USERID' => nil,
       },
     ]
@@ -31,7 +31,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EsgFundingAssistanc
     with_csv_files({ 'ESGFundingAssistance.csv' => rows }) do |dir|
       described_class.perform(reader: csv_reader(dir))
     end
-    enrollment_ids = Hmis::Hud::CustomService.pluck(:enrollment_id).compact_blank
-    expect(enrollment_ids.size).to eq(rows.size)
+    expect(enrollment.custom_services.size).to eq(1)
+    expect(enrollment.custom_services.first.custom_data_elements.size).to eq(2)
   end
 end

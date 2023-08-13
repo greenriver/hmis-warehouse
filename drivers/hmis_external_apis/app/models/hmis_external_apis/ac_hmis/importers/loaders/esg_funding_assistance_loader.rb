@@ -12,15 +12,29 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       records = build_records
       # destroy existing records and re-import
       model_class.where(data_source: data_source).destroy_all if clobber
-      model_class.import(
+      result = model_class.import(
         records,
         validate: false,
         batch_size: 1_000,
-        recursive: true,
+        # recursive: true, doesn't work for some reason, probably because CDE relationship is polymorphic
+        returning: :id,
       )
+      return result if result.failed_instances.present?
+
+      import_cdes(result.ids)
     end
 
     protected
+
+    def import_cdes(ids)
+      records = rows.flat_map.with_index do |row, idx|
+        owner_id = ids[idx]
+        results = cde_attrs(row)
+        results.each {|attr| attr[:owner_id] = owner_id}
+        results
+      end
+      Hmis::Hud::CustomDataElement.import(records, validate: false, batch_size: 1_000)
+    end
 
     def filename
       'ESGFundingAssistance.csv'
@@ -33,27 +47,21 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .to_h
 
       rows.map do |row|
-        record = model_class.new(default_attrs)
-        record.CustomServiceID = Hmis::Hud::Base.generate_uuid
-
-        record.attributes = {
-          enrollment_id: row_value(row, field: 'ENROLLMENTID'),
-          fa_start_date: parse_date(row_value(row, field: 'PAYMENTSTARTDATE')),
-          fa_end_date: parse_date(row_value(row, field: 'PAYMENTENDDATE', required: false)),
-          fa_amount: row_value(row, field: 'AMOUNT', required: false),
-          date_created: parse_date(row_value(row, field: 'DATECREATED')),
-          date_updated: parse_date(row_value(row, field: 'DATEUPDATED')),
-          user_id: row_value(row, field: 'USERID', required: false) || system_user_id,
+        enrollment_id = row_value(row, field: 'ENROLLMENTID')
+        {
+          EnrollmentID: enrollment_id,
+          CustomServiceID: Hmis::Hud::Base.generate_uuid,
+          FAStartDate: parse_date(row_value(row, field: 'PAYMENTSTARTDATE')),
+          FAEndDate: parse_date(row_value(row, field: 'PAYMENTENDDATE', required: false)),
+          FAAmount: row_value(row, field: 'AMOUNT', required: false),
+          DateCreated: parse_date(row_value(row, field: 'DATECREATED')),
+          DateUpdated: parse_date(row_value(row, field: 'DATEUPDATED')),
+          custom_service_type_id: custom_service_type.id,
+          PersonalID: personal_id_by_enrollment_id.fetch(enrollment_id),
+          DateProvided: today, # FIXME - this isn't right?
+          UserID: row_value(row, field: 'USERID', required: false) || system_user_id,
+          data_source_id: data_source.id,
         }
-
-        cde_attrs(row).each do |attrs|
-          record.custom_data_elements.build(attrs)
-        end
-        record.personal_id = personal_id_by_enrollment_id.fetch(record.enrollment_id)
-        record.service_type = custom_service_type
-        record.date_provided = today # FIXME - this isn't right?
-
-        record
       end
     end
 
@@ -66,11 +74,14 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
         definition = cde_definition(owner_type: model_class.name, key: definition_key)
         {
+          owner_type: model_class.name,
           data_element_definition_id: definition.id,
           value_string: value,
           DateCreated: parse_date(row_value(row, field: 'DATECREATED')),
           DateUpdated: parse_date(row_value(row, field: 'DATEUPDATED')),
-        }.merge(default_attrs)
+          UserID: row_value(row, field: 'USERID', required: false) || system_user_id,
+          data_source_id: data_source.id,
+        }
       end.compact
     end
 

@@ -8,14 +8,22 @@ module HmisExternalApis::AcHmis::Importers::Loaders
   class ReferralPostingsLoader < BaseLoader
     def perform
       init_enrollment_ids_by_referral_id
-      records = build_referral_records
+      referral_records, unit_occupancy_records = build_referral_records
+
       # destroy existing records and re-import
-      model_class.where(data_source: data_source).destroy_all if clobber
-      model_class.import(records, validate: false, recursive: true, batch_size: 1_000)
+      if clobber
+        referral_class.where(data_source: data_source).destroy_all
+        enrollments = Hmis::Hud::Enrollment.where(data_source: data_source)
+        Hmis::UnitOccupancy
+          .where(enrollment_id: enrollments.select(:id))
+          .destroy_all
+      end
+      referral_class.import(referral_records, validate: false, recursive: true, batch_size: 1_000)
+      Hmis::UnitOccupancy.import(unit_occupancy_records, validate: false, batch_size: 1_000)
     end
 
-    POSTINGS_FILENAME = 'ReferralPostings.csv'
-    HOUSEHOLD_MEMBERS_FILENAME = 'ReferralHouseholdMembers.csv'
+    POSTINGS_FILENAME = 'ReferralPostings.csv'.freeze
+    HOUSEHOLD_MEMBERS_FILENAME = 'ReferralHouseholdMembers.csv'.freeze
 
     def data_file_provided?
       reader.file_present?(POSTINGS_FILENAME) &&
@@ -26,6 +34,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       [
         HmisExternalApis::AcHmis::ReferralHouseholdMember.table_name,
         HmisExternalApis::AcHmis::ReferralPosting.table_name,
+        Hmis::UnitOccupancy.table_name,
       ]
     end
 
@@ -39,18 +48,20 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       reader.rows(HOUSEHOLD_MEMBERS_FILENAME)
     end
 
-    def model_class
+    def referral_class
       HmisExternalApis::AcHmis::Referral
     end
 
     def build_referral_records
       household_member_rows_by_referral = household_member_rows.group_by { |row| row_value(row, field: 'REFERRAL_ID') }
-      posting_rows.map do |row|
+      referral_records = []
+      unit_occupancy_records = []
+      posting_rows.each do |row|
         referral_id = row_value(row, field: 'REFERRAL_ID')
         household_members = build_household_member_records(household_member_rows_by_referral[referral_id] || [])
-        postings = build_posting_records([row])
+        posting = build_posting_record(row)
 
-        model_class.new(
+        referral = referral_class.new(
           identifier: referral_id,
           enrollment_id: referral_enrollment_id(referral_id),
           referral_date: parse_date(row_value(row, field: 'REFERRAL_DATE')),
@@ -60,9 +71,26 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           score: row_value(row, field: 'SCORE', required: false),
           needs_wheelchair_accessible_unit: yn_boolean(row_value(row, field: 'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT', required: false)),
           household_members: household_members,
-          postings: postings,
+          postings: [posting],
         )
+        referral_records.push(referral)
+
+        next unless posting.accepted_status? || posting.accepted_pending_status?
+
+        ## infer unit occupancy
+        occupancies = household_members.map do |hm|
+          unit_id = project_unit_tracker.next_unit_id(
+            enrollment_pk: referral.enrollment_id,
+            unit_type_mper_id: row_value(row, field: 'UNIT_TYPE_ID'),
+          )
+          {
+            unit_id: unit_id,
+            enrollment_id: referral.enrollment_id,
+          }
+        end
+        unit_occupancy_records += occupancies
       end
+      [referral_records, unit_occupancy_records]
     end
 
     def referral_household_id(referral_id)
@@ -114,30 +142,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       end
     end
 
-    HOH_MAP = {
-      'Self' => 'self_head_of_household',
-      'Aunt' => 'other_relative',
-      'Brother' => 'other_relative',
-      'Cousin' => 'other_relative',
-      'Grandchild' => 'other_relative',
-      'Grandparent' => 'other_relative',
-      'Nephew' => 'other_relative',
-      'Niece' => 'other_relative',
-      'Parent' => 'other_relative',
-      'Sister' => 'other_relative',
-      'Daughter' => 'child',
-      'Son' => 'child',
-      'Spouse/Partner' => 'spouse_or_partner',
-      'Uncle' => 'other_relative',
-      'Friend' => 'unrelated_household_member',
-      'Live-In Aide' => 'unrelated_household_member',
-    }.freeze
-    def relationship_to_hoh(row)
-      value = row_value(row, field: 'RELATIONSHIP_TO_HOH')
-      HOH_MAP.fetch(value)
-    end
-
-    def build_posting_records(rows)
+    def build_posting_record(row)
       record_class = HmisExternalApis::AcHmis::ReferralPosting
       projects_by_project_id = Hmis::Hud::Project
         .where(data_source: data_source)
@@ -147,23 +152,27 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .joins(:mper_id)
         .pluck('external_ids.value', :id)
         .to_h
-      rows.map do |row|
-        record = record_class.new(
-          data_source_id: data_source.id,
-          identifier: row_value(row, field: 'POSTING_ID'),
-          status: posting_status(row),
-          project_id: projects_by_project_id.fetch(row_value(row, field: 'PROGRAM_ID')),
-          unit_type_id: unit_types_by_mper.fetch(row_value(row, field: 'UNIT_TYPE_ID')),
-          resource_coordinator_notes: row_value(row, field: 'RESOURCE_COORDINATOR_NOTES', required: false),
-          status_updated_at: parse_date(row_value(row, field: 'ASSIGNED_AT') || row_value(row, field: 'STATUS_UPDATED_AT')),
-          HouseholdID: referral_household_id(row_value(row, field: 'REFERRAL_ID')),
-          # fields not used in CSV
-          # referral_result: row_value(row, field: 'REFERRAL_RESULT'),
-          # denial_reason: row_value(row, field: 'DENIAL_REASON'),
-          # denial_note:  row_value(row, field: 'STATUS_NOTE/DENIAL_NOTE'),
-        )
-        record
-      end
+      record_class.new(
+        data_source_id: data_source.id,
+        identifier: row_value(row, field: 'POSTING_ID'),
+        status: posting_status(row),
+        project_id: projects_by_project_id.fetch(row_value(row, field: 'PROGRAM_ID')),
+        unit_type_id: unit_types_by_mper.fetch(row_value(row, field: 'UNIT_TYPE_ID')),
+        resource_coordinator_notes: row_value(row, field: 'RESOURCE_COORDINATOR_NOTES', required: false),
+        status_updated_at: parse_date(row_value(row, field: 'ASSIGNED_AT') || row_value(row, field: 'STATUS_UPDATED_AT')),
+        HouseholdID: referral_household_id(row_value(row, field: 'REFERRAL_ID')),
+        # fields not used in CSV
+        # referral_result: row_value(row, field: 'REFERRAL_RESULT'),
+        # denial_reason: row_value(row, field: 'DENIAL_REASON'),
+        # denial_note:  row_value(row, field: 'STATUS_NOTE/DENIAL_NOTE'),
+      )
+    end
+
+    def relationship_to_hoh(row)
+      @posting_status_map ||= HmisExternalApis::AcHmis::ReferralHouseholdMember
+        .relationship_to_hohs
+        .invert.stringify_keys
+      @posting_status_map.fetch(row_value(row, field: 'RELATIONSHIP_TO_HOH'))
     end
 
     def posting_status(row)
