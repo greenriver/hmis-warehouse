@@ -30,7 +30,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       records = rows.flat_map.with_index do |row, idx|
         owner_id = ids[idx]
         results = cde_attrs(row)
-        results.each {|attr| attr[:owner_id] = owner_id}
+        results.each { |attr| attr[:owner_id] = owner_id }
         results
       end
       Hmis::Hud::CustomDataElement.import(records, validate: false, batch_size: 1_000)

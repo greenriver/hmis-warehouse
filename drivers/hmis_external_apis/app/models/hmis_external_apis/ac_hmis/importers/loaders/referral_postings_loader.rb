@@ -18,7 +18,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           .where(enrollment_id: enrollments.select(:id))
           .destroy_all
       end
-      referral_class.import(referral_records, validate: false, recursive: true, batch_size: 1_000)
+      result = referral_class.import(referral_records, validate: false, recursive: true, batch_size: 1_000)
+      return result if result.failed_instances.present?
+
       Hmis::UnitOccupancy.import(unit_occupancy_records, validate: false, batch_size: 1_000)
     end
 
@@ -58,7 +60,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       unit_occupancy_records = []
       posting_rows.each do |row|
         referral_id = row_value(row, field: 'REFERRAL_ID')
-        household_members = build_household_member_records(household_member_rows_by_referral[referral_id] || [])
+        household_member_rows = household_member_rows_by_referral[referral_id] || []
+        household_members = build_household_member_records(household_member_rows)
         posting = build_posting_record(row)
 
         referral = referral_class.new(
@@ -78,14 +81,17 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         next unless posting.accepted_status? || posting.accepted_pending_status?
 
         ## infer unit occupancy
-        occupancies = household_members.map do |hm|
+        occupancies = household_member_rows.map do |hm_row|
+          project_id = row_value(row, field: 'PROGRAM_ID')
+          mci_id = row_value(hm_row, field: 'MCI_ID')
+          enrollment_pk = client_enrollment_pk(mci_id, project_id)
           unit_id = project_unit_tracker.next_unit_id(
-            enrollment_pk: referral.enrollment_id,
+            enrollment_pk: enrollment_pk,
             unit_type_mper_id: row_value(row, field: 'UNIT_TYPE_ID'),
           )
           {
             unit_id: unit_id,
-            enrollment_id: referral.enrollment_id,
+            enrollment_id: enrollment_pk,
           }
         end
         unit_occupancy_records += occupancies
@@ -101,16 +107,22 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @enrollment_ids_by_referral_id.fetch(referral_id)[0]
     end
 
+    def client_enrollment_pk(mci_id, project_id)
+      ids_by_personal_id_project_id[[mci_id, project_id]][0]
+    end
+
+    def ids_by_personal_id_project_id
+      # {[personal_id, project_id] => [enrollment_id, household_id]}
+      @ids_by_personal_id_project_id ||= Hmis::Hud::Enrollment
+        .where(data_source: data_source)
+        .pluck(:personal_id, :project_id, :id, :household_id)
+        .to_h { |personal_id, project_id, id, household_id| [[personal_id, project_id], [id, household_id]] }
+    end
+
     # we don't have enrollment id on the referrals csv so we have to infer it
     # from the referral.project_id and MCI ID on household member.
     # Assumes the MCI ID is the PersonalID
     def init_enrollment_ids_by_referral_id
-      # {[personal_id, project_id] => [enrollment_id, household_id]}
-      ids_by_personal_id_project_id = Hmis::Hud::Enrollment
-        .where(data_source: data_source)
-        .pluck(:personal_id, :project_id, :id, :household_id)
-        .to_h { |personal_id, project_id, id, household_id| [[personal_id, project_id], [id, household_id]] }
-
       project_ids_by_referral_id = posting_rows.map do |row|
         referral_id = row_value(row, field: 'REFERRAL_ID')
         project_id = row_value(row, field: 'PROGRAM_ID')

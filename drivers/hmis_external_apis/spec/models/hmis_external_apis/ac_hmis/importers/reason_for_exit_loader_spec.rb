@@ -21,7 +21,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReasonForExitLoader
         'ReasonForExit' => 'Other',
         'ReasonForExitOther' => 'test',
         'VoluntaryTermination' => 'Y',
-      }
+      },
     ]
   end
 

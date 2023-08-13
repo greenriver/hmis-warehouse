@@ -20,7 +20,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EmergencyShelterAll
         'RECEVIEDFUNDING' => '2',
         'AMOUNTRECEIVED' => '100.50',
         'REASONNOTREFERRED' => '602',
-      }
+      },
     ]
   end
 

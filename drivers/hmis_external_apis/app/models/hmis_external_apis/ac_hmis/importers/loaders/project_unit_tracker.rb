@@ -23,7 +23,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .preload(unit_type: :mper_id)
         .to_a
         .group_by { |u| [u.project_id, u.unit_type.mper_id.value] }
-        .transform_values{ |v| v.map(&:id) }
+        .transform_values { |v| v.map(&:id) }
     end
 
     # gives enrollments with same household id the same unit

@@ -6,11 +6,11 @@
 
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
-
   class ClientContactsLoader < SingleFileLoader
     def filename
-       'ClientContacts.csv'
+      'ClientContacts.csv'
     end
+
     def perform
       records = build_records
       # destroy existing records and re-import
@@ -51,7 +51,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       return unless value
 
       # remove non-numeric chars
-      value.gsub!(/[^0-9]/,'')
+      value.gsub!(/[^0-9]/, '')
       # skip if all-zeros
       return if value =~ /\A0+\z/
 

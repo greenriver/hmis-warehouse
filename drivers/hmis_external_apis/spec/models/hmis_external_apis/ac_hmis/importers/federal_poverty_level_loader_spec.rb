@@ -20,7 +20,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::FederalPovertyLevel
         'ENROLLMENTID' => enrollment.enrollment_id,
         'INCOMEBENEFITSID' => income_benefits.income_benefits_id,
         'FEDERALPOVERTYLEVEL' => '100',
-      }
+      },
     ]
   end
 

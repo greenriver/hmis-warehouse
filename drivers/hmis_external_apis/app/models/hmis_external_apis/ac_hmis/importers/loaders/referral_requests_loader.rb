@@ -7,7 +7,7 @@
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ReferralRequestsLoader < SingleFileLoader
     def filename
-       'ReferralRequests.csv'
+      'ReferralRequests.csv'
     end
 
     def perform

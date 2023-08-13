@@ -8,7 +8,7 @@
 module HmisExternalApis::AcHmis::Importers::Loaders
   class RentalAssistanceEndDateLoader < CustomDataElementBaseLoader
     def filename
-       'RentalAssistanceEndDate.csv'
+      'RentalAssistanceEndDate.csv'
     end
 
     protected

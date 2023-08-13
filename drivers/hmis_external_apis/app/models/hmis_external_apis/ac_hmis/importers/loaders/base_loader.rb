@@ -20,7 +20,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     protected
 
     # 'YYYY-MM-DD HH24:MM:SS'
-    DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'
+    DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'.freeze
     def parse_date(str)
       raise ArgumentError, "Invalid date-time format. Expected 'YYYY-MM-DD HH24:MM:SS'" unless str =~ /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/
 

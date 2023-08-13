@@ -8,7 +8,7 @@
 module HmisExternalApis::AcHmis::Importers::Loaders
   class EmergencyShelterAllowanceGrantLoader < CustomDataElementBaseLoader
     def filename
-       'EmergencyShelterAllowanceGrant.csv'
+      'EmergencyShelterAllowanceGrant.csv'
     end
 
     protected

@@ -42,7 +42,7 @@ module HmisExternalApis::AcHmis::Importers
         loaders.each do |loader_class|
           loader = loader_class.new(
             reader: Loaders::CsvReader.new(dir),
-            clobber: clobber
+            clobber: clobber,
           )
           # skip loaders that have no data files in the archive
           next unless loader.data_file_provided?
