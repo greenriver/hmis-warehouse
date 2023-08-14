@@ -6,15 +6,17 @@
 
 module HmisExternalApis::AcHmis::Importers::Loaders
   class BaseLoader
-    attr_reader :reader, :clobber
+    attr_reader :reader, :clobber, :tracker
 
     def self.perform(...)
       new(...).perform
     end
 
-    def initialize(reader:, clobber: true)
+    def initialize(reader:, tracker: nil, clobber: true)
       @reader = reader
       @clobber = clobber
+      @tracker = tracker
+
       raise "upsert not supported" if !clobber && !supports_upsert?
     end
 
@@ -76,8 +78,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       end
     end
 
-    def project_unit_tracker
-      @project_unit_tracker = ProjectUnitTracker.new(data_source)
+    def assign_next_unit(...)
+      tracker.assign_next_unit(...)
     end
   end
 end

@@ -11,8 +11,8 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::WalkInEnrollmentUni
 
   let(:ds) { create(:hmis_data_source) }
   let(:client) { create(:hmis_hud_client, data_source: ds) }
-  let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
-  let(:unit_type_id) do
+  let!(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
+  let!(:unit_type_id) do
     unit_type = create(:hmis_unit_type)
     external_id = mper.create_external_id(source: unit_type, value: '22')
     create(:hmis_unit, project: enrollment.project, unit_type: unit_type)
@@ -34,9 +34,11 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::WalkInEnrollmentUni
   end
 
   it 'imports rows' do
+    tracker =  HmisExternalApis::AcHmis::Importers::Loaders::ProjectUnitTracker.new(ds)
     with_csv_files({ 'WalkInEnrollmentUnitTypes.csv' => rows }) do |dir|
-      described_class.perform(reader: csv_reader(dir))
+      described_class.perform(reader: csv_reader(dir), tracker: tracker)
     end
+    HmisExternalApis::AcHmis::Importers::Loaders::DerivedProjectUnitOccupancyLoader.perform(tracker: tracker)
     expect(enrollment.unit_occupancies.size).to eq(1)
   end
 end

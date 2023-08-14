@@ -41,10 +41,10 @@ module HmisExternalApis::AcHmis::Importers
       end
     end
 
-    def self.custom_data_elements(clobber: )
+    def self.custom_data_elements(clobber:)
       s3_zip_files_importer = new
-      s3_zip_files_importer.run! do |dir, s3_object|
-        CustomDataElementsImporter.new(dir: dir, key: s3_object.key, etag: s3_object.etag, clobber: clobber).run!
+      s3_zip_files_importer.run! do |dir,|
+        CustomDataElementsImporter.new(dir: dir, clobber: clobber).run!
       end
     end
 

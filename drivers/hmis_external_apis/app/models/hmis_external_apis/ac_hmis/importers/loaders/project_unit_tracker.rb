@@ -7,6 +7,8 @@
 # track assignments of units to enrollments / households
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ProjectUnitTracker
+    attr_reader :assignments, :unoccupied_units_by, :enrollment_lookup, :today
+
     def initialize(data_source)
       projects = Hmis::Hud::Project.where(data_source: data_source)
       @today = Date.today
@@ -27,7 +29,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     # gives enrollments with same household id the same unit
-    def next_unit_id(enrollment_pk:, unit_type_mper_id:)
+    def assign_next_unit(enrollment_pk, unit_type_mper_id)
       return nil unless enrollment_pk && unit_type_mper_id
 
       assignment_key = enrollment_lookup.fetch(enrollment_pk)
@@ -35,13 +37,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       return assignments[assignment_key] if assignments.key?(assignment_key)
 
       pool = unoccupied_units_by[[project_id, unit_type_mper_id]]
-      result = pool&.pop
-      assignments[assignment_key] = result
-      result
+      unit_id = pool&.pop
+      assignments[assignment_key] = {enrollment_id: enrollment_pk, unit_id: unit_id}
     end
 
-    protected
-
-    attr_reader :assignments, :unoccupied_units_by, :enrollment_lookup, :today
   end
 end

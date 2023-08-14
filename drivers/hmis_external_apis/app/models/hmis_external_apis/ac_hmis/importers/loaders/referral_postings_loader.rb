@@ -8,7 +8,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
   class ReferralPostingsLoader < BaseLoader
     def perform
       init_enrollment_ids_by_referral_id
-      referral_records, posting_records, household_members_record_groups, unit_occupancy_records = build_referral_records
+      referral_records, posting_records, household_members_record_groups = build_referral_records
 
       # destroy existing records and re-import
       if clobber
@@ -21,13 +21,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       referral_ids = result.ids
       result = import_referral_posting_records(posting_records, referral_ids)
       return result if result.failed_instances.present?
-      result = import_referral_household_members_records(household_members_record_groups, referral_ids)
-      return result if result.failed_instances.present?
-
-      import_unit_occupancy_records(unit_occupancy_records)
+      import_referral_household_members_records(household_members_record_groups, referral_ids)
     end
-
-
 
     POSTINGS_FILENAME = 'ReferralPostings.csv'.freeze
     HOUSEHOLD_MEMBERS_FILENAME = 'ReferralHouseholdMembers.csv'.freeze
@@ -41,7 +36,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       [
         HmisExternalApis::AcHmis::ReferralHouseholdMember.table_name,
         HmisExternalApis::AcHmis::ReferralPosting.table_name,
-        Hmis::UnitOccupancy.table_name,
       ]
     end
 
@@ -94,14 +88,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       )
     end
 
-    def import_unit_occupancy_records(records)
-        Hmis::UnitOccupancy.import(
-          records,
-          validate: false,
-          batch_size: 1_000
-        )
-    end
-
     def supports_upsert?
       true
     end
@@ -121,7 +107,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def build_referral_records
       household_member_rows_by_referral = household_member_rows.group_by { |row| row_value(row, field: 'REFERRAL_ID') }
       referral_records = []
-      unit_occupancy_records = []
       posting_records = []
       household_members_record_groups = []
       posting_rows.each do |row|
@@ -148,22 +133,14 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         next unless posting.accepted_status? || posting.accepted_pending_status?
 
         ## infer unit occupancy
-        occupancies = household_member_rows.map do |hm_row|
+        household_member_rows.each do |hm_row|
           project_id = row_value(row, field: 'PROGRAM_ID')
           mci_id = row_value(hm_row, field: 'MCI_ID')
           enrollment_pk = client_enrollment_pk(mci_id, project_id)
-          unit_id = project_unit_tracker.next_unit_id(
-            enrollment_pk: enrollment_pk,
-            unit_type_mper_id: row_value(row, field: 'UNIT_TYPE_ID'),
-          )
-          {
-            unit_id: unit_id,
-            enrollment_id: enrollment_pk,
-          }
+          assign_next_unit(enrollment_pk, row_value(row, field: 'UNIT_TYPE_ID'))
         end
-        unit_occupancy_records += occupancies
       end
-      [referral_records, posting_records, household_members_record_groups, unit_occupancy_records]
+      [referral_records, posting_records, household_members_record_groups]
     end
 
     def referral_household_id(referral_id)

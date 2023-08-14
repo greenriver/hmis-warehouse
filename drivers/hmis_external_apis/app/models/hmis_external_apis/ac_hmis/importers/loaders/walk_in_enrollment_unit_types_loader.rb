@@ -11,34 +11,22 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       'WalkInEnrollmentUnitTypes.csv'
     end
 
+    # defer import of unit_types
     def perform
-      records = build_records
-      # destroy existing records and re-import
-      enrollments = Hmis::Hud::Enrollment.where(data_source: data_source)
-      model_class
-        .where(enrollment_id: enrollments.select(:id))
-        .destroy_all if clobber
-      model_class.import(records, validate: false, batch_size: 1_000)
-    end
-
-    protected
-
-    def build_records
-      # FIXME should check PROJECTID
-      # FIXME should check UNITTYPEID
+      # FIXME should check PROJECTID matches ENROLLMENTID
       pks_by_enrollment_id = Hmis::Hud::Enrollment
         .where(data_source: data_source)
         .pluck(:enrollment_id, :id)
         .to_h
-      rows.map do |row|
+
+      rows.each do |row|
         enrollment_pk = pks_by_enrollment_id.fetch(row_value(row, field: 'ENROLLMENTID'))
-        unit_type_id = row_value(row, field: 'UNITTYPEID')
-        {
-          enrollment_id: enrollment_pk,
-          unit_id: project_unit_tracker.next_unit_id(enrollment_pk: enrollment_pk, unit_type_mper_id: unit_type_id),
-        }
+        unit_type_mper_id = row_value(row, field: 'UNITTYPEID')
+        assign_next_unit(enrollment_pk, unit_type_mper_id)
       end
     end
+
+    protected
 
     def model_class
       Hmis::UnitOccupancy

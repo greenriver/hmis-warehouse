@@ -25,7 +25,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter, 
 
   it 'imports rows' do
     with_csv_files({ 'ClientContacts.csv' => rows }) do |dir|
-      importer = described_class.new(dir: dir, key: 'data.zip', etag: '12345', clobber: true)
+      importer = described_class.new(dir: dir, clobber: true)
       importer.run!
     end
     expect(client.contact_points.size).to eq(1)
