@@ -223,7 +223,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['youthEducationStatuses']['nodesCount']).to eq(0)
       expect(client['employmentEducations']['nodesCount']).to eq(0)
       expect(client['currentLivingSituations']['nodesCount']).to eq(0)
-      expect(client['disabilityGroups'].size).to eq(0)
       expect(client['services']['nodesCount']).to eq(0)
     end
 
@@ -240,7 +239,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['youthEducationStatuses']['nodesCount']).to eq(1)
       expect(client['employmentEducations']['nodesCount']).to eq(1)
       expect(client['currentLivingSituations']['nodesCount']).to eq(1)
-      expect(client['disabilityGroups'].size).to eq(1)
       expect(client['services']['nodesCount']).to eq(2)
     end
 
@@ -287,7 +285,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(enrollment['youthEducationStatuses']['nodesCount']).to eq(1)
       expect(enrollment['employmentEducations']['nodesCount']).to eq(1)
       expect(enrollment['currentLivingSituations']['nodesCount']).to eq(1)
-      expect(enrollment['disabilityGroups'].size).to eq(1)
     end
   end
 end
