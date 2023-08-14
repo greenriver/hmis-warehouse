@@ -1,5 +1,1 @@
-%tr
-  %td
-    = render 'event_icon', key: key, name: values[:name], icon: values[:icon]
-  %td
-    = project[:current_situations]&.last&.to_date
+= render 'multiple_event', key: key, values: values, project: project

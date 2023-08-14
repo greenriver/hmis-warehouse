@@ -6,7 +6,7 @@
 %tr
   %td.client__calendar-tooltip__table__mro{colspan: '2'}
     Most Recent Occurences
-- project[key.to_sym].last(3).each_with_index do |date, date_index|
+- project[key.to_sym].each_with_index do |date, date_index|
   %tr
     %td
       - name_key = "#{key}_names".to_sym
