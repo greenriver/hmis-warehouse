@@ -23,7 +23,7 @@ module Types
 
     # field display
     field :type, Types::Forms::Enums::ItemType, null: false
-    field :prefill, Forms::Enums::RelatedRecordType, 'Whether to allow pre-filling section from a recent records', null: true
+    field :prefill, Boolean, 'Whether to allow pre-filling this section from a previous assessment', null: true
     field :component, Types::Forms::Enums::Component, 'Component to use for display/input of this item', null: true
     field :text, String, 'Primary text for the item', null: true
     field :brief_text, String, 'Label to use for placeholder and population table', null: true

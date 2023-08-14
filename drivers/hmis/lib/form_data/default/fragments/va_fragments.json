@@ -8,7 +8,7 @@
       "link_id": "va-enrollment",
       "text": "VA Fragments for Enrollment",
       "data_collected_about": "HOH",
-      "prefill": "ENROLLMENT",
+      "prefill": true,
       "item": [
         {
           "type": "CHOICE",
@@ -346,7 +346,7 @@
       "link_id": "va-exit",
       "text": "VA Fragments for Exit",
       "data_collected_about": "VETERAN_HOH",
-      "prefill": "EXIT",
+      "prefill": true,
       "item": [
         {
           "type": "CHOICE",

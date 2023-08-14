@@ -3,7 +3,7 @@
   "link_id": "V6",
   "text": "VAMC Station Number",
   "data_collected_about": "HOH",
-  "prefill": "ENROLLMENT",
+  "prefill": true,
   "rule": {
     "operator": "ALL",
     "parts": [

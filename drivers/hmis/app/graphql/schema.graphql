@@ -3162,9 +3162,9 @@ type FormItem {
   pickListReference: String
 
   """
-  Whether to allow pre-filling section from a recent records
+  Whether to allow pre-filling this section from a previous assessment
   """
-  prefill: RelatedRecordType
+  prefill: Boolean
 
   """
   Prefix for the item label
