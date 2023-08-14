@@ -8,7 +8,6 @@
 
 module Types
   class HmisSchema::Assessment < Types::BaseObject
-    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasCustomDataElements
 
     available_filter_options do
@@ -104,25 +103,25 @@ module Types
       form_processor = load_ar_association(object, :form_processor)
       return unless form_processor.present?
 
-      # Construct AR scope if Disability records to use for the group
-      disability_record_ids = []
-      disability_record_ids << form_processor.physical_disability&.id
-      disability_record_ids << form_processor.developmental_disability&.id
-      disability_record_ids << form_processor.chronic_health_condition&.id
-      disability_record_ids << form_processor.hiv_aids&.id
-      disability_record_ids << form_processor.mental_health_disorder&.id
-      disability_record_ids << form_processor.substance_use_disorder&.id
-      disability_record_ids.compact!
-      scope = Hmis::Hud::Disability.where(id: disability_record_ids)
-      return if scope.empty?
+      # Load all the disability records
+      disability_records = [
+        :physical_disability,
+        :developmental_disability,
+        :chronic_health_condition,
+        :hiv_aids,
+        :mental_health_disorder,
+        :substance_use_disorder,
+      ].map { |d| load_ar_association(form_processor, d) }.compact
+      return if disability_records.empty?
 
-      # Build DisabilityGroup from the scope
-      disability_groups = resolve_disability_groups(scope)
-
-      # Error if there is more than one group. Could happen if records have different Data Collection Stages or Information dates or Users, which they shouldn't.
-      # raise 'Multiple disability groups constructed for one assessment' if disability_groups.size > 1
-
-      disability_groups.first
+      # Build OpenStruct for DisabilityGroup type
+      max_by_date = disability_records.max_by { |d| d.information_date.to_date }
+      OpenStruct.new(
+        **max_by_date.slice(:information_date, :data_collection_stage, :user_id),
+        enrollment: enrollment,
+        user: load_ar_association(max_by_date, :user),
+        disabilities: disability_records,
+      )
     end
 
     def enrollment

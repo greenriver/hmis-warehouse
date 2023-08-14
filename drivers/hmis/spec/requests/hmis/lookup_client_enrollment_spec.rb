@@ -88,9 +88,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               #{scalar_fields(Types::HmisSchema::CurrentLivingSituation)}
             }
           }
-          disabilityGroups {
-            #{scalar_fields(Types::HmisSchema::DisabilityGroup)}
-          }
           assessments {
             nodesCount
             nodes {
@@ -172,9 +169,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             nodes {
               #{scalar_fields(Types::HmisSchema::Disability)}
             }
-          }
-          disabilityGroups {
-            #{scalar_fields(Types::HmisSchema::DisabilityGroup)}
           }
         }
       }
