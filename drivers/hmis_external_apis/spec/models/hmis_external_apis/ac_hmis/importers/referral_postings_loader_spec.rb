@@ -60,11 +60,19 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       { 'ReferralPostings.csv' => posting_rows,
         'ReferralHouseholdMembers.csv' => household_member_rows },
     ) do |dir|
-      described_class.perform(reader: csv_reader(dir))
+      described_class.perform(reader: csv_reader(dir), clobber: true)
     end
     expect(enrollment.external_referrals.size).to eq(1)
     expect(enrollment.external_referrals.first.postings.size).to eq(1)
     expect(enrollment.external_referrals.first.household_members.size).to eq(1)
     expect(enrollment.unit_occupancies.size).to eq(1)
+
+    with_csv_files(
+      { 'ReferralPostings.csv' => posting_rows,
+        'ReferralHouseholdMembers.csv' => household_member_rows },
+    ) do |dir|
+      described_class.perform(reader: csv_reader(dir), clobber: false)
+    end
+    expect(enrollment.external_referrals.size).to eq(1)
   end
 end

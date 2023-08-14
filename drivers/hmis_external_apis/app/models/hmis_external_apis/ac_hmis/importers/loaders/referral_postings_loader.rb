@@ -8,21 +8,26 @@ module HmisExternalApis::AcHmis::Importers::Loaders
   class ReferralPostingsLoader < BaseLoader
     def perform
       init_enrollment_ids_by_referral_id
-      referral_records, unit_occupancy_records = build_referral_records
+      referral_records, posting_records, household_members_record_groups, unit_occupancy_records = build_referral_records
 
       # destroy existing records and re-import
       if clobber
-        referral_class.where(data_source: data_source).destroy_all
         enrollments = Hmis::Hud::Enrollment.where(data_source: data_source)
-        Hmis::UnitOccupancy
-          .where(enrollment_id: enrollments.select(:id))
-          .destroy_all
+        referral_class.where(enrollment_id: enrollments.select(:id)).destroy_all
       end
-      result = referral_class.import(referral_records, validate: false, recursive: true, batch_size: 1_000)
+
+      result = import_referral_records(referral_records)
+      return result if result.failed_instances.present?
+      referral_ids = result.ids
+      result = import_referral_posting_records(posting_records, referral_ids)
+      return result if result.failed_instances.present?
+      result = import_referral_household_members_records(household_members_record_groups, referral_ids)
       return result if result.failed_instances.present?
 
-      Hmis::UnitOccupancy.import(unit_occupancy_records, validate: false, batch_size: 1_000)
+      import_unit_occupancy_records(unit_occupancy_records)
     end
+
+
 
     POSTINGS_FILENAME = 'ReferralPostings.csv'.freeze
     HOUSEHOLD_MEMBERS_FILENAME = 'ReferralHouseholdMembers.csv'.freeze
@@ -42,6 +47,65 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
+    def import_referral_records(records)
+      referral_class.import(
+        records,
+        validate: false,
+        batch_size: 1_000,
+        returning: :id,
+        on_duplicate_key_update: {
+          conflict_target: :identifier,
+          columns: :all
+        }
+      )
+    end
+
+    def import_referral_posting_records(records, referral_ids)
+      records.each.with_index do |record, idx|
+        record.referral_id = referral_ids[idx]
+      end
+
+      HmisExternalApis::AcHmis::ReferralPosting.import(
+        records,
+        validate: false,
+        batch_size: 1_000,
+        on_duplicate_key_update: {
+          conflict_target: :identifier,
+          columns: :all
+        }
+      )
+    end
+
+    def import_referral_household_members_records(record_groups, referral_ids)
+      record_groups.each.with_index do |group, idx|
+        group.each do |record|
+          record.referral_id = referral_ids[idx]
+        end
+      end
+
+      HmisExternalApis::AcHmis::ReferralHouseholdMember.import(
+        record_groups.flatten,
+        validate: false,
+        batch_size: 1_000,
+        on_duplicate_key_update: {
+          conflict_target: [:client_id, :referral_id],
+          columns: :all
+        }
+      )
+    end
+
+    def import_unit_occupancy_records(records)
+        Hmis::UnitOccupancy.import(
+          records,
+          validate: false,
+          batch_size: 1_000
+        )
+    end
+
+    def supports_upsert?
+      true
+    end
+
     def posting_rows
       reader.rows(POSTINGS_FILENAME)
     end
@@ -58,11 +122,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       household_member_rows_by_referral = household_member_rows.group_by { |row| row_value(row, field: 'REFERRAL_ID') }
       referral_records = []
       unit_occupancy_records = []
+      posting_records = []
+      household_members_record_groups = []
       posting_rows.each do |row|
         referral_id = row_value(row, field: 'REFERRAL_ID')
         household_member_rows = household_member_rows_by_referral[referral_id] || []
         household_members = build_household_member_records(household_member_rows)
+        household_members_record_groups.push(build_household_member_records(household_member_rows))
         posting = build_posting_record(row)
+        posting_records.push(posting)
 
         referral = referral_class.new(
           identifier: referral_id,
@@ -74,7 +142,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           score: row_value(row, field: 'SCORE', required: false),
           needs_wheelchair_accessible_unit: yn_boolean(row_value(row, field: 'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT', required: false)),
           household_members: household_members,
-          postings: [posting],
         )
         referral_records.push(referral)
 
@@ -96,7 +163,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         end
         unit_occupancy_records += occupancies
       end
-      [referral_records, unit_occupancy_records]
+      [referral_records, posting_records, household_members_record_groups, unit_occupancy_records]
     end
 
     def referral_household_id(referral_id)
