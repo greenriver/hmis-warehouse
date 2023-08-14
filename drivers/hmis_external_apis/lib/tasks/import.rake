@@ -6,7 +6,7 @@ namespace :import do
   end
 
   desc 'Import AC Custom Data Elements'
-  task :ac_custom_data_elements, [] => [:environment] do
-    HmisExternalApis::AcHmis::ImportCustomDataDelementsJob.perform_now
+  task :ac_custom_data_elements, [:clobber] => [:environment] do |_task, args|
+    HmisExternalApis::AcHmis::ImportCustomDataElementsJob.perform_now(clobber: args.clobber)
   end
 end

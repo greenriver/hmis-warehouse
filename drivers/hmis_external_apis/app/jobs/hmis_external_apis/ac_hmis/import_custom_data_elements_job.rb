@@ -8,9 +8,9 @@ module HmisExternalApis::AcHmis
   class ImportCustomDataElementsJob < ApplicationJob
     include NotifierConfig
 
-    def perform
+    def perform(...)
       setup_notifier('HMIS Projects')
-      Importers::S3ZipFilesImporter.custom_data_elements
+      Importers::S3ZipFilesImporter.custom_data_elements(...)
     rescue StandardError => e
       @notifier.ping('Failure in project importer job', { exception: e })
       Rails.logger.fatal e.message

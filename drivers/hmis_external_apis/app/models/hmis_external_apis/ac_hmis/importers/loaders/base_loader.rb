@@ -59,7 +59,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def default_attrs
       {
         data_source_id: data_source.id,
-        user_id: system_user_id,
+        UserID: system_user_id,
       }
     end
 

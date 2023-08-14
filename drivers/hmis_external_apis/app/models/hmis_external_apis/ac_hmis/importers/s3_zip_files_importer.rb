@@ -11,7 +11,6 @@ module HmisExternalApis::AcHmis::Importers
   class S3ZipFilesImporter
     attr_accessor :bucket_name
     attr_accessor :prefix
-    attr_accessor :importer_class
     attr_accessor :remote_credential
     attr_accessor :skip_lambda
     attr_accessor :found_csvs
@@ -34,12 +33,19 @@ module HmisExternalApis::AcHmis::Importers
 
     def self.mper
       s3_zip_files_importer = new
-      s3_zip_files_importer.importer_class = ProjectsImporter
       s3_zip_files_importer.skip_lambda = ->(s3_object) do
         ProjectsImportAttempt.given(s3_object).to_skip.any?
       end
+      s3_zip_files_importer.run! do |dir, s3_object|
+        ProjectsImporter.new(dir: dir, key: s3_object.key, etag: s3_object.etag).run!
+      end
+    end
 
-      s3_zip_files_importer.run!
+    def self.custom_data_elements(clobber: )
+      s3_zip_files_importer = new
+      s3_zip_files_importer.run! do |dir, s3_object|
+        CustomDataElementsImporter.new(dir: dir, key: s3_object.key, etag: s3_object.etag, clobber: clobber).run!
+      end
     end
 
     def run!
@@ -72,8 +78,7 @@ module HmisExternalApis::AcHmis::Importers
                 end
               end
             end
-
-            importer_class.new(dir: '.', key: s3_object.key, etag: s3_object.etag).run! if importer_class.present?
+            yield(dir, s3_object)
           end
         end
       end
