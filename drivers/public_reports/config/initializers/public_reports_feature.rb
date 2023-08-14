@@ -12,44 +12,42 @@
 # use with caution!
 RailsDrivers.loaded << :public_reports
 
-Rails.application.config.help_links << {
-  controller_path: 'public_reports/warehouse_reports/point_in_time',
-  action_name: 'index',
-  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Point-in-Time-Report-Generator',
-}
-
-Rails.application.config.help_links << {
-  controller_path: 'public_reports/warehouse_reports/pit_by_month',
-  action_name: 'index',
-  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Point-in-Time-by-Month-Report-Generator',
-}
-
-Rails.application.config.help_links << {
-  controller_path: 'public_reports/warehouse_reports/number_housed',
-  action_name: 'index',
-  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Number-Housed-Report-Generator',
-}
-
-Rails.application.config.help_links << {
-  controller_path: 'public_reports/warehouse_reports/homeless_count',
-  action_name: 'index',
-  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Number-Homeless-Report-Generator',
-}
-
-Rails.application.config.help_links << {
-  controller_path: 'public_reports/warehouse_reports/homeless_count_comparison',
-  action_name: 'index',
-  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Percent-Homeless-Comparison-Report-Generator',
-}
-
-Rails.application.config.help_links << {
-  controller_path: 'public_reports/warehouse_reports/homeless_populations',
-  action_name: 'index',
-  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Homeless-Populations-Report-Generator',
-}
-
-Rails.application.config.help_links << {
-  controller_path: 'public_reports/warehouse_reports/state_level_homelessness',
-  action_name: 'index',
-  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/State-Level-Homelessness-Report-Generator',
-}
+[
+  {
+    controller_path: 'public_reports/warehouse_reports/point_in_time',
+    action_name: 'index',
+    external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/Point-in-Time-Report-Generator",
+  },
+  {
+    controller_path: 'public_reports/warehouse_reports/pit_by_month',
+    action_name: 'index',
+    external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/Point-in-Time-by-Month-Report-Generator",
+  },
+  {
+    controller_path: 'public_reports/warehouse_reports/number_housed',
+    action_name: 'index',
+    external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/Number-Housed-Report-Generator",
+  },
+  {
+    controller_path: 'public_reports/warehouse_reports/homeless_count',
+    action_name: 'index',
+    external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/Number-Homeless-Report-Generator",
+  },
+  {
+    controller_path: 'public_reports/warehouse_reports/homeless_count_comparison',
+    action_name: 'index',
+    external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/Percent-Homeless-Comparison-Report-Generator",
+  },
+  {
+    controller_path: 'public_reports/warehouse_reports/homeless_populations',
+    action_name: 'index',
+    external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/Homeless-Populations-Report-Generator",
+  },
+  {
+    controller_path: 'public_reports/warehouse_reports/state_level_homelessness',
+    action_name: 'index',
+    external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/State-Level-Homelessness-Report-Generator",
+  },
+].each do |report|
+  Rails.application.config.help_links << report
+end
