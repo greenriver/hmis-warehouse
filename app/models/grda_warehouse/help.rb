@@ -66,6 +66,31 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
         action_name: 'index',
         external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Client-Performance',
       },
+      {
+        controller_path: 'warehouse_reports/health/eligibility',
+        action_name: 'index',
+        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/270-271-Eligibility-Determination-and-ACO-Status-Changes',
+      },
+      {
+        controller_path: 'warehouse_reports/chronic',
+        action_name: 'index',
+        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Potentially-Chronic-Clients',
+      },
+      {
+        controller_path: 'warehouse_reports/client_in_project_during_date_range',
+        action_name: 'index',
+        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Clients-in-a-project-for-a-given-date-range',
+      },
+      {
+        controller_path: 'warehouse_reports/hud_chronics',
+        action_name: 'index',
+        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/HUD-Chronic',
+      },
+      {
+        controller_path: 'warehouse_reports/first_time_homeless',
+        action_name: 'index',
+        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/First-Time-Homeless',
+      },
     ]
   end
 
