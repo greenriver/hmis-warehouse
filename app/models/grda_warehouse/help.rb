@@ -69,7 +69,7 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
       {
         controller_path: 'warehouse_reports/health/eligibility',
         action_name: 'index',
-        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/270-271-Eligibility-Determination-and-ACO-Status-Changes',
+        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Eligibility-Determination-and-ACO-Status-Changes-(270-and-271)',
       },
       {
         controller_path: 'warehouse_reports/chronic',
