@@ -3011,7 +3011,7 @@ File
 """
 type File {
   confidential: Boolean
-  contentType: String!
+  contentType: String
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   effectiveDate: ISO8601Date
