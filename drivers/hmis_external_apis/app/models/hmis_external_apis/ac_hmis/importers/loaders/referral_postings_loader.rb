@@ -18,9 +18,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       result = import_referral_records(referral_records)
       return result if result.failed_instances.present?
+
       referral_ids = result.ids
       result = import_referral_posting_records(posting_records, referral_ids)
       return result if result.failed_instances.present?
+
       import_referral_household_members_records(household_members_record_groups, referral_ids)
     end
 
@@ -49,8 +51,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         returning: :id,
         on_duplicate_key_update: {
           conflict_target: :identifier,
-          columns: :all
-        }
+          columns: :all,
+        },
       )
     end
 
@@ -65,8 +67,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         batch_size: 1_000,
         on_duplicate_key_update: {
           conflict_target: :identifier,
-          columns: :all
-        }
+          columns: :all,
+        },
       )
     end
 
@@ -83,8 +85,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         batch_size: 1_000,
         on_duplicate_key_update: {
           conflict_target: [:client_id, :referral_id],
-          columns: :all
-        }
+          columns: :all,
+        },
       )
     end
 
@@ -137,7 +139,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           project_id = row_value(row, field: 'PROGRAM_ID')
           mci_id = row_value(hm_row, field: 'MCI_ID')
           enrollment_pk = client_enrollment_pk(mci_id, project_id)
-          assign_next_unit(enrollment_pk, row_value(row, field: 'UNIT_TYPE_ID'))
+          assign_next_unit(
+            enrollment_pk: enrollment_pk,
+            unit_type_mper_id: row_value(row, field: 'UNIT_TYPE_ID'),
+            start_date: parse_date(row_value(row, field: 'STATUS_UPDATED_AT')),
+          )
         end
       end
       [referral_records, posting_records, household_members_record_groups]

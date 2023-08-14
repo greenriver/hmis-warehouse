@@ -10,7 +10,7 @@ module HmisExternalApis::AcHmis::Importers
 
     AbortImportException = Class.new(StandardError)
 
-    attr_accessor :data_source, :dir, :extra_columns, :clobber, table_names
+    attr_accessor :data_source, :dir, :extra_columns, :clobber, :table_names
 
     def initialize(dir:, clobber:)
       self.data_source = HmisExternalApis::AcHmis.data_source
@@ -40,13 +40,13 @@ module HmisExternalApis::AcHmis::Importers
           loader = loader_class.new(
             clobber: clobber,
             reader: Loaders::CsvReader.new(dir),
-            tracker: tracker
+            tracker: tracker,
           )
           run_loader(loader)
         end
 
         run_loader(
-          Loaders::DerivedProjectUnitOccupancyLoader.new(clobber: clobber, tracker: tracker)
+          Loaders::DerivedProjectUnitOccupancyLoader.new(clobber: clobber, tracker: tracker),
         )
       end
 
@@ -61,11 +61,11 @@ module HmisExternalApis::AcHmis::Importers
 
     def run_loader(loader)
       # skip loaders that have no data files in the archive
-      next unless loader.data_file_provided?
+      return unless loader.data_file_provided?
 
       result = loader.perform
       handle_import_result(result)
-      table_names += loader.table_names
+      self.table_names += loader.table_names
     end
 
     def handle_import_result(result)
@@ -84,7 +84,7 @@ module HmisExternalApis::AcHmis::Importers
       Rails.logger.info "Starting #{importer_name}"
     end
 
-    def analyze
+    def analyze_tables
       # assume all tables are in same db
       Rails.logger.info 'Analyzing imported tables'
       names = table_names.uniq.map { |n| connection.quote_table_name(n) }

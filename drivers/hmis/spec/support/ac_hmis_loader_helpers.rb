@@ -21,4 +21,11 @@ module AcHmisLoaderHelpers
       yield(dir)
     end
   end
+
+  def run_cde_import(csv_files:, clobber:)
+    with_csv_files(csv_files) do |dir|
+      importer = HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter.new(dir: dir, clobber: true)
+      importer.run!
+    end
+  end
 end

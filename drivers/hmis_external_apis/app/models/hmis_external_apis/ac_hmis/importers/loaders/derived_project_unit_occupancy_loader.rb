@@ -7,10 +7,13 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class DerivedProjectUnitOccupancyLoader < BaseLoader
-
     def initialize(tracker:, clobber: true)
       @clobber = clobber
       @tracker = tracker
+    end
+
+    def data_file_provided?
+      tracker.assignments.any?
     end
 
     def perform
@@ -30,30 +33,23 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       model_class.import(build_records, validate: false, recursive: true, batch_size: 1_000)
     end
 
+    def table_names
+      [model_class.table_name, Hmis::ActiveRange.table_name]
+    end
+
     protected
 
     def build_records
       rows.map do |row|
-        record = model_class.new(**row.slice(:unit_id, :enrollment_id))
-        record.build_occupancy_period(start_date: today, user_id: row.fetch(:user_id, system_user_id))
+        unit_id, enrollment_id, start_date = row.fetch_values(:unit_id, :enrollment_id, :start_date)
+        record = model_class.new(unit_id: unit_id, enrollment_id: enrollment_id)
+        record.build_occupancy_period(start_date: start_date || today, user_id: system_user_id)
         record
       end
     end
 
-    def supports_upsert?
-      true
-    end
-
     def rows
       tracker.assignments.values
-    end
-
-    def data_file_provided?
-      tracker.assignments.any?
-    end
-
-    def table_names
-      [model_class.table_name, Hmis::ActiveRange.table_name]
     end
 
     def model_class

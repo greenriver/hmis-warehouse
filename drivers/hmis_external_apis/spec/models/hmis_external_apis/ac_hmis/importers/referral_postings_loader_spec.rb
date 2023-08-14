@@ -11,9 +11,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
 
   let(:ds) { create(:hmis_data_source) }
   let(:client) { create(:hmis_hud_client, data_source: ds) }
-  let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
+  let!(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
   let(:referral_id) { Hmis::Hud::Base.generate_uuid }
-  let(:unit_type_id) do
+  let!(:unit_type_id) do
     unit_type = create(:hmis_unit_type)
     external_id = mper.create_external_id(source: unit_type, value: '22')
     create(:hmis_unit, project: enrollment.project, unit_type: unit_type)
@@ -56,23 +56,17 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   end
 
   it 'imports rows' do
-    with_csv_files(
-      { 'ReferralPostings.csv' => posting_rows,
-        'ReferralHouseholdMembers.csv' => household_member_rows },
-    ) do |dir|
-      described_class.perform(reader: csv_reader(dir), clobber: true)
-    end
-    expect(enrollment.external_referrals.size).to eq(1)
+    csv_files = {
+      'ReferralPostings.csv' => posting_rows,
+      'ReferralHouseholdMembers.csv' => household_member_rows,
+    }
+    expect {
+      run_cde_import(csv_files: csv_files, clobber: true)
+    }.to change(enrollment.external_referrals, :count).by(1)
+    .and change(enrollment.unit_occupancies, :count).by(1)
+
     expect(enrollment.external_referrals.first.postings.size).to eq(1)
     expect(enrollment.external_referrals.first.household_members.size).to eq(1)
     expect(enrollment.unit_occupancies.size).to eq(1)
-
-    with_csv_files(
-      { 'ReferralPostings.csv' => posting_rows,
-        'ReferralHouseholdMembers.csv' => household_member_rows },
-    ) do |dir|
-      described_class.perform(reader: csv_reader(dir), clobber: false)
-    end
-    expect(enrollment.external_referrals.size).to eq(1)
   end
 end

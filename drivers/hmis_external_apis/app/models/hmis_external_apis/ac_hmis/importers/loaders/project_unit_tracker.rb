@@ -29,7 +29,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     # gives enrollments with same household id the same unit
-    def assign_next_unit(enrollment_pk, unit_type_mper_id)
+    def assign_next_unit(enrollment_pk:, unit_type_mper_id:, start_date: nil)
       return nil unless enrollment_pk && unit_type_mper_id
 
       assignment_key = enrollment_lookup.fetch(enrollment_pk)
@@ -38,8 +38,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       pool = unoccupied_units_by[[project_id, unit_type_mper_id]]
       unit_id = pool&.pop
-      assignments[assignment_key] = {enrollment_id: enrollment_pk, unit_id: unit_id}
+      assignments[assignment_key] = { enrollment_id: enrollment_pk, unit_id: unit_id, start_date: start_date }
     end
-
   end
 end
