@@ -2813,7 +2813,8 @@ CREATE TABLE public.epic_thrives (
     updated_at timestamp(6) without time zone NOT NULL,
     reporter character varying,
     positive_food_security_count integer,
-    positive_housing_questions_count integer
+    positive_housing_questions_count integer,
+    staff character varying
 );
 
 
@@ -9188,6 +9189,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230707132626'),
 ('20230712155403'),
 ('20230726171015'),
-('20230807201621');
+('20230807201621'),
+('20230814153918');
 
 
