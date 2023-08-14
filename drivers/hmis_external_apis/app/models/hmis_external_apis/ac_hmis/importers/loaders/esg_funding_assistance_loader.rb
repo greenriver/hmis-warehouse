@@ -12,29 +12,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       records = build_records
       # destroy existing records and re-import
       model_class.where(data_source: data_source).destroy_all if clobber
-      result = model_class.import(
-        records,
-        validate: false,
-        batch_size: 1_000,
-        # recursive: true, doesn't work for some reason, probably because CDE relationship is polymorphic
-        returning: :id,
-      )
-      return result if result.failed_instances.present?
 
-      import_cdes(result.ids)
+      # can't do bulk insert here since polymorphic CDE's don't seem to work
+      # and bulk-insert returned ids are not ordered
+      records.each { |record| record.save!(validate: false) }
     end
 
     protected
-
-    def import_cdes(ids)
-      records = rows.flat_map.with_index do |row, idx|
-        owner_id = ids[idx]
-        results = cde_attrs(row)
-        results.each { |attr| attr[:owner_id] = owner_id }
-        results
-      end
-      Hmis::Hud::CustomDataElement.import(records, validate: false, batch_size: 1_000)
-    end
 
     def filename
       'ESGFundingAssistance.csv'
@@ -48,7 +32,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       rows.map do |row|
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
-        {
+        record = model_class.new(
           EnrollmentID: enrollment_id,
           CustomServiceID: Hmis::Hud::Base.generate_uuid,
           FAStartDate: parse_date(row_value(row, field: 'PAYMENTSTARTDATE')),
@@ -61,7 +45,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           DateProvided: today, # FIXME - this isn't right?
           UserID: row_value(row, field: 'USERID', required: false) || system_user_id,
           data_source_id: data_source.id,
-        }
+        )
+        cde_attrs(row).each do |attr|
+          record.custom_data_elements.build(attr)
+        end
+        record
       end
     end
 

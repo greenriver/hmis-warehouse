@@ -8,8 +8,6 @@ module HmisExternalApis::AcHmis::Importers
   class CustomDataElementsImporter
     include NotifierConfig
 
-    AbortImportException = Class.new(StandardError)
-
     attr_accessor :data_source, :dir, :extra_columns, :clobber, :table_names
 
     def initialize(dir:, clobber:)
@@ -51,10 +49,9 @@ module HmisExternalApis::AcHmis::Importers
       end
 
       analyze_tables
-    rescue AbortImportException => e
+    rescue StandardError => e
       @notifier.ping("Failure in #{importer_name}", { exception: e })
-      Rails.logger.fatal e.message
-      Rails.logger.fatal "#{importer_name} Aborted before it finished."
+      raise e
     end
 
     protected
@@ -64,15 +61,7 @@ module HmisExternalApis::AcHmis::Importers
       return unless loader.data_file_provided?
 
       result = loader.perform
-      handle_import_result(result)
       self.table_names += loader.table_names
-    end
-
-    def handle_import_result(result)
-      return unless result.failed_instances.present?
-
-      msg = "Failed: #{result.failed_instances}. Aborting"
-      raise AbortImportException, msg
     end
 
     def importer_name

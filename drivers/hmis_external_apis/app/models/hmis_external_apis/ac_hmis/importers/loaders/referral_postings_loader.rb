@@ -17,8 +17,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       end
 
       result = import_referral_records(referral_records)
-      return result if result.failed_instances.present?
-
       referral_ids = result.ids
       result = import_referral_posting_records(posting_records, referral_ids)
       return result if result.failed_instances.present?
@@ -44,15 +42,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     protected
 
     def import_referral_records(records)
-      referral_class.import(
+      ar_import(
+        referral_class,
         records,
-        validate: false,
-        batch_size: 1_000,
-        returning: :id,
-        on_duplicate_key_update: {
-          conflict_target: :identifier,
-          columns: :all,
-        },
+        on_duplicate_key_update: { conflict_target: :identifier, columns: :all },
       )
     end
 
@@ -61,14 +54,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         record.referral_id = referral_ids[idx]
       end
 
-      HmisExternalApis::AcHmis::ReferralPosting.import(
+      ar_import(
+        HmisExternalApis::AcHmis::ReferralPosting,
         records,
-        validate: false,
-        batch_size: 1_000,
-        on_duplicate_key_update: {
-          conflict_target: :identifier,
-          columns: :all,
-        },
+        on_duplicate_key_update: { conflict_target: :identifier, columns: :all },
       )
     end
 
@@ -79,14 +68,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         end
       end
 
-      HmisExternalApis::AcHmis::ReferralHouseholdMember.import(
+      ar_import(
+        HmisExternalApis::AcHmis::ReferralHouseholdMember,
         record_groups.flatten,
-        validate: false,
-        batch_size: 1_000,
-        on_duplicate_key_update: {
-          conflict_target: [:client_id, :referral_id],
-          columns: :all,
-        },
+        on_duplicate_key_update: { conflict_target: [:client_id, :referral_id], columns: :all },
       )
     end
 

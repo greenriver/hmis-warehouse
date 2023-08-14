@@ -11,11 +11,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def perform
       records = build_records
       # destroy existing records and re-import
-      model_class
-        .where(data_source: data_source)
-        .where(owner_type: owner_class.name)
-        .destroy_all if clobber
-      model_class.import(records, validate: false, batch_size: 1_000)
+      if clobber
+        model_class
+          .where(data_source: data_source)
+          .where(owner_type: owner_class.name)
+          .destroy_all
+      end
+      ar_import(model_class, records)
     end
 
     protected

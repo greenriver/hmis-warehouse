@@ -34,11 +34,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::WalkInEnrollmentUni
   end
 
   it 'imports rows' do
-    tracker =  HmisExternalApis::AcHmis::Importers::Loaders::ProjectUnitTracker.new(ds)
-    with_csv_files({ 'WalkInEnrollmentUnitTypes.csv' => rows }) do |dir|
-      described_class.perform(reader: csv_reader(dir), tracker: tracker)
-    end
-    HmisExternalApis::AcHmis::Importers::Loaders::DerivedProjectUnitOccupancyLoader.perform(tracker: tracker)
-    expect(enrollment.unit_occupancies.size).to eq(1)
+    csv_files = { 'WalkInEnrollmentUnitTypes.csv' => rows }
+    expect {
+      run_cde_import(csv_files: csv_files, clobber: true)
+    }.to change(enrollment.unit_occupancies, :count).by(1)
   end
 end

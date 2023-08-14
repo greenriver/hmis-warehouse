@@ -16,17 +16,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # destroy existing records and re-import
         model_class.where(project_id: project_scope.select(:id)).destroy_all if clobber
         model_class.import(records, validate: false, batch_size: 1_000)
-      elsif records.any?
-        model_class.import(
-          records,
-          validate: false,
-          batch_size: 1_000,
-          on_duplicate_key_update: {
-            conflict_target: :identifier,
-            columns: records[0].keys
-          }
-        )
       end
+      ar_import(
+        model_class,
+        records,
+        on_duplicate_key_update: {
+          conflict_target: :identifier,
+          columns: records[0].keys
+        }
+      )
     end
 
     protected

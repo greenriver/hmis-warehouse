@@ -81,5 +81,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def assign_next_unit(...)
       tracker.assign_next_unit(...)
     end
+
+    def ar_import(import_class, records, **args)
+      defaults= {batch_size: 1_000, validate: false}
+      result = import_class.import(records, defaults.merge(args))
+      return unless result.failed_instances.present?
+
+      msg = "#{self.class.name} Failed: #{result.failed_instances}"
+      raise msg
+    end
+
   end
 end

@@ -22,10 +22,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::RentalAssistanceEnd
   end
 
   it 'imports rows' do
-    with_csv_files({ 'RentalAssistanceEndDate.csv' => rows }) do |dir|
-      described_class.perform(reader: csv_reader(dir))
-    end
-
-    expect(enrollment.custom_data_elements.size).to eq(1)
+    csv_files = { 'RentalAssistanceEndDate.csv' => rows }
+    expect {
+      run_cde_import(csv_files: csv_files, clobber: true)
+    }.to change(enrollment.custom_data_elements, :count).by(1)
   end
 end

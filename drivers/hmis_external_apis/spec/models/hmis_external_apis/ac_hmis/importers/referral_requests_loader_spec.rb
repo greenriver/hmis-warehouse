@@ -36,14 +36,13 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralRequestsLoa
   end
 
   it 'imports rows' do
-    with_csv_files({ 'ReferralRequests.csv' => rows }) do |dir|
-      described_class.perform(reader: csv_reader(dir), clobber: true)
-    end
-    expect(project.external_referral_requests.size).to eq(1)
+    csv_files = { 'ReferralRequests.csv' => rows }
+    expect {
+      run_cde_import(csv_files: csv_files, clobber: true)
+    }.to change((project.external_referral_requests, :count).by(1)
 
-    with_csv_files({ 'ReferralRequests.csv' => rows }) do |dir|
-      described_class.perform(reader: csv_reader(dir), clobber: false)
-    end
-    expect(project.external_referral_requests.size).to eq(1)
+    expect {
+      run_cde_import(csv_files: csv_files, clobber: false)
+    }.not_to change((project.external_referral_requests, :count)
   end
 end
