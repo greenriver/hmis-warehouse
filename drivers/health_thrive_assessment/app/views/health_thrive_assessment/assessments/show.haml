@@ -9,7 +9,7 @@
       %dd.inline= @assessment.completed_on || 'in progress'
     .mb-2
       %dt.inline Case Worker:
-      %dd.inline= @assessment.user&.name
+      %dd.inline= @assessment.user&.name || @assessment.external_name
   - if @client.patient.current_qa_factory.hrsn_screening_qa.present?
     .col.pull-right
       HRSN Approved

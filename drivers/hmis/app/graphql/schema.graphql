@@ -43,6 +43,28 @@ type AddToHouseholdPayload {
   household: Household
 }
 
+enum AftercareMethod {
+  """
+  In person: one-on-one
+  """
+  IN_PERSON_1_ON_1
+
+  """
+  In person: group
+  """
+  IN_PERSON_GROUP
+
+  """
+  Via email/social media
+  """
+  VIA_EMAIL_SOCIAL
+
+  """
+  Via telephone
+  """
+  VIA_TEL
+}
+
 """
 R20.2
 """
@@ -538,7 +560,6 @@ type Client {
   dateUpdated: ISO8601DateTime!
   desertStorm: NoYesReasonsForMissingData
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
-  disabilityGroups: [DisabilityGroup!]!
   dischargeStatus: DischargeStatus
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
@@ -1060,6 +1081,23 @@ enum Component {
   SSN input component
   """
   SSN
+}
+
+enum CounselingMethod {
+  """
+  Family
+  """
+  FAMILY
+
+  """
+  Group - including peer counseling
+  """
+  GROUP
+
+  """
+  Individual
+  """
+  INDIVIDUAL
 }
 
 """
@@ -2370,7 +2408,6 @@ type Enrollment {
   dateUpdated: ISO8601DateTime!
   dependentUnder6: DependentUnder6
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
-  disabilityGroups: [DisabilityGroup!]!
   disabledHoh: NoYesMissing
   disablingCondition: NoYesReasonsForMissingData
   eligibleForRhy: NoYesMissing
@@ -2777,14 +2814,17 @@ enum EvictionHistory {
 
 type Exit {
   aftercareDate: ISO8601Date
+  aftercareMethods: [AftercareMethod!]
   aftercareProvided: AftercareProvided
   askedOrForcedToExchangeForSex: NoYesReasonsForMissingData
   askedOrForcedToExchangeForSexPastThreeMonths: NoYesReasonsForMissingData
   client: Client!
   cmExitReason: CmExitReason
   coercedToContinueWork: NoYesReasonsForMissingData
+  counselingMethods: [CounselingMethod!]
   counselingReceived: NoYesMissing
   countOfExchangeForSex: CountExchangeForSex
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -2792,18 +2832,12 @@ type Exit {
   destinationSafeClient: NoYesReasonsForMissingData
   destinationSafeWorker: WorkerResponse
   earlyExitReason: ExpelledReason
-  emailSocialMedia: NoYesMissing
   enrollment: Enrollment!
   exchangeForSex: NoYesReasonsForMissingData
   exchangeForSexPastThreeMonths: NoYesReasonsForMissingData
   exitDate: ISO8601Date!
-  familyCounseling: NoYesMissing
-  groupCounseling: NoYesMissing
   housingAssessment: HousingAssessmentAtExit
   id: ID!
-  inPersonGroup: NoYesMissing
-  inPersonIndividual: NoYesMissing
-  individualCounseling: NoYesMissing
   laborExploitPastThreeMonths: NoYesReasonsForMissingData
   otherDestination: String
   posAdultConnections: WorkerResponse
@@ -2811,10 +2845,11 @@ type Exit {
   posPeerConnections: WorkerResponse
   postExitCounselingPlan: NoYesMissing
   projectCompletionStatus: ProjectCompletionStatus
-  sessionCountAtExit: NoYesMissing
+  sessionCountAtExit: Int
   sessionsInPlan: Int
   subsidyInformation: SubsidyInformation
-  telephone: NoYesMissing
+  subsidyInformationA: SubsidyInformationA
+  subsidyInformationB: SubsidyInformationB
   user: User
   workPlaceViolenceThreats: NoYesReasonsForMissingData
   workplacePromiseDifference: NoYesReasonsForMissingData
@@ -3125,9 +3160,9 @@ type FormItem {
   pickListReference: String
 
   """
-  Whether to allow pre-filling section from a recent records
+  Whether to allow pre-filling this section from a previous assessment
   """
-  prefill: RelatedRecordType
+  prefill: Boolean
 
   """
   Prefix for the item label
@@ -3995,6 +4030,7 @@ type IncomeBenefit {
   client: Client!
   cobra: NoYesMissing
   connectionWithSoar: NoYesReasonsForMissingData
+  customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -7509,43 +7545,93 @@ type SubmitHouseholdAssessmentsPayload {
 }
 
 """
-W5.A
+W5.AB
 """
 enum SubsidyInformation {
-  """
-  (4) But only with other financial assistance 1
-  """
-  BUT_ONLY_WITH_OTHER_FINANCIAL_ASSISTANCE_1
-
   """
   Invalid Value
   """
   INVALID
 
   """
-  (12) Without an on-going subsidy 2
+  (4) Only with financial assistance other than a subsidy
   """
-  WITHOUT_AN_ON_GOING_SUBSIDY_2
+  ONLY_WITH_FINANCIAL_ASSISTANCE_OTHER_THAN_A_SUBSIDY
 
   """
-  (1) Without a subsidy 1
+  (12) Without an on-going subsidy
   """
-  WITHOUT_A_SUBSIDY_1
+  WITHOUT_AN_ON_GOING_SUBSIDY
 
   """
-  (3) With an on-going subsidy acquired since project entry 1
+  (1) Without a subsidy
   """
-  WITH_AN_ON_GOING_SUBSIDY_ACQUIRED_SINCE_PROJECT_ENTRY_1
+  WITHOUT_A_SUBSIDY
 
   """
-  (11) With on-going subsidy 2
+  (3) With an on-going subsidy acquired since project entry
   """
-  WITH_ON_GOING_SUBSIDY_2
+  WITH_AN_ON_GOING_SUBSIDY_ACQUIRED_SINCE_PROJECT_ENTRY
 
   """
-  (2) With the subsidy they had at project entry 1
+  (11) With on-going subsidy
   """
-  WITH_THE_SUBSIDY_THEY_HAD_AT_PROJECT_ENTRY_1
+  WITH_ON_GOING_SUBSIDY
+
+  """
+  (2) With the subsidy they had at project entry
+  """
+  WITH_THE_SUBSIDY_THEY_HAD_AT_PROJECT_ENTRY
+}
+
+"""
+W5.A
+"""
+enum SubsidyInformationA {
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (4) Only with financial assistance other than a subsidy
+  """
+  ONLY_WITH_FINANCIAL_ASSISTANCE_OTHER_THAN_A_SUBSIDY
+
+  """
+  (1) Without a subsidy
+  """
+  WITHOUT_A_SUBSIDY
+
+  """
+  (3) With an on-going subsidy acquired since project entry
+  """
+  WITH_AN_ON_GOING_SUBSIDY_ACQUIRED_SINCE_PROJECT_ENTRY
+
+  """
+  (2) With the subsidy they had at project entry
+  """
+  WITH_THE_SUBSIDY_THEY_HAD_AT_PROJECT_ENTRY
+}
+
+"""
+W5.B
+"""
+enum SubsidyInformationB {
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (12) Without an on-going subsidy
+  """
+  WITHOUT_AN_ON_GOING_SUBSIDY
+
+  """
+  (11) With on-going subsidy
+  """
+  WITH_ON_GOING_SUBSIDY
 }
 
 """

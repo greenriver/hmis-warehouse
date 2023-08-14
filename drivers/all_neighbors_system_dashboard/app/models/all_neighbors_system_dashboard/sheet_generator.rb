@@ -129,7 +129,7 @@ module AllNeighborsSystemDashboard
       end
 
       def ce_event_data
-        universe.members.first.universe_membership.events
+        universe.members&.first&.universe_membership&.events
       end
     end
   end

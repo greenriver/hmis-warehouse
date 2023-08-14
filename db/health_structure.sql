@@ -5333,7 +5333,8 @@ CREATE TABLE public.thrive_assessments (
     epic_source_id character varying,
     reporter integer,
     trouble_with_adl boolean,
-    help_with_adl boolean
+    help_with_adl boolean,
+    external_name character varying
 );
 
 
@@ -9186,6 +9187,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230706134746'),
 ('20230707132626'),
 ('20230712155403'),
-('20230726171015');
+('20230726171015'),
+('20230807201621');
 
 

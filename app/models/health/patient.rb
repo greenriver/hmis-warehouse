@@ -221,13 +221,13 @@ module Health
 
     scope :engaged_cp_1, ->(on) do
       joins(:patient_referrals).
-        merge(Health::PatientReferral.cp_1_referrals).
+        merge(Health::PatientReferral.cp_1_referrals.current).
         cp_1_engagement(on)
     end
 
     scope :engaged_cp_2, ->(on) do
       joins(:patient_referrals).
-        merge(Health::PatientReferral.cp_2_referrals).
+        merge(Health::PatientReferral.cp_2_referrals.current).
         cp_2_engagement(on)
     end
 

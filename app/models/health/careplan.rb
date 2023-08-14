@@ -204,6 +204,10 @@ module Health
       edit_path(anchor: 'complete')
     end
 
+    def signature_complete?
+      patient_signed_on.present?
+    end
+
     def download_partial
       'signable_document'
     end
