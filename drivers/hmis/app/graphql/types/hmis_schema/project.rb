@@ -92,16 +92,7 @@ module Types
     def enrollments(**args)
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
 
-      # Apply the enrollment limit before we pass it in, to avoid doing an unnecessary join to the WIP table
-      scope = if args[:enrollment_limit] == 'NON_WIP_ONLY'
-        object.enrollments
-      elsif args[:enrollment_limit] == 'WIP_ONLY'
-        object.wip_enrollments
-      else
-        object.enrollments_including_wip
-      end
-
-      resolve_enrollments(scope, **args)
+      resolve_enrollments(**args)
     end
 
     def organization
@@ -138,7 +129,7 @@ module Types
     end
 
     def households(**args)
-      resolve_households(object.households_including_wip, **args)
+      resolve_households(**args)
     end
 
     def referral_requests(**args)

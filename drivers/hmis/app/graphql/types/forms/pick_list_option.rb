@@ -327,7 +327,7 @@ module Types
       unoccupied_units = project.units.unoccupied_on.pluck(:id)
 
       hh_units = if household_id.present?
-        hh_en_ids = project.enrollments_including_wip.where(household_id: household_id).pluck(:id)
+        hh_en_ids = project.enrollments.where(household_id: household_id).pluck(:id)
         Hmis::UnitOccupancy.active.joins(:enrollment).where(enrollment_id: hh_en_ids).pluck(:unit_id)
       else
         []

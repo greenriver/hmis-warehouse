@@ -15,12 +15,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
-  # Enrollments in this Project, NOT including WIP Enrollments
-  has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
-  # WIP records representing Enrollments for this Project
-  has_many :enrollment_wips, -> { where(source_type: Hmis::Hud::Enrollment.sti_name) }, class_name: 'Hmis::Wip'
-  # WIP Enrollments for this Project
-  has_many :wip_enrollments, class_name: 'Hmis::Hud::Enrollment', through: :enrollment_wips, source: :source, source_type: Hmis::Hud::Enrollment.sti_name
 
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
@@ -29,17 +23,16 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
   has_many :custom_data_elements, as: :owner
 
+  # go through client_projects to include WIP enrollments at this project
   has_many :client_projects
-  has_many :clients_including_wip, through: :client_projects, source: :client
-  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
+  has_many :clients, through: :client_projects, source: :client
+  has_many :enrollments, through: :client_projects, source: :enrollment
+  has_many :households, through: :enrollments
 
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
-
-  # Households in this Project, NOT including WIP Enrollments
-  has_many :households, through: :enrollments
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -132,12 +125,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     return true unless operating_end_date.present?
 
     operating_end_date >= Date.current
-  end
-
-  def households_including_wip
-    household_ids = enrollments_including_wip.pluck(:household_id)
-
-    Hmis::Hud::Household.where(HouseholdID: household_ids, data_source_id: data_source_id)
   end
 
   def close_related_funders_and_inventory!
