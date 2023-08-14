@@ -112,14 +112,14 @@ module Types
         :mental_health_disorder,
         :substance_use_disorder,
       ].map { |d| load_ar_association(form_processor, d) }.compact
-      return if disability_records.empty?
+      return if disability_records.empty? && enrollment.disabling_condition.nil?
 
       # Build OpenStruct for DisabilityGroup type
-      max_by_date = disability_records.max_by { |d| d.information_date.to_date }
       OpenStruct.new(
-        **max_by_date.slice(:information_date, :data_collection_stage, :user_id),
+        information_date: object.assessment_date,
+        data_collection_stage: object.data_collection_stage,
         enrollment: enrollment,
-        user: load_ar_association(max_by_date, :user),
+        user: user,
         disabilities: disability_records,
       )
     end
