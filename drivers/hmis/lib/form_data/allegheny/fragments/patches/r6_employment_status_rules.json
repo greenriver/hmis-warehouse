@@ -1,0 +1,61 @@
+[
+  {
+    "link_id": "R6",
+    "rule": {
+      "operator": "ANY",
+      "_comment": "Custom funders, YHDP or VA GPD. Project type is not specified because these funders only ever fund one project type.",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: Grant Per Diem"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Bridge Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Penn Free Bridge RRH"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Innovative"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Rental Assistance "
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "Needs-Based Block Grant Homelessness Prevention"
+        }
+      ]
+    }
+  }
+]

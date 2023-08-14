@@ -1,0 +1,45 @@
+[
+  {
+    "link_id": "health-insurance",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Permanent Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted street outreach"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Transitional Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Homelessness Prevention"
+        }
+      ]
+    }
+  }
+]

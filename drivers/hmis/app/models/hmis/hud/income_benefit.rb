@@ -18,5 +18,7 @@ class Hmis::Hud::IncomeBenefit < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :custom_data_elements, as: :owner, dependent: :destroy
 
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+
   validates_with Hmis::Hud::Validators::IncomeBenefitValidator
 end

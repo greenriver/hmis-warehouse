@@ -1,21 +1,36 @@
 {
   "type": "GROUP",
   "link_id": "c3-youth-education-status",
-  "text": "Education Status",
+  "text": "Youth Education Status",
   "data_collected_about": "HOH",
   "prefill": "YOUTH_EDUCATION_STATUS",
   "rule": {
     "operator": "ALL",
+    "_comment": "YHDP-funded program should collect this instead of R5",
     "parts": [
-      { "variable": "projectFunders", "operator": "INCLUDE", "value": 43 },
+      {
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 43
+      },
       {
         "operator": "ANY",
         "parts": [
-          { "variable": "projectType", "operator": "EQUAL", "value": 2 },
-          { "variable": "projectType", "operator": "EQUAL", "value": 3 },
-          { "variable": "projectType", "operator": "EQUAL", "value": 6 },
-          { "variable": "projectType", "operator": "EQUAL", "value": 7 },
-          { "variable": "projectType", "operator": "EQUAL", "value": 13 }
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 6
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 13
+          }
         ]
       }
     ]
@@ -28,7 +43,10 @@
       "warn_if_empty": true,
       "text": "Current school enrollment and attendance",
       "pick_list_reference": "CurrentSchoolAttended",
-      "mapping": { "record_type": "YOUTH_EDUCATION_STATUS", "field_name": "currentSchoolAttend" }
+      "mapping": {
+        "record_type": "YOUTH_EDUCATION_STATUS",
+        "field_name": "currentSchoolAttend"
+      }
     },
     {
       "type": "CHOICE",
@@ -37,7 +55,10 @@
       "warn_if_empty": true,
       "text": "Most recent educational status",
       "pick_list_reference": "MostRecentEdStatus",
-      "mapping": { "record_type": "YOUTH_EDUCATION_STATUS", "field_name": "mostRecentEdStatus" },
+      "mapping": {
+        "record_type": "YOUTH_EDUCATION_STATUS",
+        "field_name": "mostRecentEdStatus"
+      },
       "enable_behavior": "ALL",
       "enable_when": [
         {
@@ -54,7 +75,10 @@
       "warn_if_empty": true,
       "text": "Current Educational Status",
       "pick_list_reference": "CurrentEdStatus",
-      "mapping": { "record_type": "YOUTH_EDUCATION_STATUS", "field_name": "currentEdStatus" },
+      "mapping": {
+        "record_type": "YOUTH_EDUCATION_STATUS",
+        "field_name": "currentEdStatus"
+      },
       "enable_behavior": "ANY",
       "enable_when": [
         {

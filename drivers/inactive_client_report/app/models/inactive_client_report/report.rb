@@ -157,7 +157,7 @@ module InactiveClientReport
     end
 
     def report_scope
-      scope = filter.apply(report_scope_base, include_date_range: false)
+      scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
       # Apply a single date filter
       scope.ongoing(on_date: filter.on)
     end

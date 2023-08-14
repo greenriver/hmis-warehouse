@@ -99,6 +99,8 @@ module AllNeighborsSystemDashboard
 
       # Attach the CE Events to the first report enrollment (requires at least one enrollment)
       enrollment = universe.members.first.universe_membership
+      return unless enrollment.present?
+
       event_scope.find_in_batches do |batch|
         events = []
         batch.each do |event|
@@ -128,7 +130,11 @@ module AllNeighborsSystemDashboard
         preload(:enrollment, :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date)
-      filter.apply(scope)
+      filter.apply(scope, report_scope_source)
+    end
+
+    def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     def event_scope

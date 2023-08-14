@@ -1,12 +1,17 @@
 .pctp__signature.mb-4
-  - if careplan.patient_signed_on
+  - if careplan.signature_complete?
     .signature-words
       = checkmark(true)
       Patient Signature
     .signature-date
       (#{careplan.patient_signed_on&.to_date})
   - elsif careplan.id == @careplan.id
-    = link_to careplan.edit_path(anchor: 'complete'), class: 'btn btn-sm btn-secondary' do
+    - link_params = Array.wrap(careplan.signature_path)
+    - if link_params.length > 1 # If there are more than one param, there is a hash of additional link params
+      - link_params.last.merge!(class: 'btn btn-sm btn-secondary')
+    - else
+      - link_params << {class: 'btn btn-sm btn-secondary'}
+    = link_to *link_params do
       Enter Patient Signature
 .pctp__signature
   - if careplan.careplan_sent_on.present?

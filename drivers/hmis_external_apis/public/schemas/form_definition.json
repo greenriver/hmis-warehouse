@@ -49,8 +49,8 @@
       "required": ["operator"],
       "properties": {
         "_comment": { "type": "string" },
-        "operator": { "enum": ["ANY", "ALL", "EQUAL", "INCLUDE"] },
-        "variable": { "enum": ["projectType", "projectFunders", "projectOtherFunders"] },
+        "operator": { "enum": ["ANY", "ALL", "EQUAL", "INCLUDE", "NOT_EQUAL", "NOT_INCLUDE"] },
+        "variable": { "enum": ["projectType", "projectFunders", "projectOtherFunders", "projectFunderComponents"] },
         "value": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
         "parts": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
       }
@@ -90,6 +90,9 @@
       "properties": {
         "_comment": { "type": "string" },
         "value_code": { "type": "string" },
+        "value_number": { "type": "integer" },
+        "value_boolean": { "type": "boolean" },
+        "value_question": { "type": "string" },
         "autofill_readonly": { "type": "boolean" },
         "autofill_behavior": { "type": "string" },
         "autofill_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
