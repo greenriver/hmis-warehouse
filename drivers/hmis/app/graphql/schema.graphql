@@ -560,7 +560,6 @@ type Client {
   dateUpdated: ISO8601DateTime!
   desertStorm: NoYesReasonsForMissingData
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
-  disabilityGroups: [DisabilityGroup!]!
   dischargeStatus: DischargeStatus
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
@@ -2409,7 +2408,6 @@ type Enrollment {
   dateUpdated: ISO8601DateTime!
   dependentUnder6: DependentUnder6
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
-  disabilityGroups: [DisabilityGroup!]!
   disabledHoh: NoYesMissing
   disablingCondition: NoYesReasonsForMissingData
   eligibleForRhy: NoYesMissing

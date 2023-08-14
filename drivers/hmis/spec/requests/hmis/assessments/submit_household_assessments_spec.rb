@@ -275,7 +275,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should succeed if all members have the same entry date' do
       response, result = post_graphql(input: input) { mutation }
-      puts result
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
       aggregate_failures 'checking response' do
