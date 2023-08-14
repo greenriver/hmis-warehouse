@@ -61,11 +61,15 @@ module Types
     def definition
       project = load_ar_association(object, :project)
 
-      # If definition is stored on form processor, return that
+      form_processor = load_ar_association(object, :form_processor)
+      # If this occurs, it may be an issue with MigrateAssessmentsJob, SaveAssessment, or SubmitAssessment
+      raise "Assessment without form processor: #{id}" unless form_processor.present?
+
+      # If definition is stored on form processor, return that.
       # TODO: check if form is retired? For non-WIP assessments, we should
       # really be choosing the "latest" form, which may not be the one on the FormProcessor.
-      form_processor = load_ar_association(object, :form_processor)
-      definition = load_ar_association(form_processor, :definition) if form_processor
+      definition = load_ar_association(form_processor, :definition)
+      # If there was no definition specified, which would occur if this is a migrated assessment, choose an appropriate one.
       definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project)
       definition.filter_context = { project: project }
       definition
