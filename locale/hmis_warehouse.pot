@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 17:42+0000\n"
-"PO-Revision-Date: 2023-05-22 17:42+0000\n"
+"POT-Creation-Date: 2023-08-14 13:06+0000\n"
+"PO-Revision-Date: 2023-08-14 13:06+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -63,6 +63,9 @@ msgstr ""
 msgid "Add a Release"
 msgstr ""
 
+msgid "Additional Report Details"
+msgstr ""
+
 msgid "Adult-Only Households"
 msgstr ""
 
@@ -81,10 +84,16 @@ msgstr ""
 msgid "All Assigned Clients"
 msgstr ""
 
+msgid "All Neighbors System Dashboard"
+msgstr ""
+
 msgid "Analysis Tool"
 msgstr ""
 
 msgid "Appropriate for sober supportive housing"
+msgstr ""
+
+msgid "Associated CE Projects"
 msgstr ""
 
 msgid "Asylee, Refugee"
@@ -3528,7 +3537,13 @@ msgstr ""
 msgid "CSPECH Eligible"
 msgstr ""
 
+msgid "Care Plan / Patient-Centered Treatment Plan"
+msgstr ""
+
 msgid "Care Plan Form"
+msgstr ""
+
+msgid "Careplan Logo"
 msgstr ""
 
 msgid "Case Management Note Form"
@@ -3555,7 +3570,13 @@ msgstr ""
 msgid "Clean/sober for at least one year"
 msgstr ""
 
+msgid "Client Activity Report"
+msgstr ""
+
 msgid "Client Contact Locations"
+msgstr ""
+
+msgid "Client Documents Report"
 msgstr ""
 
 msgid "Client Notes"
@@ -3607,6 +3628,9 @@ msgid "Cohort is visible on Client dashboard"
 msgstr ""
 
 msgid "Cohorts"
+msgstr ""
+
+msgid "Comprehensive Assessment"
 msgstr ""
 
 msgid "Consent form confirmed"
@@ -3673,6 +3697,9 @@ msgid "Days to Return"
 msgstr ""
 
 msgid "Delete"
+msgstr ""
+
+msgid "Demographic Summary"
 msgstr ""
 
 msgid "Destination"
@@ -3858,9 +3885,6 @@ msgstr ""
 msgid "Income, Non-Cash Benefits, Health Insurance Report"
 msgstr ""
 
-msgid "Indicates community success in ending chronic homelessness by measuring the number of chronically homeless participants served in the project during the measured year."
-msgstr ""
-
 msgid "Individuals"
 msgstr ""
 
@@ -3973,6 +3997,9 @@ msgid "My Team's Patients"
 msgstr ""
 
 msgid "Name of Staff Assisting with Form Completion"
+msgstr ""
+
+msgid "Neighbors Dashboard Coordinated Entry"
 msgstr ""
 
 msgid "No releases on file"
@@ -4272,6 +4299,9 @@ msgstr ""
 msgid "Successful housing outcomes are one of the most important measures of project success."
 msgstr ""
 
+msgid "System Pathways"
+msgstr ""
+
 msgid "System Performance Measures by Sub-Population"
 msgstr ""
 
@@ -4345,6 +4375,9 @@ msgid "Total People Experiencing Homelessness"
 msgstr ""
 
 msgid "Total days homeless, from HMIS"
+msgstr ""
+
+msgid "Tracked Project Groups"
 msgstr ""
 
 msgid "Type of Housing"
