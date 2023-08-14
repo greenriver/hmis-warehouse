@@ -275,6 +275,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should succeed if all members have the same entry date' do
       response, result = post_graphql(input: input) { mutation }
+      puts result
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
       aggregate_failures 'checking response' do
@@ -299,11 +300,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         expect(assessments).to be_nil
         expect(errors.size).to eq(3)
-        expect(errors).to match([
-                                  a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a2.id.to_s),
-                                  a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a3.id.to_s),
-                                  a_hash_including('severity' => 'warning', 'message' => expected_hoh_message, 'recordId' => a1.id.to_s),
-                                ])
+        expect(errors).to include(a_hash_including('severity' => 'warning', 'message' => expected_hoh_message, 'recordId' => a1.id.to_s))
+        expect(errors).to include(a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a2.id.to_s))
+        expect(errors).to include(a_hash_including('severity' => 'warning', 'message' => expected_member_message, 'recordId' => a3.id.to_s))
       end
     end
   end
