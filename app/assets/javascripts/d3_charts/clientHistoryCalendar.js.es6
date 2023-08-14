@@ -5,7 +5,7 @@ class AppClientHistoryCalendar {
     // console.log('eventsData', eventsData)
     // console.log('calendar_selector', calendar_selector)
     this.data = data
-    this.container = d3.select('.d3-calendar')
+    this.container = d3.select(calendar_selector)
   }
 
   getDateFromString(dateString) {
@@ -125,16 +125,16 @@ class AppClientHistoryCalendar {
       var projects = week.selectAll(`.${projectClass}`)
         .data(projectData)
         .join(
-          function(enter) {
+          (enter) => {
             return enter.append('div')
               .attr('class', (d, i) => {
                 return `${projectClass} ${projectClass}__${i}`
               }).style('opacity', (d) => d.opacity)
           },
-          function(update) {
+          (update) => {
             return update.transition().style('opacity', (d) => d.opacity)
           },
-          function(exit) {
+          (exit) => {
             return exit.remove()
           }
         )
@@ -194,7 +194,7 @@ class AppClientHistoryCalendar {
       projects.selectAll(`.${extrapolationClass}`)
         .data((d) => d.extrapolation ? [d] : [])
         .join(
-          function(enter) {
+          (enter) => {
             return enter.append('div')
               .attr('class', extrapolationClass)
               .style('left', (d) => barLeft(d.extrapolation))
@@ -202,7 +202,7 @@ class AppClientHistoryCalendar {
               .append('i')
                 .attr('class', (d) => includesEnd(d.extrapolation) ? 'icon-cross' : '')
           },
-          function(update) {
+          (update) => {
             update.style('opacity', (d) => {
               if(filters.contactTypes && filters.contactTypes.length > 0) {
                 return filters.contactTypes.includes('extrapolation') ? 1 : 0.2
@@ -210,7 +210,7 @@ class AppClientHistoryCalendar {
               return 1
             })
           },
-          function(exit) {
+          (exit) => {
             return exit.remove()
           }
         )
@@ -237,7 +237,7 @@ class AppClientHistoryCalendar {
           })
         })
         .join(
-          function(enter) {
+          (enter) => {
             return enter.append('div')
               .attr('class', (d) => {
                 var classes = [dayEventsClass]
@@ -261,10 +261,10 @@ class AppClientHistoryCalendar {
                 return `${width}%`
               })
           },
-          function(update) {
+          (update) => {
             return update
           },
-          function(exit) {
+          (exit) => {
             return exit.remove()
           }
         )
@@ -306,7 +306,7 @@ class AppClientHistoryCalendar {
             })
           })
           .join(
-            function(enter) {
+            (enter) => {
               return enter.append('div')
                 .attr('class', (d) => {
                   return `project-type-${d.project_type} ${dayClass} ${eventClass}`
@@ -316,11 +316,11 @@ class AppClientHistoryCalendar {
                   .append('i')
                     .attr('class', (eventsData[event]||{}).icon)
             },
-            function(update) {
+            (update) => {
               return update.transition()
                 .style('opacity', (d) => d.opacity)
             },
-            function(exit) {
+            (exit) => {
               return exit.remove()
             }
           )
