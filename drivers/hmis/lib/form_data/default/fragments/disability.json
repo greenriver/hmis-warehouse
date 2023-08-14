@@ -20,8 +20,8 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "3.08.inferred",
-          "operator": "EXISTS",
+          "question": "4.05.2",
+          "operator": "ENABLED",
           "answer_boolean": false
         }
       ]
@@ -30,11 +30,12 @@
       "type": "DISPLAY",
       "link_id": "disability-info",
       "text": "The following questions help determine if there are additional housing services or benefits available for the client.<br /><br/>Select YES to 'Disabling Condition' IF (1) Expected to be of long, continued and indefinite duration, (2) Substantially impedes an individual's ability to live independently, and (3) Of such a nature that such ability could be improved by more suitable housing conditions.",
+      "readonly_text": "The following questions help determine if there are additional housing services or benefits available for the client.",
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "3.08.inferred",
-          "operator": "EXISTS",
+          "question": "4.05.2",
+          "operator": "ENABLED",
           "answer_boolean": true
         }
       ]
@@ -654,6 +655,7 @@
               "required": false,
               "warn_if_empty": true,
               "text": "Disabling Condition",
+              "disabled_display": "PROTECTED_WITH_VALUE",
               "mapping": {
                 "record_type": "DISABILITY_GROUP",
                 "field_name": "disablingCondition"
@@ -663,7 +665,8 @@
             {
               "type": "DISPLAY",
               "link_id": "overall-placeholder",
-              "text": "This field is auto-filled based on the above responses. The user may override a system-generated NO with a YES."
+              "text": "This field may be auto-filled based on the above responses.",
+              "readonly_text": ""
             }
           ]
         }
