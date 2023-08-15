@@ -75,6 +75,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         true
       when /^(n|No)$/
         false
+      when nil
+        nil
+      else
+        raise "unknown y/n value #{str}"
       end
     end
 

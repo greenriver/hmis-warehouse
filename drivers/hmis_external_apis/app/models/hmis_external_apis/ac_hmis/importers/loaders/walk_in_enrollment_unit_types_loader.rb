@@ -23,8 +23,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         enrollment_pk = pks_by_enrollment_id.fetch(row_value(row, field: 'ENROLLMENTID'))
         unit_type_mper_id = row_value(row, field: 'UNITTYPEID')
         assign_next_unit(
-          enrollment_pk:,
-          unit_type_mper_id: ,
+          enrollment_pk: enrollment_pk,
+          unit_type_mper_id: unit_type_mper_id,
         )
       end
     end

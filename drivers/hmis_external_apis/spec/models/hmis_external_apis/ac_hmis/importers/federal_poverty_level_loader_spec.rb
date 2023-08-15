@@ -25,9 +25,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::FederalPovertyLevel
   end
 
   it 'imports rows' do
-    with_csv_files({ 'FederalPovertyLevel.csv' => rows }) do |dir|
-      described_class.perform(reader: csv_reader(dir))
-    end
-    expect(income_benefits.custom_data_elements.size).to eq(1) # each col is a CDE
+    csv_files = { 'FederalPovertyLevel.csv' => rows }
+    expect {
+      run_cde_import(csv_files: csv_files, clobber: true)
+    }.to change(income_benefits.custom_data_elements, :count).by(1)
   end
 end

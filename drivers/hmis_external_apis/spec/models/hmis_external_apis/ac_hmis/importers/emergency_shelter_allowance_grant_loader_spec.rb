@@ -25,9 +25,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EmergencyShelterAll
   end
 
   it 'imports rows' do
-    with_csv_files({ 'EmergencyShelterAllowanceGrant.csv' => rows }) do |dir|
-      described_class.perform(reader: csv_reader(dir))
-    end
-    expect(enrollment.custom_data_elements.size).to eq(4) # each col is a CDE
+    csv_files = { 'EmergencyShelterAllowanceGrant.csv' => rows }
+    expect {
+      run_cde_import(csv_files: csv_files, clobber: true)
+    }.to change(enrollment.custom_data_elements, :count).by(4) # each col is a CDE
   end
 end

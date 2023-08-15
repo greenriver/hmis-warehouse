@@ -27,9 +27,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ClientContactsLoade
   end
 
   it 'imports rows' do
-    with_csv_files({ 'ClientContacts.csv' => rows }) do |dir|
-      described_class.perform(reader: csv_reader(dir))
-    end
-    expect(client.contact_points.size).to eq(1)
+    csv_files = { 'ClientContacts.csv' => rows }
+    expect {
+      run_cde_import(csv_files: csv_files, clobber: true)
+    }.to change(project.contact_points, :count).by(1)
   end
 end

@@ -39,10 +39,10 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralRequestsLoa
     csv_files = { 'ReferralRequests.csv' => rows }
     expect {
       run_cde_import(csv_files: csv_files, clobber: true)
-    }.to change((project.external_referral_requests, :count).by(1)
+    }.to change(project.external_referral_requests, :count).by(1)
 
     expect {
       run_cde_import(csv_files: csv_files, clobber: false)
-    }.not_to change((project.external_referral_requests, :count)
+    }.not_to change(project.external_referral_requests, :count)
   end
 end
