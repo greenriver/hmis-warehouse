@@ -28,6 +28,6 @@ end
 # For further information see the following documentation:
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
 # Initially run in report-only mode to be safe.
-if true #Rails.env.development? || Rails.env.test?
-  Rails.application.config.content_security_policy_report_only = true
-end
+# if true # Rails.env.development? || Rails.env.test?
+Rails.application.config.content_security_policy_report_only = true
+# end
