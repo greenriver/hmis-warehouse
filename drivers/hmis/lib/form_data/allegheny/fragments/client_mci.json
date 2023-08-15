@@ -23,7 +23,10 @@
       "component": "MCI",
       "text": "MCI ID",
       "_comment": "NOTE: mciId is not a real field on Client, but the ClientProcessor has a special case to handle it",
-      "mapping": { "field_name": "mciId" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "mciId"
+      },
       "disabled_display": "PROTECTED",
       "enable_behavior": "ANY",
       "enable_when": [
