@@ -244,5 +244,21 @@ module FormHelpers
         'locationDetails' => 'test',
       },
     },
+    CE_ASSESSMENT: {
+      values: {
+        '4.19.1' => '2023-08-15',
+        '4.19.2' => 'test',
+        '4.19.3' => 'PHONE',
+        '4.19.4' => 'CRISIS_NEEDS_ASSESSMENT',
+        '4.19.7' => 'PLACED_ON_PRIORITIZATION_LIST',
+      },
+      hud_values: {
+        'assessmentDate' => '2023-08-15',
+        'assessmentLocation' => 'test',
+        'assessmentType' => 'PHONE',
+        'assessmentLevel' => 'CRISIS_NEEDS_ASSESSMENT',
+        'prioritizationStatus' => 'PLACED_ON_PRIORITIZATION_LIST',
+      },
+    },
   }.freeze
 end

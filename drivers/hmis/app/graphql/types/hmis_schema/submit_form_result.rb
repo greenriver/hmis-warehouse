@@ -21,6 +21,7 @@ module Types
       Types::HmisSchema::ReferralRequest,
       Types::HmisSchema::Enrollment,
       Types::HmisSchema::CurrentLivingSituation,
+      Types::HmisSchema::CeAssessment,
     )
 
     def self.resolve_type(object, _context)

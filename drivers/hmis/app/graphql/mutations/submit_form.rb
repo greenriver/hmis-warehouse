@@ -169,6 +169,8 @@ module Mutations
         [project, klass.new({ project_id: project&.id })]
       when 'Hmis::File'
         [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
+      when 'Hmis::Hud::Assessment'
+        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       else
         raise "No permission base specified for creating a new record of type #{klass.name}"
       end

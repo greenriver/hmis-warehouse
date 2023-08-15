@@ -30,6 +30,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :youth_education_status, class_name: 'Hmis::Hud::YouthEducationStatus', optional: true, autosave: true
   belongs_to :employment_education, class_name: 'Hmis::Hud::EmploymentEducation', optional: true, autosave: true
   belongs_to :current_living_situation, class_name: 'Hmis::Hud::CurrentLivingSituation', optional: true, autosave: true
+  belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -278,6 +279,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
+      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
     }.freeze
   end
 

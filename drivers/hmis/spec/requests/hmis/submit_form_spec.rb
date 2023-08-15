@@ -31,6 +31,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: e1, user: u1 }
+  let!(:a1) { create :hmis_hud_assessment, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
     hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
@@ -78,6 +79,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on CurrentLivingSituation {
               id
             }
+            ... on CeAssessment {
+              id
+            }
           }
           #{error_fields}
         }
@@ -97,6 +101,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :FILE,
       :ENROLLMENT,
       :CURRENT_LIVING_SITUATION,
+      :CE_ASSESSMENT,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -150,6 +155,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               file1.id
             when :ENROLLMENT
               e1.id
+            when :CE_ASSESSMENT
+              a1.id
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))
