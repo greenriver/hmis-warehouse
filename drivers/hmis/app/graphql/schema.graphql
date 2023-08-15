@@ -6714,6 +6714,7 @@ enum ServiceDetailType {
 }
 
 input ServiceFilterOptions {
+  dateProvided: ISO8601Date
   project: [ID!]
   projectType: [ProjectType!]
   serviceCategory: [ID!]
@@ -7389,11 +7390,13 @@ enum ServiceTypeProvided {
 }
 
 input ServicesForEnrollmentFilterOptions {
+  dateProvided: ISO8601Date
   serviceCategory: [ID!]
   serviceType: [ID!]
 }
 
 input ServicesForProjectFilterOptions {
+  dateProvided: ISO8601Date
   serviceCategory: [ID!]
   serviceType: [ID!]
 }
