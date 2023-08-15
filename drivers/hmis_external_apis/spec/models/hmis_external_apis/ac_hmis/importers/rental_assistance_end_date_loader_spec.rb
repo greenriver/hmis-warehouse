@@ -23,8 +23,8 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::RentalAssistanceEnd
 
   it 'imports rows' do
     csv_files = { 'RentalAssistanceEndDate.csv' => rows }
-    expect {
+    expect do
       run_cde_import(csv_files: csv_files, clobber: true)
-    }.to change(enrollment.custom_data_elements, :count).by(1)
+    end.to change(enrollment.custom_data_elements, :count).by(1)
   end
 end

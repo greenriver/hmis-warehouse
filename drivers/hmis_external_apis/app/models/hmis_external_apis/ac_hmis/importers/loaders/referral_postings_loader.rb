@@ -192,7 +192,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         )
         # not totally sure how to treat these dates
         if record.assigned_status?
-          record.status_updated_at = parse_date(row_value(row, field: 'ASSIGNED_AT') )
+          record.status_updated_at = parse_date(row_value(row, field: 'ASSIGNED_AT'))
         else
           record.status_updated_at = parse_date(row_value(row, field: 'STATUS_UPDATED_AT'))
         end

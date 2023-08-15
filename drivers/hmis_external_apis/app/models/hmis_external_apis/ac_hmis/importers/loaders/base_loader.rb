@@ -17,7 +17,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @clobber = clobber
       @tracker = tracker
 
-      raise "upsert not supported" if !clobber && !supports_upsert?
+      raise 'upsert not supported' if !clobber && !supports_upsert?
     end
 
     protected
@@ -27,7 +27,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     # 'YYYY-MM-DD HH24:MM:SS'
-    DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'
+    DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'.freeze
     def parse_date(str)
       raise ArgumentError, "Invalid date-time format. Expected 'YYYY-MM-DD HH24:MM:SS'" unless str =~ /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/
 
@@ -87,13 +87,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def ar_import(import_class, records, **args)
-      defaults= {batch_size: 1_000, validate: false}
+      defaults = { batch_size: 1_000, validate: false }
       result = import_class.import(records, defaults.merge(args))
       return unless result.failed_instances.present?
 
       msg = "#{self.class.name} Failed: #{result.failed_instances}"
       raise msg
     end
-
   end
 end

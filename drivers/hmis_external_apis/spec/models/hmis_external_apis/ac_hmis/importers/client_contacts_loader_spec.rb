@@ -28,8 +28,8 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ClientContactsLoade
 
   it 'imports rows' do
     csv_files = { 'ClientContacts.csv' => rows }
-    expect {
+    expect do
       run_cde_import(csv_files: csv_files, clobber: true)
-    }.to change(project.contact_points, :count).by(1)
+    end.to change(project.contact_points, :count).by(1)
   end
 end

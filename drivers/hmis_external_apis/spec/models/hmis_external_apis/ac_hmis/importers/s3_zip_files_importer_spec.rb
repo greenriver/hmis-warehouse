@@ -22,7 +22,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::S3ZipFilesImporter, type: :m
     FileUtils.rm_f('/tmp/imported')
 
     did_run = false
-    subject.run! { |dir, s3_object| did_run = true }
+    subject.run! { |_dir, _s3_object| did_run = true }
     expect(did_run).to be_true
     expect(subject.found_csvs.to_set).to eq(['README', 'data.csv', 'data.dictionary.txt'].to_set)
   end

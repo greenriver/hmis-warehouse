@@ -29,9 +29,9 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EsgFundingAssistanc
 
   it 'imports rows' do
     csv_files = { 'ESGFundingAssistance.csv' => rows }
-    expect {
+    expect do
       run_cde_import(csv_files: csv_files, clobber: true)
-    }.to change(enrollment.custom_services, :count).by(1)
+    end.to change(enrollment.custom_services, :count).by(1)
     expect(enrollment.custom_services.first.custom_data_elements.size).to eq(2)
   end
 end

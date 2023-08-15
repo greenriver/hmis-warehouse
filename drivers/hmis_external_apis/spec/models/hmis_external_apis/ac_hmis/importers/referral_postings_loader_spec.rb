@@ -60,10 +60,10 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       'ReferralPostings.csv' => posting_rows,
       'ReferralHouseholdMembers.csv' => household_member_rows,
     }
-    expect {
+    expect do
       run_cde_import(csv_files: csv_files, clobber: true)
-    }.to change(enrollment.external_referrals, :count).by(1)
-    .and change(enrollment.unit_occupancies, :count).by(1)
+    end.to change(enrollment.external_referrals, :count).by(1)
+      .and change(enrollment.unit_occupancies, :count).by(1)
 
     expect(enrollment.external_referrals.first.postings.size).to eq(1)
     expect(enrollment.external_referrals.first.household_members.size).to eq(1)

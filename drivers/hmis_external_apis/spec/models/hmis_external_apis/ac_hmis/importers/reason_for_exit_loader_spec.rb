@@ -27,8 +27,8 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReasonForExitLoader
 
   it 'imports rows' do
     csv_files = { 'ReasonForExit.csv' => rows }
-    expect {
+    expect do
       run_cde_import(csv_files: csv_files, clobber: true)
-    }.to change(exit.custom_data_elements, :count).by(3)
+    end.to change(exit.custom_data_elements, :count).by(3)
   end
 end
