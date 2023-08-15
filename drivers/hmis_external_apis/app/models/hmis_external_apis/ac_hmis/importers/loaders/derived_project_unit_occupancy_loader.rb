@@ -7,7 +7,7 @@
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
   class DerivedProjectUnitOccupancyLoader < BaseLoader
-    def initialize(tracker:, clobber: true)
+    def initialize(tracker:, clobber:)
       @clobber = clobber
       @tracker = tracker
     end
@@ -19,17 +19,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def perform
       enrollments = Hmis::Hud::Enrollment.where(data_source: data_source)
       scoped_records = model_class.where(enrollment_id: enrollments.select(:id))
-      if clobber
-        # destroy all existing records
-        scoped_records.destroy_all
-      else
-        # there's no unique key on occupancies so we have to destroy and reimport
-        # destroy only occupancies referenced by enrollments
-        rows.map { |h| h[:enrollment_id] }.uniq.in_groups_of(1_000).each do |enrollment_pks|
-          scoped_records.active.where(enrollment_id: enrollment_pks).destroy_all
-        end
-        model_class.where(enrollment_id: enrollments.select(:id)).destroy_all
-      end
+      # destroy all existing records
+      scoped_records.destroy_all if clobber
       model_class.import(build_records, validate: false, recursive: true, batch_size: 1_000)
     end
 

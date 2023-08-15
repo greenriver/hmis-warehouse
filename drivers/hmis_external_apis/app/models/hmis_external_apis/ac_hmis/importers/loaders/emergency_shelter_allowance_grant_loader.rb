@@ -23,11 +23,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         owner_id = owner_id_by_enrollment_id.fetch(enrollment_id)
         [
           new_cde_record(
-            value: clean_str(row_value(row, field: 'REFERREDTOALLOWANCEGRANT')),
+            value: cde_value(row_value(row, field: 'REFERREDTOALLOWANCEGRANT')),
             definition_key: :esg_allowance_grant_referred,
           ),
           new_cde_record(
-            value: clean_str(row_value(row, field: 'RECEVIEDFUNDING', required: false)),
+            value: cde_value(row_value(row, field: 'RECEVIEDFUNDING', required: false)),
             definition_key: :esg_allowance_grant_received,
           ),
           new_cde_record(
@@ -36,17 +36,25 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           ),
           new_cde_record(
             # FIXME - need to map integer value, mapping not yet provided
-            value: row_value(row, field: 'REASONNOTREFERRED', required: false),
+            value: cde_value(row_value(row, field: 'REASONNOTREFERRED', required: false)),
             definition_key: :esg_allowance_grant_reason_not_referred,
           ),
         ].compact_blank.each { |r| r[:owner_id] = owner_id }
       end
     end
 
-    # FIXME - confirm understanding of the spec here
-    # remove leading number
-    def clean_str(str)
-      str.sub(/^[0-9]*/, '').strip
+    CDE_VALUE_MAP = {
+      '1' => 'No',
+      '2' => 'Yes',
+      '602' => "Client doesn't know",
+      '603' => 'Client prefers not to answer',
+      '1830' => 'Data not collected',
+      '1732' => 'Not eligible',
+      '1733' => 'Did not apply',
+      '1734' => 'Pending decision',
+    }
+    def cde_value(value)
+      CDE_VALUE_MAP.fetch(value) if value
     end
 
     def owner_class

@@ -19,6 +19,7 @@ module HmisExternalApis::AcHmis::Importers
 
     def run!
       start
+      # collect unit occupancy assignments in tracker
       tracker = Loaders::ProjectUnitTracker.new(data_source)
       loaders = [
         Loaders::EmergencyShelterAllowanceGrantLoader, # -> 'EmergencyShelterAllowanceGrant.csv'
@@ -29,8 +30,8 @@ module HmisExternalApis::AcHmis::Importers
         Loaders::WalkInEnrollmentUnitTypesLoader, # 'WalkInEnrollmentUnitTypes.csv'
         Loaders::ClientAddressLoader, # 'ClientAddress.csv'
         Loaders::ClientContactsLoader, # 'ClientContacts.csv'
-        Loaders::ReferralPostingsLoader, # needs to run after WalkInEnrollmentUnitTypesLoader to avoid deleting UnitOccupancy
-        Loaders::ReferralRequestsLoader, # needs to run after ReferralPostingsLoader to reference referralIDs
+        Loaders::ReferralPostingsLoader,
+        Loaders::ReferralRequestsLoader,
       ]
 
       ProjectsImportAttempt.transaction do
@@ -43,6 +44,7 @@ module HmisExternalApis::AcHmis::Importers
           run_loader(loader)
         end
 
+        # process collected unit occupancy assignments
         run_loader(
           Loaders::DerivedProjectUnitOccupancyLoader.new(clobber: clobber, tracker: tracker),
         )

@@ -12,7 +12,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       new(...).perform
     end
 
-    def initialize(reader:, tracker: nil, clobber: true)
+    def initialize(reader:, tracker: nil, clobber:)
       @reader = reader
       @clobber = clobber
       @tracker = tracker
