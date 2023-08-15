@@ -509,11 +509,13 @@ module Concerns::HudLists2024
     # 3.6.1
     def genders
       {
-        0 => 'Female',
-        1 => 'Male',
-        4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
+        0 => 'Woman (Girl, if child)',
+        1 => 'Man (Boy, if child)',
+        2 => 'Culturally Specific Identity (e.g., Two-Spirit)',
+        4 => 'Non-Binary',
         5 => 'Transgender',
         6 => 'Questioning',
+        3 => 'Different Identity',
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
         99 => 'Data not collected',
@@ -2035,7 +2037,7 @@ module Concerns::HudLists2024
         0 => 'No',
         1 => 'Yes',
         8 => "Don't Know",
-        9 => 'Refused',
+        9 => 'Prefers not to answer',
         99 => 'Data not collected',
       }.freeze
     end
@@ -2052,7 +2054,9 @@ module Concerns::HudLists2024
         'BlackAfAmerican' => 'Black, African American, or African',
         'NativeHIPacific' => 'Native Hawaiian or Pacific Islander',
         'White' => 'White',
-        'RaceNone' => "Doesn't Know, refused, or not collected",
+        'HispanicLatinaeo' => 'Hispanic/Latina/e/o',
+        'MidEastNAfrican' => 'Middle Eastern or North African',
+        'RaceNone' => "Doesn't know, prefers not to answer, or not collected",
       }.freeze
     end
 

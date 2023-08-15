@@ -10,24 +10,19 @@ module HudUtility2024
 
   module_function
 
-  # def race(field, reverse = false, multi_racial: false)
-  #   map = races(multi_racial: multi_racial)
-  #   _translate map, field, reverse
-  # end
+  def race(field, reverse = false, multi_racial: false)
+    map = multi_racial ? races_with_multi_racial : races
+    _translate map, field, reverse
+  end
 
-  # # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
-  # def races(multi_racial: false)
-  #   race_list = {
-  #     'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
-  #     'Asian' => 'Asian or Asian American', # 2
-  #     'BlackAfAmerican' => 'Black, African American, or African', # 3
-  #     'NativeHIPacific' => 'Native Hawaiian or Pacific Islander', # 4
-  #     'White' => 'White', # 5
-  #     'RaceNone' => 'Doesn\'t Know, refused, or not collected', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
-  #   }
-  #   race_list['MultiRacial'] = 'Multi-Racial' if multi_racial
-  #   race_list
-  # end
+  # NOTE: api differs from HudUtility 2022 which was `races(multi_racial: false)`
+  # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
+  def races_with_multi_racial
+    {
+      **races,
+      'MultiRacial' => 'Multi-Racial',
+    }
+  end
 
   # 1.6
   def gender_none(id, reverse = false)

@@ -37,6 +37,11 @@ module HudCodeGen
     dependent_under6: :dependent_under_6,
   }.stringify_keys.freeze
 
+  GRAPHQL_NAME_OVERRIDES = {
+    # Necessary for enums where name overlaps with an existing GQL type
+    CurrentLivingSituation: :CurrentLivingSituationOptions,
+  }.stringify_keys.freeze
+
   module_function
 
   def generate_hud_lists(year = '2024')
@@ -105,10 +110,10 @@ module HudCodeGen
       next if seen.include?(name)
 
       map_name = get_function_names(name)[0]
-
+      graphql_name = GRAPHQL_NAME_OVERRIDES[name] || name
       arr.push "  class #{name} < Types::BaseEnum"
       arr.push "    description '#{element['code'] || name}'"
-      arr.push "    graphql_name '#{name}'"
+      arr.push "    graphql_name '#{graphql_name}'"
       arr.push "    hud_enum #{hud_utility_class}.#{map_name}"
       arr.push '  end'
       seen << name
