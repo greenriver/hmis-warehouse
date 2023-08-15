@@ -58,7 +58,7 @@ module HmisExternalApis::AcHmis::Importers
 
     def run_loader(loader)
       # skip loaders that have no data files in the archive
-      return unless loader.data_file_provided?
+      return unless loader.runnable?
 
       loader.perform
       self.table_names += loader.table_names

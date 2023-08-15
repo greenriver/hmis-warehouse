@@ -7,9 +7,9 @@
 # common behavior for loader that expects one csv file
 module HmisExternalApis::AcHmis::Importers::Loaders
   class SingleFileLoader < BaseLoader
-    # filename defined in subclass
-    def data_file_provided?
-      reader.file_present?(filename)
+    def runnable?
+      # filename defined in subclass
+      super && reader.file_present?(filename)
     end
 
     def table_names

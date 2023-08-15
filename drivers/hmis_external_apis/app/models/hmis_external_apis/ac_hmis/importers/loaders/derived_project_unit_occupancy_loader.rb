@@ -12,8 +12,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @tracker = tracker
     end
 
-    def data_file_provided?
-      tracker.assignments.any?
+    def runnable?
+      super && tracker.assignments.any?
     end
 
     def perform

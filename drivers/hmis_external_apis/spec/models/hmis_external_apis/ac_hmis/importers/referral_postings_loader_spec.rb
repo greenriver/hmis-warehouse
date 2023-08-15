@@ -68,5 +68,10 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
     expect(enrollment.external_referrals.first.postings.size).to eq(1)
     expect(enrollment.external_referrals.first.household_members.size).to eq(1)
     expect(enrollment.unit_occupancies.size).to eq(1)
+
+    expect do
+      run_cde_import(csv_files: csv_files, clobber: false)
+    end.to not_change(enrollment.external_referrals, :count)
+      .and not_change(enrollment.unit_occupancies, :count)
   end
 end

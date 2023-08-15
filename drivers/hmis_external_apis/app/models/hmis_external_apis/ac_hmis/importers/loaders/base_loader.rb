@@ -16,14 +16,16 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @reader = reader
       @clobber = clobber
       @tracker = tracker
-
-      raise 'upsert not supported' if !clobber && !supports_upsert?
     end
 
     protected
 
     def supports_upsert?
       false
+    end
+
+    def runnable?
+      clobber ? true : supports_upsert?
     end
 
     # 'YYYY-MM-DD HH24:MM:SS'
@@ -70,10 +72,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def yn_boolean(str)
-      case str.downcase
-      when /^(y|yes)$/
+      case str
+      when /^(y|yes)$/i
         true
-      when /^(n|No)$/
+      when /^(n|no)$/i
         false
       when nil
         nil

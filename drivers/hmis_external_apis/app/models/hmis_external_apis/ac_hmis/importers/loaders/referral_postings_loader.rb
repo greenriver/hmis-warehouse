@@ -21,7 +21,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     POSTINGS_FILENAME = 'ReferralPostings.csv'.freeze
     HOUSEHOLD_MEMBERS_FILENAME = 'ReferralHouseholdMembers.csv'.freeze
 
-    def data_file_provided?
+    def runnable?
+      super &&
       reader.file_present?(POSTINGS_FILENAME) &&
       reader.file_present?(HOUSEHOLD_MEMBERS_FILENAME)
     end
