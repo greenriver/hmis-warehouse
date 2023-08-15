@@ -12,7 +12,7 @@ Rails.application.config.content_security_policy do |policy|
   policy.script_src  :self, 'https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js', :unsafe_inline, :unsafe_eval
   policy.style_src   :self, 'https://fonts.googleapis.com', :unsafe_inline
   # If you are using webpack-dev-server then specify webpack-dev-server host
-  #policy.connect_src :self, :https, "http://localhost:3035", "ws://localhost:3035" if Rails.env.development?
+  # policy.connect_src :self, :https, "http://localhost:3035", "ws://localhost:3035" if Rails.env.development?
 
   # Specify URI for violation reports
   # policy.report_uri "/csp-violation-report-endpoint"
