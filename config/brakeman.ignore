@@ -877,7 +877,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 150,
+      "line": 154,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
       "render_path": null,
@@ -1094,7 +1094,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 151,
+      "line": 155,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1461,7 +1461,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/dba/database_bloat.rb",
-      "line": 143,
+      "line": 142,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"pg_repack #{\"--no-superuser-check -U #{ar_base_class.connection_db_config.configuration_hash[:username]} -d #{ar_base_class.connection_db_config.configuration_hash[:database]} -h #{(CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) or ar_base_class.connection_db_config.configuration_hash[:host])} -p #{(ar_base_class.connection_db_config.configuration_hash[:port] or \"5432\")} -t #{row[\"schemaname\"]}.#{row[\"tblname\"]}\"}\")",
       "render_path": null,
@@ -1520,6 +1520,29 @@
       "confidence": "Weak",
       "cwe_id": [
         22
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "827d6fcb660cb26aba48a6def2aada678b23bca67e2e931a04fd245373cd51f8",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/importers/custom_data_elements_importer.rb",
+      "line": 84,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.exec_query(\"ANALYZE #{table_names.uniq.map do\n connection.quote_table_name(n)\n end.join(\",\")};\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter",
+        "method": "analyze_tables"
+      },
+      "user_input": "table_names.uniq.map do\n connection.quote_table_name(n)\n end.join(\",\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -1737,7 +1760,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 329,
+      "line": 333,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
       "render_path": null,
@@ -2116,7 +2139,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 145,
+      "line": 149,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse HEAD > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -3111,7 +3134,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "drivers/hmis/app/graphql/types/hmis_schema/submit_form_result.rb",
-      "line": 30,
+      "line": 32,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Hmis::Form::Definition::FORM_ROLE_CONFIG.find do\n (value[:class_name] == object.class.name)\n end.last[:resolve_as].constantize",
       "render_path": null,
@@ -3128,6 +3151,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-06-28 23:15:05 +0000",
+  "updated": "2023-08-15 14:33:13 +0000",
   "brakeman_version": "5.4.1"
 }
