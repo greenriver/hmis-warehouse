@@ -12,9 +12,6 @@ FactoryBot.define do
     factory :ac_hmis_mci_credential, parent: :grda_remote_oauth_credential do
       slug { 'ac_hmis_mci' }
     end
-    factory :ac_hmis_mci_unique_id_credential, parent: :grda_remote_oauth_credential do
-      slug { 'ac_hmis_mci_unique_id' }
-    end
     factory :ac_hmis_warehouse_credential, parent: :grda_remote_oauth_credential do
       slug { HmisExternalApis::AcHmis::DataWarehouseApi::SYSTEM_ID }
     end

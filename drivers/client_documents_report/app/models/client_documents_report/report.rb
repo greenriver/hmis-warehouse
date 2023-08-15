@@ -179,7 +179,7 @@ module ClientDocumentsReport
     end
 
     def enrollments
-      filter.apply(report_scope_base)
+      filter.apply(report_scope_base, report_scope_base)
     end
 
     def report_scope_base

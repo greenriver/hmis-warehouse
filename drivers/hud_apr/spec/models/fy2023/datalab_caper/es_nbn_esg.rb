@@ -20,7 +20,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
         question: 'Q4a',
         skip: [
           'L2', # Is the generator name, so not expected to match
-          # FIXME
           # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recgp2w3zwaOXgBOp (58)
           'P2',
         ],
@@ -109,8 +108,9 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8b',
-        # FIXME
-        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recX2c4U4io8SQg3M (55)
+        # https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recX2c4U4io8SQg3M (55)
+        # Counts the household 'h_849204', although it has no HoH. This appears to differ from the 2022 Glossary,
+        # but not from 2024
         skip: [
           'B4',
           'E4',
@@ -262,8 +262,7 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22a2',
-        # FIXME
-        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recfjMqvEpLe21Scm (57)
+        # 2023 testkit appears to count service on exit days, check if fixed in 2024
         skip: [
           'B3',
           'C3',
@@ -288,8 +287,7 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22d',
-        # FIXME
-        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recfjMqvEpLe21Scm (57)
+        # 2023 testkit appears to count service on exit days, check if fixed in 2024
         skip: [
           'B3',
           'D3',

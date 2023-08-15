@@ -65,7 +65,7 @@ module DestinationReport
 
     # @return filtered scope
     def report_scope(all_project_types: false)
-      scope = filter.apply(report_scope_source, all_project_types: all_project_types)
+      scope = filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
       scope.joins(enrollment: :exit)
     end
 

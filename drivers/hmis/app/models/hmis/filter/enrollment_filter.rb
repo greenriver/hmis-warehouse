@@ -21,7 +21,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
       if input.status.present?
         ids = []
 
-        ids += scope.active.pluck(:id) if input.status.include?('ACTIVE')
+        ids += scope.open_excluding_wip.pluck(:id) if input.status.include?('ACTIVE')
         ids += scope.incomplete.pluck(:id) if input.status.include?('INCOMPLETE')
         ids += scope.exited.pluck(:id) if input.status.include?('EXITED')
 
