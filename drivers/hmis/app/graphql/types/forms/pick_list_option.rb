@@ -333,7 +333,7 @@ module Types
         []
       end
 
-      unit_types_assigned_to_household = Hmis::Unit.where(id: hh_units).pluck(&:unit_type_id).compact.uniq
+      unit_types_assigned_to_household = Hmis::Unit.where(id: hh_units).pluck(:unit_type_id).compact.uniq
       eligible_units = Hmis::Unit.where(id: unoccupied_units + hh_units)
       # If some household members are assigned to units with unit types, then list should be limited to units of the same type.
       eligible_units = eligible_units.where(unit_type_id: unit_types_assigned_to_household) if unit_types_assigned_to_household.any?
