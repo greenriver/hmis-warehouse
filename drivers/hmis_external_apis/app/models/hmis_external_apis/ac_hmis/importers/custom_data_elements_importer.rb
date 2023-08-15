@@ -58,8 +58,12 @@ module HmisExternalApis::AcHmis::Importers
 
     def run_loader(loader)
       # skip loaders that have no data files in the archive
-      return unless loader.runnable?
+      unless loader.runnable?
+        Rails.logger.info "#{importer_name} skipping #{loader.class.name}"
+        return
+      end
 
+      Rails.logger.info "#{importer_name} running #{loader.class.name}"
       loader.perform
       self.table_names += loader.table_names
     end

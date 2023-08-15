@@ -89,12 +89,18 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def ar_import(import_class, records, **args)
+      table_name = import_class.table_name
+      my_name = self.class.name
+      raise "#{my_name} unexpected empty records for #{table_name}" if records.size.zero?
+
       defaults = { batch_size: 1_000, validate: false }
       result = import_class.import(records, defaults.merge(args))
-      return unless result.failed_instances.present?
+      if result.failed_instances.present?
+        msg = "#{my_name} failed: #{result.failed_instances} into #{table_name}"
+        raise msg
+      end
 
-      msg = "#{self.class.name} Failed: #{result.failed_instances}"
-      raise msg
+      Rails.logger.info "#{my_name} inserted: #{result.num_inserts} into #{table_name}"
     end
   end
 end
