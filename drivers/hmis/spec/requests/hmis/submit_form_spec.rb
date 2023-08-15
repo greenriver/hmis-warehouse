@@ -111,9 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             confirmed: true, # ignore warnings, they are tested separately
             **completed_form_values_for_role(role) do |values|
               if role == :FILE
-                # values[:values]['tags'] = [tag2.id.to_s]
-                values[:values]['fileBlobId'] = blob.id.to_s
-                # values[:hud_values]['tags'] = [tag2.id.to_s]
+                values[:values]['file-blob-id'] = blob.id.to_s
                 values[:hud_values]['fileBlobId'] = blob.id.to_s
               end
               values
@@ -160,7 +158,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             errors = result.dig('data', 'submitForm', 'errors')
 
             aggregate_failures 'checking response' do
-              expect(response.status).to eq 200
+              expect(response.status).to eq(200), result&.inspect
               expect(errors).to be_empty
               expect(record_id).to be_present
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
