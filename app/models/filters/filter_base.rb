@@ -1052,6 +1052,8 @@ module Filters
         label(key, labels) if includes_comparison?
       when :data_source_ids
         label(:data_sources, labels)
+      when :organization_ids
+        label(:organizations, labels)
       when :project_ids
         label(:projects, labels)
       when :project_group_ids
