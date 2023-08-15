@@ -16,10 +16,10 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::EmergencyShelterAll
     [
       {
         'ENROLLMENTID' => enrollment.enrollment_id,
-        'REFERREDTOALLOWANCEGRANT' => '1',
-        'RECEVIEDFUNDING' => '2',
+        'REFERREDTOALLOWANCEGRANT' => '2 Yes',
+        'RECEVIEDFUNDING' => '2 Yes',
         'AMOUNTRECEIVED' => '100.50',
-        'REASONNOTREFERRED' => '602',
+        'REASONNOTREFERRED' => '1734 Pending decision',
       },
     ]
   end

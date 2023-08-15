@@ -34,7 +34,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :esg_allowance_grant_referred, label: 'ESG Allowance Grant Referred' },
 
         # Enrollment: esg_allowance_grant_received
-        { owner_type: 'Hmis::Hud::Enrollment', field_type: :integer, key: :esg_allowance_grant_received, label: 'ESG Allowance Grant Received' },
+        { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :esg_allowance_grant_received, label: 'ESG Allowance Grant Received' },
 
         # Enrollment: esg_allowance_grant_received_amount
         { owner_type: 'Hmis::Hud::Enrollment', field_type: :float, key: :esg_allowance_grant_received_amount, label: 'ESG Allowance Grant Received Amount' },

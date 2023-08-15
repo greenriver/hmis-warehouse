@@ -55,7 +55,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def cde_attrs(row)
       [
-        [row_value(row, field: 'FUNDINGSOURCE'), :funding_source],
+        # funding source is supposed to be required but data has missing values
+        [row_value(row, field: 'FUNDINGSOURCE', required: false), :funding_source],
         [row_value(row, field: 'PAYMENTTYPE', required: false), :payment_type],
       ].map do |value, definition_key|
         next unless value

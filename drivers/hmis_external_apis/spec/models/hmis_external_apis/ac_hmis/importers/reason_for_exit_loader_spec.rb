@@ -18,7 +18,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReasonForExitLoader
       {
         'ExitID' => exit.exit_id,
         'EnrollmentID' => enrollment.enrollment_id,
-        'ReasonForExit' => 'Other',
+        'ReasonForExit' => 'Completed project',
         'ReasonForExitOther' => 'test',
         'VoluntaryTermination' => 'Y',
       },

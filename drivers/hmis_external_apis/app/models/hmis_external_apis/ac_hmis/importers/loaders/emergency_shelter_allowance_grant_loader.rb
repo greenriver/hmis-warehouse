@@ -23,25 +23,30 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         owner_id = owner_id_by_enrollment_id.fetch(enrollment_id)
         [
           new_cde_record(
-            # FIXME - need to map integer value, mapping not yet provided
-            value: row_value(row, field: 'REFERREDTOALLOWANCEGRANT'),
+            value: clean_str(row_value(row, field: 'REFERREDTOALLOWANCEGRANT')),
             definition_key: :esg_allowance_grant_referred,
           ),
           new_cde_record(
-            # FIXME - need to map integer value, mapping not yet provided
-            value: row_value(row, field: 'RECEVIEDFUNDING'),
+            value: clean_str(row_value(row, field: 'RECEVIEDFUNDING', required: false)),
             definition_key: :esg_allowance_grant_received,
           ),
           new_cde_record(
-            value: row_value(row, field: 'AMOUNTRECEIVED'),
+            value: row_value(row, field: 'AMOUNTRECEIVED', required: false),
             definition_key: :esg_allowance_grant_received_amount,
           ),
           new_cde_record(
-            value: row_value(row, field: 'REASONNOTREFERRED'),
+            # FIXME - need to map integer value, mapping not yet provided
+            value: row_value(row, field: 'REASONNOTREFERRED', required: false),
             definition_key: :esg_allowance_grant_reason_not_referred,
           ),
         ].compact_blank.each { |r| r[:owner_id] = owner_id }
       end
+    end
+
+    # FIXME - confirm understanding of the spec here
+    # remove leading number
+    def clean_str(str)
+      str.sub(/^[0-9]*/, '').strip
     end
 
     def owner_class
