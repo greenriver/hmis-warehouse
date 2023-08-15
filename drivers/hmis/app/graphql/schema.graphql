@@ -5434,6 +5434,7 @@ type Project {
   projectType: ProjectType
   referralRequests(limit: Int, offset: Int): ReferralRequestsPaginated!
   residentialAffiliation: NoYesMissing
+  services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
   unitTypes: [UnitTypeCapacity!]!
@@ -7388,6 +7389,11 @@ enum ServiceTypeProvided {
 }
 
 input ServicesForEnrollmentFilterOptions {
+  serviceCategory: [ID!]
+  serviceType: [ID!]
+}
+
+input ServicesForProjectFilterOptions {
   serviceCategory: [ID!]
   serviceType: [ID!]
 }
