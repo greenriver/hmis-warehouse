@@ -20,7 +20,7 @@ module ClientAccessControl
       'custom_events' => { name: 'Custom', icon: '' },
     }.freeze
 
-    def initialize(year, month, filters)
+    def initialize(year = Date.current.year, month = Date.current.month, filters = {})
       @year = year
       @month = month
       @filters = filters
@@ -150,14 +150,13 @@ module ClientAccessControl
 
     # The lesser of today or the max exit date
     def max_date(client)
-      (
-        ::GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          where(client_id: client.id).pluck(:exit_date) +
-        [Date.current]
-      ).compact.min
+      ::GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(client_id: client.id).
+        pluck(cl(she_t[:last_date_in_program], Date.current)).
+        max
     end
 
-    def weeks_data(month:, year:, client:, user:)
+    def weeks_data(month:, year:, client:, user:) # rubocop:disable Metrics/AbcSize
       @weeks_data ||= [].tap do |data|
         start_of_month = date_range_for(month: month, year: year).first
         date_range = (start_of_month.beginning_of_week..start_of_month.end_of_month.end_of_week)
@@ -176,8 +175,10 @@ module ClientAccessControl
               project_type: project_type.to_s,
               project_type_name: HudUtility.project_type_brief(project_type),
               entry_date: she.entry_date,
-              exit_date: she.exit_date,
+              exit_date: she.exit_date.presence || Date.current,
             }
+            projects[she.id][:move_in_dates] ||= []
+            projects[she.id][:move_in_dates] << she.move_in_date
           end
 
           services(month: month, year: year, client: client, week: week, user: user).each do |service|
@@ -190,14 +191,14 @@ module ClientAccessControl
               project_type: project_type.to_s,
               project_type_name: HudUtility.project_type_brief(project_type),
               entry_date: she.entry_date,
-              exit_date: she.exit_date,
+              exit_date: she.exit_date.presence || Date.current,
             }
             if service.bed_night?
               projects[she.id][:bed_nights] ||= []
               projects[she.id][:bed_nights] << service.date_provided
             else
-              projects[she.id][:services] ||= []
-              projects[she.id][:services] << service.date_provided
+              projects[she.id][:service_dates] ||= []
+              projects[she.id][:service_dates] << service.date_provided
             end
           end
 
@@ -215,7 +216,7 @@ module ClientAccessControl
               project_type: project_type.to_s,
               project_type_name: HudUtility.project_type_brief(project_type),
               entry_date: she.entry_date,
-              exit_date: she.exit_date,
+              exit_date: she.exit_date.presence || Date.current,
             }
             projects[she.id][:extrapolation] ||= {
               entry_date: services.min_by(&:date).date,
@@ -233,7 +234,7 @@ module ClientAccessControl
               project_type: project_type.to_s,
               project_type_name: HudUtility.project_type_brief(project_type),
               entry_date: she.entry_date,
-              exit_date: she.exit_date,
+              exit_date: she.exit_date.presence || Date.current,
             }
             projects[she.id][:current_situations] ||= []
             projects[she.id][:current_situations] << cls.information_date
@@ -249,7 +250,7 @@ module ClientAccessControl
               project_type: project_type.to_s,
               project_type_name: HudUtility.project_type_brief(project_type),
               entry_date: she.entry_date,
-              exit_date: she.exit_date,
+              exit_date: she.exit_date.presence || Date.current,
             }
             projects[she.id][:events] ||= []
             projects[she.id][:events] << event.event_date
@@ -265,7 +266,7 @@ module ClientAccessControl
               project_type: project_type.to_s,
               project_type_name: HudUtility.project_type_brief(project_type),
               entry_date: she.entry_date,
-              exit_date: she.exit_date,
+              exit_date: she.exit_date.presence || Date.current,
             }
             projects[she.id][:custom_events] ||= []
             projects[she.id][:custom_events] << service.date
@@ -273,6 +274,7 @@ module ClientAccessControl
             projects[she.id][:custom_events_names] << service.service_name
           end
 
+          projects = {} if week.first > Date.current
           week_data[:projects] = projects.values
           data << week_data
         end

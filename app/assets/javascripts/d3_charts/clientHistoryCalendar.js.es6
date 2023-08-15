@@ -222,7 +222,17 @@ class AppClientHistoryCalendar {
         .attr('class', this.prefixClass('project', 'start'))
 
       bars.selectAll(`.${this.prefixClass('project', 'end')}`)
-        .data((d) => includesEnd(d) ? [d] : [])
+        .data((d) => {
+          if(includesEnd(d)) {
+            if (d.exit_date == new Date().toJSON().slice(0, 10)) {
+              return []
+            } else {
+              return [d]
+            }
+          } else {
+            return []
+          }
+        })
         .enter()
         .append('div')
         .attr('class', this.prefixClass('project', 'end'))
@@ -279,7 +289,11 @@ class AppClientHistoryCalendar {
             classes.push(this.prefixClass('project', 'label-has-start'))
           }
           if (includesEnd(d)) {
-            classes.push(this.prefixClass('project', 'label-has-end'))
+            if (this.getDateFromString(d.exit_date) == new Date()) {
+
+            } else {
+              classes.push(this.prefixClass('project', 'label-has-end'))
+            }
           }
           return classes.join(' ')
         })
