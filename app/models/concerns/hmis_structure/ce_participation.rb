@@ -4,21 +4,21 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisStructure::Affiliation
+module HmisStructure::CeParticipation
   extend ActiveSupport::Concern
   include ::HmisStructure::Base
 
   included do
-    self.hud_key = :AffiliationID
+    self.hud_key = :CEParticipationID
     acts_as_paranoid(column: :DateDeleted)
   end
 
   module ClassMethods
     def hmis_configuration(version: nil)
       case version
-      when '6.11', '6.12', '2020', '2022', '2024'
+      when '2024'
         {
-          AffiliationID: {
+          CEParticipationID: {
             type: :string,
             limit: 32,
             null: false,
@@ -28,10 +28,31 @@ module HmisStructure::Affiliation
             limit: 32,
             null: false,
           },
-          ResProjectID: {
-            type: :string,
-            limit: 32,
+          AccessPoint: {
+            type: :integer,
             null: false,
+          },
+          PreventionAssessment: {
+            type: :integer,
+          },
+          CrisisAssessment: {
+            type: :integer,
+          },
+          HousingAssessment: {
+            type: :integer,
+          },
+          DirectServices: {
+            type: :integer,
+          },
+          ReceivesReferrals: {
+            type: :integer,
+          },
+          CEParticipationStatusStartDate: {
+            type: :date,
+            null: false,
+          },
+          CEParticipationStatusEndDate: {
+            type: :date,
           },
           DateCreated: {
             type: :datetime,
@@ -60,6 +81,8 @@ module HmisStructure::Affiliation
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
+        [:CEParticipationID] => nil,
+        [:ProjectID] => nil,
         [:ExportID] => nil,
       }
     end
