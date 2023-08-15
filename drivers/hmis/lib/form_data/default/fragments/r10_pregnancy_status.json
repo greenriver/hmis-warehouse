@@ -100,7 +100,14 @@
           "mapping": {
             "record_type": "HEALTH_AND_DV",
             "field_name": "dueDate"
-          }
+          },
+          "bounds": [
+            {
+              "id": "min-due-date",
+              "type": "MIN",
+              "value_local_constant": "$today"
+            }
+          ]
         }
       ]
     }

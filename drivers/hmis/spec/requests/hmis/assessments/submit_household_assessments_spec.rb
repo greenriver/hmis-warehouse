@@ -103,7 +103,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
 
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(errors).to be_empty
         expect(assessments).to be_present
         expect(assessments.size).to eq(3)
@@ -127,7 +127,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
 
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(assessments).to be_nil
         expect(errors.size).to eq(1)
         expect(errors).to match([a_hash_including('severity' => 'warning', 'type' => 'data_not_collected')])
@@ -149,7 +149,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
 
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(errors).to be_empty
         expect(assessments).to be_present
         expect(assessments.size).to eq(3)
@@ -184,7 +184,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
 
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(assessments).to be_nil
         expect(errors.size).to eq(1)
         expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Assessments must all belong to the same household.')])
@@ -222,7 +222,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(assessments).to be_present
         expect(errors).to be_empty
       end
@@ -237,7 +237,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
       expected_message = Hmis::Hud::Validators::EnrollmentValidator.before_hoh_entry_message(a1.assessment_date)
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(assessments).to be_nil
         expect(errors.size).to eq(2)
         expect(errors).to match([
@@ -278,7 +278,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(assessments).to be_present
         expect(errors).to be_empty
       end
@@ -296,7 +296,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expected_member_message = Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(a1.assessment_date)
 
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(assessments).to be_nil
         expect(errors.size).to eq(3)
         expect(errors).to include(a_hash_including('severity' => 'warning', 'message' => expected_hoh_message, 'recordId' => a1.id.to_s))

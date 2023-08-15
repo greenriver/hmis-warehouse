@@ -111,9 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             confirmed: true, # ignore warnings, they are tested separately
             **completed_form_values_for_role(role) do |values|
               if role == :FILE
-                # values[:values]['tags'] = [tag2.id.to_s]
-                values[:values]['fileBlobId'] = blob.id.to_s
-                # values[:hud_values]['tags'] = [tag2.id.to_s]
+                values[:values]['file-blob-id'] = blob.id.to_s
                 values[:hud_values]['fileBlobId'] = blob.id.to_s
               end
               values
@@ -160,7 +158,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             errors = result.dig('data', 'submitForm', 'errors')
 
             aggregate_failures 'checking response' do
-              expect(response.status).to eq 200
+              expect(response.status).to eq(200), result&.inspect
               expect(errors).to be_empty
               expect(record_id).to be_present
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
@@ -195,7 +193,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
 
           aggregate_failures 'checking response' do
-            expect(response.status).to eq 200
+            expect(response.status).to eq(200), result&.inspect
             expect(record).to be_nil
             expect(errors).to include(
               a_hash_including(**expected_error.transform_keys(&:to_s).transform_values(&:to_s)),
@@ -269,7 +267,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
         expect(errors).to match([
@@ -289,7 +287,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(errors).to be_empty
         expect(record_id).to be_present
         expect(i1.reload.inventory_end_date).to be nil
@@ -308,7 +306,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(errors).to be_empty
         expect(record_id).to be_present
         expect(i1.reload.inventory_end_date).to be nil
@@ -331,7 +329,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
         expect(errors).to match([
@@ -358,7 +356,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_present
         expect(errors.length).to eq(0)
         expect(p1.reload.operating_end_date).to be_present
@@ -389,7 +387,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(input: { input: input }) { mutation }
       errors = result.dig('data', 'submitForm', 'errors')
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(errors).to contain_exactly(include(expected_error.stringify_keys))
       end
     end
