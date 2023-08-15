@@ -252,8 +252,8 @@ module ClientAccessControl
               entry_date: she.entry_date,
               exit_date: she.exit_date.presence || Date.current,
             }
-            projects[she.id][:events] ||= []
-            projects[she.id][:events] << event.event_date
+            projects[she.id][:ce_events] ||= []
+            projects[she.id][:ce_events] << event.event_date
           end
 
           custom_services(month: month, year: year, client: client, week: week, user: user).each do |service|
