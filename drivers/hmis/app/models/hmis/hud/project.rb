@@ -15,6 +15,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
+  has_many :hmis_participations, **hmis_relation(:ProjectID, 'HmisParticipation'), inverse_of: :project, dependent: :destroy
   # Enrollments in this Project, NOT including WIP Enrollments
   has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
   # WIP records representing Enrollments for this Project

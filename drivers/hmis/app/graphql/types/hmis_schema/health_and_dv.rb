@@ -24,10 +24,10 @@ module Types
     hud_field :dental_health_status, HmisSchema::Enums::Hud::HealthStatus
     hud_field :mental_health_status, HmisSchema::Enums::Hud::HealthStatus
     hud_field :pregnancy_status, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :life_value, HmisSchema::Enums::Hud::WellbeingAgreement
-    hud_field :support_from_others, HmisSchema::Enums::Hud::WellbeingAgreement
-    hud_field :bounce_back, HmisSchema::Enums::Hud::WellbeingAgreement
-    hud_field :feeling_frequency, HmisSchema::Enums::Hud::FeelingFrequency
+    # hud_field :life_value, HmisSchema::Enums::Hud::WellbeingAgreement
+    # hud_field :support_from_others, HmisSchema::Enums::Hud::WellbeingAgreement
+    # hud_field :bounce_back, HmisSchema::Enums::Hud::WellbeingAgreement
+    # hud_field :feeling_frequency, HmisSchema::Enums::Hud::FeelingFrequency
     hud_field :due_date
     hud_field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false
     hud_field :date_updated

@@ -13,9 +13,9 @@ class Hmis::FieldMap
       null: true,
     },
     {
-      key: :client_refused,
+      key: :client_prefers_not_to_answer,
       value: 9,
-      desc: 'Client refused',
+      desc: 'Client prefers not to answer',
       null: true,
     },
     {

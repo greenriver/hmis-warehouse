@@ -70,9 +70,9 @@ R20.2
 """
 enum AftercareProvided {
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   Invalid Value
@@ -1110,9 +1110,9 @@ enum CountExchangeForSex {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -1246,9 +1246,9 @@ enum CurrentEdStatus {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -1292,7 +1292,7 @@ HUD Current Living Situation
 type CurrentLivingSituation {
   client: Client!
   clsSubsidyType: RentalSubsidyType
-  currentLivingSituation: LivingSituation!
+  currentLivingSituation: CurrentLivingSituationOptions!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -1307,6 +1307,137 @@ type CurrentLivingSituation {
   subsequentResidence: NoYesReasonsForMissingData
   user: User
   verifiedBy: String
+}
+
+"""
+4.12
+"""
+enum CurrentLivingSituationOptions {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client prefers not to answer
+  """
+  CLIENT_PREFERS_NOT_TO_ANSWER
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (101) Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter
+  """
+  EMERGENCY_SHELTER_INCLUDING_HOTEL_OR_MOTEL_PAID_FOR_WITH_EMERGENCY_SHELTER_VOUCHER_OR_HOST_HOME_SHELTER
+
+  """
+  (215) Foster care home or foster care group home
+  """
+  FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME
+
+  """
+  (206) Hospital or other residential non-psychiatric medical facility
+  """
+  HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY
+
+  """
+  (332) Host Home (non-crisis)
+  """
+  HOST_HOME_NON_CRISIS
+
+  """
+  (314) Hotel or motel paid for without emergency shelter voucher
+  """
+  HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (207) Jail, prison or juvenile detention facility
+  """
+  JAIL_PRISON_OR_JUVENILE_DETENTION_FACILITY
+
+  """
+  (225) Long-term care facility or nursing home
+  """
+  LONG_TERM_CARE_FACILITY_OR_NURSING_HOME
+
+  """
+  (17) Other
+  """
+  OTHER
+
+  """
+  (411) Owned by client, no ongoing housing subsidy
+  """
+  OWNED_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (421) Owned by client, with ongoing housing subsidy
+  """
+  OWNED_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (116) Place not meant for habitation (e.g., a vehicle, an abandoned building,
+  bus/train/subway station/airport or anywhere outside)
+  """
+  PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
+
+  """
+  (204) Psychiatric hospital or other psychiatric facility
+  """
+  PSYCHIATRIC_HOSPITAL_OR_OTHER_PSYCHIATRIC_FACILITY
+
+  """
+  (410) Rental by client, no ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (435) Rental by client, with ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (329) Residential project or halfway house with no homeless criteria
+  """
+  RESIDENTIAL_PROJECT_OR_HALFWAY_HOUSE_WITH_NO_HOMELESS_CRITERIA
+
+  """
+  (118) Safe Haven
+  """
+  SAFE_HAVEN
+
+  """
+  (335) Staying or living in a family member’s room, apartment, or house
+  """
+  STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (336) Staying or living in a friend's room, apartment or house
+  """
+  STAYING_OR_LIVING_IN_A_FRIEND_S_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (205) Substance abuse treatment facility or detox center
+  """
+  SUBSTANCE_ABUSE_TREATMENT_FACILITY_OR_DETOX_CENTER
+
+  """
+  (302) Transitional housing for homeless persons (including homeless youth)
+  """
+  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
+
+  """
+  (37) Worker unable to determine
+  """
+  WORKER_UNABLE_TO_DETERMINE
 }
 
 type CurrentLivingSituationsPaginated {
@@ -1329,9 +1460,9 @@ enum CurrentSchoolAttended {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (2) Currently enrolled and attending regularly (when school or the course is in session)
@@ -1412,9 +1543,9 @@ enum DOBDataQuality {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -1793,7 +1924,7 @@ enum DependentUnder6 {
 }
 
 """
-3.12.1
+3.12
 """
 enum Destination {
   """
@@ -1802,9 +1933,9 @@ enum Destination {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -1817,27 +1948,27 @@ enum Destination {
   DECEASED
 
   """
-  (1) Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter
+  (101) Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter
   """
-  EMERGENCY_SHELTER_INCLUDING_HOTEL_OR_MOTEL_PAID_FOR_WITH_EMERGENCY_SHELTER_VOUCHER_OR_RHY_FUNDED_HOST_HOME_SHELTER
+  EMERGENCY_SHELTER_INCLUDING_HOTEL_OR_MOTEL_PAID_FOR_WITH_EMERGENCY_SHELTER_VOUCHER_OR_HOST_HOME_SHELTER
 
   """
-  (15) Foster care home or foster care group home
+  (215) Foster care home or foster care group home
   """
   FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME
 
   """
-  (6) Hospital or other residential non-psychiatric medical facility
+  (206) Hospital or other residential non-psychiatric medical facility
   """
   HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY
 
   """
-  (32) Host Home (non-crisis)
+  (332) Host Home (non-crisis)
   """
   HOST_HOME_NON_CRISIS
 
   """
-  (14) Hotel or motel paid for without emergency shelter voucher
+  (314) Hotel or motel paid for without emergency shelter voucher
   """
   HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
 
@@ -1847,22 +1978,22 @@ enum Destination {
   INVALID
 
   """
-  (7) Jail, prison or juvenile detention facility
+  (207) Jail, prison or juvenile detention facility
   """
   JAIL_PRISON_OR_JUVENILE_DETENTION_FACILITY
 
   """
-  (25) Long-term care facility or nursing home
+  (225) Long-term care facility or nursing home
   """
   LONG_TERM_CARE_FACILITY_OR_NURSING_HOME
 
   """
-  (26) Moved from one HOPWA funded project to HOPWA PH
+  (426) Moved from one HOPWA funded project to HOPWA PH
   """
   MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_PH
 
   """
-  (27) Moved from one HOPWA funded project to HOPWA TH
+  (327) Moved from one HOPWA funded project to HOPWA TH
   """
   MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_TH
 
@@ -1877,105 +2008,80 @@ enum Destination {
   OTHER
 
   """
-  (11) Owned by client, no ongoing housing subsidy
+  (411) Owned by client, no ongoing housing subsidy
   """
   OWNED_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
 
   """
-  (21) Owned by client, with ongoing housing subsidy
+  (421) Owned by client, with ongoing housing subsidy
   """
   OWNED_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
 
   """
-  (3) Permanent housing (other than RRH) for formerly homeless persons
-  """
-  PERMANENT_HOUSING_OTHER_THAN_RRH_FOR_FORMERLY_HOMELESS_PERSONS
-
-  """
-  (16) Place not meant for habitation (e.g., a vehicle, an abandoned building,
+  (116) Place not meant for habitation (e.g., a vehicle, an abandoned building,
   bus/train/subway station/airport or anywhere outside)
   """
   PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
 
   """
-  (4) Psychiatric hospital or other psychiatric facility
+  (204) Psychiatric hospital or other psychiatric facility
   """
   PSYCHIATRIC_HOSPITAL_OR_OTHER_PSYCHIATRIC_FACILITY
 
   """
-  (34) Rental by client in a public housing unit
-  """
-  RENTAL_BY_CLIENT_IN_A_PUBLIC_HOUSING_UNIT
-
-  """
-  (10) Rental by client, no ongoing housing subsidy
+  (410) Rental by client, no ongoing housing subsidy
   """
   RENTAL_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
 
   """
-  (28) Rental by client, with GPD TIP housing subsidy
+  (435) Rental by client, with ongoing housing subsidy
   """
-  RENTAL_BY_CLIENT_WITH_GPD_TIP_HOUSING_SUBSIDY
+  RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
 
   """
-  (33) Rental by client, with HCV voucher (tenant or project based)
-  """
-  RENTAL_BY_CLIENT_WITH_HCV_VOUCHER_TENANT_OR_PROJECT_BASED
-
-  """
-  (20) Rental by client, with other ongoing housing subsidy
-  """
-  RENTAL_BY_CLIENT_WITH_OTHER_ONGOING_HOUSING_SUBSIDY
-
-  """
-  (31) Rental by client, with RRH or equivalent subsidy
-  """
-  RENTAL_BY_CLIENT_WITH_RRH_OR_EQUIVALENT_SUBSIDY
-
-  """
-  (19) Rental by client, with VASH housing subsidy
-  """
-  RENTAL_BY_CLIENT_WITH_VASH_HOUSING_SUBSIDY
-
-  """
-  (29) Residential project or halfway house with no homeless criteria
+  (329) Residential project or halfway house with no homeless criteria
   """
   RESIDENTIAL_PROJECT_OR_HALFWAY_HOUSE_WITH_NO_HOMELESS_CRITERIA
 
   """
-  (18) Safe Haven
+  (118) Safe Haven
   """
   SAFE_HAVEN
 
   """
-  (22) Staying or living with family, permanent tenure
+  (422) Staying or living with family, permanent tenure
   """
   STAYING_OR_LIVING_WITH_FAMILY_PERMANENT_TENURE
 
   """
-  (12) Staying or living with family, temporary tenure (e.g. room, apartment or house)
+  (312) Staying or living with family, temporary tenure (e.g. room, apartment or house)
   """
   STAYING_OR_LIVING_WITH_FAMILY_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
 
   """
-  (23) Staying or living with friends, permanent tenure
+  (423) Staying or living with friends, permanent tenure
   """
   STAYING_OR_LIVING_WITH_FRIENDS_PERMANENT_TENURE
 
   """
-  (13) Staying or living with friends, temporary tenure (e.g. room apartment or house)
+  (313) Staying or living with friends, temporary tenure (e.g. room apartment or house)
   """
   STAYING_OR_LIVING_WITH_FRIENDS_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
 
   """
-  (5) Substance abuse treatment facility or detox center
+  (205) Substance abuse treatment facility or detox center
   """
   SUBSTANCE_ABUSE_TREATMENT_FACILITY_OR_DETOX_CENTER
 
   """
-  (2) Transitional housing for homeless persons (including homeless youth)
+  (302) Transitional housing for homeless persons (including homeless youth)
   """
   TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
+
+  """
+  (37) Worker unable to determine
+  """
+  WORKER_UNABLE_TO_DETERMINE
 }
 
 """
@@ -2118,9 +2224,9 @@ enum DisabilityResponse {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -2204,9 +2310,9 @@ enum DischargeStatus {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -2442,7 +2548,7 @@ type Enrollment {
   juvenileJusticeYears: RHYNumberofYears
   lengthOfStay: ResidencePriorLengthOfStay
   literalHomelessHistory: LiteralHomelessHistory
-  livingSituation: LivingSituation
+  livingSituation: PriorLivingSituation
   losUnderThreshold: NoYesMissing
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
@@ -2458,6 +2564,7 @@ type Enrollment {
   referralSource: ReferralSource
   relationshipToHoH: RelationshipToHoH!
   reminders: [Reminder!]!
+  rentalSubsidyType: RentalSubsidyType
   runawayYouth: NoYesReasonsForMissingData
   services(filters: ServicesForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   sexOffender: NoYesMissing
@@ -2621,9 +2728,9 @@ enum Ethnicity {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -2832,6 +2939,7 @@ type Exit {
   destination: Destination!
   destinationSafeClient: NoYesReasonsForMissingData
   destinationSafeWorker: WorkerResponse
+  destinationSubsidyType: RentalSubsidyType
   earlyExitReason: ExpelledReason
   enrollment: Enrollment!
   exchangeForSex: NoYesReasonsForMissingData
@@ -2937,56 +3045,6 @@ enum ExternalIdentifierType {
   Warehouse ID
   """
   WAREHOUSE_ID
-}
-
-"""
-C1.2
-"""
-enum FeelingFrequency {
-  """
-  (4) At least every day
-  """
-  AT_LEAST_EVERY_DAY
-
-  """
-  (8) Client doesn't know
-  """
-  CLIENT_DOESN_T_KNOW
-
-  """
-  (9) Client refused
-  """
-  CLIENT_REFUSED
-
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (0) Not at all
-  """
-  NOT_AT_ALL
-
-  """
-  (1) Once a month
-  """
-  ONCE_A_MONTH
-
-  """
-  (2) Several times a month
-  """
-  SEVERAL_TIMES_A_MONTH
-
-  """
-  (3) Several times a week
-  """
-  SEVERAL_TIMES_A_WEEK
 }
 
 type FieldMapping {
@@ -3400,9 +3458,9 @@ enum FundingSource {
   HUD_COC_HOMELESSNESS_PREVENTION_HIGH_PERFORMING_COMMUNITIES_ONLY
 
   """
-  (49) HUD: CoC - Joint Component RRH/PSH
+  (49) HUD: CoC - Joint Component RRH/PSH [Deprecated]
   """
-  HUD_COC_JOINT_COMPONENT_RRH_PSH
+  HUD_COC_JOINT_COMPONENT_RRH_PSH_DEPRECATED
 
   """
   (44) HUD: CoC - Joint Component TH/RRH
@@ -3545,9 +3603,19 @@ enum FundingSource {
   HUD_PUBLIC_AND_INDIAN_HOUSING_PIH_PROGRAMS
 
   """
-  (12) HUD: Rural Housing Stability Assistance Program
+  (12) HUD: Rural Housing Stability Assistance Program [Deprecated]
   """
-  HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM
+  HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM_DEPRECATED
+
+  """
+  (55) HUD: Rural Special NOFO
+  """
+  HUD_RURAL_SPECIAL_NOFO
+
+  """
+  (54) HUD: Unsheltered Special NOFO
+  """
+  HUD_UNSHELTERED_SPECIAL_NOFO
 
   """
   Invalid Value
@@ -3696,7 +3764,32 @@ enum GeographyType {
 }
 
 """
-2.02.9
+2.08.1
+"""
+enum HMISParticipationType {
+  """
+  (2) Comparable Database Participating
+  """
+  COMPARABLE_DATABASE_PARTICIPATING
+
+  """
+  (1) HMIS Participating
+  """
+  HMIS_PARTICIPATING
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (0) Not Participating
+  """
+  NOT_PARTICIPATING
+}
+
+"""
+2.02.8
 """
 enum HOPWAMedAssistedLivingFac {
   """
@@ -3721,7 +3814,6 @@ enum HOPWAMedAssistedLivingFac {
 }
 
 type HealthAndDv {
-  bounceBack: WellbeingAgreement
   client: Client!
   currentlyFleeing: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
@@ -3732,14 +3824,11 @@ type HealthAndDv {
   domesticViolenceVictim: NoYesReasonsForMissingData
   dueDate: ISO8601Date
   enrollment: Enrollment!
-  feelingFrequency: FeelingFrequency
   generalHealthStatus: HealthStatus
   id: ID!
   informationDate: ISO8601Date!
-  lifeValue: WellbeingAgreement
   mentalHealthStatus: HealthStatus
   pregnancyStatus: NoYesReasonsForMissingData
-  supportFromOthers: WellbeingAgreement
   user: User
   whenOccurred: WhenDVOccurred
 }
@@ -3764,9 +3853,9 @@ enum HealthStatus {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -3891,24 +3980,14 @@ enum HousingAssessmentAtExit {
   CLIENT_BECAME_HOMELESS_MOVING_TO_A_SHELTER_OR_OTHER_PLACE_UNFIT_FOR_HUMAN_HABITATION
 
   """
-  (10) Client died
-  """
-  CLIENT_DIED
-
-  """
   (8) Client doesn't know
   """
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
-
-  """
-  (7) Client went to jail/prison
-  """
-  CLIENT_WENT_TO_JAIL_PRISON
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -3916,9 +3995,19 @@ enum HousingAssessmentAtExit {
   DATA_NOT_COLLECTED
 
   """
+  (10) Deceased
+  """
+  DECEASED
+
+  """
   Invalid Value
   """
   INVALID
+
+  """
+  (7) Jail/prison
+  """
+  JAIL_PRISON
 
   """
   (4) Moved in with family/friends on a permanent basis
@@ -4265,9 +4354,9 @@ enum LastGradeCompleted {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -4360,207 +4449,6 @@ enum LiteralHomelessHistory {
   NONE
 }
 
-"""
-3.12.1
-"""
-enum LivingSituation {
-  """
-  (8) Client doesn't know
-  """
-  CLIENT_DOESN_T_KNOW
-
-  """
-  (9) Client refused
-  """
-  CLIENT_REFUSED
-
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  (24) Deceased
-  """
-  DECEASED
-
-  """
-  (1) Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter
-  """
-  EMERGENCY_SHELTER_INCLUDING_HOTEL_OR_MOTEL_PAID_FOR_WITH_EMERGENCY_SHELTER_VOUCHER_OR_RHY_FUNDED_HOST_HOME_SHELTER
-
-  """
-  (15) Foster care home or foster care group home
-  """
-  FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME
-
-  """
-  (6) Hospital or other residential non-psychiatric medical facility
-  """
-  HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY
-
-  """
-  (32) Host Home (non-crisis)
-  """
-  HOST_HOME_NON_CRISIS
-
-  """
-  (14) Hotel or motel paid for without emergency shelter voucher
-  """
-  HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (7) Jail, prison or juvenile detention facility
-  """
-  JAIL_PRISON_OR_JUVENILE_DETENTION_FACILITY
-
-  """
-  (25) Long-term care facility or nursing home
-  """
-  LONG_TERM_CARE_FACILITY_OR_NURSING_HOME
-
-  """
-  (26) Moved from one HOPWA funded project to HOPWA PH
-  """
-  MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_PH
-
-  """
-  (27) Moved from one HOPWA funded project to HOPWA TH
-  """
-  MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_TH
-
-  """
-  (30) No exit interview completed
-  """
-  NO_EXIT_INTERVIEW_COMPLETED
-
-  """
-  (17) Other
-  """
-  OTHER
-
-  """
-  (11) Owned by client, no ongoing housing subsidy
-  """
-  OWNED_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
-
-  """
-  (21) Owned by client, with ongoing housing subsidy
-  """
-  OWNED_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
-
-  """
-  (3) Permanent housing (other than RRH) for formerly homeless persons
-  """
-  PERMANENT_HOUSING_OTHER_THAN_RRH_FOR_FORMERLY_HOMELESS_PERSONS
-
-  """
-  (16) Place not meant for habitation (e.g., a vehicle, an abandoned building,
-  bus/train/subway station/airport or anywhere outside)
-  """
-  PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
-
-  """
-  (4) Psychiatric hospital or other psychiatric facility
-  """
-  PSYCHIATRIC_HOSPITAL_OR_OTHER_PSYCHIATRIC_FACILITY
-
-  """
-  (34) Rental by client in a public housing unit
-  """
-  RENTAL_BY_CLIENT_IN_A_PUBLIC_HOUSING_UNIT
-
-  """
-  (10) Rental by client, no ongoing housing subsidy
-  """
-  RENTAL_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
-
-  """
-  (28) Rental by client, with GPD TIP housing subsidy
-  """
-  RENTAL_BY_CLIENT_WITH_GPD_TIP_HOUSING_SUBSIDY
-
-  """
-  (33) Rental by client, with HCV voucher (tenant or project based)
-  """
-  RENTAL_BY_CLIENT_WITH_HCV_VOUCHER_TENANT_OR_PROJECT_BASED
-
-  """
-  (20) Rental by client, with other ongoing housing subsidy
-  """
-  RENTAL_BY_CLIENT_WITH_OTHER_ONGOING_HOUSING_SUBSIDY
-
-  """
-  (31) Rental by client, with RRH or equivalent subsidy
-  """
-  RENTAL_BY_CLIENT_WITH_RRH_OR_EQUIVALENT_SUBSIDY
-
-  """
-  (19) Rental by client, with VASH housing subsidy
-  """
-  RENTAL_BY_CLIENT_WITH_VASH_HOUSING_SUBSIDY
-
-  """
-  (29) Residential project or halfway house with no homeless criteria
-  """
-  RESIDENTIAL_PROJECT_OR_HALFWAY_HOUSE_WITH_NO_HOMELESS_CRITERIA
-
-  """
-  (18) Safe Haven
-  """
-  SAFE_HAVEN
-
-  """
-  (35) Staying or living in a family member's room, apartment or house
-  """
-  STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
-
-  """
-  (36) Staying or living in a friend's room, apartment or house
-  """
-  STAYING_OR_LIVING_IN_A_FRIEND_S_ROOM_APARTMENT_OR_HOUSE
-
-  """
-  (22) Staying or living with family, permanent tenure
-  """
-  STAYING_OR_LIVING_WITH_FAMILY_PERMANENT_TENURE
-
-  """
-  (12) Staying or living with family, temporary tenure (e.g. room, apartment or house)
-  """
-  STAYING_OR_LIVING_WITH_FAMILY_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
-
-  """
-  (23) Staying or living with friends, permanent tenure
-  """
-  STAYING_OR_LIVING_WITH_FRIENDS_PERMANENT_TENURE
-
-  """
-  (13) Staying or living with friends, temporary tenure (e.g. room apartment or house)
-  """
-  STAYING_OR_LIVING_WITH_FRIENDS_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
-
-  """
-  (5) Substance abuse treatment facility or detox center
-  """
-  SUBSTANCE_ABUSE_TREATMENT_FACILITY_OR_DETOX_CENTER
-
-  """
-  (2) Transitional housing for homeless persons (including homeless youth)
-  """
-  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
-
-  """
-  (37) Worker unable to determine
-  """
-  WORKER_UNABLE_TO_DETERMINE
-}
-
 input MciClearanceInput {
   dob: ISO8601Date!
   firstName: String!
@@ -4609,9 +4497,9 @@ enum MilitaryBranch {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (6) Coast Guard
@@ -4637,6 +4525,11 @@ enum MilitaryBranch {
   (3) Navy
   """
   NAVY
+
+  """
+  (7) Space Force
+  """
+  SPACE_FORCE
 }
 
 """
@@ -4649,9 +4542,9 @@ enum MonthsHomelessPastThreeYears {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -4739,9 +4632,9 @@ enum MostRecentEdStatus {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -5010,9 +4903,9 @@ enum NameDataQuality {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -5060,9 +4953,9 @@ enum NoAssistanceReason {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -5115,9 +5008,9 @@ enum NoYesReasonsForMissingData {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -5256,24 +5149,29 @@ enum PercentAMI {
   DATA_NOT_COLLECTED
 
   """
-  (3) Greater than 50%
-  """
-  GREATER_THAN_50
-
-  """
   Invalid Value
   """
   INVALID
 
   """
-  (1) Less than 30%
+  (1) 30% or less
   """
-  LESS_THAN_30
+  NUM_30_OR_LESS
 
   """
-  (2) 30% to 50%
+  (2) 31% to 50%
   """
-  NUM_30_TO_50
+  NUM_31_TO_50
+
+  """
+  (3) 51% to 80%
+  """
+  NUM_51_TO_80
+
+  """
+  (4) 81% or greater
+  """
+  NUM_81_OR_GREATER
 }
 
 type PickListOption {
@@ -5371,6 +5269,127 @@ enum PickListType {
 }
 
 """
+3.917
+"""
+enum PriorLivingSituation {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client prefers not to answer
+  """
+  CLIENT_PREFERS_NOT_TO_ANSWER
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (101) Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter
+  """
+  EMERGENCY_SHELTER_INCLUDING_HOTEL_OR_MOTEL_PAID_FOR_WITH_EMERGENCY_SHELTER_VOUCHER_OR_HOST_HOME_SHELTER
+
+  """
+  (215) Foster care home or foster care group home
+  """
+  FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME
+
+  """
+  (206) Hospital or other residential non-psychiatric medical facility
+  """
+  HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY
+
+  """
+  (332) Host Home (non-crisis)
+  """
+  HOST_HOME_NON_CRISIS
+
+  """
+  (314) Hotel or motel paid for without emergency shelter voucher
+  """
+  HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (207) Jail, prison or juvenile detention facility
+  """
+  JAIL_PRISON_OR_JUVENILE_DETENTION_FACILITY
+
+  """
+  (225) Long-term care facility or nursing home
+  """
+  LONG_TERM_CARE_FACILITY_OR_NURSING_HOME
+
+  """
+  (411) Owned by client, no ongoing housing subsidy
+  """
+  OWNED_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (421) Owned by client, with ongoing housing subsidy
+  """
+  OWNED_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (116) Place not meant for habitation (e.g., a vehicle, an abandoned building,
+  bus/train/subway station/airport or anywhere outside)
+  """
+  PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
+
+  """
+  (204) Psychiatric hospital or other psychiatric facility
+  """
+  PSYCHIATRIC_HOSPITAL_OR_OTHER_PSYCHIATRIC_FACILITY
+
+  """
+  (410) Rental by client, no ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (435) Rental by client, with ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (329) Residential project or halfway house with no homeless criteria
+  """
+  RESIDENTIAL_PROJECT_OR_HALFWAY_HOUSE_WITH_NO_HOMELESS_CRITERIA
+
+  """
+  (118) Safe Haven
+  """
+  SAFE_HAVEN
+
+  """
+  (335) Staying or living in a family member’s room, apartment, or house
+  """
+  STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (336) Staying or living in a friend's room, apartment or house
+  """
+  STAYING_OR_LIVING_IN_A_FRIEND_S_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (205) Substance abuse treatment facility or detox center
+  """
+  SUBSTANCE_ABUSE_TREATMENT_FACILITY_OR_DETOX_CENTER
+
+  """
+  (302) Transitional housing for homeless persons (including homeless youth)
+  """
+  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
+}
+
+"""
 4.19.7
 """
 enum PrioritizationStatus {
@@ -5391,7 +5410,6 @@ enum PrioritizationStatus {
 }
 
 type Project {
-  HMISParticipatingProject: NoYesMissing
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
   access: ProjectAccess!
   active: Boolean!
@@ -5405,6 +5423,7 @@ type Project {
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   hasUnits: Boolean!
+  hmisParticipationStatus: HMISParticipationType
   households(filters: HouseholdFilterOptions, limit: Int, offset: Int, sortOrder: HouseholdSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!
@@ -5420,8 +5439,8 @@ type Project {
   projectType: ProjectType
   referralRequests(limit: Int, offset: Int): ReferralRequestsPaginated!
   residentialAffiliation: NoYesMissing
+  rrhSubType: RRHSubType
   targetPopulation: TargetPopulation
-  trackingMethod: TrackingMethod
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   user: User
@@ -5477,6 +5496,16 @@ R17.1
 """
 enum ProjectCompletionStatus {
   """
+  (2) Client voluntarily left early
+  """
+  CLIENT_VOLUNTARILY_LEFT_EARLY
+
+  """
+  (3) Client was expelled or otherwise involuntarily discharged from project
+  """
+  CLIENT_WAS_EXPELLED_OR_OTHERWISE_INVOLUNTARILY_DISCHARGED_FROM_PROJECT
+
+  """
   (1) Completed project
   """
   COMPLETED_PROJECT
@@ -5485,16 +5514,6 @@ enum ProjectCompletionStatus {
   Invalid Value
   """
   INVALID
-
-  """
-  (2) Youth voluntarily left early
-  """
-  YOUTH_VOLUNTARILY_LEFT_EARLY
-
-  """
-  (3) Youth was expelled or otherwise involuntarily discharged from project
-  """
-  YOUTH_WAS_EXPELLED_OR_OTHERWISE_INVOLUNTARILY_DISCHARGED_FROM_PROJECT
 }
 
 enum ProjectFilterOptionStatus {
@@ -5791,6 +5810,26 @@ enum RHYNumberofYears {
 }
 
 """
+2.02.A
+"""
+enum RRHSubType {
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (2) RRH: Housing with or without services
+  """
+  RRH_HOUSING_WITH_OR_WITHOUT_SERVICES
+
+  """
+  (1) RRH: Services Only
+  """
+  RRH_SERVICES_ONLY
+}
+
+"""
 HUD Race (1.7)
 """
 enum Race {
@@ -5815,9 +5854,9 @@ enum Race {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -5915,9 +5954,9 @@ enum ReasonNotInsured {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -5953,16 +5992,6 @@ enum RecordType {
   BED_NIGHT
 
   """
-  (12) Contact 12
-  """
-  CONTACT_12
-
-  """
-  (13) Contact 13
-  """
-  CONTACT_13
-
-  """
   (151) HOPWA Financial Assistance
   """
   HOPWA_FINANCIAL_ASSISTANCE
@@ -5996,11 +6025,6 @@ enum RecordType {
   (141) PATH Service
   """
   PATH_SERVICE
-
-  """
-  (162) RHY Referral
-  """
-  RHY_REFERRAL
 
   """
   (142) RHY Service Connections
@@ -6244,9 +6268,9 @@ enum ReferralSource {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -6506,9 +6530,9 @@ enum ResidencePriorLengthOfStay {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -6566,9 +6590,9 @@ enum SSNDataQuality {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -6630,9 +6654,9 @@ enum SchoolStatus {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -6983,9 +7007,9 @@ enum ServiceTypeProvided {
   HOPWA_SERVICE__OUTREACH_AND_OR_ENGAGEMENT
 
   """
-  (12) Substance abuse services/treatment
+  (12) Substance use services/treatment
   """
-  HOPWA_SERVICE__SUBSTANCE_ABUSE_SERVICES_TREATMENT
+  HOPWA_SERVICE__SUBSTANCE_USE_SERVICES_TREATMENT
 
   """
   (13) Transportation
@@ -7243,9 +7267,9 @@ enum ServiceTypeProvided {
   RHY_SERVICE_CONNECTIONS__PARENTING_EDUCATION_FOR_YOUTH_WITH_CHILDREN
 
   """
-  (12) Post-natal care
+  (12) Post-natal care for client (person who gave birth)
   """
-  RHY_SERVICE_CONNECTIONS__POST_NATAL_CARE
+  RHY_SERVICE_CONNECTIONS__POST_NATAL_CARE_FOR_CLIENT_PERSON_WHO_GAVE_BIRTH
 
   """
   (27) Post-natal newborn care (wellness exams; immunizations)
@@ -7288,11 +7312,6 @@ enum ServiceTypeProvided {
   SSVF_FINANCIAL_ASSISTANCE__EMERGENCY_HOUSING_ASSISTANCE
 
   """
-  (15) Extended Shallow Subsidy - Rental Assistance
-  """
-  SSVF_FINANCIAL_ASSISTANCE__EXTENDED_SHALLOW_SUBSIDY_RENTAL_ASSISTANCE
-
-  """
   (16) Food Assistance
   """
   SSVF_FINANCIAL_ASSISTANCE__FOOD_ASSISTANCE
@@ -7303,9 +7322,14 @@ enum ServiceTypeProvided {
   SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE
 
   """
-  (11) General housing stability assistance - emergency supplies
+  (11) General housing stability assistance - emergency supplies [Deprecated]
   """
-  SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE_EMERGENCY_SUPPLIES
+  SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE_EMERGENCY_SUPPLIES_DEPRECATED
+
+  """
+  (17) Landlord Incentive
+  """
+  SSVF_FINANCIAL_ASSISTANCE__LANDLORD_INCENTIVE
 
   """
   (5) Moving costs
@@ -7321,6 +7345,16 @@ enum ServiceTypeProvided {
   (2) Security deposit
   """
   SSVF_FINANCIAL_ASSISTANCE__SECURITY_DEPOSIT
+
+  """
+  (15) Shallow Subsidy - Financial Assistance
+  """
+  SSVF_FINANCIAL_ASSISTANCE__SHALLOW_SUBSIDY_FINANCIAL_ASSISTANCE
+
+  """
+  (18) Tenant Incentive
+  """
+  SSVF_FINANCIAL_ASSISTANCE__TENANT_INCENTIVE
 
   """
   (8) Transportation services: tokens/vouchers
@@ -7371,6 +7405,21 @@ enum ServiceTypeProvided {
   (1) Outreach services
   """
   SSVF_SERVICE__OUTREACH_SERVICES
+
+  """
+  (9) Rapid Resolution
+  """
+  SSVF_SERVICE__RAPID_RESOLUTION
+
+  """
+  (8) Returning Home
+  """
+  SSVF_SERVICE__RETURNING_HOME
+
+  """
+  (7) Shallow Subsidy
+  """
+  SSVF_SERVICE__SHALLOW_SUBSIDY
 }
 
 input ServicesForEnrollmentFilterOptions {
@@ -7403,9 +7452,9 @@ enum SexualOrientation {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -7646,13 +7695,18 @@ enum TCellSourceViralLoadSource {
 }
 
 """
-2.02.8
+2.02.7
 """
 enum TargetPopulation {
   """
-  (1) Domestic violence victims
+  (1) DV: Survivor of Domestic Violence
   """
-  DOMESTIC_VIOLENCE_VICTIMS
+  DV_SURVIVOR_OF_DOMESTIC_VIOLENCE
+
+  """
+  (3) HIV: Persons with HIV/AIDS
+  """
+  HIV_PERSONS_WITH_HIV_AIDS
 
   """
   Invalid Value
@@ -7660,14 +7714,9 @@ enum TargetPopulation {
   INVALID
 
   """
-  (4) Not applicable
+  (4) NA: Not applicable
   """
-  NOT_APPLICABLE
-
-  """
-  (3) Persons with HIV/AIDS
-  """
-  PERSONS_WITH_HIV_AIDS
+  NA_NOT_APPLICABLE
 }
 
 """
@@ -7715,9 +7764,9 @@ enum TimesHomelessPastThreeYears {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -7748,26 +7797,6 @@ enum TimesHomelessPastThreeYears {
   (2) Two times
   """
   TWO_TIMES
-}
-
-"""
-2.02.C
-"""
-enum TrackingMethod {
-  """
-  (0) Entry/Exit Date
-  """
-  ENTRY_EXIT_DATE
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (3) Night-by-Night
-  """
-  NIGHT_BY_NIGHT
 }
 
 type Unit {
@@ -8783,9 +8812,9 @@ enum ViralLoadAvailable {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected
@@ -8817,56 +8846,6 @@ type VoidReferralRequestPayload {
 }
 
 """
-C1.1
-"""
-enum WellbeingAgreement {
-  """
-  (8) Client doesn't know
-  """
-  CLIENT_DOESN_T_KNOW
-
-  """
-  (9) Client refused
-  """
-  CLIENT_REFUSED
-
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (2) Neither agree nor disagree
-  """
-  NEITHER_AGREE_NOR_DISAGREE
-
-  """
-  (3) Somewhat agree
-  """
-  SOMEWHAT_AGREE
-
-  """
-  (1) Somewhat disagree
-  """
-  SOMEWHAT_DISAGREE
-
-  """
-  (4) Strongly agree
-  """
-  STRONGLY_AGREE
-
-  """
-  (0) Strongly disagree
-  """
-  STRONGLY_DISAGREE
-}
-
-"""
 4.11.A
 """
 enum WhenDVOccurred {
@@ -8876,9 +8855,9 @@ enum WhenDVOccurred {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
 
   """
   (99) Data not collected

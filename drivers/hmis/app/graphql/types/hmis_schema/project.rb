@@ -50,12 +50,13 @@ module Types
     hud_field :description, String, null: true
     hud_field :contact_information, String, null: true
     hud_field :housing_type, Types::HmisSchema::Enums::Hud::HousingType
-    hud_field :tracking_method, Types::HmisSchema::Enums::Hud::TrackingMethod
+    # hud_field :tracking_method, Types::HmisSchema::Enums::Hud::TrackingMethod
+    field :rrh_sub_type, Types::HmisSchema::Enums::Hud::RRHSubType, null: true
     hud_field :target_population, HmisSchema::Enums::Hud::TargetPopulation
     hud_field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac
     hud_field :continuum_project, HmisSchema::Enums::Hud::NoYesMissing, null: true
     hud_field :residential_affiliation, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :HMISParticipatingProject, HmisSchema::Enums::Hud::NoYesMissing
+    field :hmis_participation_status, HmisSchema::Enums::Hud::HMISParticipationType, null: true
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
@@ -84,9 +85,21 @@ module Types
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
-
     def hud_id
       object.project_id
+    end
+
+    # TODO(2024-followup) resolve related HMISParticipation and CEParticipation records
+    # For now, only do it in the form
+    def hmis_participation_status
+      # Choose the active participation record
+      hp_t = Hmis::Hud::HmisParticipation.arel_table
+      participation = object.hmis_participations.where(hp_t[:HMISParticipationStatusEndDate].eq(nil).or(hp_t[:HMISParticipationStatusEndDate].gteq(Date.current))).order(:date_updated).last
+      return participation.HMISParticipationType if participation.present?
+      # If there was no participation record, fall back to 2022 field (0 and 1 have same meaning)
+      return object.HMISParticipatingProject if [0, 1].include?(object.HMISParticipatingProject)
+
+      nil
     end
 
     def enrollments(**args)

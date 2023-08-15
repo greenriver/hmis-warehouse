@@ -66,9 +66,8 @@ module Types
     # 3.20.1
     field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     # 3.917
-    field :living_situation, HmisSchema::Enums::Hud::LivingSituation
-    # TODO(2024) enable 3.917.A
-    # hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    field :living_situation, HmisSchema::Enums::Hud::PriorLivingSituation
+    hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
     hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing
@@ -187,11 +186,6 @@ module Types
 
     def exit
       load_ar_association(object, :exit)
-    end
-
-    # TODO(2024): remove once 2024 enrollmentcoc column is added
-    def enrollment_coc
-      object.enrollment_cocs.first&.coc_code
     end
 
     def status

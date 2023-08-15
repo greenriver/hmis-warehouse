@@ -18,31 +18,37 @@
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "2.02.C",
-          "text": "Tracking Method",
-          "pick_list_reference": "TrackingMethod",
-          "mapping": { "field_name": "trackingMethod" },
+          "link_id": "2.02.A",
+          "text": "RRH Sub Type",
+          "pick_list_reference": "RRHSubType",
+          "mapping": { "field_name": "rrhSubType" },
           "enable_behavior": "ALL",
           "enable_when": [
             {
               "question": "2.02.6",
               "operator": "EQUAL",
-              "answer_code": "ES"
+              "answer_code": "RRH"
             }
           ]
         },
         {
           "type": "BOOLEAN",
           "required": false,
-          "link_id": "2.02.A",
+          "link_id": "2.02.B",
           "text": "Residential Affiliation?",
+          "_comment": "TODO: should ask follow up question to identify all affiliated residential projects, and put them in Affiliation.csv",
           "mapping": { "field_name": "residentialAffiliation" },
-          "enable_behavior": "ALL",
+          "enable_behavior": "ANY",
           "enable_when": [
             {
               "question": "2.02.6",
               "operator": "EQUAL",
               "answer_code": "SERVICES_ONLY"
+            },
+            {
+              "question": "2.02.A",
+              "operator": "EQUAL",
+              "answer_code": "RRH_SERVICES_ONLY"
             }
           ]
         }
@@ -82,11 +88,19 @@
     },
     {
       "type": "CHOICE",
-      "required": false,
-      "link_id": "2.02.7",
-      "text": "HMIS Participating Project?",
-      "pick_list_reference": "NoYesMissing",
-      "mapping": { "field_name": "HMISParticipatingProject" }
+      "required": true,
+      "link_id": "2.08",
+      "text": "HMIS Participation Status",
+      "pick_list_reference": "HMISParticipationType",
+      "mapping": { "field_name": "hmisParticipationStatus" }
+    },
+    {
+      "type": "CHOICE",
+      "required": true,
+      "link_id": "2.09",
+      "text": "CE Participation Status",
+      "pick_list_reference": "HMISParticipationType",
+      "mapping": { "field_name": "hmisParticipationStatus" }
     }
   ]
 }
