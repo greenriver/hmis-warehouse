@@ -47,6 +47,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     UNIT_ASSIGNMENT: 'Unit Assignment',
     PATH_STATUS: 'PATH Status',
     CE_ASSESSMENT: 'CE Assessment',
+    CE_EVENT: 'CE Event',
   }.freeze
 
   validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
@@ -66,6 +67,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
     CE_ASSESSMENT: { class_name: 'Hmis::Hud::Assessment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CeAssessment' },
+    CE_EVENT: { class_name: 'Hmis::Hud::Event', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Event' },
     FILE: {
       class_name: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],

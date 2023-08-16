@@ -1,0 +1,158 @@
+{
+  "item": [
+    {
+      "type": "DATE",
+      "required": true,
+      "link_id": "4.20.1",
+      "text": "Event Date",
+      "mapping": {
+        "field_name": "eventDate"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "required": true,
+      "text": "Event Type",
+      "pick_list_reference": "EventType",
+      "link_id": "4.20.2",
+      "mapping": { "field_name": "event" }
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "text": "Client housed/re-housed in a safe alternative",
+      "pick_list_reference": "NoYesMissing",
+      "link_id": "4.20.A",
+      "mapping": { "field_name": "probSolDivRrResult" },
+      "enable_when": [
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "PROBLEM_SOLVING_DIVERSION_RAPID_RESOLUTION_INTERVENTION_OR_SERVICE"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "text": "Enrolled in Aftercare project",
+      "pick_list_reference": "NoYesMissing",
+      "link_id": "4.20.B",
+      "mapping": { "field_name": "referralCaseManageAfter" },
+      "enable_when": [
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_POST_PLACEMENT_FOLLOW_UP_CASE_MANAGEMENT"
+        }
+      ]
+    },
+    {
+      "type": "TEXT",
+      "required": false,
+      "link_id": "4.20.C",
+      "text": "Location of Crisis Housing or Permanent Housing Referral",
+      "mapping": { "field_name": "locationCrisisOrPhHousing" },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_EMERGENCY_SHELTER_BED_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_TRANSITIONAL_HOUSING_BED_UNIT_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_RRH_PROJECT_RESOURCE_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_PSH_PROJECT_RESOURCE_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_OTHER_PH_PROJECT_UNIT_RESOURCE_OPENING"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "text": "Referral Result",
+      "pick_list_reference": "ReferralResult",
+      "link_id": "4.20.D",
+      "mapping": { "field_name": "referralResult" },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_EMERGENCY_SHELTER_BED_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_TRANSITIONAL_HOUSING_BED_UNIT_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_RRH_PROJECT_RESOURCE_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_PSH_PROJECT_RESOURCE_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_OTHER_PH_PROJECT_UNIT_RESOURCE_OPENING"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_EMERGENCY_HOUSING_VOUCHER_EHV"
+        },
+        {
+          "question": "4.20.2",
+          "operator": "EQUAL",
+          "answer_code": "REFERRAL_TO_A_HOUSING_STABILITY_VOUCHER"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "required": false,
+      "link_id": "4.20.E",
+      "text": "Result Date",
+      "mapping": {
+        "field_name": "resultDate"
+      },
+      "enable_when": [
+        {
+          "question": "4.20.D",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        }
+      ]
+    }
+  ]
+}
