@@ -1,0 +1,65 @@
+:css
+  .coo-map__atc__icon {
+    text-align:center;
+  }
+  .coo-map__atc__triangle {
+    width: 0; 
+    height: 0; 
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    
+    border-bottom: 15px solid rgba(13, 202, 240, 0.5);
+  }
+  .coo-map__atc__square {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    background-color: rgba(111, 66, 193, 0.5);
+    border: 1px solid #6F42C1;
+  }
+  .coo-map__atc__circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(32, 201, 151, 0.5);
+  }
+:javascript
+  (function() {
+    var acrossTheCountryData = #{data.to_json.html_safe}
+    
+    var map = new L.Map('coo-map__across-the-country').setView([37.8, -96], 4)
+
+    var tiles = L.tileLayer(
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 
+      {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }
+    ).addTo(map);
+
+    acrossTheCountryData.forEach(function(d) {
+      let color = null;
+      let className = ''
+      if(d.percent < 0.1) {
+        color = '#0DCAF0'
+        className = 'coo-map__atc__icon coo-map__atc__triangle'
+      }
+      if(d.percent >= 0.1 && d.percent <= 0.6) {
+        color = '#6F42C1'
+        className = 'coo-map__atc__icon coo-map__atc__square'
+      }
+      if(d.percent > 0.6) {
+        color = '#20C997'
+        className = 'coo-map__atc__icon coo-map__atc__circle'
+      }
+      if(color) {
+        // var circle = L.circleMarker(d.centroid, {radius: 15, color: color});
+        
+        // circle.addTo(map);
+        var myIcon = L.divIcon({className: className, html: '<span>'+d.percent+'</span>', iconSize: 30});
+        L.marker(d.centroid, {icon: myIcon}).addTo(map);
+      }
+      
+      
+    })
+  }).call(this);

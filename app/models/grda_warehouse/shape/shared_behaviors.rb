@@ -26,9 +26,10 @@ module GrdaWarehouse
         }.merge(additional_geo_json_properties)
       end
 
-      def name
-        'unknown'
-      end
+      # why?
+      # def name
+      #   'unknown'
+      # end
 
       def additional_geo_json_properties
         {}

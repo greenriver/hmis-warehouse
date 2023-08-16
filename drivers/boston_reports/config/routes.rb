@@ -14,6 +14,7 @@ BostonHmis::Application.routes.draw do
         get :download, on: :collection
         post :render_section, on: :collection
       end
+      resources :community_of_origin, only: [:index]
       resources :configs, only: [:index, :update]
     end
   end

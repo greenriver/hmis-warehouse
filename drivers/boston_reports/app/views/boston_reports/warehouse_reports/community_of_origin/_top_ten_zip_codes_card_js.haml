@@ -1,0 +1,15 @@
+:javascript
+  (function() {
+    var topTenZipsData = #{data.to_json.html_safe}
+    
+    var topTenZipsMap = new L.Map('coo-map__top-ten-zips').setView([37.8, -96], 4)
+
+    var tiles = L.tileLayer(
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 
+      {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }
+    ).addTo(topTenZipsMap);
+
+  }).call(this);

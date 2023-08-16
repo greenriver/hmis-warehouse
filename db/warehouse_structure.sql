@@ -6193,6 +6193,9 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
+    "order" integer DEFAULT 0 NOT NULL,
+    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
+    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -8058,8 +8061,7 @@ CREATE TABLE public.group_viewable_entities (
     access_group_id integer NOT NULL,
     entity_id integer NOT NULL,
     entity_type character varying NOT NULL,
-    deleted_at timestamp without time zone,
-    collection_id bigint
+    deleted_at timestamp without time zone
 );
 
 
@@ -44352,13 +44354,6 @@ CREATE INDEX index_grades_on_type ON public.grades USING btree (type);
 
 
 --
--- Name: index_group_viewable_entities_on_collection_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_group_viewable_entities_on_collection_id ON public.group_viewable_entities USING btree (collection_id);
-
-
---
 -- Name: index_hap_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50841,17 +50836,10 @@ CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports U
 
 
 --
--- Name: one_entity_per_type_per_collection; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX one_entity_per_type_per_collection ON public.group_viewable_entities USING btree (collection_id, entity_id, entity_type) WHERE (collection_id IS NOT NULL);
-
-
---
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type) WHERE (access_group_id <> 0);
+CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type);
 
 
 --
@@ -54117,8 +54105,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230728140151'),
 ('20230803172055'),
 ('20230803173117'),
-('20230804124734'),
-('20230804232249'),
-('20230805224003');
+('20230804124734');
 
 

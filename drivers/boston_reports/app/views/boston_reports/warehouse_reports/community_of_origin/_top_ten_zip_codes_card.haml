@@ -1,0 +1,18 @@
+.card
+  .card-body
+    %h2.mb-4 Top 10 Zip Codes
+    .row
+      .col-8
+        #coo-map__top-ten-zips{style: 'height:450px;'}
+      .col-4
+        %table.table
+          %thead
+            %tr
+              %th Location
+              %th.text-right Percent of Clients
+          %tbody
+            - data.each do |d|
+              %tr
+                %td= "Zip Code #{d[:zip_code]}"
+                %td.text-right
+                  = number_to_percentage(d[:percent]*100, precision: 1, strip_insignificant_zeros: true)

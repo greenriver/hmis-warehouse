@@ -54,7 +54,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.access_controls (
     id bigint NOT NULL,
-    collection_id bigint,
+    access_group_id bigint,
     role_id bigint,
     user_group_id bigint,
     deleted_at timestamp without time zone,
@@ -446,42 +446,6 @@ CREATE SEQUENCE public.clients_unduplicated_id_seq
 --
 
 ALTER SEQUENCE public.clients_unduplicated_id_seq OWNED BY public.clients_unduplicated.id;
-
-
---
--- Name: collections; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.collections (
-    id bigint NOT NULL,
-    name character varying,
-    user_id bigint,
-    coc_codes jsonb DEFAULT '{}'::jsonb,
-    system jsonb DEFAULT '[]'::jsonb,
-    must_exist boolean DEFAULT false NOT NULL,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: collections_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.collections_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: collections_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.collections_id_seq OWNED BY public.collections.id;
 
 
 --
@@ -1392,11 +1356,10 @@ CREATE TABLE public.roles (
     can_view_cohort_client_changes_report boolean DEFAULT false,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
-    can_see_confidential_files boolean DEFAULT false,
-    can_edit_theme boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL
+    can_edit_theme boolean DEFAULT false
 );
 
 
@@ -1909,8 +1872,7 @@ CREATE TABLE public.users (
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL,
     credentials character varying,
-    hmis_unique_session_id character varying,
-    permission_context character varying DEFAULT 'role_based'::character varying
+    hmis_unique_session_id character varying
 );
 
 
@@ -2077,13 +2039,6 @@ ALTER TABLE ONLY public.agencies ALTER COLUMN id SET DEFAULT nextval('public.age
 --
 
 ALTER TABLE ONLY public.clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('public.clients_unduplicated_id_seq'::regclass);
-
-
---
--- Name: collections id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.collections ALTER COLUMN id SET DEFAULT nextval('public.collections_id_seq'::regclass);
 
 
 --
@@ -2427,14 +2382,6 @@ ALTER TABLE ONLY public.clients_unduplicated
 
 
 --
--- Name: collections collections_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.collections
-    ADD CONSTRAINT collections_pkey PRIMARY KEY (id);
-
-
---
 -- Name: consent_limits consent_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2745,10 +2692,10 @@ CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USI
 
 
 --
--- Name: index_access_controls_on_collection_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_controls_on_collection_id ON public.access_controls USING btree (collection_id);
+CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls USING btree (access_group_id);
 
 
 --
@@ -2875,13 +2822,6 @@ CREATE INDEX index_agencies_consent_limits_on_agency_id ON public.agencies_conse
 --
 
 CREATE INDEX index_agencies_consent_limits_on_consent_limit_id ON public.agencies_consent_limits USING btree (consent_limit_id);
-
-
---
--- Name: index_collections_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_collections_on_user_id ON public.collections USING btree (user_id);
 
 
 --
@@ -3542,26 +3482,23 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322195141'),
 ('20230322204908'),
 ('20230328150855'),
+('20230329102609'),
+('20230329112926'),
+('20230329112954'),
 ('20230330161305'),
 ('20230412142430'),
 ('20230418170053'),
 ('20230420195221'),
-('20230424123118'),
 ('20230426170051'),
-('20230429102609'),
-('20230429112926'),
-('20230429112954'),
 ('20230509131056'),
 ('20230511132156'),
 ('20230511152438'),
 ('20230512175436'),
 ('20230513203001'),
+('20230514123118'),
 ('20230516131951'),
-('20230522111726'),
-('20230525153134'),
 ('20230623113136'),
 ('20230711223507'),
-('20230723145218'),
 ('20230726183720'),
 ('20230730013646'),
 ('20230730013746'),
