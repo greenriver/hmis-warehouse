@@ -2186,6 +2186,7 @@ enum DisabilityType {
 enum DisabledDisplay {
   HIDDEN
   PROTECTED
+  PROTECTED_WITH_VALUE
 }
 
 """
@@ -3010,7 +3011,7 @@ File
 """
 type File {
   confidential: Boolean
-  contentType: String!
+  contentType: String
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   effectiveDate: ISO8601Date
@@ -3114,14 +3115,9 @@ type FormItem {
   """
   How to display item if it is disabled
   """
-  disabledDisplay: DisabledDisplay
-  enableBehavior: EnableBehavior
+  disabledDisplay: DisabledDisplay!
+  enableBehavior: EnableBehavior!
   enableWhen: [EnableWhen!]
-
-  """
-  Include this item only for the listed funders
-  """
-  funders: [FundingSource!]
 
   """
   Helper text for the item
@@ -3131,7 +3127,7 @@ type FormItem {
   """
   Whether the item should always be hidden
   """
-  hidden: Boolean
+  hidden: Boolean!
 
   """
   Initial value(s) when item is first rendered
@@ -3162,7 +3158,7 @@ type FormItem {
   """
   Whether to allow pre-filling this section from a previous assessment
   """
-  prefill: Boolean
+  prefill: Boolean!
 
   """
   Prefix for the item label
@@ -3170,19 +3166,9 @@ type FormItem {
   prefix: String
 
   """
-  Exclude this item for the listed project types
-  """
-  projectTypesExcluded: [ProjectType!]
-
-  """
-  Include this item only for the listed project types
-  """
-  projectTypesIncluded: [ProjectType!]
-
-  """
   Whether human editing is allowed
   """
-  readOnly: Boolean
+  readOnly: Boolean!
 
   """
   Text to use for the item when displayed in read-only view
@@ -3192,12 +3178,12 @@ type FormItem {
   """
   Whether the item may repeat (for choice types, this means multiple choice)
   """
-  repeats: Boolean
+  repeats: Boolean!
 
   """
   Whether the item must be included in data results
   """
-  required: Boolean
+  required: Boolean!
 
   """
   Whether to apply this field to all clients or a single client when bulk creating
@@ -3218,7 +3204,7 @@ type FormItem {
   """
   Whether to show a warning if this question is unanswered
   """
-  warnIfEmpty: Boolean
+  warnIfEmpty: Boolean!
 }
 
 """

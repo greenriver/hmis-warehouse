@@ -864,7 +864,7 @@
         {
           "type": "DISPLAY",
           "link_id": "monthly-total-income",
-          "text": "Montly Total Income",
+          "text": "Monthly Total Income",
           "autofill_values": [
             {
               "autofill_readonly": true,

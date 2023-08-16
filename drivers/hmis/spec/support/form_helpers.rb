@@ -203,8 +203,8 @@ module FormHelpers
     },
     FILE: {
       values: {
-        'confidential' => false,
-        'enrollmentId' => nil,
+        'file-confidential' => false,
+        'file-enrollment' => nil,
       },
       hud_values: {
         'confidential' => false,

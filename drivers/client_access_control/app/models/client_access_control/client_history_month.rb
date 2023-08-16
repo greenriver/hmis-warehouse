@@ -20,7 +20,7 @@ module ClientAccessControl
       'custom_events' => { name: 'Custom', icon: '' },
     }.freeze
 
-    def initialize(year, month, filters)
+    def initialize(year = Date.current.year, month = Date.current.month, filters = {})
       @year = year
       @month = month
       @filters = filters
@@ -64,9 +64,160 @@ module ClientAccessControl
       HudUtility.project_types.select { |k, _| k.in?(project_types) }
     end
 
+    private def enrollments(month:, year:, client:, week:, user:)
+      @enrollments ||= client.service_history_entries.
+        joins(:project).
+        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        open_between(
+          start_date: date_range_for(month: month, year: year).first,
+          end_date: date_range_for(month: month, year: year).last,
+        ).to_a
+      @enrollments.select do |en|
+        en.entry_date < week.last && (en.exit_date.blank? || en.exit_date > week.first)
+      end
+    end
+
+    private def services(month:, year:, client:, user:, she:, week:)
+      @services ||= client.source_services.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        where(date_provided: date_range_for(month: month, year: year)).
+        to_a
+      @services.select { |item| item.date_provided.in?(week) }.
+        group_by { |item| item.enrollment.service_history_enrollment }[she] || []
+    end
+
+    private def max_bed_night(she)
+      @max_bed_night ||= she.client.source_services.bed_night.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        group(she_t[:id]).
+        maximum(:DateProvided)
+      @max_bed_night[she.id]
+    end
+
+    private def bed_night_count(she)
+      @bed_night_count ||= she.client.source_services.bed_night.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        group(she_t[:id]).
+        count(:DateProvided)
+      @bed_night_count[she.id]
+    end
+
+    private def max_service(she)
+      @max_service ||= she.client.source_services.not_bed_night.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        group(she_t[:id]).
+        maximum(:DateProvided)
+      @max_service[she.id]
+    end
+
+    private def service_count(she)
+      @service_count ||= she.client.source_services.not_bed_night.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        group(she_t[:id]).
+        count(:DateProvided)
+      @service_count[she.id] || {}
+    end
+
+    private def current_living_situations(month:, year:, client:, user:, she:, week:)
+      @current_living_situations ||= client.source_current_living_situations.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        where(InformationDate: date_range_for(month: month, year: year)).
+        to_a
+
+      @current_living_situations.select { |item| item.information_date.in?(week) }.
+        group_by { |item| item.enrollment.service_history_enrollment }[she] || []
+    end
+
+    private def max_current_living_situation(she)
+      @max_current_living_situation ||= she.client.source_current_living_situations.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        where(she_t[:client_id].eq(she.client_id)).
+        group(she_t[:id]).
+        maximum(:InformationDate)
+      @max_current_living_situation[she.id]
+    end
+
+    private def current_living_situation_count(she)
+      @current_living_situation_count ||= she.client.source_current_living_situations.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        where(she_t[:client_id].eq(she.client_id)).
+        group(she_t[:id]).
+        count(:InformationDate)
+      @current_living_situation_count[she.id]
+    end
+
+    private def events(month:, year:, client:, user:, she:, week:)
+      @events ||= client.source_events.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        where(EventDate: date_range_for(month: month, year: year)).
+        to_a
+
+      @events.select { |item| item.event_date.in?(week) }.
+        group_by { |item| item.enrollment.service_history_enrollment }[she] || []
+    end
+
+    private def max_event(she)
+      @max_event ||= she.client.source_events.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        group(she_t[:id]).
+        maximum(:EventDate)
+      @max_event[she.id]
+    end
+
+    private def event_count(she)
+      @event_count ||= she.client.source_events.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        group(she_t[:id]).
+        count(:EventDate)
+      @event_count[she.id]
+    end
+
+    private def custom_services(month:, year:, client:, user:, she:, week:)
+      @custom_services ||= client.source_custom_b_services.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        where(date: date_range_for(month: month, year: year)).to_a
+
+      @custom_services.select { |item| item.date.in?(week) }.
+        group_by { |item| item.enrollment.service_history_enrollment }[she] || []
+    end
+
+    private def max_custom_service(she)
+      @max_custom_service ||= she.client.source_custom_b_services.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        group(she_t[:id]).
+        maximum(:date)
+      @max_custom_service[she.id]
+    end
+
+    private def custom_service_count(she)
+      @custom_service_count ||= she.client.source_custom_b_services.
+        joins(enrollment: [:project, { service_history_enrollment: :client }]).
+        references(enrollment: [:project, { service_history_enrollment: :client }]).
+        group(she_t[:id]).
+        count(:date)
+      @custom_service_count[she.id]
+    end
+
     # Return first and last date of extrapolation, if any overlap the week
     private def extrapolated(month:, year:, client:, week:, user:)
-      @extrapolated ||= ::GrdaWarehouse::ServiceHistoryService.
+      @extrapolated ||= client.service_history_services.
         extrapolated.
         joins(service_history_enrollment: :project).
         references(service_history_enrollment: :project).
@@ -74,70 +225,10 @@ module ClientAccessControl
         service_within_date_range(
           start_date: date_range_for(month: month, year: year).first,
           end_date: date_range_for(month: month, year: year).last,
-        ).where(client_id: client.id).to_a
+        ).to_a
       return [] unless @extrapolated.any? { |item| item.date.in?(week) }
 
-      @extrapolated
-    end
-
-    private def enrollments(month:, year:, client:, week:, user:)
-      @enrollments ||= ::GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:project).
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
-        open_between(
-          start_date: date_range_for(month: month, year: year).first,
-          end_date: date_range_for(month: month, year: year).last,
-        ).
-        where(she_t[:client_id].eq(client.id)).to_a
-      @enrollments.select do |en|
-        en.entry_date < week.last && (en.exit_date.blank? || en.exit_date > week.first)
-      end
-    end
-
-    private def services(month:, year:, client:, user:, week: nil)
-      @services ||= ::GrdaWarehouse::Hud::Service.
-        joins(enrollment: [:project, { service_history_enrollment: :client }]).
-        references(enrollment: [:project, { service_history_enrollment: :client }]).
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
-        where(date_provided: date_range_for(month: month, year: year)).
-        where(she_t[:client_id].eq(client.id)).to_a
-      return @services unless week.present?
-
-      @services.select { |item| item.date_provided.in?(week) }
-    end
-
-    private def current_living_situations(month:, year:, client:, user:, week: nil)
-      @current_living_situations ||= ::GrdaWarehouse::Hud::CurrentLivingSituation.
-        joins(enrollment: [:project, { service_history_enrollment: :client }]).
-        references(enrollment: [:project, { service_history_enrollment: :client }]).
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
-        where(InformationDate: date_range_for(month: month, year: year)).
-        where(she_t[:client_id].eq(client.id)).to_a
-      return @current_living_situations unless week.present?
-
-      @current_living_situations.select { |item| item.information_date.in?(week) }
-    end
-
-    private def events(month:, year:, client:, user:, week: nil)
-      @events ||= ::GrdaWarehouse::Hud::Event.
-        joins(enrollment: [:project, { service_history_enrollment: :client }]).
-        references(enrollment: [:project, { service_history_enrollment: :client }]).
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
-        where(EventDate: date_range_for(month: month, year: year)).
-        where(she_t[:client_id].eq(client.id)).to_a
-      return @events unless week.present?
-
-      @events.select { |item| item.event_date.in?(week) }
-    end
-
-    private def custom_services(month:, year:, client:, user:, week:)
-      @custom_services ||= client.source_custom_b_services.
-        joins(enrollment: [:project, { service_history_enrollment: :client }]).
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
-        where(date: date_range_for(month: month, year: year)).to_a
-      return @custom_services unless week.present?
-
-      @custom_services.select { |item| item.date.in?(week) }
+      @extrapolated.group_by(&:service_history_enrollment)
     end
 
     private def date_range_for(month:, year:)
@@ -150,11 +241,23 @@ module ClientAccessControl
 
     # The lesser of today or the max exit date
     def max_date(client)
-      (
-        ::GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          where(client_id: client.id).pluck(:exit_date) +
-        [Date.current]
-      ).compact.min
+      ::GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(client_id: client.id).
+        pluck(cl(she_t[:last_date_in_program], Date.current)).
+        max || Date.current
+    end
+
+    def add_project_for_week(projects:, project:, she:, user:)
+      project_type = project.project_type_to_use
+      projects[she.id] ||= {
+        project_id: project.id.to_s,
+        project_name: project.name(user),
+        project_type: project_type.to_s,
+        project_type_name: HudUtility.project_type_brief(project_type),
+        entry_date: she.entry_date,
+        exit_date: she.exit_date.presence || Date.current,
+      }
+      projects
     end
 
     def weeks_data(month:, year:, client:, user:)
@@ -169,370 +272,86 @@ module ClientAccessControl
           projects = {}
           enrollments(month: month, year: year, client: client, week: week, user: user).each do |she|
             project = she.project
-            project_type = project.project_type_to_use
-            projects[she.id] ||= {
-              project_id: project.id.to_s,
-              project_name: project.name(user),
-              project_type: project_type.to_s,
-              project_type_name: HudUtility.project_type_brief(project_type),
-              entry_date: she.entry_date,
-              exit_date: she.exit_date,
-            }
-          end
+            projects = add_project_for_week(projects: projects, project: project, she: she, user: user)
+            if she.move_in_date.present?
+              projects[she.id][:move_in_dates] ||= []
+              projects[she.id][:move_in_dates] << she.move_in_date
+            end
 
-          services(month: month, year: year, client: client, week: week, user: user).each do |service|
-            she = service.enrollment.service_history_enrollment
-            project = service.enrollment.project
-            project_type = project.project_type_to_use
-            projects[she.id] ||= {
-              project_id: project.id.to_s,
-              project_name: project.name(user),
-              project_type: project_type.to_s,
-              project_type_name: HudUtility.project_type_brief(project_type),
-              entry_date: she.entry_date,
-              exit_date: she.exit_date,
-            }
-            if service.bed_night?
-              projects[she.id][:bed_nights] ||= []
-              projects[she.id][:bed_nights] << service.date_provided
-            else
-              projects[she.id][:services] ||= []
-              projects[she.id][:services] << service.date_provided
+            # Services
+            items = services(month: month, year: year, client: client, week: week, she: she, user: user)
+            bed_nights = items.select(&:bed_night?)
+            bed_night_dates = bed_nights.map(&:date_provided)
+            max_date = max_bed_night(she)
+            bed_night_dates << max_date unless bed_night_dates.include?(max_date)
+
+            service_items = items.reject(&:bed_night?)
+            service_dates = service_items.map(&:date_provided)
+            max_date = max_service(she)
+            service_dates << max_date unless service_dates.include?(max_date)
+
+            if bed_nights.any?
+              projects[she.id][:total_bed_nights] ||= bed_night_count(she)
+              projects[she.id][:bed_nights] ||= bed_night_dates
+            end
+            if service_items.any?
+              projects[she.id][:total_services] ||= service_count(she)
+              projects[she.id][:service_dates] ||= service_dates
+            end
+
+            # Current Living Situations
+            items = current_living_situations(month: month, year: year, client: client, week: week, she: she, user: user)
+            item_dates = items.map(&:InformationDate)
+            max_date = max_current_living_situation(she)
+            item_dates << max_date unless item_dates.include?(max_date)
+            if item_dates.any?
+              projects[she.id][:total_current_situations] ||= current_living_situation_count(she)
+              projects[she.id][:current_situations] ||= item_dates
+            end
+
+            # Events
+            items = events(month: month, year: year, client: client, week: week, she: she, user: user)
+            item_dates = items.map(&:EventDate)
+            max_date = max_event(she)
+            item_dates << max_date unless item_dates.include?(max_date)
+            if item_dates.any?
+              projects[she.id][:total_ce_events] ||= event_count(she)
+              projects[she.id][:ce_events] ||= item_dates
+            end
+
+            # Custom Services
+            items = custom_services(month: month, year: year, client: client, week: week, she: she, user: user)
+            item_dates = items.map(&:date)
+            item_names = items.map(&:service_name)
+            max_date = max_custom_service(she)
+            if item_dates.exclude?(max_date)
+              item_dates << max_date
+              item_names << 'Most Recent'
+            end
+            if item_dates.any? # rubocop:disable Style/Next
+              projects[she.id][:total_custom_events] ||= custom_service_count(she)
+              projects[she.id][:custom_events] ||= item_dates
+              projects[she.id][:custom_events_names] ||= item_names
             end
           end
 
-          extrapolated_by_enrollment = extrapolated(month: month, year: year, client: client, week: week, user: user).
-            group_by(&:service_history_enrollment)
-
-          extrapolated_by_enrollment.each do |she, services|
-            project = she.project
-
-            project_type = project.project_type_to_use
-
-            projects[she.id] ||= {
-              project_id: project.id.to_s,
-              project_name: project.name(user),
-              project_type: project_type.to_s,
-              project_type_name: HudUtility.project_type_brief(project_type),
-              entry_date: she.entry_date,
-              exit_date: she.exit_date,
-            }
-            projects[she.id][:extrapolation] ||= {
-              entry_date: services.min_by(&:date).date,
-              exit_date: services.max_by(&:date).date,
-            }
+          # Extrapolated, note: this must be done outside of the project loop because the extrapolation
+          # can extend onto weeks that are before entry or after exit
+          extrapolated(month: month, year: year, client: client, week: week, user: user).each do |she, items|
+            if items.any? # rubocop:disable Style/Next
+              projects[she.id] ||= {}
+              projects[she.id][:extrapolation] ||= {
+                entry_date: items.min_by(&:date).date,
+                exit_date: items.max_by(&:date).date,
+              }
+            end
           end
 
-          current_living_situations(month: month, year: year, client: client, week: week, user: user).each do |cls|
-            she = cls.enrollment.service_history_enrollment
-            project = cls.enrollment.project
-            project_type = project.project_type_to_use
-            projects[she.id] ||= {
-              project_id: project.id.to_s,
-              project_name: project.name(user),
-              project_type: project_type.to_s,
-              project_type_name: HudUtility.project_type_brief(project_type),
-              entry_date: she.entry_date,
-              exit_date: she.exit_date,
-            }
-            projects[she.id][:current_situations] ||= []
-            projects[she.id][:current_situations] << cls.information_date
-          end
-
-          events(month: month, year: year, client: client, week: week, user: user).each do |event|
-            she = event.enrollment.service_history_enrollment
-            project = event.enrollment.project
-            project_type = project.project_type_to_use
-            projects[she.id] ||= {
-              project_id: project.id.to_s,
-              project_name: project.name(user),
-              project_type: project_type.to_s,
-              project_type_name: HudUtility.project_type_brief(project_type),
-              entry_date: she.entry_date,
-              exit_date: she.exit_date,
-            }
-            projects[she.id][:events] ||= []
-            projects[she.id][:events] << event.event_date
-          end
-
-          custom_services(month: month, year: year, client: client, week: week, user: user).each do |service|
-            she = service.enrollment.service_history_enrollment
-            project = service.enrollment.project
-            project_type = project.project_type_to_use
-            projects[she.id] ||= {
-              project_id: project.id.to_s,
-              project_name: project.name(user),
-              project_type: project_type.to_s,
-              project_type_name: HudUtility.project_type_brief(project_type),
-              entry_date: she.entry_date,
-              exit_date: she.exit_date,
-            }
-            projects[she.id][:custom_events] ||= []
-            projects[she.id][:custom_events] << service.date
-            projects[she.id][:custom_events_names] ||= []
-            projects[she.id][:custom_events_names] << service.service_name
-          end
-
+          projects = {} if week.first > Date.current
           week_data[:projects] = projects.values
           data << week_data
         end
       end
-
-      # Example data:
-      # if @month == 2 && @year == 2023
-      #   [
-      #     {
-      #       month: 2,
-      #       days: ['2023-01-29', '2023-01-30', '2023-01-31', '2023-02-01', '2023-02-02', '2023-02-03', '2023-02-04'],
-      #       projects: [
-      #         {
-      #           project_name: 'Project A',
-      #           entry_date: '2023-01-15',
-      #           exit_date: '2023-02-10',
-      #           project_type: 1,
-      #           project_type_name: HudUtility.project_type_brief(1),
-      #           bed_nights: [
-      #             '2023-01-29',
-      #             '2023-02-01',
-      #             '2023-02-02',
-      #           ],
-      #           current_situations: [
-      #             '2023-01-29',
-      #           ],
-      #           move_in_dates: [
-      #             '2023-01-29',
-      #           ],
-      #           service_dates: [
-      #             '2023-01-29',
-      #           ],
-      #           ce_events: [
-      #             '2023-01-29',
-      #           ],
-      #           custom_events: [
-      #             '2023-01-29',
-      #             '2023-02-02',
-      #             '2023-02-02',
-      #           ],
-      #           custom_events_names: [
-      #             'Food/Meals',
-      #             'Food/Meals',
-      #             'Food/Meals',
-      #           ],
-      #         },
-      #       ],
-      #     },
-      #     {
-      #       month: 2,
-      #       days: ['2023-02-05', '2023-02-06', '2023-02-07', '2023-02-08', '2023-02-09', '2023-02-10', '2023-02-11'],
-      #       projects: [
-      #         {
-      #           project_name: 'Project A',
-      #           entry_date: '2023-01-15',
-      #           exit_date: '2023-02-10',
-      #           project_type: 1,
-      #           project_type_name: HudUtility.project_type_brief(1),
-      #           bed_nights: [
-      #             '2023-01-29',
-      #             '2023-02-01',
-      #             '2023-02-02',
-      #           ],
-      #           current_situations: [
-      #             '2023-01-29',
-      #           ],
-      #           move_in_dates: [
-      #             '2023-01-29',
-      #           ],
-      #           service_dates: [
-      #             '2023-01-29',
-      #           ],
-      #           ce_events: [
-      #             '2023-01-29',
-      #           ],
-      #           custom_events: [
-      #             '2023-01-29',
-      #             '2023-02-02',
-      #             '2023-02-02',
-      #           ],
-      #           custom_events_names: [
-      #             'Food/Meals',
-      #             'Food/Meals',
-      #             'Food/Meals',
-      #           ],
-      #         },
-      #       ],
-      #     },
-      #     {
-      #       month: 2,
-      #       days: ['2023-02-12', '2023-02-13', '2023-02-14', '2023-02-15', '2023-02-16', '2023-02-17', '2023-02-18'],
-      #       projects: [
-      #         {
-      #           project_name: 'Project B',
-      #           entry_date: '2023-02-13',
-      #           exit_date: '2023-02-19',
-      #           project_type: 3,
-      #           project_type_name: HudUtility.project_type_brief(3),
-      #           extrapolation: {
-      #             entry_date: '2023-02-13',
-      #             exit_date: '2023-02-28',
-      #           },
-      #           bed_nights: [
-      #             '2023-02-13',
-      #             '2023-02-14',
-      #             '2023-02-15',
-      #             '2023-02-16',
-      #           ],
-      #         },
-      #         {
-      #           project_name: 'RRH Project C',
-      #           entry_date: '2023-02-13',
-      #           exit_date: nil,
-      #           move_in_date: '2023-02-15',
-      #           project_type: 13,
-      #           project_type_name: HudUtility.project_type_brief(1),
-      #           move_in_dates: [
-      #             '2023-02-16',
-      #           ],
-      #         },
-      #         {
-      #           project_name: 'Project D',
-      #           entry_date: '2023-02-13',
-      #           exit_date: '2023-02-15',
-      #           project_type: 7,
-      #           project_type_name: HudUtility.project_type_brief(7),
-      #         },
-      #         {
-      #           project_name: 'Project E testing really really long titles. This needs to be very long.',
-      #           entry_date: '2023-02-16',
-      #           exit_date: '2023-02-17',
-      #           project_type: 4,
-      #           project_type_name: HudUtility.project_type_brief(4),
-      #           service_dates: [
-      #             '2023-02-17',
-      #           ],
-      #         },
-      #       ],
-      #     },
-      #     {
-      #       month: 2,
-      #       days: ['2023-02-19', '2023-02-20', '2023-02-21', '2023-02-22', '2023-02-23', '2023-02-24', '2023-02-25'],
-      #       projects: [
-      #         {
-      #           project_id: 1,
-      #           project_name: 'Project B',
-      #           entry_date: '2023-02-13',
-      #           exit_date: '2023-02-19',
-      #           project_type: 3,
-      #           project_type_name: HudUtility.project_type_brief(3),
-      #           extrapolation: {
-      #             entry_date: '2023-02-13',
-      #             exit_date: '2023-02-28',
-      #           },
-      #           bed_nights: [
-      #             '2023-02-13',
-      #             '2023-02-14',
-      #             '2023-02-15',
-      #             '2023-02-16',
-      #           ],
-      #         },
-      #         {
-      #           project_name: 'RRH Project C',
-      #           entry_date: '2023-02-13',
-      #           exit_date: nil,
-      #           move_in_date: '2023-02-15',
-      #           project_type: 13,
-      #           project_type_name: HudUtility.project_type_brief(1),
-      #         },
-      #       ],
-      #     },
-      #     {
-      #       month: 2,
-      #       days: ['2023-02-26', '2023-02-27', '2023-02-28', '2023-03-01', '2023-03-02', '2023-03-03', '2023-03-04'],
-      #       projects: [
-      #         {
-      #           project_name: 'Project B',
-      #           entry_date: '2023-02-13',
-      #           exit_date: '2023-02-19',
-      #           extrapolation_only: true,
-      #           project_type: 3,
-      #           project_type_name: HudUtility.project_type_brief(3),
-      #           extrapolation: {
-      #             entry_date: '2023-02-13',
-      #             exit_date: '2023-02-28',
-      #           },
-      #           bed_nights: [
-      #             '2023-02-13',
-      #             '2023-02-14',
-      #             '2023-02-15',
-      #             '2023-02-16',
-      #           ],
-      #         },
-      #         {
-      #           project_name: 'RRH Project C',
-      #           entry_date: '2023-02-13',
-      #           exit_date: nil,
-      #           move_in_date: '2023-02-15',
-      #           project_type: 13,
-      #           project_type_name: HudUtility.project_type_brief(1),
-      #         },
-      #       ],
-      #     },
-      #   ]
-      # else
-      #   data = fake_data(client).select do |month|
-      #     month[:month] == @month && month[:year] == @year
-      #   end.first || {}
-      #   data[:weeks]
-      # end
     end
-
-    # def fake_project(date_range)
-    #   project_names = ('A'..'Z').to_a
-    #   project_index = rand(0..project_names.size - 1)
-    #   entry_date_index = rand(0..date_range.size - 1)
-    #   exit_date_index = rand(entry_date_index..date_range.size - 1)
-    #   {
-    #     project_name: "Project #{project_names[project_index]}",
-    #     project_id: project_index.to_s,
-    #     project_type: (project_index > 13 ? project_index % 13 : project_index + 1).to_s,
-    #     entry_date: date_range[entry_date_index].strftime('%Y-%m-%d'),
-    #     exit_date: date_range[exit_date_index].strftime('%Y-%m-%d'),
-    #     current_situations: [
-    #       date_range[entry_date_index].strftime('%Y-%m-%d'),
-    #     ],
-    #   }
-    # end
-
-    # def fake_data(client)
-    #   end_date = Date.new(2023, 7, 1)
-    #   months = (min_date(client)..end_date.end_of_month).to_a
-    #   months.map do |month|
-    #     end_of_week = month.end_of_month.end_of_week(:sunday)
-    #     date = month.beginning_of_week(:sunday)
-    #     weeks = []
-    #     while date <= end_of_week
-    #       weeks.push(date)
-    #       date += 1.day
-    #     end
-    #     month_weeks = weeks.in_groups_of(7)
-    #     month_data = {
-    #       month: month.month,
-    #       year: month.year,
-    #       weeks: [],
-    #     }
-    #     month_weeks.map do |mw|
-    #       month_data[:weeks].push(
-    #         {
-    #           year: month.year,
-    #           month: month.month,
-    #           days: mw.map { |n| n.strftime('%Y-%m-%d') },
-    #           projects: Array.new(5).map do |_|
-    #             fake_project(mw)
-    #           end,
-    #         },
-    #       )
-    #     end
-    #     month_data
-    #   end
-    # end
   end
 end
