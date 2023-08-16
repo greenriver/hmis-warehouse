@@ -15,7 +15,6 @@ class Hmis::Hud::Event < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :events
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  has_one :project, through: :enrollment
 
   SORT_OPTIONS = [:event_date].freeze
 
