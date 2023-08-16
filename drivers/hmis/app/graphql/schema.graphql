@@ -5490,6 +5490,7 @@ type Project {
   projectType: ProjectType
   referralRequests(limit: Int, offset: Int): ReferralRequestsPaginated!
   residentialAffiliation: NoYesMissing
+  services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
   unitTypes: [UnitTypeCapacity!]!
@@ -6769,6 +6770,7 @@ enum ServiceDetailType {
 }
 
 input ServiceFilterOptions {
+  dateProvided: ISO8601Date
   project: [ID!]
   projectType: [ProjectType!]
   serviceCategory: [ID!]
@@ -7444,6 +7446,13 @@ enum ServiceTypeProvided {
 }
 
 input ServicesForEnrollmentFilterOptions {
+  dateProvided: ISO8601Date
+  serviceCategory: [ID!]
+  serviceType: [ID!]
+}
+
+input ServicesForProjectFilterOptions {
+  dateProvided: ISO8601Date
   serviceCategory: [ID!]
   serviceType: [ID!]
 }
