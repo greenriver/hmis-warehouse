@@ -3,7 +3,7 @@
   "link_id": "prior-living-situation",
   "text": "Prior Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
-  "prefill": "ENROLLMENT",
+  "prefill": true,
   "item": [
     {
       "type": "DISPLAY",

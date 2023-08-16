@@ -83,7 +83,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     errors = result.dig('data', 'saveAssessment', 'errors')
 
     aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result&.inspect
       expect(errors).to be_empty
       expect(assessment).to be_present
       expect(assessment['enrollment']).to be_present
@@ -99,7 +99,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     # WIP assessment should appear on enrollment query
     response, result = post_graphql(id: e1.id) { get_enrollment_query }
-    expect(response.status).to eq 200
+    expect(response.status).to eq(200), result&.inspect
     enrollment = result.dig('data', 'enrollment')
     expect(enrollment).to be_present
     expect(enrollment.dig('assessments', 'nodes', 0, 'id')).to eq(assessment['id'])
@@ -127,7 +127,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     assessment = result.dig('data', 'saveAssessment', 'assessment')
     errors = result.dig('data', 'saveAssessment', 'errors')
     aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result&.inspect
       expect(errors).to be_empty
       expect(assessment).to be_present
       expect(assessment['enrollment']).to be_present
@@ -229,7 +229,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         )
         response, result = post_graphql(input: { input: input }) { mutation }
         errors = result.dig('data', 'saveAssessment', 'errors')
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expected_match = expected_errors.map do |h|
           a_hash_including(**h, 'readableAttribute' => 'Information Date',
                                 'attribute' => 'informationDate',

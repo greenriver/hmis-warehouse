@@ -3,7 +3,7 @@
   "link_id": "hopwa-insurance",
   "text": "HOPWA Insurance Questions",
   "data_collected_about": "ALL_CLIENTS_WITH_HIV_AIDS",
-  "prefill": "INCOME_BENEFIT",
+  "prefill": true,
   "item": [
     {
       "type": "CHOICE",

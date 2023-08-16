@@ -3,7 +3,7 @@
   "link_id": "employment-education",
   "text": "Employment & Education",
   "data_collected_about": "HOH_AND_ADULTS",
-  "prefill": "EMPLOYMENT_EDUCATION",
+  "prefill": true,
   "item": [
     {
       "type": "CHOICE",

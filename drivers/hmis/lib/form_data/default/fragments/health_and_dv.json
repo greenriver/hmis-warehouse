@@ -3,7 +3,7 @@
   "link_id": "health-and-dv",
   "text": "Health and DV",
   "data_collected_about": "HOH_AND_ADULTS",
-  "prefill": "HEALTH_AND_DV",
+  "prefill": true,
   "item": [
     {
       "fragment": "#r10_pregnancy_status"

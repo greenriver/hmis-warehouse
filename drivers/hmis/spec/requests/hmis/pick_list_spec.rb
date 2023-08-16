@@ -317,6 +317,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'includes units that are currently occupied by the household' do
       expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id, un2.id)
     end
+
+    it 'if household is occupied by a unit that has a type, excludes other unit typoes from list' do
+      un1.unit_type = create(:hmis_unit_type)
+      un1.save!
+      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id)
+    end
   end
 end
 

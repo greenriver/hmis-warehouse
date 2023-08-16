@@ -3,7 +3,7 @@
   "link_id": "income-and-sources",
   "text": "Income and Sources",
   "data_collected_about": "HOH_AND_ADULTS",
-  "prefill": "INCOME_BENEFIT",
+  "prefill": true,
   "fragment": "#common_psde_applicability_rule",
   "item": [
     {
@@ -864,7 +864,7 @@
         {
           "type": "DISPLAY",
           "link_id": "monthly-total-income",
-          "text": "Montly Total Income",
+          "text": "Monthly Total Income",
           "autofill_values": [
             {
               "autofill_readonly": true,

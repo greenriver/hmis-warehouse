@@ -3,7 +3,7 @@
   "link_id": "c3-youth-education-status",
   "text": "Youth Education Status",
   "data_collected_about": "HOH",
-  "prefill": "YOUTH_EDUCATION_STATUS",
+  "prefill": true,
   "rule": {
     "operator": "ALL",
     "_comment": "YHDP-funded program should collect this instead of R5",

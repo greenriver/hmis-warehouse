@@ -3,7 +3,7 @@
   "link_id": "rhy-entry",
   "text": "RHY Entry Questions",
   "data_collected_about": "HOH_AND_ADULTS",
-  "prefill": "ENROLLMENT",
+  "prefill": true,
   "_comment": "TODO: add R11, R12",
   "item": [
     {
