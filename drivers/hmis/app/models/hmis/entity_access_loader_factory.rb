@@ -79,8 +79,6 @@ class Hmis::EntityAccessLoaderFactory
       else
         block.call(entity, :project)
       end
-    when Hmis::Hud::Event
-      block.call(entity, :enrollment)
     else
       resolve_through_project(entity, &block)
     end
