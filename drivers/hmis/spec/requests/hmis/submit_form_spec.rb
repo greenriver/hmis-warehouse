@@ -32,6 +32,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:a1) { create :hmis_hud_assessment, data_source: ds1, client: c2, enrollment: e1, user: u1 }
+  let!(:evt1) { create :hmis_hud_event, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
     hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
@@ -82,6 +83,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on CeAssessment {
               id
             }
+            ... on Event {
+              id
+            }
           }
           #{error_fields}
         }
@@ -102,6 +106,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :ENROLLMENT,
       :CURRENT_LIVING_SITUATION,
       :CE_ASSESSMENT,
+      :CE_EVENT,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -157,6 +162,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               e1.id
             when :CE_ASSESSMENT
               a1.id
+            when :CE_EVENT
+              evt1.id
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))

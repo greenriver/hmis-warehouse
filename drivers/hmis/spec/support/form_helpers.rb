@@ -260,5 +260,23 @@ module FormHelpers
         'prioritizationStatus' => 'PLACED_ON_PRIORITIZATION_LIST',
       },
     },
+    CE_EVENT: {
+      values: {
+        '4.20.1' => '2023-08-12',
+        '4.20.2' => 'REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING',
+        '4.20.C' => 'test',
+        '4.20.D' => 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED',
+        '4.20.E' => '2023-08-16',
+      },
+      hud_values: {
+        'eventDate' => '2023-08-12',
+        'event' => 'REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING',
+        'probSolDivRrResult' => '_HIDDEN',
+        'referralCaseManageAfter' => '_HIDDEN',
+        'locationCrisisOrPhHousing' => 'test',
+        'referralResult' => 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED',
+        'resultDate' => '2023-08-16',
+      },
+    },
   }.freeze
 end
