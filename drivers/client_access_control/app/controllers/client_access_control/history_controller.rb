@@ -31,8 +31,8 @@ module ClientAccessControl
 
     def show
       max_date = ClientAccessControl::ClientHistoryMonth.new.max_date(@client)
-      @month = params[:month]&.to_i || max_date.month
-      @year = params[:year]&.to_i || max_date.year
+      @month = params[:month]&.to_i || max_date&.month || Date.current
+      @year = params[:year]&.to_i || max_date&.year || Date.current
       @filters = {
         project_types: (params[:project_types] || '').split(','),
         projects: (params[:projects] || '').split(','),
