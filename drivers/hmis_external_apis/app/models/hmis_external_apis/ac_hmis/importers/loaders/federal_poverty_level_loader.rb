@@ -14,19 +14,19 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     protected
 
     def build_records
-      # fixme validate that enrollment/benefit ids match and are all present
-      owner_id_by_benefit_id = owner_class
+      benefit_id_lookup = owner_class
         .where(data_source: data_source)
-        .pluck(:income_benefits_id, :id)
-        .to_h
+        .pluck(:income_benefits_id, :id, :enrollment_id)
+        .to_h { |income_benefits_id, pk, enrollment_id| [income_benefits_id, [pk, enrollment_id]] }
       rows.map do |row|
         benefits_id = row_value(row, field: 'INCOMEBENEFITSID')
+        benefit_pk, enrollment_id = benefit_id_lookup.fetch(benefits_id)
+        raise 'BenefitsID/EnrollmentID mismatch' if enrollment_id != row_value(row, field: 'ENROLLMENTID')
+
         new_cde_record(
           value: row_value(row, field: 'FEDERALPOVERTYLEVEL', required: false),
           definition_key: :federal_poverty_level,
-        ).merge(
-          owner_id: owner_id_by_benefit_id.fetch(benefits_id),
-        )
+        ).merge(owner_id: benefit_pk)
       end
     end
 

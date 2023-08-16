@@ -35,7 +35,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
         'SCORE' => '2',
         'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
         'POSTING_ID' => Hmis::Hud::Base.generate_uuid,
-        'STATUS' => 'Accepted Pending',
+        'STATUS' => 'Accepted',
         'PROGRAM_ID' => enrollment.project_id,
         'UNIT_TYPE_ID' => unit_type_id,
         'ASSIGNED_AT' => '2022-12-01 14:00:00',

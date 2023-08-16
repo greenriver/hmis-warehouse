@@ -6,7 +6,7 @@
 
 # matriculation to new platform
 module HmisExternalApis::AcHmis::Importers::Loaders
-  class DerivedProjectUnitOccupancyLoader < BaseLoader
+  class DeferredProjectUnitOccupancyLoader < BaseLoader
     def initialize(tracker:, clobber:)
       @clobber = clobber
       @tracker = tracker

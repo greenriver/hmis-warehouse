@@ -7,20 +7,28 @@
 # track assignments of units to enrollments / households
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ProjectUnitTracker
-    attr_reader :assignments, :unoccupied_units_by, :enrollment_lookup, :today
+    attr_reader :assignments, :data_source
 
     def initialize(data_source)
+      @data_source = data_source
       projects = Hmis::Hud::Project.where(data_source: data_source)
-      @today = Date.today
 
-      @enrollment_lookup = Hmis::Hud::Enrollment.joins(:project)
-        .where(data_source: data_source)
-        .pluck(:id, 'Project.id', :household_id)
-        .to_h { |pk, project_id, household_id| [pk, [project_id, household_id]] }
+      # {enrollment_pk => [project_pk, household_id]}
+      @enrollment_lookup = {}
+      # {enrollment_pk => hoh_entry_date}
+      @enrollment_entry_dates = {}
+      enrollment_scope.preload(:project).find_each do |enrollment|
+        @enrollment_lookup[enrollment.id] = [enrollment.project.id, enrollment.household_id]
+        @enrollment_entry_dates[enrollment.id] ||= enrollment.entry_date if enrollment.head_of_household?
+      end
 
+      @household_assignments = {}
       @assignments = {}
 
-      @unoccupied_units_by = Hmis::Unit.unoccupied_on(today)
+      # we don't check if the unit is occupied, assumption is that all unit occupancies
+      # are deleted before import
+      # { [project_id, mper_id] => [unit_ids...] }
+      @unit_lookup = Hmis::Unit
         .where(project_id: projects.select(:id))
         .preload(unit_type: :mper_id)
         .to_a
@@ -28,17 +36,34 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .transform_values { |v| v.map(&:id) }
     end
 
+    def assign_next_unit(enrollment_pk:, unit_type_mper_id:, fallback_start_date: nil)
+      raise 'missing enrollment' if enrollment_pk.nil?
+      return if assignments[enrollment_pk] || unit_type_mper_id.blank?
+
+      unit_pk = unit_pk_for_enrollment_pk(enrollment_pk, unit_type_mper_id)
+      return unless unit_pk
+
+      assignments[enrollment_pk] ||= {
+        unit_id: unit_pk,
+        enrollment_id: enrollment_pk,
+        start_date: @enrollment_entry_dates[enrollment_pk] || fallback_start_date,
+      }
+    end
+
+    protected
+
     # gives enrollments with same household id the same unit
-    def assign_next_unit(enrollment_pk:, unit_type_mper_id:, start_date: nil)
-      return nil unless enrollment_pk && unit_type_mper_id
+    def unit_pk_for_enrollment_pk(enrollment_pk, unit_type_mper_id)
+      project_household = @enrollment_lookup.fetch(enrollment_pk)
 
-      assignment_key = enrollment_lookup.fetch(enrollment_pk)
-      project_id, = assignment_key
-      return assignments[assignment_key] if assignments.key?(assignment_key)
+      project_pk, = project_household
+      @household_assignments[project_household] ||= @unit_lookup[[project_pk, unit_type_mper_id]]&.pop
+    end
 
-      pool = unoccupied_units_by[[project_id, unit_type_mper_id]]
-      unit_id = pool&.pop
-      assignments[assignment_key] = { enrollment_id: enrollment_pk, unit_id: unit_id, start_date: start_date }
+    def enrollment_scope
+      Hmis::Hud::Enrollment
+        .open_including_wip
+        .where(data_source: data_source)
     end
   end
 end

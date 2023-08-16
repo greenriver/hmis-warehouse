@@ -14,14 +14,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     protected
 
     def build_records
-      # fixme validate that enrollment/exit ids match and are all present
-      owner_id_by_exit_id = owner_class
+      exit_lookup = owner_class
         .where(data_source: data_source)
-        .pluck(:exit_id, :id)
-        .to_h
+        .pluck(:exit_id, :id, :enrollment_id)
+        .to_h { |exit_id, pk, enrollment_id| [exit_id, [pk, enrollment_id]] }
       rows.flat_map do |row|
         exit_id = row_value(row, field: 'ExitID')
-        owner_id = owner_id_by_exit_id[exit_id]
+        owner_id, enrollment_id = exit_lookup[exit_id]
+        raise 'ExitID/EnrollmentID mismatch' if enrollment_id != row_value(row, field: 'EnrollmentID')
+
         ret = [
           new_cde_record(
             # voluntary_termination_value is supposed to be required but is sometimes missing
@@ -45,7 +46,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       end
     end
 
-    # FIXME- conflict in spec, assuming these CDEs are on exit, not enrollment?
     def owner_class
       Hmis::Hud::Exit
     end

@@ -52,7 +52,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       '1732' => 'Not eligible',
       '1733' => 'Did not apply',
       '1734' => 'Pending decision',
-    }
+    }.freeze
     def cde_value(value)
       CDE_VALUE_MAP.fetch(value) if value
     end

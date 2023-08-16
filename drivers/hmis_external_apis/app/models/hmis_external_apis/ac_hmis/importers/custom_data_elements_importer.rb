@@ -46,7 +46,7 @@ module HmisExternalApis::AcHmis::Importers
 
         # process collected unit occupancy assignments
         run_loader(
-          Loaders::DerivedProjectUnitOccupancyLoader.new(clobber: clobber, tracker: tracker),
+          Loaders::DeferredProjectUnitOccupancyLoader.new(clobber: clobber, tracker: tracker),
         )
       end
 

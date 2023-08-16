@@ -13,14 +13,16 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     # defer import of unit_types
     def perform
-      # FIXME should check PROJECTID matches ENROLLMENTID
       pks_by_enrollment_id = Hmis::Hud::Enrollment
+        .open_including_wip
         .where(data_source: data_source)
-        .pluck(:enrollment_id, :id)
-        .to_h
+        .pluck(:enrollment_id, :id, :project_id)
+        .to_h { |enrollment_id, pk, project_id| [enrollment_id, [pk, project_id]] }
 
       rows.each do |row|
-        enrollment_pk = pks_by_enrollment_id.fetch(row_value(row, field: 'ENROLLMENTID'))
+        enrollment_pk, project_id = pks_by_enrollment_id.fetch(row_value(row, field: 'ENROLLMENTID'))
+        raise 'ProjectID/EnrollmentID mismatch' if project_id != row_value(row, field: 'PROJECTID')
+
         unit_type_mper_id = row_value(row, field: 'UNITTYPEID')
         assign_next_unit(
           enrollment_pk: enrollment_pk,

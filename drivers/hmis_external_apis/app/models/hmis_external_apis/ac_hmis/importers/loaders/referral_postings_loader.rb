@@ -94,8 +94,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     # assign inferred unit occupancy
     def assign_unit_occupancies
+      accepted_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_status')
       household_member_rows_by_referral = household_member_rows.group_by { |row| row_value(row, field: 'REFERRAL_ID') }
       posting_rows.each do |posting_row|
+        # only assign accepted enrollments
+        next unless posting_status(posting_row) == accepted_status
+
         referral_id = row_value(posting_row, field: 'REFERRAL_ID')
         household_member_rows = household_member_rows_by_referral[referral_id] || []
         household_member_rows.each do |member_row|
@@ -105,7 +109,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           assign_next_unit(
             enrollment_pk: enrollment_pk,
             unit_type_mper_id: row_value(posting_row, field: 'UNIT_TYPE_ID'),
-            start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
+            fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
           )
         end
       end
