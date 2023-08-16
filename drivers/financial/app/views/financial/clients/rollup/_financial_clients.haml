@@ -9,8 +9,9 @@
         %tr
           %th Name
           %th HoH?
-          %th Referral Date
-          %th Housed Date
+          %th Referral to Agency Date
+          %th Referral to WIT
+          %th Lease Start Date
           %th Created
           %th Updated
       %tbody
@@ -19,7 +20,8 @@
             %td= client.name
             %td= yes_no(client.head_of_household == 1)
             %td.date-cell= client.date_of_referral_to_agency&.to_date
-            %td.date-cell= client.housed_date&.to_date
+            %td.date-cell= client.date_of_referral_to_wit&.to_date
+            %td.date-cell= client.lease_start_date&.to_date
             %td= client.created_at
             %td= client.updated_at
 

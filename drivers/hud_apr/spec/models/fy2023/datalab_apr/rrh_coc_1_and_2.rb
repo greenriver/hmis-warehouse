@@ -499,9 +499,8 @@ RSpec.shared_context 'datalab rrh coc 1 and 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27i',
-        # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
         skip: [
-          'M14',
+          'M14', # This cell should be blank according to the spec (https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJjcOLKKV4YHBWs)
         ],
       )
     end

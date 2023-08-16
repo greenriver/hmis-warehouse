@@ -83,6 +83,7 @@ module Types
       can :manage_denied_referrals
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
+    field :has_units, Boolean, null: false
 
     def hud_id
       object.project_id
@@ -132,6 +133,10 @@ module Types
       resolve_units(**args)
     end
 
+    def has_units # rubocop:disable Naming/PredicateName
+      load_ar_association(object, :units).exists?
+    end
+
     def households(**args)
       resolve_households(object.households_including_wip, **args)
     end
@@ -151,7 +156,7 @@ module Types
     def outgoing_referral_postings(**args)
       raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
-      scope = HmisExternalApis::AcHmis::ReferralPosting.outgoing
+      scope = HmisExternalApis::AcHmis::ReferralPosting.active
         .joins(referral: :enrollment)
         .where(arel.e_t[:ProjectID].eq(object.ProjectID))
       scoped_referral_postings(scope, **args)

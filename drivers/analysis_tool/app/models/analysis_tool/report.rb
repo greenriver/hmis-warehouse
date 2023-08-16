@@ -145,7 +145,7 @@ module AnalysisTool
 
     protected def build_control_sections
       [
-        build_general_control_section(include_comparison_period: false),
+        build_general_control_section(options: { include_comparison_period: false }),
         build_coc_control_section,
         add_demographic_disabilities_control_section,
         build_enrollment_control_section,
@@ -171,7 +171,7 @@ module AnalysisTool
 
     # @return filtered scope
     def report_scope(all_project_types: false)
-      filter.apply(report_scope_source, all_project_types: all_project_types)
+      filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
     end
 
     def report_scope_source

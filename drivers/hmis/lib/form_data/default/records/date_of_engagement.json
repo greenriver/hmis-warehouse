@@ -1,0 +1,25 @@
+{
+  "item": [
+    {
+      "link_id": "4.13",
+      "type": "DATE",
+      "text": "Date of Engagement",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "dateOfEngagement"
+      },
+      "_todo_local_bounds": [
+        {
+          "id": "min-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
+        }
+      ]
+    }
+  ]
+}

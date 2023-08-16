@@ -114,6 +114,9 @@ module GrdaWarehouse::Hud
     has_many :service_history_entry_in_last_three_years, -> {
       entry_in_last_three_years
     }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
+    has_many :service_history_entry_ongoing, -> {
+      ongoing
+    }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client

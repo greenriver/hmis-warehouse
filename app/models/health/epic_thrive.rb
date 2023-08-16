@@ -6,7 +6,7 @@
 
 # ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
-# Control: PHI attributes documented
+# Control: PHI attributes to be documented
 module Health
   class EpicThrive < EpicBase
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_ssms, optional: true
@@ -24,6 +24,7 @@ module Health
         'PAT_ID' => :patient_id,
         'row_id' => :id_in_source,
         'RECORDED_TIME' => :thrive_updated_at,
+        'ENTRY_USER' => :staff,
         'I am a:' => :reporter,
         'What is your living situation today?' => :housing_status,
         "Within the past 12 months; the food you bought just didn't last and you didn't have money to get more."	=>
@@ -55,10 +56,11 @@ module Health
       return unless patient.present?
 
       assessment = thrive_assessment.presence || build_thrive_assessment(patient_id: patient.id, user_id: 0)
-      # TODO: Store username from EPIC
 
       @any_answer = false
       @any_decline = false
+
+      assessment.external_name = staff
 
       assessment.reporter = case reporter
       when 'Patient'
