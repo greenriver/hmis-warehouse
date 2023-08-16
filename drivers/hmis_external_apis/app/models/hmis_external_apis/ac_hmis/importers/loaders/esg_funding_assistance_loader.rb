@@ -15,7 +15,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       # can't do bulk insert here since polymorphic CDE's don't seem to work
       # and bulk-insert returned ids are not ordered
-      records.each { |record| record.save!(validate: false) }
+      begin
+        PaperTrail.enabled = false
+        records.each { |record| record.save!(validate: false) }
+      ensure
+        PaperTrail.enabled = true
+      end
+      Rails.logger.info "#{self.class.name} inserted: #{records.size} records into #{model_class.table_name}"
     end
 
     protected
@@ -56,7 +62,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def cde_attrs(row)
       [
         # funding source is supposed to be required but data has missing values
-        [row_value(row, field: 'FUNDINGSOURCE', required: false), :funding_source],
+        [funding_source(row), :funding_source],
         [row_value(row, field: 'PAYMENTTYPE', required: false), :payment_type],
       ].map do |value, definition_key|
         next unless value
@@ -72,6 +78,16 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           data_source_id: data_source.id,
         }
       end.compact
+    end
+
+    FUNDING_SOURCE_MAP = {
+      'Allegheny County' => 'Allegheny County ESG',
+      'City of Pittsburgh' => 'City of Pittsburgh ESG',
+      'State of Pennsylvania' => 'State of Pennsylvania ESG',
+    }
+    def funding_source(row)
+      value = row_value(row, field: 'FUNDINGSOURCE', required: false)
+      FUNDING_SOURCE_MAP[value] || value
     end
 
     def custom_service_type

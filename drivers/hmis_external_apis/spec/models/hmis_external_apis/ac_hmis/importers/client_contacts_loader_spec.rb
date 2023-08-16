@@ -20,8 +20,8 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ClientContactsLoade
         'VALUE' => '8675309',
         'NOTES' => 'test notes',
         'UserID' => '',
-        'DateCreated' => '2014-10-07 16:10:39',
-        'DateUpdated' => '2014-10-07 16:10:39',
+        'DateCreated' => '7/1/2020 16:10',
+        'DateUpdated' => '7/1/2020 16:10',
       },
     ]
   end

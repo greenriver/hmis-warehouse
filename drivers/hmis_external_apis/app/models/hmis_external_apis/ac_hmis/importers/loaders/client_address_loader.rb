@@ -34,11 +34,17 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             state: normalize_state(row),
             country: row_value(row, field: 'country', required: false),
             postal_code: normalize_zipcode(row),
-            DateCreated: parse_date(row_value(row, field: 'DateCreated')),
+            DateCreated: date_created(row),
             DateUpdated: parse_date(row_value(row, field: 'DateUpdated')),
           },
         )
       end
+    end
+
+    def date_created(row)
+      value = row_value(row, field: 'DateCreated')
+      # sometimes we see non-date values here- falling back to the update date in that case
+      parse_date(valid_date?(value) ? value : row_value(row, field: 'DateUpdated'))
     end
 
     STATES = ['AK', 'AL', 'AR', 'AS', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'GU', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MN', 'MO', 'MP', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VI', 'VT', 'WA', 'WI', 'WV', 'WY'].to_set

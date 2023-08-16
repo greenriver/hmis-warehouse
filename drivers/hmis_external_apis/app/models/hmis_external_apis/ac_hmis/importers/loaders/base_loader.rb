@@ -30,8 +30,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     # 'YYYY-MM-DD HH24:MM:SS'
     DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'.freeze
+    def valid_date?(str)
+      str =~ /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/
+    end
+
     def parse_date(str)
-      raise ArgumentError, "Invalid date-time format. Expected 'YYYY-MM-DD HH24:MM:SS'" unless str =~ /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/
+      return unless str
+      raise ArgumentError, "Invalid date-time format. Expected 'YYYY-MM-DD HH24:MM:SS' but got '#{str}'" unless valid_date?(str)
 
       DateTime.strptime(str, DATE_TIME_FMT)
     end
@@ -53,11 +58,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def system_user_id
-      @system_user_id || Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
+      @system_user_id ||= Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
     end
 
     def data_source
-      HmisExternalApis::AcHmis.data_source
+      @data_source ||= HmisExternalApis::AcHmis.data_source
     end
 
     def default_attrs
@@ -100,7 +105,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         raise msg
       end
 
-      Rails.logger.info "#{my_name} inserted: #{result.num_inserts} into #{table_name}"
+      # report ids.size, since num_inserts is only last batch
+      Rails.logger.info "#{my_name} inserted: #{result.ids.size} records into #{table_name}"
     end
   end
 end

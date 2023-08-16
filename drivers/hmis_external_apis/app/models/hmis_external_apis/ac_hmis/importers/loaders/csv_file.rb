@@ -14,13 +14,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def each
-      records_from_csv(filename).each.with_index do |row, idx|
+      records_from_csv(filename).each.with_index do |row, line_number|
         yield(row)
       rescue StandardError => e
         # wrap row-level exceptions with file / line number
-        line_number = idx + 1
         wrapped = RuntimeError.new("[#{filename}:#{line_number}] #{e.class.name} #{e.message}")
-        wrapped.set_backtrace(e.backtrace)
         raise wrapped
       end
     end
@@ -28,7 +26,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     protected
 
     def records_from_csv(filename)
-      io = File.open(filename, 'r')
+      io = File.open(filename, encoding: 'iso-8859-1')
 
       # Checking for BOM
       if io.read(3).bytes == [239, 187, 191]
@@ -44,6 +42,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       {
         headers: true,
         skip_lines: /\A\s*\z/,
+        quote_char: "\x00", # can't use `"` as files are not properly quoted. Hopefully non-printing char isn't in data
       }
     end
   end

@@ -27,14 +27,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
         attrs = {
           ContactPointID: Hmis::Hud::Base.generate_uuid,
-          UserID: row_value(row, field: 'UserID', required: false) || system_user_id,
+          UserID: user_id_value(row),
           PersonalID: row_value(row, field: 'PersonalID'),
           use: use_value(row),
           system: row_value(row, field: 'SYSTM').downcase,
           notes: row_value(row, field: 'NOTES', required: false),
           value: value,
-          DateCreated: row_value(row, field: 'DateCreated'),
-          DateUpdated: row_value(row, field: 'DateUpdated'),
+          # these fields should be required but are sometimes missing or unparsable
+          DateCreated: parse_date(row_value(row, field: 'DateCreated', required: false)),
+          DateUpdated: parse_date(row_value(row, field: 'DateUpdated', required: false)),
         }
         default_attrs.merge(attrs)
       end
@@ -65,5 +66,26 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def model_class
       Hmis::Hud::CustomClientContactPoint
     end
+
+    # This file has a different date time format
+    # M/D/YYYY HH:MM
+    DATE_TIME_FMT = '%m/%d/%Y %H:%M'.freeze
+    def valid_date?(str)
+      str =~ /^\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2}$/
+    end
+
+    def user_id_value(row)
+      # due to missing quotes in CSV, field may be invalid
+      value = row_value(row, field: 'UserID', required: false)
+      value && value =~ /\A0-9A-Z\z/ ? value : system_user_id
+    end
+
+    def parse_date(str)
+      # due to missing quotes in CSV, field may be invalid
+      return today unless valid_date?(str)
+
+      DateTime.strptime(str, DATE_TIME_FMT)
+    end
+
   end
 end
