@@ -81,6 +81,7 @@ module ClientAccessControl
       @services ||= client.source_services.
         joins(enrollment: [:project, { service_history_enrollment: :client }]).
         references(enrollment: [:project, { service_history_enrollment: :client }]).
+        distinct.
         merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
         where(date_provided: date_range_for(month: month, year: year)).
         to_a
@@ -128,6 +129,7 @@ module ClientAccessControl
       @current_living_situations ||= client.source_current_living_situations.
         joins(enrollment: [:project, { service_history_enrollment: :client }]).
         references(enrollment: [:project, { service_history_enrollment: :client }]).
+        distinct.
         merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
         where(InformationDate: date_range_for(month: month, year: year)).
         to_a
@@ -162,6 +164,7 @@ module ClientAccessControl
         references(enrollment: [:project, { service_history_enrollment: :client }]).
         merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
         where(EventDate: date_range_for(month: month, year: year)).
+        distinct.
         to_a
 
       @events.select { |item| item.event_date.in?(week) }.
@@ -190,6 +193,7 @@ module ClientAccessControl
       @custom_services ||= client.source_custom_b_services.
         joins(enrollment: [:project, { service_history_enrollment: :client }]).
         references(enrollment: [:project, { service_history_enrollment: :client }]).
+        distinct.
         merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
         where(date: date_range_for(month: month, year: year)).to_a
 
@@ -263,7 +267,10 @@ module ClientAccessControl
     def weeks_data(month:, year:, client:, user:)
       @weeks_data ||= [].tap do |data|
         start_of_month = date_range_for(month: month, year: year).first
-        date_range = (start_of_month.beginning_of_week..start_of_month.end_of_month.end_of_week)
+        # Ruby weeks start on Monday
+        sunday = start_of_month.beginning_of_week - 1.days
+        saturday = start_of_month.end_of_month.end_of_week - 1.days
+        date_range = (sunday..saturday)
         date_range.each_slice(7) do |week|
           week_data = {
             month: month,
