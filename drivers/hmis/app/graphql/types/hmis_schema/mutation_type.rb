@@ -23,6 +23,7 @@ module Types
     field :delete_inventory, mutation: Mutations::DeleteInventory
     field :delete_client, mutation: Mutations::DeleteClient
     field :delete_ce_assessment, mutation: Mutations::DeleteCeAssessment
+    field :delete_ce_event, mutation: Mutations::DeleteCeEvent
 
     field :create_units, mutation: Mutations::CreateUnits
     field :update_units, mutation: Mutations::UpdateUnits
