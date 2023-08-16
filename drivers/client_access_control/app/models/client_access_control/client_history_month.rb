@@ -244,7 +244,7 @@ module ClientAccessControl
       ::GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: client.id).
         pluck(cl(she_t[:last_date_in_program], Date.current)).
-        max
+        max || Date.current
     end
 
     def add_project_for_week(projects:, project:, she:, user:)
