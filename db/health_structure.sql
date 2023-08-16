@@ -7658,6 +7658,20 @@ CREATE INDEX index_any_careplans_on_patient_id ON public.any_careplans USING btr
 
 
 --
+-- Name: index_appointments_on_appointment_time; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appointments_on_appointment_time ON public.appointments USING btree (appointment_time);
+
+
+--
+-- Name: index_appointments_on_department; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appointments_on_department ON public.appointments USING btree (department);
+
+
+--
 -- Name: index_backup_plans_on_patient_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8047,6 +8061,20 @@ CREATE INDEX index_epic_housing_statuses_on_patient_id ON public.epic_housing_st
 --
 
 CREATE INDEX index_epic_patients_on_deleted_at ON public.epic_patients USING btree (deleted_at);
+
+
+--
+-- Name: index_epic_patients_on_id_in_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_epic_patients_on_id_in_source ON public.epic_patients USING btree (id_in_source);
+
+
+--
+-- Name: index_epic_patients_on_medicaid_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_epic_patients_on_medicaid_id ON public.epic_patients USING btree (medicaid_id);
 
 
 --
@@ -9190,6 +9218,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230712155403'),
 ('20230726171015'),
 ('20230807201621'),
-('20230814153918');
+('20230814153918'),
+('20230816173812');
 
 
