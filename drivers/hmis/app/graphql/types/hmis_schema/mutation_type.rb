@@ -22,6 +22,7 @@ module Types
     field :delete_funder, mutation: Mutations::DeleteFunder
     field :delete_inventory, mutation: Mutations::DeleteInventory
     field :delete_client, mutation: Mutations::DeleteClient
+    field :delete_ce_assessment, mutation: Mutations::DeleteCeAssessment
 
     field :create_units, mutation: Mutations::CreateUnits
     field :update_units, mutation: Mutations::UpdateUnits
