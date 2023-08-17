@@ -621,7 +621,7 @@ module GrdaWarehouse::Hud
     end
 
     def bed_night_tracking?
-      tracking_method_to_use == 3 || street_outreach_and_acts_as_bednight?
+      es_nbn? || street_outreach_and_acts_as_bednight?
     end
 
     # Some Street outreach are counted like bed-night shelters, others aren't yet
@@ -753,6 +753,7 @@ module GrdaWarehouse::Hud
       operating_end_date_override.presence || self.OperatingEndDate
     end
 
+    # Deprecated no longer used in FY2024
     def tracking_method_to_use
       tracking_method_override.presence || self.TrackingMethod
     end

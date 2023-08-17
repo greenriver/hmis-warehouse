@@ -42,8 +42,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   scope :entry, -> { where record_type: 'entry' }
   # hide previous declaration of :exit (from Kernel), we'll use this one
   replace_scope :exit, -> { where record_type: 'exit' }
-  scope :bed_night, -> { where project_tracking_method: 3 }
-  scope :night_by_night, -> { bed_night }
+  scope :bed_night, -> { es_nbn }
+  scope :night_by_night, -> { es_nbn }
   # the first date individuals entered a residential service
   scope :first_date, -> { where record_type: 'first' }
 
@@ -436,7 +436,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   def nbn?
-    project_tracking_method == 3
+    es_nbn?
   end
 
   # How many distinct bed nights does the client have in this enrollment?

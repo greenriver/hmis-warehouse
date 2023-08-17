@@ -212,7 +212,8 @@ module HmisDataQualityTool
       report_item.data_source_id = enrollment.data_source_id
       report_item.project_id = enrollment.project.id
       report_item.project_name = enrollment.project.name(report.user)
-      report_item.project_type = enrollment.project.project_type_to_use
+      project_type =  enrollment.project.project_type_to_use
+      report_item.project_type = project_type
       report_item.entry_date = enrollment.EntryDate
       report_item.move_in_date = enrollment.MoveInDate
       report_item.exit_date = enrollment.exit&.ExitDate
@@ -230,8 +231,6 @@ module HmisDataQualityTool
       report_item.destination = enrollment.exit&.Destination
       report_item.project_operating_start_date = enrollment.project.OperatingStartDate
       report_item.project_operating_end_date = enrollment.project.OperatingEndDate
-      project_tracking_method = enrollment.project.tracking_method_to_use
-      report_item.project_tracking_method = project_tracking_method
       report_age_date = [enrollment.EntryDate, report.filter.start].max
       report_item.age = enrollment.client.age_on(report_age_date)
       report_item.ch_at_entry = enrollment.chronically_homeless_at_start?
@@ -345,7 +344,7 @@ module HmisDataQualityTool
       en_services = enrollment.services&.select { |s| s.DateProvided.present? && s.DateProvided <= max_date }
       en_cls = enrollment.current_living_situations&.select { |s| s.InformationDate.present? && s.InformationDate <= max_date }
 
-      lot = if project_tracking_method == 3
+      lot = if project_type == 1 # NbN ES
         # count services <= min of report end and current date
         en_services.select(&:bed_night?)&.count || 0
       else
@@ -355,7 +354,7 @@ module HmisDataQualityTool
       end
       report_item.lot = lot
       end_date = [enrollment.exit&.ExitDate, report.filter.end, Date.current].compact.min
-      max_service = if project_tracking_method == 3 # NbN ES
+      max_service = if project_type == 1 # NbN ES
         # most recent service, or start date if no service
         en_services.max_by(&:DateProvided)&.DateProvided || enrollment.EntryDate
       elsif enrollment.project.project_type_to_use == 4 # SO

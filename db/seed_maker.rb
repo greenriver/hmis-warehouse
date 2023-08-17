@@ -266,11 +266,6 @@ class SeedMaker
       columns = [:value, :text]
       GrdaWarehouse::Lookups::Gender.import(columns, HudUtility.genders.to_a)
     end
-    GrdaWarehouse::Lookups::TrackingMethod.transaction do
-      GrdaWarehouse::Lookups::TrackingMethod.delete_all
-      columns = [:value, :text]
-      GrdaWarehouse::Lookups::TrackingMethod.import(columns, HudUtility.tracking_methods.to_a)
-    end
     GrdaWarehouse::Lookups::Relationship.transaction do
       GrdaWarehouse::Lookups::Relationship.delete_all
       columns = [:value, :text]

@@ -429,7 +429,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
         household_id: self.HouseholdID,
         project_name: project.ProjectName,
         organization_id: project.OrganizationID,
-        project_tracking_method: project.TrackingMethod,
         record_type: nil,
         housing_status_at_entry: self.LivingSituation,
         housing_status_at_exit: exit&.HousingAssessment,
@@ -489,16 +488,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def household_birthdates
-      @household_birthdates ||= begin
-        self.class.joins(:destination_client).
-          where(
-            HouseholdID: self.HouseholdID,
-            ProjectID: self.ProjectID,
-            data_source_id: data_source_id,
-          ).where.not(
-            PersonalID: self.PersonalID,
-          ).pluck(Arel.sql(c_t[:DOB].as('dob').to_sql))
-      end
+      @household_birthdates ||= self.class.joins(:destination_client).
+        where(
+          HouseholdID: self.HouseholdID,
+          ProjectID: self.ProjectID,
+          data_source_id: data_source_id,
+        ).where.not(
+          PersonalID: self.PersonalID,
+        ).pluck(Arel.sql(c_t[:DOB].as('dob').to_sql))
     end
 
     def household_ages_at_entry
@@ -559,55 +556,41 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     # only 18-24 aged clients in the enrollment
     def unaccompanied_youth?
-      @unaccompanied_youth ||= begin
-        youth?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_under_18.zero?
-      end
+      @unaccompanied_youth ||= youth?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_under_18.zero?
     end
 
     # client is a youth and presents with someone under 18, no other adults over 25 present
     def parenting_youth?
-      @parenting_youth ||= begin
-        youth?(client_age_at_entry) && head_of_household? && other_clients_over_25.zero? && other_clients_under_18.positive?
-      end
+      @parenting_youth ||= youth?(client_age_at_entry) && head_of_household? && other_clients_over_25.zero? && other_clients_under_18.positive?
     end
 
     # client is under 18 and head of household and has at least one other client under 18 in enrollment
     def parenting_juvenile?
-      @parenting_juvenile ||= begin
-        child?(client_age_at_entry) && head_of_household? && other_clients_over_25.zero? && other_clients_between_18_and_25.zero? && other_clients_under_18.positive?
-      end
+      @parenting_juvenile ||= child?(client_age_at_entry) && head_of_household? && other_clients_over_25.zero? && other_clients_between_18_and_25.zero? && other_clients_under_18.positive?
     end
 
     # client is 13 - 17 and there are no adults in the household
     def unaccompanied_minor?
-      @unaccompanied_minor ||= begin
-        minor?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_between_18_and_25.zero?
-      end
+      @unaccompanied_minor ||= minor?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_between_18_and_25.zero?
     end
 
     # everyone involved is under 18
     def children_only?
-      @children_only ||= begin
-        child?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_between_18_and_25.zero?
-      end
+      @children_only ||= child?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_between_18_and_25.zero?
     end
 
     # Everyone is over 18
     def individual_adult?
-      @individual_adult ||= begin
-        adult?(client_age_at_entry) && other_clients_under_18.zero?
-      end
+      @individual_adult ||= adult?(client_age_at_entry) && other_clients_under_18.zero?
     end
 
     # This is a proxy for if the project served individuals or families
     # True = individuals
     def presented_as_individual?
-      @presented_as_individual ||= begin
-        if GrdaWarehouse::Config.get(:infer_family_from_household_id)
-          @presented_as_individual = ! part_of_a_family?
-        else
-          @presented_as_individual = project.serves_only_individuals?
-        end
+      @presented_as_individual ||= if GrdaWarehouse::Config.get(:infer_family_from_household_id)
+        @presented_as_individual = ! part_of_a_family?
+      else
+        @presented_as_individual = project.serves_only_individuals?
       end
     end
 
@@ -626,9 +609,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     # Client is over 65 and everyone else is an adult
     def individual_elder?
-      @individual_elder ||= begin
-        elder?(client_age_at_entry) && other_clients_under_18.zero?
-      end
+      @individual_elder ||= elder?(client_age_at_entry) && other_clients_under_18.zero?
     end
 
     def service_type_from_project_type(project_type)
@@ -715,7 +696,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def entry_exit_tracking?
       # This project isn't listed as a bed-night project AND isn't an SO project that behaves as a bed-night project
-      @entry_exit_tracking ||= project.TrackingMethod != 3 && ! street_outreach_acts_as_bednight?
+      @entry_exit_tracking ||= project.es_entry_exit? && ! street_outreach_acts_as_bednight?
     end
 
     def street_outreach_acts_as_bednight?
