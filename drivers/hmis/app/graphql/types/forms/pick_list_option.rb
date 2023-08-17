@@ -88,7 +88,7 @@ module Types
         Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
       when 'CE_EVENTS'
         # group CE event types as specified in HUD Data Dictionary
-        Types::HmisSchema::Enums::Hud::EventType.values.
+        Types::HmisSchema::Enums::Hud::EventType.values.excluding('INVALID').
           partition { |_k, v| [1, 2, 3, 4].include?(v.value) }.
           map.with_index do |l, idx|
             group = idx.zero? ? 'Access Events' : 'Referral Events'
