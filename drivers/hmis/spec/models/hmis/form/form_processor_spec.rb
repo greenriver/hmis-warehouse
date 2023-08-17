@@ -119,10 +119,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(income_benefits.other_benefits_source_identify).to eq(nil)
     end
 
-    it 'succeeds if overall is CLIENT_REFUSED' do
+    it 'succeeds if overall is CLIENT_PREFERS_NOT_TO_ANSWER' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'IncomeBenefit.benefitsFromAnySource' => 'CLIENT_REFUSED',
+        'IncomeBenefit.benefitsFromAnySource' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
         'IncomeBenefit.snap' => HIDDEN,
         'IncomeBenefit.wic' => HIDDEN,
         'IncomeBenefit.otherBenefitsSource' => HIDDEN,
@@ -242,7 +242,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.form_processor.hud_values = {
         'HealthAndDv.domesticViolenceVictim' => 'YES',
         'HealthAndDv.currentlyFleeing' => nil,
-        'HealthAndDv.whenOccurred' => 'CLIENT_REFUSED',
+        'HealthAndDv.whenOccurred' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
@@ -844,7 +844,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           'she/her',
           'they/them',
         ],
-        'veteranStatus' => 'CLIENT_REFUSED',
+        'veteranStatus' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
         'imageBlobId' => nil,
       }
     end
@@ -856,7 +856,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     it 'creates and updates all fields' do
       existing_client = c1
-      existing_client.update(NoSingleGender: 1, BlackAfAmerican: 1)
+      existing_client.update(NonBinary: 1, BlackAfAmerican: 1)
       new_client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
       [existing_client, new_client].each do |client|
         process_record(record: client, hud_values: complete_hud_values, user: hmis_user)
@@ -888,7 +888,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.gender_fields).to contain_exactly(:Woman, :Transgender)
         expect(client.GenderNone).to be nil
         # All other genders set to No
-        HudUtility2024.genders.keys.excluding('Woman', 'Transgender', 'GenderNone').each do |f|
+        HudUtility2024.gender_fields.excluding(:Woman, :Transgender, :GenderNone).each do |f|
           expect(client.send(f)).to eq(0)
         end
       end
@@ -896,7 +896,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     it 'stores empty fields correctly' do
       existing_client = c1
-      existing_client.update(NoSingleGender: 1, BlackAfAmerican: 1)
+      existing_client.update(NonBinary: 1, BlackAfAmerican: 1)
       new_client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
       [existing_client, new_client].each do |client|
         process_record(record: client, hud_values: empty_hud_values, user: hmis_user)
@@ -918,7 +918,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           expect(client.send(f)).to eq(99)
         end
         expect(client.gender_fields).to eq([])
-        HudUtility2024.genders.keys.each do |f|
+        HudUtility2024.gender_fields.each do |f|
           expect(client.send(f)).to eq(99)
         end
       end
@@ -926,7 +926,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     it 'handles empty arrays' do
       existing_client = c1
-      existing_client.update(NoSingleGender: 1, BlackAfAmerican: 1)
+      existing_client.update(NonBinary: 1, BlackAfAmerican: 1)
       new_client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
       [existing_client, new_client].each do |client|
         hud_values = empty_hud_values.merge(
@@ -941,7 +941,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           expect(client.send(f)).to eq(99)
         end
         expect(client.gender_fields).to eq([])
-        HudUtility2024.genders.keys.each do |f|
+        HudUtility2024.gender_fields.each do |f|
           expect(client.send(f)).to eq(99)
         end
         expect(client.pronouns).to be nil
@@ -953,15 +953,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       new_client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
       [existing_client, new_client].each do |client|
         hud_values = empty_hud_values.merge(
-          'ethnicity' => 'CLIENT_REFUSED', # 9
-          'veteranStatus' => 'CLIENT_REFUSED', # 9
-          'dobDataQuality' => 'CLIENT_REFUSED', # 9
-          'race' => ['CLIENT_REFUSED'], # 9
+          'veteranStatus' => 'CLIENT_PREFERS_NOT_TO_ANSWER', # 9
+          'dobDataQuality' => 'CLIENT_PREFERS_NOT_TO_ANSWER', # 9
+          'race' => ['CLIENT_PREFERS_NOT_TO_ANSWER'], # 9
           'gender' => ['CLIENT_DOESN_T_KNOW'], # 8
         )
         process_record(record: client, hud_values: hud_values, user: hmis_user)
 
-        expect(client.ethnicity).to eq(9)
         expect(client.veteran_status).to eq(9)
         expect(client.dob_data_quality).to eq(9)
         expect(client.race_fields).to eq([])
@@ -1009,13 +1007,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
             id: old_primary_name.id,
             primary: false,
             first: 'Atticus Changed',
-            nameDataQuality: 'CLIENT_REFUSED',
+            nameDataQuality: 'CLIENT_PREFERS_NOT_TO_ANSWER',
           }.stringify_keys,
           # 2) Add a NEW primary name
           {
             primary: true,
             first: 'Charlotte',
-            nameDataQuality: 'CLIENT_REFUSED',
+            nameDataQuality: 'CLIENT_PREFERS_NOT_TO_ANSWER',
           }.stringify_keys,
           # 3) Delete the old secondary name (by not including it)
         ],
@@ -1045,7 +1043,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           {
             primary: true,
             first: 'Charlotte',
-            nameDataQuality: 'CLIENT_REFUSED',
+            nameDataQuality: 'CLIENT_PREFERS_NOT_TO_ANSWER',
           }.stringify_keys,
         ],
       )
@@ -1069,7 +1067,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
             id: '0', # Gets ignored, a new record is created
             primary: true,
             first: 'Charlotte',
-            nameDataQuality: 'CLIENT_REFUSED',
+            nameDataQuality: 'CLIENT_PREFERS_NOT_TO_ANSWER',
           }.stringify_keys,
         ],
       )
@@ -1094,7 +1092,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
             primary: true,
             first: nil,
             last: nil,
-            nameDataQuality: 'CLIENT_REFUSED',
+            nameDataQuality: 'CLIENT_PREFERS_NOT_TO_ANSWER',
           }.stringify_keys,
         ],
       )

@@ -45,7 +45,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       create(:hmis_disability, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_health_and_dv, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_current_living_situation, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_enrollment_coc, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_hud_assessment, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_employment_education, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_youth_education_status, data_source: enrollment.data_source, enrollment: enrollment)

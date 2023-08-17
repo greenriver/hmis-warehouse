@@ -15,6 +15,7 @@ FactoryBot.define do
     DateUpdated { DateTime.current }
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
     DisablingCondition { 99 }
+    EnrollmentCoC { 'XX-500' }
     sequence(:EnrollmentID, 500)
     sequence(:EntryDate) do |n|
       dates = [
@@ -38,6 +39,7 @@ FactoryBot.define do
     DateUpdated { DateTime.current }
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
     DisablingCondition { 99 }
+    EnrollmentCoC { 'XX-500' }
     sequence(:EnrollmentID, 500)
     sequence(:EntryDate) do |n|
       dates = [

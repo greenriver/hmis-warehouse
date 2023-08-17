@@ -33,8 +33,8 @@ FactoryBot.define do
     DateCreated { DateTime.current }
     DateUpdated { DateTime.current }
     after(:build) do |client|
-      ::HudUtility2024.races.except('RaceNone').keys.each { |f| client.send("#{f}=", 0) }
-      ::HudUtility2024.gender_id_to_field_name.except(8, 9, 99).values.each { |f| client.send("#{f}=", 0) }
+      HudUtility2024.races.except('RaceNone').keys.each { |f| client.send("#{f}=", 0) }
+      HudUtility2024.gender_fields.excluding(:GenderNone).each { |f| client.send("#{f}=", 0) }
     end
   end
 end
