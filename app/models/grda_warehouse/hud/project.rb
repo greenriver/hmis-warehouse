@@ -132,6 +132,12 @@ module GrdaWarehouse::Hud
       es_nbn?
     end
 
+    # DEPRECATED_FY2024 - remove this once the transition 2024 is complete
+    # Make some tests work
+    def es_nbn_pre_2024?
+      tracking_method_to_use == 3 && project_type_to_use == 1
+    end
+
     scope :confidential, -> do
       joins(:organization).where(p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)))
     end
@@ -753,7 +759,7 @@ module GrdaWarehouse::Hud
       operating_end_date_override.presence || self.OperatingEndDate
     end
 
-    # Deprecated no longer used in FY2024
+    # DEPRECATED_FY2024 no longer used in FY2024
     def tracking_method_to_use
       tracking_method_override.presence || self.TrackingMethod
     end

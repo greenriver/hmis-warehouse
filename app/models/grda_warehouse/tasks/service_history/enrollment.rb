@@ -694,9 +694,20 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @head_of_household ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
     end
 
+    def nbn_tracking?
+      return true if street_outreach_acts_as_bednight?
+      # DEPRECATED_FY2024 - swap this once the transition 2024 is complete
+      # using old version to prevent test failures
+      return true if project.es_nbn_pre_2024?
+
+      # return true if project.es_nbn?
+
+      false
+    end
+
     def entry_exit_tracking?
       # This project isn't listed as a bed-night project AND isn't an SO project that behaves as a bed-night project
-      @entry_exit_tracking ||= project.es_entry_exit? && ! street_outreach_acts_as_bednight?
+      @entry_exit_tracking ||= ! nbn_tracking?
     end
 
     def street_outreach_acts_as_bednight?
