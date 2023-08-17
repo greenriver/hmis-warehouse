@@ -24,19 +24,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     cleanup_test_environment
   end
 
-  it 'ingests EnrollmentCoC into the hud tables' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-    assessment.form_processor.hud_values = {
-      'EnrollmentCoc.cocCode' => 'MA-507',
-    }
-
-    assessment.form_processor.run!(owner: assessment, user: hmis_user)
-    assessment.save_not_in_progress
-
-    expect(assessment.enrollment.enrollment_cocs.count).to eq(1)
-    expect(assessment.enrollment.enrollment_cocs.first.coc_code).to eq('MA-507')
-  end
-
   describe 'IncomeBenefit processor' do
     it 'succeeds if overall is YES and sources are specified (income)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
@@ -461,7 +448,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it "doesn't touch an existing value, if it isn't listed (but applies the listed fields)" do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'EnrollmentCoc.cocCode' => 'MA-507',
+        'HealthAndDv.domesticViolenceVictim' => 'NO',
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
@@ -477,8 +464,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.form_processor.save!
       assessment.save_not_in_progress
       assessment.reload
-      expect(assessment.enrollment.enrollment_cocs.count).to eq(1)
-      expect(assessment.enrollment.enrollment_cocs.first.coc_code).to eq('MA-507')
+      expect(assessment.enrollment.health_and_dvs.count).to eq(1)
+      expect(assessment.enrollment.health_and_dvs.first.domestic_violence_victim).to eq(0)
 
       income_benefits = assessment.enrollment.income_benefits.first
       expect(income_benefits.income_from_any_source).to eq(1)
@@ -488,7 +475,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'clears an existing value, if it is null' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'EnrollmentCoc.cocCode' => 'MA-507',
         'IncomeBenefit.incomeFromAnySource' => 'YES',
       }
 
@@ -496,7 +482,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
 
       assessment.form_processor.hud_values = {
-        'EnrollmentCoc.cocCode' => nil,
         'IncomeBenefit.incomeFromAnySource' => nil,
       }
 
@@ -505,13 +490,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
       assessment.reload
 
-      expect(assessment.enrollment.enrollment_cocs.first.coc_code).to be_nil
+      expect(assessment.enrollment.income_benefits.first.income_from_any_source).to eq(99)
     end
 
     it 'adjusts the information dates as appropriate' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'EnrollmentCoc.cocCode' => 'MA-507',
+        'IncomeBenefit.incomeFromAnySource' => 'NO',
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
@@ -525,7 +510,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
 
       assessment.reload
-      expect(assessment.enrollment.enrollment_cocs.first.information_date).to eq(test_date)
+      expect(assessment.enrollment.income_benefits.first.information_date).to eq(test_date)
     end
 
     it 'adds an exit record when appropriate' do
@@ -551,7 +536,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.reload
 
       expect(assessment.enrollment.exit).to be_present
-      expect(assessment.enrollment.exit.destination).to eq(18)
+      expect(assessment.enrollment.exit.destination).to eq(118)
     end
 
     it 'processes aftercare and counseling multi-select fields correctly' do
@@ -667,7 +652,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
       enrollment = assessment.enrollment
-      expect(enrollment.living_situation).to eq(6)
+      expect(enrollment.living_situation).to eq(206)
       expect(enrollment.length_of_stay).to eq(3)
       expect(enrollment.los_under_threshold).to eq(1)
       expect(enrollment.previous_street_essh).to eq(1)
@@ -726,7 +711,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'creates and updates all fields' do
       existing_enrollment = e1
       existing_enrollment.update(entry_date: 1.month.ago, relationship_to_hoh: 99)
-      new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, client: c1, project: p1)
+      new_enrollment = build(:hmis_hud_enrollment, client: c1, project: p1)
       [existing_enrollment, new_enrollment].each do |enrollment|
         process_record(record: enrollment, hud_values: complete_hud_values, user: hmis_user)
         expect(enrollment.relationship_to_hoh).to eq(1)
@@ -744,7 +729,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(unit.current_occupants).to contain_exactly(e1)
 
       # Assign new enrollment to unit 1 (same household)
-      new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, client: c1, project: p1, household_id: e1.household_id)
+      new_enrollment = build(:hmis_hud_enrollment, client: c1, project: p1, household_id: e1.household_id)
       process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user)
       unit.reload
       expect(new_enrollment.current_unit).to eq(unit)
@@ -800,7 +785,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       unit = create(:hmis_unit, project: p1)
       e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
       e2.save!
-      new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, client: c1, project: p1, household_id: e1.household_id)
+      new_enrollment = build(:hmis_hud_enrollment, client: c1, project: p1, household_id: e1.household_id)
 
       hud_values = complete_hud_values.merge('currentUnit' => unit.id)
       expect { process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user) }.to raise_error(StandardError)
@@ -1220,6 +1205,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       {
         'Enrollment.entryDate' => Date.yesterday.strftime('%Y-%m-%d'),
         'Enrollment.relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+        'Enrollment.enrollmentCoc' => 'XX-123',
         'Client.firstName' => 'First',
         'Client.lastName' => 'Last',
         'Client.nameDataQuality' => 'FULL_NAME_REPORTED',
@@ -1228,7 +1214,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'Client.ssn' => nil,
         'Client.ssnDataQuality' => nil,
         'Client.race' => [],
-        'Client.ethnicity' => nil,
         'Client.gender' => [],
         'Client.pronouns' => [],
         'Client.veteranStatus' => nil,

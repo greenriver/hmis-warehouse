@@ -19,6 +19,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Related records that were created/updated from this assessment
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
+  # TODO(2024) remove this column, once data has been migrated
   belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :developmental_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
@@ -131,19 +132,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       personal_id: custom_assessment&.personal_id,
       information_date: custom_assessment&.assessment_date,
     }
-  end
-
-  # The items associated with the enrollments are all singletons, so return
-  # them if they already exist, otherwise create them
-  def enrollment_coc_factory(create: true)
-    return enrollment_coc if enrollment_coc.present? || !create
-
-    self.enrollment_coc = enrollment_factory.enrollment_cocs.
-      build(
-        household_id: enrollment_factory.household_id,
-        project_id: enrollment_factory.project_id,
-        **common_attributes,
-      )
   end
 
   def exit_factory(create: true)
@@ -261,7 +249,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # Assessment-related records
       DisabilityGroup: Hmis::Hud::Processors::DisabilityGroupProcessor,
       Enrollment: Hmis::Hud::Processors::EnrollmentProcessor,
-      EnrollmentCoc: Hmis::Hud::Processors::EnrollmentCocProcessor,
       HealthAndDv: Hmis::Hud::Processors::HealthAndDvProcessor,
       IncomeBenefit: Hmis::Hud::Processors::IncomeBenefitProcessor,
       Exit: Hmis::Hud::Processors::ExitProcessor,
@@ -286,7 +273,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   private def all_factories
     [
       :enrollment_factory,
-      :enrollment_coc_factory,
       :health_and_dv_factory,
       :income_benefit_factory,
       :physical_disability_factory,

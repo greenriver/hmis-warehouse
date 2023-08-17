@@ -498,7 +498,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                                              'Client.ssn' => nil,
                                              'Client.ssnDataQuality' => nil,
                                              'Client.race' => [],
-                                             'Client.ethnicity' => nil,
                                              'Client.gender' => [],
                                              'Client.pronouns' => [],
                                              'Client.veteranStatus' => nil })

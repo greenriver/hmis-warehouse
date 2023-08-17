@@ -9,6 +9,7 @@ class Hmis::Hud::Validators::IncomeBenefitValidator < Hmis::Hud::Validators::Bas
     :ExportID,
     :DateCreated,
     :DateUpdated,
+    :NoVHAReason, # skip for now since its not added yet
   ].freeze
 
   def configuration
