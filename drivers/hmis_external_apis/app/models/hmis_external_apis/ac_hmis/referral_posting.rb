@@ -20,6 +20,7 @@ module HmisExternalApis::AcHmis
     # Enrollment(s) are only present if this referral was accepted
     has_many :enrollments, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Enrollment')
     has_one :hoh_enrollment, -> { where(relationship_to_hoh: 1) }, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Enrollment')
+    # see note about enrollment / household_id on enrollment in the Referral class
     has_one :household, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Household')
 
     scope :viewable_by, ->(_user) { raise } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated

@@ -8,8 +8,7 @@
 module HmisExternalApis::AcHmis::Importers::Loaders
   class DeferredProjectUnitOccupancyLoader < BaseLoader
     def initialize(tracker:, clobber:)
-      @clobber = clobber
-      @tracker = tracker
+      super(reader: nil, tracker: tracker, clobber: clobber)
     end
 
     def runnable?
@@ -21,11 +20,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       scoped_records = model_class.where(enrollment_id: enrollments.select(:id))
       # destroy all existing records
       scoped_records.destroy_all if clobber
-      model_class.import(build_records, validate: false, recursive: true, batch_size: 1_000)
-    end
-
-    def table_names
-      [model_class.table_name, Hmis::ActiveRange.table_name]
+      ar_import(model_class, build_records, recursive: true)
     end
 
     protected

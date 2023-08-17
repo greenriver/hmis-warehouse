@@ -15,11 +15,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       # can't do bulk insert here since polymorphic CDE's don't seem to work
       # and bulk-insert returned ids are not ordered
-      begin
-        PaperTrail.enabled = false
+      without_paper_trail do
         records.each { |record| record.save!(validate: false) }
-      ensure
-        PaperTrail.enabled = true
       end
       Rails.logger.info "#{self.class.name} inserted: #{records.size} records into #{model_class.table_name}"
     end

@@ -12,10 +12,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       super && reader.file_present?(filename)
     end
 
-    def table_names
-      [model_class.table_name]
-    end
-
     protected
 
     def rows

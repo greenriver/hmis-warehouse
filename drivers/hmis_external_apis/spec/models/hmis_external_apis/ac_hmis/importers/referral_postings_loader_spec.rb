@@ -10,13 +10,14 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   include AcHmisLoaderHelpers
 
   let(:ds) { create(:hmis_data_source) }
-  let(:client) { create(:hmis_hud_client, data_source: ds) }
-  let!(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds) }
+  let(:mci_id) { Hmis::Hud::Base.generate_uuid }
+  let!(:client) { create(:hmis_hud_client, data_source: ds, personal_id: mci_id) }
+  let(:project) { create(:hmis_hud_project, data_source: ds) }
   let(:referral_id) { Hmis::Hud::Base.generate_uuid }
   let!(:unit_type_id) do
     unit_type = create(:hmis_unit_type)
     external_id = mper.create_external_id(source: unit_type, value: '22')
-    create(:hmis_unit, project: enrollment.project, unit_type: unit_type)
+    create(:hmis_unit, project: project, unit_type: unit_type)
     external_id.value
   end
   let!(:mper) do
@@ -24,7 +25,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
     ::HmisExternalApis::AcHmis::Mper.new
   end
 
-  let(:posting_rows) do
+  let(:base_posting_rows) do
     [
       {
         'REFERRAL_ID' => referral_id,
@@ -35,8 +36,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
         'SCORE' => '2',
         'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
         'POSTING_ID' => Hmis::Hud::Base.generate_uuid,
-        'STATUS' => 'Accepted',
-        'PROGRAM_ID' => enrollment.project_id,
+        'PROGRAM_ID' => project.project_id,
         'UNIT_TYPE_ID' => unit_type_id,
         'ASSIGNED_AT' => '2022-12-01 14:00:00',
         'STATUS_UPDATED_AT' => '2022-12-01 14:00:00',
@@ -49,29 +49,53 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
     [
       {
         'REFERRAL_ID' => referral_id,
-        'MCI_ID' => enrollment.personal_id,
+        'MCI_ID' => mci_id,
         'RELATIONSHIP_TO_HOH_ID' => '1',
       },
     ]
   end
 
-  it 'imports rows' do
-    csv_files = {
-      'ReferralPostings.csv' => posting_rows,
-      'ReferralHouseholdMembers.csv' => household_member_rows,
-    }
-    expect do
-      run_cde_import(csv_files: csv_files, clobber: true)
-    end.to change(enrollment.external_referrals, :count).by(1)
-      .and change(enrollment.unit_occupancies, :count).by(1)
+  describe 'for an accepted referral' do
+    let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds, project: project) }
+    let(:posting_rows) do
+      base_posting_rows.each do |row|
+        row['STATUS'] = 'Accepted'
+        row['ENROLLMENT_ID'] = enrollment.enrollment_id
+      end
+    end
 
-    expect(enrollment.external_referrals.first.postings.size).to eq(1)
-    expect(enrollment.external_referrals.first.household_members.size).to eq(1)
-    expect(enrollment.unit_occupancies.size).to eq(1)
+    it 'creates referral records, unit occupancy, but not enrollment' do
+      csv_files = {
+        'ReferralPostings.csv' => posting_rows,
+        'ReferralHouseholdMembers.csv' => household_member_rows,
+      }
+      expect do
+        run_cde_import(csv_files: csv_files, clobber: true)
+      end.to change(HmisExternalApis::AcHmis::Referral, :count).by(1)
+        .and change(HmisExternalApis::AcHmis::ReferralPosting, :count).by(1)
+        .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(1)
+        .and change(enrollment.unit_occupancies, :count).by(1)
+        .and not_change(Hmis::Hud::Enrollment, :count)
+    end
+  end
 
-    expect do
-      run_cde_import(csv_files: csv_files, clobber: false)
-    end.to not_change(enrollment.external_referrals, :count)
-      .and not_change(enrollment.unit_occupancies, :count)
+  describe 'with accepted pending referral' do
+    let(:posting_rows) do
+      base_posting_rows.each { |r| r['STATUS'] = 'Accepted Pending' }
+    end
+
+    it 'creates referral records, enrollment, but not unit occupancy' do
+      csv_files = {
+        'ReferralPostings.csv' => posting_rows,
+        'ReferralHouseholdMembers.csv' => household_member_rows,
+      }
+      expect do
+        run_cde_import(csv_files: csv_files, clobber: true)
+      end.to change(HmisExternalApis::AcHmis::Referral, :count).by(1)
+        .and change(HmisExternalApis::AcHmis::ReferralPosting, :count).by(1)
+        .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(1)
+        .and change(Hmis::Hud::Enrollment, :count).by(1)
+        .and not_change(Hmis::UnitOccupancy, :count)
+    end
   end
 end

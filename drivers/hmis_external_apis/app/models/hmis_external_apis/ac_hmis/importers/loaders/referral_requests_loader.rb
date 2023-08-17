@@ -22,7 +22,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         records,
         on_duplicate_key_update: {
           conflict_target: :identifier,
-          columns: records[0].keys,
+          columns: :all,
         },
       )
     end

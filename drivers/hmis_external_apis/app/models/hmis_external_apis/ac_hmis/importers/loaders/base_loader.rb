@@ -6,7 +6,7 @@
 
 module HmisExternalApis::AcHmis::Importers::Loaders
   class BaseLoader
-    attr_reader :reader, :clobber, :tracker
+    attr_reader :reader, :clobber, :tracker, :table_names
 
     def self.perform(...)
       new(...).perform
@@ -16,6 +16,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @reader = reader
       @clobber = clobber
       @tracker = tracker
+      @table_names = []
     end
 
     protected
@@ -104,15 +105,29 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         msg = "#{my_name} failed: #{result.failed_instances} into #{table_name}"
         raise msg
       end
+      table_names.push(table_name)
 
       # report ids.size, since num_inserts is only last batch
       Rails.logger.info "#{my_name} inserted: #{result.ids.size} records into #{table_name}"
+    end
+
+    # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when
+    # we have to fallback to individual inserts
+    def without_paper_trail
+      enabled = PaperTrail.enabled = false
+      begin
+        PaperTrail.enabled = false
+        yield
+      ensure
+        PaperTrail.enabled = enabled
+      end
     end
 
     def to_s
       inspect
     end
 
+    # reduce clutter in debugging output, avoids logging memoized values
     def inspect
       self.class.name.to_s
     end
