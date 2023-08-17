@@ -70,7 +70,7 @@ module Types
       definition = load_ar_association(form_processor, :definition)
       # If there was no definition specified, which would occur if this is a migrated assessment, choose an appropriate one.
       definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project)
-      definition.filter_context = { project: project }
+      definition.filter_context = { project: project, active_date: object.assessment_date }
       definition
     end
 
