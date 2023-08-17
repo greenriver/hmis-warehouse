@@ -366,18 +366,6 @@ class SeedMaker
       builder.seed_record_form_definitions
       builder.seed_assessment_form_definitions
     end
-
-    datasources = GrdaWarehouse::DataSource.hmis
-    return unless datasources.present?
-
-    # Create 1 CustomServiceCategory per HUD RecordType, and
-    # 1 CustomServiceType per HUD TypeProvided
-    datasources.each do |hmis_ds|
-      HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id)
-    end
-
-    # Create FormInstances specifying which Services are available per Project Type / Funder
-    HmisUtil::ServiceTypes.seed_hud_service_form_instances
   end
 
   def populate_internal_system_choices

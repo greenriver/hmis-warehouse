@@ -14,7 +14,7 @@
       = link_to client_history_path(@client, **data.filter_params(prev_date)), class: 'mr-4 js-client__calendar-nav', data: data.filter_params(prev_date) do
         %i.icon-angle-left
     - next_date = data.next_date
-    - if next_date.present?
+    - if next_date.present? && next_date <= max_date
       = link_to client_history_path(@client, **data.filter_params(next_date)), class: 'mr-4 js-client__calendar-nav', data: data.filter_params(next_date) do
         %i.icon-angle-right
   .d-flex

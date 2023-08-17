@@ -177,6 +177,30 @@ module Concerns::HudLists2024
       _translate project_types, id, reverse
     end
 
+    # 2.02.6.brief
+    def project_type_briefs
+      {
+        0 => 'ES - Entry/Exit',
+        1 => 'ES - NBN',
+        2 => 'TH',
+        3 => 'PH - PSH',
+        4 => 'SO',
+        6 => 'SSO',
+        8 => 'SH',
+        9 => 'PH - PH',
+        7 => 'Other',
+        10 => 'PH - OPH',
+        11 => 'Day Shelter',
+        12 => 'HP',
+        13 => 'PH - RRH',
+        14 => 'CE',
+      }.freeze
+    end
+
+    def project_type_brief(id, reverse = false)
+      _translate project_type_briefs, id, reverse
+    end
+
     # 2.02.7
     def target_populations
       {
@@ -2047,7 +2071,7 @@ module Concerns::HudLists2024
     end
 
     # race
-    def races
+    def race_field_name_to_description
       {
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous',
         'Asian' => 'Asian or Asian American',
@@ -2061,7 +2085,7 @@ module Concerns::HudLists2024
     end
 
     def race(id, reverse = false)
-      _translate races, id, reverse
+      _translate race_field_name_to_description, id, reverse
     end
   end
 end

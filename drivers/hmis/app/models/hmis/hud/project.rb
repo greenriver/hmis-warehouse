@@ -42,6 +42,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
 
+  has_many :services, through: :enrollments_including_wip
+  has_many :custom_services, through: :enrollments_including_wip
+  has_many :hmis_services, through: :enrollments_including_wip
+
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
                           join_table: :project_project_groups

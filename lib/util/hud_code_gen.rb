@@ -28,6 +28,7 @@ module HudCodeGen
     bed_nights: :bed_night_options,
     voucher_trackings: :voucher_tracking_options,
     moving_on_assistances: :moving_on_assistance_options,
+    races: :race_field_name_to_description,
   }.stringify_keys.freeze
 
   LOOKUP_FN_OVERRIDES = {

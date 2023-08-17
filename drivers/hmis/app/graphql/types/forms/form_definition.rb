@@ -95,7 +95,7 @@ module Types
       when 'projectFunders'
         project_funders.map { |f| f.funder&.to_i }.compact_blank
       when 'projectFunderComponents'
-        project_funders.map { |f| HudUtility.funder_component(f.funder&.to_i) }.compact_blank
+        project_funders.map { |f| HudUtility2024.funder_component(f.funder&.to_i) }.compact_blank
       when 'projectOtherFunders'
         project_funders.map(&:other_funder).compact_blank
       else

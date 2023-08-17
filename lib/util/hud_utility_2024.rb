@@ -10,18 +10,15 @@ module HudUtility2024
 
   module_function
 
-  def race(field, reverse = false, multi_racial: false)
-    map = multi_racial ? races_with_multi_racial : races
-    _translate map, field, reverse
+  def races(multi_racial: false)
+    return race_field_name_to_description unless multi_racial
+
+    { **race_field_name_to_description, 'MultiRacial' => 'Multi-Racial' }
   end
 
-  # NOTE: api differs from HudUtility 2022 which was `races(multi_racial: false)`
-  # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
-  def races_with_multi_racial
-    {
-      **races,
-      'MultiRacial' => 'Multi-Racial',
-    }
+  def race(field, reverse = false, multi_racial: false)
+    map = races(multi_racial: multi_racial)
+    _translate map, field, reverse
   end
 
   # 1.6
@@ -65,6 +62,7 @@ module HudUtility2024
   end
 
   def gender_id_to_field_name
+    # Integer values from HUD Data Dictionary
     {
       0 => :Woman,
       1 => :Man,
@@ -73,6 +71,22 @@ module HudUtility2024
       4 => :NonBinary,
       5 => :Transgender,
       6 => :Questioning,
+      8 => :GenderNone,
+      9 => :GenderNone,
+      99 => :GenderNone,
+    }.freeze
+  end
+
+  def race_id_to_field_name
+    # Integer values from HUD Data Dictionary
+    {
+      1 => :AmIndAKNative,
+      2 => :Asian,
+      3 => :BlackAfAmerican,
+      4 => :NativeHIPacific,
+      5 => :White,
+      6 => :HispanicLatinaeo,
+      7 => :MidEastNAfrican,
       8 => :GenderNone,
       9 => :GenderNone,
       99 => :GenderNone,
@@ -318,6 +332,49 @@ module HudUtility2024
   # {1 => 'Test (this)'} => {'test_this' => 1}
   # @param name [Symbol] method on HudLists
   def hud_list_map_as_enumerable(name)
-    HudUtility.hud_list_map_as_enumerable(name)
+    original = send(name)
+    keyed = original.invert.transform_keys do |key|
+      key.downcase.gsub(/[^a-z0-9]+/, ' ').strip.gsub(' ', '_')
+    end
+    raise "cannot key #{name}" if keyed.size != original.size
+
+    keyed
+  end
+
+  private def funder_description_to_component(description)
+    return unless description.include?(' - ')
+
+    description.split(' - ')[0]
+  end
+  def funder_components
+    funding_sources.
+      transform_values { |d| funder_description_to_component(d) }.
+      compact.
+      each_with_object({}) { |(k, v), h| (h[v] ||= []) << k }
+  end
+
+  def funder_component(funder)
+    funding_sources.
+      transform_values { |d| funder_description_to_component(d) }.
+      compact[funder]
+  end
+
+  # field name => ID from Data Dictionary
+  def aftercare_method_fields
+    {
+      email_social_media: 1,
+      telephone: 2,
+      in_person_individual: 3,
+      in_person_group: 4,
+    }
+  end
+
+  # field name => ID from Data Dictionary
+  def counseling_method_fields
+    {
+      individual_counseling: 1,
+      family_counseling: 2,
+      group_counseling: 3,
+    }
   end
 end
