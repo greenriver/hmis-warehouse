@@ -367,6 +367,9 @@ enum AssessmentType {
   VIRTUAL
 }
 
+"""
+Paginated Types::HmisSchema::Assessment
+"""
 type AssessmentsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -499,6 +502,9 @@ type CeAssessment {
   user: User
 }
 
+"""
+Paginated Types::HmisSchema::CeAssessment
+"""
 type CeAssessmentsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -700,6 +706,9 @@ type ClientAuditEvent {
   user: ApplicationUser
 }
 
+"""
+Paginated #<Class:0x0000ffff99624988>
+"""
 type ClientAuditEventsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -905,6 +914,9 @@ enum ClientSortOption {
   LAST_NAME_Z_TO_A
 }
 
+"""
+Paginated Types::HmisSchema::Client
+"""
 type ClientsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -1439,6 +1451,9 @@ enum CurrentLivingSituationOptions {
   WORKER_UNABLE_TO_DETERMINE
 }
 
+"""
+Paginated Types::HmisSchema::CurrentLivingSituation
+"""
 type CurrentLivingSituationsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -2182,6 +2197,9 @@ input DirectUploadInput {
   filename: String!
 }
 
+"""
+Paginated Types::HmisSchema::Disability
+"""
 type DisabilitiesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -2417,6 +2435,9 @@ type EmploymentEducation {
   user: User
 }
 
+"""
+Paginated Types::HmisSchema::EmploymentEducation
+"""
 type EmploymentEducationsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -2734,6 +2755,9 @@ input EnrollmentsForProjectFilterOptions {
   status: [EnrollmentFilterOptionStatus!]
 }
 
+"""
+Paginated Types::HmisSchema::Enrollment
+"""
 type EnrollmentsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -2892,6 +2916,9 @@ enum EventType {
   REFERRAL_TO_TRANSITIONAL_HOUSING_BED_UNIT_OPENING
 }
 
+"""
+Paginated Types::HmisSchema::Event
+"""
 type EventsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -3108,6 +3135,9 @@ enum FileSortOption {
   DATE_UPDATED
 }
 
+"""
+Paginated Types::HmisSchema::File
+"""
 type FilesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -3430,6 +3460,9 @@ enum FunderSortOption {
   START_DATE
 }
 
+"""
+Paginated Types::HmisSchema::Funder
+"""
 type FundersPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -3865,6 +3898,9 @@ type HealthAndDv {
   whenOccurred: WhenDVOccurred
 }
 
+"""
+Paginated Types::HmisSchema::HealthAndDv
+"""
 type HealthAndDvsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -3987,6 +4023,9 @@ enum HouseholdType {
   INVALID
 }
 
+"""
+Paginated Types::HmisSchema::Household
+"""
 type HouseholdsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -4209,6 +4248,9 @@ type IncomeBenefit {
   workersCompAmount: Float
 }
 
+"""
+Paginated Types::HmisSchema::IncomeBenefit
+"""
 type IncomeBenefitsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -4265,6 +4307,9 @@ enum InputSize {
   XSMALL
 }
 
+"""
+Paginated Types::HmisSchema::Inventory
+"""
 type InventoriesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -5141,6 +5186,9 @@ enum OrganizationSortOption {
   NAME
 }
 
+"""
+Paginated Types::HmisSchema::Organization
+"""
 type OrganizationsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -5531,6 +5579,9 @@ type ProjectCoc {
   zip: String
 }
 
+"""
+Paginated Types::HmisSchema::ProjectCoc
+"""
 type ProjectCocsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -5688,6 +5739,9 @@ input ProjectsForEnrollmentFilterOptions {
   status: [ProjectFilterOptionStatus!]
 }
 
+"""
+Paginated Types::HmisSchema::Project
+"""
 type ProjectsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -6262,6 +6316,9 @@ enum ReferralPostingStatus {
   void_status
 }
 
+"""
+Paginated Types::HmisSchema::ReferralPosting
+"""
 type ReferralPostingsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -6283,6 +6340,9 @@ type ReferralRequest {
   unitType: UnitTypeObject!
 }
 
+"""
+Paginated Types::HmisSchema::ReferralRequest
+"""
 type ReferralRequestsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -7500,6 +7560,9 @@ input ServicesForProjectFilterOptions {
   serviceType: [ID!]
 }
 
+"""
+Paginated Types::HmisSchema::Service
+"""
 type ServicesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -7931,6 +7994,9 @@ type UnitTypeObject {
   unitSize: Int
 }
 
+"""
+Paginated Types::HmisSchema::Unit
+"""
 type UnitsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -9006,6 +9072,9 @@ type YouthEducationStatus {
   user: User
 }
 
+"""
+Paginated Types::HmisSchema::YouthEducationStatus
+"""
 type YouthEducationStatusesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
