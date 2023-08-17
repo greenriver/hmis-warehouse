@@ -42,7 +42,7 @@ module HmisExternalApis::AcHmis
         assigned_to_other_program_status: 60,
         # closed: 65,
       },
-      referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_results),
+      referral_result: ::HudUtility2024.hud_list_map_as_enumerable(:referral_results),
     )
 
     # Referrals in Denied Pending status can either be move to Denied (denial accepted) or to Assigned (denial rejected)
