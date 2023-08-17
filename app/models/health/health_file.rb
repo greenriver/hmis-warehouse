@@ -9,6 +9,7 @@
 # Control: PHI attributes documented
 module Health
   class HealthFile < HealthBase
+    include NotifierConfig
     acts_as_paranoid
 
     phi_attr :file, Phi::FreeText, 'Name of health file'
@@ -58,10 +59,16 @@ module Health
     def set_calculated!(user_id, client_id)
       self.user_id ||= user_id
       self.client_id ||= client_id
-      self.content ||= file.read
-      self.content_type ||= file.content_type
-      self.size ||= content&.size
-      self.name ||= file.filename
+
+      if File.exist?(file.path)
+        self.content ||= file.read
+        self.content_type ||= file.content_type
+        self.size ||= content&.size
+        self.name ||= file.filename
+      else
+        error_message = "set_calculated! without upload. id: #{id}, user_id: #{user_id}, client_id: #{client_id}"
+        send_single_notification(error_message, 'HealthFile')
+      end
     end
   end
 end
