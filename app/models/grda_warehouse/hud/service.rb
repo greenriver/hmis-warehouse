@@ -29,7 +29,8 @@ module GrdaWarehouse::Hud
     has_one :project, through: :enrollment
     has_one :organization, through: :project
 
-    scope :bed_night, -> { where RecordType: 200 }
+    scope :bed_night, -> { where(RecordType: 200) }
+    scope :not_bed_night, -> { where.not(RecordType: 200) }
     scope :path_service, -> { where(RecordType: 141) }
     scope :path_referral, -> { where(RecordType: 161) }
     scope :descending, -> { order arel_table[:DateProvided].desc }

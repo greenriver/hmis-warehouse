@@ -30,8 +30,9 @@ module ClientAccessControl
     # helper_method :format_date_string
 
     def show
-      @month = params[:month]&.to_i || Date.current.month
-      @year = params[:year]&.to_i || Date.current.year
+      max_date = ClientAccessControl::ClientHistoryMonth.new.max_date(@client)
+      @month = params[:month]&.to_i || max_date.month
+      @year = params[:year]&.to_i || max_date.year
       @filters = {
         project_types: (params[:project_types] || '').split(','),
         projects: (params[:projects] || '').split(','),

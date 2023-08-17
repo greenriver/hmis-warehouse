@@ -17,6 +17,7 @@ module Types
     include Types::HmisSchema::HasReferralRequests
     include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasServices
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -45,6 +46,7 @@ module Types
     funders_field
     units_field
     households_field
+    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -110,6 +112,10 @@ module Types
 
     def inventories(**args)
       resolve_inventories(**args)
+    end
+
+    def services(**args)
+      resolve_services(**args)
     end
 
     # Build OpenStructs to resolve as UnitTypeCapacity
