@@ -125,11 +125,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :night_by_night, -> do
-      where(cl(p_t[:tracking_method_override], p_t[:TrackingMethod]).eq(3))
+      es_nbn
     end
 
     def night_by_night?
-      (tracking_method_override.presence || self.TrackingMethod) == 3
+      es_nbn?
     end
 
     scope :confidential, -> do
@@ -319,7 +319,6 @@ module GrdaWarehouse::Hud
         operating_end_date_override: :OperatingEndDate,
         hmis_participating_project_override: :HMISParticipatingProject,
         target_population_override: :TargetPopulation,
-        tracking_method_override: :TrackingMethod,
       }
     end
 
