@@ -89,7 +89,7 @@ module HudUtility2024
   def project_group_titles
     {
       ph: 'Permanent Housing (PH, PSH, & RRH)',
-      es: 'Emergency Shelter (ES)',
+      es: 'Emergency Shelter (ES NBN & ES Entry/Exit)',
       th: 'Transitional Housing (TH)',
       sh: 'Safe Haven (SH)',
       so: 'Street Outreach (SO)',
@@ -210,7 +210,7 @@ module HudUtility2024
     all_project_types - project_types_without_inventory
   end
 
-  def with_move_in_dates
+  def project_types_with_move_in_dates
     residential_project_type_numbers_by_code[:ph]
   end
 
