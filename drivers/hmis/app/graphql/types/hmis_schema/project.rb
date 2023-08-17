@@ -52,7 +52,6 @@ module Types
     hud_field :description, String, null: true
     hud_field :contact_information, String, null: true
     hud_field :housing_type, Types::HmisSchema::Enums::Hud::HousingType
-    # hud_field :tracking_method, Types::HmisSchema::Enums::Hud::TrackingMethod
     field :rrh_sub_type, Types::HmisSchema::Enums::Hud::RRHSubType, null: true
     hud_field :target_population, HmisSchema::Enums::Hud::TargetPopulation
     hud_field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac

@@ -185,17 +185,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
   }.freeze
 
-  # Unused
-  def fake_client_image_data
-    gender = if self[:Male].in?([1]) then 'male' else 'female' end
-    age_group = if age.blank? || age > 18 then 'adults' else 'children' end
-    image_directory = File.join('public', 'fake_photos', age_group, gender)
-    available = Dir[File.join(image_directory, '*.jpg')]
-    image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-    Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
-    image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
-  end
-
   def self.client_search(input:, user: nil)
     # Apply ID searches directly, as they can only ever return a single client
     return searchable_to(user).where(id: input.id) if input.id.present?
