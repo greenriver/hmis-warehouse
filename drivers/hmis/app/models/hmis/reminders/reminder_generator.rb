@@ -43,7 +43,7 @@ module Hmis
       end
 
       def data_stages(keys)
-        @mapped ||= HudUtility.hud_list_map_as_enumerable(:data_collection_stages).symbolize_keys
+        @mapped ||= HudUtility2024.hud_list_map_as_enumerable(:data_collection_stages).symbolize_keys
         @mapped.fetch_values(*keys.map(&:to_sym))
       end
 

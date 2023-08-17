@@ -2071,7 +2071,7 @@ module Concerns::HudLists2024
     end
 
     # race
-    def race_columns
+    def race_field_name_to_description
       {
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous',
         'Asian' => 'Asian or Asian American',
@@ -2085,7 +2085,7 @@ module Concerns::HudLists2024
     end
 
     def race(id, reverse = false)
-      _translate race_columns, id, reverse
+      _translate race_field_name_to_description, id, reverse
     end
   end
 end
