@@ -5398,6 +5398,11 @@ enum PickListType {
   Unit types that have unoccupied units in the specified project
   """
   AVAILABLE_UNIT_TYPES
+
+  """
+  Grouped HUD CE Event types
+  """
+  CE_EVENTS
   COC
   CURRENT_LIVING_SITUATION
   DESTINATION

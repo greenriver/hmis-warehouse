@@ -17,7 +17,7 @@
           "type": "CHOICE",
           "required": true,
           "text": "Event Type",
-          "pick_list_reference": "EventType",
+          "pick_list_reference": "CE_EVENTS",
           "link_id": "4.20.2",
           "mapping": { "field_name": "event" }
         },
@@ -96,6 +96,7 @@
           "required": false,
           "text": "Referral Result",
           "pick_list_reference": "ReferralResult",
+          "component": "RADIO_BUTTONS_VERTICAL",
           "link_id": "4.20.D",
           "mapping": { "field_name": "referralResult" },
           "enable_behavior": "ANY",

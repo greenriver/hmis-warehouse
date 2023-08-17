@@ -86,6 +86,16 @@ module Types
       when 'ALL_UNIT_TYPES'
         # used for referrals between projects
         Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
+      when 'CE_EVENTS'
+        # group CE event types as specified in HUD Data Dictionary
+        Types::HmisSchema::Enums::Hud::EventType.values.
+          partition { |_k, v| [1, 2, 3, 4].include?(v.value) }.
+          map.with_index do |l, idx|
+            group = idx.zero? ? 'Access Events' : 'Referral Events'
+            l.map do |k, v|
+              { code: k, label: v.description.gsub(CODE_PATTERN, ''), group_label: group }
+            end
+          end.flatten
       end
     end
 
