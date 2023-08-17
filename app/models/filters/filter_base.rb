@@ -833,7 +833,11 @@ module Filters
         map do |group, tags|
         [
           group,
-          tags.map { |tag| [tag.name, tag.tag.id] },
+          tags.map do |tag|
+            next unless tag&.name.present? && tag&.tag.present?
+
+            [tag.name, tag.tag.id]
+          end.compact,
         ]
       end.to_h
     end
