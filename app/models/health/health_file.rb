@@ -56,12 +56,12 @@ module Health
     end
 
     def set_calculated!(user_id, client_id)
-      self.user_id = user_id
-      self.client_id = client_id
-      self.content = file.read
-      self.content_type = file.content_type
-      self.size = content&.size
-      self.name = file.filename
+      self.user_id ||= user_id
+      self.client_id ||= client_id
+      self.content ||= file.read
+      self.content_type ||= file.content_type
+      self.size ||= content&.size
+      self.name ||= file.filename
     end
   end
 end
