@@ -5643,7 +5643,7 @@ enum ProjectType {
   OTHER
 
   """
-  PH - Housing with Services (no disability required for entry)
+  PH - Housing with Services
   """
   PH_OPH
 
