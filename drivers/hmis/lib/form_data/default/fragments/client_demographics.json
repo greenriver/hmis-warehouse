@@ -19,18 +19,6 @@
     {
       "type": "CHOICE",
       "required": false,
-      "link_id": "ethnicity",
-      "text": "Ethnicity",
-      "repeats": false,
-      "mapping": {
-        "record_type": "CLIENT",
-        "field_name": "ethnicity"
-      },
-      "pick_list_reference": "Ethnicity"
-    },
-    {
-      "type": "CHOICE",
-      "required": false,
       "link_id": "gender",
       "text": "Gender",
       "repeats": true,

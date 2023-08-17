@@ -29,20 +29,12 @@ FactoryBot.define do
     SSNDataQuality { 1 }
     DOB { '1999-12-01' }
     DOBDataQuality { 1 }
-    AmIndAKNative { 0 }
-    Asian { 0 }
-    BlackAfAmerican { 0 }
-    NativeHIPacific { 0 }
-    White { 0 }
-    Ethnicity { 0 }
-    Female { 0 }
-    Male { 0 }
-    NoSingleGender { 0 }
-    Transgender { 0 }
-    Questioning { 0 }
-    Gender { 0 }
     VeteranStatus { 0 }
     DateCreated { DateTime.current }
     DateUpdated { DateTime.current }
+    after(:build) do |client|
+      ::HudUtility2024.races.except('RaceNone').keys.each { |f| client.send("#{f}=", 0) }
+      ::HudUtility2024.gender_id_to_field_name.except(8, 9, 99).values.each { |f| client.send("#{f}=", 0) }
+    end
   end
 end

@@ -836,9 +836,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           'WHITE',
           'ASIAN',
         ],
-        'ethnicity' => 'HISPANIC_LATIN_A_O_X',
         'gender' => [
-          'FEMALE',
+          'WOMAN',
           'TRANSGENDER',
         ],
         'pronouns' => [
@@ -878,19 +877,20 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.dob_data_quality).to eq(1)
         expect(client.ssn).to eq('XXXXX1234')
         expect(client.ssn_data_quality).to eq(2)
-        expect(client.ethnicity).to eq(1)
         expect(client.pronouns).to eq('she/her|they/them')
         expect(client.veteran_status).to eq(9)
         expect(client.race_fields).to contain_exactly('White', 'Asian')
         expect(client.RaceNone).to be nil
-        expect(client.BlackAfAmerican).to eq(0)
-        expect(client.NativeHIPacific).to eq(0)
-        expect(client.AmIndAKNative).to eq(0)
-        expect(client.gender_fields).to contain_exactly(:Female, :Transgender)
+        # All other races set to No
+        HudUtility2024.races.keys.excluding('White', 'Asian', 'RaceNone').each do |f|
+          expect(client.send(f)).to eq(0)
+        end
+        expect(client.gender_fields).to contain_exactly(:Woman, :Transgender)
         expect(client.GenderNone).to be nil
-        expect(client.NoSingleGender).to eq(0)
-        expect(client.Male).to eq(0)
-        expect(client.Questioning).to eq(0)
+        # All other genders set to No
+        HudUtility2024.genders.keys.excluding('Woman', 'Transgender', 'GenderNone').each do |f|
+          expect(client.send(f)).to eq(0)
+        end
       end
     end
 
@@ -911,19 +911,16 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.dob_data_quality).to eq(99)
         expect(client.ssn).to be nil
         expect(client.ssn_data_quality).to eq(99)
-        expect(client.ethnicity).to eq(99)
         expect(client.pronouns).to be nil
         expect(client.veteran_status).to eq(99)
         expect(client.race_fields).to eq([])
-        expect(client.RaceNone).to eq(99)
-        expect(client.BlackAfAmerican).to eq(99)
-        expect(client.NativeHIPacific).to eq(99)
-        expect(client.AmIndAKNative).to eq(99)
+        HudUtility2024.races.keys.each do |f|
+          expect(client.send(f)).to eq(99)
+        end
         expect(client.gender_fields).to eq([])
-        expect(client.GenderNone).to eq(99)
-        expect(client.NoSingleGender).to eq(99)
-        expect(client.Male).to eq(99)
-        expect(client.Questioning).to eq(99)
+        HudUtility2024.genders.keys.each do |f|
+          expect(client.send(f)).to eq(99)
+        end
       end
     end
 
@@ -940,15 +937,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         process_record(record: client, hud_values: hud_values, user: hmis_user)
 
         expect(client.race_fields).to eq([])
-        expect(client.RaceNone).to eq(99)
-        expect(client.BlackAfAmerican).to eq(99)
-        expect(client.NativeHIPacific).to eq(99)
-        expect(client.AmIndAKNative).to eq(99)
+        HudUtility2024.races.keys.each do |f|
+          expect(client.send(f)).to eq(99)
+        end
         expect(client.gender_fields).to eq([])
-        expect(client.GenderNone).to eq(99)
-        expect(client.NoSingleGender).to eq(99)
-        expect(client.Male).to eq(99)
-        expect(client.Questioning).to eq(99)
+        HudUtility2024.genders.keys.each do |f|
+          expect(client.send(f)).to eq(99)
+        end
         expect(client.pronouns).to be nil
       end
     end

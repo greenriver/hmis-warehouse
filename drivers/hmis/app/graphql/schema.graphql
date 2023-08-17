@@ -566,7 +566,6 @@ type Client {
   emailAddresses: [ClientContactPoint!]!
   employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enrollments(filters: EnrollmentsForClientFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
-  ethnicity: Ethnicity!
   externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
   firstName: String
@@ -2767,41 +2766,6 @@ type EsgFundingService {
 }
 
 """
-3.05.1
-"""
-enum Ethnicity {
-  """
-  (8) Client doesn't know
-  """
-  CLIENT_DOESN_T_KNOW
-
-  """
-  (9) Client prefers not to answer
-  """
-  CLIENT_PREFERS_NOT_TO_ANSWER
-
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  (1) Hispanic/Latin(a)(o)(x)
-  """
-  HISPANIC_LATIN_A_O_X
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (0) Non-Hispanic/Non-Latin(a)(o)(x)
-  """
-  NON_HISPANIC_NON_LATIN_A_O_X
-}
-
-"""
 HUD Event
 """
 type Event {
@@ -3756,9 +3720,14 @@ enum Gender {
   CLIENT_DOESN_T_KNOW
 
   """
-  (9) Client refused
+  (9) Client prefers not to answer
   """
-  CLIENT_REFUSED
+  CLIENT_PREFERS_NOT_TO_ANSWER
+
+  """
+  (2) Culturally Specific Identity (e.g., Two-Spirit)
+  """
+  CULTURALLY_SPECIFIC
 
   """
   (99) Data not collected
@@ -3766,19 +3735,19 @@ enum Gender {
   DATA_NOT_COLLECTED
 
   """
-  (0) Female
+  (3) Different Identity
   """
-  FEMALE
+  DIFFERENT_IDENTITY
 
   """
-  (1) Male
+  (1) Man (Boy, if child)
   """
-  MALE
+  MAN
 
   """
-  (4) A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)
+  (4) Non-Binary
   """
-  NO_SINGLE_GENDER
+  NON_BINARY
 
   """
   (6) Questioning
@@ -3789,6 +3758,11 @@ enum Gender {
   (5) Transgender
   """
   TRANSGENDER
+
+  """
+  (0) Woman (Girl, if child)
+  """
+  WOMAN
 }
 
 """
@@ -5943,6 +5917,16 @@ enum Race {
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
+
+  """
+  (HispanicLatinaeo) Hispanic/Latina/e/o
+  """
+  HISPANIC_LATINAEO
+
+  """
+  (MidEastNAfrican) Middle Eastern or North African
+  """
+  MID_EAST_N_AFRICAN
 
   """
   (NativeHIPacific) Native Hawaiian or Pacific Islander

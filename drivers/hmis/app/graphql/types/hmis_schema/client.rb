@@ -42,7 +42,6 @@ module Types
     hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
     gender_field
     field :race, [Types::HmisSchema::Enums::Race], null: false
-    hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :year_entered_service
     hud_field :year_separated
@@ -177,7 +176,7 @@ module Types
     end
 
     def race
-      selected_races = ::HudUtility.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
+      selected_races = ::HudUtility2024.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
       selected_races << object.RaceNone if object.RaceNone && selected_races.empty?
       selected_races
     end
