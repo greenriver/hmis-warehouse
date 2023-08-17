@@ -62,8 +62,9 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
       },
       # Client File
       'Client.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::Client,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::Client::Csv,
       },
       # Enrollment Files
       'Enrollment.csv' => {
