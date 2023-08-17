@@ -209,7 +209,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @posting_status_map ||= HmisExternalApis::AcHmis::ReferralHouseholdMember
         .relationship_to_hohs
         .invert.stringify_keys
-      @posting_status_map.fetch(row_value(row, field: 'RELATIONSHIP_TO_HOH'))
+      # the field name here is different from the spec
+      @posting_status_map.fetch(row_value(row, field: 'RELATIONSHIP_TO_HOH_ID'))
     end
 
     def posting_status(row)

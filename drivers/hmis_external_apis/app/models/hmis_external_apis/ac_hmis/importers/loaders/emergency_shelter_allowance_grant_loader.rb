@@ -13,6 +13,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
+    def cde_definitions_keys
+      [
+        :esg_allowance_grant_referred,
+        :esg_allowance_grant_received,
+        :esg_allowance_grant_received_amount,
+        :esg_allowance_grant_reason_not_referred,
+      ]
+    end
+
     def build_records
       owner_id_by_enrollment_id = Hmis::Hud::Enrollment
         .where(data_source: data_source)

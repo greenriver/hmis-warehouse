@@ -8,10 +8,20 @@
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ReasonForExitLoader < CustomDataElementBaseLoader
     def filename
-      'ReasonForExit.csv'
+      # note filename is slightly different from the spec
+      'ReasonforExit.csv'
     end
 
     protected
+
+    def cde_definitions_keys
+      [
+        :reason_for_exit_type,
+        :reason_for_exit_other,
+        :reason_for_exit_voluntary,
+        :reason_for_exit_involuntary,
+      ]
+    end
 
     def build_records
       exit_lookup = owner_class
@@ -35,7 +45,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           ),
         ]
 
-        reason_for_exit = row_value(row, field: 'ReasonForExit')
+        # reason for exit is required but blank values are present in csv
+        reason_for_exit = row_value(row, field: 'ReasonForExit', required: false)
         if reason_for_exit
           ret.push new_cde_record(
             value: reason_for_exit,

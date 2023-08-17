@@ -13,6 +13,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
+    def cde_definitions_keys
+      [:federal_poverty_level]
+    end
+
     def build_records
       benefit_id_lookup = owner_class
         .where(data_source: data_source)

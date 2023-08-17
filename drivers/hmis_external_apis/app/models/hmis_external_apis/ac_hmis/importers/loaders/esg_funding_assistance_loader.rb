@@ -84,7 +84,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       'Allegheny County' => 'Allegheny County ESG',
       'City of Pittsburgh' => 'City of Pittsburgh ESG',
       'State of Pennsylvania' => 'State of Pennsylvania ESG',
-    }
+    }.freeze
     def funding_source(row)
       value = row_value(row, field: 'FUNDINGSOURCE', required: false)
       FUNDING_SOURCE_MAP[value] || value

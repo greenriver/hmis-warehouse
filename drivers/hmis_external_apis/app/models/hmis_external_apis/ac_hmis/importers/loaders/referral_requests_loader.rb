@@ -57,9 +57,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           unit_type_id: unit_types_by_mper.fetch(row_value(row, field: 'UNIT_TYPE_ID')),
           requested_on: parse_date(row_value(row, field: 'REQUESTED_ON')),
           needed_by: parse_date(row_value(row, field: 'NEEDED_BY')),
-          requestor_name: row_value(row, field: 'REQUESTOR_NAME', required: false),
-          requestor_phone: row_value(row, field: 'REQUESTOR_PHONE', required: false),
-          requestor_email: row_value(row, field: 'REQUESTOR_EMAIL', required: false),
+          # use empty string for non-nullable columns here
+          requestor_name: row_value(row, field: 'REQUESTOR_NAME', required: false) || '',
+          requestor_phone: row_value(row, field: 'REQUESTOR_PHONE', required: false) || '',
+          requestor_email: row_value(row, field: 'REQUESTOR_EMAIL', required: false) || '',
         }
       end
     end

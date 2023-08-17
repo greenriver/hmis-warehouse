@@ -50,7 +50,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       {
         'REFERRAL_ID' => referral_id,
         'MCI_ID' => enrollment.personal_id,
-        'RELATIONSHIP_TO_HOH' => '1',
+        'RELATIONSHIP_TO_HOH_ID' => '1',
       },
     ]
   end

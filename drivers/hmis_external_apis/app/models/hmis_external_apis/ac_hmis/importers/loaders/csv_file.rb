@@ -19,6 +19,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       rescue StandardError => e
         # wrap row-level exceptions with file / line number
         wrapped = RuntimeError.new("[#{filename}:#{line_number}] #{e.class.name} #{e.message}")
+        wrapped.set_backtrace(e.backtrace)
         raise wrapped
       end
     end

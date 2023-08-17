@@ -86,6 +86,5 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       DateTime.strptime(str, DATE_TIME_FMT)
     end
-
   end
 end

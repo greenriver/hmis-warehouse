@@ -108,5 +108,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       # report ids.size, since num_inserts is only last batch
       Rails.logger.info "#{my_name} inserted: #{result.ids.size} records into #{table_name}"
     end
+
+    def to_s
+      inspect
+    end
+
+    def inspect
+      self.class.name.to_s
+    end
   end
 end

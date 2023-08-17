@@ -15,7 +15,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def find_or_create(owner_type:, key:)
       config = configs.detect { |i| owner_type == i.fetch(:owner_type) && key.to_sym == i.fetch(:key) }
-      raise "CDE definition not found #{config.inspect}" unless config
+      raise "CDE definition not found #{owner_type}:#{key.inspect}" unless config
 
       Hmis::Hud::CustomDataElementDefinition
         .where(config.merge(data_source_id: data_source_id))
