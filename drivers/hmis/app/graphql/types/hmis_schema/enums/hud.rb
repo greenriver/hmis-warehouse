@@ -86,6 +86,12 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.project_types
   end
 
+  class ProjectTypeBrief < Types::BaseEnum
+    description '2.02.6.brief'
+    graphql_name 'ProjectTypeBrief'
+    hud_enum HudUtility2024.project_type_briefs
+  end
+
   class RRHSubType < Types::BaseEnum
     description '2.02.A'
     graphql_name 'RRHSubType'
