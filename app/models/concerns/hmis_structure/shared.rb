@@ -9,7 +9,10 @@ module HmisStructure::Shared
 
   included do
     ['2022', '2024'].each do |version|
-      hmis_configuration(version: version).keys.each do |col|
+      configuration = hmis_configuration(version: version)
+      next unless configuration.present? # Allow for adding new models
+
+      configuration.keys.each do |col|
         alias_attribute col.to_s.underscore.to_sym, col
       end
     end
