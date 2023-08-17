@@ -46,6 +46,8 @@ module Mutations
 
       household_enrollments_not_included = enrollments.first.household_members.where.not(enrollment_id: enrollments.map(&:enrollment_id))
 
+      # FIXME: several of the below errors are duplicative of SubmitAssessment error checks. They should be moved into the CustomAssessmentValidator instead.
+
       # HoH Exit constraints
       if is_exit && includes_hoh
         # "Date.tomorrow" because it's OK if the exit date is today, but not if there is no exit date, or if the exit date is in the future (shouldn't happen)
@@ -53,10 +55,10 @@ module Mutations
 
         # Error: cannot exit HoH if there are any other open enrollments
         errors.add :assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.' if open_enrollments.any?
-
-        # Error: WIP enrollments cannot be exited
-        errors.add :assessment, :invalid, full_message: 'Cannot exit incomplete enrollments. Please complete entry assessments first.' if enrollments.any?(&:in_progress?)
       end
+
+      # Error: WIP enrollments cannot be exited
+      errors.add :assessment, :invalid, full_message: 'Cannot exit incomplete enrollments. Please complete entry assessments first.' if is_exit && enrollments.any?(&:in_progress?)
 
       # Non-HoH Intake constraints
       if is_intake && !includes_hoh
