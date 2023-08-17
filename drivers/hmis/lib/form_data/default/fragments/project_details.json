@@ -42,7 +42,7 @@
             {
               "question": "2.02.6",
               "operator": "EQUAL",
-              "answer_code": "SERVICES_ONLY"
+              "answer_code": "SSO"
             }
           ]
         }
