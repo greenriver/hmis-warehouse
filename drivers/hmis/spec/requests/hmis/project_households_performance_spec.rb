@@ -11,6 +11,10 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
+  before(:all) do
+    cleanup_test_environment
+  end
+
   let!(:enrollments) do
     10.times.map do
       client = create :hmis_hud_client_complete, data_source: ds1, user: u1
@@ -124,7 +128,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size)
-      end.to make_database_queries(count: 20..40)
+      end.to make_database_queries(count: 10..30)
     end
 
     it 'is responsive' do
@@ -132,6 +136,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size)
       end.to perform_under(300).ms
+    end
+
+    describe 'with filters' do
+      let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+      let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+      let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c1, user: u1, household_id: '1' }
+      let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c2, user: u1, household_id: '1' }
+      let!(:e3) do
+        e = create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c2, user: u1, household_id: '1'
+        e.save_in_progress
+        e
+      end
+
+      it 'should only return a household once if there are both WIP and completed members' do
+        _, result = post_graphql({ id: p2.id.to_s, filters: { status: ['ACTIVE', 'INCOMPLETE'] } }) { query }
+        expect(Hmis::Hud::Household.where(household_id: '1').count).to eq(1)
+        expect(result.dig('data', 'project', 'households', 'nodes').count).to eq(1)
+      end
     end
   end
 end

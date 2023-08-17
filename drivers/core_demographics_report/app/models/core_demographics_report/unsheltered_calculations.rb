@@ -20,7 +20,7 @@ module
     end
 
     def unsheltered_count(type)
-      unsheltered_clients[type]&.count&.presence || 0
+      mask_small_population(unsheltered_clients[type]&.count&.presence || 0)
     end
 
     def unsheltered_percentage(type)

@@ -1,0 +1,58 @@
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+percentage_format = wb_styles.add_style format_code: '0%'
+report_style = wb_styles.add_style({ border: { style: :thick, color: '00918C', edges: [:left] } })
+header_style = wb_styles.add_style({ sz: 14 })
+th_style = wb_styles.add_style(
+  {
+    bg_color: '81adb9',
+    b: true,
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
+)
+wb_styles.add_style(
+  {
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
+)
+wb.add_worksheet(name: 'Documents') do |sheet|
+  sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
+  row = ['Warehouse ID']
+  row += ['Last Name', 'First Name'] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+  row += [
+    'Required Documents',
+    'Optional Documents',
+    'All Documents',
+  ]
+  [:required, :optional].each do |type|
+    @report.groups_for_type(type).each do |group, tags|
+      row << "#{group} (#{pluralize(tags.count, 'tags')} - #{type})"
+      tags.each do |tag|
+        row << tag
+      end
+    end
+  end
+  sheet.add_row(row, style: header_style)
+  # find_each doesn't support ordering the SQL, so we'll pluck the ids and loop over slices
+  @report.clients.order(:last_name, :first_name).pluck(:id).each_slice(1_000) do |slice|
+    @report.clients.where(id: slice).order(:last_name, :first_name).each do |client|
+      row = [client.id]
+      row += [client.last_name, client.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      row << @report.required_documents(client).count
+      row << @report.optional_documents(client).count
+      row << @report.overall_documents(client).count
+
+      types = [:required, :optional]
+      types.each do |type|
+        @report.groups_for_type(type).each do |group, tags|
+          row << @report.date_for_group(group, client, type: type)
+          tags.each do |tag|
+            row << @report.date_for_tag(tag, client, type: type)
+          end
+        end
+      end
+      sheet.add_row(row)
+    end
+  end
+end

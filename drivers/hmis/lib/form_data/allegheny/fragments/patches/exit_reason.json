@@ -1,0 +1,139 @@
+[
+  {
+    "link_id": "destination",
+    "append_items": [
+      {
+        "link_id": "exit-reason-group",
+        "type": "GROUP",
+        "item": [
+          {
+            "link_id": "exit-reason",
+            "type": "CHOICE",
+            "required": true,
+            "text": "Is this a Voluntary Exit or an Involuntary Termination?      ",
+            "mapping": {
+              "record_type": "EXIT",
+              "custom_field_key": "reason_for_exit_type"
+            },
+            "pick_list_options": [
+              {
+                "code": "Voluntary Exit"
+              },
+              {
+                "code": "Involuntary Termination"
+              }
+            ]
+          },
+          {
+            "link_id": "voluntary-exit-reason",
+            "type": "CHOICE",
+            "required": true,
+            "text": "Voluntary Exit Reason",
+            "mapping": {
+              "record_type": "EXIT",
+              "custom_field_key": "reason_for_exit_voluntary"
+            },
+            "enable_behavior": "ALL",
+            "enable_when": [
+              {
+                "question": "exit-reason",
+                "operator": "EQUAL",
+                "answer_code": "Voluntary Exit"
+              }
+            ],
+            "pick_list_options": [
+              {
+                "code": "Achieved housing stability"
+              },
+              {
+                "code": "Deceased"
+              },
+              {
+                "code": "No longer interested in participating in program"
+              },
+              {
+                "code": "Program unable to meet identified needs/preferences"
+              },
+              {
+                "code": "Transition to alternate program in the CoC"
+              },
+              {
+                "code": "Unresolvable safety concern"
+              },
+              {
+                "code": "Other"
+              }
+            ]
+          },
+          {
+            "link_id": "involuntary-exit-reason",
+            "type": "CHOICE",
+            "required": true,
+            "text": "Involuntary Termination Reason",
+            "mapping": {
+              "record_type": "EXIT",
+              "custom_field_key": "reason_for_exit_involuntary"
+            },
+            "enable_behavior": "ALL",
+            "enable_when": [
+              {
+                "question": "exit-reason",
+                "operator": "EQUAL",
+                "answer_code": "Involuntary Termination"
+              }
+            ],
+            "pick_list_options": [
+              {
+                "code": "Distributing or manufacturing drugs"
+              },
+              {
+                "code": "Non-compliance with program expectations"
+              },
+              {
+                "code": "Threats and acts of violence"
+              },
+              {
+                "code": "Unable to locate or contact"
+              },
+              {
+                "code": "Unresolvable safety concern"
+              },
+              {
+                "code": "Other"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "link_id": "exit-reason-other-group",
+            "enable_behavior": "ANY",
+            "enable_when": [
+              {
+                "question": "voluntary-exit-reason",
+                "operator": "EQUAL",
+                "answer_code": "Other"
+              },
+              {
+                "question": "involuntary-exit-reason",
+                "operator": "EQUAL",
+                "answer_code": "Other"
+              }
+            ],
+            "item": [
+              {
+                "type": "STRING",
+                "link_id": "exit-reason-other",
+                "required": true,
+                "text": "Other reason",
+                "mapping": {
+                  "record_type": "EXIT",
+                  "custom_field_key": "reason_for_exit_other"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

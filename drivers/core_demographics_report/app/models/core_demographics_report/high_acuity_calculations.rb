@@ -22,7 +22,7 @@ module
     end
 
     def high_acuity_count(type)
-      high_acuity_clients[type]&.count&.presence || 0
+      mask_small_population(high_acuity_clients[type]&.count&.presence || 0)
     end
 
     def high_acuity_percentage(type)

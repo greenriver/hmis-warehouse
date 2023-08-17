@@ -15,11 +15,11 @@ module Types
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasYouthEducationStatuses
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
+    include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
@@ -37,6 +37,7 @@ module Types
     field :project, Types::HmisSchema::Project, null: false
     hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
+    field :exit_destination, Types::HmisSchema::Enums::Hud::Destination, null: true
     field :status, HmisSchema::Enums::EnrollmentStatus, null: false
     assessments_field
     events_field
@@ -45,21 +46,28 @@ module Types
     ce_assessments_field
     income_benefits_field
     disabilities_field
-    disability_groups_field
     health_and_dvs_field
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
+    field :household_id, ID, null: false
+    field :household_short_id, ID, null: false
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
-    field :enrollment_coc, String, null: true
+    # 3.15.1
     hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
+    # 3.16.1
+    field :enrollment_coc, String, null: true
     # 3.08
     hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    # 3.13.1
+    field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
+    # 3.20.1
+    field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     # 3.917
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
-    # TODO(2024) enable
+    # TODO(2024) enable 3.917.A
     # hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
     hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
@@ -71,7 +79,6 @@ module Types
     field :date_of_path_status, GraphQL::Types::ISO8601Date, null: true
     field :client_enrolled_in_path, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :reason_not_enrolled, HmisSchema::Enums::Hud::ReasonNotEnrolled, null: true
-    # R3
     # V4
     field :percent_ami, HmisSchema::Enums::Hud::PercentAMI, null: true
     # R1
@@ -98,6 +105,31 @@ module Types
     field :mental_health_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :physical_disability_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :alcohol_drug_use_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :insufficient_income, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :incarcerated_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    # V6
+    field :vamc_station, HmisSchema::Enums::Hud::VamcStationNumber, null: true
+    # V7
+    field :target_screen_reqd, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :time_to_housing_loss, HmisSchema::Enums::Hud::TimeToHousingLoss, null: true
+    field :annual_percent_ami, HmisSchema::Enums::Hud::AnnualPercentAMI, null: true
+    field :literal_homeless_history, HmisSchema::Enums::Hud::LiteralHomelessHistory, null: true
+    field :client_leaseholder, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :hoh_leaseholder, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :subsidy_at_risk, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :eviction_history, HmisSchema::Enums::Hud::EvictionHistory, null: true
+    field :criminal_record, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :incarcerated_adult, HmisSchema::Enums::Hud::IncarceratedAdult, null: true
+    field :prison_discharge, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :sex_offender, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :disabled_hoh, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :current_pregnant, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :single_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :dependent_under6, HmisSchema::Enums::Hud::DependentUnder6, null: true
+    field :hh5_plus, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :hp_screening_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :threshold_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
     # TODO(2024): C4 with preferred language list
     # field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     # field :preferred_language, Integer, null: true
@@ -114,6 +146,27 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
     end
+    custom_data_elements_field
+
+    field :current_unit, HmisSchema::Unit, null: true
+
+    field :reminders, [HmisSchema::Reminder], null: false
+
+    field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+
+    def open_enrollment_summary
+      return [] unless current_user.can_view_open_enrollment_summary_for?(object)
+
+      client = load_ar_association(object, :client)
+      load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
+    end
+
+    def reminders
+      # assumption is this is called on a single record; we aren't solving n+1 queries
+      project = object.project
+      enrollments = project.enrollments_including_wip.where(household_id: object.HouseholdID)
+      Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
+    end
 
     def project
       if object.in_progress?
@@ -126,6 +179,10 @@ module Types
 
     def exit_date
       exit&.exit_date
+    end
+
+    def exit_destination
+      exit&.destination
     end
 
     def exit
@@ -143,6 +200,10 @@ module Types
 
     def client
       load_ar_association(object, :client)
+    end
+
+    def household_short_id
+      Hmis::Hud::Household.short_id(object.household_id)
     end
 
     def household
@@ -166,7 +227,7 @@ module Types
     end
 
     def assessments(**args)
-      resolve_assessments_including_wip(**args)
+      resolve_assessments(**args)
     end
 
     def ce_assessments(**args)
@@ -195,6 +256,10 @@ module Types
 
     def user
       load_ar_association(object, :user)
+    end
+
+    def current_unit
+      load_ar_association(object, :current_unit)
     end
   end
 end

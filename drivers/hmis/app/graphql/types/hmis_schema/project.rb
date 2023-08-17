@@ -17,6 +17,7 @@ module Types
     include Types::HmisSchema::HasReferralRequests
     include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasServices
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -31,6 +32,7 @@ module Types
       ]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :funder, [HmisSchema::Enums::Hud::FundingSource]
+      arg :organization, [ID]
       arg :search_term, String
     end
 
@@ -44,6 +46,7 @@ module Types
     funders_field
     units_field
     households_field
+    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -82,6 +85,7 @@ module Types
       can :manage_denied_referrals
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
+    field :has_units, Boolean, null: false
 
     def hud_id
       object.project_id
@@ -110,9 +114,13 @@ module Types
       resolve_inventories(**args)
     end
 
+    def services(**args)
+      resolve_services(**args)
+    end
+
     # Build OpenStructs to resolve as UnitTypeCapacity
     def unit_types
-      project_units = object.units.active
+      project_units = object.units
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
 
@@ -126,8 +134,13 @@ module Types
       end
     end
 
+    # TODO use dataloader
     def units(**args)
       resolve_units(**args)
+    end
+
+    def has_units # rubocop:disable Naming/PredicateName
+      load_ar_association(object, :units).exists?
     end
 
     def households(**args)
@@ -149,7 +162,7 @@ module Types
     def outgoing_referral_postings(**args)
       raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
-      scope = HmisExternalApis::AcHmis::ReferralPosting.outgoing
+      scope = HmisExternalApis::AcHmis::ReferralPosting.active
         .joins(referral: :enrollment)
         .where(arel.e_t[:ProjectID].eq(object.ProjectID))
       scoped_referral_postings(scope, **args)

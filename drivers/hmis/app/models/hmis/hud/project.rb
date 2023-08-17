@@ -25,7 +25,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
-  has_many :units, dependent: :destroy
+  has_many :units, -> { active }, dependent: :destroy
+  has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
   has_many :custom_data_elements, as: :owner
 
   has_many :client_projects
@@ -39,6 +40,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
+
+  has_many :services, through: :enrollments_including_wip
+  has_many :custom_services, through: :enrollments_including_wip
+  has_many :hmis_services, through: :enrollments_including_wip
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -64,6 +69,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
+  end
+
+  scope :with_organization_ids, ->(organization_ids) do
+    joins(:organization).where(o_t[:id].in(Array.wrap(organization_ids)))
   end
 
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
@@ -97,16 +106,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     search_term.strip!
     query = "%#{search_term.split(/\W+/).join('%')}%"
     where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)).or(p_t[:project_id].eq(search_term)))
-  end
-
-  use_enum(:project_type_enum_map, HudLists.project_type_map) do |hash|
-    hash.map do |value, desc|
-      {
-        key: HudLists.project_type_brief_map[value].gsub(/\s-?\s?/, '_').upcase,
-        value: value,
-        desc: desc,
-      }
-    end
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze

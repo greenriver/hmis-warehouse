@@ -131,9 +131,9 @@ module GrdaWarehouse::Hud
     # see Disabilities.csv spec version 5
     def response
       if self.DisabilityType == 10
-        ::HudUtility.list('4.10.2', self.DisabilityResponse)
+        ::HudUtility.disability_response(self.DisabilityResponse)
       else
-        ::HudUtility.list('1.8', self.DisabilityResponse)
+        ::HudUtility.no_yes_reasons_for_missing_data(self.DisabilityResponse)
       end
     end
 

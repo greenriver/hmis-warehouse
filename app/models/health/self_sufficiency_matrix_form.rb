@@ -9,6 +9,8 @@
 # Control: PHI attributes documented
 module Health
   class SelfSufficiencyMatrixForm < HealthBase
+    include Rails.application.routes.url_helpers
+
     phi_patient :patient_id
 
     phi_attr :user_id, Phi::SmallPopulation
@@ -85,6 +87,7 @@ module Health
 
     scope :in_progress, -> { where(completed_at: nil) }
     scope :completed, -> { where.not completed_at: nil }
+    scope :completed_within, ->(range) { where(completed_at: range) }
     scope :incomplete, -> { where(completed_at: nil) }
     scope :recent, -> { order(created_at: :desc).limit(1) }
 
@@ -452,6 +455,10 @@ module Health
         source: 'Warehouse',
         housing_status: self.class::SECTIONS[:housing][housing_score],
       }
+    end
+
+    def edit_path
+      client_health_self_sufficiency_matrix_form_path(patient.client, self)
     end
   end
 end

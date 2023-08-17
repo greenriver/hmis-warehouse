@@ -42,7 +42,7 @@ module HmisExternalApis::AcHmis
         assigned_to_other_program_status: 60,
         # closed: 65,
       },
-      referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_result_map),
+      referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_results),
     )
 
     # Referrals in Denied Pending status can either be move to Denied (denial accepted) or to Assigned (denial rejected)
@@ -50,9 +50,28 @@ module HmisExternalApis::AcHmis
     # Referrals in Assigned status can either be move to Accepted Pending or Denied Pending
     ASSIGNED_STATUSES = ['assigned_status', 'accepted_pending_status', 'denied_pending_status'].freeze
 
+    OLD_STATUS_TO_VALID_NEW_STATUS = {
+      assigned_status: [
+        'accepted_pending_status', # accepted into program (tentatively)
+        'denied_pending_status', # denied from program (tentatively)
+      ],
+      accepted_pending_status: [
+        'accepted_status', # fully accepted to program (hoh intake assessment submitted)
+        'denied_pending_status', # changed mind or mistake, denied from program
+      ],
+      accepted_status: ['closed_status'], # hoh exited
+      denied_pending_status: [
+        'denied_status', # denial accepted
+        'assigned_status', # denial rejected ("sent back")
+      ],
+      closed_status: ['accepted_status'], # exited enrollment was re-opened
+    }.stringify_keys.freeze
+
     validates :status, presence: true
+
     with_options on: :hmis_user_action do
       validates :status, inclusion: { in: ASSIGNED_STATUSES }
+      validate :validate_status_change
       validates :status_note, presence: true, length: { maximum: 4_000 }
       validates :denial_reason, presence: true, if: :denied_pending_status?
       validates :denial_note, length: { maximum: 2_000 }
@@ -60,6 +79,7 @@ module HmisExternalApis::AcHmis
 
     with_options on: :hmis_admin_action do
       validates :status, inclusion: { in: DENIAL_STATUSES }
+      validate :validate_status_change
       validates :referral_result, presence: true, if: :denied_status?
       validates :denial_reason, presence: true, if: :denied_pending_status?
       validates :denial_note, length: { maximum: 2_000 }
@@ -69,11 +89,17 @@ module HmisExternalApis::AcHmis
       self.status_updated_at ||= created_at
     end
 
-    INACTIVE_STATUSES = [:closed_status, :accepted_by_other_program_status, :denied_status].freeze
-    scope :active, -> { where.not(status: INACTIVE_STATUSES) }
+    ACTIVE_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
+    scope :active, -> { where(status: ACTIVE_STATUSES) }
 
-    OUTGOING_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
-    scope :outgoing, -> { where(status: OUTGOING_STATUSES) }
+    private def validate_status_change
+      return unless status_changed? && status.present? && status_was.present?
+
+      expected_statuses = OLD_STATUS_TO_VALID_NEW_STATUS[status_was]
+      return unless expected_statuses.present?
+
+      errors.add(:status, :invalid, message: "is invalid. Expected one of: #{expected_statuses.map(&:humanize).join(', ')}") unless expected_statuses.include?(status)
+    end
 
     # referral came from LINK
     def from_link?

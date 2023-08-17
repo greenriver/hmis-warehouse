@@ -1,53 +1,22 @@
 {
   "item": [
     {
-      "type": "DATE",
-      "link_id": "entry-date",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$entryDate"
-        }
-      ]
-    },
-    {
-      "type": "STRING",
-      "link_id": "hud-record-type",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$hudRecordType"
-        }
-      ]
-    },
-    {
-      "type": "STRING",
-      "link_id": "hud-type-provided",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$hudTypeProvided"
-        }
-      ]
-    },
-    {
       "type": "STRING",
       "required": true,
       "link_id": "otherTypeProvided",
       "text": "Describe service",
-      "field_name": "otherTypeProvided",
+      "mapping": {
+        "field_name": "otherTypeProvided"
+      },
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "SSVF_SERVICE__OTHER_NON_TFA_SUPPORTIVE_SERVICE_APPROVED_BY_VA"
         },
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "HUD_VASH_OTH_VOUCHER_TRACKING__OTHER"
         }
@@ -58,11 +27,13 @@
       "required": true,
       "link_id": "movingOnOtherType",
       "text": "Describe service",
-      "field_name": "movingOnOtherType",
+      "mapping": {
+        "field_name": "movingOnOtherType"
+      },
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "MOVING_ON_ASSISTANCE__OTHER"
         }
@@ -74,11 +45,13 @@
       "required": false,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_3",
-      "field_name": "subTypeProvided",
+      "mapping": {
+        "field_name": "subTypeProvided"
+      },
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS"
         }
@@ -90,11 +63,13 @@
       "required": false,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_4",
-      "field_name": "subTypeProvided",
+      "mapping": {
+        "field_name": "subTypeProvided"
+      },
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS"
         }
@@ -106,11 +81,13 @@
       "required": false,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_5",
-      "field_name": "subTypeProvided",
+      "mapping": {
+        "field_name": "subTypeProvided"
+      },
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS"
         }
@@ -121,12 +98,24 @@
       "link_id": "dateProvided",
       "required": true,
       "text": "Date Provided",
-      "field_name": "dateProvided",
-      "_DISABLED_bounds": [
+      "mapping": {
+        "field_name": "dateProvided"
+      },
+      "bounds": [
         {
-          "id": "min-start-date",
+          "id": "min-service-date",
           "type": "MIN",
-          "question": "entry-date"
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-service-date",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        },
+        {
+          "id": "max-service-date-exit-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
         }
       ]
     },
@@ -135,22 +124,24 @@
       "required": false,
       "link_id": "faAmount",
       "text": "Financial Assistance",
-      "field_name": "faAmount",
+      "mapping": {
+        "field_name": "faAmount"
+      },
       "enable_behavior": "ANY",
       "service_detail_type": "CLIENT",
       "enable_when": [
         {
-          "question": "hud-record-type",
+          "local_constant": "$hudRecordType",
           "operator": "EQUAL",
           "answer_code": "HOPWA_FINANCIAL_ASSISTANCE"
         },
         {
-          "question": "hud-record-type",
+          "local_constant": "$hudRecordType",
           "operator": "EQUAL",
           "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
         },
         {
-          "question": "hud-type-provided",
+          "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES"
         }
@@ -162,11 +153,13 @@
       "required": false,
       "text": "Referral Outcome",
       "pick_list_reference": "PATHReferralOutcome",
-      "field_name": "referralOutcome",
+      "mapping": {
+        "field_name": "referralOutcome"
+      },
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud-record-type",
+          "local_constant": "$hudRecordType",
           "operator": "EQUAL",
           "answer_code": "PATH_REFERRAL"
         }

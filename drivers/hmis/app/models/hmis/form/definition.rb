@@ -4,14 +4,19 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# The definition for form fields. The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
-# rails driver:hmis:seed_definitions
+# Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
+#
+# The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
+#   rails driver:hmis:seed_definitions
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
 
+  # convenience attr for passing graphql args
+  attr_accessor :filter_context
+
   has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier
-  has_many :custom_forms
+  has_many :form_processors
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
   FORM_ROLES = {
@@ -28,15 +33,30 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT: 'Project',
     ORGANIZATION: 'Organization',
     CLIENT: 'Client',
+    NEW_CLIENT_ENROLLMENT: 'New Client Enrollment',
     FUNDER: 'Funder',
     INVENTORY: 'Inventory',
     PROJECT_COC: 'Project CoC',
     FILE: 'File',
     REFERRAL_REQUEST: 'Referral Request',
     ENROLLMENT: 'Enrollment',
+    CURRENT_LIVING_SITUATION: 'Current Living Situation',
+    # Occurrence-point collection forms
+    MOVE_IN_DATE: 'Move-in Date',
+    DATE_OF_ENGAGEMENT: 'Date of Engagement',
+    UNIT_ASSIGNMENT: 'Unit Assignment',
+    PATH_STATUS: 'PATH Status',
+    CE_ASSESSMENT: 'CE Assessment',
+    CE_EVENT: 'CE Event',
   }.freeze
 
   validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
+
+  ENROLLMENT_CONFIG = {
+    class_name: 'Hmis::Hud::Enrollment',
+    permission: :can_edit_enrollments,
+    resolve_as: 'Types::HmisSchema::Enrollment',
+  }.freeze
 
   FORM_ROLE_CONFIG = {
     SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
@@ -46,6 +66,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
     INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
+    CE_ASSESSMENT: { class_name: 'Hmis::Hud::Assessment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CeAssessment' },
+    CE_EVENT: { class_name: 'Hmis::Hud::Event', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Event' },
     FILE: {
       class_name: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
@@ -57,7 +79,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: :can_manage_incoming_referrals,
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
-    ENROLLMENT: { class_name: 'Hmis::Hud::Enrollment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Enrollment' },
+    CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
+    ENROLLMENT: ENROLLMENT_CONFIG,
+    # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
+    NEW_CLIENT_ENROLLMENT: { **ENROLLMENT_CONFIG, permission: [:can_edit_clients, :can_edit_enrollments] },
+    # These are all basically Enrollment-editing forms ("occurrence point"),
+    # but they need different "roles" so that the frontend can request the correct one.
+    MOVE_IN_DATE: ENROLLMENT_CONFIG,
+    DATE_OF_ENGAGEMENT: ENROLLMENT_CONFIG,
+    UNIT_ASSIGNMENT: ENROLLMENT_CONFIG,
+    PATH_STATUS: ENROLLMENT_CONFIG,
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
@@ -75,17 +106,22 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
-  scope :for_project, ->(project:, role:) do
-    # Consider all instances for this role
-    base_scope = Hmis::Form::Instance.joins(:definition).merge(Hmis::Form::Definition.with_role(role))
+  scope :for_project, ->(project:, role:, service_type: nil) do
+    # Consider all instances for this role (and service type, if applicable)
+    definition_scope = Hmis::Form::Definition.with_role(role)
+    definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
+    base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
     # Choose the first scope that has any records. Prefer more specific instances.
     instance_scope = [
       base_scope.for_project(project.id),
       base_scope.for_organization(project.organization.id),
-      base_scope.for_project_type(project.project_type),
+      base_scope.for_project_by_funder_and_project_type(project),
+      base_scope.for_project_by_funder(project),
+      base_scope.for_project_by_project_type(project.project_type),
       base_scope.defaults,
     ].detect(&:exists?)
+
     return none unless instance_scope.present?
 
     where(identifier: instance_scope.pluck(:definition_identifier))
@@ -116,8 +152,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def self.find_definition_for_service_type(service_type, project:)
     Hmis::Form::Definition.
-      for_project(project: project, role: :SERVICE).
-      for_service_type(service_type).
+      for_project(project: project, role: :SERVICE, service_type: service_type).
       order(version: :desc).first
   end
 
@@ -140,6 +175,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     recur_check.call(json)
   end
 
+  def self.validate_schema(json)
+    schema_path = Rails.root
+      .join('drivers/hmis_external_apis/public/schemas/form_definition.json')
+    HmisExternalApis::JsonValidator.perform(json, schema_path)
+  end
+
   def hud_assessment?
     HUD_ASSESSMENT_FORM_ROLES.keys.include?(role.to_sym)
   end
@@ -158,10 +199,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FORM_ROLE_CONFIG[role.to_sym][:class_name]
   end
 
-  def record_editing_permission
-    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+  def record_editing_permissions
+    return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
 
-    FORM_ROLE_CONFIG[role.to_sym][:permission]
+    Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:permission])
   end
 
   def allowed_proc
@@ -193,16 +234,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       }
 
       is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
-
+      field_name = item.mapping&.field_name
       # Validate required status
       if item.required && is_missing
-        errors.add item.field_name || :base, :required, **error_context
+        errors.add field_name || :base, :required, **error_context
       elsif item.warn_if_empty && is_missing
-        errors.add item.field_name || :base, :data_not_collected, severity: :warning, **error_context
+        errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
       # Additional validations for currency
-      errors.add item.field_name, :out_of_range, **error_context, message: 'must be positive' if item.type == 'CURRENCY' && value&.negative?
+      errors.add field_name, :out_of_range, **error_context, message: 'must be positive' if item.type == 'CURRENCY' && value&.negative?
 
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
       # TODO(##184402463): Add support for RequiredWhen
@@ -216,32 +257,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     errors.errors
   end
 
-  # Unused
-  def key_by_field_name(hud_values)
-    result = {}
-    recur_fill = lambda do |items, current_record_type|
-      items.each do |item|
-        if item.item
-          record_type = Types::Forms::Enums::RelatedRecordType.values[item.record_type]&.description if item.record_type.present?
-          recur_fill.call(item.item, record_type || current_record_type)
-        end
-
-        next unless item.field_name.present?
-        next unless hud_values.key?(item.link_id)
-
-        key = item.field_name
-        key = "#{current_record_type}.#{key}" if current_record_type.present?
-
-        result[key] = hud_values[item.link_id]
-      end
-    end
-
-    recur_fill.call(definition_struct.item, nil)
-    result
-  end
-
   private def definition_struct
-    @definition_struct ||= Oj.load(definition, mode: :compat, object_class: OpenStruct)
+    @definition_struct ||= Oj.load(definition.to_json, mode: :compat, object_class: OpenStruct)
   end
 
   # Hash { link_id => FormItem }

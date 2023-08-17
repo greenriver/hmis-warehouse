@@ -209,9 +209,7 @@ RSpec.shared_context 'datalab rrh esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q16',
-        # FIXME?
-        # Pending AirTable submitted 1/16/2023 Issue ID 37
-        # https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recEPoFCQNKd7e8dj
+        # FIXME: as per https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recEPoFCQNKd7e8dj
         skip: [
           'B2',
           'D2',

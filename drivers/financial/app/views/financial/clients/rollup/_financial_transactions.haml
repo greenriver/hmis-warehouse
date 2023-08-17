@@ -1,0 +1,29 @@
+:ruby
+  external_client_ids = @client.financial_clients.pluck(:id)
+  transactions = Financial::Transaction.where(external_client_id: external_client_ids).
+    preload(:provider).
+    order(transaction_date: :desc, paid_date: :desc, created_at: :asc)
+- if transactions.any?
+  .table-responsive
+    %table.table
+      %thead
+        %tr
+          %th Transaction Status
+          %th Transaction Date
+          %th Paid Date
+          %th Provider
+          %th Created
+          %th Updated
+      %tbody
+        - transactions.each do |transaction|
+          %tr
+            %td= transaction.transaction_status
+            %td.date-cell= transaction.transaction_date&.to_date
+            %td.date-cell= transaction.paid_date&.to_date
+            %td= transaction.provider&.agency_name
+            %td= transaction.created_at
+            %td= transaction.updated_at
+
+- else
+  .no-data
+    No Transactions on Record

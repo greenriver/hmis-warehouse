@@ -3,7 +3,6 @@
   "link_id": "prior-living-situation",
   "text": "Prior Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
-  "record_type": "ENROLLMENT",
   "prefill": true,
   "item": [
     {
@@ -19,7 +18,7 @@
       "warn_if_empty": true,
       "text": "Prior Living Situation",
       "pick_list_reference": "PRIOR_LIVING_SITUATION",
-      "field_name": "livingSituation"
+      "mapping": { "record_type": "ENROLLMENT",  "field_name": "livingSituation" }
     },
     {
       "type": "CHOICE",
@@ -29,7 +28,7 @@
       "text": "Length of stay in prior living situation",
       "brief_text": "Length of Stay",
       "pick_list_reference": "ResidencePriorLengthOfStay",
-      "field_name": "lengthOfStay"
+      "mapping": { "record_type": "ENROLLMENT",  "field_name": "lengthOfStay" }
     },
     {
       "type": "GROUP",
@@ -41,7 +40,7 @@
           "link_id": "3.917.A",
           "read_only": true,
           "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-          "project_types_excluded": ["ES", "SSO", "SH"],
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -63,9 +62,9 @@
           "type": "DISPLAY",
           "link_id": "3.917.B",
           "text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-          "project_types_excluded": ["ES", "SSO", "SH"],
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
           "enable_behavior": "ALL",
-          "_required_when": "TODO",
+          "_comment": "required_when TODO",
           "enable_when": [
             {
               "question": "3.917.1",
@@ -90,7 +89,7 @@
       "type": "CHOICE",
       "hidden": true,
       "link_id": "los-threshold",
-      "field_name": "losUnderThreshold",
+      "mapping": { "record_type": "ENROLLMENT",  "field_name": "losUnderThreshold" },
       "pick_list_reference": "NoYesMissing",
       "autofill_values": [
         {
@@ -139,10 +138,10 @@
       "required": false,
       "warn_if_empty": true,
       "pick_list_reference": "NoYesMissing",
-      "field_name": "previousStreetEssh",
+      "mapping": { "record_type": "ENROLLMENT",  "field_name": "previousStreetEssh" },
       "text": "On the night before, did the client stay on the streets, ES or SH?",
       "brief_text": "Homeless on previous night",
-      "project_types_excluded": ["ES", "SSO", "SH"],
+      "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
       "enable_behavior": "ALL",
       "enable_when": [
         {
@@ -161,7 +160,7 @@
       "type": "DISPLAY",
       "link_id": "3.917.C.message",
       "text": "Client does not meet the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-      "project_types_excluded": ["ES", "SSO", "SH"],
+      "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
       "enable_behavior": "ALL",
       "enable_when": [
         {
@@ -197,7 +196,7 @@
       "link_id": "3.917.3",
       "required": false,
       "warn_if_empty": true,
-      "field_name": "dateToStreetEssh",
+      "mapping": { "record_type": "ENROLLMENT",  "field_name": "dateToStreetEssh" },
       "text": "Date homelessness started",
       "enable_behavior": "ALL",
       "enable_when": [
@@ -223,7 +222,7 @@
       "link_id": "3.917.4",
       "required": false,
       "warn_if_empty": true,
-      "field_name": "timesHomelessPastThreeYears",
+      "mapping": { "record_type": "ENROLLMENT",  "field_name": "timesHomelessPastThreeYears" },
       "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
       "brief_text": "Times Homeless",
       "pick_list_reference": "TimesHomelessPastThreeYears",
@@ -251,7 +250,7 @@
       "link_id": "3.917.5",
       "required": false,
       "warn_if_empty": true,
-      "field_name": "monthsHomelessPastThreeYears",
+      "mapping": { "record_type": "ENROLLMENT",  "field_name": "monthsHomelessPastThreeYears" },
       "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
       "brief_text": "Months Homeless",
       "pick_list_reference": "MonthsHomelessPastThreeYears",

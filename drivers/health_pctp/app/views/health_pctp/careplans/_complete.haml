@@ -1,0 +1,56 @@
+.well
+  .row
+    .col
+      = f.input :patient_signed_on, as: :date_picker, label: 'Patient signed on'
+    .col
+      .mt-6= f.input :verbal_approval, as: :pretty_boolean, label: 'Patient unable to sign – verbal approval received - signature is required within 90 days', input_html: { class: :jVerbalApproval }
+  - if @careplan.verbal_approval?
+    = f.input :verbal_approval_followup, as: :pretty_boolean, label: 'The Care Plan was signed by the Assigned or Engaged Enrollee (or authorized representative) within 90 days of verbal approval.'
+  .row
+    .col
+      = render 'upload', f: f
+  .row
+    .col
+      = f.input :provided_to_patient, as: :pretty_boolean, label: 'The Enrollee was provided a copy of the plan'
+
+.well
+  .row
+    .col
+      - if current_user.can_approve_cha?
+        = f.input :review_by_rn_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)'
+      - if @careplan.review_by_rn_complete
+        .row
+          .col.mb-4
+            = "Reviewed by #{@careplan.reviewed_by_rn&.name_with_credentials} on #{@careplan.reviewed_by_rn_on}"
+  .row
+    .col
+      - if current_user.can_approve_careplan
+        %h4 By approving this record, you agree that the above information is true to the best of your knowledge
+        = f.input :review_by_ccm_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager'
+      - if @careplan.review_by_ccm_complete
+        .row
+          .col.mb-4
+            = "Reviewed by #{@careplan.reviewed_by_ccm&.name_with_credentials} on #{@careplan.reviewed_by_ccm_on}"
+  .row
+    .col-6
+      = f.input :name_sent_to, label: 'Primary Care Provider or PCP Designee'
+  .row
+    .col
+      = f.input :was_sent_to_pcp, as: :pretty_boolean, label: 'The careplan was sent to the PCP'
+      - if @careplan.was_sent_to_pcp
+        .row.mb-4
+          .col
+            = "Sent by #{@careplan.sent_to_pcp_by&.name} on #{@careplan.sent_to_pcp_on}"
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jVerbalApproval').on('change', function(e) {
+        if($(e.target).is(':checked')) {
+          signature_date = $('#health_pctp_careplan_patient_signed_on')
+          if(signature_date.val() == '') {
+            $('#health_pctp_careplan_patient_signed_on').datepicker('setDate', Date());
+          }
+        };
+      });
+    });

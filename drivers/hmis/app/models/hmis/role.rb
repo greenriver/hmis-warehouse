@@ -43,7 +43,7 @@ class Hmis::Role < ::ApplicationRecord
   # @param permission [Symbol]
   # @return [Boolean]
   def grants?(permission)
-    raise "unknown permission #{permission.inspect}" unless self.class.permissions_with_descriptions.has_key?(permission)
+    raise "unknown permission #{permission.inspect}" unless self.class.permissions_with_descriptions.key?(permission)
 
     send(permission) || false
   end
@@ -215,6 +215,14 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_enrollment_details: {
         description: 'Grants access to view enrollments',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_view_open_enrollment_summary: {
+        description: 'Grants access to view minimal information (entry date, project name, move-in date) for all open enrollments for a given client, regardless of whether the user can see those other projects.',
         administrative: false,
         access: [:viewable],
         categories: [

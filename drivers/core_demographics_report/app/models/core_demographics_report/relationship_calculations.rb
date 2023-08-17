@@ -22,11 +22,11 @@ module
     end
 
     def relationship_count(type)
-      relationship_breakdowns[type]&.count&.presence || 0
+      mask_small_population(relationship_breakdowns[type]&.count&.presence || 0)
     end
 
     def relationship_percentage(type)
-      total_count = client_relationships.count
+      total_count = mask_small_population(client_relationships.count)
       return 0 if total_count.zero?
 
       of_type = relationship_count(type)

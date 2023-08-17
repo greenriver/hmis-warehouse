@@ -54,7 +54,7 @@ module HmisDataQualityTool
         project_operating_start_date: { title: 'Project Operating Start Date' },
         project_operating_end_date: { title: 'Project Operating End Date' },
         project_type: { title: 'Project Type', translator: ->(v) { "#{HudUtility.project_type(v)} (#{v})" } },
-        project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { "#{HudUtility.tracking_method(v)} (#{v})" } },
+        project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { "#{HudUtility.tracking_method(v || 0)} (#{v})" } },
         lot: { title: 'Length of Time in Project' },
         days_since_last_service: { title: 'Days Since Last Service' },
         ch_details_expected: { title: 'Chronic related fields (3.917) expected?' },

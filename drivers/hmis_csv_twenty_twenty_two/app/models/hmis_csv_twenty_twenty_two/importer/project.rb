@@ -104,7 +104,7 @@ module HmisCsvTwentyTwentyTwo::Importer
         HOPWAMedAssistedLivingFac: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.h_o_p_w_a_med_assisted_living_facs.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.hopwa_med_assisted_living_facs.keys.map(&:to_s).freeze },
           },
         ],
       }

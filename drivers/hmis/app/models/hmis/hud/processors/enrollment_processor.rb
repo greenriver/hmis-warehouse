@@ -8,11 +8,14 @@ module Hmis::Hud::Processors
   class EnrollmentProcessor < Base
     def process(field, value)
       attribute_name = ar_attribute_name(field)
-      attribute_value = attribute_value_for_enum(graphql_enum(field), value)
       enrollment = @processor.send(factory_name)
 
-      # TODO(#185510437): assign unit if specified
-      enrollment.assign_attributes({ attribute_name => attribute_value })
+      if attribute_name == 'current_unit'
+        assign_unit(value)
+      else
+        attribute_value = attribute_value_for_enum(graphql_enum(field), value)
+        enrollment.assign_attributes(attribute_name => attribute_value)
+      end
     end
 
     def factory_name
@@ -38,6 +41,24 @@ module Hmis::Hud::Processors
         user: @processor.hud_user,
         data_source_id: @processor.hud_user.data_source_id,
       )
+    end
+
+    private def assign_unit(unit_id)
+      return unless unit_id.present?
+
+      enrollment = @processor.send(factory_name)
+      unit = enrollment.project.units.find(unit_id)
+      raise "Unit not found: #{unit_id}" unless unit.present?
+
+      active_unit_occupancy = enrollment.active_unit_occupancy
+      # If already assigned to this unit: do nothing
+      return if active_unit_occupancy&.unit_id == unit.id
+
+      # If assigned to a different unit: unassign
+      enrollment.active_unit_occupancy&.assign_attributes(occupancy_period_attributes: { end_date: Date.current })
+
+      # Assign to specified unit
+      enrollment.assign_unit(unit: unit, start_date: Date.current, user: @processor.current_user)
     end
   end
 end

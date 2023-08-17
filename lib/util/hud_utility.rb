@@ -1,100 +1,17 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # a general clearing house to translate HUD ids of various sorts into strings
 # further access or translation logic can also go here
 # information from HMIS CSV format specifications version 5
 module HudUtility
+  include ::Concerns::HudValidationUtil
+  include ::Concerns::HudLists2022
+
   module_function
-
-  # factored out of app/models/grda_warehouse/tasks/identify_duplicates.rb
-  def valid_social?(ssn)
-    # see https://en.wikipedia.org/wiki/Social_Security_number#Structure
-    return false if ssn.blank? || ssn.length != 9
-
-    area_number = ssn.first(3)
-    group_number = ssn[3..4]
-    serial_number = ssn.last(4)
-
-    # Fields can't be all zeros
-    return false if area_number.to_i.zero? || group_number.to_i.zero? || serial_number.to_i.zero?
-    # Fields must be numbers
-    return false unless digits?(area_number) && digits?(group_number) && digits?(serial_number)
-    # 900+ are not assigned, and 666 is excluded
-    return false if area_number.to_i >= 900 || area_number == '666'
-    # Published IDs are not valid
-    return false if known_invalid_ssns.include?(ssn)
-    return false if ssn.split('').uniq.count == 1 # all the same number
-
-    true
-  end
-
-  private def known_invalid_ssns
-    @known_invalid_ssns ||= [].tap do |seq|
-      10.times do |i|
-        seq << ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].rotate(i)[0..8].join
-      end
-      seq.dup.each do |m|
-        seq << m.reverse
-      end
-      seq += ['219099999', '078051120']
-    end
-  end
-
-  private def digits?(value)
-    value.match(/^\d+$/).present?
-  end
-
-  def fiscal_year_start
-    Date.new(fiscal_year - 1, 10, 1)
-  end
-
-  def fiscal_year_end
-    Date.new(fiscal_year, 9, 30)
-  end
-
-  def fiscal_year
-    return Date.current.year if Date.current.month >= 10
-
-    Date.current.year - 1
-  end
-
-  def describe_valid_social_rules
-    [
-      'Cannot contain a non-numeric character.',
-      'Must be 9 digits long.',
-      'First three digits cannot be "000," "666," or in the 900 series.',
-      'The second group / 5th and 6th digits cannot be "00".',
-      'The third group / last four digits cannot be "0000".',
-      'There cannot be repetitive (e.g. "333333333") or sequential (e.g. "345678901" "987654321")',
-      'numbers for all 9 digits.',
-    ]
-  end
-
-  def describe_valid_dob_rules
-    [
-      'Prior to 1/1/1915.',
-      'After the [Date Created] for the record.',
-      'Equal to or after the [Entry Date].',
-    ]
-  end
-
-  # for fuzzy translation from strings back to their controlled vocabulary key
-  def forgiving_regex(str)
-    return str if str.is_a?(Integer)
-
-    Regexp.new '^' + str.strip.gsub(/\W+/, '\W+') + '$', 'i'
-  end
-
-  def _translate(map, id, reverse)
-    if reverse
-      rx = forgiving_regex id
-      if rx.is_a?(Regexp)
-        map.detect { |_, v| v.match?(rx) }.try(&:first)
-      else
-        map.detect { |_, v| v == rx }.try(&:first)
-      end
-    else
-      map[id] || id
-    end
-  end
 
   def race(field, reverse = false, multi_racial: false)
     map = races(multi_racial: multi_racial)
@@ -115,160 +32,26 @@ module HudUtility
     race_list
   end
 
-  # for translating straight from a controlled vocabulary list identifier and integer
-  # to the corresponding phrase
-  def list(number, id, reverse = false)
-    method = ::HudLists.hud_code_to_function_map[number.to_s.to_sym]
-    raise "unknown controlled vocabulary list: #{number}" unless method
-
-    map = ::HudLists.send(method)
-    _translate(map, id, reverse)
-  end
-
-  # 1.1
-  def export_period_type(id, reverse = false)
-    map = period_types
-
-    _translate map, id, reverse
-  end
-
-  def period_types
-    ::HudLists.export_period_type_map
-  end
-
-  # 1.2
-  def export_directive(id, reverse = false)
-    map = export_directives
-
-    _translate map, id, reverse
-  end
-
-  def export_directives
-    ::HudLists.export_directive_map
-  end
-
-  # 1.3
-  def disability_type(id, reverse = false)
-    map = disability_types
-    _translate map, id, reverse
-  end
-
-  def disability_types
-    ::HudLists.disability_type_map
-  end
-
-  # 1.4
-  def record_type(id, reverse = false)
-    map = record_types
-
-    _translate map, id, reverse
-  end
-
-  def record_types
-    ::HudLists.record_type_map
-  end
-
-  # 1.5
-  def hash_status(id, reverse = false)
-    map = hash_statuses
-
-    _translate map, id, reverse
-  end
-
-  def hash_statuses
-    ::HudLists.hash_status_map
-  end
-
   # 1.6
   def gender_none(id, reverse = false)
     race_none(id, reverse)
   end
 
-  def race_none(id, reverse = false)
-    map = race_gender_none_options
-
-    _translate map, id, reverse
-  end
-
   def race_gender_none_options
-    ::HudLists.race_none_map
-  end
-
-  # 1.7
-  def no_yes_missing(id, reverse = false)
-    map = yes_no_missing_options
-
-    _translate map, id, reverse
-  end
-
-  def yes_no_missing_options
-    ::HudLists.no_yes_missing_map
-  end
-
-  # FIXME: Remove this?
-  def ad_hoc_yes_no_1(id, reverse = false)
-    map = {
-      0 => 'No',
-      1 => 'Yes',
-      8 => "Don't Know",
-      9 => 'Refused',
-      99 => 'Data not collected',
-    }
-
-    _translate map, id, reverse
-  end
-
-  # 1.8
-  def no_yes_reasons_for_missing_data(id, reverse = false)
-    map = no_yes_reasons_for_missing_data_options
-
-    _translate map, id, reverse
-  end
-
-  def no_yes_reasons_for_missing_data_options
-    ::HudLists.no_yes_reasons_for_missing_data_map
+    race_nones
   end
 
   def veteran_status(*args)
     no_yes_reasons_for_missing_data(*args)
   end
 
-  # 1.9
-  def source_type(id, reverse = false)
-    map = source_types
-
-    _translate map, id, reverse
-  end
-
-  def source_types
-    ::HudLists.source_type_map
-  end
-
-  # 2.02.6
-  def project_type(id, reverse = false, translate = true)
-    map = project_types
-    if translate
-      _translate map, id, reverse
-    else
-      map
-    end
-  end
-
-  def project_types
-    ::HudLists.project_type_map
-  end
-
-  def project_type_brief(id)
-    ::HudLists.project_type_brief_map[id]
-  end
-
   def project_type_number(type)
     # attempt to lookup full name
-    number = ::HudLists.project_type_map.invert[type]
+    number = project_type(type, true) # reversed
     return number if number.present?
 
     # perform an acronym lookup
-    ::HudLists.project_type_brief_map.invert[type]
+    project_type_brief(type, true) # reversed
   end
 
   def homeless_project_type_numbers
@@ -278,166 +61,6 @@ module HudUtility
       4, # SO
       8, # SH
     ].freeze
-  end
-
-  # 2.02.C
-  def tracking_method(id, reverse = false)
-    map = tracking_methods
-
-    _translate map, id, reverse
-  end
-
-  def tracking_methods
-    # FIXME Do we want the nil mapping?
-    ::HudLists.tracking_method_map.merge(nil => 'Entry/Exit Date')
-  end
-
-  # 2.06.1
-  def funding_sources
-    ::HudLists.funding_source_map
-  end
-
-  def funding_source(id, reverse = false)
-    map = funding_sources
-    _translate map, id, reverse
-  end
-
-  # 2.07.4
-  def household_type(id, reverse = false)
-    map = household_types
-
-    _translate map, id, reverse
-  end
-
-  def household_types
-    ::HudLists.household_type_map
-  end
-
-  # 2.07.5
-  def bed_type(id, reverse = false)
-    map = bed_types
-
-    _translate map, id, reverse
-  end
-
-  def bed_types
-    ::HudLists.bed_type_map
-  end
-
-  # 2.07.6
-  def availability(id, reverse = false)
-    map = availabilities
-
-    _translate map, id, reverse
-  end
-
-  def availabilities
-    ::HudLists.availability_map
-  end
-
-  # 2.7.B
-  def youth_age_group(id, reverse = false)
-    map = youth_age_groups
-
-    _translate map, id, reverse
-  end
-
-  def youth_age_groups
-    ::HudLists.youth_age_group_map
-  end
-
-  # 2.03.4
-  def geography_type(id, reverse = false)
-    map = geography_types
-
-    _translate map, id, reverse
-  end
-
-  def geography_types
-    ::HudLists.geography_type_map
-  end
-
-  # 2.02.D
-  def housing_type(id, reverse = false)
-    map = housing_types
-
-    _translate map, id, reverse
-  end
-
-  def housing_types
-    ::HudLists.housing_type_map
-  end
-
-  # 2.02.8
-  def target_population(id, reverse = false)
-    map = target_populations
-
-    _translate map, id, reverse
-  end
-
-  def target_populations
-    ::HudLists.target_population_map
-  end
-
-  # 2.02.9
-  def h_o_p_w_a_med_assisted_living_fac(id, reverse = false)
-    map = h_o_p_w_a_med_assisted_living_facs
-
-    _translate map, id, reverse
-  end
-
-  def h_o_p_w_a_med_assisted_living_facs
-    ::HudLists.hopwa_med_assisted_living_fac_map
-  end
-
-  # 3.01.5
-  def name_data_quality(id, reverse = false)
-    _translate(name_data_quality_options, id, reverse)
-  end
-
-  def name_data_quality_options
-    ::HudLists.name_data_quality_map
-  end
-
-  # 3.02.2
-  def ssn_data_quality(id, reverse = false)
-    _translate(ssn_data_quality_options, id, reverse)
-  end
-
-  def ssn_data_quality_options
-    ::HudLists.ssn_data_quality_map
-  end
-
-  # 3.03.2
-  def dob_data_quality(id, reverse = false)
-    map = dob_data_quality_options
-
-    _translate map, id, reverse
-  end
-
-  def dob_data_quality_options
-    ::HudLists.dob_data_quality_map
-  end
-
-  # 3.05.1
-  def ethnicity(id, reverse = false)
-    map = ethnicities
-
-    _translate map, id, reverse
-  end
-
-  def ethnicities
-    ::HudLists.ethnicity_map
-  end
-
-  # 3.06.1
-  def gender(id, reverse = false)
-    map = genders
-    _translate map, id, reverse
-  end
-
-  def genders
-    ::HudLists.gender_map
   end
 
   def gender_fields
@@ -511,28 +134,6 @@ module HudUtility
     ]
   end
 
-  # 3.917.1
-  def living_situation(id, reverse = false)
-    map = living_situations
-    _translate map, id, reverse
-  end
-
-  def living_situations
-    # Technically this should exclude 13, 12, 22, 23, 26, 27, 30, 17, 24, 37
-    ::HudLists.living_situation_map
-  end
-
-  # 3.917.2
-  def residence_prior_length_of_stay(id, reverse = false)
-    map = length_of_stays
-
-    _translate map, id, reverse
-  end
-
-  def length_of_stays
-    ::HudLists.residence_prior_length_of_stay_map
-  end
-
   def residence_prior_length_of_stay_brief(id, reverse = false)
     map = residence_prior_length_of_stays_brief
 
@@ -553,17 +154,6 @@ module HudUtility
     }
   end
 
-  # 3.917.4
-  def times_homeless_past_three_years(id, reverse = false)
-    map = times_homeless_options
-
-    _translate map, id, reverse
-  end
-
-  def times_homeless_options
-    ::HudLists.times_homeless_past_three_years_map
-  end
-
   def times_homeless_past_three_years_brief(id, reverse = false)
     map = {
       1 => '1',
@@ -574,13 +164,6 @@ module HudUtility
       9 => '',
       99 => '',
     }
-
-    _translate map, id, reverse
-  end
-
-  # 3.917.5
-  def months_homeless_past_three_years(id, reverse = false)
-    map = month_categories
 
     _translate map, id, reverse
   end
@@ -608,21 +191,6 @@ module HudUtility
     _translate map, id, reverse
   end
 
-  def month_categories
-    ::HudLists.months_homeless_past_three_years_map
-  end
-
-  # 3.12.1
-  def destination(id, reverse = false)
-    map = valid_destinations
-
-    _translate map, id, reverse
-  end
-
-  def valid_destinations
-    ::HudLists.destination_map
-  end
-
   def valid_current_living_situations
     homeless_situations(as: :current) +
     institutional_situations(as: :current) +
@@ -637,49 +205,14 @@ module HudUtility
     other_situations(as: :prior)
   end
 
+  def valid_destinations
+    destinations
+  end
+
   # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
+  # ALL living situations (current/prior/destination)
   def available_situations
-    ::HudLists.destination_map
-    {
-      1 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter ',
-      2 => 'Transitional housing for homeless persons (including homeless youth)',
-      3 => 'Permanent housing (other than RRH) for formerly homeless persons',
-      4 => 'Psychiatric hospital or other psychiatric facility',
-      5 => 'Substance abuse treatment facility or detox center',
-      6 => 'Hospital or other residential non-psychiatric medical facility',
-      7 => 'Jail, prison or juvenile detention facility',
-      8 => 'Client doesn\'t know',
-      9 => 'Client refused',
-      10 => 'Rental by client, no ongoing housing subsidy',
-      11 => 'Owned by client, no ongoing housing subsidy',
-      12 => 'Staying or living with family, temporary tenure (e.g. room, apartment or house)',
-      13 => 'Staying or living with friends, temporary tenure (e.g. room apartment or house)',
-      14 => 'Hotel or motel paid for without emergency shelter voucher',
-      15 => 'Foster care home or foster care group home',
-      16 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
-      17 => 'Other',
-      18 => 'Safe Haven',
-      19 => 'Rental by client, with VASH housing subsidy',
-      20 => 'Rental by client, with other ongoing housing subsidy',
-      21 => 'Owned by client, with ongoing housing subsidy',
-      22 => 'Staying or living with family, permanent tenure',
-      23 => 'Staying or living with friends, permanent tenure',
-      24 => 'Deceased',
-      25 => 'Long-term care facility or nursing home',
-      26 => 'Moved from one HOPWA funded project to HOPWA PH',
-      27 => 'Moved from one HOPWA funded project to HOPWA TH',
-      28 => 'Rental by client, with GPD TIP housing subsidy',
-      29 => 'Residential project or halfway house with no homeless criteria',
-      30 => 'No exit interview completed',
-      31 => 'Rental by client, with RRH or equivalent subsidy',
-      32 => 'Host Home (non-crisis)',
-      33 => 'Rental by client, with HCV voucher (tenant or project based)',
-      34 => 'Rental by client in a public housing unit',
-      35 => 'Staying or living in a family member\'s room, apartment or house',
-      36 => 'Staying or living in a friend\'s room, apartment or house',
-      37 => 'Worker unable to determine',
-      99 => 'Data not collected',
-    }
+    living_situations
   end
 
   def homeless_situations(as:, version: nil)
@@ -886,600 +419,6 @@ module HudUtility
 
   def permanent_destination_options(version: nil)
     available_situations.select { |id, _| id.in?(permanent_destinations(version: version)) }.to_h
-  end
-
-  # 3.15.1
-  def relationship_to_hoh(id, reverse = false)
-    map = relationships_to_hoh
-
-    _translate map, id, reverse
-  end
-
-  def relationships_to_hoh
-    ::HudLists.relationship_to_ho_h_map
-  end
-
-  # 4.1.1
-  def housing_status(id, reverse = false)
-    map = ::HudLists.housing_status_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.04.A
-  def reason_not_insured(id, reverse = false)
-    map = ::HudLists.reason_not_insured_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.9.D
-  def p_a_t_h_how_confirmed(id, reverse = false)
-    map = ::HudLists.path_how_confirmed_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.9.E
-  def p_a_t_h_s_m_i_information(id, reverse = false)
-    map = ::HudLists.pathsmi_information_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.10.2
-  def disability_response(id, reverse = false)
-    map = disability_responses
-
-    _translate map, id, reverse
-  end
-
-  def disability_responses
-    ::HudLists.disability_response_map
-  end
-
-  # 4.11.A
-  def when_d_v_occurred(id, reverse = false)
-    map = when_occurreds
-    _translate map, id, reverse
-  end
-
-  def when_occurreds
-    ::HudLists.when_dv_occurred_map
-  end
-
-  # 4.12.2
-  def contact_location(id, reverse = false)
-    map = ::HudLists.contact_location_map
-
-    _translate map, id, reverse
-  end
-
-  # P1.2
-  def p_a_t_h_services_map
-    ::HudLists.path_services_map
-  end
-
-  def p_a_t_h_services(id, reverse = false)
-    map = p_a_t_h_services_map
-
-    _translate map, id, reverse
-  end
-
-  # R14.2
-  def r_h_y_services_map
-    ::HudLists.rhy_services_map
-  end
-
-  def r_h_y_services(id, reverse = false)
-    map = r_h_y_services_map
-
-    _translate map, id, reverse
-  end
-
-  # W1.2
-  def h_o_p_w_a_services_map
-    ::HudLists.hopwa_services_map
-  end
-
-  def h_o_p_w_a_services(id, reverse = false)
-    map = h_o_p_w_a_services_map
-
-    _translate map, id, reverse
-  end
-
-  # V2.2
-  def s_s_v_f_services_map
-    ::HudLists.ssvf_services_map
-  end
-
-  def s_s_v_f_services(id, reverse = false)
-    map = s_s_v_f_services_map
-
-    _translate map, id, reverse
-  end
-
-  # V2.A
-  def s_s_v_f_sub_type3_map
-    ::HudLists.ssvf_sub_type3_map
-  end
-
-  def s_s_v_f_sub_type3(id, reverse = false)
-    map = s_s_v_f_sub_type3_map
-
-    _translate map, id, reverse
-  end
-
-  # V2.B
-  def s_s_v_f_sub_type4_map
-    ::HudLists.ssvf_sub_type4_map
-  end
-
-  def s_s_v_f_sub_type4(id, reverse = false)
-    map = s_s_v_f_sub_type4_map
-
-    _translate map, id, reverse
-  end
-
-  # V2.C
-  def s_s_v_f_sub_type5_map
-    ::HudLists.ssvf_sub_type5_map
-  end
-
-  def s_s_v_f_sub_type5(id, reverse = false)
-    map = s_s_v_f_sub_type5_map
-
-    _translate map, id, reverse
-  end
-
-  # W2.3
-  def h_o_p_w_a_financial_assistance_map
-    ::HudLists.hopwa_financial_assistance_map
-  end
-
-  def h_o_p_w_a_financial_assistance(id, reverse = false)
-    map = h_o_p_w_a_financial_assistance_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.14
-  def bed_night_map
-    ::HudLists.bed_night_map
-  end
-
-  def bed_night(id, reverse = false)
-    map = bed_night_map
-
-    _translate map, id, reverse
-  end
-
-  # V3.3
-  def s_s_v_f_financial_assistance_map
-    ::HudLists.ssvf_financial_assistance_map
-  end
-
-  def s_s_v_f_financial_assistance(id, reverse = false)
-    map = s_s_v_f_financial_assistance_map
-
-    _translate map, id, reverse
-  end
-
-  # P2.2
-  def p_a_t_h_referral_map
-    ::HudLists.path_referral_map
-  end
-
-  def p_a_t_h_referral(id, reverse = false)
-    map = p_a_t_h_referral_map
-
-    _translate map, id, reverse
-  end
-
-  # R14.2
-  def r_h_y_referral(id, reverse = false)
-    ::HudLists.rhy_referral_map
-
-    _translate map, id, reverse
-  end
-
-  # P2.A
-  def p_a_t_h_referral_outcome_map
-    ::HudLists.path_referral_outcome_map
-  end
-
-  def p_a_t_h_referral_outcome(id, reverse = false)
-    map = p_a_t_h_referral_outcome_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.18.1
-  def housing_assessment_disposition(id, reverse = false)
-    map = ::HudLists.housing_assessment_disposition_map
-
-    _translate map, id, reverse
-  end
-
-  # W5.1
-  def housing_assessment_at_exit(id, reverse = false)
-    map = ::HudLists.housing_assessment_at_exit_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.19.3
-  def assessment_type(id, reverse = false)
-    map = assessment_types
-
-    _translate map, id, reverse
-  end
-
-  def assessment_types
-    ::HudLists.assessment_type_map
-  end
-
-  # 4.19.4
-  def assessment_level(id, reverse = false)
-    map = assessment_levels
-
-    _translate map, id, reverse
-  end
-
-  def assessment_levels
-    ::HudLists.assessment_level_map
-  end
-
-  # 4.19.7
-  def prioritization_status(id, reverse = false)
-    map = prioritization_statuses
-
-    _translate map, id, reverse
-  end
-
-  def prioritization_statuses
-    ::HudLists.prioritization_status_map
-  end
-
-  # W5.A
-  def subsidy_information(id, reverse = false)
-    map = ::HudLists.subsidy_information_map
-
-    _translate map, id, reverse
-  end
-
-  # P3.A
-  def reason_not_enrolled(id, reverse = false)
-    map = ::HudLists.reason_not_enrolled_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.20.2
-  def event(id, reverse = false)
-    map = events
-
-    _translate map, id, reverse
-  end
-
-  def events
-    ::HudLists.event_type_map
-  end
-
-  # 4.20.D
-  def referral_results
-    ::HudLists.referral_result_map
-  end
-
-  def referral_result(id, reverse = false)
-    map = referral_results
-
-    _translate map, id, reverse
-  end
-
-  # R2.A
-  def reason_no_services(id, reverse = false)
-    map = ::HudLists.reason_no_services_map
-
-    _translate map, id, reverse
-  end
-
-  # R3.1
-  def sexual_orientation(id, reverse = false)
-    map = ::HudLists.sexual_orientation_map
-
-    _translate map, id, reverse
-  end
-
-  # R4.1
-  def last_grade_completed(id, reverse = false)
-    map = ::HudLists.last_grade_completed_map
-
-    _translate map, id, reverse
-  end
-
-  # R5.1
-  def school_status(id, reverse = false)
-    map = ::HudLists.school_status_map
-
-    _translate map, id, reverse
-  end
-
-  # R6.A
-  def employment_type(id, reverse = false)
-    map = ::HudLists.employment_type_map
-
-    _translate map, id, reverse
-  end
-
-  # R6.B
-  def not_employed_reason(id, reverse = false)
-    map = ::HudLists.not_employed_reason_map
-
-    _translate map, id, reverse
-  end
-
-  # R7.1
-  def health_status(id, reverse = false)
-    map = ::HudLists.health_status_map
-
-    _translate map, id, reverse
-  end
-
-  # R11.A
-  def r_h_y_numberof_years(id, reverse = false)
-    map = ::HudLists.rhy_numberof_years_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.33.A
-  def incarcerated_parent_status(id, reverse = false)
-    map = ::HudLists.incarcerated_parent_status_map
-
-    _translate map, id, reverse
-  end
-
-  # R1.1
-  def referral_source(id, reverse = false)
-    map = ::HudLists.referral_source_map
-
-    _translate map, id, reverse
-  end
-
-  # R15.B
-  def count_exchange_for_sex(id, reverse = false)
-    map = ::HudLists.count_exchange_for_sex_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.36.1
-  def exit_action(id, reverse = false)
-    map = ::HudLists.exit_action_map
-
-    _translate map, id, reverse
-  end
-
-  # R17.1
-  def project_completion_status(id, reverse = false)
-    map = ::HudLists.project_completion_status_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.37.A
-  def early_exit_reason(id, reverse = false)
-    map = ::HudLists.early_exit_reason_map
-
-    _translate map, id, reverse
-  end
-
-  # R17.A
-  def expelled_reason(id, reverse = false)
-    map = ::HudLists.expelled_reason_map
-
-    _translate map, id, reverse
-  end
-
-  # R19.A
-  def worker_response(id, reverse = false)
-    map = ::HudLists.worker_response_map
-
-    _translate map, id, reverse
-  end
-
-  # R20.2
-  def aftercare_provided(id, reverse = false)
-    map = ::HudLists.aftercare_provided_map
-
-    _translate map, id, reverse
-  end
-
-  # W3
-  def no_assistance_reason(id, reverse = false)
-    map = ::HudLists.no_assistance_reason_map
-
-    _translate map, id, reverse
-  end
-
-  # V1.11
-  def military_branch(id, reverse = false)
-    map = ::HudLists.military_branch_map
-
-    _translate map, id, reverse
-  end
-
-  # V1.12
-  def discharge_status(id, reverse = false)
-    map = ::HudLists.discharge_status_map
-
-    _translate map, id, reverse
-  end
-
-  # V4.1
-  def percent_a_m_i(id, reverse = false)
-    map = ::HudLists.percent_ami_map
-
-    _translate map, id, reverse
-  end
-
-  # V5.5
-  def address_data_quality(id, reverse = false)
-    map = ::HudLists.address_data_quality_map
-
-    _translate map, id, reverse
-  end
-
-  # V6.1
-  def vamcs_station_number(id, reverse = false)
-    map = ::HudLists.vamcs_station_number_map
-
-    _translate map, id, reverse
-  end
-
-  # W4.B
-  def t_cell_source_viral_load_source(id, reverse = false)
-    map = ::HudLists.t_cell_source_viral_load_source_map
-
-    _translate map, id, reverse
-  end
-
-  # W4.3
-  def viral_load_available(id, reverse = false)
-    map = ::HudLists.viral_load_available_map
-
-    _translate map, id, reverse
-  end
-
-  # V7.1
-  def no_points_yes(id, reverse = false)
-    map = ::HudLists.no_points_yes_map
-
-    _translate map, id, reverse
-  end
-
-  # V7.A
-  def time_to_housing_loss(id, reverse = false)
-    map = ::HudLists.time_to_housing_loss_map
-
-    _translate map, id, reverse
-  end
-
-  # V7.B
-  def annual_percent_a_m_i(id, reverse = false)
-    map = ::HudLists.annual_percent_ami_map
-
-    _translate map, id, reverse
-  end
-
-  # V7.G
-  def eviction_history(id, reverse = false)
-    map = ::HudLists.eviction_history_map
-
-    _translate map, id, reverse
-  end
-
-  # V7.C
-  def literal_homeless_history(id, reverse = false)
-    map = ::HudLists.literal_homeless_history_map
-
-    _translate map, id, reverse
-  end
-
-  # V7.I
-  def incarcerated_adult
-    map = ::HudLists.incarcerated_adult_map
-
-    _translate map, id, reverse
-  end
-
-  # V7.O
-  def dependent_under_6
-    map = ::HudLists.dependent_under6_map
-
-    _translate map, id, reverse
-  end
-
-  # V8.1
-  def voucher_tracking_map
-    ::HudLists.voucher_tracking_map
-  end
-
-  def voucher_tracking(id, reverse = false)
-    map = voucher_tracking_map
-
-    _translate map, id, reverse
-  end
-
-  # V9.1
-  def cm_exit_reason(id, reverse = false)
-    map = ::HudLists.cm_exit_reason_map
-
-    _translate map, id, reverse
-  end
-
-  # 4.49.1
-  def crisis_services_use(id, reverse = false)
-    map = ::HudLists.crisis_services_use_map
-
-    _translate map, id, reverse
-  end
-
-  # 5.03.1
-  def data_collection_stage(id, reverse = false)
-    map = data_collection_stages
-
-    _translate map, id, reverse
-  end
-
-  # C1.1
-  def wellbeing_agreement(id, reverse = false)
-    map = ::HudLists.wellbeing_agreement_map
-
-    _translate map, id, reverse
-  end
-
-  # C1.2
-  def feeling_frequency(id, reverse = false)
-    map = ::HudLists.feeling_frequency_map
-
-    _translate map, id, reverse
-  end
-
-  # C2.2
-  def moving_on_assistance_map
-    ::HudLists.moving_on_assistance_map
-  end
-
-  def moving_on_assistance
-    map = moving_on_assistance_map
-    _translate map, id, reverse
-  end
-
-  # C3.2
-  def current_school_attended(id, reverse = false)
-    map = ::HudLists.current_school_attended_map
-
-    _translate map, id, reverse
-  end
-
-  # C3.A
-  def most_recent_ed_status(id, reverse = false)
-    map = ::HudLists.most_recent_ed_status_map
-
-    _translate map, id, reverse
-  end
-
-  # C3.B
-  def current_ed_status(id, reverse = false)
-    map = ::HudLists.current_ed_status_map
-
-    _translate map, id, reverse
-  end
-
-  def data_collection_stages
-    ::HudLists.data_collection_stage_map
   end
 
   def coc_name(coc_code)
@@ -1924,12 +863,49 @@ module HudUtility
   # {1 => 'Test (this)'} => {'test_this' => 1}
   # @param name [Symbol] method on HudLists
   def hud_list_map_as_enumerable(name)
-    original = ::HudLists.send(name)
+    original = send(name)
     keyed = original.invert.transform_keys do |key|
       key.downcase.gsub(/[^a-z0-9]+/, ' ').strip.gsub(' ', '_')
     end
     raise "cannot key #{name}" if keyed.size != original.size
 
     keyed
+  end
+
+  private def funder_description_to_component(description)
+    return unless description.include?(' - ')
+
+    description.split(' - ')[0]
+  end
+  def funder_components
+    funding_sources.
+      transform_values { |d| funder_description_to_component(d) }.
+      compact.
+      each_with_object({}) { |(k, v), h| (h[v] ||= []) << k }
+  end
+
+  def funder_component(funder)
+    funding_sources.
+      transform_values { |d| funder_description_to_component(d) }.
+      compact[funder]
+  end
+
+  # field name => ID from Data Dictionary
+  def aftercare_method_fields
+    {
+      email_social_media: 1,
+      telephone: 2,
+      in_person_individual: 3,
+      in_person_group: 4,
+    }
+  end
+
+  # field name => ID from Data Dictionary
+  def counseling_method_fields
+    {
+      individual_counseling: 1,
+      family_counseling: 2,
+      group_counseling: 3,
+    }
   end
 end

@@ -60,6 +60,7 @@ module SystemPathways::ChartBase
       scope = filter_for_ethnicity(scope)
       scope = filter_for_veteran_status(scope)
       scope = filter_for_ce_involvement(scope)
+      scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_chronic_at_entry(scope)
       scope = filter_for_disabling_condition(scope)
@@ -193,6 +194,19 @@ module SystemPathways::ChartBase
       scope
     end
 
+    private def filter_for_household_type(scope)
+      case show_filter.household_type
+      when :without_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :adults_only))
+      when :with_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :adults_and_children))
+      when :only_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :children_only))
+      else
+        scope
+      end
+    end
+
     private def filter_for_head_of_household(scope)
       scope.merge(SystemPathways::Enrollment.where(relationship_to_hoh: 1)) if filter.hoh_only
       scope.merge(SystemPathways::Enrollment.where(relationship_to_hoh: 1)) if show_filter&.hoh_only
@@ -311,15 +325,15 @@ module SystemPathways::ChartBase
     end
 
     private def races
-      @races ||= HudLists.race_map
+      @races ||= HudUtility.races
     end
 
     private def ethnicities
-      @ethnicities ||= HudLists.ethnicity_map
+      @ethnicities ||= HudUtility.ethnicities
     end
 
     private def veteran_statuses
-      @veteran_statuses ||= HudLists.no_yes_reasons_for_missing_data_map
+      @veteran_statuses ||= HudUtility.no_yes_reasons_for_missing_data_options
     end
 
     private def chronic_at_entries
@@ -331,7 +345,7 @@ module SystemPathways::ChartBase
     end
 
     private def disabling_conditions
-      @disabling_conditions ||= HudLists.no_yes_reasons_for_missing_data_map
+      @disabling_conditions ||= HudUtility.no_yes_reasons_for_missing_data_options
     end
 
     private def as_table(data, headers)

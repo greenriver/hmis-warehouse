@@ -11,7 +11,7 @@ module FormHelpers
     assessment_date ||= Date.yesterday.strftime('%Y-%m-%d')
 
     date_item = definition.assessment_date_item
-    date_field = date_item.field_name
+    date_field = date_item.mapping.field_name
     date_field = "Exit.#{date_field}" if definition.exit?
     date_field = "Enrollment.#{date_field}" if definition.intake?
 
@@ -25,18 +25,8 @@ module FormHelpers
     }
   end
 
-  def custom_form_attributes(role, assessment_date)
-    definition = Hmis::Form::Definition.find_by(role: role)
-    raise "No definition for role #{role}" unless definition.present?
-
-    {
-      definition: definition,
-      **build_minimum_values(definition, assessment_date: assessment_date),
-    }
-  end
-
   def find_required_item(definition)
-    definition.link_id_item_hash.find { |_link_id, item| item.required && item.field_name.present? }&.last
+    definition.link_id_item_hash.find { |_link_id, item| item.required && item.mapping&.field_name&.present? }&.last
   end
 
   def completed_form_values_for_role(role)
@@ -213,16 +203,12 @@ module FormHelpers
     },
     FILE: {
       values: {
-        'confidential' => false,
-        'enrollmentId' => nil,
-        'effectiveDate' => '2023-03-17',
-        'expirationDate' => nil,
+        'file-confidential' => false,
+        'file-enrollment' => nil,
       },
       hud_values: {
         'confidential' => false,
         'enrollmentId' => nil,
-        'effectiveDate' => '2023-03-17',
-        'expirationDate' => nil,
       },
     },
     ENROLLMENT: {
@@ -233,6 +219,63 @@ module FormHelpers
       hud_values: {
         'entryDate' => Date.yesterday.strftime('%Y-%m-%d'),
         'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+      },
+    },
+    CURRENT_LIVING_SITUATION: {
+      values: {
+        '4.12.1' => '2023-07-27T05:00:00.000Z',
+        '4.12.2' => 'FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME',
+        '4.12.B' => 'YES',
+        '4.12.C' => 'NO',
+        '4.12.D' => 'CLIENT_REFUSED',
+        '4.12.E' => 'CLIENT_DOESN_T_KNOW',
+        '4.12.F' => 'YES',
+        '4.12.4' => 'test',
+      },
+      hud_values: {
+        'informationDate' => '2023-07-27',
+        'currentLivingSituation' => 'FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME',
+        'CLSSubsidyType' => '_HIDDEN',
+        'leaveSituation14Days' => 'YES',
+        'subsequentResidence' => 'NO',
+        'resourcesToObtain' => 'CLIENT_REFUSED',
+        'leaseOwn60Day' => 'CLIENT_DOESN_T_KNOW',
+        'movedTwoOrMore' => 'YES',
+        'locationDetails' => 'test',
+      },
+    },
+    CE_ASSESSMENT: {
+      values: {
+        '4.19.1' => '2023-08-15',
+        '4.19.2' => 'test',
+        '4.19.3' => 'PHONE',
+        '4.19.4' => 'CRISIS_NEEDS_ASSESSMENT',
+        '4.19.7' => 'PLACED_ON_PRIORITIZATION_LIST',
+      },
+      hud_values: {
+        'assessmentDate' => '2023-08-15',
+        'assessmentLocation' => 'test',
+        'assessmentType' => 'PHONE',
+        'assessmentLevel' => 'CRISIS_NEEDS_ASSESSMENT',
+        'prioritizationStatus' => 'PLACED_ON_PRIORITIZATION_LIST',
+      },
+    },
+    CE_EVENT: {
+      values: {
+        '4.20.1' => '2023-08-12',
+        '4.20.2' => 'REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING',
+        '4.20.C' => 'test',
+        '4.20.D' => 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED',
+        '4.20.E' => '2023-08-16',
+      },
+      hud_values: {
+        'eventDate' => '2023-08-12',
+        'event' => 'REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING',
+        'probSolDivRrResult' => '_HIDDEN',
+        'referralCaseManageAfter' => '_HIDDEN',
+        'locationCrisisOrPhHousing' => 'test',
+        'referralResult' => 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED',
+        'resultDate' => '2023-08-16',
       },
     },
   }.freeze

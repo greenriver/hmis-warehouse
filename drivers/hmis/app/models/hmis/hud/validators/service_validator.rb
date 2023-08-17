@@ -14,23 +14,23 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
   ].freeze
 
   TYPE_PROVIDED_MAP = {
-    141 => ::HudLists.path_services_map,
-    142 => ::HudLists.rhy_services_map,
-    143 => ::HudLists.hopwa_services_map,
-    144 => ::HudLists.ssvf_services_map,
-    151 => ::HudLists.hopwa_financial_assistance_map,
-    152 => ::HudLists.ssvf_financial_assistance_map,
-    161 => ::HudLists.path_referral_map,
-    162 => ::HudLists.rhy_referral_map,
-    200 => ::HudLists.bed_night_map,
-    210 => ::HudLists.voucher_tracking_map,
-    300 => ::HudLists.moving_on_assistance_map,
+    141 => ::HudUtility.path_services_options,
+    142 => ::HudUtility.rhy_services_options,
+    143 => ::HudUtility.hopwa_services_options,
+    144 => ::HudUtility.ssvf_services_options,
+    151 => ::HudUtility.hopwa_financial_assistance_options,
+    152 => ::HudUtility.ssvf_financial_assistance_options,
+    161 => ::HudUtility.path_referral_options,
+    162 => ::HudUtility.rhy_referral_options,
+    200 => ::HudUtility.bed_night_options,
+    210 => ::HudUtility.voucher_tracking_options,
+    300 => ::HudUtility.moving_on_assistance_options,
   }.freeze
 
   SUB_TYPE_PROVIDED_MAP = {
-    3 => ::HudLists.ssvf_sub_type3_map,
-    4 => ::HudLists.ssvf_sub_type4_map,
-    5 => ::HudLists.ssvf_sub_type5_map,
+    3 => ::HudUtility.ssvf_sub_type3s,
+    4 => ::HudUtility.ssvf_sub_type4s,
+    5 => ::HudUtility.ssvf_sub_type5s,
   }.freeze
 
   def configuration

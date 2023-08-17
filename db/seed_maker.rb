@@ -20,7 +20,7 @@ class SeedMaker
         initial_password = Faker::Internet.password(min_length: 16)
         user = User.new
         user.email = 'noreply@example.com'
-        user.first_name = "Sample"
+        user.first_name = 'Sample'
         user.last_name = 'Admin'
         user.password = user.password_confirmation = initial_password
         user.confirmed_at = Time.now
@@ -362,24 +362,15 @@ class SeedMaker
     return unless ENV['ENABLE_HMIS_API'] == 'true'
 
     # Load FormDefinitions from JSON files
-    HmisUtil::JsonForms.seed_record_form_definitions
-    HmisUtil::JsonForms.seed_assessment_form_definitions
-
-    datasources = GrdaWarehouse::DataSource.hmis
-    return unless datasources.present?
-
-    # Create 1 CustomServiceCategory per HUD RecordType, and
-    # 1 CustomServiceType per HUD TypeProvided
-    datasources.each do |hmis_ds|
-      HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id)
+    ::HmisUtil::JsonForms.new.tap do |builder|
+      builder.seed_record_form_definitions
+      builder.seed_assessment_form_definitions
     end
-
-    # Create FormInstances specifying which Services are available per Project Type / Funder
-    HmisUtil::ServiceTypes.seed_hud_service_form_instances
   end
 
   def populate_internal_system_choices
     return unless ENV['ENABLE_HMIS_API'] == 'true'
+
     HmisExternalApis::InternalSystem::NAMES.each do |name|
       sys = HmisExternalApis::InternalSystem.where(name: name).first_or_initialize
       if sys.new_record?

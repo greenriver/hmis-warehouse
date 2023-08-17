@@ -8,11 +8,6 @@
         "description": "Updated"
       },
       {
-        "key": 2,
-        "description": "Effective",
-        "deprecated": true
-      },
-      {
         "key": 3,
         "description": "Reporting period"
       },
@@ -75,16 +70,6 @@
     "code": "1.4",
     "values": [
       {
-        "key": 12,
-        "description": "Contact 12",
-        "deprecated": true
-      },
-      {
-        "key": 13,
-        "description": "Contact 13",
-        "deprecated": true
-      },
-      {
         "key": 141,
         "description": "PATH Service"
       },
@@ -111,11 +96,6 @@
       {
         "key": 161,
         "description": "PATH Referral"
-      },
-      {
-        "key": 162,
-        "description": "RHY Referral",
-        "deprecated": true
       },
       {
         "key": 200,
@@ -431,8 +411,7 @@
       },
       {
         "key": 12,
-        "description": "HUD: Rural Housing Stability Assistance Program",
-        "deprecated": true
+        "description": "HUD: Rural Housing Stability Assistance Program [Deprecated]"
       },
       {
         "key": 13,
@@ -568,8 +547,7 @@
       },
       {
         "key": 49,
-        "description": "HUD: CoC - Joint Component RRH/PSH",
-        "deprecated": true
+        "description": "HUD: CoC - Joint Component RRH/PSH [Deprecated]"
       },
       {
         "key": 50,
@@ -758,10 +736,6 @@
       {
         "key": 30,
         "description": "No exit interview completed"
-      },
-      {
-        "key": 35,
-        "description": "Staying or living in a family member's room, apartment or house"
       },
       {
         "key": 37,
@@ -1046,7 +1020,7 @@
     ]
   },
   {
-    "name": "LivingSituation",
+    "name": "CurrentLivingSituation",
     "code": "4.12",
     "values": [
       {
@@ -1060,10 +1034,6 @@
       {
         "key": 17,
         "description": "Other"
-      },
-      {
-        "key": 35,
-        "description": "Staying or living in a family member's room, apartment or house"
       },
       {
         "key": 37,
@@ -1162,10 +1132,6 @@
       {
         "key": 9,
         "description": "Client prefers not to answer"
-      },
-      {
-        "key": 35,
-        "description": "Staying or living in a family member's room, apartment or house"
       },
       {
         "key": 99,
@@ -1556,24 +1522,6 @@
     ]
   },
   {
-    "name": "ContactLocation",
-    "code": "4.12.2",
-    "values": [
-      {
-        "key": 1,
-        "description": "Place not meant for habitation"
-      },
-      {
-        "key": 2,
-        "description": "Service setting, non-residential"
-      },
-      {
-        "key": 3,
-        "description": "Service setting, residential"
-      }
-    ]
-  },
-  {
     "name": "BedNight",
     "code": "4.14",
     "values": [
@@ -1687,8 +1635,7 @@
       },
       {
         "key": 11,
-        "description": "General housing stability assistance - emergency supplies",
-        "deprecated": true
+        "description": "General housing stability assistance - emergency supplies [Deprecated]"
       },
       {
         "key": 12,
@@ -3349,7 +3296,7 @@
     ]
   },
   {
-    "name": "VamcsStationNumber",
+    "name": "VamcStationNumber",
     "code": "V6.1",
     "values": [
       {
@@ -3922,7 +3869,7 @@
       },
       {
         "key": 99,
-        "description": "not collected"
+        "description": "Data not collected"
       }
     ]
   },
@@ -4392,31 +4339,67 @@
   },
   {
     "name": "SubsidyInformation",
+    "code": "W5.AB",
+    "values": [
+      {
+        "key": 1,
+        "description": "Without a subsidy"
+      },
+      {
+        "key": 2,
+        "description": "With the subsidy they had at project entry"
+      },
+      {
+        "key": 3,
+        "description": "With an on-going subsidy acquired since project entry"
+      },
+      {
+        "key": 4,
+        "description": "Only with financial assistance other than a subsidy"
+      },
+      {
+        "key": 11,
+        "description": "With on-going subsidy"
+      },
+      {
+        "key": 12,
+        "description": "Without an on-going subsidy"
+      }
+    ]
+  },
+  {
+    "name": "SubsidyInformationA",
     "code": "W5.A",
     "values": [
       {
         "key": 1,
-        "description": "Without a subsidy 1"
+        "description": "Without a subsidy"
       },
       {
         "key": 2,
-        "description": "With the subsidy they had at project entry 1"
+        "description": "With the subsidy they had at project entry"
       },
       {
         "key": 3,
-        "description": "With an on-going subsidy acquired since project entry 1"
+        "description": "With an on-going subsidy acquired since project entry"
       },
       {
         "key": 4,
-        "description": "But only with other financial assistance 1"
-      },
+        "description": "Only with financial assistance other than a subsidy"
+      }
+    ]
+  },
+  {
+    "name": "SubsidyInformationB",
+    "code": "W5.B",
+    "values": [
       {
         "key": 11,
-        "description": "With on-going subsidy 2"
+        "description": "With on-going subsidy"
       },
       {
         "key": 12,
-        "description": "Without an on-going subsidy 2"
+        "description": "Without an on-going subsidy"
       }
     ]
   },
