@@ -7,11 +7,11 @@
 module Types
   class BasePaginated < BaseObject
     def self.build(node_class)
-      Class.new(self) do
-        description("Paginated #{node_class}") # Don't change! traversed by JsonForms
-        graphql_name("#{node_class.graphql_name.pluralize}Paginated")
+      dynamic_name = "#{node_class.graphql_name.pluralize}Paginated"
+      Object.const_set(dynamic_name, Class.new(self) do
+        graphql_name(dynamic_name)
         field :nodes, [node_class], null: false
-      end
+      end)
     end
 
     field :has_more_before, Boolean, null: false

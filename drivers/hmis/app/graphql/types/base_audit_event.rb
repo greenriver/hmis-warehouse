@@ -7,8 +7,9 @@
 module Types
   class BaseAuditEvent < BaseObject
     def self.build(node_class, field_permissions: nil, transform_changes: nil)
-      Class.new(self) do
-        graphql_name("#{node_class.graphql_name}AuditEvent")
+      dynamic_name = "#{node_class.graphql_name}AuditEvent"
+      Object.const_set(dynamic_name, Class.new(self) do
+        graphql_name(dynamic_name)
 
         define_method(:schema_type) do
           node_class
@@ -25,7 +26,7 @@ module Types
           authorized = current_user.permissions_for?(object.item, *Array.wrap(field_permissions[key])) if field_permissions[key].present?
           authorized
         end
-      end
+      end)
     end
 
     field :id, ID, null: false

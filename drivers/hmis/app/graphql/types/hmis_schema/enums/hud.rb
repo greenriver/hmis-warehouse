@@ -176,12 +176,6 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.times_homeless_options
   end
 
-  class Ethnicity < Types::BaseEnum
-    description '3.05.1'
-    graphql_name 'Ethnicity'
-    hud_enum HudUtility2024.ethnicities
-  end
-
   class CurrentLivingSituation < Types::BaseEnum
     description '4.12'
     graphql_name 'CurrentLivingSituationOptions'
