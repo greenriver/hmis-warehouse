@@ -5647,14 +5647,14 @@ enum ProjectType {
   ES
 
   """
+  Homelessness Prevention
+  """
+  HP
+
+  """
   Invalid Value
   """
   INVALID
-
-  """
-  Permanent Housing Only
-  """
-  OPH
 
   """
   Other
@@ -5662,29 +5662,24 @@ enum ProjectType {
   OTHER
 
   """
-  Permanent Housing
+  PH - Housing with Services
   """
-  PH
+  PH_OPH
 
   """
-  Homelessness Prevention
+  PH - Housing Only
   """
-  PREVENTION
+  PH_PH
 
   """
-  Permanent Supportive Housing
+  PH - Permanent Supportive Housing
   """
-  PSH
+  PH_PSH
 
   """
-  Rapid Re-Housing
+  PH - Rapid Re-Housing
   """
-  RRH
-
-  """
-  Services Only
-  """
-  SERVICES_ONLY
+  PH_RRH
 
   """
   Safe Haven
@@ -5695,6 +5690,11 @@ enum ProjectType {
   Street Outreach
   """
   SO
+
+  """
+  Services Only
+  """
+  SSO
 
   """
   Transitional Housing

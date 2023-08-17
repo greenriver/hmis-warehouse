@@ -9,7 +9,9 @@
       "link_id": "2.02.6",
       "text": "Project Type",
       "pick_list_reference": "ProjectType",
-      "mapping": { "field_name": "projectType" }
+      "mapping": {
+        "field_name": "projectType"
+      }
     },
     {
       "type": "GROUP",
@@ -21,7 +23,9 @@
           "link_id": "2.02.A",
           "text": "RRH Sub Type",
           "pick_list_reference": "RRHSubType",
-          "mapping": { "field_name": "rrhSubType" },
+          "mapping": {
+            "field_name": "rrhSubType"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -32,18 +36,20 @@
           ]
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
           "required": false,
           "link_id": "2.02.B",
           "text": "Residential Affiliation?",
           "_comment": "TODO: should ask follow up question to identify all affiliated residential projects, and put them in Affiliation.csv",
-          "mapping": { "field_name": "residentialAffiliation" },
+          "mapping": {
+            "field_name": "residentialAffiliation"
+          },
           "enable_behavior": "ANY",
           "enable_when": [
             {
               "question": "2.02.6",
               "operator": "EQUAL",
-              "answer_code": "SERVICES_ONLY"
+              "answer_code": "SSO"
             },
             {
               "question": "2.02.A",
@@ -60,7 +66,9 @@
       "link_id": "2.02.D",
       "text": "Housing Type",
       "pick_list_reference": "HousingType",
-      "mapping": { "field_name": "housingType" }
+      "mapping": {
+        "field_name": "housingType"
+      }
     },
     {
       "type": "CHOICE",
@@ -68,7 +76,9 @@
       "link_id": "2.02.8",
       "text": "Target Population",
       "pick_list_reference": "TargetPopulation",
-      "mapping": { "field_name": "targetPopulation" }
+      "mapping": {
+        "field_name": "targetPopulation"
+      }
     },
     {
       "type": "CHOICE",
@@ -76,7 +86,9 @@
       "link_id": "2.02.9",
       "text": "HOPWA Assisted Living Facility",
       "pick_list_reference": "HOPWAMedAssistedLivingFac",
-      "mapping": { "field_name": "HOPWAMedAssistedLivingFac" }
+      "mapping": {
+        "field_name": "HOPWAMedAssistedLivingFac"
+      }
     },
     {
       "type": "CHOICE",
@@ -84,7 +96,9 @@
       "link_id": "2.02.5",
       "text": "Continuum Project?",
       "pick_list_reference": "NoYesMissing",
-      "mapping": { "field_name": "continuumProject" }
+      "mapping": {
+        "field_name": "continuumProject"
+      }
     },
     {
       "type": "CHOICE",
@@ -92,7 +106,9 @@
       "link_id": "2.08",
       "text": "HMIS Participation Status",
       "pick_list_reference": "HMISParticipationType",
-      "mapping": { "field_name": "hmisParticipationStatus" }
+      "mapping": {
+        "field_name": "hmisParticipationStatus"
+      }
     },
     {
       "type": "CHOICE",
@@ -100,7 +116,9 @@
       "link_id": "2.09",
       "text": "CE Participation Status",
       "pick_list_reference": "HMISParticipationType",
-      "mapping": { "field_name": "hmisParticipationStatus" }
+      "mapping": {
+        "field_name": "hmisParticipationStatus"
+      }
     }
   ]
 }
