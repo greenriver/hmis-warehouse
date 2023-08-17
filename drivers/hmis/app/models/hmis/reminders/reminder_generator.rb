@@ -90,6 +90,9 @@ module Hmis
         start_date = hoh_anniversary - window
         due_date = hoh_anniversary + window
 
+        # client exited before the HoH anniversary
+        return if enrollment.exit_date && enrollment.exit_date < hoh_anniversary
+
         # a relevant assessment ocurred.
         # FIXME: maybe we don't include assessments that occur after end_date? This might
         # encourage people to back-date assessments.
@@ -117,6 +120,9 @@ module Hmis
 
         # client is still <18
         return if adulthood_birthday > today
+
+        # client exited before turning 18
+        return if enrollment.exit_date && enrollment.exit_date <= adulthood_birthday
 
         # client had an assessment after they became and adult
         last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:update, :annual_assessment], wip: [false])
@@ -155,7 +161,13 @@ module Hmis
       # Show reminder if: there has not been a CurrentLivingSituation with an Information Date in the
       # past 90 days. Applies to Coordinated Entry projects only.
       def current_living_situation_reminder(enrollment)
-        # ensure project is Coordinated Entry (14)
+        return if enrollment.exit_date.present?
+
+        # CLS is only collected for HoH or Adults
+        return unless enrollment.head_of_household? || enrollment.client.adult?
+
+        # CLS is only "due" on a cadence for Coordinated Entry (14) (even though it can be collected for other project types)
+        # FIXME: should we check funder applicability?
         cadence = project.ProjectType == 14 ? 90 : nil
         return unless cadence
 
