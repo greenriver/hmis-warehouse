@@ -8,7 +8,7 @@ require 'faker'
 
 class SeedMaker
   def setup_fake_user
-    unless User.find_by(email: 'noreply@example.com').present?
+    unless User.find_by(email: 'noreply@example.com').present? # rubocop:disable Style/GuardClause
       # Add roles
       admin = Role.where(name: 'Admin').first_or_create
       admin.update(can_edit_users: true, can_edit_roles: true)
@@ -279,7 +279,7 @@ class SeedMaker
   end
 
   def install_shapes
-    if GrdaWarehouse::Shape::Installer.any_needed?
+    if GrdaWarehouse::Shape::Installer.any_needed? # rubocop:disable Style/GuardClause
       begin
         Rake::Task['grda_warehouse:get_shapes'].invoke
       rescue Exception => e
