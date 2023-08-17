@@ -92,7 +92,7 @@ module Api
       @project_types ||= begin
         types = []
 
-        project_type_to_id = project_source::PERFORMANCE_REPORTING.merge(project_source::RESIDENTIAL_PROJECT_TYPES)
+        project_type_to_id = HudUtility2024.performance_reporting.merge(HudUtility2024.residential_project_type_numbers_by_code)
         if project_params[:project_types].present?
           project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
             types += project_type_to_id[type]

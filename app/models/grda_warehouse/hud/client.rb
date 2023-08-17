@@ -299,9 +299,9 @@ module GrdaWarehouse::Hud
       # clearer and composable but less efficient would be to use an exists subquery
 
       if chronic_types_only
-        project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        project_types = HudUtility2024.chronic_project_types
       else
-        project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+        project_types = HudUtility2024.homeless_project_types
       end
 
       inner_table = sh_t.
@@ -930,7 +930,7 @@ module GrdaWarehouse::Hud
     def moved_in_with_ph?
       enrollments.
         open_on_date.
-        with_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+        with_project_type(HudUtility2024.residential_project_type_numbers_by_code[:ph]).
         where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lt(Date.current)).exists?
     end
 
@@ -1682,7 +1682,7 @@ module GrdaWarehouse::Hud
     end
 
     def last_seen_in_type(type, include_confidential_names: false)
-      return nil unless type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys + [:homeless])
+      return nil unless type.in?(HudUtility2024.residential_project_type_numbers_by_code.keys + [:homeless])
 
       service_history_enrollments.ongoing.
         joins(:service_history_services, :project, :organization).
@@ -2923,7 +2923,7 @@ module GrdaWarehouse::Hud
     end
 
     private def residential_dates enrollments:
-      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      @non_homeless_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
       @residential_dates ||= enrollments.select do |e|
         @non_homeless_types.include?(e.computed_project_type)
       end.map do |e|
@@ -2936,7 +2936,7 @@ module GrdaWarehouse::Hud
 
     private def homeless_dates enrollments:
       @homeless_dates ||= enrollments.select do |e|
-        e.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+        e.computed_project_type.in?(HudUtility2024.residential_project_type_ids)
       end.map do |e|
         # Use select to allow for preloading
         e.service_history_services.select do |s|
@@ -2953,7 +2953,7 @@ module GrdaWarehouse::Hud
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode? enrollments:, enrollment:
-      return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(enrollment.computed_project_type)
+      return false unless HudUtility2024.chronic_project_types.include?(enrollment.computed_project_type)
 
       entry_date = enrollment.first_date_in_program
       thirty_days_ago = entry_date - 30.days

@@ -69,7 +69,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
     def hide_beds_and_units
       project_types = report_projects.pluck(:project_type).uniq
-      project_types.all? { |type| GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITHOUT_INVENTORY.include?(type) }
+      project_types.all? { |type| HudUtility2024.project_types_without_inventory.include?(type) }
     end
 
     def enrolled_clients
@@ -246,7 +246,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         issues = []
         report_projects.each do |report_project|
           # some of these are only valid for residential project types
-          next unless report_project.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+          next unless report_project.project_type.in?(HudUtility2024.residential_project_type_ids)
 
           project_name = report_project.safe_project_name(user)
           if report_project.bed_inventory.blank? || report_project.bed_inventory.zero?

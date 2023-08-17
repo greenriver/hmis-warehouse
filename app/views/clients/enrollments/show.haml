@@ -27,7 +27,7 @@
           %tr
             %td Exit Date
             %td= @service_history_enrollment.last_date_in_program || '-'
-          - if @service_history_enrollment.move_in_date.present? || @service_history_enrollment.computed_project_type.in?(GrdaWarehouse::Hud::Project::WITH_MOVE_IN_DATES)
+          - if @service_history_enrollment.move_in_date.present? || @service_history_enrollment.computed_project_type.in?(HudUtility2024.with_move_in_dates)
             - move_in_date_inherited = @enrollment.MoveInDate.blank? && @service_history_enrollment.move_in_date.present?
             %tr
               %td Move-in Date

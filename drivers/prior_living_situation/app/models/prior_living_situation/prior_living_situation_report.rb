@@ -17,7 +17,7 @@ module PriorLivingSituation
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
       @comparison_pattern = filter.comparison_pattern
     end
 

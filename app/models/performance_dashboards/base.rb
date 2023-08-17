@@ -36,7 +36,7 @@ class PerformanceDashboards::Base
     @races = filter.races
     @ethnicities = filter.ethnicities
     @veteran_statuses = filter.veteran_statuses
-    @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
     @comparison_pattern = filter.comparison_pattern
     @sub_population = valid_sub_population(filter.sub_population)
   end

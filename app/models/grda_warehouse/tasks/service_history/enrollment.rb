@@ -14,7 +14,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     after_commit :force_validity_calculation
 
-    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]
+    SO = HudUtility2024.residential_project_type_numbers_by_code[:so]
 
     def self.batch_job_ids
       builder_batch_job_scope.pluck(:id)
@@ -469,8 +469,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # neither homeless nor not homeless and receives a nil value and will neither show up in homeless,
     # or non_homeless scopes"?
     def homeless?(date)
-      return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
-      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+      return true if HudUtility2024.homeless_project_types.include?(project.computed_project_type)
+      return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.computed_project_type) &&
         (self.MoveInDate.present? && date > self.MoveInDate)
 
       nil
@@ -480,10 +480,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # TH or PH after move-in date negates literally homeless
     # Others don't negate it, but don't count as such
     def literally_homeless? date
-      return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
-      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+      return true if HudUtility2024.chronic_project_types.include?(project.computed_project_type)
+      return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.computed_project_type) &&
         (self.MoveInDate.present? && date > self.MoveInDate)
-      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(project.computed_project_type)
+      return false if HudUtility2024.residential_project_type_numbers_by_code[:th].include?(project.computed_project_type)
 
       nil
     end

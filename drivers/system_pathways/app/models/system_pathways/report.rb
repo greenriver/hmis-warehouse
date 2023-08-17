@@ -187,7 +187,6 @@ module SystemPathways
         :so,
         :sh,
         :ce,
-        :ca, # Note, this is currently :ca, not :ce
         :rrh,
         :psh,
       ]

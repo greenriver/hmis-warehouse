@@ -173,7 +173,7 @@ module Filter::FilterScopes
 
       # Make this backwards compatible with a pre-set set of project_types.
       p_types = @project_types.presence || @filter.project_type_ids
-      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless || @filter.ce_cls_as_homeless
+      p_types += HudUtility2024.performance_reporting[:ce] if @filter.coordinated_assessment_living_situation_homeless || @filter.ce_cls_as_homeless
 
       return scope if p_types.empty?
 
@@ -379,7 +379,7 @@ module Filter::FilterScopes
 
       p_types = @project_types.presence || @filter.project_type_ids
       scope.joins(:enrollment).where(
-        she_t[:computed_project_type].in(GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]).
+        she_t[:computed_project_type].in(HudUtility2024.performance_reporting[:ce]).
         and(e_t[:LivingSituation].in(HudUtility.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(p_types)),
       )

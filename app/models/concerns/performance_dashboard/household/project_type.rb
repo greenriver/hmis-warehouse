@@ -9,7 +9,7 @@ module PerformanceDashboard::Household::ProjectType
 
   private def project_type_buckets
     buckets = HudUtility.project_types.keys
-    buckets & GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten
+    buckets & HudUtility2024.performance_reporting.values.flatten
   end
 
   def project_type_bucket_titles

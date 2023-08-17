@@ -74,7 +74,7 @@
             - title += ";<br /><b>Move-in Date:</b> #{move_in_date}"
             - if e[:move_in_date_inherited]
               - title += '<br />(inherited from HoH)'
-          - elsif e[:project_type_id].in?(GrdaWarehouse::Hud::Project::WITH_MOVE_IN_DATES)
+          - elsif e[:project_type_id].in?(HudUtility2024.with_move_in_dates)
             - title += ";<br /><b>Move-in Date:</b> No move-in date"
           %span{data: { toggle: :tooltip, title: title.html_safe, html: 'true' }}
             - include_link = current_user.can_view_enrollment_details_tab?

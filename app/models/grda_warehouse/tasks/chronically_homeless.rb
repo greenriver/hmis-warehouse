@@ -26,8 +26,7 @@ module GrdaWarehouse::Tasks
   class ChronicallyHomeless
     include TsqlImport
     include ArelHelper
-    CHRONIC_PROJECT_TYPES = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
     SO = 4
 
     attr_accessor :debug
@@ -174,9 +173,9 @@ module GrdaWarehouse::Tasks
         open_between(start_date: @date - 3.years, end_date: @date).
         where(
           she_t[:move_in_date].not_eq(nil).and(
-            she_t[:computed_project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]),
+            she_t[:computed_project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:ph]),
           ).or(
-            she_t[:computed_project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]),
+            she_t[:computed_project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:th]),
           ),
         ).
         where(she_t[:last_date_in_program].lteq(@date)).
@@ -320,7 +319,7 @@ module GrdaWarehouse::Tasks
 
     # days served in PH *after* the move-in-date
     def residential_dates enrollments:
-      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      @non_homeless_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
       @residential_dates ||= enrollments.select do |e|
         e[:project_type].in? @non_homeless_types
       end.map do |e|
@@ -330,7 +329,7 @@ module GrdaWarehouse::Tasks
 
     def homeless_dates enrollments:
       @homeless_dates ||= enrollments.select do |e|
-        e[:project_type].in? project_source::CHRONIC_PROJECT_TYPES
+        e[:project_type].in? HudUtility2024.chronic_project_types
       end.map do |e|
         e[:date]
       end.compact.uniq

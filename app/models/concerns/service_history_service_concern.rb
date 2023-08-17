@@ -16,19 +16,19 @@ module ServiceHistoryServiceConcern
     scope :service_excluding_extrapolated, -> { where(record_type: :service) }
 
     scope :residential, -> {
-      where(project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+      where(project_type_column => HudUtility2024.residential_project_type_ids)
     }
 
     scope :hud_residential, -> do
-      hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+      hud_project_type(HudUtility2024.residential_project_type_ids)
     end
 
     scope :residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+      r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
       where(project_type_column => r_non_homeless).where(homeless: false)
     end
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+      r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
       hud_project_type(r_non_homeless).where(homeless: false)
     end
 

@@ -72,7 +72,7 @@ module ClientAccessControl
 
       # Limit to Residential Homeless programs
       @dates = @dates.transform_values do |data|
-        data.select { |en| ::GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(en[:project_type]) }
+        data.select { |en| ::HudUtility2024.residential_project_type_ids.include?(en[:project_type]) }
       end
       @organization_counts = @dates.values.flatten.group_by { |en| HudUtility.project_type en[:organization_name] }.transform_values(&:count)
       @project_type_counts = @dates.values.flatten.group_by { |en| HudUtility.project_type en[:project_type] }.transform_values(&:count)

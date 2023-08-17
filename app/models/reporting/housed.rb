@@ -359,7 +359,7 @@ module Reporting
       service_data = two_project_service_data(client_id_batch)
       from_residential_enrollments = two_project_residential_data(client_id_batch).map do |residential_enrollment|
         case residential_enrollment[:project_type]
-        when *GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+        when *HudUtility2024.residential_project_type_numbers_by_code[:ph]
           key = [
             residential_enrollment[:client_id],
             residential_enrollment[:residential_project_id],
@@ -537,7 +537,7 @@ module Reporting
         map do |row|
           residential_enrollment = Hash[one_project_columns.keys.zip(row)]
           case residential_enrollment[:project_type]
-          when *GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+          when *HudUtility2024.residential_project_type_numbers_by_code[:ph]
             # if exit but no move-in-date, set search end to exit and blank exit, no stabilization, only pre-placement
             if residential_enrollment[:housing_exit].present? && residential_enrollment[:search_end].blank?
               residential_enrollment[:search_end] = residential_enrollment[:housing_exit]
