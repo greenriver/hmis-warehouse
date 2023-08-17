@@ -8,6 +8,7 @@ module Types
   class BasePaginated < BaseObject
     def self.build(node_class)
       Class.new(self) do
+        description("Paginated #{node_class}") # Don't change! traversed by JsonForms
         graphql_name("#{node_class.graphql_name.pluralize}Paginated")
         field :nodes, [node_class], null: false
       end
