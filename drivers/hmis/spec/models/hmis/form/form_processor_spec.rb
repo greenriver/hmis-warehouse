@@ -1264,14 +1264,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'contactInformation' => 'Contact Info',
         'operatingStartDate' => '2023-01-13',
         'operatingEndDate' => '2023-01-28',
-        'projectType' => 'ES',
-        'trackingMethod' => 'NIGHT_BY_NIGHT',
+        'projectType' => 'ES_NBN',
         'residentialAffiliation' => HIDDEN,
         'housingType' => 'SITE_BASED_SINGLE_SITE',
-        'targetPopulation' => 'PERSONS_WITH_HIV_AIDS',
+        'targetPopulation' => 'HIV_PERSONS_WITH_HIV_AIDS',
         'HOPWAMedAssistedLivingFac' => 'NO',
         'continuumProject' => 'NO',
-        'HMISParticipatingProject' => 'YES',
       }
     end
     let(:empty_hud_values) do
@@ -1296,13 +1294,11 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(project.operating_end_date.strftime('%Y-%m-%d')).to eq(complete_hud_values['operatingEndDate'])
 
         expect(project.project_type).to eq(1)
-        expect(project.tracking_method).to eq(3)
         expect(project.residential_affiliation).to be nil # not 99 because disabled
         expect(project.housing_type).to eq(1)
         expect(project.target_population).to eq(3)
         expect(project.hopwa_med_assisted_living_fac).to eq(0)
         expect(project.continuum_project).to eq(0)
-        expect(project.hmis_participating_project).to eq(1)
       end
     end
 
@@ -1316,13 +1312,11 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(project.contact_information).to be nil
         expect(project.operating_end_date).to be nil
         expect(project.project_type).to eq(4)
-        expect(project.tracking_method).to be nil
         expect(project.residential_affiliation).to eq(99)
         expect(project.housing_type).to be nil
         expect(project.target_population).to be nil
         expect(project.hopwa_med_assisted_living_fac).to be nil
         expect(project.continuum_project).to eq(99)
-        expect(project.hmis_participating_project).to eq(99)
       end
     end
 
