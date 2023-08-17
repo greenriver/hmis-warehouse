@@ -450,6 +450,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.joins(:organization).count
   end
 
+  def hmis?
+    hmis.present?
+  end
+
   private def maintain_system_group
     if Rails.env.test?
       AccessGroup.maintain_system_groups(group: :data_sources)
