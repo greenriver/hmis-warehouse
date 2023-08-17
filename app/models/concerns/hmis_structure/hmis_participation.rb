@@ -14,16 +14,60 @@ module HmisStructure::HmisParticipation
   end
 
   module ClassMethods
-    def hmis_configuration(_version: nil)
-      {}
+    def hmis_configuration(version: nil)
+      case version
+      when '2024'
+        {
+          HMISParticipationID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          ProjectID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          HMISParticipationType: {
+            type: :integer,
+            null: false,
+          },
+          HMISParticipationStatusStartDate: {
+            type: :date,
+            null: false,
+          },
+          HMISParticipationStatusEndDate: {
+            type: :date,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      end
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       {
-        [:DateCreated] => nil,
-        [:DateUpdated] => nil,
+        [:HMISParticipationID] => nil,
         [:ProjectID] => nil,
-        [:ProjectType] => nil,
         [:ExportID] => nil,
       }
     end
