@@ -10,18 +10,15 @@ module HudUtility2024
 
   module_function
 
-  def race(field, reverse = false, multi_racial: false)
-    map = multi_racial ? races_with_multi_racial : races
-    _translate map, field, reverse
+  def races(multi_racial: false)
+    return race_columns unless multi_racial
+
+    { **race_columns, 'MultiRacial' => 'Multi-Racial' }
   end
 
-  # NOTE: api differs from HudUtility 2022 which was `races(multi_racial: false)`
-  # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
-  def races_with_multi_racial
-    {
-      **races,
-      'MultiRacial' => 'Multi-Racial',
-    }
+  def race(field, reverse = false, multi_racial: false)
+    map = races(multi_racial: multi_racial)
+    _translate map, field, reverse
   end
 
   # 1.6
