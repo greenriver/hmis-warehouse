@@ -34,7 +34,7 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
   }.freeze
 
   def configuration
-    Hmis::Hud::Service.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Service.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def validate(record)

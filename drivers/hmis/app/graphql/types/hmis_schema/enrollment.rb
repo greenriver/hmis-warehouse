@@ -22,7 +22,7 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
-      Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
+      Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
     available_filter_options do

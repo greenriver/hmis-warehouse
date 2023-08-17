@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::CurrentLivingSituation < Types::BaseObject
     def self.configuration
-      Hmis::Hud::CurrentLivingSituation.hmis_configuration(version: '2022')
+      Hmis::Hud::CurrentLivingSituation.hmis_configuration(version: '2024')
     end
 
     description 'HUD Current Living Situation'

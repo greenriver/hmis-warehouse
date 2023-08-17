@@ -20,7 +20,7 @@ module Types
     include Types::HmisSchema::HasServices
 
     def self.configuration
-      Hmis::Hud::Project.hmis_configuration(version: '2022')
+      Hmis::Hud::Project.hmis_configuration(version: '2024')
     end
 
     available_filter_options do

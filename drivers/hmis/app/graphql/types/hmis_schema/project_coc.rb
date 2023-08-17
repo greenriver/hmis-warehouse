@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::ProjectCoc < Types::BaseObject
     def self.configuration
-      Hmis::Hud::ProjectCoc.hmis_configuration(version: '2022')
+      Hmis::Hud::ProjectCoc.hmis_configuration(version: '2024')
     end
 
     hud_field :id, ID, null: false

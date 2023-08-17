@@ -23,7 +23,7 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
-      Hmis::Hud::Client.hmis_configuration(version: '2022')
+      Hmis::Hud::Client.hmis_configuration(version: '2024')
     end
 
     description 'HUD Client'

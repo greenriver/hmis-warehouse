@@ -11,7 +11,7 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
-      Hmis::Hud::Exit.hmis_configuration(version: '2022')
+      Hmis::Hud::Exit.hmis_configuration(version: '2024')
     end
 
     field :id, ID, null: false

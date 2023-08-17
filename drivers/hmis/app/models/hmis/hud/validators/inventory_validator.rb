@@ -12,7 +12,7 @@ class Hmis::Hud::Validators::InventoryValidator < Hmis::Hud::Validators::BaseVal
   ].freeze
 
   def configuration
-    Hmis::Hud::Inventory.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Inventory.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def validate(record)

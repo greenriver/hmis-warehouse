@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::Disability < Types::BaseObject
     def self.configuration
-      Hmis::Hud::Disability.hmis_configuration(version: '2022')
+      Hmis::Hud::Disability.hmis_configuration(version: '2024')
     end
 
     field :id, ID, null: false

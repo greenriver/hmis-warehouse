@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::HealthAndDv < Types::BaseObject
     def self.configuration
-      Hmis::Hud::HealthAndDv.hmis_configuration(version: '2022')
+      Hmis::Hud::HealthAndDv.hmis_configuration(version: '2024')
     end
 
     field :id, ID, null: false

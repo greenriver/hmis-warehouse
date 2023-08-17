@@ -10,7 +10,7 @@ module Types
   class HmisSchema::Funder < Types::BaseObject
     include Types::HmisSchema::HasCustomDataElements
     def self.configuration
-      Hmis::Hud::Funder.hmis_configuration(version: '2022')
+      Hmis::Hud::Funder.hmis_configuration(version: '2024')
     end
 
     hud_field :id, ID, null: false
