@@ -69,7 +69,7 @@ module HealthPctp
     end
 
     def editable?
-      patient_signed_on.nil?
+      sent_to_pcp_on.nil?
     end
 
     def completed?
