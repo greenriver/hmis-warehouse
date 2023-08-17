@@ -19,6 +19,20 @@
           "initial_behavior": "IF_EMPTY",
           "value_local_constant": "$today"
         }
+      ],
+      "bounds": [
+        {
+          "id": "min-exit",
+          "type": "MIN",
+          "_comment": "exit date cannot be before entry date",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-exit",
+          "type": "MAX",
+          "_comment": "exit date cannot be in the future",
+          "value_local_constant": "$today"
+        }
       ]
     },
     {

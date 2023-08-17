@@ -5682,6 +5682,11 @@ enum ProjectType {
   HP
 
   """
+  Homelessness Prevention
+  """
+  HP
+
+  """
   Invalid Value
   """
   INVALID
