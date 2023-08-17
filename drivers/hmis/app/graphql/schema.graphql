@@ -5642,9 +5642,14 @@ enum ProjectType {
   DAY_SHELTER
 
   """
-  Emergency Shelter
+  Emergency Shelter - Entry Exit
   """
-  ES
+  ES_ENTRY_EXIT
+
+  """
+  Emergency Shelter - Night-by-Night
+  """
+  ES_NBN
 
   """
   Homelessness Prevention
