@@ -60,7 +60,7 @@ module Mutations
       form_validations = form_processor.collect_form_validations
       errors.push(*form_validations)
 
-      # Run processor to create/update record(s)
+      # Run processor to assign attributes to the record(s)
       form_processor.run!(owner: record, user: current_user)
 
       # Validate record
@@ -85,11 +85,13 @@ module Mutations
         when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         when Hmis::Hud::Enrollment
-          record.client.save! if record.client.changed? # Enrollment form may create or update client
-          if record.new_record? || record.in_progress?
-            record.save_in_progress
-          else
-            record.save!
+          record.project.with_lock do
+            record.client.save! if record.client.changed? # Enrollment form may create or update client
+            if record.new_record? || record.in_progress?
+              record.save_in_progress
+            else
+              record.save!
+            end
           end
         else
           record.save!

@@ -33,7 +33,7 @@ module Mutations
         )
       end
 
-      Hmis::Unit.transaction do
+      project.with_lock do
         units.each(&:save!)
       end
 

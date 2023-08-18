@@ -155,6 +155,10 @@ tasks = [
     interruptable: true,
   },
   {
+    task: 'driver:hmis_external_apis:update_unit_availability',
+    frequency: 3.minutes,
+  },
+  {
     task: 'driver:medicaid_hmis_interchange:medicaid_hmis_transfer',
     frequency: :sunday,
     at: '5:01am',

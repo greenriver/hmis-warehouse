@@ -241,7 +241,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def release_unit!(occupancy_end_date = Date.current, user:)
-    active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date, user: user)
+    project.with_lock do
+      active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date, user: user)
+    end
   end
 
   def unit_occupied_on(date = Date.current)

@@ -25,7 +25,9 @@ module Mutations
       errors.add :base, :not_allowed unless current_user.permissions_for?(project, :can_manage_inventory)
       return { errors: errors } if errors.any?
 
-      Hmis::Unit.where(id: unit_ids).destroy_all
+      project.with_lock do
+        Hmis::Unit.where(id: unit_ids).destroy_all
+      end
 
       { unit_ids: unit_ids, errors: [] }
     end

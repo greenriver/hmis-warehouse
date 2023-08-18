@@ -22,6 +22,22 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def run!
+      success = false
+      timeout_seconds = 30
+      Hmis::HmisBase.with_advisory_lock(
+        'hmis_project_importer',
+        timeout_seconds: timeout_seconds
+      ) do
+        _run
+        success = true
+      end
+
+      raise "could not acquire lock after #{timeout_seconds}"
+    end
+
+    protected
+
+    def _run
       start
       sanity_check
       ProjectsImportAttempt.transaction do
