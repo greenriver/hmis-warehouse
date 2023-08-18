@@ -26,7 +26,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     scope :night_by_night, -> do
-      where(TrackingMethod: 3)
+      where(ProjectType: HudUtility2024.project_type_number_from_code(:es_nbn))
     end
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument

@@ -231,7 +231,7 @@ module GrdaWarehouse
     def self.approximate_start_date(enrollment, date: enrollment.EntryDate)
       ch_start_date = [enrollment.DateToStreetESSH, enrollment.EntryDate].compact.min
       project = enrollment.project
-      days = if date != enrollment.EntryDate && (project.so? || project.es? && project.bed_night_tracking?)
+      days = if date != enrollment.EntryDate && (project.so? || project.es_nbn?)
         dates_in_enrollment_between(enrollment, enrollment.EntryDate, date).count + (enrollment.EntryDate - ch_start_date).to_i
       else
         (date - ch_start_date).to_i
@@ -267,7 +267,7 @@ module GrdaWarehouse
       # the months served. (This is only used for Chronic-at-PIT calculation, not Chronic-at-Entry).
       if date != enrollment.EntryDate && enrollment.MonthsHomelessPastThreeYears.present? && enrollment.MonthsHomelessPastThreeYears > 100
         project = enrollment.project
-        months_in_enrollment = if project.so? || project.es? && project.bed_night_tracking?
+        months_in_enrollment = if project.so? || project.es_nbn?
           dates_in_enrollment_between(enrollment, enrollment.EntryDate, date).map do |d|
             [d.month, d.year]
           end.uniq.count

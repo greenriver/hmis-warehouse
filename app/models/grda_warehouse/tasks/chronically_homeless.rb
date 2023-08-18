@@ -271,7 +271,7 @@ module GrdaWarehouse::Tasks
     end
 
     def bed_night?(meta)
-      meta[:project_tracking_method] == 3
+      meta[:project_type].in?(HudUtility2024.project_type_number_from_code(:es_nbn))
     end
 
     def count_so_as_full_month?(meta)
