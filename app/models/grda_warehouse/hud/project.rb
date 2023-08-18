@@ -125,11 +125,17 @@ module GrdaWarehouse::Hud
     end
 
     scope :night_by_night, -> do
-      where(cl(p_t[:tracking_method_override], p_t[:TrackingMethod]).eq(3))
+      es_nbn
     end
 
     def night_by_night?
-      (tracking_method_override.presence || self.TrackingMethod) == 3
+      es_nbn?
+    end
+
+    # DEPRECATED_FY2024 - remove this once the transition 2024 is complete
+    # Make some tests work
+    def es_nbn_pre_2024?
+      tracking_method_to_use == 3 && project_type_to_use == 1
     end
 
     scope :confidential, -> do
@@ -319,7 +325,6 @@ module GrdaWarehouse::Hud
         operating_end_date_override: :OperatingEndDate,
         hmis_participating_project_override: :HMISParticipatingProject,
         target_population_override: :TargetPopulation,
-        tracking_method_override: :TrackingMethod,
       }
     end
 
@@ -622,7 +627,7 @@ module GrdaWarehouse::Hud
     end
 
     def bed_night_tracking?
-      tracking_method_to_use == 3 || street_outreach_and_acts_as_bednight?
+      es_nbn? || street_outreach_and_acts_as_bednight?
     end
 
     # Some Street outreach are counted like bed-night shelters, others aren't yet
@@ -754,6 +759,7 @@ module GrdaWarehouse::Hud
       operating_end_date_override.presence || self.OperatingEndDate
     end
 
+    # DEPRECATED_FY2024 no longer used in FY2024
     def tracking_method_to_use
       tracking_method_override.presence || self.TrackingMethod
     end

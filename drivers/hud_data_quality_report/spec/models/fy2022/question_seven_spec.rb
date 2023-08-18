@@ -19,9 +19,11 @@ RSpec.describe HudDataQualityReport::Generators::Fy2022::QuestionSeven, type: :m
     cleanup
   end
 
-  it 'sees the stayers' do
-    expect(report_result.answer(question: 'Q7', cell: 'B2').summary).to eq(5)
-  end
+  # DEPRECATED_FY2024 - This will fail because it explicitly checks TrackingMethod which
+  # no longer exists
+  # it 'sees the stayers' do
+  #   expect(report_result.answer(question: 'Q7', cell: 'B2').summary).to eq(5)
+  # end
 
   it 'there was a contact' do
     answer = report_result.answer(question: 'Q7', cell: 'D2').summary

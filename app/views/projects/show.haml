@@ -132,15 +132,6 @@
           %th Data Source
           %td= @project.data_source.short_name
         %tr
-          %th Tracking Method
-          %td
-            = HudUtility.tracking_method(@project.TrackingMethod || 0)
-            - if @project.tracking_method_override.present?
-              .mt-2
-                Overridden as:
-                %br
-                %em= HudUtility.tracking_method(@project.tracking_method_override)
-        %tr
           %th Target Population
           %td
             = HudUtility.target_population @project.TargetPopulation

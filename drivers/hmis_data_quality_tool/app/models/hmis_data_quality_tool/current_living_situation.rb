@@ -99,7 +99,6 @@ module HmisDataQualityTool
       report_item.information_date = current_living_situation.InformationDate
       report_item.project_operating_start_date = project.OperatingStartDate
       report_item.project_operating_end_date = project.OperatingEndDate
-      report_item.project_tracking_method = project.TrackingMethod
       report_item
     end
 
