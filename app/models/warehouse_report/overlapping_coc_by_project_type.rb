@@ -277,7 +277,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   #   [Project Type, [async_count, concurrent_count]]
   # ]
   def chart_by_project_type
-    GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten.uniq.map do |p_type|
+    HudUtility2024.performance_reporting.values.flatten.uniq.map do |p_type|
       async = async_by_type[p_type]&.count || 0
       concurrent = concurrent_by_type[p_type]&.count || 0
       next unless (async + concurrent).positive?

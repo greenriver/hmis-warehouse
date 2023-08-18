@@ -83,7 +83,7 @@ module WarehouseReports
           start: default_start.to_date,
           end: default_end.to_date,
           no_service_after_date: default_no_service_after_date,
-          project_type_numbers: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES,
+          project_type_numbers: HudUtility2024.homeless_project_types,
           sub_population: :clients,
         }
       end

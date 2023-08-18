@@ -18,7 +18,7 @@ module WarehouseReports
       ).
         where(
           p_t[project_source.project_type_column].in(
-            project_source::RESIDENTIAL_PROJECT_TYPE_IDS,
+            HudUtility2024.residential_project_type_ids,
           ),
         ).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).

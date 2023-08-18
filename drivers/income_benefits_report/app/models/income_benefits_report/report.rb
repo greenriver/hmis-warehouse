@@ -102,7 +102,7 @@ module IncomeBenefitsReport
     end
 
     private def set_project_types
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
     end
 
     def comparison_pattern

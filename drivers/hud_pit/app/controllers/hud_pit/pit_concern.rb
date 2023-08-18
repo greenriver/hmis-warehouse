@@ -78,7 +78,7 @@ module HudPit::PitConcern
     helper_method :path_for_new
 
     def relevant_project_types
-      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      HudUtility2024.homeless_project_types
     end
   end
 end

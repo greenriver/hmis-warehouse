@@ -38,7 +38,7 @@ module WarehouseReports
     #   @project_type_codes = params.try(:[], :range).try(:[], :project_type)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
     #   @project_types = []
     #   @project_type_codes.each do |code|
-    #     @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
+    #     @project_types += HudUtility2024.residential_project_type_numbers_by_code[code]
     #   end
     # end
 

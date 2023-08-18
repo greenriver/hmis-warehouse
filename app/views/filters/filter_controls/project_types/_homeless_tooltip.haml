@@ -1,5 +1,5 @@
 :ruby
-  names = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.map do |id|
+  names = HudUtility2024.homeless_project_types.map do |id|
     name = HudUtility.project_type(id)
   end.sort
   items = names.map do |name|

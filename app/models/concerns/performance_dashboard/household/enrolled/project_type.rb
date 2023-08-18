@@ -29,7 +29,7 @@ module PerformanceDashboard::Household::Enrolled::ProjectType
       columns = [@filter.date_range_words]
       columns += enrolled_by_project_type.values.map(&:count)
       categories = enrolled_by_project_type.keys
-      categories &= GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten
+      categories &= HudUtility2024.performance_reporting.values.flatten
       filter_selected_data_for_chart(
         {
           labels: categories.map { |s| [s, HudUtility.project_type(s)] }.to_h,

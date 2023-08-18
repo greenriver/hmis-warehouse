@@ -151,7 +151,7 @@ module Exporters::Tableau::EntryExit
       end
       batch_enrollment_ids = data.map { |row| row['entry_exit_uid'] }.uniq
       enrollments = GrdaWarehouse::Hud::Enrollment.where(id: batch_enrollment_ids).index_by(&:id)
-      ph_th = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      ph_th = HudUtility2024.residential_project_type_numbers_by_code[:th] + HudUtility2024.residential_project_type_numbers_by_code[:ph]
       data.group_by do |row|
         row['id']
       end.each do |_, (*, row)| # use only the most recent disability record
@@ -295,7 +295,7 @@ module Exporters::Tableau::EntryExit
               # if the next enrollment is PH it must be > 14 days after exit AND 14 days after any other PH or TH exits
               exit_date = row['entry_exit_exit_date'].to_date
               newer_residential_enrollments = data_by_client[row['client_uid']].select do |enrollment|
-                residential = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(enrollment['prog_type'].to_i)
+                residential = HudUtility2024.residential_project_type_ids.include?(enrollment['prog_type'].to_i)
                 residential && enrollment['entry_exit_entry_date'].to_date > exit_date
               end.sort_by do |enrollment|
                 # order by entry date and project type, this will put ES in front of PH/TH
@@ -307,9 +307,9 @@ module Exporters::Tableau::EntryExit
               else
                 next_enrollment = newer_residential_enrollments.first
                 next_entry_date = next_enrollment['entry_exit_entry_date'].to_date
-                if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(next_enrollment['prog_type'].to_i)
+                if HudUtility2024.residential_project_type_numbers_by_code[:th].include?(next_enrollment['prog_type'].to_i)
                   (next_entry_date - exit_date).to_i if next_entry_date > exit_date + 14.days
-                elsif  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(next_enrollment['prog_type'].to_i)
+                elsif  HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(next_enrollment['prog_type'].to_i)
                   if next_entry_date > exit_date + 14.days
                     # there are no other TH or PH (this is the only newer enrollment)
                     if newer_residential_enrollments.size == 1
@@ -341,7 +341,7 @@ module Exporters::Tableau::EntryExit
             entry_date = row['entry_exit_entry_date'].to_date
             three_years_prior = entry_date - 3.years
             data_by_client[row['client_uid']].select do |enrollment|
-              GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(enrollment['prog_type'].to_i) &&
+              HudUtility2024.residential_project_type_numbers_by_code[:es].include?(enrollment['prog_type'].to_i) &&
               (three_years_prior...entry_date).include?(enrollment['entry_exit_entry_date'].to_date)
             end.count
           when :coc_name

@@ -182,11 +182,11 @@ module HmisDataQualityTool
     end
 
     def project_type_ids
-      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten
+      HudUtility2024.performance_reporting.values.flatten
     end
 
     def default_project_type_codes
-      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
+      HudUtility2024.performance_reporting.keys
     end
 
     private def build_control_sections

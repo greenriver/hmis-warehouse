@@ -32,11 +32,11 @@ module HudSpmReport::Generators::Fy2020
 
     LOOKBACK_STOP_DATE = Date.iso8601('2012-10-01').freeze
 
-    ES = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es).flatten(1).freeze
-    SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1).freeze
-    TH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:th).flatten(1).freeze
-    PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1).freeze
-    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1).freeze
+    ES = HudUtility2024.residential_project_type_numbers_by_code.values_at(:es).flatten(1).freeze
+    SH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:sh).flatten(1).freeze
+    TH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:th).flatten(1).freeze
+    PH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:ph).flatten(1).freeze
+    SO = HudUtility2024.residential_project_type_numbers_by_code.values_at(:so).flatten(1).freeze
 
     PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
     PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze

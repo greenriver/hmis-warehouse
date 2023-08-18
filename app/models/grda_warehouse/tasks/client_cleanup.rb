@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
         merge(
           GrdaWarehouse::Hud::Project.
           with_project_type(
-            GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten,
+            HudUtility2024.performance_reporting.values.flatten,
           ),
         ).
         where.not(HouseholdID: nil).

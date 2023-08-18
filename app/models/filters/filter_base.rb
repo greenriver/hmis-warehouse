@@ -24,7 +24,7 @@ module Filters
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
-    attribute :default_project_type_codes, Array, default: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
+    attribute :default_project_type_codes, Array, default: HudUtility2024.homeless_project_type_codes
     attribute :project_type_codes, Array, lazy: true, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
@@ -730,7 +730,7 @@ module Filters
     end
 
     def project_type_code_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
+      HudUtility2024.project_group_titles.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
     end
 
     def project_options_for_select(user:)
@@ -796,15 +796,15 @@ module Filters
     end
 
     def available_project_types
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert
+      HudUtility2024.project_group_titles.invert
     end
 
     def available_residential_project_types
-      GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.invert
+      HudUtility2024.residential_type_titles.invert
     end
 
     def available_homeless_project_types
-      GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert
+      HudUtility2024.homeless_type_titles.invert
     end
 
     def available_project_type_numbers
@@ -847,7 +847,7 @@ module Filters
     end
 
     def project_type_ids
-      ids = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
+      ids = HudUtility2024.performance_reporting.values_at(
         *project_type_codes.reject(&:blank?).map(&:to_sym),
       ).flatten
 
@@ -856,7 +856,7 @@ module Filters
     end
 
     def selected_project_type_names
-      GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.values_at(*project_type_codes.reject(&:blank?).map(&:to_sym))
+      HudUtility2024.residential_type_titles.values_at(*project_type_codes.reject(&:blank?).map(&:to_sym))
     end
 
     def user
@@ -1005,7 +1005,7 @@ module Filters
     end
 
     def default_project_type_numbers
-      GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
+      HudUtility2024.project_types_with_inventory
     end
 
     def describe_filter_as_html(keys = nil, limited: true, inline: false, labels: {})
@@ -1299,7 +1299,7 @@ module Filters
     end
 
     def chosen_project_types_only_homeless?
-      project_type_ids.sort == GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.sort
+      project_type_ids.sort == HudUtility2024.homeless_project_types.sort
     end
 
     def chosen_household_type
