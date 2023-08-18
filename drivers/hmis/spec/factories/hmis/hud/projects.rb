@@ -20,7 +20,11 @@ FactoryBot.define do
     transient do
       funders { [] } # convenience method to set funder ids
     end
+
     after(:create) do |project, evaluator|
+      # create an initial Project CoC record if there isn't one
+      project.project_cocs << create(:hmis_hud_project_coc, data_source: project.data_source, project: project) unless project.project_cocs.any?
+
       next unless evaluator.funders.any?
 
       project.funders = evaluator.funders.map do |funder|

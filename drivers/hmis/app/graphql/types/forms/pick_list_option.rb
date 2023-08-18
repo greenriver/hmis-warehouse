@@ -256,24 +256,31 @@ module Types
     end
 
     def self.living_situation_picklist(as:)
-      enum_value_definitions = Types::HmisSchema::Enums::Hud::LivingSituation.all_enum_value_definitions
-      to_option = ->(group_code, group_label) {
-        proc do |id|
+      enum_value_definitions = case as
+      when :prior
+        Types::HmisSchema::Enums::Hud::PriorLivingSituation.all_enum_value_definitions
+      when :current
+        Types::HmisSchema::Enums::Hud::CurrentLivingSituation.all_enum_value_definitions
+      when :destination
+        Types::HmisSchema::Enums::Hud::Destination.all_enum_value_definitions
+      end
+
+      [
+        [HudUtility2024::SITUATION_HOMELESS_RANGE, :HOMELESS, 'Homeless Situations'],
+        [HudUtility2024::SITUATION_INSTITUTIONAL_RANGE, :INSTITUTIONAL, 'Institutional Situations'],
+        [HudUtility2024::SITUATION_TEMPORARY_RANGE, :TEMPORARY, 'Temporary Housing Situations'],
+        [HudUtility2024::SITUATION_PERMANENT_RANGE, :PERMANENT, 'Permanent Housing Situations'],
+        [HudUtility2024::SITUATION_OTHER_RANGE, :OTHER, 'Other'],
+      ].map do |range, group_code, group_label|
+        enum_value_definitions.select { |e| range.include? e.value }.map do |enum|
           {
-            code: enum_value_definitions.find { |v| v.value == id }.graphql_name,
-            label: ::HudUtility.living_situation(id),
+            code: enum.graphql_name,
+            label: ::HudUtility2024.living_situation(enum.value),
             group_code: group_code,
             group_label: group_label,
           }
         end
-      }
-
-      homeless = ::HudUtility.homeless_situations(as: as).map(&to_option.call('HOMELESS', 'Homeless'))
-      institutional = ::HudUtility.institutional_situations(as: as).map(&to_option.call('INSTITUTIONAL', 'Institutional'))
-      temporary = ::HudUtility.temporary_and_permanent_housing_situations(as: as).map(&to_option.call('TEMPORARY_PERMANENT_OTHER', 'Temporary or Permanent'))
-      missing_reasons = ::HudUtility.other_situations(as: as).map(&to_option.call('MISSING', 'Other'))
-
-      homeless + institutional + temporary + missing_reasons
+      end.flatten
     end
 
     def self.file_tag_picklist

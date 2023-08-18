@@ -5,6 +5,7 @@
 ###
 
 module Mutations
+  # NOT CURRENTLY IN USE. Enrollments are added via SubmitForm.
   class AddToHousehold < BaseMutation
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -38,6 +39,12 @@ module Mutations
 
       return { errors: errors } if errors.any?
 
+      coc_codes = project.project_cocs.pluck(:coc_code).compact.uniq
+      # This mutation is not currently in use, so just error if there are multiple cocs.
+      # If we start using this again, we need to add enrollment_coc as an input to the mutation.
+      raise 'multiple possible CoC codes' if coc_codes.length > 1
+      raise 'no CoC codes' if coc_codes.empty?
+
       household_id ||= Hmis::Hud::Base.generate_uuid
       enrollment = Hmis::Hud::Enrollment.new(
         data_source_id: hmis_user.data_source_id,
@@ -47,7 +54,7 @@ module Mutations
         entry_date: entry_date,
         project_id: project.project_id,
         household_id: household_id,
-        # TODO auto-set enrollment_coc (if there is only 1 option)
+        enrollment_coc: coc_codes.first,
       )
 
       # Validate entry date

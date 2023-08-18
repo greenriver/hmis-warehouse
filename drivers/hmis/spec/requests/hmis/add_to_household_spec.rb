@@ -65,7 +65,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     def perform_mutation(input)
       response, result = post_graphql(input: input) { mutation }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       household = result.dig('data', 'addToHousehold', 'household')
       errors = result.dig('data', 'addToHousehold', 'errors')
       [household, errors]

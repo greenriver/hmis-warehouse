@@ -73,7 +73,7 @@
     {
       "type": "CHOICE",
       "required": false,
-      "link_id": "2.02.8",
+      "link_id": "2.02.7",
       "text": "Target Population",
       "pick_list_reference": "TargetPopulation",
       "mapping": {
@@ -83,7 +83,7 @@
     {
       "type": "CHOICE",
       "required": false,
-      "link_id": "2.02.9",
+      "link_id": "2.02.8",
       "text": "HOPWA Assisted Living Facility",
       "pick_list_reference": "HOPWAMedAssistedLivingFac",
       "mapping": {

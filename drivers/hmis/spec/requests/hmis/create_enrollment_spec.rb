@@ -85,7 +85,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should create all household enrollments successfully' do
       response, result = post_graphql(input: test_input) { mutation }
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         enrollments = result.dig('data', 'createEnrollment', 'enrollments')
         errors = result.dig('data', 'createEnrollment', 'errors')
         expect(enrollments).to be_present
