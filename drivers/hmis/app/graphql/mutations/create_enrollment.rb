@@ -5,6 +5,7 @@
 ###
 
 module Mutations
+  # NOT CURRENTLY IN USE. Enrollments are added via SubmitForm.utations
   class CreateEnrollment < BaseMutation
     argument :project_id, ID, required: true
     argument :entry_date, GraphQL::Types::ISO8601Date, required: true
@@ -18,6 +19,12 @@ module Mutations
       household_id = Hmis::Hud::Enrollment.generate_household_id
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).pluck(:id, :personal_id).to_h
 
+      coc_codes = project.project_cocs.pluck(:coc_code).compact.uniq
+      # This mutation is not currently in use, so just error if there are multiple cocs.
+      # If we start using this again, we need to add enrollment_coc as an input to the mutation.
+      raise 'multiple possible CoC codes' if coc_codes.length > 1
+      raise 'no CoC codes' if coc_codes.empty?
+
       household_members.each do |household_member|
         result << {
           personal_id: lookup[household_member.id.to_i],
@@ -25,6 +32,7 @@ module Mutations
           entry_date: entry_date,
           project_id: project&.project_id,
           household_id: household_id,
+          enrollment_coc: coc_codes.first,
         }
       end
 
@@ -63,7 +71,7 @@ module Mutations
           enrollment.save_in_progress
           valid_enrollments << enrollment
         else
-          errors += enrollment.errors.errors
+          errors.push(*enrollment.errors.errors)
         end
       end
 
