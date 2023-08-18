@@ -28,6 +28,28 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     protected
 
+    def referral_class
+      HmisExternalApis::AcHmis::Referral
+    end
+
+    def supports_upsert?
+      true
+    end
+
+    #
+    # Data Access
+    #
+    def posting_rows
+      reader.rows(POSTINGS_FILENAME)
+    end
+
+    def household_member_rows
+      reader.rows(HOUSEHOLD_MEMBERS_FILENAME)
+    end
+
+    #
+    # Importers
+    #
     def import_enrollment_records
       # and easily do bulk upsert here due to dependent WIP records
       without_paper_trail do
@@ -59,26 +81,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       )
     end
 
-    def supports_upsert?
-      true
-    end
-
-    def posting_rows
-      reader.rows(POSTINGS_FILENAME)
-    end
-
-    def household_member_rows
-      reader.rows(HOUSEHOLD_MEMBERS_FILENAME)
-    end
-
-    def household_member_rows_by_referral(referral_id)
-      @household_member_rows_by_referral ||= household_member_rows.group_by { |row| row_value(row, field: 'REFERRAL_ID') }
-      @household_member_rows_by_referral.fetch(referral_id)
-    end
-
-    def referral_class
-      HmisExternalApis::AcHmis::Referral
-    end
+    #
+    # Builders
+    #
 
     # create wip enrollments for accepted pending postings
     def build_enrollment_rows
@@ -115,19 +120,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       end.compact
     end
 
-    def project_pk_by_id(project_id)
-      @project_pk_by_id ||= Hmis::Hud::Project.where(data_source: data_source).pluck(:project_id, :id).to_h
-      @project_pk_by_id.fetch(project_id)
-    end
-
-    def client_pk_by_mci_id(mci_id)
-      @client_pks_by_mci_id ||= Hmis::Hud::Client
-        .where(data_source: data_source)
-        .pluck(:personal_id, :id)
-        .to_h
-      @client_pks_by_mci_id.fetch(mci_id)
-    end
-
     def build_referral_records
       posting_rows.map do |row|
         referral_class.new(
@@ -162,26 +154,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           )
         end
       end
-    end
-
-    def client_enrollment_pk(mci_id, project_id)
-      ids_by_personal_id_project_id.fetch([mci_id, project_id])[0]
-    end
-
-    def referral_household_id(mci_id, project_id)
-      ids_by_personal_id_project_id.fetch([mci_id, project_id])[1]
-    end
-
-    def ids_by_personal_id_project_id
-      # {[personal_id, project_id] => [enrollment_pk, household_id]}
-      @ids_by_personal_id_project_id ||= enrollment_scope
-        .open_including_wip
-        .preload(wip: :project)
-        .to_h do |e|
-          # avoid n+1 problems when calling enrollment.project
-          project_id = e.project_id || e.wip.project.project_id
-          [[e.personal_id, project_id], [e.id, e.household_id]]
-        end
     end
 
     def build_household_member_records
@@ -237,6 +209,48 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       end
     end
 
+    #
+    # Lookups and helpers
+    #
+    def household_member_rows_by_referral(referral_id)
+      @household_member_rows_by_referral ||= household_member_rows.group_by { |row| row_value(row, field: 'REFERRAL_ID') }
+      @household_member_rows_by_referral.fetch(referral_id)
+    end
+
+    def client_enrollment_pk(mci_id, project_id)
+      ids_by_personal_id_project_id.fetch([mci_id, project_id])[0]
+    end
+
+    def referral_household_id(mci_id, project_id)
+      ids_by_personal_id_project_id.fetch([mci_id, project_id])[1]
+    end
+
+    def ids_by_personal_id_project_id
+      # {[personal_id, project_id] => [enrollment_pk, household_id]}
+      @ids_by_personal_id_project_id ||= Hmis::Hud::Enrollment
+        .where(data_source: data_source)
+        .open_including_wip
+        .preload(wip: :project)
+        .to_h do |e|
+          # avoid n+1 problems when calling enrollment.project
+          project_id = e.project_id || e.wip.project.project_id
+          [[e.personal_id, project_id], [e.id, e.household_id]]
+        end
+    end
+
+    def project_pk_by_id(project_id)
+      @project_pk_by_id ||= Hmis::Hud::Project.where(data_source: data_source).pluck(:project_id, :id).to_h
+      @project_pk_by_id.fetch(project_id)
+    end
+
+    def client_pk_by_mci_id(mci_id)
+      @client_pks_by_mci_id ||= Hmis::Hud::Client
+        .where(data_source: data_source)
+        .pluck(:personal_id, :id)
+        .to_h
+      @client_pks_by_mci_id.fetch(mci_id)
+    end
+
     def relationship_to_hoh(row)
       @posting_status_map ||= HmisExternalApis::AcHmis::ReferralHouseholdMember
         .relationship_to_hohs
@@ -250,10 +264,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       value = value.downcase.gsub(' ', '_') + '_status'
       HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch(value)
-    end
-
-    def enrollment_scope
-      Hmis::Hud::Enrollment.where(data_source: data_source)
     end
   end
 end
