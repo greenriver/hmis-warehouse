@@ -696,6 +696,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def nbn_tracking?
       return true if street_outreach_acts_as_bednight?
+
       # DEPRECATED_FY2024 - swap this once the transition 2024 is complete
       # using old version to prevent test failures
       return true if project.es_nbn_pre_2024?
