@@ -23,10 +23,10 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ExitValidator
 
   def aftercare_methods
-    HudUtility.aftercare_method_fields.select { |k| send(k) == 1 }.values
+    HudUtility2024.aftercare_method_fields.select { |k| send(k) == 1 }.values
   end
 
   def counseling_methods
-    HudUtility.counseling_method_fields.select { |k| send(k) == 1 }.values
+    HudUtility2024.counseling_method_fields.select { |k| send(k) == 1 }.values
   end
 end
