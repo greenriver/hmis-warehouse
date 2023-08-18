@@ -16,8 +16,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
-  include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, p1) }
+  let!(:ds1) { create :hmis_data_source }
+  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let(:hmis_user) { user.related_hmis_user(ds1) }
+  let(:u1) { create :hmis_hud_user, data_source: ds1 }
+  let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
+  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
   let!(:pc2) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-503' }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
