@@ -15,7 +15,7 @@ module AcHmisLoaderHelpers
     Dir.mktmpdir do |dir|
       file_data.each do |filename, rows|
         CSV.open("#{dir}/#{filename}", 'w', write_headers: true, headers: rows.first.keys) do |csv|
-          rows.each { |row| csv << row.values }
+          rows.each { |row| csv << row.values.map(&:presence) }
         end
       end
       yield(dir)
