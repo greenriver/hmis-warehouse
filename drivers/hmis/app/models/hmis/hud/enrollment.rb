@@ -218,6 +218,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_members.heads_of_households.first&.entry_date
   end
 
+  # track change via attr to avoid adding complexity to form processor
+  attr_accessor :unit_occupancy_changes
+  after_save :track_unit_occupancy_changes, if: :unit_occupancy_changes
+  def track_unit_occupancy_changes
+    unit_type, user_id = unit_occupancy_changes.fetch_values(:unit_type, :user_id)
+    unit_type.track_availability(project_id: project_id, user_id: user_id)
+  end
+
   def assign_unit(unit:, start_date:, user:)
     current_occupancy = active_unit_occupancy.present? if active_unit_occupancy&.occupancy_period&.active?
     # ignore: this enrollment is already assigned to this unit
@@ -230,6 +238,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     occupants = unit.occupants_on(start_date)
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
+    self.unit_occupancy_changes = { unit_type: unit_type, user_id: user_id } if unit.unit_type
     unit_occupancies.build(
       unit: unit,
       occupancy_period_attributes: {
@@ -241,8 +250,17 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def release_unit!(occupancy_end_date = Date.current, user:)
+    occupancy = active_unit_occupancy
+    unless occupancy&.occupancy_period
+      msg = "Attempted to release nonexistent unit occupancy for enrollment #{enrollment.id}"
+      Sentry.capture_message(msg)
+      return
+    end
+
     project.with_lock do
-      active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date, user: user)
+      occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
+      unit_type = occupancy.unit&.unit_type
+      unit_type&.track_availability(project_pk: enrollment.project_id, user_pk: hmis_user.id)
     end
   end
 

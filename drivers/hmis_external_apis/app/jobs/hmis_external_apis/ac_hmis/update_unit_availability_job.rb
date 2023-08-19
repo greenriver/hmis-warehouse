@@ -8,88 +8,73 @@ module HmisExternalApis::AcHmis
   class UpdateUnitAvailabilityJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
+    JOB_LOCK_NAME = 'hmis_external_update_unit_availability'.freeze
+
     # @param data_source_id [Integer]
+    # @param force [Boolean]
     def perform(data_source_id:)
-      # synchronize with the importer
-      Hmis::HmisBase.with_advisory_lock(
-        'hmis_project_importer',
-        timeout_seconds: 0,
-        shared: true
-      ) do
+      with_locks do
         projects = Hmis::Hud::Project.where(data_source_id: data_source_id)
-        projects.preload(:unit_type_mappings).find_each do |project|
-          sync_project(project)
+        projects.find_each do |project|
+          project.external_unit_availability_syncs.dirty.preload(:unit_type, :user).each do |sync|
+            # sync.user made the most recent user changes, either to occupancy or unit inventory
+            sync_project_unit_type(project: project, unit_type: sync.unit_type, user: sync.user)
+            # track sync version
+            sync.update!(synced_version: sync.local_version)
+          end
         end
       end
     end
 
     protected
 
-    def sync_project(project)
-      project.unit_type_mappings.each do |mapping|
-        # capture time before query for the query to avoid timing issues
-        now = DateTime.current
-        change = project.with_lock do
-          change_to_sync(project, mapping)
-        end
-
-        # do we need a sync?
-        if change
-          sync_project(project:, change:)
-          mapping.update!(last_synced_at: now)
+    def with_locks
+      # lock job specific lock to prevent overlapping runs
+      Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: 0) do
+        # lock to synchronize with the project importer which may change available units
+        Hmis::HmisBase.with_advisory_lock(
+          HmisExternalApis::AcHmis::Importers::ProjectsImporter::JOB_LOCK_NAME,
+          timeout_seconds: 0,
+          shared: true,
+        ) do
+          yield
+          # FIXME ideally should report to dead man's snitch or equiv
         end
       end
     end
 
-    def change_to_sync(project, mapping)
-      capacity = project.units.where(unit_type: unit_type).count
-      assigned = project.units.where(unit_type: unit_type)
-        .joins(:unit_occupancies)
-        .merge(Hmis::UnitOccupancy.active)
-        .count('distinct(hmis_units.id)')
-
-      last_values =  mapping.last_synced_values || {}
-      return if capacity == last_values['capacity'] && assigned == last_values['assigned']
-
-      # FIXME: this is going to be inaccurate sometimes.
-      # # Hmis::ActiveRange
-
-      {
-        capacity: capacity,
-        assigned: assigned,
-        user_id: user_id,
-      }
-    end
-
-
     # determine current capacity at project and update external system
     # @param project [Hmis::Hud::Project]
-    # @param unit_type_id [Integer]
-    # @param requested_by [String]
-    def sync_project(project:, unit_type_id:, user_id:, capacity:, assigned:)
+    # @param unit_type [Hmis::UnitType]
+    # @param user [Hmis::Hud::User]
+    def sync_project_unit_type(project:, unit_type:, user:)
       project_mper_id = mper.identify_source(project)
-      raise "mper id not found Hmis::Hud::Project##{project_id}" unless project_mper_id
+      raise "mper id not found Hmis::Hud::Project##{project.id}" unless project_mper_id
 
-      unit_type = Hmis::UnitType.find(unit_type_id)
       unit_type_mper_id = mper.identify_source(unit_type)
-      raise "mper id not found for Hmis::UnitType##{unit_type_id}" unless unit_type_mper_id
+      raise "mper id not found for Hmis::UnitType##{unit_type.id}" unless unit_type_mper_id
 
-      # FIXME: technically should synchronize these queries
-      total = project.units.where(unit_type: unit_type).count
-      assigned = project.units.where(unit_type: unit_type)
+      project_unit_scope = project.units.where(unit_type: unit_type)
+      capacity = project_unit_scope.count
+      assigned = project_unit_scope
         .joins(:unit_occupancies)
         .merge(Hmis::UnitOccupancy.active)
         .count('distinct(hmis_units.id)')
 
-      available = total - assigned
-      raise "Unexpected unit availability: project:#{project_id}, unit:#{unit_type_id}, #{total}-#{assigned}" if available < 0
+      available_units = capacity - assigned
+      unless available_units.between?(0, 10_000)
+        # this shouldn't happen but seems like we can alert and continue here
+        msg = "Unit availability out of bounds for Hmis::Hud::Project#:#{project.id}, Hmis::UnitType:#{unit_type.id}. Capacity: #{capacity}, assigned:#{assigned}"
+        Sentry.capture_message(msg)
+        return
+      end
 
       payload = {
         program_id: project_mper_id,
         unit_type_id: unit_type_mper_id,
-        available_units: available,
-        capacity: total,
-        requested_by: format_requested_by(requested_by),
+        available_units: available_units,
+        capacity: capacity,
+        requested_by: format_requested_by(user || system_user),
       }
       link.update_unit_capacity(payload)
     end

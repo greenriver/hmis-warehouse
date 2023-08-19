@@ -51,9 +51,8 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
         .and_return(result)
 
       HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now(
-        project_id: project.id,
-        unit_type_id: unit_type.id,
-        requested_by: requested_by,
+        data_source_id: project.data_source_id,
+        # requested_by: requested_by,
       )
     end
   end

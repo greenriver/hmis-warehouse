@@ -35,6 +35,7 @@ module Mutations
 
       project.with_lock do
         units.each(&:save!)
+        unit_type.track_availability(project_id: project_id, user_id: hmis_user.user_id)
       end
 
       {

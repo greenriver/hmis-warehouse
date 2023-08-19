@@ -26,7 +26,12 @@ module Mutations
       return { errors: errors } if errors.any?
 
       project.with_lock do
-        Hmis::Unit.where(id: unit_ids).destroy_all
+        units = Hmis::Unit.where(id: unit_ids).preload(:unit_type)
+        unit_types = units.map(&:unit_type).uniq
+        units.each(&:destroy!)
+        unit_types.each do |unit_type|
+          unit_type.track_availability(project_id: project_id, user_id: hmis_user.user_id)
+        end
       end
 
       { unit_ids: unit_ids, errors: [] }

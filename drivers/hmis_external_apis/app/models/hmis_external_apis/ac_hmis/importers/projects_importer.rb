@@ -6,6 +6,8 @@
 
 module HmisExternalApis::AcHmis::Importers
   class ProjectsImporter
+    JOB_LOCK_NAME = 'hmis_project_importer'.freeze
+
     include NotifierConfig
 
     AbortImportException = Class.new(StandardError)
@@ -24,10 +26,7 @@ module HmisExternalApis::AcHmis::Importers
     def run!
       success = false
       timeout_seconds = 30
-      Hmis::HmisBase.with_advisory_lock(
-        'hmis_project_importer',
-        timeout_seconds: timeout_seconds
-      ) do
+      Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: timeout_seconds) do
         _run
         success = true
       end
