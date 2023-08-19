@@ -25,15 +25,6 @@ GIT
       multi_json
 
 GIT
-  remote: https://github.com/greenriver/nominatim.git
-  revision: 9b5dcb4967b11fc252a470e28e0799f36a4c9f31
-  branch: aw/faraday-2
-  specs:
-    nominatim (0.0.7)
-      faraday (>= 2)
-      multi_json
-
-GIT
   remote: https://github.com/greenriver/pg_fixtures.git
   revision: 48c46a77893f472890cb06366d89eba6492d8c27
   specs:
@@ -664,7 +655,7 @@ GEM
     pry-rails (0.3.9)
       pry (>= 0.10.4)
     public_suffix (5.0.1)
-    puma (4.3.12)
+    puma (6.3.1)
       nio4r (~> 2.0)
     pwned (2.0.2)
     racc (1.7.1)
@@ -1109,7 +1100,6 @@ DEPENDENCIES
   net-sftp
   net-ssh (~> 7)
   nokogiri (>= 1.13.10)
-  nominatim!
   oauth2
   oj
   omniauth (~> 2.1)
@@ -1127,7 +1117,7 @@ DEPENDENCIES
   pretender
   progress_bar
   pry-rails
-  puma (~> 4.3.11)
+  puma (~> 6.3)
   rack (>= 2.2.6.3)
   rack-attack
   rack-cors

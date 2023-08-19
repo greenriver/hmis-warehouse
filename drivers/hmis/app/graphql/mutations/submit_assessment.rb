@@ -20,6 +20,8 @@ module Mutations
 
       errors = HmisErrors::Errors.new
 
+      # FIXME: several of the below errors are duplicative of SubmitHouseholdAssessments error checks. They should be moved into the CustomAssessmentValidator instead.
+
       # HoH Exit constraints
       if enrollment.head_of_household? && assessment.exit?
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
