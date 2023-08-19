@@ -68,7 +68,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def system_user
-      @system_user_id ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
+      @system_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
     end
 
     def data_source
