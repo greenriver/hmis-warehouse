@@ -58,7 +58,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           requested_on: parse_date(row_value(row, field: 'REQUESTED_ON')),
           needed_by: parse_date(row_value(row, field: 'NEEDED_BY')),
           # use empty string for non-nullable columns here
-          requestor_name: row_value(row, field: 'REQUESTOR_NAME', required: false) || '',
+          requestor_name: row_value(row, field: 'REQUESTOR_NAME', required: false) || 'LINK User',
           requestor_phone: row_value(row, field: 'REQUESTOR_PHONE', required: false) || '',
           requestor_email: row_value(row, field: 'REQUESTOR_EMAIL', required: false) || '',
         }
