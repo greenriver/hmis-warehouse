@@ -13,9 +13,23 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @filename = filename
     end
 
+    class CsvFileRowWrapper
+      attr_accessor :row, :line_number, :filename
+      delegate :[], :to_h, to: :row
+      def initialize(row, filename, line_number)
+        self.row = row
+        self.filename = filename
+        self.line_number = line_number
+      end
+
+      def context
+        "#{filename}:#{line_number}"
+      end
+    end
+
     def each
       records_from_csv(filename).each.with_index do |row, line_number|
-        yield(row)
+        yield(CsvFileRowWrapper.new(row, filename, line_number))
       rescue StandardError => e
         # wrap row-level exceptions with file / line number
         wrapped = RuntimeError.new("[#{filename}:#{line_number}] #{e.class.name} #{e.message}")

@@ -48,6 +48,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         enrollment_id: enrollment_pk,
         start_date: @enrollment_entry_dates[enrollment_pk] || fallback_start_date,
       }
+      unit_pk
     end
 
     protected

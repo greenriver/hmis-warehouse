@@ -44,7 +44,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             definition_key: :esg_allowance_grant_received_amount,
           ),
           new_cde_record(
-            # FIXME - need to map integer value, mapping not yet provided
             value: cde_value(row_value(row, field: 'REASONNOTREFERRED', required: false)),
             definition_key: :esg_allowance_grant_reason_not_referred,
           ),

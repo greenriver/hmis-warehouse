@@ -34,7 +34,7 @@ module HmisExternalApis::AcHmis::Importers
         Loaders::ReferralRequestsLoader,
       ]
 
-      ProjectsImportAttempt.transaction do
+      Hmis::Hud::Base.transaction do
         loaders.each do |loader_class|
           loader = loader_class.new(
             clobber: clobber,
@@ -81,13 +81,10 @@ module HmisExternalApis::AcHmis::Importers
 
     def analyze_tables
       # assume all tables are in same db
+      connection = Hmis::Hud::Base.connection
       Rails.logger.info 'Analyzing imported tables'
       names = table_names.uniq.map { |n| connection.quote_table_name(n) }
       connection.exec_query("ANALYZE #{names.join(',')};")
-    end
-
-    def connection
-      ProjectsImportAttempt.connection
     end
   end
 end

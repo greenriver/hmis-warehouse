@@ -29,7 +29,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       rows.map do |row|
         unit_id, enrollment_id, start_date = row.fetch_values(:unit_id, :enrollment_id, :start_date)
         record = model_class.new(unit_id: unit_id, enrollment_id: enrollment_id)
-        record.build_occupancy_period(start_date: start_date || today, user_id: system_user_id)
+        record.build_occupancy_period(start_date: start_date || today, user_id: system_user_pk)
         record
       end
     end

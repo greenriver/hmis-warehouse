@@ -90,7 +90,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       accepted_pending_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
       enrollment_coc_by_project_id = Hmis::Hud::ProjectCoc
         .where(data_source: data_source)
-        .pluck(:project_id, :project_coc_id)
+        .pluck(:project_id, :coc_code)
         .to_h
 
       posting_rows.flat_map do |posting_row|
@@ -147,11 +147,16 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           project_id = row_value(posting_row, field: 'PROGRAM_ID')
           mci_id = row_value(member_row, field: 'MCI_ID')
           enrollment_pk = client_enrollment_pk(mci_id, project_id)
-          assign_next_unit(
+          unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
+          unit_id = assign_next_unit(
             enrollment_pk: enrollment_pk,
-            unit_type_mper_id: row_value(posting_row, field: 'UNIT_TYPE_ID'),
+            unit_type_mper_id: unit_type_mper_id,
             fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
           )
+          unless unit_id
+            msg = "could not assign a unit for project_id: #{project_id}, mci_id: #{mci_id}, mper_unit_type_id: #{unit_type_mper_id}"
+            log_info("[#{member_row.context},#{posting_row.context}] #{msg}")
+          end
         end
       end
     end

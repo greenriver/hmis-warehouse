@@ -51,15 +51,24 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @cde_definitions ||= CustomDataElementDefinitions.new(data_source_id: data_source.id, system_user_id: system_user_id)
     end
 
+    # note: it would be cleaner for this method to live in CsvFileRowWrapper
     def row_value(row, field:, required: true)
       value = row[field]&.strip&.presence
-      raise "field '#{field}' is missing" if required && !value
+      raise "field '#{field}' is missing from row: #{row.to_h.inspect}" if required && !value
 
       value
     end
 
     def system_user_id
-      @system_user_id ||= Hmis::Hud::User.system_user(data_source_id: data_source.id).user_id
+      system_user.user_id
+    end
+
+    def system_user_pk
+      system_user.id
+    end
+
+    def system_user
+      @system_user_id ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
     end
 
     def data_source
@@ -96,19 +105,26 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def ar_import(import_class, records, **args)
       table_name = import_class.table_name
-      my_name = self.class.name
-      raise "#{my_name} unexpected empty records for #{table_name}" if records.size.zero?
+      raise "#{loader_name} unexpected empty records for #{table_name}" if records.size.zero?
 
       defaults = { batch_size: 1_000, validate: false }
       result = import_class.import(records, defaults.merge(args))
       if result.failed_instances.present?
-        msg = "#{my_name} failed: #{result.failed_instances} into #{table_name}"
+        msg = "#{loader_name} failed: #{result.failed_instances} into #{table_name}"
         raise msg
       end
       table_names.push(table_name)
 
       # report ids.size, since num_inserts is only last batch
-      Rails.logger.info "#{my_name} inserted: #{result.ids.size} records into #{table_name}"
+      log_info "inserted #{result.ids.size} records into #{table_name}"
+    end
+
+    def log_info(msg)
+      Rails.logger.info "#{loader_name}: #{msg}"
+    end
+
+    def loader_name
+      self.class.name
     end
 
     # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when

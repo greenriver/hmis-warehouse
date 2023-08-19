@@ -23,12 +23,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .pluck(:income_benefits_id, :id, :enrollment_id)
         .to_h { |income_benefits_id, pk, enrollment_id| [income_benefits_id, [pk, enrollment_id]] }
       rows.map do |row|
+        value = row_value(row, field: 'FEDERALPOVERTYLEVEL', required: false)
+        next if value.nil? || value == 'Data not collected'
+
         benefits_id = row_value(row, field: 'INCOMEBENEFITSID')
         benefit_pk, enrollment_id = benefit_id_lookup.fetch(benefits_id)
         raise 'BenefitsID/EnrollmentID mismatch' if enrollment_id != row_value(row, field: 'ENROLLMENTID')
 
         new_cde_record(
-          value: row_value(row, field: 'FEDERALPOVERTYLEVEL', required: false),
+          value: value,
           definition_key: :federal_poverty_level,
         ).merge(owner_id: benefit_pk)
       end

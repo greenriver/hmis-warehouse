@@ -35,17 +35,18 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       rows.map do |row|
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
+        start_date = parse_date(row_value(row, field: 'PAYMENTSTARTDATE'))
         record = model_class.new(
           EnrollmentID: enrollment_id,
           CustomServiceID: Hmis::Hud::Base.generate_uuid,
-          FAStartDate: parse_date(row_value(row, field: 'PAYMENTSTARTDATE')),
+          FAStartDate: start_date,
           FAEndDate: parse_date(row_value(row, field: 'PAYMENTENDDATE', required: false)),
           FAAmount: row_value(row, field: 'AMOUNT', required: false),
           DateCreated: parse_date(row_value(row, field: 'DATECREATED')),
           DateUpdated: parse_date(row_value(row, field: 'DATEUPDATED')),
           custom_service_type_id: custom_service_type.id,
           PersonalID: personal_id_by_enrollment_id.fetch(enrollment_id),
-          DateProvided: today, # FIXME - this isn't right?
+          DateProvided: start_date, # re-use payment start date
           UserID: row_value(row, field: 'USERID', required: false) || system_user_id,
           data_source_id: data_source.id,
         )
@@ -78,9 +79,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     FUNDING_SOURCE_MAP = {
-      'Allegheny County' => 'Allegheny County ESG',
-      'City of Pittsburgh' => 'City of Pittsburgh ESG',
-      'State of Pennsylvania' => 'State of Pennsylvania ESG',
+      '**Allegheny County**' => 'Allegheny County ESG',
+      '**City of Pittsburgh**' => 'City of Pittsburgh ESG',
+      '**State of Pennsylvania**' => 'State of Pennsylvania ESG',
     }.freeze
     def funding_source(row)
       value = row_value(row, field: 'FUNDINGSOURCE', required: false)

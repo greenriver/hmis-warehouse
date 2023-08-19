@@ -20,14 +20,19 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .to_h { |enrollment_id, pk, project_id| [enrollment_id, [pk, project_id]] }
 
       rows.each do |row|
-        enrollment_pk, project_id = pks_by_enrollment_id.fetch(row_value(row, field: 'ENROLLMENTID'))
+        enrollment_id = row_value(row, field: 'ENROLLMENTID')
+        enrollment_pk, project_id = pks_by_enrollment_id.fetch(enrollment_id)
         raise 'ProjectID/EnrollmentID mismatch' if project_id != row_value(row, field: 'PROJECTID')
 
         unit_type_mper_id = row_value(row, field: 'UNITTYPEID')
-        assign_next_unit(
+        unit_id = assign_next_unit(
           enrollment_pk: enrollment_pk,
           unit_type_mper_id: unit_type_mper_id,
         )
+        unless unit_id
+          msg = "could not assign a unit for project_id: #{project_id}, enrollment_id: #{enrollment_id}, mper_unit_type_id: #{unit_type_mper_id}"
+          log_info("[#{row.context}] #{msg}")
+        end
       end
     end
 
