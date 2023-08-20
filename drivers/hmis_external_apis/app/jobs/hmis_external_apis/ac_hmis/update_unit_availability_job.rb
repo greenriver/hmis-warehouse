@@ -46,7 +46,7 @@ module HmisExternalApis::AcHmis
     # determine current capacity at project and update external system
     # @param project [Hmis::Hud::Project]
     # @param unit_type [Hmis::UnitType]
-    # @param user [Hmis::Hud::User]
+    # @param user [Hmis::User]
     def sync_project_unit_type(project:, unit_type:, user:)
       project_mper_id = mper.identify_source(project)
       raise "mper id not found Hmis::Hud::Project##{project.id}" unless project_mper_id
@@ -54,29 +54,36 @@ module HmisExternalApis::AcHmis
       unit_type_mper_id = mper.identify_source(unit_type)
       raise "mper id not found for Hmis::UnitType##{unit_type.id}" unless unit_type_mper_id
 
-      project_unit_scope = project.units.where(unit_type: unit_type)
-      capacity = project_unit_scope.count
-      assigned = project_unit_scope
-        .joins(:unit_occupancies)
-        .merge(Hmis::UnitOccupancy.active)
-        .count('distinct(hmis_units.id)')
+      capacity, assigned = query_capacity(project, unit_type)
 
       available_units = capacity - assigned
       unless available_units.between?(0, 10_000)
-        # this shouldn't happen but seems like we can alert and continue here
+        # alert and skip sync for invalid values"
         msg = "Unit availability out of bounds for Hmis::Hud::Project#:#{project.id}, Hmis::UnitType:#{unit_type.id}. Capacity: #{capacity}, assigned:#{assigned}"
         Sentry.capture_message(msg)
         return
       end
 
+      user ||= Hmis::User.system_user
       payload = {
         program_id: project_mper_id,
         unit_type_id: unit_type_mper_id,
         available_units: available_units,
         capacity: capacity,
-        requested_by: format_requested_by(user || system_user),
+        requested_by: format_requested_by(user.email),
       }
       link.update_unit_capacity(payload)
+    end
+
+    def query_capacity(project, unit_type)
+      project_unit_scope = project.units.where(unit_type: unit_type)
+      # ideally this would be one query to eliminate the possibility of inconsistent reads
+      total = project.units.where(unit_type: unit_type).count
+      assigned = project.units.where(unit_type: unit_type)
+        .joins(:unit_occupancies)
+        .merge(Hmis::UnitOccupancy.active)
+        .count('distinct(hmis_units.id)')
+      [total, assigned]
     end
   end
 end

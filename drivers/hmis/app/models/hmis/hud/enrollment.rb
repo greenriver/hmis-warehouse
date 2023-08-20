@@ -223,7 +223,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   after_save :track_unit_occupancy_changes, if: :unit_occupancy_changes
   def track_unit_occupancy_changes
     unit_type, user_id = unit_occupancy_changes.fetch_values(:unit_type, :user_id)
-    unit_type.track_availability(project_id: project_id, user_id: user_id)
+    unit_type.track_availability(project_id: project.id, user_id: user_id)
   end
 
   def assign_unit(unit:, start_date:, user:)
@@ -238,7 +238,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     occupants = unit.occupants_on(start_date)
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
-    self.unit_occupancy_changes = { unit_type: unit_type, user_id: user_id } if unit.unit_type
+    self.unit_occupancy_changes = { unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
     unit_occupancies.build(
       unit: unit,
       occupancy_period_attributes: {
@@ -257,10 +257,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       return
     end
 
-    project.with_lock do
+    transaction do
       occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
       unit_type = occupancy.unit&.unit_type
-      unit_type&.track_availability(project_pk: enrollment.project_id, user_pk: hmis_user.id)
+      unit_type&.track_availability(project_id: project.id, user_pk: hmis_user.id)
     end
   end
 

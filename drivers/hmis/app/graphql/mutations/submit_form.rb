@@ -85,13 +85,11 @@ module Mutations
         when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         when Hmis::Hud::Enrollment
-          record.project.with_lock do
-            record.client.save! if record.client.changed? # Enrollment form may create or update client
-            if record.new_record? || record.in_progress?
-              record.save_in_progress
-            else
-              record.save!
-            end
+          record.client.save! if record.client.changed? # Enrollment form may create or update client
+          if record.new_record? || record.in_progress?
+            record.save_in_progress
+          else
+            record.save!
           end
         else
           record.save!
