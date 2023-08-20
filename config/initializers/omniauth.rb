@@ -63,7 +63,7 @@ if ENV['OKTA_DOMAIN'].present?
   # hmis okta app
   if ENV['HMIS_OKTA_CLIENT_ID'].present?
     simple_failure_handler = -> (env) {
-      new_path = "/?sso_failed=1"
+      new_path = "/?authError=generic"
       Rack::Response.new(['302 Moved'], 302, 'Location' => new_path).finish
     }
     Rails.application.middleware.use OmniAuth::Builder do
