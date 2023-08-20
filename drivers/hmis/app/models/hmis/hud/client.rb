@@ -174,6 +174,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     :first_name_z_to_a,
     :age_youngest_to_oldest,
     :age_oldest_to_youngest,
+    :recently_added,
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
@@ -183,6 +184,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     first_name_z_to_a: 'First Name: Z-A',
     age_youngest_to_oldest: 'Age: Youngest to Oldest',
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
+    recently_added: 'Recently Added',
   }.freeze
 
   # Unused
