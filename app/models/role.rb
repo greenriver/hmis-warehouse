@@ -334,7 +334,7 @@ class Role < ApplicationRecord
         ],
       },
       # TODO: START_ACL remove after ACL migration is complete
-      # DEPRECATED, superseeded by can_search_own_clients in combination with access controls
+      # DEPRECATED, superseded by can_search_own_clients in combination with access controls
       can_search_all_clients: {
         description: 'Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data',
         administrative: false,
@@ -342,7 +342,7 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
-      # DEPRECATED, superseeded by can_search_own_clients in combination with access controls
+      # DEPRECATED, superseded by can_search_own_clients in combination with access controls
       can_search_window: {
         description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access',
         administrative: false,

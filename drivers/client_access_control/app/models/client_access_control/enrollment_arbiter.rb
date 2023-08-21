@@ -247,8 +247,6 @@ module ClientAccessControl
             user,
             confidential_scope_limiter: :all,
             permission: :can_search_clients_with_roi,
-            # FIXME: need a migration to generate appropriate AccessControl
-            # see DataSource obeys_consent, maybe with UserRole where can_search_window
           ),
         )
     end
