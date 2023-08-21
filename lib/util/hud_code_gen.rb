@@ -28,6 +28,7 @@ module HudCodeGen
     bed_nights: :bed_night_options,
     voucher_trackings: :voucher_tracking_options,
     moving_on_assistances: :moving_on_assistance_options,
+    races: :race_field_name_to_description,
   }.stringify_keys.freeze
 
   LOOKUP_FN_OVERRIDES = {
@@ -35,6 +36,11 @@ module HudCodeGen
     when_dv_occurred: :when_d_v_occurred,
     event_type: :event,
     dependent_under6: :dependent_under_6,
+  }.stringify_keys.freeze
+
+  GRAPHQL_NAME_OVERRIDES = {
+    # Necessary for enums where name overlaps with an existing GQL type
+    CurrentLivingSituation: :CurrentLivingSituationOptions,
   }.stringify_keys.freeze
 
   module_function
@@ -105,10 +111,10 @@ module HudCodeGen
       next if seen.include?(name)
 
       map_name = get_function_names(name)[0]
-
+      graphql_name = GRAPHQL_NAME_OVERRIDES[name] || name
       arr.push "  class #{name} < Types::BaseEnum"
       arr.push "    description '#{element['code'] || name}'"
-      arr.push "    graphql_name '#{name}'"
+      arr.push "    graphql_name '#{graphql_name}'"
       arr.push "    hud_enum #{hud_utility_class}.#{map_name}"
       arr.push '  end'
       seen << name

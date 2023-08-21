@@ -7,6 +7,7 @@
 class Hmis::Filter::ServiceFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
     scope.
+      yield_self(&method(:with_date_provided)).
       yield_self(&method(:with_service_category)).
       yield_self(&method(:with_service_type)).
       yield_self(&method(:with_project_type)).
@@ -30,5 +31,9 @@ class Hmis::Filter::ServiceFilter < Hmis::Filter::BaseFilter
 
   def with_project(scope)
     with_filter(scope, :project) { scope.with_project(input.project) }
+  end
+
+  def with_date_provided(scope)
+    with_filter(scope, :date_provided) { scope.where(date_provided: input.date_provided) }
   end
 end
