@@ -148,6 +148,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
   end
 
+  scope :with_open_enrollment_in_project, ->(project_ids) do
+    joins(:projects_including_wip).where(p_t[:id].in(Array.wrap(project_ids)))
+  end
+
+  scope :with_open_enrollment_in_organization, ->(organization_ids) do
+    ds_ids, hud_org_ids = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:ds_ids, :organization_id)
+    raise 'orgs are in multiple projects' if ds_ids.uniq.size > 1
+
+    joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.compact.first)))
+  end
+
   def enrolled?
     enrollments.any?
   end
@@ -265,6 +276,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ClientFilter.new(input).filter_scope(self)
   end
 
   # fix these so they use DATA_NOT_COLLECTED And the other standard names

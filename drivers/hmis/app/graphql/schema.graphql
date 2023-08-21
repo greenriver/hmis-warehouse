@@ -779,6 +779,11 @@ enum ClientContactPointUse {
   work
 }
 
+input ClientFilterOptions {
+  organization: [ID!]
+  project: [ID!]
+}
+
 """
 Client Image
 """
@@ -909,6 +914,11 @@ enum ClientSortOption {
   Last Name: Z-A
   """
   LAST_NAME_Z_TO_A
+
+  """
+  Recently Added
+  """
+  RECENTLY_ADDED
 }
 
 type ClientsPaginated {
@@ -5730,6 +5740,7 @@ type Query {
   Client omnisearch
   """
   clientOmniSearch(
+    filters: ClientFilterOptions
     limit: Int
     offset: Int
     sortOrder: ClientSortOption
@@ -5743,7 +5754,7 @@ type Query {
   """
   Search for clients
   """
-  clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
+  clientSearch(filters: ClientFilterOptions, input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
   currentUser: ApplicationUser
   deniedPendingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
 

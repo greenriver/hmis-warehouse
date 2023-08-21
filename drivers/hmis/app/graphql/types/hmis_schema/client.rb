@@ -26,6 +26,11 @@ module Types
       Hmis::Hud::Client.hmis_configuration(version: '2022')
     end
 
+    available_filter_options do
+      arg :project, [ID]
+      arg :organization, [ID]
+    end
+
     description 'HUD Client'
     field :id, ID, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
