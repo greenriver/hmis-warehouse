@@ -260,7 +260,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     transaction do
       occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
       unit_type = occupancy.unit&.unit_type
-      unit_type&.track_availability(project_id: project.id, user_pk: hmis_user.id)
+      unit_type&.track_availability(project_id: project.id, user_id: user.id)
     end
   end
 

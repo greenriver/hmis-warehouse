@@ -26,10 +26,9 @@ module HmisExternalApis::AcHmis
         validate: false,
         on_duplicate_key_update: {
           conflict_target: [:project_id, :unit_type_id],
-          columns: "local_version = #{table_name}.local_version + 1",
+          columns: "local_version = #{table_name}.local_version + 1, user_id = excluded.user_id",
         },
       )
     end
-
   end
 end

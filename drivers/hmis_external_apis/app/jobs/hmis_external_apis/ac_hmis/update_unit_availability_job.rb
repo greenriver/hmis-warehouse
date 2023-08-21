@@ -18,7 +18,11 @@ module HmisExternalApis::AcHmis
         projects.find_each do |project|
           project.external_unit_availability_syncs.dirty.preload(:unit_type, :user).each do |sync|
             # sync.user made the most recent user changes, either to occupancy or unit inventory
-            sync_project_unit_type(project: project, unit_type: sync.unit_type, user: sync.user)
+            sync_project_unit_type(
+              project: project,
+              unit_type: sync.unit_type,
+              user: sync.user || Hmis::User.system_user,
+            )
             # track sync version
             sync.update!(synced_version: sync.local_version)
           end
@@ -64,7 +68,6 @@ module HmisExternalApis::AcHmis
         return
       end
 
-      user ||= Hmis::User.system_user
       payload = {
         program_id: project_mper_id,
         unit_type_id: unit_type_mper_id,
@@ -76,7 +79,6 @@ module HmisExternalApis::AcHmis
     end
 
     def query_capacity(project, unit_type)
-      project_unit_scope = project.units.where(unit_type: unit_type)
       # ideally this would be one query to eliminate the possibility of inconsistent reads
       total = project.units.where(unit_type: unit_type).count
       assigned = project.units.where(unit_type: unit_type)

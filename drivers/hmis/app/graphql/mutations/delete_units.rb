@@ -30,7 +30,7 @@ module Mutations
       Hmis::Unit.transaction do
         units.each(&:destroy!)
         unit_types.each do |unit_type|
-          unit_type.track_availability(project_id: project.id, user_id: hmis_user.id)
+          unit_type.track_availability(project_id: project.id, user_id: current_user.id)
         end
       end
 
