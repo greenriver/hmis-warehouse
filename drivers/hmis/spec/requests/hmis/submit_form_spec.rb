@@ -31,6 +31,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: e1, user: u1 }
+  let!(:a1) { create :hmis_hud_assessment, data_source: ds1, client: c2, enrollment: e1, user: u1 }
+  let!(:evt1) { create :hmis_hud_event, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
     hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
@@ -78,6 +80,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on CurrentLivingSituation {
               id
             }
+            ... on CeAssessment {
+              id
+            }
+            ... on Event {
+              id
+            }
           }
           #{error_fields}
         }
@@ -97,6 +105,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :FILE,
       :ENROLLMENT,
       :CURRENT_LIVING_SITUATION,
+      :CE_ASSESSMENT,
+      :CE_EVENT,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -111,9 +121,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             confirmed: true, # ignore warnings, they are tested separately
             **completed_form_values_for_role(role) do |values|
               if role == :FILE
-                # values[:values]['tags'] = [tag2.id.to_s]
-                values[:values]['fileBlobId'] = blob.id.to_s
-                # values[:hud_values]['tags'] = [tag2.id.to_s]
+                values[:values]['file-blob-id'] = blob.id.to_s
                 values[:hud_values]['fileBlobId'] = blob.id.to_s
               end
               values
@@ -152,6 +160,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               file1.id
             when :ENROLLMENT
               e1.id
+            when :CE_ASSESSMENT
+              a1.id
+            when :CE_EVENT
+              evt1.id
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))
@@ -160,7 +172,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             errors = result.dig('data', 'submitForm', 'errors')
 
             aggregate_failures 'checking response' do
-              expect(response.status).to eq 200
+              expect(response.status).to eq(200), result&.inspect
               expect(errors).to be_empty
               expect(record_id).to be_present
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
@@ -195,7 +207,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
 
           aggregate_failures 'checking response' do
-            expect(response.status).to eq 200
+            expect(response.status).to eq(200), result&.inspect
             expect(record).to be_nil
             expect(errors).to include(
               a_hash_including(**expected_error.transform_keys(&:to_s).transform_values(&:to_s)),
@@ -269,7 +281,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
         expect(errors).to match([
@@ -289,7 +301,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(errors).to be_empty
         expect(record_id).to be_present
         expect(i1.reload.inventory_end_date).to be nil
@@ -308,7 +320,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(errors).to be_empty
         expect(record_id).to be_present
         expect(i1.reload.inventory_end_date).to be nil
@@ -331,7 +343,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
         expect(errors).to match([
@@ -358,7 +370,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       p1.reload
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_present
         expect(errors.length).to eq(0)
         expect(p1.reload.operating_end_date).to be_present
@@ -389,7 +401,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(input: { input: input }) { mutation }
       errors = result.dig('data', 'submitForm', 'errors')
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result&.inspect
         expect(errors).to contain_exactly(include(expected_error.stringify_keys))
       end
     end

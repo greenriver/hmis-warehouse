@@ -7,6 +7,8 @@
 class GrdaWarehouse::Help < GrdaWarehouseBase
   has_paper_trail
 
+  DEFAULT_HELP_URL = 'https://github.com/greenriver/hmis-warehouse/wiki'.freeze
+
   scope :sorted, -> do
     order(title: :asc)
   end
@@ -44,27 +46,52 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
       {
         controller_path: 'warehouse_reports',
         action_name: 'index',
-        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Report-Guide',
+        external_url: "#{DEFAULT_HELP_URL}/Report-Guide",
       },
       {
         controller_path: 'warehouse_reports/project/data_qualities',
         action_name: 'show',
-        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Project-Data-Quality-Report',
+        external_url: "#{DEFAULT_HELP_URL}/Project-Data-Quality-Report",
       },
       {
         controller_path: 'data_quality_reports',
         action_name: 'show',
-        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Project-Data-Quality-Report',
+        external_url: "#{DEFAULT_HELP_URL}/Project-Data-Quality-Report",
       },
       {
         controller_path: 'warehouse_reports/project/data_qualities',
         action_name: 'history',
-        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Project-Data-Quality-Report',
+        external_url: "#{DEFAULT_HELP_URL}/Project-Data-Quality-Report",
       },
       {
         controller_path: 'performance_dashboards/overview',
         action_name: 'index',
-        external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Client-Performance',
+        external_url: "#{DEFAULT_HELP_URL}/Client-Performance",
+      },
+      {
+        controller_path: 'warehouse_reports/health/eligibility',
+        action_name: 'index',
+        external_url: "#{DEFAULT_HELP_URL}/Eligibility-Determination-and-ACO-Status-Changes-(270-and-271)",
+      },
+      {
+        controller_path: 'warehouse_reports/chronic',
+        action_name: 'index',
+        external_url: "#{DEFAULT_HELP_URL}/Potentially-Chronic-Clients",
+      },
+      {
+        controller_path: 'warehouse_reports/client_in_project_during_date_range',
+        action_name: 'index',
+        external_url: "#{DEFAULT_HELP_URL}/Clients-in-a-project-for-a-given-date-range",
+      },
+      {
+        controller_path: 'warehouse_reports/hud_chronics',
+        action_name: 'index',
+        external_url: "#{DEFAULT_HELP_URL}/HUD-Chronic",
+      },
+      {
+        controller_path: 'warehouse_reports/first_time_homeless',
+        action_name: 'index',
+        external_url: "#{DEFAULT_HELP_URL}/First-Time-Homeless",
       },
     ]
   end

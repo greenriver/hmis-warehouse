@@ -833,7 +833,11 @@ module Filters
         map do |group, tags|
         [
           group,
-          tags.map { |tag| [tag.name, tag.tag.id] },
+          tags.map do |tag|
+            next unless tag&.name.present? && tag&.tag.present?
+
+            [tag.name, tag.tag.id]
+          end.compact,
         ]
       end.to_h
     end
@@ -1052,6 +1056,8 @@ module Filters
         label(key, labels) if includes_comparison?
       when :data_source_ids
         label(:data_sources, labels)
+      when :organization_ids
+        label(:organizations, labels)
       when :project_ids
         label(:projects, labels)
       when :project_group_ids

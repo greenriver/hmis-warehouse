@@ -11,5 +11,6 @@ module Types
     graphql_name 'DisabledDisplay'
     value 'HIDDEN'
     value 'PROTECTED'
+    value 'PROTECTED_WITH_VALUE'
   end
 end
