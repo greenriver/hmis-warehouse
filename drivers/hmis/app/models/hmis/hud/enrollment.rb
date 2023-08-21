@@ -252,7 +252,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def release_unit!(occupancy_end_date = Date.current, user:)
     occupancy = active_unit_occupancy
     unless occupancy&.occupancy_period
-      msg = "Attempted to release nonexistent unit occupancy for enrollment #{enrollment.id}"
+      msg = "Attempted to release nonexistent unit occupancy for Enrollment##{self.id}"
       Sentry.capture_message(msg)
       return
     end
