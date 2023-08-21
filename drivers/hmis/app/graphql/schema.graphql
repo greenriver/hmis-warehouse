@@ -909,6 +909,11 @@ enum ClientSortOption {
   Last Name: Z-A
   """
   LAST_NAME_Z_TO_A
+
+  """
+  Recently Added
+  """
+  RECENTLY_ADDED
 }
 
 type ClientsPaginated {
