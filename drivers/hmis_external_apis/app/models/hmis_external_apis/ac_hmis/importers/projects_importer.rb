@@ -24,14 +24,15 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def run!
+      timeout_seconds = 60
       success = false
-      timeout_seconds = 30
       Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: timeout_seconds) do
         _run
         success = true
       end
+      raise "Could not acquire lock within #{timeout_seconds} seconds" unless success
 
-      raise "could not acquire lock after #{timeout_seconds}"
+      success
     end
 
     protected

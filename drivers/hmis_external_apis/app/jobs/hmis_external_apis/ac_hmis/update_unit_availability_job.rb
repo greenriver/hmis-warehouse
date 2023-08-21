@@ -12,16 +12,17 @@ module HmisExternalApis::AcHmis
 
     # @param data_source_id [Integer]
     # @param force [Boolean]
-    def perform(data_source_id:)
+    def perform(data_source_id:, force: false)
       with_locks do
         projects = Hmis::Hud::Project.where(data_source_id: data_source_id)
         projects.find_each do |project|
+          force_update(project) if force
           project.external_unit_availability_syncs.dirty.preload(:unit_type, :user).each do |sync|
             # sync.user made the most recent user changes, either to occupancy or unit inventory
             sync_project_unit_type(
               project: project,
               unit_type: sync.unit_type,
-              user: sync.user || Hmis::User.system_user,
+              user: sync.user || default_user,
             )
             # track sync version
             sync.update!(synced_version: sync.local_version)
@@ -31,6 +32,16 @@ module HmisExternalApis::AcHmis
     end
 
     protected
+
+    def default_user
+      @default_user ||= Hmis::User.system_user
+    end
+
+    def force_update(project)
+      project.units.preload(:unit_type).each do |unit|
+        unit&.unit_type&.track_availability(project_id: project.id, user_id: default_user.id)
+      end
+    end
 
     def with_locks
       # lock job specific lock to prevent overlapping runs
