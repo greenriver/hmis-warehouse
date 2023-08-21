@@ -38,8 +38,9 @@ module HmisExternalApis::AcHmis
     end
 
     def force_update(project)
-      project.units.preload(:unit_type).each do |unit|
-        unit&.unit_type&.track_availability(project_id: project.id, user_id: default_user.id)
+      unit_types = project.units.preload(:unit_type).map(&:unit_type).compact.uniq
+      unit_types.each do |unit_type|
+        unit_type&.track_availability(project_id: project.id, user_id: default_user.id)
       end
     end
 
