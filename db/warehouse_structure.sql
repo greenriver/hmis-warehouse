@@ -14634,7 +14634,28 @@ CREATE TABLE public.hmis_dqt_clients (
     ethnicity integer,
     reporting_age integer,
     ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false
+    ch_at_any_entry boolean DEFAULT false,
+    woman integer,
+    man integer,
+    culturally_specific integer,
+    different_identity integer,
+    non_binary integer,
+    hispanic_latinaeo integer,
+    mid_east_n_african integer,
+    spm_hispanic_latinaeo integer,
+    _all_persons__hispanic_latinaeo integer,
+    spm_with_children__hispanic_latinaeo integer,
+    spm_only_children__hispanic_latinaeo integer,
+    spm_without_children__hispanic_latinaeo integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__hispan integer,
+    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
+    spm_mid_east_n_african integer,
+    _all_persons__mid_east_n_african integer,
+    spm_with_children__mid_east_n_african integer,
+    spm_only_children__mid_east_n_african integer,
+    spm_without_children__mid_east_n_african integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer
 );
 
 
@@ -18030,7 +18051,14 @@ CREATE TABLE public.ma_monthly_performance_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    woman boolean,
+    man boolean,
+    culturally_specific boolean,
+    different_identity boolean,
+    non_binary boolean,
+    hispanic_latinaeo boolean,
+    mid_east_n_african boolean
 );
 
 
@@ -21494,7 +21522,14 @@ CREATE TABLE public.system_pathways_clients (
     report_id bigint,
     deleted_at timestamp without time zone,
     days_to_return integer,
-    ce_assessment boolean DEFAULT false NOT NULL
+    ce_assessment boolean DEFAULT false NOT NULL,
+    woman boolean,
+    man boolean,
+    culturally_specific boolean,
+    different_identity boolean,
+    non_binary boolean,
+    hispanic_latinaeo boolean,
+    mid_east_n_african boolean
 );
 
 
@@ -54120,6 +54155,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230804124734'),
 ('20230804232249'),
 ('20230805224003'),
-('20230817154337');
+('20230817154337'),
+('20230822183752');
 
 

@@ -197,7 +197,7 @@ module Reporting
     end
 
     def self.available_genders
-      ::HudUtility.genders
+      ::HudUtility2024.genders
     end
 
     def self.available_veteran_stati

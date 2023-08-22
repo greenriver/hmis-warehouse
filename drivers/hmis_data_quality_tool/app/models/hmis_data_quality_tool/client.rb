@@ -24,12 +24,14 @@ module HmisDataQualityTool
         personal_id: { title: 'HMIS Personal ID' },
         dob: { title: 'DOB' },
         dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { "#{HudUtility.dob_data_quality(v)} (#{v})" } },
-        male: { title: 'Male', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
-        female: { title: 'Female', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
-        no_single_gender: { title: 'No Single Gender', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
+        man: { title: 'Man', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
+        woman: { title: 'Woman', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
+        culturally_specific: { title: 'Culturally Specific', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
+        different_identity: { title: 'DifferentIdentity', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
+        non_binary: { title: 'Non-Binary', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
         transgender: { title: 'Transgender', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
         questioning: { title: 'Questioning', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
-        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudUtility.gender_none(v)} (#{v})" } },
+        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudUtility2024.gender_none(v)} (#{v})" } },
         am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { "#{HudUtility.no_yes_missing(v&.to_i)} (#{v})" } },
         asian: { title: 'Asian or Asian American', translator: ->(v) { "#{HudUtility.no_yes_missing(v&.to_i)} (#{v})" } },
         black_af_american: { title: 'Black, African American, or African', translator: ->(v) { "#{HudUtility.no_yes_missing(v&.to_i)} (#{v})" } },
@@ -166,9 +168,11 @@ module HmisDataQualityTool
       report_item.reporting_age = source_client.age_on(report.filter.end)
       report_item.personal_id = source_client.PersonalID
       report_item.data_source_id = source_client.data_source_id
-      report_item.male = source_client.Male
-      report_item.female = source_client.Female
-      report_item.no_single_gender = source_client.NoSingleGender
+      report_item.man = source_client.Man
+      report_item.woman = source_client.Woman
+      report_item.culturally_specific = source_client.CulturallySpecific
+      report_item.different_identity = source_client.DifferentIdentity
+      report_item.non_binary = source_client.NoSingleGender
       report_item.transgender = source_client.Transgender
       report_item.questioning = source_client.Questioning
       report_item.gender_none = source_client.GenderNone
@@ -317,9 +321,11 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
-            :male,
-            :female,
-            :no_single_gender,
+            :man,
+            :woman,
+            :culturally_specific,
+            :different_identity,
+            :non_binary,
             :transgender,
             :questioning,
             :gender_none,
@@ -328,9 +334,11 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # any fall outside accepted options
             values = [
-              item.male,
-              item.female,
-              item.no_single_gender,
+              item.man,
+              item.woman,
+              item.culturally_specific,
+              item.different_identity,
+              item.non_binary,
               item.transgender,
               item.questioning,
             ]

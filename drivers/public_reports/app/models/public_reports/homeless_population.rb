@@ -419,11 +419,11 @@ module PublicReports
             group(GrdaWarehouse::Hud::Client.gender_binary_sql_case).
             count.
             map do |gender_id, count|
-              # Force any count to be at least the minimum allowe
+              # Force any count to be at least the minimum allowed
               # Force any unknown genders to Unknown
-              gender_id = nil unless gender_id.in?([0, 1, 2, 5, 6])
+              gender_id = nil unless gender_id.in?([0, 1, 2, 3, 4, 5, 6])
               [
-                ::HudUtility.gender(gender_id) || 'Unknown',
+                ::HudUtility2024.gender(gender_id) || 'Unknown',
                 count,
               ]
             end.to_h
