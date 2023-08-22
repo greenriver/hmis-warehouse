@@ -8,8 +8,8 @@
     Any Access Controls for the user will be listed at the bottom of the page after saving.
   - users = Hmis::User.not_system.active.to_a.map { |u| [u.name_with_email, u.id] }.reject { |_, id| id == @user.id }
 
-  = f.input :copy_form_id, as: :select_two, label_method: :first, value_method: :last, access_group: users, label: 'User to copy from'
-  = f.association :user_groups, as: :select_two, access_group: Hmis::UserGroup.options_for_select, label: 'User Groups', input_html: { multiple: true }
+  = f.input :copy_form_id, as: :select_two, label_method: :first, value_method: :last, collection: users, label: 'User to copy from'
+  = f.association :user_groups, as: :select_two, collection: Hmis::UserGroup.options_for_select, label: 'User Groups', input_html: { multiple: true }
   = f.button :submit, class: 'btn btn-primary', value: 'Update User'
 
 .mt-6
