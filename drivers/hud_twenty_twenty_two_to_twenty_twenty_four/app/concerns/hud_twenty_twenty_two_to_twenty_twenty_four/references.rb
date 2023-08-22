@@ -15,14 +15,19 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
 
       private def reference(reference_name, &block)
         reference = @references[reference_name]
-        return unless reference[:file].present?
 
-        content = File.read(reference[:file])
-        CSV.parse(content, headers: true) do |row|
-          block.call(row)
+        if reference[:file].present?
+          content = File.read(reference[:file])
+          CSV.parse(content, headers: true) do |row|
+            block.call(row)
+          end
+        elsif reference[:model].present?
+          reference[:model].find_each do |row|
+            block.call(row)
+          end
+        else
+          puts "Unknown reference declaration: #{reference.inspect}"
         end
-
-        # TODO: DB version
       end
     end
   end
