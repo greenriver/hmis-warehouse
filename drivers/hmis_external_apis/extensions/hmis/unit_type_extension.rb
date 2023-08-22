@@ -22,6 +22,8 @@ module HmisExternalApis
       # @param project_id [Integer] Hmis::Hud::Project.id
       # @param user_id [Integer] Hmis::User.id
       def track_availability(project_id:, user_id:)
+        return unless HmisEnforcement.hmis_enabled? && HmisExternalApis::AcHmis::Mper.enabled? && mper_id
+
         HmisExternalApis::AcHmis::UnitAvailabilitySync.upsert_or_bump_version(
           project_id: project_id,
           user_id: user_id,
