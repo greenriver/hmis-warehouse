@@ -6,7 +6,7 @@
 
 module Admin
   class UsersController < ApplicationController
-    include ViewableEntities
+    include ViewableEntities # TODO: START_ACL remove when ACL transition complete
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
@@ -27,7 +27,10 @@ module Admin
       end
 
       @users = @users.
-        preload(:roles, :oauth_identities).
+        # TODO: START_ACL replace when ACL transition complete
+        # preload(:access_controls, :oauth_identities).
+        preload(:access_controls, :roles, :oauth_identities).
+        # END_ACL
         order(sort_column => sort_direction)
 
       @pagy, @users = pagy(@users)
@@ -35,7 +38,7 @@ module Admin
 
     def edit
       @user.set_initial_two_factor_secret!
-      @group = @user.access_group
+      @group = @user.access_group # TODO: START_ACL remove when ACL transition complete
     end
 
     def unlock
@@ -70,10 +73,14 @@ module Admin
         return
       end
 
-      existing_health_roles = @user.roles.health.to_a
+      existing_health_roles = @user.health_roles.to_a
       begin
         User.transaction do
           @user.skip_reconfirmation!
+          # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
+          @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all
+
+          # TODO: START_ACL remove when ACL transition complete
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
           @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
           @user.access_groups.not_system.
@@ -83,19 +90,36 @@ module Admin
 
               g.remove(@user)
             end
+          # END_ACL
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update!(user_params)
+          # if we have a user to copy user groups from, add them
+          copy_user_groups
 
+          # TODO: START_ACL remove when ACL transition complete
           # Restore any health roles we previously had
-          @user.roles = (@user.roles + existing_health_roles).uniq
+          @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
           @user.set_viewables viewable_params
+          # END_ACL
         end
       rescue Exception
         flash[:error] = 'Please review the form problems below'
         render :edit
         return
       end
-      redirect_to({ action: :index }, notice: 'User updated')
+      respond_with(@user, location: edit_admin_user_path(@user))
+    end
+
+    private def copy_user_groups
+      return unless @user
+      return unless user_params[:copy_form_id].present?
+
+      source_user = User.active.not_system.find(user_params[:copy_form_id].to_i)
+      return unless source_user
+
+      source_user.user_groups.each do |group|
+        group.add(@user)
+      end
     end
 
     def destroy
@@ -118,6 +142,7 @@ module Admin
     private def adding_admin?
       @adming_admin ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
         adming_admin = false
+        # TODO: START_ACL remove when ACL transition complete
         existing_roles = @user.user_roles
         unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
           assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
@@ -130,12 +155,33 @@ module Admin
             end
           end
         end
+        # END_ACL
+
+        existing_roles = @user.roles
+        # If we don't already have a role granting an admin permission, and we're assinging some
+        # ACLs (with associated roles)
+        if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_user_group_ids.present?
+          assigned_roles = AccessControl.where(user_group_id: assigned_user_group_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
+          added_role_ids = assigned_roles - existing_roles.pluck(:id)
+          Role.where(id: added_role_ids.reject(&:blank?)).find_each do |role|
+            # If any role we're adding is administrative, make note, and present the confirmation page
+            if role.administrative?
+              @admin_role_name = role.role_name
+              adming_admin = true
+              break
+            end
+          end
+        end
         adming_admin
       end
     end
 
+    private def assigned_user_group_ids
+      user_params[:user_group_ids]&.reject(&:blank?)&.map(&:to_i) || []
+    end
+
     private def user_scope
-      User.active
+      User.active.not_system
     end
 
     private def user_params
@@ -158,16 +204,23 @@ module Admin
         :otp_required_for_login,
         :expired_at,
         :training_completed,
+        :copy_form_id,
+        user_group_ids: [],
+        # TODO: START_ACL remove when ACL transition complete
         role_ids: [],
         access_group_ids: [],
         coc_codes: [],
+        # END_ACL
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
-      ).tap do |result|
-        result[:coc_codes] ||= []
-        # re-add system groups so we don't remove them here
-        result[:access_group_ids] ||= []
-        result[:access_group_ids] += @user.access_groups.system.pluck(:id).map(&:to_s)
-      end
+      ).
+        # TODO: START_ACL remove when ACL transition complete
+        tap do |result|
+          result[:coc_codes] ||= []
+          # re-add system groups so we don't remove them here
+          result[:access_group_ids] ||= []
+          result[:access_group_ids] += @user.access_groups.system.pluck(:id).map(&:to_s)
+        end
+      # END_ACL
     end
 
     private def confirmation_params
