@@ -1,4 +1,3 @@
-
 ###
 # Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
@@ -41,7 +40,7 @@ if ENV['OKTA_DOMAIN'].present?
   # warehouse okta app
   if ENV['OKTA_CLIENT_ID'].present?
     devise_failure_handler = ->(env) {
-      env["devise.mapping"] = Devise.mappings[:user]
+      env['devise.mapping'] = Devise.mappings[:user]
       Devise::OmniauthCallbacksController.action(:failure).call(env)
     }
     Rails.application.middleware.use OmniAuth::Builder do
@@ -51,19 +50,19 @@ if ENV['OKTA_DOMAIN'].present?
         scope: 'openid profile email phone',
         fields: ['profile', 'email', 'phone'],
         name: 'wh_okta',
-        path_prefix: "/users/auth",
-        request_path: "/users/auth/okta",
-        callback_path: "/users/auth/okta/callback",
+        path_prefix: '/users/auth',
+        request_path: '/users/auth/okta',
+        callback_path: '/users/auth/okta/callback',
         client_options: client_options,
-        on_failure: devise_failure_handler,
+        on_failure: devise_failure_handler
       )
     end
   end
 
   # hmis okta app
   if ENV['HMIS_OKTA_CLIENT_ID'].present?
-    simple_failure_handler = -> (env) {
-      new_path = "/?authError=generic"
+    simple_failure_handler = ->(_env) {
+      new_path = '/?authError=generic'
       Rack::Response.new(['302 Moved'], 302, 'Location' => new_path).finish
     }
     Rails.application.middleware.use OmniAuth::Builder do
@@ -73,12 +72,12 @@ if ENV['OKTA_DOMAIN'].present?
         scope: 'openid profile email phone',
         fields: ['profile', 'email', 'phone'],
         name: 'hmis_okta',
-        path_prefix: "/hmis/users/auth",
-        request_path: "/hmis/users/auth/okta",
-        callback_path: "/hmis/users/auth/okta/callback",
+        path_prefix: '/hmis/users/auth',
+        request_path: '/hmis/users/auth/okta',
+        callback_path: '/hmis/users/auth/okta/callback',
         full_host: "https://#{ENV.fetch('HMIS_HOSTNAME')}",
         client_options: client_options,
-        on_failure: simple_failure_handler,
+        on_failure: simple_failure_handler
       )
     end
   end
