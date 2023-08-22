@@ -153,10 +153,11 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :with_open_enrollment_in_organization, ->(organization_ids) do
-    ds_ids, hud_org_ids = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:ds_ids, :organization_id)
-    raise 'orgs are in multiple projects' if ds_ids.uniq.size > 1
+    ds_ids, hud_org_ids = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
+    ds_ids = ds_ids.compact.map(&:to_i).uniq
+    raise 'orgs are in multiple data sources' if ds_ids.size > 1
 
-    joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.compact.first)))
+    joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
 
   def enrolled?
