@@ -8,6 +8,14 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
   class DbTransformer
     def self.up
       classes = {
+        HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation::Db => {
+          project: {
+            model: GrdaWarehouse::Hud::Project,
+          },
+          organization: {
+            model: GrdaWarehouse::Hud::Organization,
+          },
+        },
         HudTwentyTwentyTwoToTwentyTwentyFour::Export::Db => {},
         HudTwentyTwentyTwoToTwentyTwentyFour::Client::Db => {},
         HudTwentyTwentyTwoToTwentyTwentyFour::CurrentLivingSituation::Db => {},
@@ -18,14 +26,6 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
         },
         HudTwentyTwentyTwoToTwentyTwentyFour::Exit::Db => {},
         HudTwentyTwentyTwoToTwentyTwentyFour::HealthAndDv::Db => {},
-        HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation::Db => {
-          project: {
-            model: GrdaWarehouse::Hud::Project,
-          },
-          organization: {
-            model: GrdaWarehouse::Hud::Organization,
-          },
-        },
         HudTwentyTwentyTwoToTwentyTwentyFour::IncomeBenefit::Db => {},
         HudTwentyTwentyTwoToTwentyTwentyFour::Project::Db => {},
         # HudTwentyTwentyTwoToTwentyTwentyFour::Service::Db, # Only adds nils, so processing not required
