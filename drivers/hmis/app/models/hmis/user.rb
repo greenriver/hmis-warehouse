@@ -17,8 +17,9 @@ class Hmis::User < ApplicationRecord
   include HasRecentItems
   self.table_name = :users
 
-  has_many :user_group_members, class_name: '::Hmis::UserAccessControl', dependent: :destroy, inverse_of: :user
-  has_many :access_controls, through: :user_group_members
+  has_many :user_group_members, dependent: :destroy, inverse_of: :user
+  has_many :user_groups, through: :user_group_members
+  has_many :access_controls, through: :user_groups
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
 

@@ -42,6 +42,7 @@ BostonHmis::Application.routes.draw do
         resources :users, only: [:create, :destroy], controller: 'user_groups/users'
       end
       resources :access_controls
+      resources :users, only: [:index, :edit, :update]
     end
   end
 end

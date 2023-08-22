@@ -15,15 +15,6 @@ class Hmis::UserGroup < ApplicationRecord
 
   after_save :invalidate_user_permission_cache
 
-  scope :not_system, -> do
-    where(system: false)
-  end
-
-  # hide previous declaration of :system (from Kernel), we'll use this one
-  replace_scope :system, -> do
-    where(system: true)
-  end
-
   scope :with_user_id, ->(user_id) do
     joins(:user_group_members).
       merge(Hmis::UserGroupMember.where(user_id: user_id))
@@ -52,9 +43,7 @@ class Hmis::UserGroup < ApplicationRecord
     end
   end
 
-  def self.options_for_select(include_system: false)
-    return order(name: :asc).pluck(:name, :id) if include_system
-
-    not_system.order(name: :asc).pluck(:name, :id)
+  def self.options_for_select
+    order(name: :asc).pluck(:name, :id)
   end
 end
