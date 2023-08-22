@@ -32,6 +32,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             line2: row_value(row, field: 'line2', required: false),
             city: row_value(row, field: 'city', required: false),
             state: normalize_state(row),
+            district: row_value(row, field: 'county', required: false),
             country: row_value(row, field: 'country', required: false),
             postal_code: normalize_zipcode(row),
             DateCreated: date_created(row),
