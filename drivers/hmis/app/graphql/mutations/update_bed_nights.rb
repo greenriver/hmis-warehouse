@@ -15,7 +15,9 @@ module Mutations
     def resolve(enrollment_ids:, bed_night_date:, action:)
       enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(id: enrollment_ids)
       raise 'not found' unless enrollments.count == enrollment_ids.uniq.length
-      raise 'project mismatch' unless enrollments.map(&:project_id).uniq.length == 1
+
+      project_pk = enrollments.first.project.id
+      raise 'project mismatch' unless enrollments.size == enrollments.with_project([project_pk]).size
 
       hud_user_id = Hmis::Hud::User.from_user(current_user).user_id
 
