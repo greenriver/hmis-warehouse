@@ -154,10 +154,12 @@ tasks = [
     trigger: health_trigger,
     interruptable: true,
   },
-  {
-    task: 'driver:hmis_external_apis:update_unit_availability',
-    frequency: 3.minutes,
-  },
+  # FIXME uncomment after launch
+  # {
+  #   task: 'driver:hmis_external_apis:ac_hmis:update_unit_availability',
+  #   frequency: 3.minutes,
+  #   trigger: ENV['HMIS_OKTA_CLIENT_ID'] == 'true' && ENV['RAILS_ENV'] == 'production'
+  # },
   {
     task: 'driver:medicaid_hmis_interchange:medicaid_hmis_transfer',
     frequency: :sunday,
