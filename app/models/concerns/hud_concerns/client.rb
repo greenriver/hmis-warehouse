@@ -18,7 +18,7 @@ module HudConcerns::Client
 
     # those gender fields which are marked as pertinent to the client
     def gender_fields
-      ::HudUtility.gender_fields.select { |f| send(f).to_i == 1 }
+      ::HudUtility2024.gender_fields.select { |f| send(f).to_i == 1 }
     end
 
     def adult?(on_date = Date.current)

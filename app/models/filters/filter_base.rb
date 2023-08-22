@@ -1230,7 +1230,7 @@ module Filters
 
     def chosen_genders
       genders.map do |gender|
-        HudUtility.gender(gender)
+        HudUtility2024.gender(gender)
       end
     end
 
