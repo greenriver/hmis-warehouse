@@ -4,10 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudTwentyTwentyTwoToTwentyTwentyFour::Export
-  class UpdateCsvVersion
+module HudTwentyTwentyTwoToTwentyTwentyFour::Enrollment
+  class AddNewColumns
     def process(row)
-      row['CSVVersion'] = '2024 v1.2'
+      row['TranslationNeeded'] = nil
+      row['PreferredLanguage'] = nil
+      row['PreferredLanguageDifferent'] = nil
 
       row
     end

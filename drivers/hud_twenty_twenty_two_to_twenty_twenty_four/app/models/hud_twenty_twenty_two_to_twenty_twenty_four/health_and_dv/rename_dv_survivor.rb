@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudTwentyTwentyTwoToTwentyTwentyFour::Export
-  class UpdateCsvVersion
+module HudTwentyTwentyTwoToTwentyTwentyFour::HealthAndDv
+  class RenameDvSurvivor
     def process(row)
-      row['CSVVersion'] = '2024 v1.2'
+      row['DomesticViolenceSurvivor'] = row['DomesticViolenceVictim']
 
       row
     end

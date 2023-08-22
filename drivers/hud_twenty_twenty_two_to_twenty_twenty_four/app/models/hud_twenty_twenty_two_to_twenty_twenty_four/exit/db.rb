@@ -4,12 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudTwentyTwentyTwoToTwentyTwentyFour::Export
-  class UpdateCsvVersion
-    def process(row)
-      row['CSVVersion'] = '2024 v1.2'
-
-      row
-    end
+module HudTwentyTwentyTwoToTwentyTwentyFour::Exit
+  class Db < Transforms
+    include HudTwentyTwentyTwoToTwentyTwentyFour::Kiba::DbBase
   end
 end

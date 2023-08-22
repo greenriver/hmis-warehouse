@@ -4,10 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudTwentyTwentyTwoToTwentyTwentyFour::Export
-  class UpdateCsvVersion
+module HudTwentyTwentyTwoToTwentyTwentyFour::IncomeBenefit
+  class RenameVaColumns
     def process(row)
-      row['CSVVersion'] = '2024 v1.2'
+      row['VHAServices'] = row['VAMedicalServices']
+      row['NoVHAReason'] = row['NoVAMedReason']
 
       row
     end

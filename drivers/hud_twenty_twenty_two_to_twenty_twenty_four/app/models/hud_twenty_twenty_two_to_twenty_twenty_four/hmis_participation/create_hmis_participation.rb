@@ -12,6 +12,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
       parse_projects.each do |row|
         yield(row)
       end
+
       nil
     end
 

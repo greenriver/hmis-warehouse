@@ -18,6 +18,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Project
       end
 
       row['ProjectType'] = project_type
+
       row
     end
   end

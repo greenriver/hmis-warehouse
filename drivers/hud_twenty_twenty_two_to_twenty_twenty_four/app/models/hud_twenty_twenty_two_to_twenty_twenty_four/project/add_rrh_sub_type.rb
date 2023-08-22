@@ -8,6 +8,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Project
   class AddRrhSubType
     def process(row)
       row['RRHSubType'] = nil
+
       row
     end
   end

@@ -68,20 +68,29 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
       },
       # Enrollment Files
       'Enrollment.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::Enrollment,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::Enrollment::Csv,
+        references: {
+          enrollment_coc: {
+            file: 'EnrollmentCoC.csv',
+          },
+        },
       },
       'Exit.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::Exit,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::Exit::Csv,
       },
       'IncomeBenefits.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::IncomeBenefit,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::IncomeBenefit::Csv,
       },
       'HealthAndDV.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::HealthAndDv,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::HealthAndDv::Csv,
       },
       'EmploymentEducation.csv' => {
         action: :copy,
@@ -92,12 +101,14 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
         model: GrdaWarehouse::Hud::Disability,
       },
       'Services.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::Service,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::Service::Csv,
       },
       'CurrentLivingSituation.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::CurrentLivingSituation,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::CurrentLivingSituation::Csv,
       },
       'Assessment.csv' => {
         action: :copy,
