@@ -60,15 +60,19 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def system_user_id
-      system_user.user_id
+      system_hud_user.user_id
     end
 
     def system_user_pk
       system_user.id
     end
 
+    def system_hud_user
+      @system_hud_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
+    end
+
     def system_user
-      @system_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
+      @system_user ||= Hmis::User.system_user
     end
 
     def data_source
@@ -105,7 +109,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def ar_import(import_class, records, **args)
       table_name = import_class.table_name
-      raise "#{loader_name} unexpected empty records for #{table_name}" if records.size.zero?
+      raise "#{loader_name} unexpected empty records for #{table_name}" if records.empty?
 
       defaults = { batch_size: 1_000, validate: false }
       result = import_class.import(records, defaults.merge(args))
