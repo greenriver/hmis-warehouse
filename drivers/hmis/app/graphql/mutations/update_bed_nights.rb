@@ -38,7 +38,7 @@ module Mutations
           services = Hmis::Hud::Service.bed_nights.
             where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: current_user.hmis_data_source_id).
             where(date_provided: bed_night_date)
-          services.map(&:destroy!)
+          services.destroy_all
         end
       end
 
