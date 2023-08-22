@@ -7959,6 +7959,7 @@ input UpdateBedNightsInput {
   """
   clientMutationId: String
   enrollmentIds: [ID!]!
+  projectId: ID!
 }
 
 """

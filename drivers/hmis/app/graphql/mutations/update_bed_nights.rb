@@ -6,16 +6,17 @@
 
 module Mutations
   class UpdateBedNights < BaseMutation
+    argument :project_id, ID, required: true
     argument :enrollment_ids, [ID], required: true
     argument :bed_night_date, GraphQL::Types::ISO8601Date, required: true
     argument :action, Types::HmisSchema::Enums::BulkActionType, required: true
 
     field :success, Boolean, null: true
 
-    def resolve(enrollment_ids:, bed_night_date:, action:)
+    def resolve(project_id:, enrollment_ids:, bed_night_date:, action:)
       enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(id: enrollment_ids)
       raise 'not found' unless enrollments.count == enrollment_ids.uniq.length
-      raise 'project mismatch' unless enrollments.map(&:project_id).uniq.length == 1
+      raise 'project mismatch' unless enrollments.with_project([project_id]).size == enrollments.size
 
       hud_user_id = Hmis::Hud::User.from_user(current_user).user_id
 
@@ -36,7 +37,7 @@ module Mutations
           services = Hmis::Hud::Service.bed_nights.
             where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: current_user.hmis_data_source_id).
             where(date_provided: bed_night_date)
-          services.map(&:destroy!)
+          services.destroy_all
         end
       end
 
