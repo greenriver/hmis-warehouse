@@ -1,0 +1,31 @@
+- content_for :title, 'HMIS User Administration'
+%h1= content_for :title
+= render 'hmis_admin/tabs', active_tab: :users
+- if @users.blank?
+  %p No HMIS users present.
+- else
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Email
+        %th User Groups
+        %th Status
+        %th Actions
+    %tbody
+      - @users.each do |user|
+        %tr
+          %td= user.last_name
+          %td= user.first_name
+          %td= user.email
+          %td
+            - names = user.access_groups.general.map(&:name)
+            - names += user.access_groups.order(name: :asc).distinct.map(&:name)
+            - names.uniq.sort.each do |name|
+              .mb-1= name
+          %td= render 'admin/users/user_invitation_status', user: user
+          %td
+            = link_to(edit_hmis_admin_user_path(id: user), class: 'btn btn-sm btn-secondary mb-2 text-nowrap') do
+              %i.icon-pencil
+              Edit Account
