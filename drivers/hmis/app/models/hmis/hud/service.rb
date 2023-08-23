@@ -21,4 +21,12 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]
   validates_with Hmis::Hud::Validators::ServiceValidator
+
+  # On user-initiated change, validate that there is max 1 bed night per date
+  validates_uniqueness_of :enrollment_id,
+                          scope: [:date_provided, :data_source_id],
+                          conditions: -> { bed_nights },
+                          on: [:form_submission, :bed_nights_mutation]
+
+  scope :bed_nights, -> { where(RecordType: 200) }
 end
