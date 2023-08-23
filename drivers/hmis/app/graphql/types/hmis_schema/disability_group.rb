@@ -48,6 +48,8 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
 
+    # Object is an OpenStruct containing all Disability records from a given Assessment
+
     def id
       # Concatenate disability IDs to create a unique id for the group
       object.disabilities.map(&:id).join(':')

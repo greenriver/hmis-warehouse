@@ -19,6 +19,11 @@
         %th.pl-2 Dashboard Extras Uploads
         %td
           = link_to 'View', data_source_non_hmis_uploads_path(@data_source)
+    - if @data_source.hmis?
+      %tr
+        %th.pl-2 HMIS URL
+        %td
+          %a{ :href => "https://#{@data_source.hmis}", :title => "HMIS" }= @data_source.hmis
     - if can_edit_data_sources?
       %tr
         %th.pl-2

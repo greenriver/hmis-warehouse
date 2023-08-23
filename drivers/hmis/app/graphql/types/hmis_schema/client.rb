@@ -12,7 +12,6 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasYouthEducationStatuses
     include Types::HmisSchema::HasEmploymentEducations
@@ -25,6 +24,11 @@ module Types
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
+    end
+
+    available_filter_options do
+      arg :project, [ID]
+      arg :organization, [ID]
     end
 
     description 'HUD Client'
@@ -63,10 +67,9 @@ module Types
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    enrollments_field filter_args: { omit: [:search_term], type_name: 'EnrollmentsForClient' }
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
     income_benefits_field
     disabilities_field
-    disability_groups_field
     health_and_dvs_field
     youth_education_statuses_field
     employment_educations_field

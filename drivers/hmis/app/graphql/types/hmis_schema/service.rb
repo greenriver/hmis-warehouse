@@ -20,6 +20,7 @@ module Types
       arg :service_type, [ID]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :project, [ID]
+      arg :date_provided, GraphQL::Types::ISO8601Date
     end
 
     field :id, ID, null: false

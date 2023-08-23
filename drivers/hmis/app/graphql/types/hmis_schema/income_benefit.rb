@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::IncomeBenefit < Types::BaseObject
+    include Types::HmisSchema::HasCustomDataElements
+
     def self.configuration
       Hmis::Hud::IncomeBenefit.hmis_configuration(version: '2022')
     end
@@ -102,6 +104,8 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+
+    custom_data_elements_field
 
     # TODO ADD: source assessment
 

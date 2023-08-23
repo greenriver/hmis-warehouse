@@ -7,6 +7,9 @@
 class Hmis::Hud::AssessmentQuestion < Hmis::Hud::Base
   include ::HmisStructure::AssessmentQuestion
   include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
+
   self.table_name = :AssessmentQuestions
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

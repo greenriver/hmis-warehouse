@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "title": "Form Definition",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "item": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/form_node" }
+    }
+  },
+  "definitions": {
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "_comment": { "type": "string" },
+        "record_type": { "type": "string" },
+        "field_name": { "type": "string" },
+        "custom_field_key": { "type": "string" }
+      }
+    },
+    "pick_list_option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": { "type": "string" }
+      }
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type"],
+      "properties": {
+        "_comment": { "type": "string" },
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "question": { "type": "string" },
+        "value_local_constant": { "type": "string" },
+        "offset": { "type": "integer" }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operator"],
+      "properties": {
+        "_comment": { "type": "string" },
+        "operator": { "enum": ["ANY", "ALL", "EQUAL", "INCLUDE", "NOT_EQUAL", "NOT_INCLUDE"] },
+        "variable": { "enum": ["projectType", "projectFunders", "projectOtherFunders", "projectFunderComponents"] },
+        "value": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+        "parts": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
+      }
+    },
+    "initial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initial_behavior"],
+      "properties": {
+        "_comment": { "type": "string" },
+        "initial_behavior": { "type": "string" },
+        "value_local_constant": { "type": "string" },
+        "value_number": { "type": "integer" },
+        "value_boolean": { "type": "boolean" }
+      }
+    },
+    "enable_when": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "_comment": { "type": "string" },
+        "question": { "type": "string" },
+        "compare_question": { "type": "string" },
+        "local_constant": { "type": "string" },
+        "operator": { "type": "string" },
+        "answer_code": { "type": "string" },
+        "answer_codes": { "type": "array", "items": { "type": "string" } },
+        "answer_number": { "type": "integer" },
+        "answer_boolean": { "type": "boolean" },
+        "answer_group_code": { "type": "string" }
+      }
+    },
+    "autofill_values": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["autofill_behavior", "autofill_when"],
+      "properties": {
+        "_comment": { "type": "string" },
+        "value_code": { "type": "string" },
+        "value_number": { "type": "integer" },
+        "value_boolean": { "type": "boolean" },
+        "value_question": { "type": "string" },
+        "autofill_readonly": { "type": "boolean" },
+        "autofill_behavior": { "type": "string" },
+        "autofill_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
+        "sum_questions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "form_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "link_id"],
+      "properties": {
+        "_comment": { "type": "string" },
+        "item": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/form_node" }
+        },
+        "enable_behavior": { "enum": ["ALL", "ANY"] },
+        "data_collected_about": {
+          "enum": [
+            "ALL_CLIENTS",
+            "ALL_CLIENTS_RECEIVING_SSVF_FINANCIAL_ASSISTANCE",
+            "ALL_CLIENTS_RECEIVING_SSVF_SERVICES",
+            "ALL_VETERANS",
+            "HOH",
+            "HOH_AND_ADULTS",
+            "VETERAN_HOH"
+          ]
+        },
+        "type": {
+          "enum": [
+            "GROUP",
+            "BOOLEAN",
+            "CHOICE",
+            "CURRENCY",
+            "DATE",
+            "DISPLAY",
+            "FILE",
+            "IMAGE",
+            "INTEGER",
+            "OBJECT",
+            "OPEN_CHOICE",
+            "STRING",
+            "TEXT"
+          ]
+        },
+        "link_id": { "type": "string" },
+        "prefix": { "type": "string" },
+        "brief_text": { "type": "string" },
+        "text": { "type": "string" },
+        "prefill": { "type": "boolean" },
+        "readonly_text": { "type": "string" },
+        "helper_text": { "type": "string" },
+        "required": { "type": "boolean" },
+        "assessment_date": { "type": "boolean" },
+        "read_only": { "type": "boolean" },
+        "hidden": { "type": "boolean" },
+        "warn_if_empty": { "type": "boolean" },
+        "pick_list_reference": { "type": "string" },
+        "mapping": { "$ref": "#/definitions/mapping" },
+        "project_types_excluded": { "type": "array", "items": { "type": "string" } },
+        "enable_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
+        "rule": { "$ref": "#/definitions/rule" },
+        "disabled_display": { "type": "string" },
+        "bounds": { "type": "array", "items": { "$ref": "#/definitions/bounds" } },
+        "repeats": { "type": "boolean" },
+        "size": { "type": "string" },
+        "service_detail_type": { "type": "string" },
+        "pick_list_options": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/pick_list_option" }
+        },
+        "initial": { "type": "array", "items": { "$ref": "#/definitions/initial" } },
+        "autofill_values": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/autofill_values" }
+        },
+        "component": {
+          "enum": [
+            "INPUT_GROUP",
+            "HORIZONTAL_GROUP",
+            "INFO_GROUP",
+            "ADDRESS",
+            "ALERT_ERROR",
+            "ALERT_INFO",
+            "ALERT_SUCCESS",
+            "ALERT_WARNING",
+            "CHECKBOX",
+            "DISABILITY_TABLE",
+            "DROPDOWN",
+            "EMAIL",
+            "MCI",
+            "NAME",
+            "PHONE",
+            "RADIO_BUTTONS",
+            "RADIO_BUTTONS_VERTICAL",
+            "SSN"
+          ]
+        }
+      }
+    }
+  }
+}

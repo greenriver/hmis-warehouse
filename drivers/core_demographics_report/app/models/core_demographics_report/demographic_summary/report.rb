@@ -100,7 +100,7 @@ module CoreDemographicsReport::DemographicSummary
 
     protected def build_control_sections
       [
-        build_general_control_section(include_inactivity_days: true, include_mask_small_populations: true),
+        build_general_control_section(options: { include_inactivity_days: true, include_mask_small_populations: true }),
         build_coc_control_section,
         add_demographic_disabilities_control_section,
       ]

@@ -23,10 +23,19 @@ module HmisExternalApis::AcHmis::Exporters
       Net::SFTP.start(host, username, args) do |sftp|
         zipped_contents = zipped_io_stream.string
 
-        Rails.logger.info "Uploading #{filename} to #{path}"
+        Rails.logger.info "Uploading #{zipped_contents.length} bytes to #{path}/#{filename}"
+
+        sftp.remove("#{path}/#{filename}")
 
         sftp.file.open("#{path}/#{filename}", 'w') do |f|
-          f.write(zipped_contents)
+          0.upto(zipped_contents.length / 1024 + 1).each do |i|
+            chunk = zipped_contents[i * 1024, 1024]
+
+            break if chunk.nil?
+
+            f.write(chunk)
+            Rails.logger.info "Wrote about #{i} kilobytes" if (i % 20).zero?
+          end
         end
       end
     rescue Net::SFTP::StatusException, Errno::ECONNRESET, SocketError => e

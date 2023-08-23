@@ -23,25 +23,54 @@
       "component": "MCI",
       "text": "MCI ID",
       "_comment": "NOTE: mciId is not a real field on Client, but the ClientProcessor has a special case to handle it",
-      "mapping": { "field_name": "mciId" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "mciId"
+      },
       "disabled_display": "PROTECTED",
-      "enable_behavior": "ALL",
+      "enable_behavior": "ANY",
       "enable_when": [
         {
           "question": "names",
-          "_comment": "further check for First/Last and DQ happens in the MCI component",
-          "operator": "EXISTS",
+          "_comment": "dummy dependency to enable reset when field changes",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        },
+        {
+          "question": "first-name",
+          "_comment": "dummy dependency to enable reset when field changes",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        },
+        {
+          "question": "middle-name",
+          "_comment": "dummy dependency to enable reset when field changes",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        },
+        {
+          "question": "last-name",
+          "_comment": "dummy dependency to enable reset when field changes",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        },
+        {
+          "question": "name-dq",
+          "_comment": "dummy dependency to enable reset when field changes",
+          "operator": "ENABLED",
           "answer_boolean": true
         },
         {
           "question": "dob",
-          "operator": "EXISTS",
+          "_comment": "dummy dependency to enable reset when field changes",
+          "operator": "ENABLED",
           "answer_boolean": true
         },
         {
           "question": "dob-dq",
-          "operator": "EQUAL",
-          "answer_code": "FULL_DOB_REPORTED"
+          "_comment": "dummy dependency to enable reset when field changes",
+          "operator": "ENABLED",
+          "answer_boolean": true
         },
         {
           "_comment": "dummy dependency to enable reset when field changes",

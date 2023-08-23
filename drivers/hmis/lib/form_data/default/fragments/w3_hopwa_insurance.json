@@ -1,0 +1,69 @@
+{
+  "type": "GROUP",
+  "link_id": "hopwa-insurance",
+  "text": "HOPWA Insurance Questions",
+  "data_collected_about": "ALL_CLIENTS_WITH_HIV_AIDS",
+  "prefill": true,
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "W3.3",
+      "required": false,
+      "text": "Receiving AIDS Drug Assistance Program",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "INCOME_BENEFIT",
+        "field_name": "adap"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "W3.B",
+      "required": false,
+      "text": "Reason for not receiving AIDS Drug Assistance Program",
+      "pick_list_reference": "NoAssistanceReason",
+      "mapping": {
+        "record_type": "INCOME_BENEFIT",
+        "field_name": "noAdapReason"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "W3.3",
+          "operator": "EQUAL",
+          "answer_code": "NO"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "W3.4",
+      "required": false,
+      "text": "Receiving Ryan White-funded Medical or Dental Assistance",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "INCOME_BENEFIT",
+        "field_name": "ryanWhiteMedDent"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "W3.C",
+      "required": false,
+      "text": "Reason for not receiving Ryan White-funded Medical or Dental Assistance",
+      "pick_list_reference": "NoAssistanceReason",
+      "mapping": {
+        "record_type": "INCOME_BENEFIT",
+        "field_name": "noRyanWhiteReason"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "W3.4",
+          "operator": "EQUAL",
+          "answer_code": "NO"
+        }
+      ]
+    }
+  ]
+}

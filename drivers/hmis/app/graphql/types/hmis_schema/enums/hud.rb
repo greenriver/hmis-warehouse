@@ -8,6 +8,13 @@
 
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
 module Types::HmisSchema::Enums::Hud
+  # Only present in 2024 spec
+  class RentalSubsidyType < Types::BaseEnum
+    description '3.12.A'
+    graphql_name 'RentalSubsidyType'
+    hud_enum HudUtility2024.rental_subsidy_types
+  end
+
   class ExportPeriodType < Types::BaseEnum
     description '1.1'
     graphql_name 'ExportPeriodType'
@@ -272,13 +279,6 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility.referral_results
   end
 
-  # Only present in 2024 spec
-  class RentalSubsidyType < Types::BaseEnum
-    description '3.12.A'
-    graphql_name 'RentalSubsidyType'
-    hud_enum HudUtility2024.rental_subsidy_types
-  end
-
   class IncarceratedParentStatus < Types::BaseEnum
     description '4.33.A'
     graphql_name 'IncarceratedParentStatus'
@@ -525,10 +525,10 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility.address_data_qualities
   end
 
-  class VamcsStationNumber < Types::BaseEnum
+  class VamcStationNumber < Types::BaseEnum
     description 'V6.1'
-    graphql_name 'VamcsStationNumber'
-    hud_enum HudUtility.vamcs_station_numbers
+    graphql_name 'VamcStationNumber'
+    hud_enum HudUtility.vamc_station_numbers
   end
 
   class NoPointsYes < Types::BaseEnum
@@ -616,9 +616,21 @@ module Types::HmisSchema::Enums::Hud
   end
 
   class SubsidyInformation < Types::BaseEnum
-    description 'W5.A'
+    description 'W5.AB'
     graphql_name 'SubsidyInformation'
     hud_enum HudUtility.subsidy_informations
+  end
+
+  class SubsidyInformationA < Types::BaseEnum
+    description 'W5.A'
+    graphql_name 'SubsidyInformationA'
+    hud_enum HudUtility.subsidy_information_as
+  end
+
+  class SubsidyInformationB < Types::BaseEnum
+    description 'W5.B'
+    graphql_name 'SubsidyInformationB'
+    hud_enum HudUtility.subsidy_information_bs
   end
 
   class AdHocYesNo < Types::BaseEnum

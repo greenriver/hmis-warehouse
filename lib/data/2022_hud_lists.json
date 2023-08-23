@@ -3250,7 +3250,7 @@
     ]
   },
   {
-    "name": "VamcsStationNumber",
+    "name": "VamcStationNumber",
     "code": "V6.1",
     "values": [
       {
@@ -3823,7 +3823,7 @@
       },
       {
         "key": 99,
-        "description": "not collected"
+        "description": "Data not collected"
       }
     ]
   },
@@ -4293,31 +4293,67 @@
   },
   {
     "name": "SubsidyInformation",
+    "code": "W5.AB",
+    "values": [
+      {
+        "key": 1,
+        "description": "Without a subsidy"
+      },
+      {
+        "key": 2,
+        "description": "With the subsidy they had at project entry"
+      },
+      {
+        "key": 3,
+        "description": "With an on-going subsidy acquired since project entry"
+      },
+      {
+        "key": 4,
+        "description": "Only with financial assistance other than a subsidy"
+      },
+      {
+        "key": 11,
+        "description": "With on-going subsidy"
+      },
+      {
+        "key": 12,
+        "description": "Without an on-going subsidy"
+      }
+    ]
+  },
+  {
+    "name": "SubsidyInformationA",
     "code": "W5.A",
     "values": [
       {
         "key": 1,
-        "description": "Without a subsidy 1"
+        "description": "Without a subsidy"
       },
       {
         "key": 2,
-        "description": "With the subsidy they had at project entry 1"
+        "description": "With the subsidy they had at project entry"
       },
       {
         "key": 3,
-        "description": "With an on-going subsidy acquired since project entry 1"
+        "description": "With an on-going subsidy acquired since project entry"
       },
       {
         "key": 4,
-        "description": "But only with other financial assistance 1"
-      },
+        "description": "Only with financial assistance other than a subsidy"
+      }
+    ]
+  },
+  {
+    "name": "SubsidyInformationB",
+    "code": "W5.B",
+    "values": [
       {
         "key": 11,
-        "description": "With on-going subsidy 2"
+        "description": "With on-going subsidy"
       },
       {
         "key": 12,
-        "description": "Without an on-going subsidy 2"
+        "description": "Without an on-going subsidy"
       }
     ]
   },

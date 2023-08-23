@@ -1,0 +1,26 @@
+.client__calendar-header.mb-6.d-flex.justify-content-between.align-items-center
+  .d-flex
+    - min_date = data.min_date(@client)
+    - max_date = data.max_date(@client)
+    %h3.mr-4= data.title
+    = link_to '#', class: 'mr-4 dropdown-toggle', id: 'client__calendar-datepicker', data: {toggle: 'dropdown'} do
+      %i.icon-calendar
+    .dropdown-menu#client__calendar-datepicker__dropdown
+      %div{data: { provide: :datepicker}, id: 'client__calendar-datepicker__input'}
+
+
+    - prev_date = data.previous_date(@client)
+    - if prev_date.present?
+      = link_to client_history_path(@client, **data.filter_params(prev_date)), class: 'mr-4 js-client__calendar-nav', data: data.filter_params(prev_date) do
+        %i.icon-angle-left
+    - next_date = data.next_date
+    - if next_date.present? && next_date <= max_date
+      = link_to client_history_path(@client, **data.filter_params(next_date)), class: 'mr-4 js-client__calendar-nav', data: data.filter_params(next_date) do
+        %i.icon-angle-right
+  .d-flex
+    - first_date = min_date
+    = link_to client_history_path(@client, **data.filter_params(first_date)), class: 'mr-4 btn btn-outline-primary js-client__calendar-nav', data: data.filter_params(first_date) do
+      %i.icon-arrow-left2
+      First Interaction
+    = link_to client_history_path(@client, **data.filter_params(Date.today)), class: 'btn btn-outline-secondary js-client__calendar-nav', data: data.filter_params(Date.today) do
+      Today

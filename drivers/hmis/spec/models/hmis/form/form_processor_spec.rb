@@ -397,6 +397,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'DisabilityGroup.chronicHealthCondition' => 'YES',
         'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => 'NO',
         'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.tCellCountAvailable' => 'YES',
         'DisabilityGroup.mentalHealthDisorder' => 'NO',
         'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
         'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => 'YES',
@@ -418,6 +419,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
+      # HIV/AIDS
+      expect(disabilities.find_by(disability_type: 8).disability_response).to eq(1)
+      expect(disabilities.find_by(disability_type: 8).t_cell_count_available).to eq(1)
     end
 
     it 'can process nil and _HIDDEN DisabilityGroup fields' do
@@ -426,7 +430,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'DisabilityGroup.physicalDisability' => nil,
         'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => HIDDEN,
         'DisabilityGroup.developmentalDisability' => 'NO',
-        'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => HIDDEN,
         'DisabilityGroup.chronicHealthCondition' => 'YES',
         'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => nil,
         'DisabilityGroup.hivAids' => nil,
@@ -448,7 +451,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to be_nil # hidden is saved as nil
       # Developmental Disability
       expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
-      expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil # hidden is saved as nil
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
       expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
@@ -552,6 +554,72 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.exit.destination).to eq(18)
     end
 
+    it 'processes aftercare and counseling multi-select fields correctly' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'Exit.exitDate' => assessment.enrollment.entry_date + 7.days,
+        'Exit.destination' => 'SAFE_HAVEN',
+        'Exit.aftercareMethods' => ['VIA_EMAIL_SOCIAL', 'IN_PERSON_1_ON_1'],
+        'Exit.counselingMethods' => ['INDIVIDUAL', 'FAMILY'],
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.save!
+      assessment.save!
+      assessment.reload
+
+      expect(assessment.enrollment.exit.aftercare_methods).to eq([1, 3])
+      expect(assessment.enrollment.exit.email_social_media).to eq(1)
+      expect(assessment.enrollment.exit.telephone).to eq(0)
+      expect(assessment.enrollment.exit.in_person_individual).to eq(1)
+      expect(assessment.enrollment.exit.in_person_group).to eq(0)
+
+      expect(assessment.enrollment.exit.counseling_methods).to eq([1, 2])
+      expect(assessment.enrollment.exit.individual_counseling).to eq(1)
+      expect(assessment.enrollment.exit.family_counseling).to eq(1)
+      expect(assessment.enrollment.exit.group_counseling).to eq(0)
+
+      assessment.form_processor.hud_values = {
+        'Exit.exitDate' => assessment.enrollment.entry_date + 7.days,
+        'Exit.destination' => 'SAFE_HAVEN',
+        'Exit.aftercareMethods' => [],
+        'Exit.counselingMethods' => [],
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.save!
+      assessment.save!
+      assessment.reload
+
+      expect(assessment.enrollment.exit).to be_present
+      expect(assessment.enrollment.exit.aftercare_methods).to eq([])
+      expect(assessment.enrollment.exit.email_social_media).to eq(99)
+      expect(assessment.enrollment.exit.telephone).to eq(99)
+      expect(assessment.enrollment.exit.in_person_individual).to eq(99)
+      expect(assessment.enrollment.exit.in_person_group).to eq(99)
+      expect(assessment.enrollment.exit.counseling_methods).to eq([])
+
+      assessment.form_processor.hud_values = {
+        'Exit.exitDate' => assessment.enrollment.entry_date + 7.days,
+        'Exit.destination' => 'SAFE_HAVEN',
+        'Exit.aftercareMethods' => HIDDEN,
+        'Exit.counselingMethods' => HIDDEN,
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.save!
+      assessment.save!
+      assessment.reload
+
+      expect(assessment.enrollment.exit).to be_present
+      expect(assessment.enrollment.exit.aftercare_methods).to eq([])
+      expect(assessment.enrollment.exit.email_social_media).to be_nil
+      expect(assessment.enrollment.exit.telephone).to be_nil
+      expect(assessment.enrollment.exit.in_person_individual).to be_nil
+      expect(assessment.enrollment.exit.in_person_group).to be_nil
+      expect(assessment.enrollment.exit.counseling_methods).to eq([])
+    end
+
     it 'updates enrollment entry date when appropriate' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
@@ -642,8 +710,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     form_processor = Hmis::Form::FormProcessor.new
     form_processor.hud_values = hud_values
     form_processor.run!(owner: record, user: user)
-    form_processor.owner.save! if save
-    record.reload if save
+    form_processor.owner.save!(context: :form_submission) if save
     form_processor
   end
 
@@ -700,12 +767,32 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       unit = create(:hmis_unit, project: p1)
       e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
       e2.save!
+      e2.reload
       old_uo = e2.active_unit_occupancy
       expect(unit.current_occupants.count).to eq(1)
 
       hud_values = complete_hud_values.merge('currentUnit' => unit.id)
       process_record(record: e2, hud_values: hud_values, user: hmis_user)
       expect(e2.active_unit_occupancy).to eq(old_uo)
+    end
+
+    it 'closes old unit occupancy if unit assignment changed' do
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
+      unit = create(:hmis_unit, project: p1)
+      e2.assign_unit(unit: unit, start_date: 1.week.ago, user: hmis_user)
+      e2.save!
+      e2.reload
+      old_uo = e2.active_unit_occupancy
+      expect(old_uo.end_date).to be_nil
+      expect(unit.current_occupants.count).to eq(1)
+
+      new_unit = create(:hmis_unit, project: p1)
+      hud_values = complete_hud_values.merge('currentUnit' => new_unit.id)
+      process_record(record: e2, hud_values: hud_values, user: hmis_user)
+      e2.reload
+      expect(old_uo.end_date).to be_present
+      expect(e2.active_unit_occupancy).not_to eq(old_uo)
+      expect(e2.current_unit).to eq(new_unit)
     end
 
     it 'errors if unit already occupied by another household' do
@@ -1134,6 +1221,48 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
   end
 
+  describe 'Form processing for New Client Enrollment' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :NEW_CLIENT_ENROLLMENT) }
+    let(:complete_hud_values) do
+      {
+        'Enrollment.entryDate' => Date.yesterday.strftime('%Y-%m-%d'),
+        'Enrollment.relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+        'Client.firstName' => 'First',
+        'Client.lastName' => 'Last',
+        'Client.nameDataQuality' => 'FULL_NAME_REPORTED',
+        'Client.dob' => nil,
+        'Client.dobDataQuality' => nil,
+        'Client.ssn' => nil,
+        'Client.ssnDataQuality' => nil,
+        'Client.race' => [],
+        'Client.ethnicity' => nil,
+        'Client.gender' => [],
+        'Client.pronouns' => [],
+        'Client.veteranStatus' => nil,
+      }
+    end
+
+    it 'creates a new Enrollment AND a new Client' do
+      enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, project: p1)
+      process_record(record: enrollment, hud_values: complete_hud_values, user: hmis_user)
+      enrollment.client.save! # need to save manually, no autosave
+      expect(enrollment.relationship_to_hoh).to eq(1)
+      expect(enrollment.entry_date.strftime('%Y-%m-%d')).to eq(complete_hud_values['Enrollment.entryDate'])
+      expect(enrollment.client).to be_present
+      expect(enrollment.client.persisted?).to eq(true)
+      expect(enrollment.client.first_name).to eq('First')
+      expect(enrollment.client.last_name).to eq('Last')
+    end
+
+    it 'validates Client record' do
+      enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, project: p1)
+      form_processor = Hmis::Form::FormProcessor.new
+      form_processor.hud_values = complete_hud_values.merge('Client.nameDataQuality' => 'INVALID')
+      form_processor.run!(owner: enrollment, user: hmis_user)
+      expect(enrollment.valid?(:form_submission)).to eq(false)
+    end
+  end
+
   describe 'Form processing for Projects' do
     let(:complete_hud_values) do
       {
@@ -1483,6 +1612,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           cded.key => [old1.value_string, old2.value_string],
         )
         process_record(record: record, hud_values: hud_values, user: hmis_user)
+        record.reload
 
         expect(record.custom_data_elements.size).to eq(2)
         # Old records should remain, with updated timestamps

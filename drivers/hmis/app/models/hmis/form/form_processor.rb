@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Stores the actual data that was collected during an assessment. 1:1 with CustomAssessments.
+#   If the assessment is WIP: The data is stored exclusively as JSON blobs in the "values”/”hud_values" cols.
+#   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
 
@@ -98,12 +101,27 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
-    # The enrollment has already been created, so we can just return it
     @enrollment_factory ||= case owner
     when Hmis::Hud::CustomAssessment
       owner.enrollment
     when Hmis::Hud::Enrollment
       owner
+    end
+  end
+
+  def client_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
+    @client_factory ||= case owner
+    when Hmis::Hud::Client
+      owner
+    when Hmis::Hud::Enrollment
+      # An 'enrollment form' can create a new client.
+      # If building a new client, we need to set personal ID here
+      # (rather than in ensure_id validation hook) so that it gets set
+      # correctly as the Enrollment.personal_id too.
+      owner.client || owner.build_client(personal_id: Hmis::Hud::Base.generate_uuid)
+    when Hmis::Hud::CustomAssessment
+      # An assessment can modify the client that it's associated with
+      owner.client
     end
   end
 
@@ -260,6 +278,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
+      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
+      Event: Hmis::Hud::Processors::CeEventProcessor,
     }.freeze
   end
 

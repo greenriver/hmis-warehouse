@@ -64,7 +64,7 @@ module Mutations
       form_processor.run!(owner: record, user: current_user)
 
       # Validate record
-      is_valid = record.valid?
+      is_valid = record.valid?(:form_submission)
 
       # Collect validations and warnings from AR Validator classes
       record_validations = form_processor.collect_record_validations(user: current_user)
@@ -78,13 +78,19 @@ module Mutations
         # Perform any side effects
         perform_side_effects(record)
 
-        if record.is_a? Hmis::Hud::HmisService
+        case record
+        when Hmis::Hud::HmisService
           record.owner.save! # Save the actual service record
           record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
-        elsif record.is_a? HmisExternalApis::AcHmis::ReferralRequest
+        when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
-        elsif record.is_a? Hmis::Hud::Enrollment
-          record.save_in_progress
+        when Hmis::Hud::Enrollment
+          record.client.save! if record.client.changed? # Enrollment form may create or update client
+          if record.new_record? || record.in_progress?
+            record.save_in_progress
+          else
+            record.save!
+          end
         else
           record.save!
           record.touch
@@ -163,6 +169,10 @@ module Mutations
         [project, klass.new({ project_id: project&.id })]
       when 'Hmis::File'
         [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
+      when 'Hmis::Hud::Assessment'
+        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
+      when 'Hmis::Hud::Event'
+        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       else
         raise "No permission base specified for creating a new record of type #{klass.name}"
       end

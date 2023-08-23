@@ -15,6 +15,7 @@ module HmisStructure::Enrollment
     acts_as_paranoid(column: :DateDeleted)
 
     alias_attribute :relationship_to_hoh, :RelationshipToHoH
+    alias_attribute :disabled_hoh, :DisabledHoH
   end
 
   module ClassMethods

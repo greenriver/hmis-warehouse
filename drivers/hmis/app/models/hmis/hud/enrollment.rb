@@ -24,6 +24,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # HUD services
   has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
+  has_many :bed_nights, -> { bed_nights }, **hmis_relation(:EnrollmentID, 'Service')
   # Custom services
   has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
   # All services (combined view of HUD and Custom services)
@@ -60,6 +61,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
+  validates_associated :client, on: :form_submission
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   alias_to_underscore [:EnrollmentCoC]
 
@@ -126,6 +128,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :open_including_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
   scope :open_excluding_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
+
+  scope :bed_night_on_date, ->(date) do
+    joins(:bed_nights).where(s_t[:date_provided].eq(date))
+  end
 
   def project
     super || Hmis::Hud::Project.find_by(id: wip.project_id)
@@ -218,12 +224,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def assign_unit(unit:, start_date:, user:)
+    current_occupancy = active_unit_occupancy.present? if active_unit_occupancy&.occupancy_period&.active?
+    # ignore: this enrollment is already assigned to this unit
+    return if current_occupancy.present? && current_occupancy.unit == unit
+
+    # error: this enrollment is already assigned to a different unit
+    raise 'Enrollment is already assigned to a different unit' if current_occupancy.present?
+
+    # error: the unit is occupied by someone who is NOT in this household
     occupants = unit.occupants_on(start_date)
-    return if occupants.include?(self) # already assigned, ignore
+    raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
-    raise 'Unit already assigned to another household' if occupants.where.not(household_id: household_id).present?
-
-    build_active_unit_occupancy(
+    unit_occupancies.build(
       unit: unit,
       occupancy_period_attributes: {
         start_date: start_date,

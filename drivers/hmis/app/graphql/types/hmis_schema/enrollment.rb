@@ -15,7 +15,6 @@ module Types
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasYouthEducationStatuses
     include Types::HmisSchema::HasEmploymentEducations
@@ -29,6 +28,7 @@ module Types
     available_filter_options do
       arg :status, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
       arg :open_on_date, GraphQL::Types::ISO8601Date
+      arg :bed_night_on_date, GraphQL::Types::ISO8601Date
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :search_term, String
     end
@@ -47,7 +47,6 @@ module Types
     ce_assessments_field
     income_benefits_field
     disabilities_field
-    disability_groups_field
     health_and_dvs_field
     youth_education_statuses_field
     employment_educations_field
@@ -107,6 +106,31 @@ module Types
     field :mental_health_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :physical_disability_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :alcohol_drug_use_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :insufficient_income, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :incarcerated_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    # V6
+    field :vamc_station, HmisSchema::Enums::Hud::VamcStationNumber, null: true
+    # V7
+    field :target_screen_reqd, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :time_to_housing_loss, HmisSchema::Enums::Hud::TimeToHousingLoss, null: true
+    field :annual_percent_ami, HmisSchema::Enums::Hud::AnnualPercentAMI, null: true
+    field :literal_homeless_history, HmisSchema::Enums::Hud::LiteralHomelessHistory, null: true
+    field :client_leaseholder, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :hoh_leaseholder, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :subsidy_at_risk, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :eviction_history, HmisSchema::Enums::Hud::EvictionHistory, null: true
+    field :criminal_record, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :incarcerated_adult, HmisSchema::Enums::Hud::IncarceratedAdult, null: true
+    field :prison_discharge, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :sex_offender, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :disabled_hoh, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :current_pregnant, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :single_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :dependent_under6, HmisSchema::Enums::Hud::DependentUnder6, null: true
+    field :hh5_plus, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :hp_screening_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :threshold_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
     # TODO(2024): C4 with preferred language list
     # field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     # field :preferred_language, Integer, null: true
@@ -126,10 +150,9 @@ module Types
     custom_data_elements_field
 
     field :current_unit, HmisSchema::Unit, null: true
-
     field :reminders, [HmisSchema::Reminder], null: false
-
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+    field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
     def open_enrollment_summary
       return [] unless current_user.can_view_open_enrollment_summary_for?(object)
@@ -143,6 +166,12 @@ module Types
       project = object.project
       enrollments = project.enrollments_including_wip.where(household_id: object.HouseholdID)
       Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
+    end
+
+    def last_bed_night_date
+      return unless project.project_type == 1
+
+      load_ar_association(object, :bed_nights).map(&:date_provided).max
     end
 
     def project

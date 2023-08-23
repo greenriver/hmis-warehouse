@@ -65,8 +65,6 @@ module Types
         state_picklist
       when 'GEOCODE'
         geocodes_picklist
-      when 'VAMC_STATION'
-        vamc_station_picklist
       when 'PRIOR_LIVING_SITUATION'
         living_situation_picklist(as: :prior)
       when 'ALL_SERVICE_TYPES'
@@ -88,6 +86,16 @@ module Types
       when 'ALL_UNIT_TYPES'
         # used for referrals between projects
         Hmis::UnitType.order(:description, :id).map(&:to_pick_list_option)
+      when 'CE_EVENTS'
+        # group CE event types as specified in HUD Data Dictionary
+        Types::HmisSchema::Enums::Hud::EventType.values.excluding('INVALID').
+          partition { |_k, v| [1, 2, 3, 4].include?(v.value) }.
+          map.with_index do |l, idx|
+            group = idx.zero? ? 'Access Events' : 'Referral Events'
+            l.map do |k, v|
+              { code: k, label: v.description.gsub(CODE_PATTERN, ''), group_label: group }
+            end
+          end.flatten
       end
     end
 
@@ -158,17 +166,6 @@ module Types
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
           initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
-        }
-      end
-    end
-
-    def self.vamc_station_picklist
-      Rails.cache.fetch('VAMC_STATION_OPTION_LIST', expires_in: 1.days) do
-        JSON.parse(File.read('drivers/hmis/lib/pick_list_data/vamc_stations.json'))
-      end.map do |obj|
-        {
-          code: obj['value'],
-          label: obj['text'],
         }
       end
     end
@@ -274,7 +271,7 @@ module Types
       homeless = ::HudUtility.homeless_situations(as: as).map(&to_option.call('HOMELESS', 'Homeless'))
       institutional = ::HudUtility.institutional_situations(as: as).map(&to_option.call('INSTITUTIONAL', 'Institutional'))
       temporary = ::HudUtility.temporary_and_permanent_housing_situations(as: as).map(&to_option.call('TEMPORARY_PERMANENT_OTHER', 'Temporary or Permanent'))
-      missing_reasons = ::HudUtility.other_situations(as: as).excluding(99).map(&to_option.call('MISSING', 'Other'))
+      missing_reasons = ::HudUtility.other_situations(as: as).map(&to_option.call('MISSING', 'Other'))
 
       homeless + institutional + temporary + missing_reasons
     end
@@ -338,7 +335,7 @@ module Types
 
       # Eligible units are unoccupied units, PLUS units occupied by household members
       unoccupied_units = project.units.unoccupied_on.pluck(:id)
-
+      # IDs of units that are currently assigned to members of this household
       hh_units = if household_id.present?
         hh_en_ids = project.enrollments_including_wip.where(household_id: household_id).pluck(:id)
         Hmis::UnitOccupancy.active.joins(:enrollment).where(enrollment_id: hh_en_ids).pluck(:unit_id)
@@ -346,8 +343,11 @@ module Types
         []
       end
 
-      Hmis::Unit.where(id: unoccupied_units + hh_units).
-        preload(:unit_type).
+      unit_types_assigned_to_household = Hmis::Unit.where(id: hh_units).pluck(:unit_type_id).compact.uniq
+      eligible_units = Hmis::Unit.where(id: unoccupied_units + hh_units)
+      # If some household members are assigned to units with unit types, then list should be limited to units of the same type.
+      eligible_units = eligible_units.where(unit_type_id: unit_types_assigned_to_household) if unit_types_assigned_to_household.any?
+      eligible_units.preload(:unit_type).
         order(:unit_type_id, :id).
         map do |unit|
           {

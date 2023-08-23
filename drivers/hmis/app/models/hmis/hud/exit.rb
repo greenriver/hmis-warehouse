@@ -21,4 +21,12 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::ExitValidator
+
+  def aftercare_methods
+    HudUtility2024.aftercare_method_fields.select { |k| send(k) == 1 }.values
+  end
+
+  def counseling_methods
+    HudUtility2024.counseling_method_fields.select { |k| send(k) == 1 }.values
+  end
 end

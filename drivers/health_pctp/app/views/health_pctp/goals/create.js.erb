@@ -1,0 +1,9 @@
+<% if @goal.errors.any? %>
+  $('.jGoal').replaceWith("<%=j render 'new' %>")
+  $('.jGoal .alert.alert-danger').remove()
+  $('.jGoal').prepend('<div class="alert alert-danger"><%= @goal.errors.full_messages.join(', ') %></div>')
+<% else %>
+  html = "<%= j render 'health_pctp/careplans/goals' %>"
+  $('.modal:visible .close').trigger('click')
+  $('.jGoals').replaceWith(html)
+<% end %>

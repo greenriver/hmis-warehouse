@@ -44,12 +44,9 @@ module Types
     end
 
     def client_omni_search(text_search:)
-      client_scope = Hmis::Hud::Client.searchable_to(current_user).
+      Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
-        includes(:enrollments).
-        order(qualified_column(e_t[:date_updated]))
-
-      resolve_clients(client_scope, no_sort: true)
+        sort_by_option(:recently_added)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
@@ -174,7 +171,9 @@ module Types
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
       project = Hmis::Hud::Enrollment.find_by(id: enrollment_id)&.project if enrollment_id.present?
 
-      Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record.filter_context = { project: project }
+      record
     end
 
     field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do

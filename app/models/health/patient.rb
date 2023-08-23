@@ -102,6 +102,21 @@ module Health
       merge(Health::Careplan.recent)
     end, class_name: 'Health::Careplan'
 
+    has_many :hrsn_screenings
+    has_one :recent_hrsn_screening, -> do
+      merge(Health::HrsnScreening.recent)
+    end, class_name: 'Health::HrsnScreening'
+
+    has_many :ca_assessments
+    has_one :recent_ca_assessment, -> do
+      merge(Health::CaAssessment.recent)
+    end, class_name: 'Health::CaAssessment'
+
+    has_many :pctp_careplans
+    has_one :recent_pctp_careplan, -> do
+      merge(Health::PctpCareplan.recent)
+    end, class_name: 'Health::PctpCareplan'
+
     has_many :services
     has_many :equipments
     has_many :backup_plans
@@ -206,13 +221,13 @@ module Health
 
     scope :engaged_cp_1, ->(on) do
       joins(:patient_referrals).
-        merge(Health::PatientReferral.cp_1_referrals).
+        merge(Health::PatientReferral.cp_1_referrals.current).
         cp_1_engagement(on)
     end
 
     scope :engaged_cp_2, ->(on) do
       joins(:patient_referrals).
-        merge(Health::PatientReferral.cp_2_referrals).
+        merge(Health::PatientReferral.cp_2_referrals.current).
         cp_2_engagement(on)
     end
 
@@ -291,10 +306,9 @@ module Health
     # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
     # to be approved by the patients PCP.
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
-      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
-        completed.
+      ssm_patient_id_scope = Health::HrsnScreening.distinct.
+        completed_within(..on.to_time).
         allowed_for_engagement.
-        where(completed_at: (..on.to_time)).
         select(:patient_id)
 
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
@@ -307,10 +321,10 @@ module Health
         allowed_for_engagement.
         select(:patient_id)
 
-      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
+      cha_patient_id_scope = Health::CaAssessment.distinct.
         completed.
         allowed_for_engagement.
-        where(completed_at: (..on.to_time)).
+        completed_within(..on.to_time).
         select(:patient_id)
 
       epic_cha_patient_id_scope = Health::EpicCha.distinct.
@@ -318,9 +332,9 @@ module Health
         where(cha_updated_at: (..on.to_time)).
         select(hp_t[:id].to_sql)
 
-      pctp_signed_patient_id_scope = Health::Careplan.distinct.
+      pctp_signed_patient_id_scope = Health::PctpCareplan.distinct.
         rn_approved.
-        where(rn_approved_on: (..on.to_time)).
+        reviewed_within(..on.to_time).
         select(:patient_id)
 
       where(

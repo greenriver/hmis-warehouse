@@ -17,7 +17,10 @@
       "required": false,
       "link_id": "image_blob_id",
       "text": "Image",
-      "mapping": { "field_name": "imageBlobId" }
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "imageBlobId"
+      }
     }
   ]
 }

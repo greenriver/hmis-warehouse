@@ -1,0 +1,35 @@
+- content_for :modal_title, 'Comprehensive Assessment'
+- pdf_export = ::HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport.new
+- export_data = {type: pdf_export.type, query_string: {'client_id' =>  params['client_id'], 'id' => @assessment.id}.to_query, 'url' => pdf_export.data_url}
+
+.row
+  .col
+    .mb-2
+      %dt.inline Name:
+      %dd.inline= @client.name
+    .mb-2
+      %dt.inline Date Completed:
+      %dd.inline= @assessment.completed_on || 'in progress'
+    .mb-2
+      %dt.inline Case Worker:
+      %dd.inline= @assessment.user&.name
+  - if @client.patient.current_qa_factory.ca_completed_qa.present?
+    .col.pull-right
+      CA Approved
+      .mt-4
+        %a.btn.btn-secondary.btn-sm.j-document-exports{href: "#", data: export_data}
+          %i.icon-download2
+          Download CA
+  - else
+    .col.pull-right
+      = link_to edit_client_health_comprehensive_assessment_assessment_path(@client, @assessment), class: 'btn btn-secondary btn-sm' do
+        %i.icon-pencil
+        Edit CA
+      .mt-4
+        %a.btn.btn-secondary.btn-sm.j-document-exports{href: "#", data: export_data}
+          %i.icon-download2
+          Download CA
+      .mt-4
+        = link_to client_health_comprehensive_assessment_assessment_path(@client, @assessment), method: :delete, class: 'btn btn-secondary btn-danger btn-sm', data: {confirm: "Are you sure you want to delete this CA?"} do
+          %i.icon-cross
+          Delete CA

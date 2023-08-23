@@ -10,7 +10,7 @@ module Types
   class HmisSchema::File < Types::BaseObject
     description 'File'
     field :id, ID, null: false
-    field :content_type, String, null: false
+    field :content_type, String, null: true
     field :enrollment_id, ID, null: true
     field :enrollment, Types::HmisSchema::Enrollment, null: true
     field :effective_date, GraphQL::Types::ISO8601Date, null: true
