@@ -24,6 +24,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # HUD services
   has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
+  has_many :bed_nights, -> { bed_nights }, **hmis_relation(:EnrollmentID, 'Service')
   # Custom services
   has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
   # All services (combined view of HUD and Custom services)
@@ -127,6 +128,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :open_including_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
   scope :open_excluding_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
+
+  scope :bed_night_on_date, ->(date) do
+    joins(:bed_nights).where(s_t[:date_provided].eq(date))
+  end
 
   def project
     super || Hmis::Hud::Project.find_by(id: wip.project_id)

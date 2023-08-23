@@ -26,6 +26,11 @@ module Types
       Hmis::Hud::Client.hmis_configuration(version: '2022')
     end
 
+    available_filter_options do
+      arg :project, [ID]
+      arg :organization, [ID]
+    end
+
     description 'HUD Client'
     field :id, ID, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
@@ -62,7 +67,7 @@ module Types
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    enrollments_field filter_args: { omit: [:search_term], type_name: 'EnrollmentsForClient' }
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
     income_benefits_field
     disabilities_field
     health_and_dvs_field
