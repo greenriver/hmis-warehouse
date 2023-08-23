@@ -7,12 +7,15 @@
 module HmisExternalApis::AcHmis
   class UpdateUnitAvailabilityJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
+    include NotifierConfig
 
     JOB_LOCK_NAME = 'hmis_external_update_unit_availability'.freeze
 
     # @param data_source_id [Integer]
     # @param force [Boolean]
     def perform(data_source_id:, force: false)
+      setup_notifier(self.class.name)
+
       with_locks do
         projects = Hmis::Hud::Project.where(data_source_id: data_source_id)
         projects.find_each do |project|
@@ -32,6 +35,11 @@ module HmisExternalApis::AcHmis
     end
 
     protected
+
+    def handle_alert(message)
+      Sentry.capture_message(message)
+      @notifier.ping(message)
+    end
 
     def default_user
       @default_user ||= Hmis::User.system_user
@@ -64,12 +72,11 @@ module HmisExternalApis::AcHmis
     # @param unit_type [Hmis::UnitType]
     # @param user [Hmis::User]
     def sync_project_unit_type(project:, unit_type:, user:)
-      my_name = self.class.name
       project_mper_id = mper.identify_source(project)
 
       unit_type_mper_id = mper.identify_source(unit_type)
       unless unit_type_mper_id
-        Sentry.capture_message("#{my_name} mper id not found for Hmis::UnitType##{unit_type.id}")
+        handle_alert("mper id not found for Hmis::UnitType##{unit_type.id}")
         return
       end
 
@@ -78,8 +85,7 @@ module HmisExternalApis::AcHmis
       available_units = capacity - assigned
       unless available_units.between?(0, 10_000)
         # alert and skip sync for invalid values"
-        msg = "#{my_name} unit availability out of bounds for Hmis::Hud::Project#:#{project.id}, Hmis::UnitType:#{unit_type.id}. Capacity: #{capacity}, assigned:#{assigned}"
-        Sentry.capture_message(msg)
+        handle_alert("unit availability out of bounds for Hmis::Hud::Project#:#{project.id}, Hmis::UnitType:#{unit_type.id}. Capacity: #{capacity}, assigned:#{assigned}")
         return
       end
 
