@@ -53,7 +53,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # Importers
     #
     def import_enrollment_records
-      # and easily do bulk upsert here due to dependent WIP records
+      # no way to easily bulk upsert here due to dependent WIP records
       without_paper_trail do
         build_enrollment_rows.each(&:save!)
       end
