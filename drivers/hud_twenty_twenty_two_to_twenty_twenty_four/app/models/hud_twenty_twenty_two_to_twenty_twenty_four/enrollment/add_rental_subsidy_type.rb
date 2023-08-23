@@ -18,7 +18,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Enrollment
       row['RentalSubsidyType'] = nil
 
       situation = row['LivingSituation'].to_i
-      subsidy_type = SUBSIDY_TYPES[situation].to_s
+      subsidy_type = SUBSIDY_TYPES[situation]
       return row unless subsidy_type.present?
 
       row['RentalSubsidyType'] = subsidy_type

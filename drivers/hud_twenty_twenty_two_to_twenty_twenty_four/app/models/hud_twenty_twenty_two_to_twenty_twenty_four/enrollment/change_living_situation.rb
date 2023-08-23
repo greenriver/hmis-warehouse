@@ -53,7 +53,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Enrollment
 
     def process(row)
       situation = row['LivingSituation'].to_i
-      new_situation = LIVING_SITUATIONS[situation].to_s
+      new_situation = LIVING_SITUATIONS[situation]
       return row unless new_situation.present?
 
       row['LivingSituation'] = new_situation

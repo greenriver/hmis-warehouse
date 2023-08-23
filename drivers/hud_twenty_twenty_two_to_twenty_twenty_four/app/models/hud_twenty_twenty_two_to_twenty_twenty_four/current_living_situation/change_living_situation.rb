@@ -53,7 +53,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::CurrentLivingSituation
 
     def process(row)
       situation = row['CurrentLivingSituation'].to_i
-      new_situation = LIVING_SITUATIONS[situation].to_s
+      new_situation = LIVING_SITUATIONS[situation]
       return row unless new_situation.present?
 
       row['CurrentLivingSituation'] = new_situation

@@ -19,7 +19,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Exit
       row['DestinationSubsidyType'] = nil
 
       destination = row['Destination'].to_i
-      subsidy_type = SUBSIDY_TYPES[destination].to_s
+      subsidy_type = SUBSIDY_TYPES[destination]
       return row unless subsidy_type.present?
 
       row['DestinationSubsidyType'] = subsidy_type

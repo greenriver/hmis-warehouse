@@ -53,7 +53,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Exit
 
     def process(row)
       destination = row['Destination'].to_i
-      new_destination = DESTINATIONS[destination].to_s
+      new_destination = DESTINATIONS[destination]
       return row unless new_destination.present?
 
       row['Destination'] = new_destination

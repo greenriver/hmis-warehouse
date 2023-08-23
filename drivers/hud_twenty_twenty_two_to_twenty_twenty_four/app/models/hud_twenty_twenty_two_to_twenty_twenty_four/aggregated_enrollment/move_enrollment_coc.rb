@@ -17,7 +17,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment
     private def entry_enrollment_coc(household_id)
       @entry_enrollment_coc ||= {}.tap do |h|
         reference(:enrollment_coc) do |row|
-          next unless row['DataCollectionStage'] == '1'
+          next unless row['DataCollectionStage'].to_i == 1
 
           h[row['HouseholdID']] ||= row['CoCCode']
         end
