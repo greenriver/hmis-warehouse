@@ -24,7 +24,7 @@ module AllNeighborsSystemDashboard
       end
 
       def default_project_type_codes
-        [:ph, :oph, :rrh, :psh]
+        GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
       end
 
       def project_type_ids
