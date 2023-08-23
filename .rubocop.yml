@@ -3,7 +3,6 @@ require:
   - ./lib/rubocop/cop/lint/last_keyword_argument.rb
 
 AllCops:
-  SuggestExtensions: false
   Exclude:
     - 'db/**/*'
     - 'config/*'
