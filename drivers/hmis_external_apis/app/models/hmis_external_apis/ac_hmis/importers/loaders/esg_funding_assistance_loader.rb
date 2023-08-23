@@ -60,7 +60,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           record.custom_data_elements.build(attr)
         end
         record
-      end
+      end.compact
     end
 
     def cde_attrs(row)
