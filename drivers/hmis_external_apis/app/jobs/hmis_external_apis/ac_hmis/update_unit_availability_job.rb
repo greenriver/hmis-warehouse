@@ -5,7 +5,7 @@
 ###
 
 module HmisExternalApis::AcHmis
-  class UpdateUnitAvailabilityJob < ApplicationJob
+  class UpdateUnitAvailabilityJob < BaseJob
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
     include NotifierConfig
