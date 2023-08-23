@@ -27,6 +27,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def build_records
       rows.map do |row|
+        # missing
         unit_id, enrollment_id, start_date = row.fetch_values(:unit_id, :enrollment_id, :start_date)
         record = model_class.new(unit_id: unit_id, enrollment_id: enrollment_id)
         record.build_occupancy_period(start_date: start_date || today, user_id: system_user_pk)

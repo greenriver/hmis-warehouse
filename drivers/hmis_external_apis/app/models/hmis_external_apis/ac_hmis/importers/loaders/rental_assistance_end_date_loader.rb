@@ -25,7 +25,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .to_h
       rows.map do |row|
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
-        owner_id = owner_id_by_enrollment_id.fetch(enrollment_id)
+        owner_id = owner_id_by_enrollment_id[enrollment_id]
+        unless owner_id
+          log_skipped_row(row, field: 'ENROLLMENTID')
+          next # early return
+        end
         new_cde_record(
           value: parse_date(row_value(row, field: 'RENTALASSISTANCEENDDATE')),
           definition_key: :rental_assistance_end_date,

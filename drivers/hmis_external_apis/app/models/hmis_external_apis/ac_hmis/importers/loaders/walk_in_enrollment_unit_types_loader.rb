@@ -21,7 +21,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       rows.each do |row|
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
-        enrollment_pk, project_id = pks_by_enrollment_id.fetch(enrollment_id)
+        enrollment_pk, project_id = pks_by_enrollment_id[enrollment_id]
+        unless enrollment_pk
+          log_skipped_row(row, field: 'ENROLLMENTID')
+          next # early return
+        end
         raise 'ProjectID/EnrollmentID mismatch' if project_id != row_value(row, field: 'PROJECTID')
 
         unit_type_mper_id = row_value(row, field: 'UNITTYPEID')

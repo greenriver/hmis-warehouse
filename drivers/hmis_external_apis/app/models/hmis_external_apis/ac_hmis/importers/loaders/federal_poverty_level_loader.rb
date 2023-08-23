@@ -27,7 +27,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         next if value.nil? || value == 'Data not collected'
 
         benefits_id = row_value(row, field: 'INCOMEBENEFITSID')
-        benefit_pk, enrollment_id = benefit_id_lookup.fetch(benefits_id)
+        benefit_pk, enrollment_id = benefit_id_lookup[benefits_id]
+
+        unless benefit_pk
+          log_skipped_row(row, field: 'INCOMEBENEFITSID')
+          next # early return
+        end
+
         raise 'BenefitsID/EnrollmentID mismatch' if enrollment_id != row_value(row, field: 'ENROLLMENTID')
 
         new_cde_record(

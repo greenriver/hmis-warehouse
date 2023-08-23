@@ -35,6 +35,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       rows.map do |row|
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
+        personal_id = personal_id_by_enrollment_id[enrollment_id]
+        unless personal_id
+          log_skipped_row(row, field: 'ENROLLMENTID')
+          next # early return
+        end
+
         start_date = parse_date(row_value(row, field: 'PAYMENTSTARTDATE'))
         record = model_class.new(
           EnrollmentID: enrollment_id,
@@ -45,7 +51,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           DateCreated: parse_date(row_value(row, field: 'DATECREATED')),
           DateUpdated: parse_date(row_value(row, field: 'DATEUPDATED')),
           custom_service_type_id: custom_service_type.id,
-          PersonalID: personal_id_by_enrollment_id.fetch(enrollment_id),
+          PersonalID: personal_id,
           DateProvided: start_date, # re-use payment start date
           UserID: row_value(row, field: 'USERID', required: false) || system_user_id,
           data_source_id: data_source.id,

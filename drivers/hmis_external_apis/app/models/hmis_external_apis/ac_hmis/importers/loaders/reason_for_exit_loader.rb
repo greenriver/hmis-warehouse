@@ -31,6 +31,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       rows.flat_map do |row|
         exit_id = row_value(row, field: 'ExitID')
         owner_id, enrollment_id = exit_lookup[exit_id]
+
+        unless benefit_pk
+          log_skipped_row(row, field: 'ExitID')
+          next # early return
+        end
+
         raise 'ExitID/EnrollmentID mismatch' if enrollment_id != row_value(row, field: 'EnrollmentID')
 
         ret = [

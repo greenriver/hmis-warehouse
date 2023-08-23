@@ -6,6 +6,8 @@
 
 module HmisExternalApis::AcHmis::Importers::Loaders
   class ReferralPostingsLoader < BaseLoader
+    include Hmis::Concerns::HmisArelHelper
+
     def perform
       # warning- this destroys all referrals regardless of data source
       referral_class.destroy_all if clobber
@@ -102,9 +104,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         household_member_rows_by_referral(referral_id).map do |member_row|
           entry_date = parse_date(row_value(posting_row, field: 'REFERRAL_DATE'))
           mci_id = row_value(member_row, field: 'MCI_ID')
+          personal_id = client_personal_id_by_mci_id(mci_id)
+          client_pk = client_pk_by_mci_id(mci_id)
+          next unless client_pk # skip enrollments where we can't find client
+
           enrollment = Hmis::Hud::Enrollment.new(default_attrs)
           enrollment.attributes = {
-            personal_id: mci_id,
+            personal_id: personal_id,
             entry_date: entry_date,
             household_id: household_id,
             relationship_to_hoh: relationship_to_hoh(member_row),
@@ -112,19 +118,29 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           }
           enrollment.build_wip(
             date: entry_date,
-            client_id: client_pk_by_mci_id(mci_id),
+            client_id: client_pk,
             project_id: project_pk_by_id(project_id),
           )
           enrollment
-        end
+        end.compact
       end.compact
     end
 
     def build_referral_records
       posting_rows.map do |row|
+        referral_id = row_value(posting_row, field: 'REFERRAL_ID')
+        found_household_member = household_member_rows_by_referral(referral_id).detect do |member_row|
+          mci_id = row_value(member_row, field: 'MCI_ID')
+          client_pk_by_mci_id(mci_id)
+        end
+        if found_household_member.nil?
+          log_info "#{row.context} skipping referral ID \"#{referral_id}\" - could not resolve any household member MCI IDs"
+          next
+        end
+
         referral_class.new(
           # NOTE: since the referral comes from link, the enrollment id should be NULL
-          identifier: row_value(row, field: 'REFERRAL_ID'),
+          identifier: referral_id,
           referral_date: parse_date(row_value(row, field: 'REFERRAL_DATE')),
           service_coordinator: row_value(row, field: 'SERVICE_COORDINATOR'),
           referral_notes: row_value(row, field: 'REFERRAL_NOTES', required: false),
@@ -147,6 +163,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           project_id = row_value(posting_row, field: 'PROGRAM_ID')
           mci_id = row_value(member_row, field: 'MCI_ID')
           enrollment_pk = client_enrollment_pk(mci_id, project_id)
+          next unless enrollment_pk
+
           unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
           unit_id = assign_next_unit(
             enrollment_pk: enrollment_pk,
@@ -165,11 +183,16 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       referral_pks_by_id = referral_class.pluck(:identifier, :id).to_h
       household_member_rows.map do |row|
         mci_id = row_value(row, field: 'MCI_ID')
+        client_pk = client_pk_by_mci_id(mci_id)
+        unless client_pk
+          log_skipped_row(row, field: 'MCI_ID')
+          next # early return
+        end
         HmisExternalApis::AcHmis::ReferralHouseholdMember.new(
           referral_id: referral_pks_by_id.fetch(row_value(row, field: 'REFERRAL_ID')),
           relationship_to_hoh: relationship_to_hoh(row),
           mci_id: mci_id,
-          client_id: client_pk_by_mci_id(mci_id),
+          client_id: client_pk,
         )
       end
     end
@@ -198,6 +221,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         hoh_mci_id = row_value(hoh_member_row, field: 'MCI_ID')
         # 2) find the household_id for the project enrollment with that MCI
         household_id = referral_household_id(hoh_mci_id, project_id)
+        next unless household_id
 
         HmisExternalApis::AcHmis::ReferralPosting.new(
           referral_id: referral_pks_by_id.fetch(referral_id),
@@ -223,11 +247,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def client_enrollment_pk(mci_id, project_id)
-      ids_by_personal_id_project_id.fetch([mci_id, project_id])[0]
+      personal_id = client_personal_id_by_mci_id(mci_id)
+      key = [personal_id, project_id]
+      ids_by_personal_id_project_id.dig(key, 0)
     end
 
     def referral_household_id(mci_id, project_id)
-      ids_by_personal_id_project_id.fetch([mci_id, project_id])[1]
+      personal_id = client_personal_id_by_mci_id(mci_id)
+      key = [personal_id, project_id]
+      ids_by_personal_id_project_id.dig(key, 1)
     end
 
     def ids_by_personal_id_project_id
@@ -249,11 +277,20 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def client_pk_by_mci_id(mci_id)
-      @client_pks_by_mci_id ||= Hmis::Hud::Client
+      client_ids_by_mci_id.dig(mci_id, 0)
+    end
+
+    def client_personal_id_by_mci_id(mci_id)
+      client_ids_by_mci_id.dig(mci_id, 1)
+    end
+
+    def client_ids_by_mci_id
+      # {mci_id => [client_pk, personal_id]}
+      @client_ids_by_mci_id ||= Hmis::Hud::Client
+        .joins(:ac_hmis_mci_ids)
         .where(data_source: data_source)
-        .pluck(:personal_id, :id)
-        .to_h
-      @client_pks_by_mci_id.fetch(mci_id)
+        .pluck('external_ids.value', c_t[:id], c_t[:personal_id])
+        .to_h { |mci_id, client_pk, personal_id| [mci_id, [client_pk, personal_id]] }
     end
 
     def relationship_to_hoh(row)

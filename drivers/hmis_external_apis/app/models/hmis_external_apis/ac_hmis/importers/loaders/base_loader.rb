@@ -108,6 +108,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def ar_import(import_class, records, **args)
+      records = records.compact
       table_name = import_class.table_name
       raise "#{loader_name} unexpected empty records for #{table_name}" if records.empty?
 
@@ -150,6 +151,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # reduce clutter in debugging output, avoids logging memoized values
     def inspect
       self.class.name.to_s
+    end
+
+    def log_skipped_row(row, field:)
+      value = row_value(row, field: field)
+      log_info "#{row.context} could not resolve \"#{field}\":\"#{value}\""
     end
   end
 end
