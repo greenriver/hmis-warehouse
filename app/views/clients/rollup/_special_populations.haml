@@ -29,10 +29,10 @@
             %td= project&.name(current_user)
             %td.date-cell= h.enrollment.EntryDate
             %td= h.InformationDate
-            %td= hud_1_8 h.DomesticViolenceVictim
-            %td= hud_1_8 h.CurrentlyFleeing
-            %td= hud_1_8 h.PregnancyStatus
-            %td= hud_1_8 h.DueDate
+            %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.DomesticViolenceVictim
+            %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.CurrentlyFleeing
+            %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.PregnancyStatus
+            %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.DueDate
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
                 = link_to 'HMIS', source_datum_path(h, type: 'HealthAndDV'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

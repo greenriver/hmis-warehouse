@@ -48,6 +48,7 @@ module Export::Scopes
         if @coc_codes.present?
           e_scope = e_scope.left_outer_joins(:enrollment_coc_at_entry).
             merge(
+              # TODO: this is used in the importer, shoudl be updated once the 2022 importer is removed
               GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: Array(@coc_codes)).
               or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
               or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),

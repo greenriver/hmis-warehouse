@@ -1,6 +1,6 @@
 :ruby
   names = HudUtility2024.homeless_project_types.map do |id|
-    name = HudUtility.project_type(id)
+    name = HudUtility2024.project_type(id)
   end.sort
   items = names.map do |name|
     "<li class='list-inline-item chip-v1-prs1'>#{CGI.escapeHTML name}</li>"

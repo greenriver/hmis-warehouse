@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# FIXME: we should remove this column
 module CohortColumns
   class Ethnicity < ReadOnly
     attribute :column, String, lazy: true, default: :ethnicity

@@ -8,6 +8,7 @@ module HudConcerns::Client
   extend ActiveSupport::Concern
   included do
     def self.race_fields
+      # TODO: update when we start updating HUD reports
       ::HudUtility.races.keys
     end
 

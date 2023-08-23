@@ -32,12 +32,12 @@ module Filter::FilterScopes
     end
 
     private def filter_for_enrollment_cocs(scope)
-      scope.left_outer_joins(enrollment: :enrollment_coc_at_entry).
+      scope.left_outer_joins(:enrollment).
         # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
         merge(
-          GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @filter.coc_codes).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),
+          GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @filter.coc_codes).
+          or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
+          or(GrdaWarehouse::Hud::Enrollment.where.not(CoCCode: HudUtility2024.cocs.keys)),
         )
     end
 
@@ -154,12 +154,6 @@ module Filter::FilterScopes
 
     private def race_alternative(key)
       report_scope_source.joins(:client).where(c_t[key].eq(1))
-    end
-
-    private def filter_for_ethnicity(scope)
-      return scope unless @filter.ethnicities.present?
-
-      scope.joins(:client).where(c_t[:Ethnicity].in(@filter.ethnicities))
     end
 
     private def filter_for_veteran_status(scope)
@@ -366,7 +360,7 @@ module Filter::FilterScopes
         partition_by(:client_id, order_by: { last_date_in_program: :desc }).
         select_window(:row_number, over: :client_window, as: :row_id)
       client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.from(exits).
-        where("row_id = 1 and destination in (#{HudUtility.permanent_destinations.join(', ')})")
+        where("row_id = 1 and destination in (#{HudUtility2024.permanent_destinations.join(', ')})")
 
       scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
     end
@@ -380,7 +374,7 @@ module Filter::FilterScopes
       p_types = @project_types.presence || @filter.project_type_ids
       scope.joins(:enrollment).where(
         she_t[:computed_project_type].in(HudUtility2024.performance_reporting[:ce]).
-        and(e_t[:LivingSituation].in(HudUtility.homeless_situations(as: :prior))).
+        and(e_t[:LivingSituation].in(HudUtility2024.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(p_types)),
       )
     end
