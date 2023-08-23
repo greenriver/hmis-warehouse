@@ -10,8 +10,11 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   include AcHmisLoaderHelpers
 
   let(:ds) { create(:hmis_data_source) }
-  let(:mci_id) { Hmis::Hud::Base.generate_uuid }
-  let!(:client) { create(:hmis_hud_client, data_source: ds, personal_id: mci_id) }
+  let(:mci_id) do
+    mci_cred = create(:ac_hmis_mci_credential)
+    create :mci_external_id, source: client, remote_credential: mci_cred
+  end
+  let!(:client) { create(:hmis_hud_client, data_source: ds) }
   let(:project) { create(:hmis_hud_project, data_source: ds) }
   let(:referral_id) { Hmis::Hud::Base.generate_uuid }
   let!(:unit_type_id) do
@@ -24,11 +27,28 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
     create(:ac_hmis_mper_credential)
     ::HmisExternalApis::AcHmis::Mper.new
   end
+  # we expect the bogus referral to be skipped
+  let(:bogus_referral_id) { 'bogus_referral' }
 
   let(:base_posting_rows) do
     [
       {
         'REFERRAL_ID' => referral_id,
+        'REFERRAL_DATE' => '2022-12-01 14:00:00',
+        'SERVICE_COORDINATOR' => 'test1',
+        'REFERRAL_NOTES' => 'test2',
+        'CHRONIC' => 'No',
+        'SCORE' => '2',
+        'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
+        'POSTING_ID' => Hmis::Hud::Base.generate_uuid,
+        'PROGRAM_ID' => project.project_id,
+        'UNIT_TYPE_ID' => unit_type_id,
+        'ASSIGNED_AT' => '2022-12-01 14:00:00',
+        'STATUS_UPDATED_AT' => '2022-12-01 14:00:00',
+        'RESOURCE_COORDINATOR_NOTES' => '',
+      },
+      {
+        'REFERRAL_ID' => bogus_referral_id,
         'REFERRAL_DATE' => '2022-12-01 14:00:00',
         'SERVICE_COORDINATOR' => 'test1',
         'REFERRAL_NOTES' => 'test2',
@@ -49,7 +69,12 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
     [
       {
         'REFERRAL_ID' => referral_id,
-        'MCI_ID' => mci_id,
+        'MCI_ID' => mci_id.value,
+        'RELATIONSHIP_TO_HOH_ID' => '1',
+      },
+      {
+        'REFERRAL_ID' => bogus_referral_id,
+        'MCI_ID' => 'bogus_mci',
         'RELATIONSHIP_TO_HOH_ID' => '1',
       },
     ]

@@ -128,7 +128,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def build_referral_records
       posting_rows.map do |row|
-        referral_id = row_value(posting_row, field: 'REFERRAL_ID')
+        referral_id = row_value(row, field: 'REFERRAL_ID')
         found_household_member = household_member_rows_by_referral(referral_id).detect do |member_row|
           mci_id = row_value(member_row, field: 'MCI_ID')
           client_pk_by_mci_id(mci_id)
@@ -172,7 +172,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
           )
           unless unit_id
-            msg = "could not assign a unit for project_id: #{project_id}, mci_id: #{mci_id}, mper_unit_type_id: #{unit_type_mper_id}"
+            msg = "could not assign a unit for project_id: \"#{project_id}\", mci_id: \"#{mci_id}\", mper_unit_type_id: \"#{unit_type_mper_id}\""
             log_info("[#{member_row.context},#{posting_row.context}] #{msg}")
           end
         end
