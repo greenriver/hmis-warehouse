@@ -7,10 +7,12 @@
     %p
       %i.icon-warning
       -# TODO: START_ACL cleanup after ACL transition
-      By assigning the role
-      %b #{@admin_role_name}
-      or an Access Control containing the role
-      %b #{@admin_role_name}
+      - if @user.using_acls?
+        By assigning the access control containing the role
+        %b #{@admin_role_name}
+      - else
+        By assigning the role
+        %b #{@admin_role_name}
       to this account, you are granting the user administrative privileges.
 
   = simple_form_for [:admin, @user] do |f|

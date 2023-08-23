@@ -52,7 +52,11 @@ module Admin
     end
 
     def confirm
-      update unless adding_admin?
+      return if adding_admin?
+
+      @redirecting = true
+      update
+      redirect_to({ action: :edit }, notice: 'User updated') and return
     end
 
     def impersonate
@@ -82,14 +86,16 @@ module Admin
 
           # TODO: START_ACL remove when ACL transition complete
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
-          @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
-          @user.access_groups.not_system.
-            where.not(id: user_params[:access_group_ids]&.select(&:present?)).each do |g|
-              # Don't remove or add system groups
-              next if g.system?
+          if ! @user.using_acls?
+            @user.user_roles.where.not(role_id: user_params[:legacy_role_ids]&.select(&:present?)).destroy_all
+            @user.access_groups.not_system.
+              where.not(id: user_params[:access_group_ids]&.select(&:present?)).each do |g|
+                # Don't remove or add system groups
+                next if g.system?
 
-              g.remove(@user)
-            end
+                g.remove(@user)
+              end
+          end
           # END_ACL
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update!(user_params)
@@ -98,8 +104,10 @@ module Admin
 
           # TODO: START_ACL remove when ACL transition complete
           # Restore any health roles we previously had
-          @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
-          @user.set_viewables viewable_params
+          if ! @user.using_acls?
+            @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
+            @user.set_viewables viewable_params
+          end
           # END_ACL
         end
       rescue Exception
@@ -107,7 +115,7 @@ module Admin
         render :edit
         return
       end
-      respond_with(@user, location: edit_admin_user_path(@user))
+      respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
     end
 
     private def copy_user_groups
@@ -140,39 +148,42 @@ module Admin
     end
 
     private def adding_admin?
-      @adming_admin ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
-        adming_admin = false
+      @adding_admin ||= begin
+        adding_admin = false
         # TODO: START_ACL remove when ACL transition complete
-        existing_roles = @user.user_roles
-        unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
-          assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
-          added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
-          added_role_ids.select(&:present?).each do |id|
-            role = Role.find(id.to_i)
-            if role.administrative?
+        if @user.using_acls?
+          existing_roles = @user.roles
+          # If we don't already have a role granting an admin permission, and we're assinging some
+          # ACLs (with associated roles)
+          if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_user_group_ids.present?
+            assigned_roles = AccessControl.where(user_group_id: assigned_user_group_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
+            added_role_ids = assigned_roles - existing_roles.pluck(:id)
+            Role.where(id: added_role_ids.reject(&:blank?)).find_each do |role|
+              # If any role we're adding is administrative, make note, and present the confirmation page
+              next unless role.administrative?
+
               @admin_role_name = role.role_name
-              adming_admin = true
+              adding_admin = true
+              break
             end
           end
-        end
-        # END_ACL
+        else
+          existing_roles = @user.legacy_roles
+          if existing_roles.map(&:has_super_admin_permissions?).none?
+            assigned_roles = user_params[:legacy_role_ids]&.select(&:present?)&.map(&:to_i) || []
+            added_role_ids = assigned_roles - existing_roles.pluck(:id)
+            added_role_ids.select(&:present?).each do |id|
+              role = Role.find(id.to_i)
+              next unless role.administrative?
 
-        existing_roles = @user.roles
-        # If we don't already have a role granting an admin permission, and we're assinging some
-        # ACLs (with associated roles)
-        if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_user_group_ids.present?
-          assigned_roles = AccessControl.where(user_group_id: assigned_user_group_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
-          added_role_ids = assigned_roles - existing_roles.pluck(:id)
-          Role.where(id: added_role_ids.reject(&:blank?)).find_each do |role|
-            # If any role we're adding is administrative, make note, and present the confirmation page
-            if role.administrative?
               @admin_role_name = role.role_name
-              adming_admin = true
+              adding_admin = true
               break
             end
           end
         end
-        adming_admin
+        # END_ACL
+        adding_admin
       end
     end
 
@@ -207,7 +218,7 @@ module Admin
         :copy_form_id,
         user_group_ids: [],
         # TODO: START_ACL remove when ACL transition complete
-        role_ids: [],
+        legacy_role_ids: [],
         access_group_ids: [],
         coc_codes: [],
         # END_ACL

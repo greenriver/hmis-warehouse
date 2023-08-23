@@ -55,15 +55,16 @@
             %td
               -# TODO: START_ACL cleanup after ACL transition
               - if user.using_acls?
-                - user.roles.uniq.each do |r|
-                  .mb-1= r.name
+                - names = user.roles.map(&:name).uniq
+                - names.each do |name|
+                  .mb-1= name
               - else
-                - user.legacy_roles.uniq.each do |r|
-                  .mb-1= r.name
+                - names = user.legacy_roles.map(&:name).uniq
+                - names.each do |name|
+                  .mb-1= name
             %td
               -# TODO: START_ACL cleanup after ACL transition
-              - names = user.access_groups.general.map(&:name)
-              - names += user.access_groups.order(name: :asc).distinct.map(&:name)
+              - names = user.access_groups.general.order(name: :asc).distinct.map(&:name)
               - names.uniq.sort.each do |name|
                 .mb-1= name
             %td
@@ -71,6 +72,11 @@
               - if providers.any?
                 %div= "Sign-in provided by #{providers.to_sentence}"
               = render 'user_invitation_status', user: user
+              -# TODO: START_ACL remove after ACL transition
+              - if user.using_acls?
+                .mt-2
+                  = checkmark(true)
+                  ACLs Enabled
             %td
               - if user.invitation_status != :active || user.access_locked?
                 .mb-6
