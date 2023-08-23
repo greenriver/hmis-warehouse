@@ -89,7 +89,7 @@ module HmisExternalApis::AcHmis::Importers::Migration
         mci_id = row['MCI_ID']&.to_i&.to_s
         next unless mci_uniq_id.present? && mci_id.present?
 
-        @lookup[mci_uniq_id] = [] unless @lookup.key?(mci_uniq_id)
+        @lookup[mci_uniq_id] ||= []
         @lookup[mci_uniq_id] << mci_id if mci_id.present?
       end
 
