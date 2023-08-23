@@ -4,7 +4,10 @@
       "fragment": "#entry"
     },
     {
-      "fragment": "#prior_living_situation"
+      "fragment": "#prior_living_situation_a"
+    },
+    {
+      "fragment": "#prior_living_situation_b"
     },
     {
       "fragment": "#rhy_enrollment_entry"
