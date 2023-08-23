@@ -29,7 +29,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .to_h
       rows.flat_map do |row|
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
-        owner_id = owner_id_by_enrollment_id.fetch(enrollment_id)
+        owner_id = owner_id_by_enrollment_id[enrollment_id]
         unless owner_id
           log_skipped_row(row, field: 'ENROLLMENTID')
           next [] # early return
