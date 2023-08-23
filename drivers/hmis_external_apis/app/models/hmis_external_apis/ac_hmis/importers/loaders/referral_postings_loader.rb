@@ -243,7 +243,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     #
     def household_member_rows_by_referral(referral_id)
       @household_member_rows_by_referral ||= household_member_rows.group_by { |row| row_value(row, field: 'REFERRAL_ID') }
-      @household_member_rows_by_referral.fetch(referral_id)
+      @household_member_rows_by_referral[referral_id] || []
     end
 
     def client_enrollment_pk(mci_id, project_id)

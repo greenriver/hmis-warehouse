@@ -32,7 +32,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         exit_id = row_value(row, field: 'ExitID')
         owner_id, enrollment_id = exit_lookup[exit_id]
 
-        unless exit_id
+        unless owner_id
           log_skipped_row(row, field: 'ExitID')
           next # early return
         end

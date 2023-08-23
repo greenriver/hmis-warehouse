@@ -135,7 +135,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when
     # we have to fallback to individual inserts
     def without_paper_trail
-      enabled = PaperTrail.enabled
+      enabled = PaperTrail.enabled?
       begin
         PaperTrail.enabled = false
         yield
