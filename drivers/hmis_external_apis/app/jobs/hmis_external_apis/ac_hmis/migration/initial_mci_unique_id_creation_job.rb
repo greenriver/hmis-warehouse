@@ -5,12 +5,18 @@
 ###
 
 module HmisExternalApis::AcHmis::Migration
-  class InitialMciUniqueIdCreationJob < ApplicationJob
-    def perform
+  class InitialMciUniqueIdCreationJob < BaseJob
+    def perform(clobber: false)
+      delete_all_mci_uniq_ids! if clobber
+
       create_mci_unique_ids_from_personal_ids
     end
 
     private
+
+    def delete_all_mci_uniq_ids!
+      HmisExternalApis::ExternalId.for_clients.where(namespace: mci_uniq_namespace).delete_all
+    end
 
     # Create initial set of MCI Unique IDs based on the Personal IDs.
     # This works because the HUD CSV export we get from the AC Warehouse
@@ -27,14 +33,19 @@ module HmisExternalApis::AcHmis::Migration
       hmis_client_lookup = Hmis::Hud::Client.where(data_source_id: data_source_id).
         pluck(:id, :personal_id).to_h
 
+      skipped_personal_ids = []
+
       mci_unique_ids = hmis_client_lookup.map do |client_id, personal_id|
-        next unless personal_id.scan(/\D/).empty? # ignore non-numeric values
+        unless personal_id.scan(/\D/).empty? # ignore non-numeric values
+          skipped_personal_ids << personal_id
+          next
+        end
 
         {
           value: personal_id,
           source_type: 'Hmis::Hud::Client',
           source_id: client_id,
-          namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE,
+          namespace: mci_uniq_namespace,
           # Use the AC Data Warehouse credential as the remote credentials,
           # since that's where it originally came from. In the future when we
           # are getting MCI Unique Ids using the WarehouseChangesJob, it will
@@ -44,6 +55,13 @@ module HmisExternalApis::AcHmis::Migration
       end.compact
 
       HmisExternalApis::ExternalId.import!(mci_unique_ids, on_duplicate_key_ignore: true)
+
+      Rails.logger.info "Created #{values.size} MCI Unique IDs from Personal IDs. Skipped #{skipped_personal_ids.count} Personal IDs that were likely not MCI Unique IDs."
+      Rails.logger.info "Skipped Personal IDs: #{skipped_personal_ids.take(30)}" if skipped_personal_ids.any?
+    end
+
+    def mci_uniq_namespace
+      HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE
     end
   end
 end

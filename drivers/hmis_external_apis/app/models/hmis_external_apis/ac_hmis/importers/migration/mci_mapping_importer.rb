@@ -6,29 +6,38 @@
 
 module HmisExternalApis::AcHmis::Importers::Migration
   class MciMappingImporter
-    attr_accessor :io, :new_record_count
+    attr_accessor :io, :new_record_count, :existing_record_count, :clobber
 
-    def initialize(io:)
+    def initialize(io:, clobber: false)
       self.io = io
       self.new_record_count = 0
+      self.existing_record_count = 0
+      self.clobber = clobber
     end
 
     def run!
       make_lookup_table!
 
+      # Delete all MCI IDs
+      mci_id_scope.delete_all if clobber
+
+      # Iterate through MCI Unique IDs that (1) we have, and (2) are present in the file.
+      # For each MCI Unique ID, create mapped MCI ID(s) (unless they already exist).
       mci_unique_ids.find_each do |mci_unique_id|
-        mapped = get_matching_mci_id(client_id: mci_unique_id.source_id, mci_id: lookup[mci_unique_id.value])
+        lookup[mci_unique_id.value].each do |mci_id|
+          mapped = get_matching_mci_id(client_id: mci_unique_id.source_id, mci_id: mci_id)
+          mapped.remote_credential ||= remote_credential
 
-        log_what_happened(client_id: mci_unique_id.source_id, mapped: mapped)
+          self.new_record_count += 1 if mapped.new_record?
+          self.existing_record_count += 1 if mapped.persisted?
 
-        mapped.remote_credential ||= remote_credential
-
-        self.new_record_count += 1 if mapped.new_record?
-
-        mapped.save!
+          mapped.save!
+        end
       end
 
-      Rails.logger.info "#{self.new_record_count} records were added."
+      Rails.logger.info "#{self.new_record_count} MCI ID records were added. #{self.existing_record_count} MCI ID records already existed."
+      unmatched_mci_uniq_ids_in_file = lookup.keys - mci_unique_id_scope.pluck(:value)
+      Rails.logger.info "#{unmatched_mci_uniq_ids_in_file.size} MCI Unique IDs in the file didn't match any clients on record. #{unmatched_mci_uniq_ids_in_file.take(50)}"
     end
 
     private
@@ -37,11 +46,20 @@ module HmisExternalApis::AcHmis::Importers::Migration
       lookup
     end
 
-    def mci_unique_ids
-      result = HmisExternalApis::ExternalId
+    def mci_unique_id_scope
+      HmisExternalApis::ExternalId
         .for_clients
         .where(namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE)
-        .where(value: lookup.keys)
+    end
+
+    def mci_id_scope
+      HmisExternalApis::ExternalId
+        .for_clients
+        .where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
+    end
+
+    def mci_unique_ids
+      result = mci_unique_id_scope.where(value: lookup.keys)
 
       Rails.logger.warn("We could not find any matching MCI unique IDs. That doesn't seem right. You may need to run InitialMciUniqueIdCreationJob.") if result.none?
 
@@ -49,29 +67,13 @@ module HmisExternalApis::AcHmis::Importers::Migration
     end
 
     def get_matching_mci_id(client_id:, mci_id:)
-      HmisExternalApis::ExternalId
-        .for_clients
-        .where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
+      mci_id_scope
         .where(source_id: client_id)
         .where(value: mci_id)
         .first_or_initialize
     end
 
-    def log_what_happened(client_id:, mapped:)
-      state = mapped.persisted? ? 'existed' : 'was new'
-
-      changed_words =
-        if mapped.new_record?
-          ''
-        elsif mapped.value_changed?
-          ' Its value changed'
-        else
-          ''
-        end
-
-      Rails.logger.info "Found mapping for client ID #{client_id}, and it #{state}.#{changed_words}"
-    end
-
+    # { MCI Unique ID => Array<{ MCI ID }> }
     def lookup
       return @lookup unless @lookup.nil?
 
@@ -83,9 +85,12 @@ module HmisExternalApis::AcHmis::Importers::Migration
       parsed = sheet.parse(headers: true)
 
       parsed.each do |row|
+        mci_uniq_id = row['MCI_UNIQ_ID']&.to_i&.to_s
         mci_id = row['MCI_ID']&.to_i&.to_s
+        next unless mci_uniq_id.present? && mci_id.present?
 
-        @lookup[row['MCI_UNIQ_ID']&.to_i&.to_s] = mci_id if mci_id.present?
+        @lookup[mci_uniq_id] = [] unless @lookup.key?(mci_uniq_id)
+        @lookup[mci_uniq_id] << mci_id if mci_id.present?
       end
 
       # Feels a little safer than adding .drop(1) to the parsed array

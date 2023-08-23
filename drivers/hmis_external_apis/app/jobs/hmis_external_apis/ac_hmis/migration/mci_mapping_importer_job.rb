@@ -5,14 +5,12 @@
 ###
 
 module HmisExternalApis::AcHmis::Migration
-  class MciMappingImporterJob < ApplicationJob
-    def perform
-      HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporter.new(io: io).run!
+  class MciMappingImporterJob < BaseJob
+    def perform(clobber: false)
+      HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporter.new(io: io, clobber: clobber).run!
     end
 
-    private
-
-    def io
+    def best_import_file_key
       bucket_name =
         case Rails.env
         when 'development' then 'dev-bucket'
@@ -29,7 +27,13 @@ module HmisExternalApis::AcHmis::Migration
         raise "Could not find any files matching s3://#{bucket_name}/#{prefix}" if object.nil?
       end
 
-      aws.get_as_io(key: best_result.key)
+      best_result.key
+    end
+
+    private
+
+    def io
+      aws.get_as_io(key: best_import_file_key)
     end
   end
 end
