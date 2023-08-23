@@ -12,12 +12,12 @@ module HmisExternalApis::AcHmis
 
     JOB_LOCK_NAME = 'hmis_external_update_unit_availability'.freeze
 
-    # @param data_source_id [Integer]
     # @param force [Boolean]
-    def perform(data_source_id:, force: false)
+    def perform(force: false)
       setup_notifier(self.class.name)
 
-      projects = Hmis::Hud::Project.where(data_source_id: data_source_id)
+      data_source = HmisExternalApis::AcHmis.data_source
+      projects = Hmis::Hud::Project.where(data_source: data_source)
       with_locks do
         projects.find_each do |project|
           force_update(project) if force

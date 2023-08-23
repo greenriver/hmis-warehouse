@@ -52,9 +52,7 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
         )
         .and_return(result)
 
-      HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now(
-        data_source_id: ds1,
-      )
+      HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now
     end
   end
 end
