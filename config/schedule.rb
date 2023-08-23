@@ -168,12 +168,6 @@ tasks = [
     interruptable: true,
   },
   {
-    # No-op for environments that don't have (1) the HMIS enabled, and (2) an "MPER" credential present
-    task: 'driver:hmis_external_apis:ac_hmis:update_unit_availability',
-    frequency: 3.minutes,
-    trigger: ENV['HMIS_OKTA_CLIENT_ID'] == 'true' && ENV['RAILS_ENV'] == 'production',
-  },
-  {
     task: 'dba:dry_run',
     frequency: 1.day,
     at: '11:00am',

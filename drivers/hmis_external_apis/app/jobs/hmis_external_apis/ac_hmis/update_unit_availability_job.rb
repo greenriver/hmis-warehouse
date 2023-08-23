@@ -6,6 +6,7 @@
 
 module HmisExternalApis::AcHmis
   class UpdateUnitAvailabilityJob < ApplicationJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
     include HmisExternalApis::AcHmis::ReferralJobMixin
     include NotifierConfig
 
@@ -16,8 +17,8 @@ module HmisExternalApis::AcHmis
     def perform(data_source_id:, force: false)
       setup_notifier(self.class.name)
 
+      projects = Hmis::Hud::Project.where(data_source_id: data_source_id)
       with_locks do
-        projects = Hmis::Hud::Project.where(data_source_id: data_source_id)
         projects.find_each do |project|
           force_update(project) if force
           project.external_unit_availability_syncs.dirty.preload(:unit_type, :user).each do |sync|
@@ -32,6 +33,9 @@ module HmisExternalApis::AcHmis
           end
         end
       end
+      # If changes were tracked during processing, requeue job
+      # FIXME: this check should no longer be necessary once we move to a cron job
+      requeue_job if local_changes?(projects)
     end
 
     protected
@@ -46,10 +50,26 @@ module HmisExternalApis::AcHmis
     end
 
     def force_update(project)
-      unit_types = project.units.preload(:unit_type).map(&:unit_type).compact.uniq
-      unit_types.each do |unit_type|
-        unit_type&.track_availability(project_id: project.id, user_id: default_user.id)
+      unit_type_ids = project.units.distinct.pluck(:unit_type_id).compact
+      unit_type_ids.each do |unit_type_id|
+        HmisExternalApis::AcHmis::UnitAvailabilitySync.upsert_or_bump_version(
+          project_id: project.id,
+          user_id: default_user.id,
+          unit_type_id: unit_type_id,
+        )
       end
+    end
+
+    def requeue_job
+      HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_later
+    end
+
+    def local_changes?(projects)
+      HmisExternalApis::AcHmis::UnitAvailabilitySync
+        .joins(:project)
+        .merge(projects)
+        .dirty
+        .any?
     end
 
     def with_locks
