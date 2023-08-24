@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# TODO: START_ACL remove when ACL transition complete
 class AccessGroup < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
@@ -250,9 +249,5 @@ class AccessGroup < ApplicationRecord
       project_groups: 'GrdaWarehouse::ProjectGroup',
       cohorts: 'GrdaWarehouse::Cohort',
     }.freeze
-  end
-
-  def associated_entity_set
-    @associated_entity_set ||= group_viewable_entities.pluck(:entity_type, :entity_id).sort.to_set
   end
 end

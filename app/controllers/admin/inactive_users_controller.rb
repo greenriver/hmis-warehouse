@@ -6,7 +6,7 @@
 
 module Admin
   class InactiveUsersController < ApplicationController
-    include ViewableEntities # TODO: START_ACL remove when ACL transition complete
+    include ViewableEntities
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!

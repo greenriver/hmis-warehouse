@@ -1,5 +1,5 @@
 FactoryBot.define do
   factory :access_group do
-    sequence(:name) { |n| "Access Group #{n}" }
+    sequence(:name) { |n| "Group #{n}" }
   end
 end

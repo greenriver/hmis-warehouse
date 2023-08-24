@@ -22,7 +22,7 @@ module ClientDetailReport
 
     def service_history_source(user)
       @service_history_source ||= GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end
 
     def report_scope_source

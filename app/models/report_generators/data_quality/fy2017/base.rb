@@ -19,7 +19,7 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_filters scope:
       # Limit to only those projects the user who queued the report can see
-      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user, permission: :can_view_assigned_reports))
+      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user))
 
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
@@ -49,21 +49,17 @@ module ReportGenerators::DataQuality::Fy2017
       @report_end ||= @report.options['report_end'].to_date
       client_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(@user, permission: :can_view_assigned_reports)).
-        open_between(
-          start_date: @report_start,
-          end_date: @report_end,
-        ).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(@user)).
+        open_between(start_date: @report_start,
+          end_date: @report_end).
         joins(:client)
 
       add_filters(scope: client_scope)
     end
 
     def active_client_scope
-      all_client_scope.service_within_date_range(
-        start_date: @report_start,
-        end_date: @report_end,
-      )
+      all_client_scope.service_within_date_range(start_date: @report_start,
+        end_date: @report_end)
     end
 
     def leavers
@@ -97,10 +93,8 @@ module ReportGenerators::DataQuality::Fy2017
         client_id_scope = add_filters(scope: client_id_scope)
 
         leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ended_between(
-            start_date: @report_start,
-            end_date: @report_end + 1.days,
-          ).
+          ended_between(start_date: @report_start,
+            end_date: @report_end + 1.days).
           where.not(
             client_id: client_id_scope.
               select(:client_id).
@@ -185,7 +179,6 @@ module ReportGenerators::DataQuality::Fy2017
       @report_start ||= @report.options['report_start'].to_date
       entry_date = enrollment[:first_date_in_program]
       return enrollment[:age] if dob.blank? || entry_date > @report_start
-
       GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 
@@ -217,10 +210,9 @@ module ReportGenerators::DataQuality::Fy2017
       # Find the first queued report
       @report = ReportResult.where(
         report: report,
-        percent_complete: 0,
+        percent_complete: 0
       ).first
       return unless @report.present?
-
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)
     end
@@ -230,7 +222,7 @@ module ReportGenerators::DataQuality::Fy2017
         percent_complete: 100,
         results: @answers,
         support: @support,
-        completed_at: Time.now,
+        completed_at: Time.now
       )
     end
 
@@ -248,9 +240,8 @@ module ReportGenerators::DataQuality::Fy2017
         support: @support,
       )
     end
-
     def all_client_count
-      @all_client_count ||= @all_client_ids.size
+      count ||= @all_client_ids.size
     end
 
     def setup_age_categories(all_client_ids)
@@ -282,7 +273,6 @@ module ReportGenerators::DataQuality::Fy2017
 
       anniversary_date = Date.new(@report_end.year, date.month, date.day)
       anniversary_date = if anniversary_date > @report_end then anniversary_date - 1.year else anniversary_date end
-      anniversary_date
     end
 
 

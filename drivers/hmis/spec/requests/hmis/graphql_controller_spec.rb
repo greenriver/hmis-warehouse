@@ -29,7 +29,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-
   before(:all) do
     cleanup_test_environment
   end

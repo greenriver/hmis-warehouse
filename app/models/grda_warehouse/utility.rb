@@ -59,12 +59,8 @@ class GrdaWarehouse::Utility
       Reporting::Return,
       GrPaperTrail::Version,
       ReportResult,
-      AccessGroup, # TODO: START_ACL remove after permission transition
-      AccessGroupMember, # TODO: START_ACL remove after permission transition
-      Collection,
-      UserGroupMember,
-      UserGroup,
-      AccessControl,
+      AccessGroup,
+      AccessGroupMember,
       HudReports::ReportInstance,
       HudReports::UniverseMember,
       HudReports::ReportCell,
@@ -86,9 +82,6 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::ImportLog,
       GrdaWarehouse::GroupViewableEntity,
       GrdaWarehouse::UserViewableEntity,
-      ActiveStorage::Attachment,
-      ActiveStorage::Blob,
-      GrdaWarehouse::File,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
@@ -160,8 +153,6 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,
       GrdaWarehouse::ServiceHistoryEnrollment,
-      ActiveStorage::Attachment,
-      ActiveStorage::Blob,
     ]
     return 'CASCADE' if cascade_models.include?(model)
 

@@ -1,14 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe Admin::UsersController, type: :request do
-  let!(:user) { create(:acl_user) }
-  let!(:admin)       { create(:acl_user) }
+  let!(:user) { create(:user) }
+  let!(:admin)       { create(:user) }
   let!(:admin_role)  { create :admin_role }
-  let!(:no_data_source_collection) { create :collection }
 
   before(:each) do
     sign_in admin
-    setup_access_control(admin, admin_role, no_data_source_collection)
+    admin.roles << admin_role
   end
 
   describe 'GET edit' do

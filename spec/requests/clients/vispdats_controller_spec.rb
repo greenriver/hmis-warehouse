@@ -4,24 +4,22 @@ RSpec.describe Clients::VispdatsController, type: :request do
   # This should return the minimal set of attributes required to create a valid
   # Vispdat. As you add validations to Vispdat, be sure to
   # adjust the attributes here as well.
-  let!(:valid_attributes) { build(:vispdat).attributes }
-  let!(:warehouse_client) { create :authoritative_warehouse_client }
-  let!(:client) { warehouse_client.destination }
-  let!(:vispdat) { create(:vispdat, client: client) }
-  let!(:invalid_attributes) {}
-  let!(:no_data_source_collection) { create :collection }
+  let(:valid_attributes) { build(:vispdat).attributes }
+  let(:warehouse_client) { create :authoritative_warehouse_client }
+  let(:client) { warehouse_client.destination }
+  let(:vispdat) { create(:vispdat, client: client) }
+  let(:invalid_attributes) {}
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
   # VispdatsController. Be sure to keep this updated too.
-  let!(:valid_session) {}
+  let(:valid_session) {}
 
-  let!(:user) { create :acl_user }
-  let!(:vispdat_editor) { create :vispdat_editor, can_search_own_clients: true }
+  let(:user) { create :user }
+  let(:vispdat_editor) { create :vispdat_editor }
 
   before(:each) do
-    no_data_source_collection.set_viewables({ data_sources: GrdaWarehouse::DataSource.authoritative.pluck(:id) })
-    setup_access_control(user, vispdat_editor, no_data_source_collection)
+    user.roles << vispdat_editor
     sign_in user
   end
 
@@ -58,10 +56,6 @@ RSpec.describe Clients::VispdatsController, type: :request do
   end
 
   describe 'POST #create' do
-    before :each do
-      # we need to complete the existing one.
-      GrdaWarehouse::Vispdat::Base.update_all(submitted_at: Time.current)
-    end
     context 'with valid params' do
       it 'creates a new Vispdat' do
         expect do

@@ -3,8 +3,9 @@
     = link_to edit_data_source_path, class: 'btn btn-secondary btn-sm mb-4 mr-2' do
       %i.icon.icon-pencil
       = "Edit #{@data_source.name}"
+
 -# TEMPORARY: Allow manual uploads to HMIS data sources (PT #185835773)
-- if (!@data_source.authoritative? || @data_source.hmis?) && can_upload_hud_zips? && @data_source.directly_viewable_by?(current_user, permission: :can_upload_hud_zips)
+- if (!@data_source.authoritative? || @data_source.hmis?) && can_upload_hud_zips? && @data_source.directly_viewable_by?(current_user)
   .config-button-wrapper
     = link_to new_data_source_upload_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
       %span.icon-upload2

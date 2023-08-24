@@ -1,9 +1,9 @@
-- title = "New Collection"
+- title = "New Group"
 - content_for :title, title
 
 = content_for :crumbs do
   = link_to hmis_admin_groups_path do
-    &laquo; Manage Collections
+    &laquo; Manage Groups
 
 .o-page
   .o-page__title
@@ -16,4 +16,4 @@
         = render 'form', f: f
 
       .form_actions.mt-4
-        = f.button :submit, value: 'Create Collection'
+        = f.button :submit, value: 'Create Group'
