@@ -95,11 +95,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .pluck(:project_id, :coc_code)
         .to_h
 
+      seen = Set.new
       posting_rows.flat_map do |posting_row|
         next unless posting_status(posting_row) == accepted_pending_status
 
         project_id = row_value(posting_row, field: 'PROGRAM_ID')
         referral_id = row_value(posting_row, field: 'REFERRAL_ID')
+        next if seen.include?(referral_id)
+
+        seen.add(referral_id)
         household_id = Hmis::Hud::Base.generate_uuid
         household_member_rows_by_referral(referral_id).map do |member_row|
           entry_date = parse_date(row_value(posting_row, field: 'REFERRAL_DATE'))
@@ -127,8 +131,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def build_referral_records
+      seen = Set.new
       posting_rows.map do |row|
         referral_id = row_value(row, field: 'REFERRAL_ID')
+        next if seen.include?(referral_id)
+
+        seen.add(referral_id)
         found_household_member = household_member_rows_by_referral(referral_id).detect do |member_row|
           mci_id = row_value(member_row, field: 'MCI_ID')
           client_pk_by_mci_id(mci_id)
@@ -209,6 +217,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .pluck('external_ids.value', :id)
         .to_h
 
+      seen = Set.new
       posting_rows.map do |row|
         project_id = row_value(row, field: 'PROGRAM_ID')
         referral_id = row_value(row, field: 'REFERRAL_ID')
@@ -222,6 +231,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # 2) find the household_id for the project enrollment with that MCI
         household_id = referral_household_id(hoh_mci_id, project_id)
         next unless household_id
+
+        next if seen.include?(referral_id)
+
+        seen.add(referral_id)
 
         HmisExternalApis::AcHmis::ReferralPosting.new(
           referral_id: referral_pks_by_id.fetch(referral_id),
