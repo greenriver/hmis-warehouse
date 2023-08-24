@@ -191,9 +191,9 @@ module BostonProjectScorecard::WarehouseReports
 
     private def project_scope
       if current_user.can_view_confidential_project_names?
-        GrdaWarehouse::Hud::Project.viewable_by(current_user)
+        GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)
       else
-        GrdaWarehouse::Hud::Project.viewable_by(current_user).non_confidential
+        GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).non_confidential
       end
     end
 

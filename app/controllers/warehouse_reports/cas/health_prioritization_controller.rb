@@ -17,7 +17,7 @@ module WarehouseReports::Cas
           GrdaWarehouse::ServiceHistoryEnrollment.
             service_within_date_range(start_date: @filter.start, end_date: @filter.end),
         ).merge(
-          GrdaWarehouse::Hud::Project.viewable_by(current_user).
+          GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).
             where(id: @filter.effective_project_ids),
         )
       @disabilities = client_ids_with_disability_types(@clients)
@@ -63,7 +63,7 @@ module WarehouseReports::Cas
     helper_method :filter_params
 
     private def es_project_ids
-      GrdaWarehouse::Hud::Project.viewable_by(current_user).es.pluck(:id)
+      GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).es.pluck(:id)
     end
 
     private def filter_set?
