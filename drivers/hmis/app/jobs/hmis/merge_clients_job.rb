@@ -76,7 +76,7 @@ module Hmis
       Hmis::Hud::CustomClientName.where(id: name_ids).update_all(primary: false)
 
       primary_found = false
-      clients.flat_map(&:names).each do |name|
+      clients.flat_map(&:names).sort_by(&:id).each do |name|
         client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
         custom_client_name_val = [name.first, name.middle, name.last, name.suffix]
         primary = (client_val == custom_client_name_val) && !primary_found
