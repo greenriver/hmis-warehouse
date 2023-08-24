@@ -85,7 +85,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
     let(:posting_rows) do
       base_posting_rows.each do |row|
         row['STATUS'] = 'Accepted'
-        row['ENROLLMENT_ID'] = enrollment.enrollment_id
+        row['ENROLLMENTID'] = enrollment.enrollment_id
       end
     end
 

@@ -139,7 +139,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         seen.add(referral_id)
         household_member_rows = household_member_rows_by_referral(referral_id)
         if household_member_rows.empty?
-          log_info "#{row.context} skipping referral ID \"#{referral_id}\" - has no household members. (status: #{posting_status(posting_row)})"
+          log_info "#{row.context} skipping referral ID \"#{referral_id}\" - has no household members. (status: #{posting_status(row)})"
           next
         end
         found_household_member = household_member_rows.detect do |member_row|
@@ -147,7 +147,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           client_pk_by_mci_id(mci_id)
         end
         if found_household_member.nil?
-          log_info "#{row.context} skipping referral ID \"#{referral_id}\" - could not resolve any household member MCI IDs. (status: #{posting_status(posting_row)})"
+          log_info "#{row.context} skipping referral ID \"#{referral_id}\" - could not resolve any household member MCI IDs. (status: #{posting_status(row)})"
           next
         end
 
