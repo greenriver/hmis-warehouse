@@ -138,7 +138,8 @@ module AllNeighborsSystemDashboard
 
       def render_xlsx
         ApplicationController.render(
-          template: 'all_neighbors_system_dashboard/warehouse_reports/reports/show.xlsx.axlsx',
+          template: 'all_neighbors_system_dashboard/warehouse_reports/reports/sheet',
+          formats: [:xlsx],
           assigns: {
             sheets: sheets,
           },
