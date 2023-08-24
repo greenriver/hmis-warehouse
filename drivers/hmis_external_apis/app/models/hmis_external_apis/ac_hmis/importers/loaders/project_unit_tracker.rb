@@ -38,7 +38,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def assign_next_unit(enrollment_pk:, unit_type_mper_id:, fallback_start_date: nil)
       raise 'missing enrollment' if enrollment_pk.nil?
-      return if assignments[enrollment_pk] || unit_type_mper_id.blank?
+      return assignments[enrollment_pk][:unit_id] if assignments[enrollment_pk].present?
+      return if unit_type_mper_id.blank?
 
       unit_pk = unit_pk_for_enrollment_pk(enrollment_pk, unit_type_mper_id)
       return unless unit_pk
@@ -54,14 +55,19 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def assign_specific_unit(enrollment_pk:, unit_id:, fallback_start_date: nil)
       raise 'missing enrollment' if enrollment_pk.nil?
       raise 'missing unit' if unit_id.nil?
-      return if assignments[enrollment_pk]
+
+      if assignments[enrollment_pk].present?
+        return unit_id if assignments[enrollment_pk][:unit_id] == unit_id
+
+        raise 'already assigned to a different unit'
+      end
 
       assignments[enrollment_pk] ||= {
         unit_id: unit_id,
         enrollment_id: enrollment_pk,
         start_date: @enrollment_entry_dates[enrollment_pk] || fallback_start_date,
       }
-      unit_pk
+      unit_id
     end
 
     protected
@@ -75,9 +81,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def enrollment_scope
-      Hmis::Hud::Enrollment
-        .open_including_wip
-        .where(data_source: data_source)
+      # .open_including_wip
+      # include exited enrollments in the scope because they happen to be coming up
+      # its fine to assign to exited enrollments, the assignment will have an end date equal to the exit date
+      Hmis::Hud::Enrollment.where(data_source: data_source)
     end
   end
 end

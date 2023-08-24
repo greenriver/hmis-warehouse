@@ -184,10 +184,14 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         next unless posting_status(posting_row) == accepted_status
 
         # expect enrollment_id to be populated on accepted enrollments
-        enrollment_id = row_value(posting_row, field: 'ENROLLMENT_ID')
+        enrollment_id = row_value(posting_row, field: 'ENROLLMENTID', required: false)
+        unless enrollment_id.present?
+          log_info("#{posting_row.context} ENROLLMENTID missing from Accepted referral")
+          next
+        end
         enrollment_pk = enrollment_pk_by_id[enrollment_id]
         unless enrollment_pk
-          log_skipped_row(posting_row, field: 'ENROLLMENT_ID')
+          log_skipped_row(posting_row, field: 'ENROLLMENTID')
           next
         end
         household_id = enrollment_household_id_by_id[enrollment_id]
@@ -211,7 +215,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           )
         end
 
-        assigned_units[household_id] = unit_id
+        assigned_units[household_id] = unit_id if unit_id.present?
 
         unless unit_id
           msg = "could not assign a unit for enrollment_id: \"#{enrollment_id}\", mper_unit_type_id: \"#{unit_type_mper_id}\""
@@ -229,8 +233,14 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           log_skipped_row(row, field: 'MCI_ID')
           next # early return
         end
+        referral_identifier = row_value(row, field: 'REFERRAL_ID')
+        referral_id = referral_pks_by_id[referral_identifier]
+        if referral_id.nil?
+          log_skipped_row(row, field: 'REFERRAL_ID')
+          next
+        end
         HmisExternalApis::AcHmis::ReferralHouseholdMember.new(
-          referral_id: referral_pks_by_id.fetch(row_value(row, field: 'REFERRAL_ID')),
+          referral_id: referral_id,
           relationship_to_hoh: relationship_to_hoh(row),
           mci_id: mci_id,
           client_id: client_pk,
@@ -239,6 +249,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def build_posting_records
+      accepted_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_status')
+      accepted_pending_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
+
       referral_pks_by_id = referral_class.pluck(:identifier, :id).to_h
       projects_pks_by_id = Hmis::Hud::Project
         .where(data_source: data_source)
@@ -261,16 +274,25 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           row_value(mr, field: 'RELATIONSHIP_TO_HOH_ID') == '1'
         end
         if hoh_member_row.nil?
-          log_info "Skipping Referral #{referral_id} - no HoH"
+          log_info "#{row.context} Skipping Referral #{referral_id} - no HoH"
           next
         end
         hoh_mci_id = row_value(hoh_member_row, field: 'MCI_ID')
         # 2) find the household_id for the project enrollment with that MCI
         household_id = referral_household_id(hoh_mci_id, project_id)
-        next unless household_id
+        # Household must be present for Accepted and Accepted Pending postings
+        status = posting_status(row)
+        if household_id.nil? && [accepted_status, accepted_pending_status].include?(status)
+          log_info "#{row.context} No enrollments match Referral #{referral_id} with status #{status}. Skipping"
+          next
+        end
 
         next if seen.include?(referral_id)
 
+        unless referral_pks_by_id.key?(referral_id)
+          log_info "#{row.context} Skipping posting for referral #{referral_id} because the referral didn't get created."
+          next
+        end
         seen.add(referral_id)
 
         HmisExternalApis::AcHmis::ReferralPosting.new(
@@ -283,7 +305,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           resource_coordinator_notes: row_value(row, field: 'RESOURCE_COORDINATOR_NOTES', required: false),
           HouseholdID: household_id,
           status_updated_at: parse_date(row_value(row, field: 'STATUS_UPDATED_AT')),
-          created_at: parse_date(row_value(row, field: 'ASSIGNED_AT')),
+          # Assigned should be required, but its missing from some rows. Fall back to status updated date.
+          created_at: parse_date(row_value(row, field: 'ASSIGNED_AT', required: false) || row_value(row, field: 'STATUS_UPDATED_AT')),
         )
       end
     end
