@@ -53,8 +53,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     # note: it would be cleaner for this method to live in CsvFileRowWrapper
     def row_value(row, field:, required: true)
+      raise "row is nil. looking for field '#{field}' #{caller.inspect}" if row.nil?
+
       value = row[field]&.strip&.presence
-      raise "field '#{field}' is missing from row: #{row.to_h.inspect}" if required && !value
+      raise "field '#{field}' is missing from row: #{row.to_h.inspect} caller: #{caller.inspect}" if required && !value
 
       value
     end
