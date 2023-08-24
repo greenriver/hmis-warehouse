@@ -133,7 +133,7 @@ module AllNeighborsSystemDashboard
       end
 
       def attach_rendered_xlsx
-        result_file.attach(filename: "Report #{id}.xlsx", io: StringIO.new(render_xlsx))
+        result_file.attach(filename: "All Neighbors System Dashboard #{id}.xlsx", io: StringIO.new(render_xlsx))
       end
 
       def render_xlsx
