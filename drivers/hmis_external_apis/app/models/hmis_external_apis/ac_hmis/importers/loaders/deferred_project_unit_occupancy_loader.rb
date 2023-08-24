@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       enrollments = Hmis::Hud::Enrollment.where(data_source: data_source)
       scoped_records = model_class.where(enrollment_id: enrollments.select(:id))
       # destroy all existing records
-      scoped_records.destroy_all if clobber
+      scoped_records.each(&:really_destroy!) if clobber
       ar_import(model_class, build_records, recursive: true)
     end
 
