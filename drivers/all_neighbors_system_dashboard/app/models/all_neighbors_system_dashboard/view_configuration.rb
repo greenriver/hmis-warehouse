@@ -24,6 +24,7 @@ module AllNeighborsSystemDashboard
       end
 
       def default_project_type_codes
+        # TODO: Update for 2024 changes
         GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
       end
 
