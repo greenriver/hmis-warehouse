@@ -1,33 +1,35 @@
-- content_for :title, 'HMIS Collection Administration'
+- content_for :title, 'HMIS Group Administration'
 %h1= content_for :title
 = render 'hmis_admin/tabs', active_tab: :groups
 
 .alert.alert-info
   %i.icon-warning.mr-4
-  %p Collections are be used to aggregate sets of data.  Access to this data is then governed through Access Controls where Collections are combined with Roles and User Groups.
+  %p Groups can be used to assign access to particular sets of data.  To grant data access to users, they must be used in combination with Access Control Lists.
 .text-right
   = link_to new_hmis_admin_group_path, class: 'btn btn-primary mb-2' do
     %span.icon-plus
-    Add Collection
+    Add a Group
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'group'
   .table-responsive
     %table.table.table-striped
       %thead
         %tr
-          %th Collection Name
-          %th Collection Access
+          %th Group Name
+          %th Group Access
+          %th.text-center Assigned Users
           %th
       %tbody
         - @groups.each do |group|
           %tr
             %td= link_to group.name, edit_hmis_admin_group_path(group)
             %td= group.summary_descriptions.join(', ')
+            %td.text-center= group.users.count
             %td
-              - unless group.access_controls.count.positive?
+              - unless group.users.count.positive?
                 = link_to hmis_admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
                   %span.icon-cross
                   Delete
-  = render 'common/pagination_bottom', item_name: 'collection'
+  = render 'common/pagination_bottom', item_name: 'group'
 - else
-  .none-found No collections found.
+  .none-found No groups found.

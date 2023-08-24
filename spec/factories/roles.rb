@@ -8,7 +8,6 @@ FactoryBot.define do
     verb { nil }
     can_view_clients { true }
     can_edit_clients { true }
-    can_search_own_clients { true }
     can_view_all_reports { true }
     can_view_assigned_reports { true }
     can_assign_reports { true }
@@ -57,8 +56,7 @@ FactoryBot.define do
   factory :vispdat_viewer, class: 'Role' do
     name { 'vispdat viewer' }
     can_view_vspdat { true }
-    can_search_window { true } # TODO: START_ACL remove after ACL migration
-    can_search_own_clients { true }
+    can_search_window { true }
   end
 
   factory :vispdat_editor, class: 'Role' do
@@ -66,21 +64,18 @@ FactoryBot.define do
     can_view_vspdat { true }
     can_edit_vspdat { true }
     can_view_clients { true }
-    can_search_window { true } # TODO: START_ACL remove after ACL migration
-    can_search_own_clients { true }
+    can_search_window { true }
   end
 
   factory :cohort_manager, class: 'Role' do
     name { 'cohort manager' }
     can_configure_cohorts { true }
     can_manage_cohort_data { true }
-    can_view_cohorts { true }
   end
 
   factory :cohort_client_editor, class: 'Role' do
     name { 'cohort client editor' }
     can_participate_in_cohorts { true }
-    can_view_cohorts { true }
   end
 
   factory :cohort_client_viewer, class: 'Role' do
@@ -91,7 +86,6 @@ FactoryBot.define do
   factory :report_viewer, class: 'Role' do
     name { 'report viewer' }
     can_view_all_reports { true }
-    can_view_assigned_reports { true }
   end
 
   factory :assigned_report_viewer, class: 'Role' do
@@ -99,12 +93,10 @@ FactoryBot.define do
     can_view_assigned_reports { true }
   end
 
-  # TODO: START_ACL remove after ACL migration
   factory :assigned_ds_viewer, class: 'Role' do
     name { 'ds viewer' }
     can_see_clients_in_window_for_assigned_data_sources { true }
   end
-  # END_ACL
 
   factory :secure_file_recipient, class: 'Role' do
     name { 'secure file recipient' }
@@ -124,42 +116,31 @@ FactoryBot.define do
   factory :can_view_youth_intake, class: 'Role' do
     name { 'can view youth intake' }
     can_view_youth_intake { true }
-    can_search_window { true } # TODO: START_ACL remove after ACL migration
-    can_search_own_clients { true }
+    can_search_window { true }
   end
 
   factory :can_view_own_agency_youth_intake, class: 'Role' do
     name { 'can view own agency youth intake' }
     can_view_own_agency_youth_intake { true }
-    can_search_window { true } # TODO: START_ACL remove after ACL migration
-    can_search_own_clients { true }
+    can_search_window { true }
   end
 
   factory :can_edit_own_agency_youth_intake, class: 'Role' do
     name { 'can edit own agency youth intake' }
     can_edit_own_agency_youth_intake { true }
-    can_search_window { true } # TODO: START_ACL remove after ACL migration
-    can_search_own_clients { true }
+    can_search_window { true }
     can_view_clients { true }
   end
 
   factory :can_create_clients, class: 'Role' do
     name { 'can create clients' }
     can_create_clients { true }
-    can_search_window { true } # TODO: START_ACL remove after ACL migration
-    can_search_own_clients { true }
+    can_search_window { true }
   end
 
-  # TODO: START_ACL remove after ACL migration
   factory :can_search_window, class: 'Role' do
     name { 'can search window' }
     can_search_window { true }
-  end
-  # END_ACL
-
-  factory :can_search_own_clients, class: 'Role' do
-    name { 'can search window' }
-    can_search_own_clients { true }
   end
 
   factory :can_edit_clients, class: 'Role' do

@@ -28,7 +28,7 @@ RSpec.describe SourceClientsController, type: :request do
   end
 
   describe 'logged in, but can\'t create clients' do
-    let(:user) { create :acl_user }
+    let(:user) { create :user }
 
     it 'doesn\'t allow edit' do
       sign_in user
@@ -57,16 +57,7 @@ RSpec.describe SourceClientsController, type: :request do
 
   describe 'logged in, and can create clients' do
     let(:role) { create :can_create_clients }
-    let(:user) { create :acl_user }
-    let!(:empty_collection) { create :collection }
-
-    before do
-      setup_access_control(user, role, empty_collection)
-    end
-
-    before do
-      user.legacy_roles = [role]
-    end
+    let(:user) { create :user, roles: [role] }
 
     it 'allows edit' do
       sign_in user

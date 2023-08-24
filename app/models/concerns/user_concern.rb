@@ -14,7 +14,7 @@ module UserConcern
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
 
-    attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
+    attr_accessor :remember_device, :device_name, :client_access_arbiter
 
     # Include default devise modules. Others available are:
     devise :invitable,
@@ -42,10 +42,8 @@ module UserConcern
     # Connect users to login attempts
     has_many :login_activities, as: :user
 
-    # TODO: START_ACL remove when ACL transition complete
     # Ensure that users have a user-specific access group
     after_save :create_access_group
-    # END_ACL
 
     validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: { maximum: 250 }, on: :update
     validate :password_cannot_be_sequential, on: :update
@@ -54,10 +52,8 @@ module UserConcern
     validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
     validates :agency_id, presence: true
 
-    # TODO: START_ACL remove when ACL transition complete
     has_many :access_group_members, dependent: :destroy, inverse_of: :user
     has_many :access_groups, through: :access_group_members
-    # END_ACL
 
     has_many :user_clients, class_name: 'GrdaWarehouse::UserClient'
     has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
@@ -76,7 +72,7 @@ module UserConcern
     belongs_to :agency, optional: true
 
     scope :diet, -> do
-      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes', 'deprecated_provider', 'deprecated_provider_raw_info', 'deprecated_uid', 'deprecated_agency', 'deprecated_provider_set_at'].map { |c| arel_table[c].to_sql }))
+      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes', 'deprecated_provider', 'deprecated_provider_raw_info']))
     end
 
     scope :receives_file_notifications, -> do
@@ -129,11 +125,6 @@ module UserConcern
     scope :has_recent_activity, -> do
       where(last_activity_at: timeout_in.ago..Time.current).
         where.not(unique_session_id: nil)
-    end
-
-    def using_acls?
-      # Note using hash syntax to get around lack of column for some data migrations
-      self[:permission_context].to_s == 'acls'
     end
 
     # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
@@ -246,7 +237,7 @@ module UserConcern
     end
 
     def my_root_path
-      return clients_path if GrdaWarehouse::Config.client_search_available? && can_search_own_clients?
+      return clients_path if GrdaWarehouse::Config.client_search_available? && can_access_some_client_search?
       return warehouse_reports_path if can_view_any_reports?
       return censuses_path if can_view_censuses?
 
@@ -352,23 +343,21 @@ module UserConcern
     end
 
     def self.setup_system_user
-      user = find_by(email: 'noreply@greenriver.com')
+      user = User.find_by(email: 'noreply@greenriver.com')
       return user if user.present?
 
-      user = only_deleted.find_by(email: 'noreply@greenriver.com')
-      user&.restore
-      return user if user.present?
-
-      invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
+      user = User.with_deleted.find_by(email: 'noreply@greenriver.com')
+      user.restore if user.present?
+      user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
         u.skip_invitation = true
       end
+      user
     end
 
     def self.system_user
-      # Test environments really don't like caching this
-      return setup_system_user if Rails.env.test?
-
-      @system_user ||= setup_system_user
+      Rails.cache.fetch('system_user', expires_in: 4.hours) do
+        setup_system_user
+      end
     end
 
     def system_user?
@@ -387,7 +376,6 @@ module UserConcern
       expired?
     end
 
-    # TODO: START_ACL remove when ACL transition complete
     def data_sources
       viewable GrdaWarehouse::DataSource
     end
@@ -454,19 +442,12 @@ module UserConcern
         end
       end
     end
-    # END_ACL
 
     # Within the context of a client enrollment, what projects can this user see
     # Note this differs from Project.viewable_by because they may not have access to the actual project
     def visible_project_ids_enrollment_context
-      # TODO: START_ACL cleanup after ACL migration is complete
-      @visible_project_ids_enrollment_context ||= if using_acls?
-        GrdaWarehouse::Hud::Project.viewable_by(self, permission: :can_view_clients).pluck(:id)
-      else
-        GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id) |
-          GrdaWarehouse::DataSource.visible_in_window_for_cohorts_to(self).joins(:projects).pluck(p_t[:id])
-      end
-      # END_ACL
+      @visible_project_ids_enrollment_context ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id) |
+        GrdaWarehouse::DataSource.visible_in_window_for_cohorts_to(self).joins(:projects).pluck(p_t[:id])
     end
 
     def visible_projects_by_id
@@ -475,14 +456,14 @@ module UserConcern
 
     # inverse of GrdaWarehouse::Hud::Project.viewable_by(user)
     def viewable_project_ids
-      @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self, permission: :can_view_projects).pluck(:id)
+      @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
     end
 
     private def cached_viewable_project_ids(force_calculation: false)
       key = [self.class.name, __method__, id]
       Rails.cache.delete(key) if force_calculation
       Rails.cache.fetch(key, expires_in: 1.minutes) do
-        GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all, permission: :can_view_projects).pluck(:id).to_set
+        GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all).pluck(:id).to_set
       end
     end
 
@@ -513,7 +494,6 @@ module UserConcern
       Health::Patient.where(care_coordinator_id: id)
     end
 
-    # TODO: START_ACL remove after ACL migration is complete
     private def create_access_group
       group = AccessGroup.for_user(self).first_or_create
       group.access_group_members.where(user_id: id).first_or_create
@@ -537,27 +517,18 @@ module UserConcern
       cached_viewable_project_ids(force_calculation: true)
       coc_codes(force_calculation: true)
     end
-    # END_ACL
 
     def coc_codes(force_calculation: false)
       key = [self.class.name, __method__, id]
       Rails.cache.delete(key) if force_calculation
       Rails.cache.fetch(key, expires_in: 1.minutes) do
-        # TODO: START_ACL cleanup after ACL migration is complete
-        if using_acls?
-          collections.flat_map(&:coc_codes).reject(&:blank?).uniq
-        else
-          (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).reject(&:blank?).uniq
-        end
-        # END_ACL
+        (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact.uniq
       end
     end
 
-    # TODO: START_ACL remove after ACL migration is complete
     def coc_codes=(codes)
       access_group.update(coc_codes: codes)
     end
-    # END_ACL
 
     def admin_dashboard_landing_path
       return admin_users_path if can_edit_users?

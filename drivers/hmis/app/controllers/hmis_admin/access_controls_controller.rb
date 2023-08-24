@@ -17,28 +17,28 @@ class HmisAdmin::AccessControlsController < ApplicationController
   end
 
   def new
-    @access_control = access_control_scope.new
+    @acl = access_control_scope.new
   end
 
   def create
-    @access_control = access_control_scope.new
-    @access_control.update(access_control_params)
-    @access_control.save
-    respond_with(@access_control, location: hmis_admin_access_controls_path)
+    @acl = access_control_scope.new
+    @acl.update(access_control_params)
+    @acl.save
+    respond_with(@acl, location: hmis_admin_access_controls_path)
   end
 
   def edit
   end
 
   def update
-    @access_control.update(access_control_params)
-    @access_control.save
+    @acl.update(access_control_params)
+    @acl.save
 
     redirect_to({ action: :index }, notice: 'Access Control List updated.')
   end
 
   def destroy
-    @access_control.destroy
+    @acl.destroy
     redirect_to({ action: :index }, notice: 'Access Control List removed.')
   end
 
@@ -54,8 +54,8 @@ class HmisAdmin::AccessControlsController < ApplicationController
   end
 
   private def set_access_control
-    @access_control = access_control_scope.find(params[:id].to_i)
+    @acl = access_control_scope.find(params[:id].to_i)
     # Set a name to be used by the user_members_table partial
-    @access_control.define_singleton_method(:name) { "Access Control List #{id}" }
+    @acl.define_singleton_method(:name) { "Access Control List #{id}" }
   end
 end

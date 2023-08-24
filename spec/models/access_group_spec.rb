@@ -1,4 +1,3 @@
-# TODO: START_ACL remove after ACL migration
 require 'rails_helper'
 
 RSpec.describe AccessGroup, type: :model do
@@ -42,4 +41,3 @@ RSpec.describe AccessGroup, type: :model do
     end
   end
 end
-# END_ACL

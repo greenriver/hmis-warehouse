@@ -6,7 +6,7 @@
 
 class Users::InvitationsController < Devise::InvitationsController
   prepend_before_action :require_can_edit_users!, only: [:new, :create]
-  include ViewableEntities # TODO: START_ACL remove when ACL transition complete
+  include ViewableEntities
 
   # GET /resource/invitation/new
   def new
@@ -30,9 +30,7 @@ class Users::InvitationsController < Devise::InvitationsController
 
     @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?
     @user = User.invite!(invite_params, current_user)
-    @user&.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h) # TODO: START_ACL remove when ACL transition complete
-    # if we have a user to copy user groups from, add them
-    copy_user_groups
+    @user&.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h)
 
     if resource.errors.empty?
       set_flash_message :notice, :send_instructions, email: resource.email if is_flashing_format? && resource.invitation_sent_at
@@ -40,18 +38,6 @@ class Users::InvitationsController < Devise::InvitationsController
     else
       @agencies = Agency.order(:name)
       render :new
-    end
-  end
-
-  private def copy_user_groups
-    return unless @user
-    return unless invite_params[:copy_form_id].present?
-
-    source_user = User.active.not_system.find(invite_params[:copy_form_id].to_i)
-    return unless source_user
-
-    source_user.user_groups.each do |group|
-      group.add(@user)
     end
   end
 
@@ -85,18 +71,13 @@ class Users::InvitationsController < Devise::InvitationsController
       :notify_on_client_added,
       :notify_on_anomaly_identified,
       :expired_at,
-      :copy_form_id,
-      access_control_ids: [],
-      # TODO: START_ACL remove when ACL transition complete
       role_ids: [],
       access_group_ids: [],
       coc_codes: [],
-      # END_ACL
       contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
     )
   end
 
-  # TODO: START_ACL remove when ACL transition complete
   def viewable_params
     params.require(:user).permit(
       data_sources: [],
@@ -107,7 +88,6 @@ class Users::InvitationsController < Devise::InvitationsController
       project_groups: [],
     )
   end
-  # END_ACL
 
   def confirmation_params
     params.require(:user).permit(
@@ -115,37 +95,15 @@ class Users::InvitationsController < Devise::InvitationsController
     )
   end
 
-  private def assigned_acl_ids
-    invite_params[:access_control_ids]&.reject(&:blank?)&.map(&:to_i) || []
-  end
-
-  private def creating_admin?
-    @creating_admin ||= begin
-      adming_admin = false
-      # If we don't already have a role granting an admin permission, and we're assinging some
-      # ACLs (with associated roles)
-      if assigned_acl_ids.present?
-        assigned_roles = AccessControl.where(id: assigned_acl_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
-        Role.where(id: assigned_roles).find_each do |role|
-          # If any role we're adding is administrative, make note, and present the confirmation page
-          if role.administrative?
-            @admin_role_name = role.role_name
-            adming_admin = true
-            break
-          end
-        end
+  def creating_admin?
+    role_ids = invite_params[:role_ids]&.select { |v| v.present? }&.map(&:to_i) || []
+    role_ids.each do |id|
+      role = Role.find(id)
+      if role.administrative?
+        @admin_role_name = role.name.humanize
+        return true
       end
-      # TODO: START_ACL remove when ACL transition complete
-      role_ids = invite_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
-      role_ids.each do |id|
-        role = Role.find(id)
-        if role.administrative?
-          @admin_role_name = role.name.humanize
-          adming_admin = true
-        end
-      end
-      # END_ACL
-      adming_admin
     end
+    false
   end
 end
