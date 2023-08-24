@@ -8,7 +8,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Client
   class UpdateRaceAndEthnicity
     def process(row)
       row['HispanicLatinaeo'] = row['Ethnicity'] == 1 ? 1 : 0 # 8/9/99 all convert to 0
-      # row['RaceNone'] = nil if row['HispanicLatinaeo'] == 1 # Force clearing of RaceNone if we set HispanicLatinaeo
+      row['RaceNone'] = nil if row['HispanicLatinaeo'] == 1 # Force clearing of RaceNone if we set HispanicLatinaeo
 
       # Added fields
       row['MidEastNAfrican'] = 0
