@@ -56,7 +56,7 @@ module HmisExternalApis::AcHmis::Migration
 
       HmisExternalApis::ExternalId.import!(mci_unique_ids, on_duplicate_key_ignore: true)
 
-      Rails.logger.info "Created #{values.size} MCI Unique IDs from Personal IDs. Skipped #{skipped_personal_ids.count} Personal IDs that were likely not MCI Unique IDs."
+      Rails.logger.info "Created #{mci_unique_ids.size} MCI Unique IDs from Personal IDs. Skipped #{skipped_personal_ids.count} Personal IDs that were likely not MCI Unique IDs."
       Rails.logger.info "Skipped Personal IDs: #{skipped_personal_ids.take(30)}" if skipped_personal_ids.any?
     end
 
