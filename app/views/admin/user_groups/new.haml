@@ -1,0 +1,13 @@
+- title = 'New User Group'
+- content_for :title, title
+
+= render 'breadcrumbs'
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+= simple_form_for @group, as: :user_group, url: admin_user_groups_path do |f|
+  = f.error_notification
+  = render 'form', f: f
+  .form_actions.mt-4
+    = f.button :submit, value: 'Create User Group'

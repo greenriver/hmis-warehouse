@@ -26,7 +26,7 @@
         %th User
         %th
         %th Roles
-        %th Access Groups
+        %th Collections
         - @group_associations.keys.each do |ga|
           %th= ga.to_s.humanize.titleize
       %tbody
@@ -52,18 +52,21 @@
               = link_to user_permission_report_warehouse_reports_user_path(user), data: {loads_in_pjax_modal: true}, class: 'btn btn-xs btn-primary btn-muted btn-hmis' do
                 View Details
             %td
-              - if user.roles.count == Role.count
-                All Roles
+              - if user.using_acls?
+                TODO
               - else
-                %ul
-                  - user.roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.each do |i|
-                    %li= i
+                - if user.legacy_roles.count == Role.count
+                  All Roles
+                - else
+                  %ul
+                    - user.legacy_roles.map{|r| link_to_if can_edit_roles?, r.name, edit_admin_role_path(r)}.uniq.each do |i|
+                      %li= i
             %td
-              - if user.access_groups.general.count == AccessGroup.general.count
-                All Access Groups
+              - if user.collections.general.count == Collection.general.count
+                All Collections
               - else
                 %ul
-                  - user.access_groups.map{|g| next unless g.general?; link_to_if can_edit_access_groups?, g.name, edit_admin_group_path(g)}.compact.each do |i|
+                  - user.collections.map{|g| next unless g.general?; link_to_if can_edit_collections?, g.name, edit_admin_collection_path(g)}.uniq.compact.each do |i|
                     %li= i
             - @group_associations.keys.each do |ga|
               %td

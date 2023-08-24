@@ -155,7 +155,7 @@ module WarehouseReports
     end
 
     private def project_source
-      GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)
     end
 
     private def can_see_client_details?
