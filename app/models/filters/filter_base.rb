@@ -1427,25 +1427,18 @@ module Filters
               id,
             ]
           end.to_h,
-          'Temporary and Permanent' => HudUtility2024.temporary_and_permanent_housing_situation_options(as: :prior).map do |id, title|
+          'Temporary' => HudUtility2024.temporary_housing_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
             ]
           end.to_h,
-          # TODO(2024)
-          # 'Temporary' => HudUtility2024.temporary_housing_situation_options(as: :prior).map do |id, title|
-          #   [
-          #     "#{title} (#{id})",
-          #     id,
-          #   ]
-          # end.to_h,
-          # 'Permanent' => HudUtility2024.permanent_housing_situation_options(as: :prior).map do |id, title|
-          #   [
-          #     "#{title} (#{id})",
-          #     id,
-          #   ]
-          # end.to_h,
+          'Permanent' => HudUtility2024.permanent_housing_situation_options(as: :prior).map do |id, title|
+            [
+              "#{title} (#{id})",
+              id,
+            ]
+          end.to_h,
           'Other' => HudUtility2024.other_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",

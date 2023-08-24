@@ -465,15 +465,15 @@ module HudUtility2024
   end
 
   def cocs_with_codes
-    HudUtility.cocs_with_codes
+    HudUtility2024.cocs_with_codes
   end
 
   def cocs
-    HudUtility.cocs
+    HudUtility2024.cocs
   end
 
   def cocs_in_state(state)
-    HudUtility.cocs_in_state(state)
+    HudUtility2024.cocs_in_state(state)
   end
 
   # This value indicates that the field is null if the column is non-nullable
