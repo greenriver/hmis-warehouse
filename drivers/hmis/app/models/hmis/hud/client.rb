@@ -44,7 +44,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
+  # FIXME(#185905151) add back "dependent: :destroy"
+  has_many :custom_data_elements, as: :owner
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
 
