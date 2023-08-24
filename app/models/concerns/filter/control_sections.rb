@@ -206,11 +206,6 @@ module
           short_label: 'Race',
         )
         section.add_control(
-          id: 'ethnicities',
-          value: @filter.chosen_ethnicities,
-          short_label: 'Ethnicity',
-        )
-        section.add_control(
           id: 'age_ranges',
           value: @filter.chosen_age_ranges,
           short_label: 'Age',

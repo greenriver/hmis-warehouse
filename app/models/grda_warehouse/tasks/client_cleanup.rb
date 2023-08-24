@@ -344,7 +344,6 @@ module GrdaWarehouse::Tasks
       dest_attr = choose_best_veteran_status(dest_attr, source_clients)
       dest_attr = choose_best_gender(dest_attr, source_clients)
       dest_attr = choose_best_race(dest_attr, source_clients)
-      dest_attr = choose_best_ethnicity(dest_attr, source_clients)
 
       dest_attr
     end
@@ -528,32 +527,6 @@ module GrdaWarehouse::Tasks
       @race_columns ||= GrdaWarehouse::Hud::Client.race_fields.map(&:to_sym) - [:RaceNone]
     end
 
-    def choose_best_ethnicity dest_attr, source_clients
-      # Most recent 0 or 1 if no 0 or 1 use the most recent value
-      known_values = [0, 1]
-      # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
-      col = :Ethnicity
-      sorted_source_clients.each do |source_client|
-        value = source_client[col]
-        current_value = dest_attr[col]
-        # if we have a 0 or 1 use it
-        # otherwise only replace if the current value isn't a 0 or 1
-        dest_attr[col] = if known_values.include?(value)
-          value
-        elsif !known_values.include?(current_value)
-          value
-        else
-          current_value
-        end
-
-        # Since these are sorted in reverse chronological order, if we hit a 1 or 0, we'll consider that
-        # the destination client response
-        break if known_values.include?(value)
-      end
-      dest_attr
-    end
-
     # Populate source client changes onto the destination client
     # Loop over all destination clients
     #   1. Sort source clients by UpdatedDate desc
@@ -607,8 +580,9 @@ module GrdaWarehouse::Tasks
             sc.BlackAfAmerican ||= 99
             sc.NativeHIPacific ||= 99
             sc.White ||= 99
+            sc.HispanicLatinaeo ||= 99
+            sc.MidEastNAfrican ||= 99
             sc.RaceNone ||= 99
-            sc.Ethnicity ||= 99
             sc.DateCreated ||= 10.years.ago.to_date
             sc.DateUpdated ||= 10.years.ago.to_date
             sc
@@ -705,8 +679,9 @@ module GrdaWarehouse::Tasks
         BlackAfAmerican: cl(c_t[:BlackAfAmerican], 99).as('BlackAfAmerican').to_sql,
         NativeHIPacific: cl(c_t[:NativeHIPacific], 99).as('NativeHIPacific').to_sql,
         White: cl(c_t[:White], 99).as('White').to_sql,
+        HispanicLatinaeo: cl(c_t[:HispanicLatinaeo], 99).as('White').to_sql,
+        MidEastNAfrican: cl(c_t[:MidEastNAfrican], 99).as('White').to_sql,
         RaceNone: cl(c_t[:RaceNone], 99).as('RaceNone').to_sql,
-        Ethnicity: cl(c_t[:Ethnicity], 99).as('Ethnicity').to_sql,
       }
     end
 

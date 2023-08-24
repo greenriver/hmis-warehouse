@@ -652,7 +652,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
             oe[id] << if project_type == 13
               [project_type, 'RRH']
             else
-              [project_type, ::HudUtility.project_type_brief(project_type)]
+              [project_type, ::HudUtility2024.project_type_brief(project_type)]
             end
           end
       end
@@ -702,11 +702,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
             destination_string = if destination_code == 17
               other_destination
             else
-              ::HudUtility.destination(destination_code)
+              ::HudUtility2024.destination(destination_code)
             end
 
             destinations[id] ||= []
-            destinations[id] << "#{last_date_in_program} - Destination: #{destination_string}, from: #{::HudUtility.project_type_brief(project_type)}"
+            destinations[id] << "#{last_date_in_program} - Destination: #{destination_string}, from: #{::HudUtility2024.project_type_brief(project_type)}"
           end
       end
       @last_exit_destination[client_id]&.join('; ') || 'No exits in past 3 months'

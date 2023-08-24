@@ -461,7 +461,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    # Race & Ethnicity scopes
+    # Race scopes
     # Return destination client where any source clients meet the requirement
     scope :race_am_ind_ak_native, -> do
       where(
@@ -708,8 +708,6 @@ module GrdaWarehouse::Hud
       case attribute
       when :veteran_status
         'Veteran status will be yes if any source clients provided a yes response.  This can be overridden by setting the verified veteran status under CAS readiness.'
-      when :ethnicity
-        'Ethnicity reflects the most-recent response where the client answered the question.'
       when :race
         'Race reflects the most-recent response where the client answered the question.'
       when :gender
@@ -916,7 +914,7 @@ module GrdaWarehouse::Hud
       # To allow preload(:source_exits) do the calculation in memory
       @deceased_on ||= source_exits.
         select do |m|
-          m.Destination == ::HudUtility.valid_destinations.invert['Deceased']
+          m.Destination == ::HudUtility2024.valid_destinations.invert['Deceased']
         end&.
         max_by(&:ExitDate)&.ExitDate
     end
@@ -1942,12 +1940,12 @@ module GrdaWarehouse::Hud
     end
 
     def race_description(include_missing_reason: false)
-      description = race_fields.map { |f| ::HudUtility.race f }.join ', '
+      description = race_fields.map { |f| ::HudUtility2024.race f }.join ', '
       return description if description.present?
       return '' unless include_missing_reason
-      return '' unless self.RaceNone.in?(HudUtility.race_gender_none_options.keys)
+      return '' unless self.RaceNone.in?(HudUtility2024.race_gender_none_options.keys)
 
-      HudUtility.race_none(self.RaceNone)
+      HudUtility2024.race_none(self.RaceNone)
     end
 
     def pit_race

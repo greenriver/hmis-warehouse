@@ -352,7 +352,7 @@ module PublicReports
           count
         out_count = homeless_scope.entry.
           exit_within_date_range(start_date: start_date, end_date: end_date).
-          where(destination: ::HudUtility.permanent_destinations).
+          where(destination: ::HudUtility2024.permanent_destinations).
           select(:client_id).
           distinct.
           count
@@ -434,7 +434,7 @@ module PublicReports
       {}.tap do |charts|
         client_cache = GrdaWarehouse::Hud::Client.new
         # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
-        races = ::HudUtility.races(multi_racial: true)
+        races = ::HudUtility2024.races(multi_racial: true)
         iteration_dates.each do |date|
           start_date = beginning_iteration(date)
           end_date = end_iteration(date)

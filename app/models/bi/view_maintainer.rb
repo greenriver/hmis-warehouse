@@ -44,7 +44,6 @@ module Bi
       safe_drop_view(view_name(GrdaWarehouse::ServiceHistoryEnrollment))
       safe_drop_view(view_name(GrdaWarehouse::ServiceHistoryService))
       safe_drop_view(view_name(GrdaWarehouse::DataSource))
-      safe_drop_view(view_name(GrdaWarehouse::Lookups::Ethnicity))
       safe_drop_view(view_name(GrdaWarehouse::Lookups::FundingSource))
       safe_drop_view(view_name(GrdaWarehouse::Lookups::Gender))
       safe_drop_view(view_name(GrdaWarehouse::Lookups::LivingSituation))
@@ -104,7 +103,6 @@ module Bi
         ),
       )
       generic_view(GrdaWarehouse::DataSource, GrdaWarehouse::DataSource.view_column_names)
-      generic_view(GrdaWarehouse::Lookups::Ethnicity)
       generic_view(GrdaWarehouse::Lookups::FundingSource)
       generic_view(GrdaWarehouse::Lookups::Gender)
       generic_view(GrdaWarehouse::Lookups::LivingSituation)

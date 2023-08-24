@@ -28,7 +28,7 @@
               %td= project&.name(current_user)
               %td= benefit.enrollment.EntryDate
               %td= benefit.InformationDate
-              %td= HudUtility.data_collection_stage(benefit.DataCollectionStage)
+              %td= HudUtility2024.data_collection_stage(benefit.DataCollectionStage)
               %td
                 - total = benefit.TotalMonthlyIncome&.round(2)
                 - if total

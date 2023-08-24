@@ -69,7 +69,7 @@ module GrdaWarehouse::WarehouseReports
           dates[client_id] ||= OpenStruct.new(
             {
               exit_date: date,
-              destination: "#{HudUtility.destination(destination)} (#{destination})",
+              destination: "#{HudUtility2024.destination(destination)} (#{destination})",
             },
           )
         end

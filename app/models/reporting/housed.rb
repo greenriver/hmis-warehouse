@@ -76,7 +76,7 @@ module Reporting
     end
 
     scope :ph_destinations, -> do
-      where(destination: ::HudUtility.permanent_destinations)
+      where(destination: ::HudUtility2024.permanent_destinations)
     end
 
     # Pre-placement
@@ -189,11 +189,7 @@ module Reporting
     end
 
     def self.available_races
-      ::HudUtility.races(multi_racial: true)
-    end
-
-    def self.available_ethnicities
-      ::HudUtility.ethnicities
+      ::HudUtility2024.races(multi_racial: true)
     end
 
     def self.available_genders
@@ -201,7 +197,7 @@ module Reporting
     end
 
     def self.available_veteran_stati
-      ::HudUtility.no_yes_reasons_for_missing_data_options
+      ::HudUtility2024.no_yes_reasons_for_missing_data_options
     end
 
     def self.household_type(key)
@@ -215,13 +211,6 @@ module Reporting
     def self.race(key)
       return :current_scope if key == :all
       return key if available_races[key&.to_s].present?
-
-      :current_scope
-    end
-
-    def self.ethnicity(key)
-      return :current_scope if key == :all
-      return key if available_ethnicities[key&.to_s&.to_i].present?
 
       :current_scope
     end
@@ -255,7 +244,7 @@ module Reporting
             client.delete(:id)
             en.merge!(client)
             en[:month_year] = en[:housed_date]&.strftime('%Y-%m-01')
-            if HudUtility.permanent_destinations.include?(en[:destination])
+            if HudUtility2024.permanent_destinations.include?(en[:destination])
               en[:ph_destination] = :ph
             else
               en[:ph_destination] = :not_ph
@@ -336,7 +325,6 @@ module Reporting
         individual_adult: nil,
         dob: nil,
         race: nil,
-        ethnicity: nil,
         veteran_status: nil,
         month_year: nil,
         ph_destination: nil,
@@ -596,12 +584,13 @@ module Reporting
         # LastName: :last_name,
         # SSN: :ssn,
         DOB: :dob,
-        Ethnicity: :ethnicity,
-        Female: :female,
-        Male: :male,
-        NoSingleGender: :nosinglegender,
+        Woman: :woman,
+        Man: :man,
+        NonBinary: :non_binary,
         Transgender: :transgender,
         Questioning: :questioning,
+        CulturallySpecific: :culturally_specific,
+        DifferentIdentity: :different_identity,
         GenderNone: :gendernone,
         VeteranStatus: :veteran_status,
       }.freeze

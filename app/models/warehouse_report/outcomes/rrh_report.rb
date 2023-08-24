@@ -31,7 +31,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       project_id: "Warehouse #{_('Stabilization Project')} ID",
       hmis_project_id: _('HMIS Project ID'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end
@@ -43,7 +42,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       search_end: _('Search End'),
       housed_date: _('Date Housed'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end
@@ -59,7 +57,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       project_id: "Warehouse #{_('Stabilization Project')} ID",
       hmis_project_id: _('HMIS Project ID'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end
@@ -71,7 +68,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       days_to_return: _('Days to Return'),
       destination: _('Destination'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end
@@ -85,7 +81,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       project_id: "Warehouse #{_('Stabilization Project')} ID",
       hmis_project_id: _('HMIS Project ID'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end
@@ -99,7 +94,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       project_id: "Warehouse #{_('Stabilization Project')} ID",
       hmis_project_id: _('HMIS Project ID'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end

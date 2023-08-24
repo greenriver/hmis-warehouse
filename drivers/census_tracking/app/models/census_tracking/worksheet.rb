@@ -22,7 +22,7 @@ module CensusTracking
         where(id: @filter.effective_project_ids).
         map do |project|
           [
-            HudUtility.project_type(project.computed_project_type) || 'Unknown Project Type',
+            HudUtility2024.project_type(project.computed_project_type) || 'Unknown Project Type',
             project.organization.name(@filter.user),
             project.name(@filter.user),
             project.id,
@@ -195,10 +195,12 @@ module CensusTracking
         project_type: she_t[:project_type],
         presented_as_individual: she_t[:presented_as_individual],
         age: shs_t[:age],
-        female: c_t[:Female],
-        male: c_t[:Male],
+        woman: c_t[:Woman],
+        man: c_t[:man],
         transgender: c_t[:Transgender],
-        no_single_gender: c_t[:NoSingleGender],
+        non_binary: c_t[:NonBinary],
+        culturally_specific: c_t[:CulturallySpecific],
+        different_identity: c_t[:DifferentIdentity],
         head_of_household: she_t[:head_of_household],
         household_id: she_t[:household_id],
         # For details view
@@ -223,10 +225,12 @@ module CensusTracking
         map do |row|
           client = ::OpenStruct.new(service_columns.keys.zip(row).to_h)
           client.gender_multi = []
-          client.gender_multi << 0 if client.female == 1
-          client.gender_multi << 1 if client.male == 1
+          client.gender_multi << 0 if client.woman == 1
+          client.gender_multi << 1 if client.man == 1
+          client.multi_gender << 2 if client.culturally_specific
+          client.multi_gender << 3 if client.different_identity
           client.gender_multi << 5 if client.transgender == 1
-          client.gender_multi << 4 if client.no_single_gender == 1
+          client.gender_multi << 4 if client.non_binary == 1
           client.gender_multi&.sort!
           client
         end
@@ -260,7 +264,6 @@ module CensusTracking
       scope = filter_for_cocs(scope)
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
-      scope = filter_for_ethnicity(scope)
       scope = filter_for_race(scope)
       scope = filter_for_gender(scope)
 

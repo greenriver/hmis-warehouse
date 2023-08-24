@@ -232,34 +232,29 @@ class SeedMaker
   end
 
   def maintain_lookups
-    HudUtility.cocs.each do |code, name|
+    HudUtility2024.cocs.each do |code, name|
       coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
       coc.update(official_name: name)
     end
     GrdaWarehouse::Lookups::YesNoEtc.transaction do
       GrdaWarehouse::Lookups::YesNoEtc.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::YesNoEtc.import(columns, HudUtility.no_yes_reasons_for_missing_data_options.to_a)
+      GrdaWarehouse::Lookups::YesNoEtc.import(columns, HudUtility2024.no_yes_reasons_for_missing_data_options.to_a)
     end
     GrdaWarehouse::Lookups::LivingSituation.transaction do
       GrdaWarehouse::Lookups::LivingSituation.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::LivingSituation.import(columns, HudUtility.living_situations.to_a)
+      GrdaWarehouse::Lookups::LivingSituation.import(columns, HudUtility2024.living_situations.to_a)
     end
     GrdaWarehouse::Lookups::ProjectType.transaction do
       GrdaWarehouse::Lookups::ProjectType.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::ProjectType.import(columns, HudUtility.project_types.to_a)
-    end
-    GrdaWarehouse::Lookups::Ethnicity.transaction do
-      GrdaWarehouse::Lookups::Ethnicity.delete_all
-      columns = [:value, :text]
-      GrdaWarehouse::Lookups::Ethnicity.import(columns, HudUtility.no_yes_reasons_for_missing_data_options.to_a)
+      GrdaWarehouse::Lookups::ProjectType.import(columns, HudUtility2024.project_types.to_a)
     end
     GrdaWarehouse::Lookups::FundingSource.transaction do
       GrdaWarehouse::Lookups::FundingSource.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::FundingSource.import(columns, HudUtility.funding_sources.to_a)
+      GrdaWarehouse::Lookups::FundingSource.import(columns, HudUtility2024.funding_sources.to_a)
     end
     GrdaWarehouse::Lookups::Gender.transaction do
       GrdaWarehouse::Lookups::Gender.delete_all
@@ -269,7 +264,7 @@ class SeedMaker
     GrdaWarehouse::Lookups::Relationship.transaction do
       GrdaWarehouse::Lookups::Relationship.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::Relationship.import(columns, HudUtility.relationships_to_hoh.to_a)
+      GrdaWarehouse::Lookups::Relationship.import(columns, HudUtility2024.relationships_to_hoh.to_a)
     end
   end
 

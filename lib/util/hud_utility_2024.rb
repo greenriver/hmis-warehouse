@@ -252,21 +252,6 @@ module HudUtility2024
     1
   end
 
-  # TODO(2024) update for APR/CAPER/CE APR
-  def no_single_gender_queries
-    HudUtility.no_single_gender_queries
-  end
-
-  # TODO(2024) update for APR/CAPER/CE APR
-  def questioning_gender_queries
-    HudUtility.questioning_gender_queries
-  end
-
-  # TODO(2024) update for APR/CAPER/CE APR
-  def transgender_gender_queries
-    HudUtility.transgender_gender_queries
-  end
-
   def residence_prior_length_of_stay_brief(id, reverse = false)
     map = residence_prior_length_of_stays_brief
 

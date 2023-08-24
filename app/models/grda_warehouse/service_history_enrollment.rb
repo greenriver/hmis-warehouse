@@ -412,11 +412,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # 13: Rapid Re-Housing (PH)
   # 14: Coordinated Entry
   def service_type
-    ::HudUtility.project_type(computed_project_type)
+    ::HudUtility2024.project_type(computed_project_type)
   end
 
   def service_type_brief
-    ::HudUtility.project_type_brief(computed_project_type)
+    ::HudUtility2024.project_type_brief(computed_project_type)
   end
 
   def start_time
@@ -424,11 +424,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   def so?
-    self[self.class.project_type_column] == HudUtility.project_type_number('SO')
+    self[self.class.project_type_column] == HudUtility2024.project_type_number('SO')
   end
 
   def ce?
-    self[self.class.project_type_column] == HudUtility.project_type_number('CE')
+    self[self.class.project_type_column] == HudUtility2024.project_type_number('CE')
   end
 
   def homeless?

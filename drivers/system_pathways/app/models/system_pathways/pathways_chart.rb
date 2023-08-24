@@ -67,7 +67,7 @@ module SystemPathways
     private def project_type_label_lookup(key)
       return 'Served by Homeless System' unless key.present?
 
-      HudUtility.project_type_brief(key)
+      HudUtility2024.project_type_brief(key)
     end
 
     def chart_data

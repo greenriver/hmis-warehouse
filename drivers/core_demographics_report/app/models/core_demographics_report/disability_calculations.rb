@@ -10,7 +10,7 @@ module
   included do
     def disability_detail_hash
       hash = {}.tap do |hashes|
-        HudUtility.disability_types.each do |key, title|
+        HudUtility2024.disability_types.each do |key, title|
           hashes["disability_#{key}"] = {
             title: "Disability #{title}",
             headers: client_headers,
@@ -83,7 +83,7 @@ module
       rows['_Disability Break'] ||= []
       rows['*Indefinite and Impairing Disabilities'] ||= []
       rows['*Indefinite and Impairing Disabilities'] += ['Disability', nil, 'Count', 'Percentage', nil]
-      ::HudUtility.disability_types.each do |id, title|
+      ::HudUtility2024.disability_types.each do |id, title|
         rows["_Disabilities_data_#{title}"] ||= []
         rows["_Disabilities_data_#{title}"] += [
           title,
@@ -121,7 +121,7 @@ module
 
     private def disability_breakdowns
       @disability_breakdowns ||= {}.tap do |disabilities|
-        ::HudUtility.disability_types.keys.each do |d|
+        ::HudUtility2024.disability_types.keys.each do |d|
           disabilities[d] ||= Set.new
           client_disabilities.each do |id, ds|
             disabilities[d] << id if ds.include?(d)
@@ -147,7 +147,7 @@ module
         merge(
           GrdaWarehouse::Hud::Disability.
           where(
-            DisabilityType: ::HudUtility.disability_types.keys,
+            DisabilityType: ::HudUtility2024.disability_types.keys,
             DisabilityResponse: [1, 2, 3],
             IndefiniteAndImpairs: 1,
           ),

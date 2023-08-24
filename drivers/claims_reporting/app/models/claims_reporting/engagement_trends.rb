@@ -181,7 +181,6 @@ module ClaimsReporting
         hmis_scope = ::GrdaWarehouse::Hud::Client.all
         hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
         hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
-        hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
         client_ids = hmis_scope.pluck(c_t[:id])
         scope = scope.joins(:patient).merge(::Health::Patient.where(client_id: client_ids)) if client_ids.any?
       end
