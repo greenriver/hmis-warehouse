@@ -49,7 +49,7 @@ module WarehouseReports::ClientDetails
     helper_method :yes_no
 
     def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports))
     end
 
     def population_service_history_source

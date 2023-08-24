@@ -1,3 +1,4 @@
+# TODO: START_ACL remove after ACL migration
 namespace :group do
   desc "Copy GrdaWarehouse::UserViewableEntity records to user-specific groups"
   task copy_user_viewables: [:environment, "log:info_to_stdout"] do
@@ -16,3 +17,4 @@ namespace :group do
     end
   end
 end
+# END_ACL

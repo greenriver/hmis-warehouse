@@ -8,10 +8,11 @@ module GrdaWarehouse
   class GroupViewableEntity < GrdaWarehouseBase
     acts_as_paranoid
 
-    belongs_to :access_group
+    belongs_to :access_group, optional: true
     belongs_to :entity, polymorphic: true
+    belongs_to :collection, optional: true
 
-    scope :viewable_by, -> (user) do
+    scope :viewable_by, ->(user) do
       where(access_group_id: user.access_groups.pluck(:id))
     end
   end

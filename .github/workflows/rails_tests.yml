@@ -22,7 +22,8 @@ jobs:
       matrix:
         test_group:
           - drivers/{a,b,c,d,e,f,g}*
-          - drivers/{h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
+          - drivers/{h,i}*
+          - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
           - spec
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
@@ -199,7 +200,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: local_secret_key
           GROVER_NO_SANDBOX: true
           CHROMIUM_PATH: /usr/bin/chromium-browser
-          MAX_FAILURES: 20
+          MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "${{ matrix.test_group }}/**/*_spec.rb"
