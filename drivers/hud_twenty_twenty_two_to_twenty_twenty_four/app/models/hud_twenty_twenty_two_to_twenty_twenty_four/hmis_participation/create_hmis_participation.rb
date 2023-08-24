@@ -29,25 +29,30 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
       @parse_projects ||= [].tap do |arr|
         reference(:project) do |row|
           participation_id = "GR-#{row['ProjectID']}"[0..31]
+
           key = "#{row['OrganizationID']}_ds_#{row['data_source_id']}"
           participation_type = if victim_service_providers[key] == 1
             2
           else
             row['HMISParticipatingProject']
           end
+
+          timestamp = Time.current
+          timestamp = timestamp.strftime('%Y-%M-%d %H:%M:%S') unless row['data_source_id'].present?
+
           entry = {
             HMISParticipationID: participation_id,
             ProjectID: row['ProjectID'],
             HMISParticipationType: participation_type,
             HMISParticipationStatusStartDate: row['OperatingStartDate'],
             HMISParticipationStatusEndDate: row['OperatingEndDate'],
-            DateCreated: Time.current,
-            DateUpdated: Time.current,
+            DateCreated: timestamp,
+            DateUpdated: timestamp,
             UserID: row['UserID'],
             DateDeleted: nil,
             ExportID: row['ExportID'],
+            data_source_id: row['data_source_id'],
           }.with_indifferent_access
-          entry[:data_source_id] = row['data_source_id'] if row['data_source_id'].present?
 
           arr << entry
         end
