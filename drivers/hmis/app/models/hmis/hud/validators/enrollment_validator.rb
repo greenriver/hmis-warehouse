@@ -39,12 +39,19 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
 
     errors = HmisErrors::Errors.new
     dob = enrollment.client&.dob
-    exit_date = enrollment&.exit_date
+    exit_date = enrollment.exit_date
 
     errors.add :entry_date, :out_of_range, message: future_message, **options if entry_date.future?
     errors.add :entry_date, :out_of_range, message: over_twenty_years_ago_message, **options if entry_date < (Date.today - 20.years)
     errors.add :entry_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > entry_date
     errors.add :entry_date, :out_of_range, message: after_exit_message(exit_date), **options if exit_date.present? && exit_date < entry_date
+
+    conflict_scope = enrollment.project
+      .enrollments_including_wip
+      .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
+      .open_on_date(enrollment.entry_date)
+    conflict_scope = conflict_scope.where.not(id: enrollment.id) if enrollment.persisted?
+    errors.add(:entry_date, :out_of_range, full_message: already_enrolled_full_message) if conflict_scope.any?
     return errors.errors if errors.any?
 
     unless enrollment.head_of_household?
@@ -78,11 +85,6 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
       errors.add :relationship_to_hoh, :invalid, full_message: first_member_hoh_full_message if !is_hoh && !has_hoh && household_members.empty?
       # Error: adding non-HoH member to hh that lacks HoH
       errors.add :relationship_to_hoh, :invalid, full_message: one_hoh_full_message if !is_hoh && !has_hoh && household_members.exists?
-
-      # Warning: client is already enrolled in this project
-      # NOTE: only warns if there are eixisting active enrollments, not WIP enrollments
-      already_enrolled = record.entry_date.present? && Hmis::Hud::Enrollment.where(**record.slice(:project_id, :personal_id, :data_source_id)).open_on_date(record.entry_date).exists?
-      errors.add :base, :information, severity: :warning, full_message: already_enrolled_full_message if already_enrolled
     end
 
     errors.errors
