@@ -137,12 +137,17 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         next if seen.include?(referral_id)
 
         seen.add(referral_id)
-        found_household_member = household_member_rows_by_referral(referral_id).detect do |member_row|
+        household_member_rows = household_member_rows_by_referral(referral_id)
+        if household_member_rows.empty?
+          log_info "#{row.context} skipping referral ID \"#{referral_id}\" - has no household members. (status: #{posting_status(posting_row)})"
+          next
+        end
+        found_household_member = household_member_rows.detect do |member_row|
           mci_id = row_value(member_row, field: 'MCI_ID')
           client_pk_by_mci_id(mci_id)
         end
         if found_household_member.nil?
-          log_info "#{row.context} skipping referral ID \"#{referral_id}\" - could not resolve any household member MCI IDs"
+          log_info "#{row.context} skipping referral ID \"#{referral_id}\" - could not resolve any household member MCI IDs. (status: #{posting_status(posting_row)})"
           next
         end
 
@@ -182,7 +187,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         enrollment_id = row_value(posting_row, field: 'ENROLLMENT_ID')
         enrollment_pk = enrollment_pk_by_id[enrollment_id]
         unless enrollment_pk
-          log_skipped_row(row, field: 'ENROLLMENT_ID')
+          log_skipped_row(posting_row, field: 'ENROLLMENT_ID')
           next
         end
         household_id = enrollment_household_id_by_id[enrollment_id]
@@ -254,6 +259,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # 1) find the head-of-household's MCI for this referral
         hoh_member_row = household_member_rows_by_referral(referral_id).detect do |mr|
           row_value(mr, field: 'RELATIONSHIP_TO_HOH_ID') == '1'
+        end
+        if hoh_member_row.nil?
+          log_info "Skipping Referral #{referral_id} - no HoH"
+          next
         end
         hoh_mci_id = row_value(hoh_member_row, field: 'MCI_ID')
         # 2) find the household_id for the project enrollment with that MCI
