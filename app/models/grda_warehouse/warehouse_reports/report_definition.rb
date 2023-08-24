@@ -17,18 +17,35 @@ module GrdaWarehouse::WarehouseReports
       where(health: false)
     end
 
+    # TODO: START_ACL cleanup after migration to ACLs
     scope :viewable_by, ->(user) do
       return none unless user
 
-      if user.can_view_all_reports?
-        current_scope
-      elsif user.can_view_assigned_reports?
+      if user.using_acls?
+        return none unless user.can_view_assigned_reports?
+
+        group_ids = user.collections_for_permission(:can_view_assigned_reports)
+        return none if group_ids.empty?
+
         joins(:group_viewable_entities).
-          merge(GrdaWarehouse::GroupViewableEntity.viewable_by(user))
+          merge(
+            GrdaWarehouse::GroupViewableEntity.where(
+              collection_id: group_ids,
+              entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
+            ),
+          )
       else
-        none
+        if user.can_view_all_reports? # rubocop:disable Style/IfInsideElse
+          current_scope
+        elsif user.can_view_assigned_reports?
+          joins(:group_viewable_entities).
+            merge(GrdaWarehouse::GroupViewableEntity.viewable_by(user))
+        else
+          none
+        end
       end
     end
+    # END_ACL
 
     scope :assignable_by, ->(user) do
       return none unless user

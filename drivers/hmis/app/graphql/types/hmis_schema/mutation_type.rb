@@ -31,6 +31,8 @@ module Types
 
     field :create_service, mutation: Mutations::CreateService
     field :delete_service, mutation: Mutations::DeleteService
+    field :update_bed_nights, mutation: Mutations::UpdateBedNights
+
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
     field :delete_assessment, mutation: Mutations::DeleteAssessment

@@ -25,7 +25,7 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
   end
 
   def all_project_scope
-    scope = GrdaWarehouse::Hud::Project.viewable_by(user)
+    scope = GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
     scope = scope.with_project_type(project_type_numbers) if project_type_numbers.present?
 
     scope
