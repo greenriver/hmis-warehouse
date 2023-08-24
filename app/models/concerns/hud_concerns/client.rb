@@ -9,7 +9,7 @@ module HudConcerns::Client
   included do
     def self.race_fields
       # TODO: update when we start updating HUD reports
-      ::HudUtility.races.keys
+      ::HudUtility2024.races.keys
     end
 
     # those race fields which are marked as pertinent to the client

@@ -507,6 +507,22 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :race_hispanic_latinaeo, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:HispanicLatinaeo].eq(1)).
+          select(:destination_id),
+      )
+    end
+
+    scope :race_mid_east_n_african, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:MidEastNAfrican].eq(1)).
+          select(:destination_id),
+      )
+    end
+
     scope :race_none, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
@@ -545,6 +561,8 @@ module GrdaWarehouse::Hud
         c_t[:Asian],
         c_t[:BlackAfAmerican],
         c_t[:NativeHIPacific],
+        c_t[:HispanicLatinaeo],
+        c_t[:MidEastNAfrican],
         c_t[:White],
       ]
       # anyone with no unknowns and at least two yeses
@@ -563,59 +581,35 @@ module GrdaWarehouse::Hud
     # we really don't know the race
     scope :with_race_none, -> do
       not_race = [0, 99]
-      where(AmIndAKNative: not_race, Asian: not_race, BlackAfAmerican: not_race, NativeHIPacific: not_race, White: not_race)
-    end
-
-    scope :ethnicity_non_hispanic_non_latino, -> do
       where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(0)).
-          select(:destination_id),
+        AmIndAKNative: not_race,
+        Asian: not_race,
+        BlackAfAmerican: not_race,
+        NativeHIPacific: not_race,
+        White: not_race,
+        HispanicLatinaeo: not_race,
+        MidEastNAfrican: not_race,
       )
     end
 
-    scope :ethnicity_hispanic_latino, -> do
-      where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(1)).
-          select(:destination_id),
-      )
-    end
-
-    scope :ethnicity_unknown, -> do
-      where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(8)).
-          select(:destination_id),
-      )
-    end
-
-    scope :ethnicity_refused, -> do
-      where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(9)).
-          select(:destination_id),
-      )
-    end
-
-    scope :ethnicity_not_collected, -> do
-      where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(99)).
-          select(:destination_id),
-      )
-    end
-
-    scope :gender_female, -> do
+    scope :gender_woman, -> do
       where(Woman: 1).where(arel_table[:NonBinary].not_eq(1).or(arel_table[:NonBinary].eq(nil)))
     end
 
-    scope :gender_male, -> do
+    scope :gender_female, -> do
+      gender_woman
+    end
+
+    scope :gender_man, -> do
       where(Man: 1).where(arel_table[:NonBinary].not_eq(1).or(arel_table[:NonBinary].eq(nil)))
     end
 
+    scope :gender_male, -> do
+      gender_man
+    end
+
     scope :gender_mtf, -> do
-      gender_transgender.where(Female: 1)
+      gender_transgender.where(Woman: 1)
     end
 
     scope :gender_ftm, -> do
@@ -1956,10 +1950,6 @@ module GrdaWarehouse::Hud
       HudUtility.race_none(self.RaceNone)
     end
 
-    def ethnicity_description
-      ::HudUtility.ethnicity(self.Ethnicity)
-    end
-
     def pit_race
       return 'RaceNone' if race_fields.count.zero?
       return 'MultiRacial' if race_fields.count > 1
@@ -1977,6 +1967,8 @@ module GrdaWarehouse::Hud
       @race_black_af_american ||= @limited_scope.where(id: self.class.race_black_af_american.select(:id)).distinct.pluck(:id).to_set
       @race_native_hi_other_pacific ||= @limited_scope.where(id: self.class.race_native_hi_other_pacific.select(:id)).distinct.pluck(:id).to_set
       @race_white ||= @limited_scope.where(id: self.class.race_white.select(:id)).distinct.pluck(:id).to_set
+      @race_hispanic_latineao ||= @limited_scope.where(id: self.class.race_hispanic_latineao.select(:id)).distinct.pluck(:id).to_set
+      @race_mid_east_n_african ||= @limited_scope.where(id: self.class.race_mid_east_n_african.select(:id)).distinct.pluck(:id).to_set
       @multiracial ||= begin
         multi = @race_am_ind_ak_native.to_a +
         @race_asian.to_a +
@@ -1994,6 +1986,8 @@ module GrdaWarehouse::Hud
 
       return 'NativeHIPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
+      return 'HispanicLatinaeo' if @race_hispanic_latineao.include?(destination_id)
+      return 'MidEastNAfrican' if @race_mid_east_n_african.include?(destination_id)
 
       if include_none_reason
         @doesnt_know ||= @limited_scope.where(id: self.class.race_doesnt_know.select(:id)).distinct.pluck(:id).to_set
@@ -2027,12 +2021,28 @@ module GrdaWarehouse::Hud
       self.White == 1
     end
 
-    def cas_gender_female
+    def cas_race_hispanic_latineao
+      self.HispanicLatinaeo == 1
+    end
+
+    def cas_race_mid_east_n_african
+      self.MidEastNAfrican == 1
+    end
+
+    def cas_gender_woman
       self.Woman == 1
     end
 
-    def cas_gender_male
+    def cas_gender_female
+      cas_gender_woman
+    end
+
+    def cas_gender_man
       self.Man == 1
+    end
+
+    def cas_gender_male
+      cas_gender_man
     end
 
     def cas_gender_no_single_gender
