@@ -131,6 +131,19 @@ module AllNeighborsSystemDashboard
       def ce_event_data
         universe.members&.first&.universe_membership&.events
       end
+
+      def attach_rendered_xlsx
+        result_file.attach(filename: "Report #{id}.xlsx", io: StringIO.new(render_xlsx))
+      end
+
+      def render_xlsx
+        ApplicationController.render(
+          template: 'all_neighbors_system_dashboard/warehouse_reports/reports/show.xlsx.axlsx',
+          assigns: {
+            sheets: sheets,
+          },
+        )
+      end
     end
   end
 end
