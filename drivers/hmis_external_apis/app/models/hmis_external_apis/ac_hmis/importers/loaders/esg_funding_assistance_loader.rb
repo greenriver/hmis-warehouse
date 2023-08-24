@@ -11,7 +11,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def perform
       records = build_records
       # destroy existing records and re-import
-      model_class.where(data_source: data_source).destroy_all if clobber
+      model_class.where(data_source: data_source).each(&:really_destroy!) if clobber
 
       # can't do bulk insert here since polymorphic CDE's don't seem to work
       # and bulk-insert returned ids are not ordered

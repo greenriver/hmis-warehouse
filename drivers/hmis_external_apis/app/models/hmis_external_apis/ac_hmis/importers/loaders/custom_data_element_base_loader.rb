@@ -24,7 +24,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .where(data_source: data_source)
         .where(owner_type: owner_class.name)
         .where(data_element_definition: cde_definitions)
-        .destroy_all
+        .delete_all
     end
 
     protected

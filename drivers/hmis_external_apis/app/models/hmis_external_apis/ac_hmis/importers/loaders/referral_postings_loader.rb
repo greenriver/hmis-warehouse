@@ -95,11 +95,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .pluck(:project_id, :coc_code)
         .to_h
 
+      seen = Set.new
       posting_rows.flat_map do |posting_row|
         next unless posting_status(posting_row) == accepted_pending_status
 
         project_id = row_value(posting_row, field: 'PROGRAM_ID')
         referral_id = row_value(posting_row, field: 'REFERRAL_ID')
+        next if seen.include?(referral_id)
+
+        seen.add(referral_id)
         household_id = Hmis::Hud::Base.generate_uuid
         household_member_rows_by_referral(referral_id).map do |member_row|
           entry_date = parse_date(row_value(posting_row, field: 'REFERRAL_DATE'))
@@ -127,8 +131,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def build_referral_records
+      seen = Set.new
       posting_rows.map do |row|
         referral_id = row_value(row, field: 'REFERRAL_ID')
+        next if seen.include?(referral_id)
+
+        seen.add(referral_id)
         found_household_member = household_member_rows_by_referral(referral_id).detect do |member_row|
           mci_id = row_value(member_row, field: 'MCI_ID')
           client_pk_by_mci_id(mci_id)
@@ -154,27 +162,55 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # assign inferred unit occupancy
     def assign_unit_occupancies
       accepted_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_status')
+      enrollment_pk_by_id = Hmis::Hud::Enrollment
+        .where(data_source: data_source)
+        .pluck(:enrollment_id, :id)
+        .to_h
+      enrollment_household_id_by_id = Hmis::Hud::Enrollment
+        .where(data_source: data_source)
+        .pluck(:enrollment_id, :household_id)
+        .to_h
+
+      # { household_id => unit_id }
+      assigned_units = {}
+
       posting_rows.each do |posting_row|
         # only assign accepted enrollments
         next unless posting_status(posting_row) == accepted_status
 
-        referral_id = row_value(posting_row, field: 'REFERRAL_ID')
-        household_member_rows_by_referral(referral_id).each do |member_row|
-          project_id = row_value(posting_row, field: 'PROGRAM_ID')
-          mci_id = row_value(member_row, field: 'MCI_ID')
-          enrollment_pk = client_enrollment_pk(mci_id, project_id)
-          next unless enrollment_pk
+        # expect enrollment_id to be populated on accepted enrollments
+        enrollment_id = row_value(posting_row, field: 'ENROLLMENT_ID')
+        enrollment_pk = enrollment_pk_by_id[enrollment_id]
+        unless enrollment_pk
+          log_skipped_row(row, field: 'ENROLLMENT_ID')
+          next
+        end
+        household_id = enrollment_household_id_by_id[enrollment_id]
+        raise "No houshold id for #{enrollment_pk}" unless household_id.present?
 
+        # Assign this households unit, or a new unit.s
+        # Note: there is no way for a household to be spread across multiple units.
+        fallback_start_date = parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT'))
+        unit_id = if assigned_units.key?(household_id)
+          assign_specific_unit(
+            enrollment_pk: enrollment_pk,
+            unit_id: assigned_units[household_id],
+            fallback_start_date: fallback_start_date,
+          )
+        else
           unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
-          unit_id = assign_next_unit(
+          assign_next_unit(
             enrollment_pk: enrollment_pk,
             unit_type_mper_id: unit_type_mper_id,
-            fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
+            fallback_start_date: fallback_start_date,
           )
-          unless unit_id
-            msg = "could not assign a unit for project_id: \"#{project_id}\", mci_id: \"#{mci_id}\", mper_unit_type_id: \"#{unit_type_mper_id}\""
-            log_info("[#{member_row.context},#{posting_row.context}] #{msg}")
-          end
+        end
+
+        assigned_units[household_id] = unit_id
+
+        unless unit_id
+          msg = "could not assign a unit for enrollment_id: \"#{enrollment_id}\", mper_unit_type_id: \"#{unit_type_mper_id}\""
+          log_info("#{posting_row.context} #{msg}")
         end
       end
     end
@@ -209,6 +245,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .pluck('external_ids.value', :id)
         .to_h
 
+      seen = Set.new
       posting_rows.map do |row|
         project_id = row_value(row, field: 'PROGRAM_ID')
         referral_id = row_value(row, field: 'REFERRAL_ID')
@@ -222,6 +259,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # 2) find the household_id for the project enrollment with that MCI
         household_id = referral_household_id(hoh_mci_id, project_id)
         next unless household_id
+
+        next if seen.include?(referral_id)
+
+        seen.add(referral_id)
 
         HmisExternalApis::AcHmis::ReferralPosting.new(
           referral_id: referral_pks_by_id.fetch(referral_id),
@@ -246,28 +287,22 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @household_member_rows_by_referral[referral_id] || []
     end
 
-    def client_enrollment_pk(mci_id, project_id)
-      personal_id = client_personal_id_by_mci_id(mci_id)
-      key = [personal_id, project_id]
-      ids_by_personal_id_project_id.dig(key, 0)
-    end
-
     def referral_household_id(mci_id, project_id)
       personal_id = client_personal_id_by_mci_id(mci_id)
       key = [personal_id, project_id]
-      ids_by_personal_id_project_id.dig(key, 1)
+      household_id_by_personal_id_project_id[key]
     end
 
-    def ids_by_personal_id_project_id
+    def household_id_by_personal_id_project_id
       # {[personal_id, project_id] => [enrollment_pk, household_id]}
-      @ids_by_personal_id_project_id ||= Hmis::Hud::Enrollment
+      @household_id_by_personal_id_project_id ||= Hmis::Hud::Enrollment
         .where(data_source: data_source)
         .open_including_wip
         .preload(wip: :project)
         .to_h do |e|
           # avoid n+1 problems when calling enrollment.project
           project_id = e.project_id || e.wip.project.project_id
-          [[e.personal_id, project_id], [e.id, e.household_id]]
+          [[e.personal_id, project_id], e.household_id]
         end
     end
 
