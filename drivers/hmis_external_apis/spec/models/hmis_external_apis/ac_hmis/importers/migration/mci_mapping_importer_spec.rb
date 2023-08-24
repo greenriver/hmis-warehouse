@@ -16,6 +16,8 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporte
   # 1234567 -> 7654321
   # 13243546 -> 34
   # 1818181 -> nothing
+  # 171717 -> 1555
+  # 171717 -> 1666
 
   it 'makes an MCI ID' do
     create(:mci_unique_id_external_id, source: client, value: '1234567')
@@ -26,6 +28,17 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporte
     scope = client.external_ids.where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID)
     expect(scope.count).to eq(1)
     expect(scope.first.value).to eq('7654321')
+  end
+
+  it 'creates multiple MCI IDs' do
+    create(:mci_unique_id_external_id, source: client, value: '171717')
+    create(:ac_hmis_mci_credential)
+
+    subject.run!
+
+    client.reload
+    expect(client.ac_hmis_mci_unique_id.value).to eq('171717')
+    expect(client.ac_hmis_mci_ids.map(&:value)).to contain_exactly('1555', '1666')
   end
 
   it 'does nothing if the MCI ID is already there' do
