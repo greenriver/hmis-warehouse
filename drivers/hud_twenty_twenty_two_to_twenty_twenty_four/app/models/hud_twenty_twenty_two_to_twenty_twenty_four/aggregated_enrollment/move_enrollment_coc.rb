@@ -9,20 +9,24 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment
     include ::HudTwentyTwentyTwoToTwentyTwentyFour::References
 
     def process(row)
-      row['EnrollmentCoC'] = entry_enrollment_coc(row['HouseholdID'])
+      row['EnrollmentCoC'] = entry_enrollment_coc(row)
 
       row
     end
 
-    private def entry_enrollment_coc(household_id)
+    private def entry_enrollment_coc(enrollment_row)
       @entry_enrollment_coc ||= {}.tap do |h|
         reference(:enrollment_coc) do |row|
           next unless row['DataCollectionStage'].to_i == 1
 
-          h[row['HouseholdID']] ||= row['CoCCode']
+          key = row['HouseholdID'].presence || "en_#{row['EnrollmentID']}" 
+          key += "_ds_#{row['data_source_id']}"
+          h[key] ||= row['CoCCode'] if HudUtility2024.valid_coc?(row['CoCCode'])
         end
       end
-      @entry_enrollment_coc[household_id]
+      key = enrollment_row['HouseholdID'].presence || "en_#{enrollment_row['EnrollmentID']}" 
+      key += "_ds_#{row['data_source_id']}"
+      @entry_enrollment_coc[key]
     end
   end
 end
