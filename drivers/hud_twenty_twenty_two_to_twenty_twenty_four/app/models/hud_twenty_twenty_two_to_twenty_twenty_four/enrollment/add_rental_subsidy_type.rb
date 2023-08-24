@@ -6,14 +6,8 @@
 
 module HudTwentyTwentyTwoToTwentyTwentyFour::Enrollment
   class AddRentalSubsidyType
-    SUBSIDY_TYPES = {
-      28 => 428,
-      19 => 419,
-      31 => 431,
-      34 => 433,
-      20 => 434,
-      3 => 420,
-    }.freeze
+    include HudTwentyTwentyTwoToTwentyTwentyFour::LivingSituationOptions
+
     def process(row)
       row['RentalSubsidyType'] = nil
 
