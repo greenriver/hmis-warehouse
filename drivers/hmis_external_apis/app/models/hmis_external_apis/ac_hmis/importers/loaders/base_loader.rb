@@ -107,6 +107,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       tracker.assign_next_unit(...)
     end
 
+    def assign_specific_unit(...)
+      tracker.assign_specific_unit(...)
+    end
+
     def ar_import(import_class, records, **args)
       records = records.compact
       table_name = import_class.table_name
