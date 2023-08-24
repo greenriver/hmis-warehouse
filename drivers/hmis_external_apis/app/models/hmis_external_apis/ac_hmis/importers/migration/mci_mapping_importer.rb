@@ -22,6 +22,7 @@ module HmisExternalApis::AcHmis::Importers::Migration
       # Iterate through MCI Unique IDs that (1) we have, and (2) are present in the file.
       # For each MCI Unique ID, create mapped MCI ID(s).
       new_mci_ids = []
+      remote_credential_id = remote_credential.id
       mci_unique_ids.pluck(:value, :source_id).each do |mci_unique_id, source_id|
         lookup[mci_unique_id].each do |mci_id|
           new_mci_ids << {
@@ -29,7 +30,7 @@ module HmisExternalApis::AcHmis::Importers::Migration
             source_type: 'Hmis::Hud::Client',
             source_id: source_id,
             value: mci_id,
-            remote_credential: remote_credential,
+            remote_credential_id: remote_credential_id,
           }
         end
       end
