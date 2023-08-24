@@ -162,27 +162,32 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # assign inferred unit occupancy
     def assign_unit_occupancies
       accepted_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_status')
+      enrollment_pk_by_id = Hmis::Hud::Enrollment
+        .where(data_source: data_source)
+        .pluck(:enrollment_id, :id)
+        .to_h
+
       posting_rows.each do |posting_row|
         # only assign accepted enrollments
         next unless posting_status(posting_row) == accepted_status
 
-        referral_id = row_value(posting_row, field: 'REFERRAL_ID')
-        household_member_rows_by_referral(referral_id).each do |member_row|
-          project_id = row_value(posting_row, field: 'PROGRAM_ID')
-          mci_id = row_value(member_row, field: 'MCI_ID')
-          enrollment_pk = client_enrollment_pk(mci_id, project_id)
-          next unless enrollment_pk
+        # expect enrollment_id to be populated on accepted enrollments
+        enrollment_id = row_value(posting_row, field: 'ENROLLMENT_ID')
+        enrollment_pk = enrollment_pk_by_id[enrollment_id]
+        unless enrollment_pk
+          log_skipped_row(row, field: 'ENROLLMENT_ID')
+          next
+        end
 
-          unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
-          unit_id = assign_next_unit(
-            enrollment_pk: enrollment_pk,
-            unit_type_mper_id: unit_type_mper_id,
-            fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
-          )
-          unless unit_id
-            msg = "could not assign a unit for project_id: \"#{project_id}\", mci_id: \"#{mci_id}\", mper_unit_type_id: \"#{unit_type_mper_id}\""
-            log_info("[#{member_row.context},#{posting_row.context}] #{msg}")
-          end
+        unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
+        unit_id = assign_next_unit(
+          enrollment_pk: enrollment_pk,
+          unit_type_mper_id: unit_type_mper_id,
+          fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
+        )
+        unless unit_id
+          msg = "could not assign a unit for enrollment_id: \"#{enrollment_id}\", mper_unit_type_id: \"#{unit_type_mper_id}\""
+          log_info("#{posting_row.context} #{msg}")
         end
       end
     end
@@ -259,28 +264,22 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       @household_member_rows_by_referral[referral_id] || []
     end
 
-    def client_enrollment_pk(mci_id, project_id)
-      personal_id = client_personal_id_by_mci_id(mci_id)
-      key = [personal_id, project_id]
-      ids_by_personal_id_project_id.dig(key, 0)
-    end
-
     def referral_household_id(mci_id, project_id)
       personal_id = client_personal_id_by_mci_id(mci_id)
       key = [personal_id, project_id]
-      ids_by_personal_id_project_id.dig(key, 1)
+      household_id_by_personal_id_project_id[key]
     end
 
-    def ids_by_personal_id_project_id
+    def household_id_by_personal_id_project_id
       # {[personal_id, project_id] => [enrollment_pk, household_id]}
-      @ids_by_personal_id_project_id ||= Hmis::Hud::Enrollment
+      @household_id_by_personal_id_project_id ||= Hmis::Hud::Enrollment
         .where(data_source: data_source)
         .open_including_wip
         .preload(wip: :project)
         .to_h do |e|
           # avoid n+1 problems when calling enrollment.project
           project_id = e.project_id || e.wip.project.project_id
-          [[e.personal_id, project_id], [e.id, e.household_id]]
+          [[e.personal_id, project_id], e.household_id]
         end
     end
 
