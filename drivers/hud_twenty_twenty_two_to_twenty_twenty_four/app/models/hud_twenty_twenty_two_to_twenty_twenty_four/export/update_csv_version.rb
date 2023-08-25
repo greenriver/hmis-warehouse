@@ -8,6 +8,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Export
   class UpdateCsvVersion
     def process(row)
       row['CSVVersion'] = '2024 v1.2'
+
       row
     end
   end

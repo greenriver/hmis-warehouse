@@ -7,14 +7,35 @@
 module HudTwentyTwentyTwoToTwentyTwentyFour
   class DbTransformer
     def self.up
-      classes = [
-        HudTwentyTwentyToTwentyTwentyTwo::Export::Db,
-      ]
-      # classes << HudTwentyTwentyToTwentyTwentyTwo::AggregatedEnrollment::Db if RailsDrivers.loaded.include?(:hmis_csv_importer)
+      classes = {
+        HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation::Db => {
+          project: {
+            model: GrdaWarehouse::Hud::Project,
+          },
+          organization: {
+            model: GrdaWarehouse::Hud::Organization,
+          },
+        },
+        HudTwentyTwentyTwoToTwentyTwentyFour::Export::Db => {},
+        HudTwentyTwentyTwoToTwentyTwentyFour::Client::Db => {},
+        HudTwentyTwentyTwoToTwentyTwentyFour::CurrentLivingSituation::Db => {},
+        HudTwentyTwentyTwoToTwentyTwentyFour::Enrollment::Db => {
+          enrollment_coc: {
+            model: GrdaWarehouse::Hud::EnrollmentCoc,
+          },
+        },
+        HudTwentyTwentyTwoToTwentyTwentyFour::Exit::Db => {},
+        HudTwentyTwentyTwoToTwentyTwentyFour::HealthAndDv::Db => {},
+        HudTwentyTwentyTwoToTwentyTwentyFour::IncomeBenefit::Db => {},
+        HudTwentyTwentyTwoToTwentyTwentyFour::Project::Db => {},
+        # HudTwentyTwentyTwoToTwentyTwentyFour::Service::Db, # Only adds nils, so processing not required
+      }
+      # FIXME: enable after the 2024 importer is ready
+      # classes << HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment::Db if RailsDrivers.loaded.include?(:hmis_csv_importer)
 
-      classes.each do |klass|
+      classes.each do |klass, references|
         puts klass
-        ::Kiba.run(klass.up)
+        ::Kiba.run(klass.up(references))
       end
     end
   end

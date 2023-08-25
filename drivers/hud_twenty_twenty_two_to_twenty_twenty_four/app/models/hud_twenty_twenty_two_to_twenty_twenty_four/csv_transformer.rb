@@ -6,6 +6,8 @@
 
 module HudTwentyTwentyTwoToTwentyTwentyFour
   class CsvTransformer
+    include ExternalFileUtils
+
     TRANSFORM_TYPES = {
       # Export File
       'Export.csv' => {
@@ -62,25 +64,35 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
       },
       # Client File
       'Client.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::Client,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::Client::Csv,
       },
       # Enrollment Files
       'Enrollment.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::Enrollment,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::Enrollment::Csv,
+        references: {
+          enrollment_coc: {
+            file: 'EnrollmentCoC.csv',
+          },
+        },
       },
       'Exit.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::Exit,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::Exit::Csv,
       },
       'IncomeBenefits.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::IncomeBenefit,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::IncomeBenefit::Csv,
       },
       'HealthAndDV.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::HealthAndDv,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::HealthAndDv::Csv,
       },
       'EmploymentEducation.csv' => {
         action: :copy,
@@ -91,12 +103,14 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
         model: GrdaWarehouse::Hud::Disability,
       },
       'Services.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::Service,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::Service::Csv,
       },
       'CurrentLivingSituation.csv' => {
-        action: :copy,
+        action: :update,
         model: GrdaWarehouse::Hud::CurrentLivingSituation,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::CurrentLivingSituation::Csv,
       },
       'Assessment.csv' => {
         action: :copy,
@@ -164,50 +178,6 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
           end
         end
       end
-    end
-
-    def self.fix_bad_line_endings(filename, encoding)
-      tmp_file = ::Tempfile.new(filename)
-      file_with_bad_line_endings = false
-
-      File.open(filename, 'r', encoding: encoding) do |file|
-        file_with_bad_line_endings = ! valid_line_endings?(file)
-      end
-
-      if file_with_bad_line_endings
-        File.open(filename, 'r', encoding: encoding) do |file|
-          copy_length = file.stat.size - 2
-          Rails.logger.debug "Correcting bad line ending in #{filename}"
-          File.copy_stream(file, tmp_file, copy_length, 0)
-          tmp_file.write("\n")
-          tmp_file.close
-        end
-        FileUtils.cp(tmp_file, filename)
-      end
-    ensure
-      tmp_file&.close
-      tmp_file&.unlink
-    end
-
-    def self.valid_line_endings?(file)
-      return false if file.stat.size < 10
-
-      position = file.pos
-      first_line = file.first
-      first_line_final_characters = first_line.last(2)
-      file.seek(position)
-      file.seek(file.stat.size - 2)
-      last_two_chars = file.read
-      file.seek(position)
-
-      # sometimes the final return is missing
-      return true unless last_two_chars.include?("\n") || last_two_chars.include?("\r")
-      # windows
-      return true if last_two_chars == "\r\n" && first_line_final_characters == "\r\n"
-      # unix
-      return true if last_two_chars != "\r\n" && last_two_chars.last == "\n" && first_line_final_characters.last == "\n"
-
-      false
     end
 
     def self.header_converter(klass)

@@ -20,14 +20,5 @@ module GrdaWarehouse::Hud
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :ce_participations, optional: true
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :ce_participations, optional: true
     belongs_to :data_source, optional: true
-
-    # hide previous declaration of :importable, we'll use this one
-    replace_scope :importable, -> do
-      where(synthetic: false)
-    end
-
-    scope :synthetic, -> do
-      where(synthetic: true)
-    end
   end
 end

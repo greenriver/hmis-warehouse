@@ -156,3 +156,5 @@ docker/superset/op/superset.db
 docker/superset/op/__pycache__/*
 docker/superset/op/__pycache__/**
 docker/superset/op/.did.db.init
+
+/drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/*

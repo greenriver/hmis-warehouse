@@ -23,11 +23,11 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Kiba
     end
 
     private def update_batch
-      valid_keys = @destination_class.keys_for_migrations(version: '2022')
+      valid_keys = @destination_class.keys_for_migrations(version: '2024')
       @batch.map! do |row|
         row.select { |key, _| key.in?(valid_keys) }
       end
-      @destination_class.import(
+      @destination_class.import!(
         @batch,
         on_duplicate_key_update: {
           conflict_target: [:id],

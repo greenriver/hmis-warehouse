@@ -7,5 +7,9 @@
 module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
   class Db < Transforms
     include HudTwentyTwentyTwoToTwentyTwentyFour::Kiba::DbBase
+
+    def self.source_class
+      Kiba::Common::Sources::Enumerable
+    end
   end
 end
