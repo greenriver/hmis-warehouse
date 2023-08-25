@@ -136,9 +136,9 @@ module Types
 
     def self.coc_picklist(selected_project)
       available_codes = if selected_project.present?
-        selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility.cocs[code] || code] }
+        selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility2024.cocs[code] || code] }
       else
-        ::HudUtility.cocs_in_state(ENV['RELEVANT_COC_STATE'])
+        ::HudUtility2024.cocs_in_state(ENV['RELEVANT_COC_STATE'])
       end
 
       available_codes.sort.map do |code, name|

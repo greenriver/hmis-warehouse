@@ -31,8 +31,6 @@ module Types
     hud_field :date_created
     hud_field :date_deleted
 
-    # TODO ADD: source assessment
-
     def enrollment
       load_ar_association(object, :enrollment)
     end

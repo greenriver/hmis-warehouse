@@ -107,8 +107,6 @@ module Types
 
     custom_data_elements_field
 
-    # TODO ADD: source assessment
-
     def enrollment
       load_ar_association(object, :enrollment)
     end
