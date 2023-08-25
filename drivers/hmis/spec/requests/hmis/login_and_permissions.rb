@@ -34,15 +34,16 @@ end
 def create_access_control(user, entities, with_permission: nil, without_permission: nil)
   # Create ACL
   role_factory = with_permission.present? ? :hmis_role_with_no_permissions : :hmis_role
-  access_control = create(:hmis_access_control, role: create(role_factory))
+  # setup user group
+  user_group = create(:hmis_user_group)
+  user_group.add(user)
+
+  access_control = create(:hmis_access_control, role: create(role_factory), user_group: user_group)
   # Set entities
   access_control.access_group.set_viewables(viewable_hash(entities))
   # Set permissions
   access_control.role.update(**Array.wrap(with_permission).map { |p| [p, true] }.to_h) if with_permission.present?
   access_control.role.update(**Array.wrap(without_permission).map { |p| [p, false] }.to_h) if without_permission.present?
-
-  # Assign the user to the ACL
-  create(:hmis_user_access_control, access_control: access_control, user: user)
 
   access_control
 end
