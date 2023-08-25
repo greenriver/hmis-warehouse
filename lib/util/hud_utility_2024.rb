@@ -214,6 +214,12 @@ module HudUtility2024
     gender_id_to_field_name.invert.freeze
   end
 
+  def gender_field_name_label
+    genders.transform_keys do |k|
+      gender_id_to_field_name[k]
+    end
+  end
+
   def gender_id_to_field_name
     # Integer values from HUD Data Dictionary
     {
@@ -514,5 +520,16 @@ module HudUtility2024
       family_counseling: 2,
       group_counseling: 3,
     }
+  end
+
+  def ce_events_referrals_to_housing
+    [
+      12,
+      13,
+      14,
+      15,
+      17,
+      18,
+    ]
   end
 end

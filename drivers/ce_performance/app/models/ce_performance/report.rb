@@ -23,7 +23,7 @@ module CePerformance
 
     after_initialize :filter
 
-    HOUSING_REFERRAL_EVENTS = [12, 13, 14, 15, 17, 18].freeze
+    HOUSING_REFERRAL_EVENTS = HudUtility2024.ce_events_referrals_to_housing.freeze
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do

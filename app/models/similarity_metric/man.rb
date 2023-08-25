@@ -5,9 +5,9 @@
 ###
 
 module SimilarityMetric
-  class Male < SimilarityMetric::Boolean
+  class Man < SimilarityMetric::Boolean
     def field
-      :Male
+      :Man
     end
   end
 end

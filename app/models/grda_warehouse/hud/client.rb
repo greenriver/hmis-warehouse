@@ -617,10 +617,18 @@ module GrdaWarehouse::Hud
     end
 
     scope :no_single_gender, -> do
+      gender_non_binary
+    end
+
+    scope :gender_non_binary, -> do
       where(NonBinary: 1)
     end
 
     scope :questioning, -> do
+      where(Questioning: 1)
+    end
+
+    scope :gender_questioning, -> do
       where(Questioning: 1)
     end
 
@@ -630,6 +638,14 @@ module GrdaWarehouse::Hud
 
     scope :gender_unknown, -> do
       where(GenderNone: [8, 9, 99])
+    end
+
+    scope :gender_culturally_specific, -> do
+      where(CulturallySpecific: 1)
+    end
+
+    scope :gender_different_identity, -> do
+      where(DifferentIdentity: 1)
     end
 
     ####################
