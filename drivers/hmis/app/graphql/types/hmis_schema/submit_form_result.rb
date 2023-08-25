@@ -19,6 +19,10 @@ module Types
       Types::HmisSchema::Service,
       Types::HmisSchema::File,
       Types::HmisSchema::ReferralRequest,
+      Types::HmisSchema::Enrollment,
+      Types::HmisSchema::CurrentLivingSituation,
+      Types::HmisSchema::CeAssessment,
+      Types::HmisSchema::Event,
     )
 
     def self.resolve_type(object, _context)

@@ -5,7 +5,6 @@
 ###
 
 class BackgroundRender::CoreDemographicsReportJob < BackgroundRenderJob
-
   def render_html(partial:, filters:, user_id:)
     current_user = User.find(user_id)
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filters).with_indifferent_access)
@@ -32,7 +31,6 @@ class BackgroundRender::CoreDemographicsReportJob < BackgroundRenderJob
         current_user: current_user,
       },
     )
-
   end
 
   private def set_report

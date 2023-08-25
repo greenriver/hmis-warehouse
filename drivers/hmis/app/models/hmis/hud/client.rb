@@ -31,16 +31,22 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # WIP records representing enrollments for this Client
   has_many :wip, class_name: 'Hmis::Wip', through: :enrollments
 
+  has_many :custom_assessments, through: :enrollments
+
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
+  has_many :youth_education_statuses, through: :enrollments
+  has_many :employment_educations, through: :enrollments
   has_many :households, through: :enrollments
   has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
   has_many :custom_data_elements, as: :owner
+  has_many :client_projects
+  has_many :projects_including_wip, through: :client_projects, source: :project
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
@@ -52,8 +58,18 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
+  CUSTOM_NAME_OPTIONS = {
+    association: :names,
+    klass: Hmis::Hud::CustomClientName,
+    field_map: {
+      FirstName: :first,
+      LastName: :last,
+    },
+  }.freeze
+
   attr_accessor :image_blob_id
   attr_accessor :create_mci_id
+  attr_accessor :update_mci_attributes
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -68,11 +84,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       file.client_file.attach(current_image_blob)
       file.save!
     end
+  end
 
-    # Post-save action to create a new MCI ID if specified by the ClientProcessor
-    if create_mci_id && HmisExternalApis::AcHmis::Mci.enabled?
-      self.create_mci_id = nil
-      HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
+  after_save do
+    if HmisExternalApis::AcHmis::Mci.enabled?
+      # Create a new MCI ID if specified by the ClientProcessor
+      if create_mci_id
+        self.create_mci_id = nil
+        HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
+      end
+
+      # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
+      # 'update_mci_attributes' attr is specified by the ClientProcessor
+      if update_mci_attributes
+        self.update_mci_attributes = nil
+        trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
+        relevant_fields_changed = trigger_columns.any? { |field| previous_changes&.[](field) }
+        HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id) if relevant_fields_changed
+      end
     end
   end
 
@@ -99,11 +128,18 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :matching_search_term, ->(text_search) do
-    text_searcher(text_search) do |where|
-      where(where).pluck(:id)
+    text_searcher(text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
+      left_outer_joins(:names).where(where).pluck(:id)
     rescue RangeError
       return none
     end
+  end
+
+  scope :older_than, ->(age, or_equal: false) do
+    target_dob = Date.today - (age + 1).years
+    target_dob = Date.today - age.years if or_equal == true
+
+    where(c_t[:dob].lt(target_dob))
   end
 
   # Clients that have no Enrollments (WIP or otherwise)
@@ -112,21 +148,16 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
   end
 
-  # All CustomAssessments for this Client, including WIP Assessments and assessments at WIP Enrollments
-  def custom_assessments_including_wip
-    enrollment_ids = enrollments.pluck(:id, :enrollment_id)
-    wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
-
-    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+  scope :with_open_enrollment_in_project, ->(project_ids) do
+    joins(:projects_including_wip).where(p_t[:id].in(Array.wrap(project_ids)))
   end
 
-  # All Projects that this Client has Enrollments at, including WIP Enrollments
-  def projects_including_wip
-    wip_enrollment_projects = Hmis::Wip.enrollments.where(client: self).pluck(:project_id).compact
-    non_wip_enrollment_projects = projects.pluck(:id)
+  scope :with_open_enrollment_in_organization, ->(organization_ids) do
+    ds_ids, hud_org_ids = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
+    ds_ids = ds_ids.compact.map(&:to_i).uniq
+    raise 'orgs are in multiple data sources' if ds_ids.size > 1
 
-    Hmis::Hud::Project.where(id: wip_enrollment_projects + non_wip_enrollment_projects)
+    joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
 
   def enrolled?
@@ -148,49 +179,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     warehouse_client_source&.destination_id
   end
 
-  def warehouse_url
-    "https://#{ENV['FQDN']}/clients/#{id}/from_source"
-  end
-
-  def mci_id
-    ac_hmis_mci_id&.value
-  end
-
-  private def clientview_url
-    link_base = HmisExternalApis::AcHmis::Clientview.link_base
-    return unless link_base&.present? && mci_id&.present?
-
-    "#{link_base}/ClientInformation/Profile/#{mci_id}?aid=2"
-  end
-
-  def external_identifiers
-    external_identifiers = {
-      client_id: {
-        id: id,
-        label: 'HMIS ID',
-      },
-      personal_id: {
-        id: personal_id,
-        label: 'Personal ID',
-      },
-      warehouse_id: {
-        id: warehouse_id,
-        url: warehouse_url,
-        label: 'Warehouse ID',
-      },
-    }
-
-    if HmisExternalApis::AcHmis::Mci.enabled?
-      external_identifiers[:mci_id] = {
-        id: mci_id,
-        url: clientview_url,
-        label: 'MCI ID',
-      }
-    end
-
-    external_identifiers
-  end
-
   SORT_OPTIONS = [
     :last_name_a_to_z,
     :last_name_z_to_a,
@@ -198,6 +186,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     :first_name_z_to_a,
     :age_youngest_to_oldest,
     :age_oldest_to_youngest,
+    :recently_added,
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
@@ -207,6 +196,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     first_name_z_to_a: 'First Name: Z-A',
     age_youngest_to_oldest: 'Age: Youngest to Oldest',
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
+    recently_added: 'Recently Added',
   }.freeze
 
   # Unused
@@ -229,23 +219,31 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
     if input.text_search.present?
-      scope = text_searcher(input.text_search) do |where|
-        scope.where(where).pluck(:id)
+      scope = text_searcher(input.text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
+        scope.left_outer_joins(:names).where(where).pluck(:id)
       end
     end
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
+      ccn_query = ccn_t[:first].matches("#{input.first_name}%")
       query = nickname_search(query, input.first_name)
       query = metaphone_search(query, :FirstName, input.first_name)
-      scope = scope.where(query)
+      client_id_query = scope.left_outer_joins(:names).
+        where(query.or(ccn_query)).
+        pluck(:id)
+      scope = scope.where(id: client_id_query)
     end
 
     if input.last_name.present?
       query = c_t[:LastName].matches("#{input.last_name}%")
+      ccn_query = ccn_t[:last].matches("#{input.first_name}%")
       query = nickname_search(query, input.last_name)
       query = metaphone_search(query, :LastName, input.last_name)
-      scope = scope.where(query)
+      client_id_query = scope.left_outer_joins(:names).
+        where(query.or(ccn_query)).
+        pluck(:id)
+      scope = scope.where(id: client_id_query)
     end
 
     # TODO: nicks and/or metaphone searches?
@@ -281,6 +279,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  def self.apply_filters(input)
+    Hmis::Filter::ClientFilter.new(input).filter_scope(self)
+  end
+
   # fix these so they use DATA_NOT_COLLECTED And the other standard names
   use_enum(:gender_enum_map, ::HudUtility.genders) do |hash|
     hash.map do |value, desc|
@@ -305,16 +307,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
-  end
-
-  def safe_dob(user)
-    return nil unless user.present?
-
-    dob if user.can_view_dob_for?(self)
-  end
-
-  def image
-    @image ||= client_files&.client_photos&.newest_first&.first&.client_file
   end
 
   def delete_image

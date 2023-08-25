@@ -158,9 +158,13 @@ services:
       ngrok:
         condition: service_started
 
-  db:
-    image: postgis/postgis:12-3.1-alpine
-    container_name: hmis-warehouse-db
+  # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
+  db_previous:
+    build:
+      context: docker/pg12
+    container_name: db_previous
+    profiles:
+      - manual
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -174,6 +178,27 @@ services:
       retries: 3
     volumes:
       - dbdata:/var/lib/postgresql/data
+    ports:
+      - 5432
+    expose:
+      - 5432
+
+  # This should no longer need to be overridden for ARM
+  # processors
+  db:
+    build:
+      context: docker/pg13
+    container_name: hmis-warehouse-db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+      PGPASSWORD: postgres
+      PGUSER: postgres
+    volumes:
+      # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
+      - dbdata_pg13:/var/lib/postgresql/data
+      - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432
     expose:
@@ -198,10 +223,12 @@ services:
 
   sftp:
     container_name: hmis-warehouse-sftp
-    image: justinhimself/sftp
-    volumes:
-      - ./tmp/sftp_spec:/home/user/sftp
-      - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
+    build:
+      context: docker/sftp
+    volumes: []
+      # I took this out because it has the wrong permissions and I couldn't
+      # upload anything, and the one spec file that uses it seems disabled.
+      #- ./tmp/sftp_spec:/home/user/sftp
 
   # On arm64, you'll need to run this before things work:
   #   docker run --privileged --rm tonistiigi/binfmt --install amd64
@@ -262,6 +289,9 @@ services:
       MINIO_SECRET_KEY: local_secret_key
       MINIO_ROOT_USER: local_access_key
       MINIO_ROOT_PASSWORD: local_secret_key
+    expose:
+      - '9000'
+      - '9001'
     ports:
       - 9000:9000
       - 9001:9001 # enable for UI access
@@ -301,6 +331,7 @@ volumes:
   node_modules_alpine:
   rails_cache_alpine:
   dbdata:
+  dbdata_pg13:
   redis:
   ngrok:
 

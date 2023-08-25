@@ -18,18 +18,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, o1) }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'MA-500' }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, o1.as_warehouse, hmis_user)
   end
 
   let(:query) do
     <<~GRAPHQL
-      query GetPickList($pickListType: PickListType!, $relationId: ID) {
-        pickList(pickListType: $pickListType, relationId: $relationId) {
+      query GetPickList($pickListType: PickListType!, $projectId: ID, $clientId: ID, $householdId: ID, $enrollmentId: ID) {
+        pickList(pickListType: $pickListType, projectId: $projectId, clientId: $clientId, householdId: $householdId, enrollmentId: $enrollmentId) {
           code
           label
           secondaryLabel
@@ -67,9 +67,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'with enrollable project' do
+  describe 'ENROLLABLE_PROJECTS lost' do
     it 'should return no projects if no permission' do
-      remove_permissions(hmis_user, :can_enroll_clients)
+      remove_permissions(access_control, :can_enroll_clients)
       response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
@@ -78,9 +78,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'should only return viewable projects with this permission' do
+    it 'should exclude projects without can_enroll_clients permission' do
       o2 = create(:hmis_hud_organization, data_source: ds1, user: u1)
-      assign_viewable(view_access_group, o2.as_warehouse, hmis_user)
+      create_access_control(hmis_user, o2, without_permission: :can_enroll_clients)
+
       # Viewable but doesn't have enroll permissions, so should not be in pick list
       p2 = create(:hmis_hud_project, organization: o2, data_source: ds1, user: u1)
       # Not viewable at all, so should not be in pick list
@@ -127,7 +128,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'returns CoC pick list for specified project' do
-    response, result = post_graphql(pick_list_type: 'COC', relationId: p1.id.to_s) { query }
+    response, result = post_graphql(pick_list_type: 'COC', projectId: p1.id.to_s) { query }
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(1)
@@ -151,18 +152,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'returns grouped service type pick list' do
-    response, result = post_graphql(pick_list_type: 'SERVICE_TYPE', relationId: e1.id.to_s) { query }
+    response, result = post_graphql(pick_list_type: 'ALL_SERVICE_TYPES') { query }
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
-    expect(options.length).to eq(
-      Types::HmisSchema::Enums::ServiceTypeProvided.all_enum_value_definitions.reject { |item| item.value.is_a?(Integer) }.count,
-    )
+    expect(options.length).to eq(Hmis::Hud::CustomServiceType.count)
+    opt = Hmis::Hud::CustomServiceType.first.to_pick_list_option
     expect(options).to include(
       include(
-        'code' => 'PATH_SERVICE__RE_ENGAGEMENT',
-        'label' => 'Re-engagement',
-        'groupCode' => 'PATH_SERVICE',
-        'groupLabel' => 'PATH Service',
+        'code' => opt[:code],
+        'label' => opt[:label],
+        'groupCode' => opt[:group_code],
+        'groupLabel' => opt[:group_label],
+      ),
+    )
+  end
+
+  it 'returns service category pick list' do
+    response, result = post_graphql(pick_list_type: 'ALL_SERVICE_CATEGORIES') { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options.length).to eq(Hmis::Hud::CustomServiceCategory.count)
+    opt = Hmis::Hud::CustomServiceCategory.first.to_pick_list_option
+    expect(options).to include(
+      include(
+        'code' => opt[:code],
+        'label' => opt[:label],
       ),
     )
   end
@@ -184,7 +198,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       Types::Forms::PickListOption.options_for_type(
         'AVAILABLE_SERVICE_TYPES',
         user: hmis_user,
-        relation_id: project.id,
+        project_id: project.id,
       ).map { |opt| opt[:code] }
     end
 
@@ -204,8 +218,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # Instance: use this service definition for BedNights in ES projects
       create(
         :hmis_form_instance,
-        entity_type: 'ProjectType',
-        entity_id: 1, # ES
+        entity: nil,
+        project_type: 1, # ES
         definition_identifier: service_form_definition.identifier,
         custom_service_category_id: bednight_service_category.id,
       )
@@ -214,6 +228,42 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
       # PH project
       expect(picklist_option_codes(p2)).to be_empty
+    end
+
+    it 'works when instance is associated by service category and funder' do
+      # Instance: use this service definition for funder 43 projects
+      create(
+        :hmis_form_instance,
+        entity: nil,
+        funder: 43,
+        definition_identifier: service_form_definition.identifier,
+        custom_service_category_id: bednight_service_category.id,
+      )
+
+      create(:hmis_hud_funder, funder: 43, project: p1, data_source: p1.data_source)
+      expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p2)).to be_empty
+    end
+
+    it 'works when instance is associated by service category and Project Type AND Funder' do
+      # Instance: use this service definition for projets of type 12 funded by 43
+      create(
+        :hmis_form_instance,
+        entity: nil,
+        project_type: 12,
+        funder: 43,
+        definition_identifier: service_form_definition.identifier,
+        custom_service_category_id: bednight_service_category.id,
+      )
+
+      p1.update(project_type: 12)
+      p2.update(project_type: 1)
+      p3.update(project_type: 12)
+      create(:hmis_hud_funder, funder: 43, project: p1, data_source: p1.data_source)
+      create(:hmis_hud_funder, funder: 43, project: p2, data_source: p2.data_source)
+      expect(picklist_option_codes(p1)).to contain_exactly(bednight_service_type.id.to_s)
+      expect(picklist_option_codes(p2)).to be_empty # funder matches, type doesn't
+      expect(picklist_option_codes(p3)).to be_empty # type matches, funder doesn't
     end
 
     it 'works when instance is associated by service category and project' do
@@ -239,6 +289,39 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(picklist_option_codes(p1)).to contain_exactly(cst1.id.to_s)
       expect(picklist_option_codes(p2)).to contain_exactly(cst1.id.to_s)
       expect(picklist_option_codes(p3)).to be_empty
+    end
+  end
+
+  describe 'AVAILABLE_UNITS_FOR_ENROLLMENT' do
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+    let!(:un1) { create :hmis_unit, project: p1 }
+    let!(:un2) { create :hmis_unit, project: p1 }
+    let!(:un3) { create :hmis_unit } # in another project
+
+    # assign e1 to un1
+    let!(:uo1) { create :hmis_unit_occupancy, unit: un1, enrollment: e1, start_date: 1.week.ago }
+
+    def picklist_option_codes(project, household_id = nil)
+      Types::Forms::PickListOption.options_for_type(
+        'AVAILABLE_UNITS_FOR_ENROLLMENT',
+        user: hmis_user,
+        project_id: project.id,
+        household_id: household_id,
+      ).map { |opt| opt[:code] }
+    end
+
+    it 'resolves available units for project' do
+      expect(picklist_option_codes(p1)).to contain_exactly(un2.id)
+    end
+
+    it 'includes units that are currently occupied by the household' do
+      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id, un2.id)
+    end
+
+    it 'if household is occupied by a unit that has a type, excludes other unit typoes from list' do
+      un1.unit_type = create(:hmis_unit_type)
+      un1.save!
+      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id)
     end
   end
 end

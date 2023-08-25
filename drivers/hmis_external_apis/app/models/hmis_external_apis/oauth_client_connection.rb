@@ -6,7 +6,21 @@
 
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
-  OauthClientConnection = Struct.new(:client_id, :client_secret, :token_url, :headers, :scope, :base_url, keyword_init: true) do
+  class OauthClientConnection
+    attr_accessor :creds, :client_id, :scope, :headers, :base_url, :connection_timeout, :logger
+
+    # @param creds [::GrdaWarehouse::RemoteCredential]
+    def initialize(creds, connection_timeout: 5, logger: OauthClientLogger.new)
+      self.creds = creds
+      self.client_id = creds.client_id
+      self.scope = creds.oauth_scope
+      # normalized base_url
+      self.base_url = creds.base_url.strip.gsub(/\/*\z/, '')
+      self.headers = creds.additional_headers
+      self.connection_timeout = connection_timeout
+      self.logger = logger
+    end
+
     def get(path)
       request(:get, url_for(path))
     end
@@ -33,20 +47,16 @@ module HmisExternalApis
 
     # normalize leading/trailing slashes
     def url_for(path)
-      return normalized_base_url if path.blank?
+      return base_url if path.blank?
 
-      normalized_base_url + '/' + path.strip.gsub(%r{\A/*}, '')
-    end
-
-    def normalized_base_url
-      base_url.strip.gsub(%r{/*\z}, '')
+      base_url + '/' + path.strip.gsub(/\A\/*/, '')
     end
 
     def request(verb, url, payload = nil)
-      result =
+      result, request_log = logger.capture(creds: creds, url: url, method: verb, payload: payload, headers: merged_headers) do
         case verb
         when :get
-          access.get(url, headers: headers)
+          access.get(url, headers: merged_headers)
         when :post
           access.post(url, headers: merged_headers, body: payload.to_json)
         when :patch
@@ -54,6 +64,7 @@ module HmisExternalApis
         else
           raise "invalid verb #{verb}"
         end
+      end
 
       OauthClientResult.new(
         body: result.body,
@@ -66,6 +77,7 @@ module HmisExternalApis
         parsed_body: try_parse_json(result.body),
         request_headers: merged_headers,
         url: url,
+        request_log: request_log,
       )
     rescue OAuth2::Error => e
       OauthClientResult.new(
@@ -80,6 +92,7 @@ module HmisExternalApis
         request_headers: e.response.response.env.request_headers,
         request_body: e.response.response.env.request_body,
         url: e.response.response.env.url.to_s,
+        request_log: request_log,
       )
     end
 
@@ -108,7 +121,18 @@ module HmisExternalApis
     end
 
     def client
-      OAuth2::Client.new(client_id, client_secret, token_url: token_url)
+      connection_build = ->(builder) {
+        # https://gitlab.com/oauth-xx/oauth2/-/blob/main/lib/oauth2/client.rb#L81
+        builder.options.timeout = connection_timeout
+        builder.request :url_encoded
+        builder.adapter Faraday.default_adapter
+      }
+      OAuth2::Client.new(
+        client_id,
+        creds.client_secret,
+        token_url: creds.token_url,
+        connection_build: connection_build,
+      )
     end
   end
 end

@@ -321,7 +321,8 @@ module UserConcern
     def deactivation_status(user)
       return unless inactive?
 
-      version = versions.where(event: 'deactivate').order(created_at: :desc)&.first
+      # The PaperTrail versions association has a fixed order with newest last
+      version = versions.where(event: 'deactivate').last
 
       return 'Account deactivated' unless version
       return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?

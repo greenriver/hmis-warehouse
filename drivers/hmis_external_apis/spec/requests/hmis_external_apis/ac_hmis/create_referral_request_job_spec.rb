@@ -43,7 +43,7 @@ RSpec.describe HmisExternalApis::AcHmis::CreateReferralRequestJob do
             'estimatedDate' => referral_request.needed_by.strftime('%Y-%m-%d'),
             'programID' => referral_request.project.ProjectID,
             'requestedBy' => hmis_user.email,
-            'requestedDate' => referral_request.requested_on.strftime('%Y-%m-%d'),
+            'requestedDate' => referral_request.requested_on.iso8601,
             'requestorEmail' => referral_request.requestor_email,
             'requestorName' => referral_request.requestor_name,
             'requestorPhoneNumber' => referral_request.requestor_phone,

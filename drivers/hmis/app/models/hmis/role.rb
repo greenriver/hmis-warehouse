@@ -40,6 +40,14 @@ class Hmis::Role < ::ApplicationRecord
     false
   end
 
+  # @param permission [Symbol]
+  # @return [Boolean]
+  def grants?(permission)
+    raise "unknown permission #{permission.inspect}" unless self.class.permissions_with_descriptions.key?(permission)
+
+    send(permission) || false
+  end
+
   def self.description_for(permission:)
     permissions_with_descriptions[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
   end
@@ -110,7 +118,7 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
       can_manage_inventory: {
-        description: 'Ability to manage Inventory and Unit records in the project',
+        description: 'Ability to manage bed and unit capacity in the project',
         administrative: false,
         access: [:editable],
         categories: [
@@ -207,6 +215,14 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_enrollment_details: {
         description: 'Grants access to view enrollments',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_view_open_enrollment_summary: {
+        description: 'Grants access to view minimal information (entry date, project name, move-in date) for all open enrollments for a given client, regardless of whether the user can see those other projects.',
         administrative: false,
         access: [:viewable],
         categories: [

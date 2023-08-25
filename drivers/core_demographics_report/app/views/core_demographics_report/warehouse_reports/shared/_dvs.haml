@@ -1,0 +1,41 @@
+- reports = [@report]
+- column_class = 'col-sm-8'
+- if @report.include_comparison?
+  - reports << @comparison
+  - column_class = 'col-sm-6'
+.row
+  - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
+    %div{class: column_class}
+      %h3 DV Victim/Survivor
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th Response
+              %th Count
+              %th Percentage
+          %tbody
+            - ::HudUtility.no_yes_reasons_for_missing_data_options.each do |id, title|
+              %tr
+                %th= title
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.dv_status_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "dv_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= number_to_percentage(report.dv_status_percentage(id), precision: 2)
+
+      %h3 DV Victim/Survivor - Most Recent Occurance
+      %p Percentages are out of those reporting being a DV victim or survivor.
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th Occurrance Timing
+              %th Count
+              %th Percentage
+          %tbody
+            - ::HudUtility.when_occurreds.each do |id, title|
+              %tr
+                %th= title
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.dv_occurrence_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "dv_occurrence_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= number_to_percentage(report.dv_occurrence_percentage(id), precision: 2)

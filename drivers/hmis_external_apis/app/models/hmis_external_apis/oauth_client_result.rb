@@ -17,6 +17,7 @@ module HmisExternalApis
     :http_status,
     :url,
     :request_body,
+    :request_log,
     keyword_init: true,
   ) do
   end

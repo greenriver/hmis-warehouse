@@ -38,7 +38,9 @@ module GrdaWarehouse::Hud
     end
 
     scope :chronically_disabled, -> do
-      disabled.where(IndefiniteAndImpairs: 1)
+      # HIV/AIDS and developmental disabilities are always indefinite and impairing
+      # Everything else needs IndefiniteAndImpairs: 1
+      disabled.where(arel_table[:DisabilityType].in([6, 8]).or(arel_table[:IndefiniteAndImpairs].eq(1)))
     end
 
     scope :at_entry, -> do
@@ -129,9 +131,9 @@ module GrdaWarehouse::Hud
     # see Disabilities.csv spec version 5
     def response
       if self.DisabilityType == 10
-        ::HudUtility.list('4.10.2', self.DisabilityResponse)
+        ::HudUtility.disability_response(self.DisabilityResponse)
       else
-        ::HudUtility.list('1.8', self.DisabilityResponse)
+        ::HudUtility.no_yes_reasons_for_missing_data(self.DisabilityResponse)
       end
     end
 

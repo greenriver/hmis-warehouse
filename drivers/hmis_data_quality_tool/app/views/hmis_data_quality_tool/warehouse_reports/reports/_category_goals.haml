@@ -5,7 +5,9 @@
       - overall_percent_invalid = @report.percent(@report.results.map(&:total).sum, @report.results.map(&:invalid_count).sum)
       - overall_percent_valid = 100 - overall_percent_invalid
       - if goal_config.present? && goal_config.active?
-        - background_color = "background-color: #{goal_config.color_for(overall_percent_valid.to_i)};"
+        -# !important for print -- bootstrap has an !important style that for some reason overrides inline styles
+        - background_color = "background-color: #{goal_config.color_for(overall_percent_valid.to_i)} !important;"
+        
         - name = goal_config.name_for(overall_percent_valid.to_i)
         %tr
           %th Overall
@@ -18,7 +20,8 @@
       - @report.results.group_by(&:category).each do |category, results|
         - category_percent_valid = @report.category_percent_valid(results)
         - if goal_config.present? && goal_config.active?
-          - background_color = "background-color: #{goal_config.color_for(category_percent_valid.to_i)};"
+          -# !important for print -- bootstrap has an !important style that for some reason overrides inline styles
+          - background_color = "background-color: #{goal_config.color_for(category_percent_valid.to_i)} !important;"
           - name = goal_config.name_for(category_percent_valid.to_i)
           - if name.present?
             %tr

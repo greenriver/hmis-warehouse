@@ -135,7 +135,7 @@ gem 'babel-transpiler'
 # gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
-gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
+# gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
 gem 'linefit'
 gem 'jquery-minicolors-rails'
 gem 'htmlentities'
@@ -175,7 +175,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 4.3.11'
+gem 'puma', '~> 6.3'
 
 gem 'dotenv-rails'
 
@@ -294,7 +294,11 @@ group :test do
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
+  gem 'rspec-core'
   gem 'rails-controller-testing'
+  gem 'rspec-instafail'
+  gem 'rspec-benchmark'
+  gem 'db-query-matchers'
   # gem 'simplecov'
   # gem 'simplecov-console'
 end

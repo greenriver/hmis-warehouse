@@ -87,7 +87,7 @@ module Health
       return result
     end
 
-    def build_claims_file
+    def build_claims_file # rubocop:disable Metrics/AbcSize
       @isa_control_number = self.class.next_isa_control_number
       @group_control_number = self.class.next_group_control_number
       @st_control_number = self.class.next_st_control_number
@@ -138,13 +138,29 @@ module Health
           # batch services by month
           valid_qa.group_by { |qa| qa.date_of_activity.strftime('%Y%m') }.each do |_, qas|
             # puts "QA Count: #{qas.count} in #{group} for patient: #{patient.id}"
+            # Partition QAs by Encounter Type: Encounter for screening (Z13.9) or Encounter for administrative exam (Z02.9)
+            screening_qas, administrative_qas = qas.partition { |qa| qa.activity == 'sdoh_positive' || qa.activity == 'sdoh_negative' }
 
             # never put more than 20 services in any given claim
-            qas.each_slice(20) do |qa_batch|
+            screening_qas.each_slice(20) do |qa_batch|
+              @lx = 0 # Reset LX for batch
+              b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
+              hi_codes = [b.composite('ABK', 'Z139')] # Encounter for screening, unspecified
+              hi_codes += patient.sdoh_icd10_codes.map { |code| b.composite('ABF', code) } if qas.any? { |qa| qa.activity == 'sdoh_positive' }
+              b.HI(*hi_codes)
+              qa_batch.each do |qa|
+                @lx += 1
+                b.LX @lx
+                b.SV1 b.composite('HC', *qa.procedure_code.split(component_element_separator), *qa.modifiers), '0', 'UN', '1', nil, nil, b.composite('1')
+                b.DTP '472', 'D8', qa.date_of_activity.strftime('%Y%m%d')
+              end
+            end
+
+            # never put more than 20 services in any given claim
+            administrative_qas.each_slice(20) do |qa_batch|
               @lx = 0 # Reset LX for batch
               b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
               hi_codes = [b.composite('ABK', 'Z029')] # Encounter for administrative examination, unspecified
-              hi_codes += patient.sdoh_icd10_codes.map { |code| b.composite('ABF', code) } if qas.any? { |qa| qa.activity == 'sdoh_positive' }
               b.HI(*hi_codes)
                 qa_batch.each do |qa|
                   @lx += 1

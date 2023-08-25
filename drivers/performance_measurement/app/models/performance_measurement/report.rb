@@ -22,6 +22,7 @@ module PerformanceMeasurement
     acts_as_paranoid
 
     belongs_to :user
+    belongs_to :goal_configuration, class_name: 'PerformanceMeasurement::Goal'
     has_many :clients
     has_many :projects
     has_many :results
@@ -88,13 +89,17 @@ module PerformanceMeasurement
       [
         :start,
         :end,
-        :comparison_period,
+        :comparison_pattern,
         :coc_code,
         :project_type_codes,
         :project_ids,
         :project_group_ids,
         :data_source_ids,
       ]
+    end
+
+    def comparison_patterns
+      filter.comparison_patterns.except('None', 'Same period, prior year')
     end
 
     def filter=(filter_object)
@@ -109,8 +114,8 @@ module PerformanceMeasurement
 
     def filter
       @filter ||= begin
-        f = ::Filters::HudFilterBase.new(user_id: filter_user_id)
-        f.update((options || {}).merge(comparison_pattern: :prior_year).with_indifferent_access)
+        f = ::Filters::HudFilterBase.new(user_id: filter_user_id, comparison_pattern: :prior_fiscal_year)
+        f.update((options || {}).with_indifferent_access)
         f.update(start: f.end - 1.years + 1.days)
         f
       end
@@ -119,7 +124,7 @@ module PerformanceMeasurement
     def self.known_params
       return ::Filters::HudFilterBase.new.known_params if PerformanceMeasurement::Goal.include_project_options?
 
-      [:end, :coc_code]
+      [:end, :coc_code, :comparison_pattern]
     end
 
     # The filter user is dependent on the configuration
@@ -141,7 +146,14 @@ module PerformanceMeasurement
     end
 
     def goal_config
-      @goal_config ||= PerformanceMeasurement::Goal.for_coc(coc_code)
+      @goal_config ||= begin
+        update_goal_configuration! if persisted? && goal_configuration.blank?
+        goal_configuration
+      end
+    end
+
+    def update_goal_configuration!
+      update(goal_configuration_id: PerformanceMeasurement::Goal.for_coc(filter.coc_code)&.id)
     end
 
     private def reset_filter
@@ -756,8 +768,8 @@ module PerformanceMeasurement
         },
         comparison: {
           options: {
-            start: filter.start - 1.years,
-            end: filter.end - 1.years,
+            start: filter.comparison_range.first,
+            end: filter.comparison_range.end,
           },
         },
       }
@@ -954,6 +966,17 @@ module PerformanceMeasurement
                 client_id: spm_client[:client_id],
                 project_id: project_id,
                 for_question: :returned_in_six_months,
+                period: variant_name,
+              }
+            },
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 365)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :returned_in_one_year,
                 period: variant_name,
               }
             },

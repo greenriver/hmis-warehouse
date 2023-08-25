@@ -21,7 +21,10 @@ module Hmis::Hud::Processors
       record = @processor.send(factory_name)
       return if record.persisted?
 
-      record.assign_attributes(requested_by: @processor.current_user)
+      record.assign_attributes(
+        requested_by: @processor.current_user,
+        requested_on: Time.current,
+      )
     end
   end
 end

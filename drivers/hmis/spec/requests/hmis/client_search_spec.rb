@@ -17,14 +17,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   include_context 'hmis base setup'
 
-  # let!(:ds1) { create :hmis_data_source }
-  # let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let!(:ds2) { create :hmis_data_source, hmis: nil }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  let!(:access_control) { create_access_control(hmis_user, p1) }
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, p1, hmis_user)
   end
 
   let(:query) do
@@ -81,9 +79,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should exclude clients enrolled at a project without user view permission' do
-      assign_viewable(view_access_group, p2, hmis_user)
+      # Grant user access to p2, but without the ability to view clients
+      create_access_control(hmis_user, p2, without_permission: :can_view_clients)
+      # Enroll client3 in p2
       create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: client3, user: u1)
-      view_access_group.roles.first.update(can_view_clients: false)
 
       response, result = post_graphql(input: {}) { query }
       expect(response.status).to eq 200
@@ -94,7 +93,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should return no clients if user does not have permission to view clients' do
-      remove_permissions(hmis_user, :can_view_clients)
+      remove_permissions(access_control, :can_view_clients)
       response, result = post_graphql(input: {}) { query }
       expect(response.status).to eq 200
       clients = result.dig('data', 'clientSearch', 'nodes')
@@ -158,6 +157,51 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # TODO: Organizations filter
     ].each do |desc, input, match|
       it "should search by #{desc}" do
+        response, result = post_graphql(input: input) { query }
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          clients = result.dig('data', 'clientSearch', 'nodes')
+          matcher = include({ 'id' => client.id.to_s })
+          match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
+        end
+      end
+    end
+  end
+
+  describe 'custom client names search tests' do
+    let!(:client) do
+      create(
+        :hmis_hud_client,
+        data_source: ds1,
+        FirstName: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
+        LastName: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
+        PersonalID: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
+        SSN: '123456789',
+        DOB: '1999-12-01',
+      )
+    end
+
+    before(:each) do
+      client.names.create!(
+        first: 'William',
+        last: 'Smith',
+        user_id: client.user_id,
+        data_source_id: client.data_source_id,
+      )
+    end
+
+    [
+      *[
+        ['text: first name', 'william', true],
+        ['text: last name', 'smith', true],
+        ['text: last, first', 'smith, william', true],
+        ['text: first last', 'william smith', true],
+        ['text: partial names', 'w s', true],
+      ].map { |desc, text, match| [desc, { text_search: text }, match] },
+      ['first name', { first_name: 'William' }, true],
+      ['last name', { last_name: 'Smith' }, true],
+    ].each do |desc, input, match|
+      it "should search custom client names by #{desc}" do
         response, result = post_graphql(input: input) { query }
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200

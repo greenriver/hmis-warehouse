@@ -8,7 +8,7 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   let!(:ds1) { create :hmis_data_source }
   let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let(:hmis_user) { user.related_hmis_user(ds1) }
-  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
+  let(:u1) { create :hmis_hud_user, data_source: ds1 }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
@@ -16,20 +16,6 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   # Custom Service Category and Custom Service Type
   let!(:csc1) { create :hmis_custom_service_category, data_source: ds1, user: u1 }
   let!(:cst1) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: csc1, user: u1 }
-
-  let(:edit_access_group) do
-    group = create :edit_access_group
-    role = create(:hmis_role)
-    group.access_controls.create(role: role)
-    group
-  end
-
-  let(:view_access_group) do
-    group = create :view_access_group
-    role = create(:hmis_role_with_no_permissions, **Hmis::Role.permissions_with_descriptions.map { |k, v| v[:access] == [:viewable] ? k : nil }.compact.map { |p| [p, true] }.to_h)
-    group.access_controls.create(role: role)
-    group
-  end
 
   let(:form_item_fragment) do
     <<~GRAPHQL
@@ -45,6 +31,9 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
       }
       initial {
         #{scalar_fields(Types::Forms::InitialValue)}
+      }
+      mapping {
+        #{scalar_fields(Types::Forms::FieldMapping)}
       }
       autofillValues {
         #{scalar_fields(Types::Forms::AutofillValue)}

@@ -25,6 +25,10 @@ module Hmis::Concerns::HmisArelHelper
       Hmis::Form::Definition.arel_table
     end
 
+    def fi_t
+      Hmis::Form::Instance.arel_table
+    end
+
     def hs_t
       Hmis::Hud::HmisService.arel_table
     end
@@ -52,9 +56,21 @@ module Hmis::Concerns::HmisArelHelper
     def cded_t
       Hmis::Hud::CustomDataElementDefinition.arel_table
     end
+
+    def ccn_t
+      Hmis::Hud::CustomClientName.arel_table
+    end
+
+    def u_t
+      Hmis::Unit.arel_table
+    end
+
+    def ut_t
+      Hmis::UnitType.arel_table
+    end
   end
 
   included do
-    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, :hh_t, to: 'self.class'
+    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, :hh_t, :u_t, :ut_t, to: 'self.class'
   end
 end

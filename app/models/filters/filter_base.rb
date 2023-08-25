@@ -73,8 +73,15 @@ module Filters
     attribute :report_version, Symbol
     attribute :inactivity_days, Integer, default: 365 * 2
     attribute :lsa_scope, Integer, default: nil
-    attribute :involves_ce, Boolean, default: nil
+    attribute :involves_ce, String, default: nil
     attribute :disabling_condition, Boolean, default: nil
+    attribute :dates_to_compare, Symbol, default: :entry_to_exit
+    attribute :required_files, Array, default: []
+    attribute :optional_files, Array, default: []
+    attribute :active_roi, Boolean, default: false
+    attribute :mask_small_populations, Boolean, default: false
+    attribute :secondary_project_ids, Array, default: []
+    attribute :secondary_project_group_ids, Array, default: []
 
     validates_presence_of :start, :end
 
@@ -144,7 +151,7 @@ module Filters
       self.rrh_move_in = filters.dig(:rrh_move_in).in?(['1', 'true', true]) unless filters.dig(:rrh_move_in).nil?
       self.psh_move_in = filters.dig(:psh_move_in).in?(['1', 'true', true]) unless filters.dig(:psh_move_in).nil?
       self.first_time_homeless = filters.dig(:first_time_homeless).in?(['1', 'true', true]) unless filters.dig(:first_time_homeless).nil?
-      self.involves_ce = filters.dig(:involves_ce).in?(['1', 'true', true]) unless filters.dig(:involves_ce).nil? || filters.dig(:involves_ce) == ''
+      self.involves_ce = filters.dig(:involves_ce).presence || involves_ce
       self.disabling_condition = filters.dig(:disabling_condition).in?(['1', 'true', true]) unless filters.dig(:disabling_condition).nil? || filters.dig(:disabling_condition) == ''
       self.returned_to_homelessness_from_permanent_destination = filters.dig(:returned_to_homelessness_from_permanent_destination).in?(['1', 'true', true]) unless filters.dig(:returned_to_homelessness_from_permanent_destination).nil?
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true]) unless filters.dig(:coordinated_assessment_living_situation_homeless).nil?
@@ -157,6 +164,13 @@ module Filters
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
+      self.dates_to_compare = filters.dig(:dates_to_compare)&.to_sym || dates_to_compare
+      self.mask_small_populations = filters.dig(:mask_small_populations).in?(['1', 'true', true]) unless filters.dig(:mask_small_populations).nil?
+      self.required_files = filters.dig(:required_files)&.reject(&:blank?)&.map(&:to_i).presence || required_files
+      self.optional_files = filters.dig(:optional_files)&.reject(&:blank?)&.map(&:to_i).presence || optional_files
+      self.active_roi = filters.dig(:active_roi).in?(['1', 'true', true]) unless filters.dig(:active_roi).nil?
+      self.secondary_project_ids = filters.dig(:secondary_project_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_ids
+      self.secondary_project_group_ids = filters.dig(:secondary_project_group_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_group_ids
 
       ensure_dates_work if valid?
       self
@@ -218,6 +232,12 @@ module Filters
           creator_id: creator_id,
           inactivity_days: inactivity_days,
           lsa_scope: lsa_scope,
+          required_files: required_files,
+          optional_files: optional_files,
+          active_roi: active_roi,
+          mask_small_populations: mask_small_populations,
+          secondary_project_ids: secondary_project_ids,
+          secondary_project_group_ids: secondary_project_group_ids,
         },
       }
     end
@@ -258,6 +278,9 @@ module Filters
         :cohort_column_voucher_type,
         :cohort_column_housed_date,
         :cohort_column_matched_date,
+        :dates_to_compare,
+        :active_roi,
+        :mask_small_populations,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -283,6 +306,10 @@ module Filters
         prior_living_situation_ids: [],
         length_of_times: [],
         times_homeless_in_last_three_years: [],
+        required_files: [],
+        optional_files: [],
+        secondary_project_ids: [],
+        secondary_project_group_ids: [],
       ]
     end
 
@@ -290,51 +317,108 @@ module Filters
       known_params.map { |k| if k.is_a?(Hash) then k.keys else k end }.flatten
     end
 
-    def selected_params_for_display(single_date: false)
+    DEFAULT_LABELS = {
+      on_date: 'On Date',
+      on: 'On',
+      date_range: 'Report Range',
+      comparison_range: 'Comparison Range',
+      coc_codes: 'CoC Codes',
+      coc_code: 'CoC Code',
+      project_types: 'Project Types',
+      sub_population: 'Sub-Population',
+      data_sources: 'Data Sources',
+      organizations: 'Organizations',
+      projects: 'Projects',
+      project_groups: 'Project Groups',
+      funders: 'Funders',
+      hoh_only: 'Heads of Household only?',
+      coordinated_assessment_living_situation_homeless: 'Including CE homeless at entry',
+      ce_cls_as_homeless: 'Including CE Current Living Situation Homeless',
+      household_type: 'Household Type',
+      age_ranges: 'Age Ranges',
+      races: 'Races',
+      ethnicities: 'Ethnicities',
+      genders: 'Genders',
+      veteran_statuses: 'Veteran Statuses',
+      length_of_time: 'Length of Time',
+      prior_living_situations: 'Prior Living Situations',
+      destinations: 'Destinations',
+      disabilities: 'Disabilities',
+      indefinite_disabilities: 'Indefinite and Impairing Disabilities',
+      dv_status: 'DV Status',
+      currently_fleeing: 'Currently Fleeing DV',
+      chronic_status: 'Chronically at Entry',
+      with_rrh_move_in: 'With RRH Move-in',
+      with_psh_move_in: 'With PSH Move-in',
+      first_time_homeless: 'First Time Homeless in Past Two Years',
+      involves_ce: 'Participated in CE',
+      disabling_condition: 'Disabling Condition',
+      return_to_homelessness: 'Returned to Homelessness from Permanent Destination',
+      client_limits: 'Client Limits',
+      times_homeless_in_last_three_years: 'Times Homeless in Past 3 Years',
+      require_service: 'Require Service During Range',
+      dates_to_compare: 'Dates to Compare',
+      required_files: 'Required Files',
+      optional_files: 'Optional Files',
+      active_roi: 'With Active ROI',
+      mask_small_populations: 'Mask Small Populations',
+      secondary_projects: 'Secondary Projects',
+      secondary_project_groups: 'Secondary Project Groups',
+    }.freeze
+
+    private def label(key, labels)
+      labels[key] || DEFAULT_LABELS[key]
+    end
+
+    def selected_params_for_display(single_date: false, labels: {}) # rubocop:disable Metrics/AbcSize
       {}.tap do |opts|
         if single_date
-          opts['On Date'] = on
+          opts[label(:on_date, labels)] = on
         else
-          opts['Report Range'] = date_range_words
+          opts[label(:date_range, labels)] = date_range_words
         end
-        opts['Comparison Range'] = comparison_range_words if includes_comparison?
-        opts['CoC Codes'] = chosen_coc_codes if coc_codes.present?
-        opts['CoC Code'] = chosen_coc_code if coc_code.present?
-        opts['Project Types'] = chosen_project_types
-        opts['Sub-Population'] = chosen_sub_population
-        opts['Data Sources'] = data_source_names if data_source_ids.any?
-        opts['Organizations'] = organization_names if organization_ids.any?
-        opts['Projects'] = project_names if project_ids.any?
-        opts['Project Groups'] = project_groups if project_group_ids.any?
-        opts['Funders'] = funder_names if funder_ids.any?
-        opts['Heads of Household only?'] = 'Yes' if hoh_only
-        opts['Including CE homeless at entry'] = 'Yes' if coordinated_assessment_living_situation_homeless
-        opts['Including CE Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
-        opts['Household Type'] = chosen_household_type if household_type
-        opts['Age Ranges'] = chosen_age_ranges if age_ranges.any?
-        opts['Races'] = chosen_races if races.any?
-        opts['Ethnicities'] = chosen_ethnicities if ethnicities.any?
-        opts['Genders'] = chosen_genders if genders.any?
-        opts['Veteran Statuses'] = chosen_veteran_statuses if veteran_statuses.any?
-        opts['Length of Time'] = length_of_times if length_of_times.any?
-        opts['Prior Living Situations'] = chosen_prior_living_situations if prior_living_situation_ids.any?
-        opts['Destinations'] = chosen_destinations if destination_ids.any?
-        opts['Disabilities'] = chosen_disabilities if disabilities.any?
-        opts['Indefinite and Impairing Disabilities'] = chosen_indefinite_disabilities if indefinite_disabilities.any?
-        opts['DV Status'] = chosen_dv_status if dv_status.any?
-        opts['Currently Fleeing DV'] = chosen_currently_fleeing if currently_fleeing.any?
-        opts['Chronically Homeless'] = 'Yes' if chronic_status
-        opts['With RRH Move-in'] = 'Yes' if rrh_move_in
-        opts['With PSH Move-in'] = 'Yes' if psh_move_in
-        opts['First Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
-        opts['Involves CE'] = 'Yes' if involves_ce
-        opts['Disabling Condition'] = 'Yes' if disabling_condition
-        opts['Returned to Homelessness from Permanent Destination'] = 'Yes' if returned_to_homelessness_from_permanent_destination
-        opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
-        opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
-        opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
-        opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
-        opts['Require Service During Range'] = 'Yes' if require_service_during_range
+        opts[label(:comparison_range, labels)] = comparison_range_words if includes_comparison?
+        opts[label(:coc_codes, labels)] = chosen_coc_codes if coc_codes.present?
+        opts[label(:coc_code, labels)] = chosen_coc_code if coc_code.present?
+        opts[label(:project_types, labels)] = chosen_project_types
+        opts[label(:sub_population, labels)] = chosen_sub_population
+        opts[label(:data_sources, labels)] = data_source_names if data_source_ids.any?
+        opts[label(:organizations, labels)] = organization_names if organization_ids.any?
+        opts[label(:projects, labels)] = project_names(project_ids) if project_ids.any?
+        opts[label(:project_groups, labels)] = project_groups if project_group_ids.any?
+        opts[label(:funders, labels)] = funder_names if funder_ids.any?
+        opts[label(:hoh_only, labels)] = 'Yes' if hoh_only
+        opts[label(:coordinated_assessment_living_situation_homeless, labels)] = 'Yes' if coordinated_assessment_living_situation_homeless
+        opts[label(:ce_cls_as_homeless, labels)] = 'Yes' if ce_cls_as_homeless
+        opts[label(:household_type, labels)] = chosen_household_type if household_type
+        opts[label(:age_ranges, labels)] = chosen_age_ranges if age_ranges.any?
+        opts[label(:races, labels)] = chosen_races if races.any?
+        opts[label(:ethnicities, labels)] = chosen_ethnicities if ethnicities.any?
+        opts[label(:genders, labels)] = chosen_genders if genders.any?
+        opts[label(:veteran_statuses, labels)] = chosen_veteran_statuses if veteran_statuses.any?
+        opts[label(:length_of_time, labels)] = length_of_times if length_of_times.any?
+        opts[label(:prior_living_situations, labels)] = chosen_prior_living_situations if prior_living_situation_ids.any?
+        opts[label(:destinations, labels)] = chosen_destinations if destination_ids.any?
+        opts[label(:disabilities, labels)] = chosen_disabilities if disabilities.any?
+        opts[label(:indefinite_disabilities, labels)] = chosen_indefinite_disabilities if indefinite_disabilities.any?
+        opts[label(:dv_status, labels)] = chosen_dv_status if dv_status.any?
+        opts[label(:currently_fleeing, labels)] = chosen_currently_fleeing if currently_fleeing.any?
+        opts[label(:chronic_status, labels)] = 'Yes' if chronic_status
+        opts[label(:with_rrh_move_in, labels)] = 'Yes' if rrh_move_in
+        opts[label(:with_psh_move_in, labels)] = 'Yes' if psh_move_in
+        opts[label(:first_time_homeless, labels)] = 'Yes' if first_time_homeless
+        opts[label(:involves_ce, labels)] = involves_ce if involves_ce.present?
+        opts[label(:disabling_condition, labels)] = 'Yes' if disabling_condition
+        opts[label(:return_to_homelessness, labels)] = 'Yes' if returned_to_homelessness_from_permanent_destination
+        opts[label(:client_limits, labels)] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
+        opts[label(:times_homeless_in_last_three_years, labels)] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
+        opts[label(:require_service, labels)] = 'Yes' if require_service_during_range
+        opts[label(:required_files, labels)] = chosen_required_files if required_files.any?
+        opts[label(:optional_files, labels)] = chosen_optional_files if required_files.any?
+        opts[label(:active_roi, labels)] = 'Yes' if active_roi
+        opts[label(:mask_small_populations, labels)] = 'Yes' if mask_small_populations
+        opts[label(:secondary_projects, labels)] = project_names(secondary_project_ids) if secondary_project_ids.any?
+        opts[label(:secondary_project_groups, labels)] = project_names(secondary_project_group_ids) if secondary_project_group_ids.any?
       end
     end
 
@@ -451,10 +535,12 @@ module Filters
 
     # Apply all known scopes
     # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
-    def apply(scope, all_project_types: nil, multi_coc_code_filter: true)
+    def apply(scope, report_scope_source, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true, chronic_at_entry: true)
+      @report_scope_source = report_scope_source
       @filter = self
+
       scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
+      scope = filter_for_range(scope) if include_date_range
       scope = if multi_coc_code_filter
         filter_for_cocs(scope)
       else
@@ -479,15 +565,24 @@ module Filters
       scope = filter_for_indefinite_disabilities(scope)
       scope = filter_for_dv_status(scope)
       scope = filter_for_dv_currently_fleeing(scope)
-      scope = filter_for_chronic_at_entry(scope)
-      scope = filter_for_chronic_status(scope)
+      scope = if chronic_at_entry
+        filter_for_chronic_at_entry(scope)
+      else
+        filter_for_chronic_status(scope)
+      end
       scope = filter_for_rrh_move_in(scope)
       scope = filter_for_psh_move_in(scope)
       scope = filter_for_first_time_homeless_in_past_two_years(scope)
       scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_cohorts(scope)
+      scope = filter_for_active_roi(scope)
       filter_for_times_homeless(scope)
+    end
+
+    def report_scope_source
+      @report_scope_source ||= GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     def all_projects?
@@ -498,12 +593,20 @@ module Filters
       @project_ids.reject(&:blank?)
     end
 
+    def secondary_project_ids
+      @secondary_project_ids.reject(&:blank?)
+    end
+
     def coc_codes
       @coc_codes.reject(&:blank?)
     end
 
     def project_group_ids
       @project_group_ids.reject(&:blank?)
+    end
+
+    def secondary_project_group_ids
+      @secondary_project_group_ids.reject(&:blank?)
     end
 
     def organization_ids
@@ -527,12 +630,22 @@ module Filters
     end
 
     def effective_project_ids_from_project_groups
-      projects = project_group_ids.reject(&:blank?).map(&:to_i)
-      return [] if projects.empty?
+      pgs = project_group_ids.reject(&:blank?).map(&:to_i)
+      return [] if pgs.empty? # if there are no project groups selected, there are no projects
 
       @effective_project_ids_from_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
         merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-        where(id: projects).
+        where(id: pgs).
+        pluck(p_t[:id].as('project_id'))
+    end
+
+    def effective_project_ids_from_secondary_project_groups
+      pgs = secondary_project_group_ids.reject(&:blank?).map(&:to_i)
+      return [] if pgs.empty? # if there are no project groups selected, there are no projects
+
+      @effective_project_ids_from_secondary_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
+        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
+        where(id: pgs).
         pluck(p_t[:id].as('project_id'))
     end
 
@@ -714,6 +827,21 @@ module Filters
       ::HudUtility.times_homeless_options
     end
 
+    def available_file_tags
+      # acts_as_taggable_tags = ActsAsTaggableOn::Tag.all.index_by(&:name)
+      GrdaWarehouse::AvailableFileTag.preload(:tag).grouped.
+        map do |group, tags|
+        [
+          group,
+          tags.map do |tag|
+            next unless tag&.name.present? && tag&.tag.present?
+
+            [tag.name, tag.tag.id]
+          end.compact,
+        ]
+      end.to_h
+    end
+
     def chosen_times_homeless_in_last_three_years
       available_times_homeless_in_last_three_years.invert[times_homeless_in_last_three_years]
     end
@@ -737,6 +865,14 @@ module Filters
 
     def available_sub_populations
       AvailableSubPopulations.available_sub_populations
+    end
+
+    def ce_options
+      {
+        'Yes' => 'Yes',
+        'No' => 'No',
+        'With CE Assessment' => 'With CE Assessment',
+      }
     end
 
     def available_age_ranges
@@ -821,6 +957,7 @@ module Filters
         no_comparison_period: 'None',
         prior_year: 'Same period, prior year',
         prior_period: 'Prior Period',
+        prior_fiscal_year: 'Prior Federal Fiscal Year',
       }.invert.freeze
     end
 
@@ -830,13 +967,9 @@ module Filters
 
     def available_coc_codes
       @available_coc_codes ||= begin
-        cocs = GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
-        return cocs if user.system_user?
+        return GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce) if user.system_user?
 
-        # If a user has coc code limits assigned, enforce them
-        cocs &= user&.coc_codes if user&.coc_codes.present?
-
-        cocs
+        GrdaWarehouse::Lookups::CocCode.viewable_by(user).distinct.pluck(:coc_code)
       end
     end
 
@@ -875,13 +1008,13 @@ module Filters
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
-    def describe_filter_as_html(keys = nil, limited: true, inline: false)
-      describe_filter(keys).uniq.map do |(k, v)|
+    def describe_filter_as_html(keys = nil, limited: true, inline: false, labels: {})
+      describe_filter(keys, labels: labels).uniq.map do |(k, v)|
         wrapper_classes = ['report-parameters__parameter']
         label_text = k
         if inline
           wrapper_classes << 'd-flex'
-          label_text += ':'
+          label_text += ':' if label_text.present?
         end
         content_tag(:div, class: wrapper_classes) do
           label = content_tag(:label, label_text, class: 'label label-default parameter-label')
@@ -900,7 +1033,7 @@ module Filters
       end.join.html_safe
     end
 
-    def describe_filter(keys = nil)
+    def describe_filter(keys = nil, labels: {})
       [].tap do |descriptions|
         # only show "on" if explicitly chosen
         display_keys = for_params[:filters]
@@ -908,70 +1041,44 @@ module Filters
         display_keys.each_key do |key|
           next if keys.present? && ! keys.include?(key)
 
-          descriptions << describe(key)
+          descriptions << describe(key, labels: labels)
         end
       end.compact
     end
 
-    def describe(key, value = chosen(key))
+    def describe(key, value = chosen(key), labels: {})
       title = case key
       when :start
-        'Report Range'
+        label(:date_range, labels)
       when :end
         nil
-      when :on
-        'Date'
       when :comparison_pattern
-        'Comparison Range' if includes_comparison?
-      when :project_type_codes, :project_type_ids, :project_type_numbers
-        'Project Type'
-      when :sub_population
-        'Sub-Population'
-      when :age_ranges
-        'Age Ranges'
-      when :races
-        'Races'
-      when :ethnicities
-        'Ethnicities'
-      when :genders
-        'Genders'
-      when :coc_codes
-        'CoCs'
-      when :coc_code
-        'CoC'
-      when :organization_ids
-        'Organizations'
-      when :project_ids
-        'Projects'
+        label(key, labels) if includes_comparison?
       when :data_source_ids
-        'Data Sources'
+        label(:data_sources, labels)
+      when :organization_ids
+        label(:organizations, labels)
+      when :project_ids
+        label(:projects, labels)
       when :project_group_ids
-        'Project Groups'
+        label(:project_groups, labels)
       when :funder_ids
-        'Funding Sources'
-      when :veteran_statuses
-        'Veteran Status'
-      when :household_type
-        'Household Type'
-      when :prior_living_situation_ids
-        'Prior Living Situations'
-      when :destination_ids
-        'Destinations'
-      when :disabilities
-        'Disabilities'
-      when :indefinite_disabilities
-        'Indefinite Disability'
-      when :dv_status
-        'DV Status'
-      when :currently_fleeing
-        'Currently Fleeing DV'
+        label(:funders, labels)
+      when :project_type_codes, :project_type_ids, :project_type_numbers
+        label(:project_types, labels)
       when :heads_of_household, :hoh_only
-        'Heads of Household Only?'
+        label(:hoh_only, labels)
       when :limit_to_vispdat
         value = nil if limit_to_vispdat == :all_clients
-        'Client Limits'
-      when :times_homeless_in_last_three_years
-        'Times Homeless in Past 3 Years'
+        label(:client_limits, labels)
+      when :destination_ids
+        label(:destinations, labels)
+      when :prior_living_situation_ids
+        label(:prior_living_situations, labels)
+      when :secondary_project_ids
+        label(:secondary_projects, labels)
+      when :secondary_project_group_ids
+        label(:secondary_project_groups, labels)
       when :lsa_scope
         'LSA Scope'
       when :cohort_ids
@@ -984,16 +1091,8 @@ module Filters
         'Cohort Column for House Date'
       when :cohort_column_matched_date
         'Cohort Column for Matched Date'
-      when :ce_cls_as_homeless
-        'Including CE Current Living Situation Homeless'
-      when :coordinated_assessment_living_situation_homeless
-        'Including CE homeless at entry?'
-      when :chronic_status
-        'Chronic at Entry'
-      when :involves_ce
-        'Participated in CE'
       else
-        key.to_s.titleize
+        label(key, labels)
       end
 
       return unless value.present?
@@ -1086,11 +1185,21 @@ module Filters
         end
       when :involves_ce
         case involves_ce
-        when true
+        when 'Yes'
           'Yes'
-        when false
+        when 'No'
           'No'
+        when 'With CE Assessment'
+          'With CE Assessment'
         end
+      when :required_files
+        chosen_required_files
+      when :optional_files
+        chosen_optional_files
+      when :secondary_project_ids
+        chosen_secondary_projects
+      when :secondary_project_group_ids
+        chosen_secondary_project_groups
       else
         val = send(key)
         val.instance_of?(String) ? val.titleize : val
@@ -1147,6 +1256,14 @@ module Filters
       GrdaWarehouse::Hud::Project.where(id: project_ids).pluck(:ProjectName)
     end
 
+    def chosen_secondary_projects
+      return nil unless secondary_project_ids.reject(&:blank?).present?
+
+      # OK to use non-confidentialized ProjectName because confidential projects
+      # are only select-able if user has permission to view their names
+      GrdaWarehouse::Hud::Project.where(id: secondary_project_ids).pluck(:ProjectName)
+    end
+
     def chosen_data_sources
       return nil unless data_source_ids.reject(&:blank?).present?
 
@@ -1157,6 +1274,12 @@ module Filters
       return nil unless project_group_ids.reject(&:blank?).present?
 
       GrdaWarehouse::ProjectGroup.where(id: project_group_ids).pluck(:name)
+    end
+
+    def chosen_secondary_project_groups
+      return nil unless secondary_project_group_ids.reject(&:blank?).present?
+
+      GrdaWarehouse::ProjectGroup.where(id: secondary_project_group_ids).pluck(:name)
     end
 
     def chosen_funding_sources
@@ -1221,6 +1344,18 @@ module Filters
       end.join(', ')
     end
 
+    def chosen_required_files
+      required_files.flat_map do |id|
+        available_file_tags.values.flatten(1).find { |f| f.last == id }&.first
+      end.join(', ')
+    end
+
+    def chosen_optional_files
+      optional_files.flat_map do |id|
+        available_file_tags.values.flatten(1).find { |f| f.last == id }&.first
+      end.join(', ')
+    end
+
     def chosen_currently_fleeing
       currently_fleeing.map do |id|
         available_currently_fleeing.invert[id]
@@ -1254,12 +1389,12 @@ module Filters
         end&.map(&:first)
     end
 
-    def project_names
+    def project_names(ids = project_ids)
       project_options_for_select(user: user).
         values.
         flatten(1).
         select do |_, id|
-          project_ids.include?(id)
+          ids.include?(id)
         end&.map(&:first)
     end
 
@@ -1284,6 +1419,14 @@ module Filters
       }.invert.freeze
     end
 
+    def available_dates_to_compare
+      {
+        entry_to_exit: 'Entry to Exit',
+        date_to_street_to_entry: 'Date Homelessness Started to Entry',
+        date_to_street_to_exit: 'Date Homelessness Started to Exit',
+      }
+    end
+
     def available_prior_living_situations(grouped: false)
       if grouped
         {
@@ -1305,6 +1448,19 @@ module Filters
               id,
             ]
           end.to_h,
+          # TODO(2024)
+          # 'Temporary' => HudUtility.temporary_housing_situation_options(as: :prior).map do |id, title|
+          #   [
+          #     "#{title} (#{id})",
+          #     id,
+          #   ]
+          # end.to_h,
+          # 'Permanent' => HudUtility.permanent_housing_situation_options(as: :prior).map do |id, title|
+          #   [
+          #     "#{title} (#{id})",
+          #     id,
+          #   ]
+          # end.to_h,
           'Other' => HudUtility.other_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
@@ -1391,6 +1547,12 @@ module Filters
       when :prior_year
         prior_end = end_date - 1.years
         prior_start = start_date - 1.years
+        [prior_start, prior_end]
+      when :prior_fiscal_year
+        # find the 9/30 that precedes the end date
+        prior_end = Date.new(end_date.year, 9, 30)
+        prior_end -= 1.years if prior_end >= end_date
+        prior_start = Date.new(prior_end.year - 1, 10, 1)
         [prior_start, prior_end]
       else
         [start_date, end_date]

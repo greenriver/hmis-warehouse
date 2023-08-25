@@ -19,6 +19,7 @@ module GrdaWarehouse
     has_many :clients, through: :projects
 
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
+    has_many :cohorts, class_name: 'GrdaWarehouse::Cohort'
     has_one :current_data_quality_report, -> do
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
     end, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
@@ -58,6 +59,10 @@ module GrdaWarehouse
           arel_table[:name].lower.matches("%#{query.downcase}%").
           or(p_t[:ProjectName].lower.matches("%#{query.downcase}%")),
         )
+    end
+
+    def available_for_delete?
+      ! used_for_cas_sync? && ! cohorts.exists?
     end
 
     # This is called in the Hourly scheduled task

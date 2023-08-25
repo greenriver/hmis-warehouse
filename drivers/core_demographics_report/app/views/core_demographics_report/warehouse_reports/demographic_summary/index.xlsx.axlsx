@@ -1,0 +1,100 @@
+reports = [@report]
+reports << @comparison if @report.include_comparison?
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+percentage_format = wb_styles.add_style format_code: '0%'
+report_style = wb_styles.add_style({ border: { style: :thick, color: '00918C', edges: [:left] } })
+comparison_style = wb_styles.add_style({ border: { style: :thick, color: 'FFA600', edges: [:left] } })
+header_style = wb_styles.add_style({ sz: 14 })
+th_style = wb_styles.add_style(
+  {
+    bg_color: '81adb9',
+    b: true,
+    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
+  }
+)
+wb_styles.add_style(
+  {
+    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
+  }
+)
+wb.add_worksheet(name: 'Report Info') do |sheet|
+  sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(
+    [
+      'Core Demographics Report',
+    ],
+    style: header_style,
+  )
+  @filter.selected_params_for_display.each do |title, value|
+    value = value.join(', ') if value.is_a?(Array)
+    sheet.add_row(
+      [
+        "#{title}:",
+        value,
+      ],
+      style: [th_style, nil],
+    )
+  end
+end
+data_styles = {
+  'Age Breakdowns' => [th_style, nil, nil, nil, percentage_format],
+  'Gender/Age' => [th_style, nil, nil, nil, percentage_format],
+  'Gender Breakdowns' => [th_style, nil, nil, nil, percentage_format],
+  'Race' => [th_style, nil, nil, nil, percentage_format],
+  'Ethnicity' => [th_style, nil, nil, nil, percentage_format],
+  'Relationship' => [th_style, nil, nil, nil, percentage_format],
+  'Disabilities' => [th_style, nil, nil, nil, percentage_format],
+  'At Least One Disability' => [th_style, nil, nil, nil, percentage_format],
+  'No Disability' => [th_style, nil, nil, nil, percentage_format],
+  'DV Response' => [th_style, nil, nil, nil, percentage_format],
+  'DV Occurrence Timing' => [th_style, nil, nil, nil, percentage_format],
+  'Number of Times Response' => [th_style, nil, nil, nil, percentage_format],
+  'Number of Months' => [th_style, nil, nil, nil, percentage_format],
+  'Prior Living Situation' => [th_style, nil, nil, nil, percentage_format],
+  'Household Types' => [th_style, nil, nil, nil, percentage_format],
+  'Clients in Projects' => [th_style, nil, nil, nil, nil],
+  'Chronic at Entry' => [th_style, nil, nil, nil, percentage_format],
+  'Chronic Type' => [th_style, nil, nil, nil, percentage_format],
+  'High Acuity Type' => [th_style, nil, nil, nil, percentage_format],
+  'Unsheltered' => [th_style, nil, nil, nil, percentage_format],
+  'No Recent Homelessness Type' => [th_style, nil, nil, nil, percentage_format],
+  'Outcome Type' => [th_style, nil, nil, nil, percentage_format],
+}
+wb.add_worksheet(name: 'Data') do |sheet|
+  sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
+  @report.class.data_for_export(reports).each_with_index do |(title, row), index|
+    if index.zero?
+      style = []
+    elsif index.positive?
+      if reports.count > 1
+        if title.starts_with?('_')
+          title = ''
+          style = [nil, report_style, nil, nil, nil, comparison_style, nil, nil, nil]
+        else
+          style = [th_style, report_style, nil, nil, nil, comparison_style, nil, nil, nil]
+        end
+      else
+        style = [th_style, nil]
+      end
+      if title.starts_with?('*')
+        title = title.sub('*', '')
+        style = Array.new(12, th_style)
+      elsif title.starts_with?('_')
+        if title.include?('_data_')
+          key = title[0..title.index('_data_')].gsub('_', '')
+          style = data_styles[key]
+        end
+        title = ''
+      end
+    end
+
+    sheet.add_row(
+      [
+        title,
+        *row,
+      ],
+      style: style,
+    )
+  end
+end

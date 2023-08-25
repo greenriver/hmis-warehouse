@@ -85,6 +85,15 @@ module GrdaWarehouse
       end
     end
 
+    scope :cohort_search, ->(search_string) do
+      # If we searched for a number, assume it's a client_id
+      if search_string.to_i.to_s == search_string.to_s
+        where(id: GrdaWarehouse::CohortClient.where(client_id: search_string).select(:cohort_id))
+      else
+        where(arel_table[:name].matches("%#{search_string}%"))
+      end
+    end
+
     private def active_tab(user, population)
       tab = cohort_tabs.find_by(name: population)
       return tab if tab&.show_for?(user)
@@ -119,6 +128,8 @@ module GrdaWarehouse
                 :most_recent_tc_hat,
                 :most_recent_current_living_situation,
                 :most_recent_pathways_or_rrh_assessment,
+                :most_recent_2023_pathways_assessment,
+                :most_recent_2023_transfer_assessment,
               ],
             },
           ],
@@ -312,6 +323,7 @@ module GrdaWarehouse
         ::CohortColumns::SchoolDistrict.new,
         ::CohortColumns::AssessmentScore.new,
         ::CohortColumns::PathwaysV3AssessmentDate.new,
+        ::CohortColumns::TransferV3AssessmentDate.new,
         ::CohortColumns::VispdatScoreManual.new,
         ::CohortColumns::DaysOnCohort.new,
         ::CohortColumns::CasVashEligible.new,
@@ -556,7 +568,7 @@ module GrdaWarehouse
       client.permanent_source_exits_from_homelessness.
         where(ex_t[:ExitDate].gteq(90.days.ago.to_date)).
         pluck(:ExitDate, :Destination).map do |exit_date, destination|
-          "#{exit_date} to #{HudUtility.destination(destination)}"
+          "<span class='hidden'>#{exit_date.to_s(:db)}</span>#{exit_date} to #{HudUtility.destination(destination)}"
         end.join('; ')
     end
 

@@ -11,13 +11,15 @@ module Mutations
     argument :assessment_ids, [ID], required: true
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
     argument :validate_only, Boolean, 'Validate assessments but don\'t submit them', required: false
+    # TODO: this should accept a Form Definition ID, to ensure that forms are validated against the
+    # form that is currently being used
 
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
     def resolve(assessment_ids:, confirmed:, validate_only: false)
       assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
         where(id: assessment_ids).
-        preload(:enrollment, :custom_form)
+        preload(:enrollment, :form_processor)
 
       enrollments = assessments.map(&:enrollment)
 
@@ -44,6 +46,8 @@ module Mutations
 
       household_enrollments_not_included = enrollments.first.household_members.where.not(enrollment_id: enrollments.map(&:enrollment_id))
 
+      # FIXME: several of the below errors are duplicative of SubmitAssessment error checks. They should be moved into the CustomAssessmentValidator instead.
+
       # HoH Exit constraints
       if is_exit && includes_hoh
         # "Date.tomorrow" because it's OK if the exit date is today, but not if there is no exit date, or if the exit date is in the future (shouldn't happen)
@@ -51,10 +55,10 @@ module Mutations
 
         # Error: cannot exit HoH if there are any other open enrollments
         errors.add :assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.' if open_enrollments.any?
-
-        # Error: WIP enrollments cannot be exited
-        errors.add :assessment, :invalid, full_message: 'Cannot exit incomplete enrollments. Please complete entry assessments first.' if enrollments.any?(&:in_progress?)
       end
+
+      # Error: WIP enrollments cannot be exited
+      errors.add :assessment, :invalid, full_message: 'Cannot exit incomplete enrollments. Please complete entry assessments first.' if is_exit && enrollments.any?(&:in_progress?)
 
       # Non-HoH Intake constraints
       if is_intake && !includes_hoh
@@ -71,23 +75,22 @@ module Mutations
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
-        form_validations = assessment.custom_form.collect_form_validations
+        form_validations = assessment.form_processor.collect_form_validations
         errors.add_with_record_id(form_validations, assessment.id)
       end
 
       # Run form processor on each assessment to create/update related records
       assessments.each do |assessment|
         assessment.assign_attributes(user_id: hmis_user.user_id)
-        assessment.custom_form.form_processor.run!(owner: assessment, user: current_user)
+        assessment.form_processor.run!(owner: assessment, user: current_user)
       end
 
       # Collect validations (hmis_validate and AR validation)
       all_valid = true
       household_members = assessments.map(&:enrollment) # Enrollments with unsaved changes to Entry dates
       assessments.each do |assessment|
-        all_valid = false unless assessment.valid?
-        all_valid = false unless assessment.custom_form.valid?
-        record_validations = assessment.custom_form.collect_record_validations(
+        all_valid = false unless assessment.valid?(:form_submission)
+        record_validations = assessment.form_processor.collect_record_validations(
           user: current_user,
           household_members: household_members,
         )
@@ -103,7 +106,7 @@ module Mutations
 
       unless all_valid
         assessments.each do |assessment|
-          errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+          errors.add_ar_errors(assessment.form_processor&.errors&.errors)
           errors.add_ar_errors(assessment.errors&.errors)
         end
         return { errors: errors }
@@ -111,17 +114,8 @@ module Mutations
 
       # Save all assessments and related records
       Hmis::Hud::CustomAssessment.transaction do
-        assessments.each do |assessment|
-          # Save CustomForm to save related records
-          assessment.custom_form.save!
-          # Save the Enrollment (doesn't get saved by the FormProcessor since they dont have a relationship)
-          assessment.enrollment.save!
-          # Save the assessment as non-WIP
-          assessment.save_not_in_progress
-          # If this is an intake assessment, ensure the enrollment is no longer in WIP status
-          assessment.enrollment.save_not_in_progress if assessment.intake?
-          # Update DateUpdated on the Enrollment
-          assessment.enrollment.touch
+        assessments.each do |a|
+          a.save_submitted_assessment!(current_user: current_user)
         end
       end
 

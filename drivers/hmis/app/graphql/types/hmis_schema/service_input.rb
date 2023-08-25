@@ -16,7 +16,7 @@ module Types
     argument :other_type_provided, String, required: false
     argument :moving_on_other_type, String, required: false
     argument :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided, required: false
-    argument 'FAAmount', Float, required: false
+    argument :fa_amount, Float, required: false
     argument :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome, required: false
 
     def to_params

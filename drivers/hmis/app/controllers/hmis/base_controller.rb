@@ -44,4 +44,9 @@ class Hmis::BaseController < ApplicationController
   def user_for_paper_trail
     current_hmis_user&.id
   end
+
+  before_action :set_app_user_header
+  def set_app_user_header
+    response.headers['X-app-user-id'] = current_hmis_user&.id
+  end
 end

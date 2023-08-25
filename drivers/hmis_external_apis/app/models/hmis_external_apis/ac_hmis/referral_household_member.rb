@@ -12,7 +12,9 @@ module HmisExternalApis::AcHmis
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 
     enum(
-      relationship_to_hoh: ::HudUtility.hud_list_map_as_enumerable(:relationship_to_ho_h_map),
+      relationship_to_hoh: ::HudUtility2024.hud_list_map_as_enumerable(:relationships_to_hoh),
     )
+
+    scope :heads_of_households, -> { where(relationship_to_hoh: 'self_head_of_household') }
   end
 end

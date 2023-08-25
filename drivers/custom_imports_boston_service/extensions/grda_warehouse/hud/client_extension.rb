@@ -15,7 +15,7 @@ module CustomImportsBostonService::GrdaWarehouse::Hud
 
       def source_non_event_custom_b_services_for_display
         # FIXME: I believe these need to be pre-processed but this should suffice for the short term
-        source_custom_b_services.client_services.
+        source_custom_b_services.
           distinct.
           select(:date, :service_name, :agency_id, :data_source_id).
           order(date: :desc).

@@ -15,7 +15,7 @@ module
             title: "Race - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_race(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_race(key)).distinct },
           }
         end
       end
@@ -26,11 +26,11 @@ module
     end
 
     def race_count(type)
-      race_breakdowns[type]&.count&.presence || 0
+      mask_small_population(race_breakdowns[type]&.count&.presence || 0)
     end
 
     def race_percentage(type)
-      total_count = client_races.count
+      total_count = mask_small_population(client_races.count)
       return 0 if total_count.zero?
 
       of_type = race_count(type)
@@ -42,14 +42,14 @@ module
     def race_data_for_export(rows)
       rows['_Race Break'] ||= []
       rows['*Race'] ||= []
-      rows['*Race'] += ['Race', 'Count', 'Percentage', nil, nil]
+      rows['*Race'] += ['Race', nil, 'Count', 'Percentage', nil]
       race_buckets.each do |id, title|
         rows["_Race_data_#{title}"] ||= []
         rows["_Race_data_#{title}"] += [
           title,
+          nil,
           race_count(id),
           race_percentage(id) / 100,
-          nil,
         ]
       end
       rows

@@ -8,6 +8,16 @@ module BostonProjectScorecard
   module ProjectPerformance
     extend ActiveSupport::Concern
     included do
+      def no_concern_options
+        {
+          'Providers with 90% or more "no concern"': 3,
+          'Providers with 85% to 89% "no concern"': 2,
+          'Providers with 80% to 84% "no concern"': 1,
+          'Providers with 79% or less "no concern"': 0,
+          'Not Applicable': -1,
+        }
+      end
+
       def rrh?
         project_type == 13
       end
@@ -101,6 +111,12 @@ module BostonProjectScorecard
         return 3 if utilization_rate_percent >= 75
 
         0
+      end
+
+      def no_concern_score
+        return nil if no_concern&.negative?
+
+        no_concern
       end
     end
   end

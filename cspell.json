@@ -14,5 +14,5 @@
     "typescriptreact",
     "yaml"
   ],
-  "words": ["datetime", "funder", "coc", "hmis", "grda", "mper"]
+  "words": ["datetime", "funder", "coc", "hmis", "grda", "mper", "creds"]
 }

@@ -27,4 +27,11 @@ module AccessGroups
       group.add_viewable(self)
     end
   end
+
+  def remove_from_group_viewable_entities!
+    GrdaWarehouse::GroupViewableEntity.where(
+      entity_type: self.class.sti_name,
+      entity_id: id,
+    ).update_all(deleted_at: Time.current)
+  end
 end

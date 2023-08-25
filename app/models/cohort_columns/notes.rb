@@ -43,11 +43,14 @@ module CohortColumns
     def display_read_only(_user)
       note_count = cohort_client.cohort_client_notes.length || 0
       unknown_date = DateTime.current - 10.years
-      max_updated_at = (cohort_client.cohort_client_notes.map(&:updated_at)&.max || unknown_date).to_s(:db)
+      updated_at = cohort_client.cohort_client_notes.map(&:updated_at)&.max
+      max_updated_at = (updated_at || unknown_date).to_s(:db)
       path = cohort_cohort_client_cohort_client_notes_path(cohort, cohort_client)
       # Sort pattern
-      html = content_tag(:span, "#{max_updated_at} #{note_count}", class: 'hidden')
-      html += link_to pluralize(note_count, 'note'), path, class: 'badge badge-primary py-1 px-2', data: { loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column }
+      html = content_tag(:div, class: 'd-flex') do
+        content_tag(:span, "#{max_updated_at} #{note_count}", class: 'hidden') + link_to(pluralize(note_count, 'note'), path, class: 'badge badge-primary py-1 px-2 mr-auto', data: { loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column }) +
+        content_tag(:span, " #{updated_at&.to_date}", style: 'height: 16px;')
+      end
       html
     end
 

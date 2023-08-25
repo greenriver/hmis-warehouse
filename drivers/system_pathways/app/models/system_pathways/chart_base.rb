@@ -14,8 +14,7 @@ module SystemPathways::ChartBase
       self.filter = filter
       self.show_filter = show_filter
       self.details_filter = details_filter
-      # TODO: this config should be moved to a more general Report config
-      self.config = BostonReports::Config.first_or_create(&:default_colors)
+      self.config = GrdaWarehouse::SystemColor.first
     end
 
     def clients
@@ -61,6 +60,7 @@ module SystemPathways::ChartBase
       scope = filter_for_ethnicity(scope)
       scope = filter_for_veteran_status(scope)
       scope = filter_for_ce_involvement(scope)
+      scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_chronic_at_entry(scope)
       scope = filter_for_disabling_condition(scope)
@@ -139,11 +139,11 @@ module SystemPathways::ChartBase
       end
       # Include anyone who has more than one race listed, anded with any previous alternatives
       race_scope ||= scope
-      race_scope = race_scope.where(id: multi_racial_clients.select(:id)) if race_filter.races.include?('MultiRacial')
+      race_scope = race_scope.where(id: multi_racial_clients(scope).select(:id)) if race_filter.races.include?('MultiRacial')
       scope.merge(race_scope)
     end
 
-    private def multi_racial_clients
+    private def multi_racial_clients(scope)
       # Looking at all races with responses of 1, where we have a sum > 1
       a_t = SystemPathways::Client.arel_table
       columns = [
@@ -181,10 +181,30 @@ module SystemPathways::ChartBase
     end
 
     private def filter_for_ce_involvement(scope)
-      scope = scope.where(involves_ce: filter.involves_ce) unless filter.involves_ce.nil?
-      scope = scope.where(involves_ce: show_filter&.involves_ce) unless show_filter&.involves_ce.nil?
-      scope = scope.where(involves_ce: details_filter&.involves_ce) unless details_filter&.involves_ce.nil?
+      scope = scope.where(involves_ce: true) if filter.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: true) if show_filter&.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: true) if details_filter&.involves_ce == 'Yes'
+      scope = scope.where(involves_ce: false) if filter.involves_ce == 'No'
+      scope = scope.where(involves_ce: false) if show_filter&.involves_ce == 'No'
+      scope = scope.where(involves_ce: false) if details_filter&.involves_ce == 'No'
+      scope = scope.where(ce_assessment: true) if filter.involves_ce == 'With CE Assessment'
+      scope = scope.where(ce_assessment: true) if show_filter&.involves_ce == 'With CE Assessment'
+      scope = scope.where(ce_assessment: true) if details_filter&.involves_ce == 'With CE Assessment'
+
       scope
+    end
+
+    private def filter_for_household_type(scope)
+      case show_filter.household_type
+      when :without_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :adults_only))
+      when :with_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :adults_and_children))
+      when :only_children
+        scope.merge(SystemPathways::Enrollment.where(household_type: :children_only))
+      else
+        scope
+      end
     end
 
     private def filter_for_head_of_household(scope)
@@ -305,15 +325,15 @@ module SystemPathways::ChartBase
     end
 
     private def races
-      @races ||= HudLists.race_map
+      @races ||= HudUtility.races
     end
 
     private def ethnicities
-      @ethnicities ||= HudLists.ethnicity_map
+      @ethnicities ||= HudUtility.ethnicities
     end
 
     private def veteran_statuses
-      @veteran_statuses ||= HudLists.no_yes_reasons_for_missing_data_map
+      @veteran_statuses ||= HudUtility.no_yes_reasons_for_missing_data_options
     end
 
     private def chronic_at_entries
@@ -325,7 +345,7 @@ module SystemPathways::ChartBase
     end
 
     private def disabling_conditions
-      @disabling_conditions ||= HudLists.no_yes_reasons_for_missing_data_map
+      @disabling_conditions ||= HudUtility.no_yes_reasons_for_missing_data_options
     end
 
     private def as_table(data, headers)
@@ -335,6 +355,27 @@ module SystemPathways::ChartBase
           table << [k] + values.values
         end
       end
+    end
+
+    private def remove_all_zero_rows(columns)
+      all_zero = {}
+      columns.drop(1).each do |row|
+        row.each.with_index do |v, i|
+          if i.zero?
+            all_zero[i] = false
+            next
+          end
+
+          all_zero[i] = true if all_zero[i].nil?
+          all_zero[i] = false if v.positive?
+        end
+      end
+      zeros = all_zero.values
+      zero_columns = zeros.each_index.select { |i| zeros[i] == true }
+      columns.each do |row|
+        row.reject!.with_index { |_, i| i.in?(zero_columns) }
+      end
+      columns
     end
 
     private def race_columns

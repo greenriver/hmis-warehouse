@@ -15,18 +15,18 @@ module
             title: "Relationship #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_relationship(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_relationship(key)).distinct },
           }
         end
       end
     end
 
     def relationship_count(type)
-      relationship_breakdowns[type]&.count&.presence || 0
+      mask_small_population(relationship_breakdowns[type]&.count&.presence || 0)
     end
 
     def relationship_percentage(type)
-      total_count = client_relationships.count
+      total_count = mask_small_population(client_relationships.count)
       return 0 if total_count.zero?
 
       of_type = relationship_count(type)
@@ -38,14 +38,14 @@ module
     def relationship_data_for_export(rows)
       rows['_Relationship to Head of Household Break'] ||= []
       rows['*Relationship to Head of Household'] ||= []
-      rows['*Relationship to Head of Household'] += ['Relationship', 'Count', 'Percentage', nil, nil]
+      rows['*Relationship to Head of Household'] += ['Relationship', nil, 'Count', 'Percentage', nil]
       ::HudUtility.relationships_to_hoh.each do |id, title|
         rows["_Relationship_data_#{title}"] ||= []
         rows["_Relationship_data_#{title}"] += [
           title,
+          nil,
           relationship_count(id),
           relationship_percentage(id) / 100,
-          nil,
         ]
       end
       rows

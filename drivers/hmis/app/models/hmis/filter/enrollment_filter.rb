@@ -9,6 +9,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
     scope.
       yield_self(&method(:with_statuses)).
       yield_self(&method(:with_open_on_date)).
+      yield_self(&method(:with_bed_night_on_date)).
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_search_term)).
       yield_self(&method(:clean_scope))
@@ -17,13 +18,13 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_statuses(scope)
-    with_filter(scope, :statuses) do
-      if input.statuses.present?
+    with_filter(scope, :status) do
+      if input.status.present?
         ids = []
 
-        ids += scope.active.pluck(:id) if input.statuses.include?('ACTIVE')
-        ids += scope.incomplete.pluck(:id) if input.statuses.include?('INCOMPLETE')
-        ids += scope.exited.pluck(:id) if input.statuses.include?('EXITED')
+        ids += scope.open_excluding_wip.pluck(:id) if input.status.include?('ACTIVE')
+        ids += scope.incomplete.pluck(:id) if input.status.include?('INCOMPLETE')
+        ids += scope.exited.pluck(:id) if input.status.include?('EXITED')
 
         return scope.where(id: ids)
       end
@@ -36,8 +37,12 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
     with_filter(scope, :open_on_date) { scope.open_on_date(input.open_on_date) }
   end
 
+  def with_bed_night_on_date(scope)
+    with_filter(scope, :bed_night_on_date) { scope.bed_night_on_date(input.bed_night_on_date) }
+  end
+
   def with_project_types(scope)
-    with_filter(scope, :project_types) { scope.with_project_type(input.project_types) }
+    with_filter(scope, :project_type) { scope.with_project_type(input.project_type) }
   end
 
   def with_search_term(scope)

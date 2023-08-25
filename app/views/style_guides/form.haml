@@ -108,3 +108,10 @@
               Delete (Destructive)
 
           %section
+- content_for :panel_collapse_content_actives do
+  = simple_form_for :actives, as: :filter, url: '#', method: :get do |f|
+    = f.error_notification
+    .row
+      .col-sm-3
+        = f.input :start, as: :date_picker, input_html: { value: 1.months.ago.to_date }
+= render 'common/panel_collapse', id: 'actives', title: 'Clients active within a date range', content: '_actives'

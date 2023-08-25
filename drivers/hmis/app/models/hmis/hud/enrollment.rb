@@ -18,11 +18,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   delegate :exit_date, to: :exit, allow_nil: true
 
+  # CAUTION: enrollment.project accessor is overridden below
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
 
   # HUD services
   has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
+  has_many :bed_nights, -> { bed_nights }, **hmis_relation(:EnrollmentID, 'Service')
   # Custom services
   has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
   # All services (combined view of HUD and Custom services)
@@ -39,7 +41,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # CE Assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
-  # Custom Assessments (note: this does NOT include WIP assessments)
+  # Custom Assessments
   has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
 
   # Files
@@ -49,11 +51,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
+
+  # Unit occupancy
+  # All unit occupancies, including historical
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
+  has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
+  has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
+  validates_associated :client, on: :form_submission
   validates_with Hmis::Hud::Validators::EnrollmentValidator
+  alias_to_underscore [:EnrollmentCoC]
 
   SORT_OPTIONS = [:most_recent, :household_id].freeze
 
@@ -62,17 +72,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     household_id: 'Household ID',
   }.freeze
 
-  # hide previous declaration of :viewable_by, we'll use this one
-  # A user can see any enrollment associated with a project they can access
-  replace_scope :viewable_by, ->(user) do
-    return none unless user.permissions?(:can_view_enrollment_details)
+  scope :with_access, ->(user, *permissions) do
+    return none unless user.permissions?(*permissions)
 
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).pluck(:id, :ProjectID)
+    project_ids = Hmis::Hud::Project.with_access(user, *permissions).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
+
+  # hide previous declaration of :viewable_by, we'll use this one
+  # A user can see any enrollment associated with a project they can access
+  replace_scope :viewable_by, ->(user) { with_access(user, :can_view_enrollment_details) }
 
   scope :matching_search_term, ->(search_term) do
     search_term.strip!
@@ -93,16 +105,33 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   scope :not_in_progress, -> { where.not(project_id: nil) }
 
-  scope :with_project_type, ->(project_types) do
-    wip_enrollments = joins(wip: :project).where(p_t[:project_type].in(project_types)).pluck(wip_t[:source_id])
-    nonwip_enrollments = joins(:project).where(p_t[:project_type].in(project_types)).pluck(:id)
+  scope :with_projects_where, ->(query) do
+    wip_enrollments = joins(wip: :project).where(query).pluck(wip_t[:source_id])
+    nonwip_enrollments = joins(:project).where(query).pluck(:id)
 
     where(id: wip_enrollments + nonwip_enrollments)
   end
 
+  scope :with_project_type, ->(project_types) do
+    with_projects_where(p_t[:project_type].in(project_types))
+  end
+
+  scope :with_project, ->(project_ids) do
+    with_projects_where(p_t[:id].in(project_ids))
+  end
+
+  scope :in_age_group, ->(start_age: 0, end_age: nil) do
+    joins(:client).merge(Hmis::Hud::Client.age_group(start_age: start_age, end_age: end_age))
+  end
+
   scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
-  scope :active, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
+  scope :open_including_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
+  scope :open_excluding_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
+
+  scope :bed_night_on_date, ->(date) do
+    joins(:bed_nights).where(s_t[:date_provided].eq(date))
+  end
 
   def project
     super || Hmis::Hud::Project.find_by(id: wip.project_id)
@@ -161,19 +190,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
-  def custom_assessments_including_wip
-    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
-    wip_assessments = wip_t[:enrollment_id].eq(id)
-
-    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
-  end
-
   def intake_assessment
-    custom_assessments_including_wip.intakes.first
+    custom_assessments.intakes.first
   end
 
   def exit_assessment
-    custom_assessments_including_wip.exits.first
+    custom_assessments.exits.first
   end
 
   def in_progress?
@@ -199,6 +221,52 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def hoh_entry_date
     household_members.heads_of_households.first&.entry_date
+  end
+
+  # track change via attr to avoid adding complexity to form processor
+  attr_accessor :unit_occupancy_changes
+  after_save :track_unit_occupancy_changes, if: :unit_occupancy_changes
+  def track_unit_occupancy_changes
+    unit_type, user_id = unit_occupancy_changes.fetch_values(:unit_type, :user_id)
+    unit_type.track_availability(project_id: project.id, user_id: user_id)
+  end
+
+  def assign_unit(unit:, start_date:, user:)
+    current_occupancy = active_unit_occupancy.present? if active_unit_occupancy&.occupancy_period&.active?
+    # ignore: this enrollment is already assigned to this unit
+    return if current_occupancy.present? && current_occupancy.unit == unit
+
+    # error: this enrollment is already assigned to a different unit
+    raise 'Enrollment is already assigned to a different unit' if current_occupancy.present?
+
+    # error: the unit is occupied by someone who is NOT in this household
+    occupants = unit.occupants_on(start_date)
+    raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
+
+    self.unit_occupancy_changes = { unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
+    unit_occupancies.build(
+      unit: unit,
+      occupancy_period_attributes: {
+        start_date: start_date,
+        end_date: nil,
+        user: user,
+      },
+    )
+  end
+
+  def release_unit!(occupancy_end_date = Date.current, user:)
+    occupancy = active_unit_occupancy
+    if occupancy.nil? || occupancy.occupancy_period.nil?
+      msg = "Attempted to release nonexistent unit occupancy for Enrollment##{id}"
+      Sentry.capture_message(msg)
+      return
+    end
+
+    transaction do
+      occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
+      unit_type = occupancy.unit&.unit_type
+      unit_type&.track_availability(project_id: project.id, user_id: user.id)
+    end
   end
 
   def unit_occupied_on(date = Date.current)

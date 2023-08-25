@@ -53,10 +53,16 @@ module Types
     end
 
     def resolve_null_enum(value)
-      value == ::HudUtility.ignored_enum_value ? nil : value
+      value == ::HudUtility2024.ignored_enum_value ? nil : value
     end
 
+    # Use data loader to load an ActiveRecord association.
+    # Note: 'scope' is intended for ordering or to modify the default
+    # association in a way that is constant with respect to the resolver,
+    # for example `scope: FooBar.order(:name)`. It is NOT used to filter down results.
     def load_ar_association(object, association, scope: nil)
+      raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
+
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
     end
 
@@ -97,6 +103,23 @@ module Types
         datetime: GraphQL::Types::ISO8601DateTime,
         date: GraphQL::Types::ISO8601Date,
       }.freeze
+    end
+
+    # Does the current user have the given permission on entity?
+    # @param permission [Symbol] :can_do_foo
+    # @param entity [#record] Client, project, etc
+    def current_permission?(permission:, entity:)
+      return false unless current_user&.present?
+
+      # Just return false if we don't have this permission at all for anything
+      return false unless current_user.send("#{permission}?")
+
+      loader, subject = current_user.entity_access_loader_factory(entity) do |record, association|
+        load_ar_association(record, association)
+      end
+      raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader
+
+      dataloader.with(Sources::UserEntityAccessSource, loader).load([subject, permission])
     end
   end
 end

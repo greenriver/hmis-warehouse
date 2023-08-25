@@ -13,7 +13,6 @@ module HmisExternalApis::AcHmis
 
     # post params to external api
     def post_referral_request(url, params)
-      # FIXME: add authentication
       response = Faraday.post(url, params)
       JSON.parse(response.body)
     end
@@ -30,8 +29,38 @@ module HmisExternalApis::AcHmis
       @link ||= ::HmisExternalApis::AcHmis::LinkApi.new
     end
 
-    def format_date(date)
+    def data_source
+      @data_source ||= HmisExternalApis::AcHmis.data_source
+    end
+
+    def system_user
+      @system_user ||= ::Hmis::Hud::User.system_user(data_source_id: data_source.id)
+    end
+
+    # @param date [Time, DateTime]
+    def format_date(value)
+      date = case value
+      when Time, DateTime
+        value.in_time_zone(Rails.configuration.time_zone).to_date
+      else
+        value
+      end
       date&.strftime('%Y-%m-%d')
+    end
+
+    # @param date [Time, DateTime]
+    def format_datetime(value)
+      case value
+      when Time, DateTime
+        value.in_time_zone(Rails.configuration.time_zone).iso8601
+      else
+        value&.iso8601
+      end
+    end
+
+    # @param str [String]
+    def format_requested_by(str)
+      str.slice(0, 50) # max length of 50 for requestedBy
     end
   end
 end

@@ -15,7 +15,7 @@ module
             title: "Number of Times on the Streets, ES, or SH in The Past 3 Years #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_times(id)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_prior_times(id)).distinct },
           }
         end
         ::HudUtility.month_categories.each do |id, title|
@@ -23,7 +23,7 @@ module
             title: "Number of Months on the Streets, ES, or SH in The Past 3 Years #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_months(id)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_prior_months(id)).distinct },
           }
         end
         ::HudUtility.living_situations.each do |id, title|
@@ -31,18 +31,18 @@ module
             title: "Prior Living Situation #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_situation(id)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_prior_situation(id)).distinct },
           }
         end
       end
     end
 
     def times_on_street_count(type)
-      times_on_street_breakdowns[type]&.count&.presence || 0
+      mask_small_population(times_on_street_breakdowns[type]&.count&.presence || 0)
     end
 
     def times_on_street_percentage(type)
-      total_count = client_entry_data.count
+      total_count = mask_small_population(client_entry_data.count)
       return 0 if total_count.zero?
 
       of_type = times_on_street_count(type)
@@ -62,11 +62,11 @@ module
     end
 
     def months_on_street_count(type)
-      months_on_street_breakdowns[type]&.count&.presence || 0
+      mask_small_population(months_on_street_breakdowns[type]&.count&.presence || 0)
     end
 
     def months_on_street_percentage(type)
-      total_count = client_entry_data.count
+      total_count = mask_small_population(client_entry_data.count)
       return 0 if total_count.zero?
 
       of_type = months_on_street_count(type)
@@ -86,11 +86,11 @@ module
     end
 
     def prior_living_situations_count(type)
-      prior_living_situations_breakdowns[type]&.count&.presence || 0
+      mask_small_population(prior_living_situations_breakdowns[type]&.count&.presence || 0)
     end
 
     def prior_living_situations_percentage(type)
-      total_count = client_entry_data.count
+      total_count = mask_small_population(client_entry_data.count)
       return 0 if total_count.zero?
 
       of_type = prior_living_situations_count(type)
@@ -107,39 +107,39 @@ module
       rows['_Number of Times on the Streets, ES, or SH in The Past 3 Years break'] ||= []
       rows['*Number of Times on the Streets, ES, or SH in The Past 3 Years'] ||= []
       rows['*Number of Times Response'] ||= []
-      rows['*Number of Times Response'] += ['Times', 'Count', 'Percentage', nil, nil]
+      rows['*Number of Times Response'] += ['Times', nil, 'Count', 'Percentage', nil]
       ::HudUtility.times_homeless_options.each do |id, title|
         rows["_Number of Times Response_data_#{title}"] ||= []
         rows["_Number of Times Response_data_#{title}"] += [
           title,
+          nil,
           times_on_street_count(id),
           times_on_street_percentage(id) / 100,
-          nil,
         ]
       end
       rows['_Number of Months on the Streets, ES, or SH in The Past 3 Years break'] ||= []
       rows['*Number of Months on the Streets, ES, or SH in The Past 3 Years'] ||= []
       rows['*Number of Months Response'] ||= []
-      rows['*Number of Months Response'] += ['Time', 'Count', 'Percentage', nil, nil]
+      rows['*Number of Months Response'] += ['Time', nil, 'Count', 'Percentage', nil]
       ::HudUtility.month_categories.each do |id, title|
         rows["_Number of Months_data_#{title}"] ||= []
         rows["_Number of Months_data_#{title}"] += [
           title,
+          nil,
           months_on_street_count(id),
           months_on_street_percentage(id) / 100,
-          nil,
         ]
       end
       rows['_Prior Living Situation break'] ||= []
       rows['*Prior Living Situation'] ||= []
-      rows['*Prior Living Situation'] += ['Situation', 'Count', 'Percentage', nil, nil]
+      rows['*Prior Living Situation'] += ['Situation', nil, 'Count', 'Percentage', nil]
       ::HudUtility.living_situations.each do |id, title|
         rows["_Prior Living Situation_data_#{title}"] ||= []
         rows["_Prior Living Situation_data_#{title}"] += [
           title,
+          nil,
           prior_living_situations_count(id),
           prior_living_situations_percentage(id) / 100,
-          nil,
         ]
       end
       rows

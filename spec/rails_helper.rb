@@ -67,6 +67,9 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
 
+  require_relative 'support/s3_utils'
+  config.include S3Utils
+
   config.before(:suite) do
     Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
       FileUtils.rm(filename)
@@ -81,8 +84,10 @@ RSpec.configure do |config|
     AccessGroup.maintain_system_groups
 
     if ENV['ENABLE_HMIS_API'] == 'true'
-      HmisUtil::JsonForms.seed_record_form_definitions
-      HmisUtil::JsonForms.seed_assessment_form_definitions
+      ::HmisUtil::JsonForms.new.tap do |builder|
+        builder.seed_record_form_definitions
+        builder.seed_assessment_form_definitions
+      end
     end
   end
 end
@@ -97,6 +102,10 @@ RSpec.configure do |config|
   Dir[Rails.root.join('drivers/*/spec')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/lib')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/app')].each { |x| config.project_source_dirs << x }
+end
+
+VCR.configure do |config|
+  config.ignore_hosts('127.0.0.1', 'localhost', 'minio', 's3.dev.test')
 end
 
 def cleanup_test_environment

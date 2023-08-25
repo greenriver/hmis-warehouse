@@ -15,18 +15,18 @@ module
             title: "Gender - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_gender(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_gender(key)).distinct },
           }
         end
       end
     end
 
     def gender_count(type)
-      gender_breakdowns[type]&.count&.presence || 0
+      mask_small_population(gender_breakdowns[type]&.count&.presence || 0)
     end
 
     def gender_percentage(type)
-      total_count = client_genders_and_ages.count
+      total_count = mask_small_population(client_genders_and_ages.count)
       return 0 if total_count.zero?
 
       of_type = gender_count(type)
@@ -37,12 +37,12 @@ module
 
     def gender_age_count(gender:, age_range:)
       age_range.to_a.map do |age|
-        gender_age_breakdowns[[gender, age]]&.count&.presence || 0
+        mask_small_population(gender_age_breakdowns[[gender, age]]&.count&.presence || 0)
       end.sum
     end
 
     def gender_age_percentage(gender:, age_range:)
-      total_count = client_genders_and_ages.count
+      total_count = mask_small_population(client_genders_and_ages.count)
       return 0 if total_count.zero?
 
       of_type = gender_age_count(gender: gender, age_range: age_range)
@@ -54,20 +54,20 @@ module
     def gender_data_for_export(rows)
       rows['_Gender Break'] ||= []
       rows['*Gender Breakdowns'] ||= []
-      rows['*Gender Breakdowns'] += ['Gender', 'Count', 'Percentage', nil, nil]
+      rows['*Gender Breakdowns'] += ['Gender', nil, 'Count', 'Percentage', nil]
       HudUtility.genders.each do |id, title|
         rows["_Gender Breakdowns_data_#{title}"] ||= []
         rows["_Gender Breakdowns_data_#{title}"] += [
           title,
+          nil,
           gender_count(id),
           gender_percentage(id) / 100,
           nil,
-          nil,
         ]
       end
-      rows['_Gender/Age Beakdowns Break'] ||= []
-      rows['*Gender/Age Beakdowns'] ||= []
-      rows['*Gender/Age Beakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
+      rows['_Gender/Age Breakdowns Break'] ||= []
+      rows['*Gender/Age Breakdowns'] ||= []
+      rows['*Gender/Age Breakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
       HudUtility.genders.each do |gender, gender_title|
         age_categories.each do |age_range, age_title|
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] ||= []

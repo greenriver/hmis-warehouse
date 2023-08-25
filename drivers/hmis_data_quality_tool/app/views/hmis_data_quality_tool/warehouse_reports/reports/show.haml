@@ -9,4 +9,5 @@
 
 .tab-content.mt-4
   .tab-pane.show.active.fade#by_category{role: 'tabpanel', aria: {labelledby: 'by-category'}}
+    .pull-right= render 'report_downloads/report_download', export: @pdf_export, excel_export: @excel_export, excel_download_path: nil
     = render 'by_category'

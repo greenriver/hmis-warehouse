@@ -25,7 +25,12 @@ module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    VALID_STATUS_IDS = HmisExternalApis::AcHmis::ReferralPosting.statuses.values_at(:closed_status, :accepted_pending_status, :denied_pending_status, :accepted_status, :denied_status).to_set
+    # map from HudUtility.referral_results to implementation-specific codes
+    REFERRAL_RESULT_CODE_MAP = {
+      1 => 157, # 157 Successful referral: client accepted
+      2 => 158, # 158 Unsuccessful referral: client rejected
+      3 => 159, # 159 Unsuccessful referral: provider rejected
+    }.freeze
 
     # @param posting_id [Integer]  HmisExternalApis::AcHmis::ReferralPosting.identifier
     # @param posting_status_id [Integer] new status
@@ -35,48 +40,23 @@ module HmisExternalApis::AcHmis
     # @param denied_reason_text [String]
     # @param status_note [String]
     # @param contact_date [String] required when Posting status is Denied Pending or Accepted Pending
-    def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denied_reason_text: nil, status_note: nil, contact_date: nil, referral_result_id: nil)
-      raise 'Invalid status. Expected one of: [Closed(13), AcceptedPending(18), DeniedPending(19), Accepted(20), Denied(21)]' unless VALID_STATUS_IDS.include?(posting_status_id)
-
+    # @param logger [OauthClientLogger]
+    def perform(posting_id:, posting_status_id:, requested_by:, denied_reason_id: nil, denial_note: nil, status_note: nil, contact_date: nil, referral_result_id: nil, logger: nil)
       payload = {
         posting_id: posting_id,
         posting_status_id: posting_status_id,
-        referral_result_id: referral_result_id,
+        referral_result_id: REFERRAL_RESULT_CODE_MAP[referral_result_id],
         denied_reason_id: denied_reason_id,
-        denied_reason_text: denied_reason_text,
+        denial_notes: denial_note,
         status_note: status_note,
-        contact_date: format_date(contact_date),
-        requested_by: requested_by,
-      }.filter { |_, v| v.present? }
+        contact_date: format_datetime(contact_date),
+        requested_by: format_requested_by(requested_by),
+      }.compact_blank
 
-      payload[:denied_reason_id] = denied_reason_id if denied_reason_id
-
-      response = link.update_referral_posting_status(payload)
-      posting_attrs = response.parsed_body.fetch('postings').map { |h| h.transform_keys(&:underscore) }
-      update_referral_postings(posting_attrs)
-    end
-
-    protected
-
-    # we may get references to postings that are do not belong to the updated referral
-    def posting_scope
-      HmisExternalApis::AcHmis::ReferralPosting
-    end
-
-    def update_referral_postings(posting_attrs)
-      # build lookup tables for entities referenced in postings; avoid n+1 queries
-      postings_by_identifier = posting_attrs
-        .map { |h| h.fetch('posting_id') }
-        .compact_blank
-        .then do |ids|
-          posting_scope.where(identifier: ids).index_by(&:identifier)
-        end
-      posting_attrs.map do |attrs|
-        posting_id = attrs.fetch('posting_id')
-        posting = postings_by_identifier[posting_id]
-        posting.status = attrs.fetch('posting_status_id')
-        posting.save!
-        posting
+      logger ||= HmisExternalApis::OauthClientLogger.new
+      link.with_logger(logger) do
+        Rails.logger.info "Updating status in LINK: #{payload.to_json}"
+        link.update_referral_posting_status(payload)
       end
     end
   end

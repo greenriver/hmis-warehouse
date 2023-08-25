@@ -9,20 +9,36 @@ module
   extend ActiveSupport::Concern
   included do
     def disability_detail_hash
-      {}.tap do |hashes|
+      hash = {}.tap do |hashes|
         HudUtility.disability_types.each do |key, title|
           hashes["disability_#{key}"] = {
             title: "Disability #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_disability(key)).distinct },
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_disability(key)).distinct },
           }
         end
       end
+      hash.merge!(
+        'yes_disability' =>
+          {
+            title: 'At Least One Disability',
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_disabilities.keys).distinct },
+          },
+        'no_disability' =>
+          {
+            title: 'No Disability',
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: distinct_client_ids.pluck(:client_id).uniq - client_disabilities.keys).distinct },
+          },
+      )
     end
 
     def disability_count(type)
-      disability_breakdowns[type]&.count&.presence || 0
+      mask_small_population(disability_breakdowns[type]&.count&.presence || 0)
     end
 
     def disability_percentage(type)
@@ -66,36 +82,36 @@ module
     def disability_data_for_export(rows)
       rows['_Disability Break'] ||= []
       rows['*Indefinite and Impairing Disabilities'] ||= []
-      rows['*Indefinite and Impairing Disabilities'] += ['Disability', 'Count', 'Percentage', nil, nil]
+      rows['*Indefinite and Impairing Disabilities'] += ['Disability', nil, 'Count', 'Percentage', nil]
       ::HudUtility.disability_types.each do |id, title|
         rows["_Disabilities_data_#{title}"] ||= []
         rows["_Disabilities_data_#{title}"] += [
           title,
+          nil,
           disability_count(id),
           disability_percentage(id) / 100,
-          nil,
         ]
       end
       rows['_At Least One Disability_data_'] ||= []
       rows['_At Least One Disability_data_'] += [
         'At Least One Disability',
+        nil,
         yes_disability_count,
         yes_disability_percentage / 100,
-        nil,
       ]
       rows['_No Disability_data_'] ||= []
       rows['_No Disability_data_'] += [
         'No Disability',
+        nil,
         no_disability_count,
         no_disability_percentage / 100,
-        nil,
       ]
       rows
     end
 
     private def client_disabilities_count
       @client_disabilities_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        client_disabilities.count
+        mask_small_population(client_disabilities.count)
       end
     end
 

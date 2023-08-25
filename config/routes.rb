@@ -586,7 +586,7 @@ Rails.application.routes.draw do
 
   resources :cohort_column_names, only: [:new, :create]
 
-  resources :cohorts, except: [:new] do
+  resources :cohorts do
     resource :columns, only: [:edit, :update], controller: 'cohorts/columns'
     resources :cohort_clients, controller: 'cohorts/clients' do
       get :pre_destroy, on: :member
@@ -772,7 +772,8 @@ Rails.application.routes.draw do
       resources :users, only: [:create, :destroy], controller: 'groups/users'
     end
     resources :agencies
-    resources :glacier, only: [:index]
+    resource :theme, only: [:edit, :update]
+    resource :color, only: [:edit, :update]
     namespace :dashboard do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
@@ -879,6 +880,7 @@ Rails.application.routes.draw do
       get :reports
       get :stimulus_select
       get :tags
+      get :system_colors
     end
   end
 

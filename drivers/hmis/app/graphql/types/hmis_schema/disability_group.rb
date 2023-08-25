@@ -30,12 +30,12 @@ module Types
 
     # Disability Type 8
     field :hiv_aids, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    # ADD t_cell_count_available
-    # ADD t_cell_count
-    # ADD t_cell_source
-    # ADD viral_load_available
-    # ADD viral_load
-    # ADD anti_retroviral
+    field :t_cell_count_available, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :t_cell_count, Integer, null: true
+    field :t_cell_source, HmisSchema::Enums::Hud::TCellSourceViralLoadSource, null: true
+    field :viral_load_available, HmisSchema::Enums::Hud::ViralLoadAvailable, null: true
+    field :viral_load, Integer, null: true
+    field :anti_retroviral, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     # Disability Type 9
     field :mental_health_disorder, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
@@ -47,6 +47,8 @@ module Types
 
     field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
+
+    # Object is an OpenStruct containing all Disability records from a given Assessment
 
     def id
       # Concatenate disability IDs to create a unique id for the group
@@ -103,6 +105,19 @@ module Types
 
     def substance_use_disorder_indefinite_and_impairs
       indefinite_and_impairs_for_type(10)
+    end
+
+    [
+      :t_cell_count_available,
+      :t_cell_count,
+      :t_cell_source,
+      :viral_load_available,
+      :viral_load,
+      :anti_retroviral,
+    ].each do |field|
+      define_method(field) do
+        object.disabilities.find { |r| r.disability_type == 8 }&.send(field)
+      end
     end
 
     private def response_for_type(disability_type)

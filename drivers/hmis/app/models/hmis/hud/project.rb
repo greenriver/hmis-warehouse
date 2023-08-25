@@ -25,13 +25,25 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
-  has_many :units, dependent: :destroy
+  has_many :units, -> { active }, dependent: :destroy
+  has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
   has_many :custom_data_elements, as: :owner
+
+  has_many :client_projects
+  has_many :clients_including_wip, through: :client_projects, source: :client
+  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
+
+  has_many :group_viewable_entity_projects
+  has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
+
+  has_many :services, through: :enrollments_including_wip
+  has_many :custom_services, through: :enrollments_including_wip
+  has_many :hmis_services, through: :enrollments_including_wip
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -59,9 +71,35 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
+  scope :with_organization_ids, ->(organization_ids) do
+    joins(:organization).where(o_t[:id].in(Array.wrap(organization_ids)))
+  end
+
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
   scope :with_project_type, ->(project_types) do
     where(ProjectType: project_types)
+  end
+
+  scope :with_funders, ->(funders) do
+    joins(:funders).where(f_t[:funder].in(funders))
+  end
+
+  scope :open_on_date, ->(date = Date.current) do
+    on_or_after_start = p_t[:operating_start_date].lteq(date)
+    on_or_before_end = p_t[:operating_end_date].eq(nil).or(p_t[:operating_end_date].gteq(date))
+    where(on_or_after_start.and(on_or_before_end))
+  end
+
+  scope :closed_on_date, ->(date = Date.current) do
+    where(p_t[:operating_end_date].lt(date).or(p_t[:operating_start_date].gt(date)))
+  end
+
+  scope :with_statuses, ->(statuses) do
+    return self if statuses.include?('OPEN') && statuses.include?('CLOSED')
+    return open_on_date(Date.current) if statuses.include?('OPEN')
+    return closed_on_date(Date.current) if statuses.include?('CLOSED')
+
+    self
   end
 
   scope :matching_search_term, ->(search_term) do
@@ -73,6 +111,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    organization_and_name: 'Organization and Name',
+    name: 'Name',
+  }.freeze
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
@@ -87,16 +130,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end
   end
 
+  def self.apply_filters(input)
+    Hmis::Filter::ProjectFilter.new(input).filter_scope(self)
+  end
+
   def active
     return true unless operating_end_date.present?
 
     operating_end_date >= Date.current
-  end
-
-  def enrollments_including_wip
-    enrollment_ids = enrollments.pluck(:id)
-    wip_ids = wip_enrollments.pluck(:id)
-    Hmis::Hud::Enrollment.where(id: enrollment_ids + wip_ids)
   end
 
   def households_including_wip

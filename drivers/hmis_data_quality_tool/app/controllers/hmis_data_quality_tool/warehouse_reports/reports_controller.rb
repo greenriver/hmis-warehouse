@@ -13,7 +13,9 @@ module HmisDataQualityTool::WarehouseReports
 
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
     before_action :set_report, only: [:show, :by_client, :destroy, :details, :items]
-    # before_action :set_pdf_export, only: [:show]
+    before_action :set_pdf_export, only: [:show]
+    before_action :set_excel_export, only: [:show]
+    before_action :set_excel_by_client_export, only: [:by_client]
 
     def index
       @pagy, @reports = pagy(report_scope.diet.ordered)
@@ -30,7 +32,7 @@ module HmisDataQualityTool::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          filename = "#{@report.title&.tr(' ', '-')}-By-Category-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -40,6 +42,13 @@ module HmisDataQualityTool::WarehouseReports
       @clients = @report.clients.order(:last_name, :first_name)
       @pivot_details = @report.pivot_details
       @pagy, @clients = pagy(@clients)
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{@report.title&.tr(' ', '-')}-By-Client-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def create
@@ -113,6 +122,18 @@ module HmisDataQualityTool::WarehouseReports
 
     private def set_report
       @report = report_class.find(params[:id].to_i)
+    end
+
+    private def set_pdf_export
+      @pdf_export = HmisDataQualityTool::DocumentExports::ReportExport.new
+    end
+
+    private def set_excel_export
+      @excel_export = HmisDataQualityTool::DocumentExports::ReportExcelExport.new
+    end
+
+    private def set_excel_by_client_export
+      @excel_export = HmisDataQualityTool::DocumentExports::ReportByClientExcelExport.new
     end
 
     # Since this report uses the hud version of report instance, and it isn't STI

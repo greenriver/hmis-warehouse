@@ -1,0 +1,28 @@
+#erap-csv-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    %p
+      If an eRAP Data CSV is selected, the clients in the CSV will be included in the report.
+    %p
+      The file must be a CSV with the following columns and types:
+    %ol
+      %li personal_id (string, may not be left blank)
+      %li mci_id (string, may not be left blank)
+      %li first_name (string)
+      %li last_name (string)
+      %li age (integer)
+      %li household_id (string)
+      %li head_of_household (TRUE/FALSE)
+      %li emancipated (TRUE/FALSE)
+      %li project_type (integer)
+      %li veteran (TRUE/FALSE)
+      %li mental health disorder (TRUE/FALSE)
+      %li substance use disorder (TRUE/FALSE)
+      %li survivor of domestic violence (TRUE/FALSE)
+      %li income at start (integer)
+      %li income at exit (integer)
+      %li homeless (TRUE/FALSE)
+      %li nights in shelter (integer)
+    %p
+      A value may be left blank if the data was not collected, except as noted above.
+
+  = render 'common/panel_collapse', id: 'erap-csv-info', title: 'eRAP Data Format'

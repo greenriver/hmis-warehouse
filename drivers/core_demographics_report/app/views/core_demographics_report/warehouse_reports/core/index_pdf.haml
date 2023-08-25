@@ -4,8 +4,8 @@
 %h1.mb-5= title
 %section.filter-summary.mb-5
   %h2.mb-4 Summary of Selected Universe
-  = render 'filters_pdf'
-%section.mb-5= render 'core_demographics_report/warehouse_reports/core/hero_counts'
+  = render 'core_demographics_report/warehouse_reports/shared/filters_pdf'
+%section.mb-5= render 'core_demographics_report/warehouse_reports/shared/hero_counts'
 - @report.class.available_section_types.each do |section|
   %section.mb-5.page-break-after
-    = render "core_demographics_report/warehouse_reports/core/#{section}"
+    = render "core_demographics_report/warehouse_reports/shared/#{section}"

@@ -10,6 +10,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   include ::HmisStructure::Assessment
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
@@ -24,7 +25,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :assessment_questions, **hmis_relation(:AssessmentID, 'AssessmentQuestion'), dependent: :destroy
   has_many :assessment_results, **hmis_relation(:AssessmentID, 'AssessmentResult'), dependent: :destroy
-  has_one :project, through: :enrollment
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)

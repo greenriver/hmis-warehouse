@@ -1,0 +1,8 @@
+- title = 'Add Cohort'
+- content_for :title, title
+%h1= content_for :title
+.w-75
+  = simple_form_for @cohort, as: :cohort, url: cohorts_path do |f|
+    = f.input :name, label: 'Cohort Name', required: true
+    = f.input :effective_date, as: :date_picker, label: 'Effective Date', hint: 'If set, this date will be used for various calculations on columns denoted with an *.  If empty, the current date will be used for those calculations'
+    = f.submit value: 'Create Cohort', class: 'btn btn-primary'

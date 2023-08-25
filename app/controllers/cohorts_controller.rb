@@ -10,7 +10,7 @@ class CohortsController < ApplicationController
   include CohortClients
   include Search
   before_action :some_cohort_access!
-  before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update]
+  before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update, :new]
   before_action :require_can_access_cohort!, only: [:show]
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show]
@@ -30,8 +30,9 @@ class CohortsController < ApplicationController
       @active_filter = true
     end
 
-    @search = search_setup(columns: [:name])
-    @cohort = cohort_source.new
+    @search = search_setup(scope: :cohort_search)
+    # Enforce visibility on searches
+    @search = @search.where(id: cohort_scope.select(:id))
     @cohorts = @search.active_user.reorder(sort_string)
     @inactive_cohorts = @search.inactive.reorder(sort_string)
     @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)
@@ -113,6 +114,10 @@ class CohortsController < ApplicationController
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
       end
     end
+  end
+
+  def new
+    @cohort = cohort_source.new
   end
 
   def edit

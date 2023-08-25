@@ -35,6 +35,7 @@ module GrdaWarehouse
         'patient/care_plan' => _('Care Plan Form'), # app/controllers/health/careplans_controller.rb
         'patient/case_management_note' => _('Case Management Note Form'), # app/controllers/health/sdh_case_management_note.rb,
         'client/releases/coc_map' => _('CoC Map (png)'), # app/controllers/clients/releases_controller.rb
+        'patient/careplan_logo' => _('Careplan Logo'), # drivers/health_pctp/app/controllers/health_pctp/careplans_controller.rb
       }
     end
 

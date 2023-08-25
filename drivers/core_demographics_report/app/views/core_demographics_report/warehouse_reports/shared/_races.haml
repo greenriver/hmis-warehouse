@@ -1,0 +1,25 @@
+- reports = [@report]
+- column_class = 'col-sm-8'
+- if @report.include_comparison?
+  - reports << @comparison
+  - column_class = 'col-sm-6'
+.row
+  - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
+    %div{class: column_class}
+      %h3 Race Breakdowns
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th Race
+              %th Count
+              %th Percentage
+          %tbody
+            - report.race_buckets.each do |id, title|
+              %tr
+                %th= title
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.race_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "race_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= number_to_percentage(report.race_percentage(id), precision: 2)

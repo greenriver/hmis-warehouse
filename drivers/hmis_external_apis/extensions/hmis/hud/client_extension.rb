@@ -14,10 +14,24 @@ module HmisExternalApis
         included do
           has_many :external_ids, class_name: 'HmisExternalApis::ExternalId', as: :source
           has_many :external_referral_household_members, class_name: 'HmisExternalApis::AcHmis::ReferralHouseholdMember', dependent: :destroy, inverse_of: :client
-          has_one :ac_hmis_mci_id,
-                  -> { where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID) },
+          has_many :ac_hmis_mci_ids,
+                   -> { where(namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID) },
+                   class_name: 'HmisExternalApis::ExternalId',
+                   as: :source
+          has_one :ac_hmis_mci_unique_id,
+                  -> { where(namespace: HmisExternalApis::AcHmis::WarehouseChangesJob::NAMESPACE) },
                   class_name: 'HmisExternalApis::ExternalId',
                   as: :source
+
+          # prepend is needed to destroy referrals before household_members are destroyed
+          before_destroy :destroy_hoh_external_referrals, prepend: true
+
+          # remove referrals where this client is the the HOH
+          def destroy_hoh_external_referrals
+            HmisExternalApis::AcHmis::Referral
+              .where(id: external_referral_household_members.heads_of_households.select(:referral_id))
+              .each(&:destroy!)
+          end
 
           # Used by ClientSearch concern
           def self.search_by_external_id(where, text)

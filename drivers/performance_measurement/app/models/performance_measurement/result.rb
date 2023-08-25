@@ -39,10 +39,14 @@ module PerformanceMeasurement
     end
 
     def pit_count
+      return unless report.present?
+
       @pit_count ||= report.goal_config.pit_counts.where(pit_date: report.filter.range).max_by(&:pit_date)
     end
 
     def comparison_pit_count
+      return unless report.present?
+
       @comparison_pit_count ||= report.goal_config.pit_counts.where(pit_date: report.filter.comparison_range).max_by(&:pit_date)
     end
 
