@@ -80,8 +80,8 @@ SET default_table_access_method = heap;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -1728,6 +1728,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: warehouse_data_quality_report_enrollments warehouse_data_quality_report_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2848,13 +2856,6 @@ CREATE INDEX pdq_rep_act_ext_head_enr ON public.warehouse_data_quality_report_en
 
 
 --
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
-
-
---
 -- Name: warehouse_partitioned_monthly_reports monthly_reports_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -2868,32 +2869,6 @@ CREATE TRIGGER monthly_reports_insert_trigger BEFORE INSERT ON public.warehouse_
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20180911173239'),
-('20180911173649'),
-('20180917194028'),
-('20180925175825'),
-('20181204193329'),
-('20190503193707'),
-('20190509162439'),
-('20190518010835'),
-('20190604195547'),
-('20190614190744'),
-('20190621150718'),
-('20190621154429'),
-('20190702005535'),
-('20190708152330'),
-('20190802160019'),
-('20191102185806'),
-('20200106195304'),
-('20200121131232'),
-('20200121131602'),
-('20200123193204'),
-('20200128142909'),
-('20200417173338'),
-('20200620192228'),
-('20200724150305'),
-('20210405180920'),
-('20210916150948'),
 ('20210920002734');
 
 
