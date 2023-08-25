@@ -1,8 +1,9 @@
 {
   "type": "GROUP",
   "link_id": "3.917A",
-  "text": "Prior Living Situation A",
+  "text": "Prior Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
+  "_comment": "For SO, ES, and SH. This element requires no dependencies, and all fields are to be visible and entered by the HMIS end user.",
   "prefill": true,
   "rule": {
     "operator": "ANY",
@@ -56,131 +57,19 @@
       "mapping": { "record_type": "ENROLLMENT",  "field_name": "lengthOfStay" }
     },
     {
-      "type": "GROUP",
-      "component": "INFO_GROUP",
-      "link_id": "3.917A.break-group",
-      "_comment": "The presence of these elements is used for conditional logic on losUnderThreshold, so they are still included but hidden in this version of the fragment",
-      "item": [
-        {
-          "type": "DISPLAY",
-          "link_id": "3.917A.A",
-          "read_only": true,
-          "hidden": true,
-          "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "3.917A.1",
-              "operator": "EQUAL",
-              "answer_group_code": "INSTITUTIONAL"
-            },
-            {
-              "question": "3.917A.2",
-              "operator": "IN",
-              "answer_codes": [
-                "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
-                "ONE_YEAR_OR_LONGER"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "DISPLAY",
-          "link_id": "3.917A.B",
-          "read_only": true,
-          "hidden": true,
-          "text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "3.917A.1",
-              "operator": "EQUAL",
-              "answer_group_code": "TEMPORARY_PERMANENT_OTHER"
-            },
-            {
-              "question": "3.917A.2",
-              "operator": "IN",
-              "answer_codes": [
-                "ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
-                "ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS",
-                "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
-                "ONE_YEAR_OR_LONGER"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "CHOICE",
-      "hidden": true,
-      "link_id": "3.917A.los-threshold",
-      "mapping": { "record_type": "ENROLLMENT",  "field_name": "losUnderThreshold" },
-      "pick_list_reference": "NoYesMissing",
-      "autofill_values": [
-        {
-          "_comment": "LOS is above the threshold if either of the 'break' display notices are shown",
-          "value_code": "NO",
-          "autofill_behavior": "ANY",
-          "autofill_when": [
-            {
-              "question": "3.917A.A",
-              "operator": "ENABLED"
-            },
-            {
-              "question": "3.917A.B",
-              "operator": "ENABLED"
-            }
-          ]
-        },
-        {
-          "_comment": "LOS is under the threshold if neither 'break' display notices are shown, AND Living Situation and LOS have both been filled in",
-          "value_code": "YES",
-          "autofill_behavior": "ALL",
-          "autofill_when": [
-            {
-              "question": "3.917A.2",
-              "operator": "EXISTS",
-              "answer_boolean": true
-            },
-            {
-              "question": "3.917A.1",
-              "operator": "EXISTS",
-              "answer_boolean": true
-            }
-          ]
-        },
-        {
-          "_comment": "LOS is null otherwise",
-          "value_code": "DATA_NOT_COLLECTED",
-          "autofill_behavior": "ALL",
-          "autofill_when": []
-        }
-      ]
-    },
-    {
-      "type": "CHOICE",
-      "link_id": "3.917A.C",
-      "required": false,
-      "warn_if_empty": true,
-      "pick_list_reference": "NoYesMissing",
-      "mapping": { "record_type": "ENROLLMENT",  "field_name": "previousStreetEssh" },
-      "text": "On the night before, did the client stay on the streets, ES or SH?",
-      "brief_text": "Homeless on previous night"
-    },
-    {
-      "type": "DISPLAY",
-      "link_id": "3.917A.C.message",
-      "text": "Client does not meet the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-      "enable_behavior": "ALL"
-    },
-    {
       "type": "DATE",
       "link_id": "3.917A.3",
       "required": false,
       "warn_if_empty": true,
       "mapping": { "record_type": "ENROLLMENT",  "field_name": "dateToStreetEssh" },
-      "text": "Date homelessness started"
+      "text": "Approximate date this episode of homelessness started",
+      "bounds": [
+        {
+          "id": "max-started",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        }
+      ]
     },
     {
       "type": "CHOICE",
@@ -188,7 +77,7 @@
       "required": false,
       "warn_if_empty": true,
       "mapping": { "record_type": "ENROLLMENT",  "field_name": "timesHomelessPastThreeYears" },
-      "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
+      "text": "Regardless of where they stayed last night, number of times the client has been on the streets, in ES, or SH in the past three years including today",
       "brief_text": "Times Homeless",
       "pick_list_reference": "TimesHomelessPastThreeYears"
     },

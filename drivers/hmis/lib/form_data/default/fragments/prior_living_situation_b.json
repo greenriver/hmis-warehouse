@@ -1,8 +1,9 @@
 {
   "type": "GROUP",
   "link_id": "3.917B",
-  "text": "Prior Living Situation B",
+  "text": "Prior Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
+  "_comment": "For all projects EXCEPT SO, ES, and SH. This element has dependencies that hide/show items as specified.",
   "prefill": true,
   "rule": {
     "operator": "ALL",
@@ -167,48 +168,63 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
+          "question": "3.917B.2",
+          "operator": "EXISTS",
+          "_comment": "LOS has been answered",
+          "answer_boolean": true
+        },
+        {
           "question": "3.917B.A",
           "operator": "ENABLED",
+          "_comment": "threshold message is not shown",
           "answer_boolean": false
         },
         {
           "question": "3.917B.B",
           "operator": "ENABLED",
+          "_comment": "threshold message is not shown",
           "answer_boolean": false
         }
       ]
     },
     {
-      "type": "DISPLAY",
-      "link_id": "3.917B.C.message",
-      "text": "Client does not meet the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-      "enable_behavior": "ALL",
-      "enable_when": [
+      "type": "GROUP",
+      "component": "INFO_GROUP",
+      "link_id": "3.917B.C.message.group",
+      "item": [
         {
-          "question": "3.917B.C",
-          "operator": "EQUAL",
-          "_comment": "not homeless on the night before",
-          "answer_code": "NO"
-        },
-        {
-          "question": "3.917B.1",
-          "operator": "EXISTS",
-          "answer_boolean": true
-        },
-        {
-          "question": "3.917B.2",
-          "operator": "EXISTS",
-          "answer_boolean": true
-        },
-        {
-          "question": "3.917B.A",
-          "operator": "ENABLED",
-          "answer_boolean": false
-        },
-        {
-          "question": "3.917B.B",
-          "operator": "ENABLED",
-          "answer_boolean": false
+          "type": "DISPLAY",
+          "link_id": "3.917B.C.message",
+          "text": "Client does not meet the HUD definition of chronic homelessness. <br /> Stopping data collection for 3.917 Prior Living Situation.",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917B.C",
+              "operator": "EQUAL",
+              "_comment": "not homeless on the night before",
+              "answer_code": "NO"
+            },
+            {
+              "question": "3.917B.1",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "3.917B.2",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "3.917B.A",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917B.B",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            }
+          ]
         }
       ]
     },
@@ -218,9 +234,15 @@
       "required": false,
       "warn_if_empty": true,
       "mapping": { "record_type": "ENROLLMENT",  "field_name": "dateToStreetEssh" },
-      "text": "Date homelessness started",
+      "text": "Approximate date this episode of homelessness started",
       "enable_behavior": "ALL",
       "enable_when": [
+        {
+          "question": "3.917B.C",
+          "operator": "EQUAL",
+          "_comment": "homeless on the night before",
+          "answer_code": "YES"
+        },
         {
           "question": "3.917B.A",
           "operator": "ENABLED",
@@ -230,11 +252,13 @@
           "question": "3.917B.B",
           "operator": "ENABLED",
           "answer_boolean": false
-        },
+        }
+      ],
+      "bounds": [
         {
-          "question": "3.917B.C.message",
-          "operator": "ENABLED",
-          "answer_boolean": false
+          "id": "max-started",
+          "type": "MAX",
+          "value_local_constant": "$today"
         }
       ]
     },
@@ -244,7 +268,7 @@
       "required": false,
       "warn_if_empty": true,
       "mapping": { "record_type": "ENROLLMENT",  "field_name": "timesHomelessPastThreeYears" },
-      "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
+      "text": "Regardless of where they stayed last night, number of times the client has been on the streets, in ES, or SH in the past three years including today",
       "brief_text": "Times Homeless",
       "pick_list_reference": "TimesHomelessPastThreeYears",
       "enable_behavior": "ALL",
@@ -260,9 +284,10 @@
           "answer_boolean": false
         },
         {
-          "question": "3.917B.C.message",
-          "operator": "ENABLED",
-          "answer_boolean": false
+          "question": "3.917B.C",
+          "operator": "EQUAL",
+          "_comment": "homeless on the night before",
+          "answer_code": "YES"
         }
       ]
     },
@@ -288,9 +313,10 @@
           "answer_boolean": false
         },
         {
-          "question": "3.917B.C.message",
-          "operator": "ENABLED",
-          "answer_boolean": false
+          "question": "3.917B.C",
+          "operator": "EQUAL",
+          "_comment": "homeless on the night before",
+          "answer_code": "YES"
         }
       ]
     }
