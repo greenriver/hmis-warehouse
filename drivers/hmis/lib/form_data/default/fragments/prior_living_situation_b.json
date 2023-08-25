@@ -66,6 +66,7 @@
           "link_id": "3.917B.A",
           "read_only": true,
           "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
+          "readonly_text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness.",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -87,6 +88,7 @@
           "type": "DISPLAY",
           "link_id": "3.917B.B",
           "text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
+          "readonly_text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness.",
           "enable_behavior": "ALL",
           "_comment": "required_when TODO",
           "enable_when": [
@@ -196,6 +198,7 @@
           "type": "DISPLAY",
           "link_id": "3.917B.C.message",
           "text": "Client does not meet the HUD definition of chronic homelessness. <br /> Stopping data collection for 3.917 Prior Living Situation.",
+          "readonly_text": "Client does not meet the HUD definition of chronic homelessness.",
           "enable_behavior": "ALL",
           "enable_when": [
             {
