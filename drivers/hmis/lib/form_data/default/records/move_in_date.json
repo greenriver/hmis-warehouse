@@ -18,6 +18,12 @@
           "id": "max-date",
           "type": "MAX",
           "value_local_constant": "$exitDate"
+        },
+        {
+          "id": "max-future-date",
+          "type": "MAX",
+          "value_local_constant": "$today",
+          "offset": 7
         }
       ]
     }
