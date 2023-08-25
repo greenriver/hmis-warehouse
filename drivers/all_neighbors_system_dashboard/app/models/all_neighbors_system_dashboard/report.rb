@@ -17,6 +17,8 @@ module AllNeighborsSystemDashboard
     include EnrollmentAttributeCalculations
     include DemographicRatioCalculations
 
+    has_one_attached :result_file
+
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
       return where(user_id: user.id) if user.can_view_assigned_reports?
@@ -37,6 +39,7 @@ module AllNeighborsSystemDashboard
         update(failed_at: Time.current)
         raise e
       end
+      attach_rendered_xlsx
       complete
     end
 

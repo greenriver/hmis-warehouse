@@ -520,6 +520,50 @@ ALTER SEQUENCE public."Assessment_id_seq" OWNED BY public."Assessment".id;
 
 
 --
+-- Name: CEParticipation; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CEParticipation" (
+    id bigint NOT NULL,
+    "CEParticipationID" character varying NOT NULL,
+    "ProjectID" character varying NOT NULL,
+    "AccessPoint" integer NOT NULL,
+    "PreventionAssessment" integer,
+    "CrisisAssessment" integer,
+    "HousingAssessment" integer,
+    "DirectServices" integer,
+    "ReceivesReferrals" integer,
+    "CEParticipationStatusStartDate" date NOT NULL,
+    "CEParticipationStatusEndDate" date,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "UserID" character varying NOT NULL,
+    "ExportID" character varying NOT NULL,
+    data_source_id integer
+);
+
+
+--
+-- Name: CEParticipation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CEParticipation_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CEParticipation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CEParticipation_id_seq" OWNED BY public."CEParticipation".id;
+
+
+--
 -- Name: Client; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2163,7 +2207,9 @@ CREATE TABLE public."IncomeBenefits" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "RyanWhiteMedDent" integer,
-    "NoRyanWhiteReason" integer
+    "NoRyanWhiteReason" integer,
+    "VHAServices" integer,
+    "NoVHAServices" integer
 );
 
 
@@ -15147,6 +15193,39 @@ ALTER SEQUENCE public.hmis_external_referrals_id_seq OWNED BY public.hmis_extern
 
 
 --
+-- Name: hmis_external_unit_availability_syncs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_unit_availability_syncs (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    unit_type_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    local_version integer DEFAULT 0 NOT NULL,
+    synced_version integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: hmis_external_unit_availability_syncs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_unit_availability_syncs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_unit_availability_syncs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_unit_availability_syncs_id_seq OWNED BY public.hmis_external_unit_availability_syncs.id;
+
+
+--
 -- Name: hmis_form_definitions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18410,7 +18489,10 @@ CREATE TABLE public.places (
     location character varying NOT NULL,
     lat_lon jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    city character varying,
+    state character varying,
+    zipcode character varying
 );
 
 
@@ -22785,6 +22867,13 @@ ALTER TABLE ONLY public."AssessmentResults" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: CEParticipation id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CEParticipation" ALTER COLUMN id SET DEFAULT nextval('public."CEParticipation_id_seq"'::regclass);
+
+
+--
 -- Name: Client id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24549,6 +24638,13 @@ ALTER TABLE ONLY public.hmis_external_referrals ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: hmis_external_unit_availability_syncs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_unit_availability_syncs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_form_definitions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25873,6 +25969,14 @@ ALTER TABLE ONLY public."AssessmentResults"
 
 ALTER TABLE ONLY public."Assessment"
     ADD CONSTRAINT "Assessment_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CEParticipation CEParticipation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CEParticipation"
+    ADD CONSTRAINT "CEParticipation_pkey" PRIMARY KEY (id);
 
 
 --
@@ -27905,6 +28009,14 @@ ALTER TABLE ONLY public.hmis_external_referral_requests
 
 ALTER TABLE ONLY public.hmis_external_referrals
     ADD CONSTRAINT hmis_external_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_unit_availability_syncs hmis_external_unit_availability_syncs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT hmis_external_unit_availability_syncs_pkey PRIMARY KEY (id);
 
 
 --
@@ -42315,6 +42427,20 @@ CREATE INDEX "index_Assessment_on_pending_date_deleted" ON public."Assessment" U
 
 
 --
+-- Name: index_CEParticipation_on_CEParticipationID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CEParticipation_on_CEParticipationID" ON public."CEParticipation" USING btree ("CEParticipationID");
+
+
+--
+-- Name: index_CEParticipation_on_ProjectID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CEParticipation_on_ProjectID" ON public."CEParticipation" USING btree ("ProjectID");
+
+
+--
 -- Name: index_Client_on_AmIndAKNative; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45574,6 +45700,20 @@ CREATE INDEX index_hmis_external_referral_requests_on_voided_by_id ON public.hmi
 --
 
 CREATE INDEX index_hmis_external_referrals_on_enrollment_id ON public.hmis_external_referrals USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_external_unit_availability_syncs_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_unit_availability_syncs_on_unit_type_id ON public.hmis_external_unit_availability_syncs USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_external_unit_availability_syncs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_unit_availability_syncs_on_user_id ON public.hmis_external_unit_availability_syncs USING btree (user_id);
 
 
 --
@@ -51128,6 +51268,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_exter
 
 
 --
+-- Name: uidx_hmis_external_unit_availability_syncs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
+
+
+--
 -- Name: uidx_hmis_project_unit_type_mappings; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52723,6 +52870,14 @@ ALTER TABLE ONLY public.service_history_services_2038
 
 
 --
+-- Name: hmis_external_unit_availability_syncs fk_rails_80312f3d27; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT fk_rails_80312f3d27 FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: Affiliation fk_rails_81babe0602; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -52760,6 +52915,14 @@ ALTER TABLE ONLY public.project_pass_fails_projects
 
 ALTER TABLE ONLY public.project_pass_fails_clients
     ADD CONSTRAINT fk_rails_8455b3472c FOREIGN KEY (project_pass_fail_id) REFERENCES public.project_pass_fails(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_unit_availability_syncs fk_rails_8463fd3c5a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT fk_rails_8463fd3c5a FOREIGN KEY (project_id) REFERENCES public."Project"(id);
 
 
 --
@@ -54119,6 +54282,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230803173117'),
 ('20230804124734'),
 ('20230804232249'),
-('20230805224003');
+('20230805224003'),
+('20230815171824'),
+('20230818044939'),
+('20230824192127');
 
 
