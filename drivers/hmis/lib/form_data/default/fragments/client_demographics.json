@@ -72,7 +72,14 @@
         "record_type": "CLIENT",
         "field_name": "veteranStatus"
       },
-      "pick_list_reference": "NoYesReasonsForMissingData"
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "enable_when": [
+        {
+          "question": "dob",
+          "operator": "LESS_THAN",
+          "compare_question": "over-18-dob"
+        }
+      ]
     }
   ]
 }
