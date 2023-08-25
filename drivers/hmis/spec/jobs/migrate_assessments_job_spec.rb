@@ -44,7 +44,7 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         # records << create(:hmis_enrollment_coc, **shared_attributes, date_updated: date - 3.days)
 
         # create 1 record per disability type
-        HudUtility.disability_types.keys.each do |typ|
+        HudUtility2024.disability_types.keys.each do |typ|
           records << create(:hmis_disability, disability_type: typ, **shared_attributes)
         end
 

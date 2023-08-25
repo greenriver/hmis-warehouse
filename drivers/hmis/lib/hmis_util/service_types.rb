@@ -13,7 +13,7 @@ module HmisUtil
       system_user.hmis_data_source_id = data_source_id
       hud_user = Hmis::Hud::User.from_user(system_user)
 
-      HudUtility.record_types.except(12, 13).each do |record_type, category_name|
+      HudUtility2024.record_types.each do |record_type, category_name|
         category = Hmis::Hud::CustomServiceCategory.where(
           name: category_name,
           data_source_id: data_source_id,
@@ -53,7 +53,7 @@ module HmisUtil
     R14_RHY_SERVICE_CONFIG = {
       record_type: 142, # R14 RHY Service Connections
       # All HHS RHY funders except the Street Outreach one (25), plus YHDP (43)
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [25] + [43],
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [25] + [43],
     }.freeze
 
     W1_HOPWA_SERVICE_CONFIG = {
@@ -68,7 +68,7 @@ module HmisUtil
       #   6, # Services Only
       #   12, # Homelessness Prevention
       # ],
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
     }.freeze
 
     W2_HOPWA_FINANCIAL_CONFIG = {
@@ -79,19 +79,19 @@ module HmisUtil
       #   6, # Services Only
       #   12, # Homelessness Prevention
       # ],
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
     }.freeze
 
     V2_SSVF_SERVICE_CONFIG = {
       record_type: 144, # V2 Services Provided – SSVF
       # 33 - VA: SSVF - Collection required only for RRH(13) & HP(12)
       # Optional for all other VA
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
     }.freeze
 
     V3_SSVF_FINANCIAL_CONFIG = {
       record_type: 152, # V3 Financial Assistance – SSVF
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
     }.freeze
 
     V8_HUD_VASH_VOUCHER_CONFIG = {

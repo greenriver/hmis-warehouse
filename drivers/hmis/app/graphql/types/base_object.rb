@@ -33,27 +33,18 @@ module Types
       @audit_event_type ||= BaseAuditEvent.build(self, **args)
     end
 
-    def self.yes_no_missing_field(name, description = nil, **kwargs)
-      field name, Boolean, description, **kwargs
-
-      define_method name do
-        resolve_yes_no_missing(object.send(name))
-      end
-    end
-
-    def resolve_yes_no_missing(value, yes_value: 1, no_value: 0, null_value: 99)
-      case value
-      when yes_value
-        true
-      when no_value
-        false
-      when null_value
-        nil
-      end
-    end
-
     def resolve_null_enum(value)
       value == ::HudUtility2024.ignored_enum_value ? nil : value
+    end
+
+    def self.dynamic_define_class(dynamic_name, &block)
+      if Object.const_defined?(dynamic_name)
+        Object.const_get(dynamic_name)
+      else
+        Object.const_set(dynamic_name, Class.new(self) do
+          yield block
+        end)
+      end
     end
 
     # Use data loader to load an ActiveRecord association.

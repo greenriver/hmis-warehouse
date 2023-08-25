@@ -55,8 +55,8 @@ module Types
     field :rrh_sub_type, Types::HmisSchema::Enums::Hud::RRHSubType, null: true
     hud_field :target_population, HmisSchema::Enums::Hud::TargetPopulation
     hud_field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac
-    hud_field :continuum_project, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    hud_field :residential_affiliation, HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :continuum_project, HmisSchema::Enums::Hud::NoYes, null: true
+    hud_field :residential_affiliation, HmisSchema::Enums::Hud::NoYes, null: true
     field :hmis_participation_status, HmisSchema::Enums::Hud::HMISParticipationType, null: true
     hud_field :date_updated
     hud_field :date_created

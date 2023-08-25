@@ -5041,6 +5041,26 @@ enum NoAssistanceReason {
 }
 
 """
+1.10
+"""
+enum NoYes {
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (0) No
+  """
+  NO
+
+  """
+  (1) Yes
+  """
+  YES
+}
+
+"""
 1.7
 """
 enum NoYesMissing {
@@ -5486,7 +5506,7 @@ type Project {
   access: ProjectAccess!
   active: Boolean!
   contactInformation: String
-  continuumProject: NoYesMissing
+  continuumProject: NoYes
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -5510,7 +5530,7 @@ type Project {
   projectName: String!
   projectType: ProjectType
   referralRequests(limit: Int, offset: Int): ReferralRequestsPaginated!
-  residentialAffiliation: NoYesMissing
+  residentialAffiliation: NoYes
   rrhSubType: RRHSubType
   services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   targetPopulation: TargetPopulation

@@ -156,7 +156,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     {
       code: id,
       label: project_name,
-      secondary_label: HudUtility.project_type_brief(project_type),
+      secondary_label: HudUtility2024.project_type_brief(project_type),
       group_label: organization.organization_name,
       group_code: organization.id,
     }

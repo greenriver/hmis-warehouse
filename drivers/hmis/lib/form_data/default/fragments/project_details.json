@@ -41,6 +41,7 @@
           "link_id": "2.02.B",
           "text": "Residential Affiliation?",
           "_comment": "TODO: should ask follow up question to identify all affiliated residential projects, and put them in Affiliation.csv",
+          "pick_list_reference": "NoYes",
           "mapping": {
             "field_name": "residentialAffiliation"
           },
@@ -92,10 +93,10 @@
     },
     {
       "type": "CHOICE",
-      "required": false,
+      "required": true,
       "link_id": "2.02.5",
       "text": "Continuum Project?",
-      "pick_list_reference": "NoYesMissing",
+      "pick_list_reference": "NoYes",
       "mapping": {
         "field_name": "continuumProject"
       }
