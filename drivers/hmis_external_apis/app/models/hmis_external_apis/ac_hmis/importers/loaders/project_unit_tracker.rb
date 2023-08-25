@@ -53,24 +53,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       unit_pk
     end
 
-    def assign_specific_unit(enrollment_pk:, unit_id:, fallback_start_date: nil)
-      raise 'missing enrollment' if enrollment_pk.nil?
-      raise 'missing unit' if unit_id.nil?
-
-      if assignments[enrollment_pk].present?
-        return unit_id if assignments[enrollment_pk][:unit_id] == unit_id
-
-        raise 'already assigned to a different unit'
-      end
-
-      assignments[enrollment_pk] ||= {
-        unit_id: unit_id,
-        enrollment_id: enrollment_pk,
-        start_date: @enrollment_entry_dates[enrollment_pk] || fallback_start_date,
-      }
-      unit_id
-    end
-
     protected
 
     # gives enrollments with same household id the same unit

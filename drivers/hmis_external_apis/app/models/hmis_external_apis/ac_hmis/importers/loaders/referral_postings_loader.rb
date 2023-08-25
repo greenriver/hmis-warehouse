@@ -178,13 +178,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .where(data_source: data_source)
         .pluck(:enrollment_id, :id)
         .to_h
-      enrollment_household_id_by_id = Hmis::Hud::Enrollment
-        .where(data_source: data_source)
-        .pluck(:enrollment_id, :household_id)
-        .to_h
-
-      # { household_id => unit_id }
-      assigned_units = {}
 
       posting_rows.each do |posting_row|
         # only assign accepted enrollments
@@ -201,28 +194,14 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           log_skipped_row(posting_row, field: 'ENROLLMENTID')
           next
         end
-        household_id = enrollment_household_id_by_id[enrollment_id]
-        raise "No houshold id for #{enrollment_pk}" unless household_id.present?
 
-        # Assign this households unit, or a new unit.s
+        # Assign the enrollment to the unit that is occupied by this household, or the next available unit.
         # Note: there is no way for a household to be spread across multiple units.
-        fallback_start_date = parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT'))
-        unit_id = if assigned_units.key?(household_id)
-          assign_specific_unit(
-            enrollment_pk: enrollment_pk,
-            unit_id: assigned_units[household_id],
-            fallback_start_date: fallback_start_date,
-          )
-        else
-          unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
-          assign_next_unit(
-            enrollment_pk: enrollment_pk,
-            unit_type_mper_id: unit_type_mper_id,
-            fallback_start_date: fallback_start_date,
-          )
-        end
-
-        assigned_units[household_id] = unit_id if unit_id.present?
+        unit_id = assign_next_unit(
+          enrollment_pk: enrollment_pk,
+          unit_type_mper_id: row_value(posting_row, field: 'UNIT_TYPE_ID'),
+          fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
+        )
 
         unless unit_id
           msg = "could not assign a unit for enrollment_id: \"#{enrollment_id}\", mper_unit_type_id: \"#{unit_type_mper_id}\""
