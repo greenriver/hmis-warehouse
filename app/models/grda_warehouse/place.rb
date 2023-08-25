@@ -26,7 +26,13 @@ module GrdaWarehouse
           nr = nominatim_lookup(query, city, state, postalcode, country)
           if nr.present?
             lat_lon = { lat: nr.coordinates.first, lon: nr.coordinates.last, bounds: nr.boundingbox }.with_indifferent_access
-            Place.create!(location: key, lat_lon: lat_lon) if nr.present?
+            Place.create!(
+              location: key,
+              lat_lon: lat_lon,
+              city: nr.town,
+              state: nr.state,
+              zipcode: nr.postal_code,
+            )
           end
         end
       end
