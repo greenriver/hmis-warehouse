@@ -23,7 +23,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         @enrollment_entry_dates[enrollment.id] ||= enrollment.entry_date if enrollment.head_of_household?
       end
 
+      # { [project_pk, household_id] => unit_id }
       @household_assignments = {}
+      # { enrollment_pk => { unit_id, enrollment_pk, start_date } }
       @assignments = {}
 
       # we don't check if the unit is occupied, assumption is that all unit occupancies
@@ -42,7 +44,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       return assignments[enrollment_pk][:unit_id] if assignments[enrollment_pk].present?
       return if unit_type_mper_id.blank?
 
-      unit_pk = unit_pk_for_enrollment_pk(enrollment_pk, unit_type_mper_id)
+      project_household = @enrollment_lookup[enrollment_pk]
+      return unless project_household
+
+      unit_pk = unit_pk_for_enrollment_pk(project_household, unit_type_mper_id)
       return unless unit_pk
 
       assignments[enrollment_pk] ||= {
@@ -53,13 +58,24 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       unit_pk
     end
 
+    def assign_next_unit_to_new_enrollment(enrollment:, project_pk:, unit_type_mper_id:)
+      project_household = [project_pk, enrollment.household_id]
+      unit_pk = unit_pk_for_enrollment_pk(project_household, unit_type_mper_id)
+      enrollment.unit_occupancies.build(
+        unit_id: unit_pk,
+        occupancy_period_attributes: {
+          start_date: enrollment.entry_date,
+          end_date: nil,
+          user_id: system_user_pk,
+        },
+      )
+    end
+
     protected
 
+    # 'project_household' is [project_pk, household_id]
     # gives enrollments with same household id the same unit
-    def unit_pk_for_enrollment_pk(enrollment_pk, unit_type_mper_id)
-      project_household = @enrollment_lookup[enrollment_pk]
-      return unless project_household
-
+    def unit_pk_for_enrollment_pk(project_household, unit_type_mper_id)
       project_pk, = project_household
       @household_assignments[project_household] ||= @unit_lookup[[project_pk, unit_type_mper_id]]&.pop
     end
@@ -69,6 +85,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       # include exited enrollments in the scope because they happen to be coming up
       # its fine to assign to exited enrollments, the assignment will have an end date equal to the exit date
       Hmis::Hud::Enrollment.where(data_source: data_source)
+    end
+
+    def system_user_pk
+      @system_user_pk ||= Hmis::User.system_user.id
     end
   end
 end

@@ -108,6 +108,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
         project_id = row_value(posting_row, field: 'PROGRAM_ID')
         referral_id = row_value(posting_row, field: 'REFERRAL_ID')
+        unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
+        project_pk = project_pk_by_id(project_id)
         next if seen.include?(referral_id)
 
         seen.add(referral_id)
@@ -130,7 +132,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           enrollment.build_wip(
             date: entry_date,
             client_id: client_pk,
-            project_id: project_pk_by_id(project_id),
+            project_id: project_pk,
+          )
+
+          assign_next_unit_to_new_enrollment(
+            enrollment: enrollment,
+            project_pk: project_pk,
+            unit_type_mper_id: unit_type_mper_id,
           )
           enrollment
         end.compact

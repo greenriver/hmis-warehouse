@@ -109,7 +109,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       base_posting_rows.each { |r| r['STATUS'] = 'Accepted Pending' }
     end
 
-    it 'creates referral records, enrollment, but not unit occupancy' do
+    it 'creates referral records, enrollment, and unit occupancy' do
       csv_files = {
         'ReferralPostings.csv' => posting_rows,
         'ReferralHouseholdMembers.csv' => household_member_rows,
@@ -121,7 +121,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
         .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(1)
         .and change(Hmis::Wip, :count).by(1)
         .and change(Hmis::Hud::Enrollment, :count).by(1)
-        .and not_change(Hmis::UnitOccupancy, :count)
+        .and change(Hmis::UnitOccupancy, :count).by(1)
     end
   end
 end
