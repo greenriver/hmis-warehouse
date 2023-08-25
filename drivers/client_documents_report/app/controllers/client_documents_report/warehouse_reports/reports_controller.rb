@@ -17,6 +17,9 @@ module ClientDocumentsReport::WarehouseReports
       @excel_export = ::ClientDocumentsReport::DocumentExports::ReportExcelExport.new
       respond_to do |format|
         format.html do
+          @initialized = @filter.required_files.present?
+          return unless @initialized
+
           @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
         end
         format.xlsx do
@@ -27,11 +30,22 @@ module ClientDocumentsReport::WarehouseReports
     end
 
     private def set_report
+      @filter.update(enforce_one_year_range: false)
       @report = report_class.new(@filter)
     end
 
     private def report_class
       ClientDocumentsReport::Report
+    end
+
+    private def set_filter
+      @filter = filter_class.new(
+        user_id: current_user.id,
+        enforce_one_year_range: false,
+        require_service_during_range: false,
+        default_project_type_codes: report_class.default_project_type_codes,
+      )
+      @filter.update(filter_params[:filters]) if filter_params[:filters].present?
     end
 
     def filter_params
