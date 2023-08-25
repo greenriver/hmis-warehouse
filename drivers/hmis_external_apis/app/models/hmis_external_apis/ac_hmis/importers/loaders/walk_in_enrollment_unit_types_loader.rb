@@ -31,7 +31,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         unit_type_mper_id = row_value(row, field: 'UNITTYPEID')
         # Some enrollments provided in this file appear to be exited. If they are exited,
         # unit assignment will receve and end date equal to the exit date.
-        unit_id = assign_next_unit(
+        unit_id = tracker.assign_next_unit(
           enrollment_pk: enrollment_pk,
           unit_type_mper_id: unit_type_mper_id,
         )

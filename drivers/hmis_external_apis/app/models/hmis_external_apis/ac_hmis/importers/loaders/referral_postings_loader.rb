@@ -62,7 +62,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def import_enrollment_records
       # no way to easily bulk upsert here due to dependent WIP records
       without_paper_trail do
-        build_enrollment_rows.each(&:save!)
+        build_enrollment_rows.each do |enrollment, unit_type_mper_id, fallback_start_date|
+          enrollment.save!
+          tracker.add_enrollment(enrollment)
+          tracker.assign_next_unit(
+            enrollment_pk: enrollment.id,
+            unit_type_mper_id: unit_type_mper_id,
+            fallback_start_date: fallback_start_date,
+          )
+        end
       end
     end
 
@@ -114,6 +122,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
         seen.add(referral_id)
         household_id = Hmis::Hud::Base.generate_uuid
+        start_date = parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT'))
         household_member_rows_by_referral(referral_id).map do |member_row|
           entry_date = parse_date(row_value(posting_row, field: 'REFERRAL_DATE'))
           mci_id = row_value(member_row, field: 'MCI_ID')
@@ -134,13 +143,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             client_id: client_pk,
             project_id: project_pk,
           )
-
-          assign_next_unit_to_new_enrollment(
-            enrollment: enrollment,
-            project_pk: project_pk,
-            unit_type_mper_id: unit_type_mper_id,
-          )
-          enrollment
+          [enrollment, unit_type_mper_id, start_date]
         end.compact
       end.compact
     end
@@ -206,7 +209,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # Assign the enrollment to the unit that is occupied by this household, or the next available unit.
         # Note: there is no way for a household to be spread across multiple units.
         unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
-        unit_id = assign_next_unit(
+        unit_id = tracker.assign_next_unit(
           enrollment_pk: enrollment_pk,
           unit_type_mper_id: unit_type_mper_id,
           fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
