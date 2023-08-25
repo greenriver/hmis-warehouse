@@ -14,7 +14,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # defer import of unit_types
     def perform
       pks_by_enrollment_id = Hmis::Hud::Enrollment
-        .open_including_wip
+        .not_in_progress
         .where(data_source: data_source)
         .pluck(:enrollment_id, :id, :project_id)
         .to_h { |enrollment_id, pk, project_id| [enrollment_id, [pk, project_id]] }
@@ -29,6 +29,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         raise 'ProjectID/EnrollmentID mismatch' if project_id != row_value(row, field: 'PROJECTID')
 
         unit_type_mper_id = row_value(row, field: 'UNITTYPEID')
+        # Some enrollments provided in this file appear to be exited. If they are exited,
+        # unit assignment will receve and end date equal to the exit date.
         unit_id = assign_next_unit(
           enrollment_pk: enrollment_pk,
           unit_type_mper_id: unit_type_mper_id,

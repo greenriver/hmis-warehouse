@@ -205,9 +205,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
         # Assign the enrollment to the unit that is occupied by this household, or the next available unit.
         # Note: there is no way for a household to be spread across multiple units.
+        unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
         unit_id = assign_next_unit(
           enrollment_pk: enrollment_pk,
-          unit_type_mper_id: row_value(posting_row, field: 'UNIT_TYPE_ID'),
+          unit_type_mper_id: unit_type_mper_id,
           fallback_start_date: parse_date(row_value(posting_row, field: 'STATUS_UPDATED_AT')),
         )
 
