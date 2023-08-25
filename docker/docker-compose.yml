@@ -195,6 +195,11 @@ services:
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
       PGPASSWORD: postgres
       PGUSER: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     volumes:
       # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
       - dbdata_pg13:/var/lib/postgresql/data
