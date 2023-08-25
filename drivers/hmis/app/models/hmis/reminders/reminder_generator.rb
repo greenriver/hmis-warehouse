@@ -47,15 +47,15 @@ module Hmis
         @mapped.fetch_values(*keys.map(&:to_sym))
       end
 
-      def hoh_entry_date(enrollment)
-        @hoh_anniversary_by_household_id ||= enrollments
+      def earliest_entry_date(enrollment)
+        @earliest_entry_date_by_household_id ||= enrollments
           .group_by(&:household_id)
           .map do |household_id, group|
-            hoh = group.detect { |e| e.RelationshipToHoH == 1 }
-            [household_id, hoh&.entry_date]
+            min_entry = group.map { |e| e.entry_date&.to_date }.compact.min
+            [household_id, min_entry]
           end
           .to_h
-        @hoh_anniversary_by_household_id[enrollment.household_id]
+        @earliest_entry_date_by_household_id[enrollment.household_id]
       end
 
       def last_assessment_date(enrollment:, stages:, wip:)
@@ -78,7 +78,10 @@ module Hmis
       # Show reminder if ANY client in the household is missing an Annual Assessment within the
       # range when the annual is due, and today is on or after the start of that range.
       def annual_assessment_reminder(enrollment)
-        hoh_entered_on = hoh_entry_date(enrollment)
+        # Due date is based on the anniversary of the "first" HoH, which is the earliest
+        # entry date across the whole household. This applies even if that person
+        # has since exited the household.
+        hoh_entered_on = earliest_entry_date(enrollment)
         return unless hoh_entered_on
 
         hoh_entered_on = normalize_yoy_date(hoh_entered_on)

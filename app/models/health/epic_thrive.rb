@@ -150,6 +150,10 @@ module Health
       assessment.decline_to_answer = true if !@any_answer && @any_decline
 
       assessment.save!
+      patient.hrsn_screenings.where(instrument_id: assessment.id).first_or_create(
+        instrument: assessment,
+        created_at: assessment.created_at,
+      )
     end
 
     def yes_no(value)

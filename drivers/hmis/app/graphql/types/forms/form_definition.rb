@@ -107,8 +107,17 @@ module Types
       object.filter_context&.fetch(:project, nil)
     end
 
+    # Context can optionally include an "active date", so that funder-based rules
+    # only consider funders that are active on the specified date.
+    def active_date
+      object.filter_context&.fetch(:active_date, nil) || Date.current
+    end
+
     def project_funders
-      project ? load_ar_association(project, :funders) : []
+      return [] unless project.present?
+
+      funders = load_ar_association(project, :funders)
+      funders.to_a.select { |f| f.active_on?(active_date) }
     end
   end
 end

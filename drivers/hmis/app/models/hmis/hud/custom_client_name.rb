@@ -33,7 +33,7 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   scope :primary_names, -> { where(primary: true) }
 
   scope :active, ->(date = Date.current) do
-    left_outer_joins(:active_range).where(ar_t[:end].eq(nil).or(ar_t[:end].gteq(date)))
+    left_outer_joins(:active_range).where(Hmis::ActiveRange.arel_active_on(date))
   end
 
   # hide previous declaration of :viewable_by, we'll use this one

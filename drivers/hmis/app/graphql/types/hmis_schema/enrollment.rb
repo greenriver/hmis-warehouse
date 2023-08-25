@@ -28,6 +28,7 @@ module Types
     available_filter_options do
       arg :status, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
       arg :open_on_date, GraphQL::Types::ISO8601Date
+      arg :bed_night_on_date, GraphQL::Types::ISO8601Date
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :search_term, String
     end
@@ -148,10 +149,9 @@ module Types
     custom_data_elements_field
 
     field :current_unit, HmisSchema::Unit, null: true
-
     field :reminders, [HmisSchema::Reminder], null: false
-
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+    field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
     def open_enrollment_summary
       return [] unless current_user.can_view_open_enrollment_summary_for?(object)
@@ -165,6 +165,12 @@ module Types
       project = object.project
       enrollments = project.enrollments_including_wip.where(household_id: object.HouseholdID)
       Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
+    end
+
+    def last_bed_night_date
+      return unless project.project_type == 1
+
+      load_ar_association(object, :bed_nights).map(&:date_provided).max
     end
 
     def project

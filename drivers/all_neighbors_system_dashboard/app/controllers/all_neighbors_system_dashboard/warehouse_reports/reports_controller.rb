@@ -49,9 +49,10 @@ module AllNeighborsSystemDashboard::WarehouseReports
       respond_to do |format|
         # format.html {}
         format.xlsx do
-          @sheets = @report.sheets
+          file = @report.result_file
+          @report.attach_rendered_xlsx if file.download.nil? # Generate the XLSX if it is missing
           filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
-          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+          send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
         end
       end
     end
