@@ -119,6 +119,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       end.to change(HmisExternalApis::AcHmis::Referral, :count).by(1)
         .and change(HmisExternalApis::AcHmis::ReferralPosting, :count).by(1)
         .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(1)
+        .and change(Hmis::Wip, :count).by(1)
         .and change(Hmis::Hud::Enrollment, :count).by(1)
         .and not_change(Hmis::UnitOccupancy, :count)
     end

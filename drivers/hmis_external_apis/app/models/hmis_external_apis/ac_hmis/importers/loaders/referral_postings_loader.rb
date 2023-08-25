@@ -9,8 +9,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     include Hmis::Concerns::HmisArelHelper
 
     def perform
-      # warning- this destroys all referrals regardless of data source
-      referral_class.destroy_all if clobber
+      if clobber
+        # warning- this destroys all referrals regardless of data source
+        referral_class.destroy_all
+        # is it okay to just destroy all in-progress enrollments?
+        Hmis::Hud::Enrollment
+          .where(data_source: data_source)
+          .in_progress
+          .find_each(&:really_destroy!)
+      end
 
       import_enrollment_records
       import_referral_records
@@ -331,11 +338,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .where(data_source: data_source)
         .open_including_wip
         .preload(wip: :project)
-        .to_h do |e|
+        .map do |e|
           # avoid n+1 problems when calling enrollment.project
-          project_id = e.project_id || e.wip.project.project_id
+          project_id = e.project_id || e.wip&.project&.project_id
+          next unless project_id
+
           [[e.personal_id, project_id], e.household_id]
-        end
+        end.compact.to_h
     end
 
     def project_pk_by_id(project_id)
