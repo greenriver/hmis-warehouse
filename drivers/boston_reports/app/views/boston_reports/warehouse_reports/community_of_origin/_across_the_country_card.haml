@@ -6,13 +6,13 @@
         #coo-map__across-the-country{style: 'height:350px;'}
         .d-flex.justify-content-center.py-4
           .d-flex.align-items-center.pr-4
-            %div{style: "width:30px;height:30px;border-radius:50%;background-color:#0DCAF0;border:1px solid #0DCAF0;"}
+            .coo-map__atc__triangle
             .pl-2 < 10%
           .d-flex.align-items-center.pr-4
-            %div{style: "width:30px;height:30px;border-radius:50%;background-color:#6F42C1;border:1px solid #0DCAF0;"}
+            .coo-map__atc__square
             .pl-2 10% - 60%
           .d-flex.align-items-center.pr-4
-            %div{style: "width:30px;height:30px;border-radius:50%;background-color:#20C997;border:1px solid #0DCAF0;"}
+            .coo-map__atc__circle
             .pl-2 > 60%
         .text-center 
           %strong Percent of Clients
@@ -27,4 +27,4 @@
               %tr
                 %td= d[:name]
                 %td.text-right
-                  = number_to_percentage(d[:percent]*100, precision: 1, strip_insignificant_zeros: true)
+                  = d[:display_percent]

@@ -19,7 +19,9 @@ module BostonReports::WarehouseReports
         { name: 'Maine', percent: 0.6 },
         { name: 'New Hampshire', percent: 0.25 },
         { name: 'Rhode Island', percent: 0.03 },
-      ]
+      ].map do |d|
+        d.merge({ display_percent: ActiveSupport::NumberHelper.number_to_percentage(d[:percent] * 100, precision: 1, strip_insignificant_zeros: true) })
+      end
       percent_names = percent_of_clients_data.map { |d| d[:name] }
       GrdaWarehouse::Shape::State.where(name: percent_names).map do |state|
         state.geo_json_properties.merge(percent_of_clients_data.select { |d| d[:name] == state.name }.first)
