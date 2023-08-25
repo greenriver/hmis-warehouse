@@ -39,6 +39,8 @@ RSpec.describe 'Datalab 2023', type: :model do
   end
 
   # Only run the tests if the source files are available
+  puts Dir['drivers/datalab_testkit/spec/fixtures/inputs/merged/source/*'].inspect
+  puts Dir['drivers/datalab_testkit/spec/fixtures/results/*'].inspect
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
     include_context 'datalab psh coc 1 apr'
     include_context 'datalab rrh coc 1 apr'
