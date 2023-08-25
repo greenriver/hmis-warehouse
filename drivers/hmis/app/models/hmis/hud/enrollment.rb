@@ -246,7 +246,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def release_unit!(occupancy_end_date = Date.current, user:)
-    active_unit_occupancy&.occupancy_period&.update!(end_date: occupancy_end_date, user: user)
+    occupancy = active_unit_occupancy
+    if occupancy.nil? || occupancy.occupancy_period.nil?
+      msg = "Attempted to release nonexistent unit occupancy for Enrollment##{id}"
+      Sentry.capture_message(msg)
+      return
+    end
+
+    transaction do
+      occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
+      unit_type = occupancy.unit&.unit_type
+      unit_type&.track_availability(project_id: project.id, user_id: user.id)
+    end
   end
 
   def unit_occupied_on(date = Date.current)
