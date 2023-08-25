@@ -81,10 +81,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def enrollment_scope
-      # .open_including_wip
       # include exited enrollments in the scope because they happen to be coming up
       # its fine to assign to exited enrollments, the assignment will have an end date equal to the exit date
-      Hmis::Hud::Enrollment.where(data_source: data_source)
+      # TEMP! exclude CE project enrollments because the project is deleted but the enrollment deletion is still in progress
+      Hmis::Hud::Enrollment.where(data_source: data_source).where.not(project_id: '1234')
     end
 
     def system_user_pk
