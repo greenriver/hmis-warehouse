@@ -77,7 +77,7 @@
         {
           "question": "dob",
           "operator": "LESS_THAN",
-          "compare_question": "over-18-dob"
+          "compare_question": "age-18-dob"
         }
       ]
     }

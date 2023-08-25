@@ -6,12 +6,12 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "over-18-dob",
+      "link_id": "age-18-dob",
       "hidden": true,
       "initial": [
         {
           "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$over18Dob"
+          "value_local_constant": "$age18Dob"
         }
       ]
     },
