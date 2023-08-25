@@ -52,7 +52,8 @@ module HmisExternalApis::AcHmis::Importers
 
       analyze_tables
     rescue StandardError => e
-      @notifier.ping("Failure in #{importer_name}", { exception: e })
+      # this might be swallowing the exception
+      @notifier.ping("Failure in #{importer_name}") # , { exception: e })
       raise e
     end
 
