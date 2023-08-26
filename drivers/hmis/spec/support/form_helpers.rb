@@ -47,7 +47,7 @@ module FormHelpers
         '2.02.D' => 'SITE_BASED_SINGLE_SITE',
         '2.02.7' => 'HIV_PERSONS_WITH_HIV_AIDS',
         '2.02.8' => 'NO',
-        '2.02.5' => nil,
+        '2.02.5' => 'NO',
       },
       hud_values: {
         'projectName' => 'Test Project',

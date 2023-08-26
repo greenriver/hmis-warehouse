@@ -1260,9 +1260,11 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     let(:empty_hud_values) do
       {
         **complete_hud_values.map { |k, v| [k, v.is_a?(Array) ? [] : nil] }.to_h,
+        # required fields
         'projectName' => 'Test Project',
         'operatingStartDate' => '2023-01-13',
         'projectType' => 'SO',
+        'continuumProject' => 'SO',
       }
     end
 

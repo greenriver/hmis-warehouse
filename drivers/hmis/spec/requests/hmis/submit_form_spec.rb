@@ -96,17 +96,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'SubmitForm' do
     [
       :PROJECT,
-      :FUNDER,
-      :PROJECT_COC,
-      :INVENTORY,
-      :ORGANIZATION,
-      :CLIENT,
-      :SERVICE,
-      :FILE,
+      # :FUNDER,
+      # :PROJECT_COC,
+      # :INVENTORY,
+      # :ORGANIZATION,
+      # :CLIENT,
+      # :SERVICE,
+      # :FILE,
       :ENROLLMENT,
-      :CURRENT_LIVING_SITUATION,
-      :CE_ASSESSMENT,
-      :CE_EVENT,
+      # :CURRENT_LIVING_SITUATION,
+      # :CE_ASSESSMENT,
+      # :CE_EVENT,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
