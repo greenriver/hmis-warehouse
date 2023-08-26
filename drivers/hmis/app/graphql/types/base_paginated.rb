@@ -13,9 +13,7 @@ module Types
         graphql_name(dynamic_name)
         field :nodes, [node_class], null: false
       end
-
       Object.const_set(dynamic_name, klass) unless Object.const_defined?(dynamic_name)
-
       klass
     end
 

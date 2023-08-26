@@ -10,5 +10,9 @@ FactoryBot.define do
         name { the_name }
       end
     end
+    # Added to deal with non-unique db errors coming up
+    initialize_with do
+      HmisExternalApis::InternalSystem.find_or_create_by(name: name)
+    end
   end
 end
