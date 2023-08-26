@@ -34,7 +34,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
   end
 
   def self.validate_entry_date(enrollment, household_members: nil, options: {})
-    entry_date = enrollment.entry_date
+    entry_date = enrollment&.entry_date
     return [] unless entry_date.present?
 
     errors = HmisErrors::Errors.new

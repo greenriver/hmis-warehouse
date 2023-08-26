@@ -5,6 +5,7 @@
 ###
 
 class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidator
+  include Hmis::Concerns::HmisArelHelper
   IGNORED = [
     :ExportID,
     :DateCreated,
