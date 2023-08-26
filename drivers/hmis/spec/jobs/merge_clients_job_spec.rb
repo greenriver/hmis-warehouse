@@ -150,6 +150,11 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       d
     end
 
+    # Give client a different primary name
+    let!(:client2_primary_name) do
+      create(:hmis_hud_custom_client_name, client: client2, data_source: data_source)
+    end
+
     let!(:client2_contact_point_dup) do
       d = client1_contact_point.dup
       d.save!
@@ -171,11 +176,10 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     before { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
 
-    it 'dedups names' do
-      # Dedup deletes record based on sort by ID.
-      # Don't assume that IDs are in a particular order from tests, because this is flaking.
+    it 'dedups non-primary names' do
       dup = [client1_name, client2_name_dup].max_by(&:id)
       expect(dup.reload).to be_deleted
+      expect(client2_primary_name.reload).to be_present
     end
 
     it 'dedups addresses' do
