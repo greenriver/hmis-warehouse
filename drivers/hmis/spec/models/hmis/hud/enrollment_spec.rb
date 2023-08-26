@@ -18,6 +18,46 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
   include_context 'hmis base setup'
 
+  it 'detects date conflicts' do
+    [
+      # [ enter, exit, cmp enter, cmp exit, conflict expected ]
+      ['2000-01-01', '2000-01-01', '2000-01-01', nil, true],
+      ['2000-01-01', '2000-01-03', '2000-01-02', nil, true],
+      ['2000-01-02', '2000-01-03', '2000-01-01', nil, true],
+      ['2000-01-01', nil,          '2000-01-02', nil, true],
+      ['2000-01-01', '2000-01-02', '2000-01-02', nil, false],
+      ['2000-01-01', '2000-01-02', '2000-01-03', nil, false],
+
+      ['2001-01-02', nil,          '2001-01-01', '2001-01-03', true],
+      ['2001-01-02', '2001-01-02', '2001-01-01', '2001-01-02', false],
+      ['2001-01-02', nil,          '2001-01-01', '2001-01-02', false],
+      ['2001-01-01', '2001-01-02', '2001-01-02', '2001-01-02', false],
+      ['2001-01-03', '2001-01-04', '2001-01-01', '2001-01-02', false],
+      ['2001-01-01', '2001-01-02', '2001-01-03', '2001-01-04', false],
+    ].each do |ary|
+      expect_conflict = ary.pop
+      entry_date, exit_date, range_start, range_end = ary.map { |s| s ? Date.parse(s) : nil }
+
+      enrollment = create(:hmis_hud_enrollment, EntryDate: entry_date, data_source: ds1)
+      if exit_date
+        exit = create(:hmis_hud_exit,
+                      enrollment: enrollment,
+                      data_source: ds1,
+                      EnrollmentID: enrollment.enrollment_id,
+                      PersonalID: enrollment.personal_id)
+        # override trash date from factory
+        exit.update!(exit_date: exit_date)
+      end
+
+      conflict = enrollment
+        .client.enrollments
+        .with_conflicting_dates(range_start..range_end)
+        .any?
+      # byebug if conflict != expect_conflict
+      expect(conflict).to eq(expect_conflict)
+    end
+  end
+
   describe 'in progress enrollments' do
     let!(:enrollment) { build(:hmis_hud_enrollment) }
     before(:each) do

@@ -49,7 +49,8 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     conflict_scope = enrollment.project
       .enrollments_including_wip
       .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
-      .open_on_date(enrollment.entry_date)
+      .with_conflicting_dates(enrollment.entry_date...)
+
     conflict_scope = conflict_scope.where.not(id: enrollment.id) if enrollment.persisted?
     errors.add(:entry_date, :out_of_range, full_message: already_enrolled_full_message) if conflict_scope.any?
     return errors.errors if errors.any?

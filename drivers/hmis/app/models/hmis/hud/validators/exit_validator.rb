@@ -5,7 +5,6 @@
 ###
 
 class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidator
-  include Hmis::Concerns::HmisArelHelper
   IGNORED = [
     :ExportID,
     :DateCreated,
@@ -48,10 +47,10 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
 
     conflict_scope = enrollment.project
       .enrollments_including_wip
-      .left_outer_joins(:exit)
       .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
-      .where(e_t[:entry_date].lt(exit_date)) # enrollments started before exit date
-      .where(ex_t[:exit_date].gt(entry_date).or(ex_t[:exit_date].eq(nil))) # enrollments with an exit date after the entry date
+      .left_outer_joins(:exit)
+      .with_conflicting_dates(entry_date...exit_date)
+
     conflict_scope = conflict_scope.where.not(id: enrollment.id) if enrollment.persisted?
     errors.add(:exit_date, :out_or_range, full_message: enrollment_conflict_message) if conflict_scope.any?
     return errors.errors if errors.any?
