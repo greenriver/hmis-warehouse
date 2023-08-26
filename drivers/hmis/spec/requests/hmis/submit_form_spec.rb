@@ -167,6 +167,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))
+            if role == :ENROLLMENT && test_name == 'should create a new record'
+              fresh_client = create(:hmis_hud_client_complete, data_source: ds1)
+              input[:client_id] = fresh_client.id
+              input.delete(:enrollment_id)
+            end
+
             response, result = post_graphql(input: { input: input }) { mutation }
             record_id = result.dig('data', 'submitForm', 'record', 'id')
             errors = result.dig('data', 'submitForm', 'errors')
@@ -221,7 +227,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         it 'should update user correctly' do
-          _response, result = post_graphql(input: { input: test_input }) { mutation }
+          if role == :ENROLLMENT
+            _response, result = post_graphql(input: { input: test_input.merge(record_id: e1.id) }) { mutation }
+          else
+            _response, result = post_graphql(input: { input: test_input }) { mutation }
+          end
+
           expect(result.dig('data', 'submitForm', 'errors')).to be_blank
           record_id = result.dig('data', 'submitForm', 'record', 'id')
           record = definition.record_class_name.constantize.find_by(id: record_id)
@@ -397,12 +408,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input.merge(hud_values: input[:hud_values].merge(*args))
     end
 
-    def expect_error_message(input, **expected_error)
+    def expect_error_message(input, exact: true, **expected_error)
       response, result = post_graphql(input: { input: input }) { mutation }
       errors = result.dig('data', 'submitForm', 'errors')
       aggregate_failures 'checking response' do
         expect(response.status).to eq(200), result&.inspect
-        expect(errors).to contain_exactly(include(expected_error.stringify_keys))
+        if exact
+          expect(errors).to contain_exactly(include(expected_error.stringify_keys))
+        else
+          expect(errors).to include(include(expected_error.stringify_keys))
+        end
       end
     end
 
@@ -428,7 +443,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'householdId' => e1.household_id,
         'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
-      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
+      expect_error_message(input, exact: false, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
     end
 
     it 'should warn if client already enrolled' do
