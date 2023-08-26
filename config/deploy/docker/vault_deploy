@@ -1,16 +1,8 @@
 #!/usr/bin/env ruby
 
-require_relative 'lib/command_args'
-require_relative 'lib/deployer'
-
 # Confirm we've pushed/pulled before we ask for a password
-args = CommandArgs.new
-
-args.deployments.each do |deployment|
-  deployer = Deployer.new(**deployment)
-  deployer._set_revision!
-  deployer._check_that_you_pushed_to_remote!
-end
+require_relative 'lib/deployer'
+Deployer.check_that_you_pushed_to_remote!
 
 cmd = "aws-vault exec openpath -- bin/deploy #{ARGV.join(' ')}"
 system(cmd)
