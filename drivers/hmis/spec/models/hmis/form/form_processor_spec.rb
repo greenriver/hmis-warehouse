@@ -1264,7 +1264,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'projectName' => 'Test Project',
         'operatingStartDate' => '2023-01-13',
         'projectType' => 'SO',
-        'continuumProject' => 'SO',
+        'continuumProject' => 'NO',
       }
     end
 
@@ -1281,7 +1281,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(project.operating_end_date.strftime('%Y-%m-%d')).to eq(complete_hud_values['operatingEndDate'])
 
         expect(project.project_type).to eq(1)
-        expect(project.residential_affiliation).to be nil # not 99 because disabled
+        expect(project.residential_affiliation).to be nil # hidden field
         expect(project.housing_type).to eq(1)
         expect(project.target_population).to eq(3)
         expect(project.hopwa_med_assisted_living_fac).to eq(0)
@@ -1299,11 +1299,11 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(project.contact_information).to be nil
         expect(project.operating_end_date).to be nil
         expect(project.project_type).to eq(4)
-        expect(project.residential_affiliation).to eq(99)
+        expect(project.residential_affiliation).to be nil
         expect(project.housing_type).to be nil
         expect(project.target_population).to be nil
         expect(project.hopwa_med_assisted_living_fac).to be nil
-        expect(project.continuum_project).to eq(99)
+        expect(project.continuum_project).to eq(0)
       end
     end
 
