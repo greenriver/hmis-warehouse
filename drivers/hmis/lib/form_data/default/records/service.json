@@ -116,6 +116,12 @@
           "id": "max-service-date-exit-date",
           "type": "MAX",
           "value_local_constant": "$exitDate"
+        },
+        {
+          "_comment": "if there is an end date, start date cannot be after it",
+          "id": "max-fa-start",
+          "type": "MAX",
+          "question": "faEndDate"
         }
       ]
     },
@@ -144,6 +150,50 @@
           "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
           "answer_code": "MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES"
+        }
+      ]
+    },
+    {
+      "type": "CURRENCY",
+      "hidden": true,
+      "link_id": "faStartDate-hidden",
+      "text": "Financial Assistance Start Date",
+      "_comment": "Hide faStartDate which is the same as DateProvided. 'Renamed field 1 “Date of Financial Assistance” to “Start Date of Financial Assistance”'",
+      "mapping": {
+        "field_name": "faStartDate"
+      },
+      "enable_behavior": "ANY",
+      "service_detail_type": "CLIENT",
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        }
+      ]
+    },
+    {
+      "type": "CURRENCY",
+      "required": false,
+      "link_id": "faEndDate",
+      "text": "End Date of Financial Assistance End Date",
+      "mapping": {
+        "field_name": "faEndDate"
+      },
+      "enable_behavior": "ANY",
+      "service_detail_type": "CLIENT",
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        }
+      ],
+      "bounds": [
+        {
+          "id": "min-fa-end",
+          "type": "MIN",
+          "question": "dateProvided"
         }
       ]
     },

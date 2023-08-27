@@ -51,7 +51,7 @@ class Hmis::Hud::Validators::IncomeBenefitValidator < Hmis::Hud::Validators::Bas
         :medicaid,
         :medicare,
         :schip,
-        :va_medical_services,
+        :vha_services,
         :employer_provided,
         :cobra,
         :private_pay,

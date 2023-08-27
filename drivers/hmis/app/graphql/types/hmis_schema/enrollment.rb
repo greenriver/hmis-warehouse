@@ -132,7 +132,7 @@ module Types
     field :threshold_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
     # TODO(2024): C4 with preferred language list
     # field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    # field :preferred_language, Integer, null: true
+    # field :preferred_language, <TODO: ENUM>, null: true
     # field :preferred_language_different, String, null: true
 
     field :in_progress, Boolean, null: false

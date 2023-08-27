@@ -189,7 +189,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'ingests HealthAndDV into the hud tables (no)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'HealthAndDv.domesticViolenceVictim' => 'NO',
+        'HealthAndDv.domesticViolenceSurvivor' => 'NO',
         'HealthAndDv.currentlyFleeing' => HIDDEN,
         'HealthAndDv.whenOccurred' => HIDDEN,
       }
@@ -208,7 +208,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'ingests HealthAndDV into the hud tables (99)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'HealthAndDv.domesticViolenceVictim' => nil,
+        'HealthAndDv.domesticViolenceSurvivor' => nil,
         'HealthAndDv.currentlyFleeing' => HIDDEN,
         'HealthAndDv.whenOccurred' => HIDDEN,
       }
@@ -227,7 +227,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'ingests HealthAndDV into the hud tables (yes, with 99 conditional)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'HealthAndDv.domesticViolenceVictim' => 'YES',
+        'HealthAndDv.domesticViolenceSurvivor' => 'YES',
         'HealthAndDv.currentlyFleeing' => nil,
         'HealthAndDv.whenOccurred' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
       }
@@ -448,7 +448,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it "doesn't touch an existing value, if it isn't listed (but applies the listed fields)" do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'HealthAndDv.domesticViolenceVictim' => 'NO',
+        'HealthAndDv.domesticViolenceSurvivor' => 'NO',
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)

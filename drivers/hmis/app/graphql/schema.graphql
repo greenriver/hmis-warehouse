@@ -519,6 +519,7 @@ HUD Client
 """
 type Client {
   access: ClientAccess!
+  additionalRaceEthnicity: String
   addresses: [ClientAddress!]!
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
@@ -531,6 +532,7 @@ type Client {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   desertStorm: NoYesReasonsForMissingData
+  differentIdentityText: String
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   dischargeStatus: DischargeStatus
   dob: ISO8601Date
@@ -2436,6 +2438,11 @@ enum EnableOperator {
   Whether the value is in the answerCodes array.
   """
   IN
+
+  """
+  Whether the value includes the given item
+  """
+  INCLUDES
   LESS_THAN
   LESS_THAN_EQUAL
   NOT_EQUAL
@@ -3778,7 +3785,7 @@ type HealthAndDv {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   dentalHealthStatus: HealthStatus
-  domesticViolenceVictim: NoYesReasonsForMissingData
+  domesticViolenceSurvivor: NoYesReasonsForMissingData
   dueDate: ISO8601Date
   enrollment: Enrollment!
   generalHealthStatus: HealthStatus
@@ -4073,7 +4080,6 @@ type IncomeBenefit {
   enrollment: Enrollment!
   ga: NoYesMissing
   gaAmount: Float
-  hivaidsAssistance: NoYesReasonsForMissingData
   id: ID!
   incomeFromAnySource: NoYesReasonsForMissingData
   indianHealthServices: NoYesMissing
@@ -4084,7 +4090,6 @@ type IncomeBenefit {
   noAdapReason: NoAssistanceReason
   noCobraReason: ReasonNotInsured
   noEmployerProvidedReason: ReasonNotInsured
-  noHivaidsAssistanceReason: NoAssistanceReason
   noIndianHealthServicesReason: ReasonNotInsured
   noMedicaidReason: ReasonNotInsured
   noMedicareReason: ReasonNotInsured
@@ -4092,7 +4097,7 @@ type IncomeBenefit {
   noRyanWhiteReason: NoAssistanceReason
   noSchipReason: ReasonNotInsured
   noStateHealthInsReason: ReasonNotInsured
-  noVaMedReason: ReasonNotInsured
+  noVhaReason: ReasonNotInsured
   otherBenefitsSource: NoYesMissing
   otherBenefitsSourceIdentify: String
   otherIncomeAmount: Float
@@ -4128,7 +4133,7 @@ type IncomeBenefit {
   vaDisabilityNonServiceAmount: Float
   vaDisabilityService: NoYesMissing
   vaDisabilityServiceAmount: Float
-  vaMedicalServices: NoYesMissing
+  vhaServices: NoYesMissing
   wic: NoYesMissing
   workersComp: NoYesMissing
   workersCompAmount: Float

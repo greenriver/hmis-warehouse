@@ -7,7 +7,9 @@
       "type": "DATE",
       "link_id": "4.12.1",
       "text": "Information Date",
-      "mapping": { "field_name": "informationDate" },
+      "mapping": {
+        "field_name": "informationDate"
+      },
       "required": true
     },
     {
@@ -16,14 +18,19 @@
       "link_id": "4.12.2",
       "text": "Current Living Situation",
       "pick_list_reference": "CURRENT_LIVING_SITUATION",
-      "mapping": { "field_name": "currentLivingSituation" }
+      "mapping": {
+        "field_name": "currentLivingSituation"
+      }
     },
     {
       "type": "CHOICE",
       "link_id": "4.12.A",
-      "text": "Rental Subsidy Type",
+      "text": "Rental subsidy type",
+      "required": true,
       "pick_list_reference": "RentalSubsidyType",
-      "mapping": { "field_name": "CLSSubsidyType" },
+      "mapping": {
+        "field_name": "CLSSubsidyType"
+      },
       "enable_behavior": "ALL",
       "enable_when": [
         {
@@ -52,12 +59,6 @@
           "question": "4.12.2",
           "operator": "EQUAL",
           "answer_group_code": "PERMANENT"
-        },
-        {
-          "question": "4.12.2",
-          "operator": "EQUAL",
-          "answer_group_code": "TEMPORARY_PERMANENT_OTHER",
-          "_comment": "Only present in 2022 spec, remove this when switching to 2024"
         }
       ],
       "item": [
@@ -67,7 +68,9 @@
           "link_id": "4.12.B",
           "text": "Is client going to have to leave their current living situation within 14 days?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "leaveSituation14Days" }
+          "mapping": {
+            "field_name": "leaveSituation14Days"
+          }
         },
         {
           "type": "CHOICE",
@@ -75,7 +78,9 @@
           "link_id": "4.12.C",
           "text": "Has a subsequent residence been identified?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "subsequentResidence" },
+          "mapping": {
+            "field_name": "subsequentResidence"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -91,7 +96,9 @@
           "link_id": "4.12.D",
           "text": "Does individual or family have resources or support networks to obtain other permanent housing?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "resourcesToObtain" },
+          "mapping": {
+            "field_name": "resourcesToObtain"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -107,7 +114,9 @@
           "link_id": "4.12.E",
           "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "leaseOwn60Day" },
+          "mapping": {
+            "field_name": "leaseOwn60Day"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -123,7 +132,9 @@
           "link_id": "4.12.F",
           "text": "Has the client moved 2 or more times in the last 60 days?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "movedTwoOrMore" },
+          "mapping": {
+            "field_name": "movedTwoOrMore"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -139,7 +150,9 @@
       "type": "TEXT",
       "link_id": "4.12.4",
       "text": "Location details",
-      "mapping": { "field_name": "locationDetails" }
+      "mapping": {
+        "field_name": "locationDetails"
+      }
     }
   ]
 }

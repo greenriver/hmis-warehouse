@@ -61,6 +61,8 @@ module Types
     hud_field :military_branch, Types::HmisSchema::Enums::Hud::MilitaryBranch
     hud_field :discharge_status, Types::HmisSchema::Enums::Hud::DischargeStatus
     field :pronouns, [String], null: false
+    field :different_identity_text, String, null: true
+    field :additional_race_ethnicity, String, null: true
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false

@@ -35,7 +35,6 @@ module HmisUtil
     BED_NIGHT_CONFIG = {
       record_type: 200, # BedNight
       project_types: [
-        0, # Emergency Shelter - Entry Exit
         1, # Emergency Shelter - NbN
       ],
     }.freeze
