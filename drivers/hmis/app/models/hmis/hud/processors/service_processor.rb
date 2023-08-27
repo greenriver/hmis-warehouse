@@ -13,7 +13,22 @@ module Hmis::Hud::Processors
       # service is a Hmis::Hud::Service or Hmis::Hud::CustomService
       service = @processor.service_factory
 
-      service.assign_attributes(attribute_name => attribute_value)
+      attributes = case attribute_name
+      when 'fa_start_date'
+        # If FA Start Date is present, the Date Provided should match it
+        if attribute_value.present?
+          { attribute_name => attribute_value, 'date_provided' => attribute_value }
+        else
+          { attribute_name => attribute_value }
+        end
+      when 'sub_type_provided'
+        # Enum value is set up like "144:4:6" (record type : type provided : sub type provided)
+        { attribute_name => attribute_value.split(':').last }
+      else
+        { attribute_name => attribute_value }
+      end
+
+      service.assign_attributes(attributes)
     end
 
     def factory_name
