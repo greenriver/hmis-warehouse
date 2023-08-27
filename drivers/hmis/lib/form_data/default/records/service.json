@@ -199,7 +199,7 @@
         {
           "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
-          "answer_code": "MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES"
+          "answer_code": "MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON"
         }
       ]
     },

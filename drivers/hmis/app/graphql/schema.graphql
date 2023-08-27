@@ -139,7 +139,7 @@ enum AnnualPercentAMI {
   """
   (0) $0 (i.e., not employed, not receiving cash benefits, no other current income)
   """
-  NUM_0_I_E_NOT_EMPLOYED_NOT_RECEIVING_CASH_BENEFITS_NO_OTHER_CURRENT_INCOME
+  NUM_0
 
   """
   (2) 15-30% of AMI for household size
@@ -1344,7 +1344,7 @@ enum CurrentLivingSituationOptions {
   (116) Place not meant for habitation (e.g., a vehicle, an abandoned building,
   bus/train/subway station/airport or anywhere outside)
   """
-  PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
+  PLACE_NOT_MEANT_FOR_HABITATION
 
   """
   (204) Psychiatric hospital or other psychiatric facility
@@ -1389,7 +1389,7 @@ enum CurrentLivingSituationOptions {
   """
   (302) Transitional housing for homeless persons (including homeless youth)
   """
-  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
+  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS
 
   """
   (37) Worker unable to determine
@@ -1424,12 +1424,12 @@ enum CurrentSchoolAttended {
   """
   (2) Currently enrolled and attending regularly (when school or the course is in session)
   """
-  CURRENTLY_ENROLLED_AND_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION
+  CURRENTLY_ENROLLED_AND_ATTENDING_REGULARLY
 
   """
   (1) Currently enrolled but NOT attending regularly (when school or the course is in session)
   """
-  CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION
+  CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY
 
   """
   (99) Data not collected
@@ -2026,7 +2026,7 @@ enum Destination {
   (116) Place not meant for habitation (e.g., a vehicle, an abandoned building,
   bus/train/subway station/airport or anywhere outside)
   """
-  PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
+  PLACE_NOT_MEANT_FOR_HABITATION
 
   """
   (204) Psychiatric hospital or other psychiatric facility
@@ -2061,7 +2061,7 @@ enum Destination {
   """
   (312) Staying or living with family, temporary tenure (e.g. room, apartment or house)
   """
-  STAYING_OR_LIVING_WITH_FAMILY_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
+  STAYING_OR_LIVING_WITH_FAMILY_TEMPORARY_TENURE
 
   """
   (423) Staying or living with friends, permanent tenure
@@ -2071,7 +2071,7 @@ enum Destination {
   """
   (313) Staying or living with friends, temporary tenure (e.g. room apartment or house)
   """
-  STAYING_OR_LIVING_WITH_FRIENDS_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
+  STAYING_OR_LIVING_WITH_FRIENDS_TEMPORARY_TENURE
 
   """
   (205) Substance abuse treatment facility or detox center
@@ -2081,7 +2081,7 @@ enum Destination {
   """
   (302) Transitional housing for homeless persons (including homeless youth)
   """
-  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
+  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS
 
   """
   (37) Worker unable to determine
@@ -2412,7 +2412,7 @@ enum EmploymentType {
   """
   (3) Seasonal / sporadic (including day labor)
   """
-  SEASONAL_SPORADIC_INCLUDING_DAY_LABOR
+  SEASONAL_SPORADIC
 }
 
 enum EnableBehavior {
@@ -3409,7 +3409,7 @@ enum FundingSource {
   """
   (22) HHS: RHY - Basic Center Program (prevention and shelter)
   """
-  HHS_RHY_BASIC_CENTER_PROGRAM_PREVENTION_AND_SHELTER
+  HHS_RHY_BASIC_CENTER_PROGRAM
 
   """
   (26) HHS: RHY - Demonstration Project
@@ -3434,7 +3434,7 @@ enum FundingSource {
   """
   (1) HUD: CoC - Homelessness Prevention (High Performing Communities Only)
   """
-  HUD_COC_HOMELESSNESS_PREVENTION_HIGH_PERFORMING_COMMUNITIES_ONLY
+  HUD_COC_HOMELESSNESS_PREVENTION
 
   """
   (49) HUD: CoC - Joint Component RRH/PSH [Deprecated]
@@ -3489,7 +3489,7 @@ enum FundingSource {
   """
   (8) HUD: ESG - Emergency Shelter (operating and/or essential services)
   """
-  HUD_ESG_EMERGENCY_SHELTER_OPERATING_AND_OR_ESSENTIAL_SERVICES
+  HUD_ESG_EMERGENCY_SHELTER
 
   """
   (9) HUD: ESG - Homelessness Prevention
@@ -3539,7 +3539,7 @@ enum FundingSource {
   """
   (15) HUD: HOPWA - Permanent Housing (facility based or TBRA)
   """
-  HUD_HOPWA_PERMANENT_HOUSING_FACILITY_BASED_OR_TBRA
+  HUD_HOPWA_PERMANENT_HOUSING
 
   """
   (16) HUD: HOPWA - Permanent Housing Placement
@@ -3559,7 +3559,7 @@ enum FundingSource {
   """
   (19) HUD: HOPWA - Transitional Housing (facility based or TBRA)
   """
-  HUD_HOPWA_TRANSITIONAL_HOUSING_FACILITY_BASED_OR_TBRA
+  HUD_HOPWA_TRANSITIONAL_HOUSING
 
   """
   (20) HUD: HUD/VASH
@@ -3574,7 +3574,7 @@ enum FundingSource {
   """
   (52) HUD: PIH (Emergency Housing Voucher)
   """
-  HUD_PIH_EMERGENCY_HOUSING_VOUCHER
+  HUD_PIH
 
   """
   (36) HUD: Public and Indian Housing (PIH) Programs
@@ -5339,7 +5339,7 @@ enum PriorLivingSituation {
   (116) Place not meant for habitation (e.g., a vehicle, an abandoned building,
   bus/train/subway station/airport or anywhere outside)
   """
-  PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
+  PLACE_NOT_MEANT_FOR_HABITATION
 
   """
   (204) Psychiatric hospital or other psychiatric facility
@@ -5384,7 +5384,7 @@ enum PriorLivingSituation {
   """
   (302) Transitional housing for homeless persons (including homeless youth)
   """
-  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
+  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS
 }
 
 """
@@ -6499,7 +6499,7 @@ enum RentalSubsidyType {
   """
   (433) HCV voucher (tenant or project based) (not dedicated)
   """
-  HCV_VOUCHER_TENANT_OR_PROJECT_BASED_NOT_DEDICATED
+  HCV_VOUCHER
 
   """
   Invalid Value
@@ -7102,7 +7102,7 @@ enum ServiceTypeProvided {
   """
   (2) Financial assistance for Moving On (e.g., security deposit, moving expenses)
   """
-  MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES
+  MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON
 
   """
   (4) Housing referral/placement
@@ -7112,7 +7112,7 @@ enum ServiceTypeProvided {
   """
   (3) Non-financial assistance for Moving On (e.g., housing navigation, transition support)
   """
-  MOVING_ON_ASSISTANCE__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_HOUSING_NAVIGATION_TRANSITION_SUPPORT
+  MOVING_ON_ASSISTANCE__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON
 
   """
   (5) Other
@@ -7287,12 +7287,12 @@ enum ServiceTypeProvided {
   """
   (12) Post-natal care for client (person who gave birth)
   """
-  RHY_SERVICE_CONNECTIONS__POST_NATAL_CARE_FOR_CLIENT_PERSON_WHO_GAVE_BIRTH
+  RHY_SERVICE_CONNECTIONS__POST_NATAL_CARE_FOR_CLIENT
 
   """
   (27) Post-natal newborn care (wellness exams; immunizations)
   """
-  RHY_SERVICE_CONNECTIONS__POST_NATAL_NEWBORN_CARE_WELLNESS_EXAMS_IMMUNIZATIONS
+  RHY_SERVICE_CONNECTIONS__POST_NATAL_NEWBORN_CARE
 
   """
   (13) Pre-natal care
@@ -8929,12 +8929,12 @@ enum WhenDVOccurred {
   """
   (3) Six months to one year ago (excluding one year exactly)
   """
-  SIX_MONTHS_TO_ONE_YEAR_AGO_EXCLUDING_ONE_YEAR_EXACTLY
+  SIX_MONTHS_TO_ONE_YEAR_AGO
 
   """
   (2) Three to six months ago (excluding six months exactly)
   """
-  THREE_TO_SIX_MONTHS_AGO_EXCLUDING_SIX_MONTHS_EXACTLY
+  THREE_TO_SIX_MONTHS_AGO
 
   """
   (1) Within the past three months

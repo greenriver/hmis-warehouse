@@ -286,7 +286,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'ingests YouthEducationStatus into the hud tables (1)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'YouthEducationStatus.currentSchoolAttend' => 'CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION',
+        'YouthEducationStatus.currentSchoolAttend' => 'CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY',
         'YouthEducationStatus.mostRecentEdStatus' => HIDDEN,
         'YouthEducationStatus.currentEdStatus' => 'PURSUING_BACHELOR_S_DEGREE',
       }
