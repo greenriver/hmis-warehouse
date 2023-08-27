@@ -48,7 +48,6 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     conflict_scope = enrollment.project
       .enrollments_including_wip
       .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
-      .left_outer_joins(:exit)
       .with_conflicting_dates(entry_date...exit_date)
 
     conflict_scope = conflict_scope.where.not(id: enrollment.id) if enrollment.persisted?

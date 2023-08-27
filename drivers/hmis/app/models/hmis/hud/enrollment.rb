@@ -133,7 +133,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     joins(:bed_nights).where(s_t[:date_provided].eq(date))
   end
 
-  # enrollments that conflict with a new entry date for an open enrollment
+  # @param range [DateRange]
+  # enrollments that conflict with an entry/exit date
   # * entry date on exit date is allowed
   # * multiple entry dates on same day are not allowed
   scope :with_conflicting_dates, ->(range) do
