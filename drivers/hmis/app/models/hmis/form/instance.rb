@@ -15,6 +15,12 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
+  # 'system' instances can't be deleted
+  scope :system, -> { where(system: true) }
+
+  scope :active, -> { where(active: true) }
+  scope :inactive, -> { where(active: false) }
+
   scope :for_projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
   scope :for_organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
   scope :defaults, -> { where(entity_type: nil, entity_id: nil, project_type: nil, funder: nil) }
