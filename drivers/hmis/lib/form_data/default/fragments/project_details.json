@@ -158,7 +158,7 @@
       "type": "CHOICE",
       "required": true,
       "link_id": "2.02.5",
-      "text": "Continuum Project?",
+      "text": "Continuum Project",
       "pick_list_reference": "NoYes",
       "mapping": {
         "field_name": "continuumProject"
