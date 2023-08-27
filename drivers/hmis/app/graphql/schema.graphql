@@ -3746,31 +3746,6 @@ enum GeographyType {
 }
 
 """
-2.08.1
-"""
-enum HMISParticipationType {
-  """
-  (2) Comparable Database Participating
-  """
-  COMPARABLE_DATABASE_PARTICIPATING
-
-  """
-  (1) HMIS Participating
-  """
-  HMIS_PARTICIPATING
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (0) Not Participating
-  """
-  NOT_PARTICIPATING
-}
-
-"""
 2.02.8
 """
 enum HOPWAMedAssistedLivingFac {
@@ -5275,6 +5250,11 @@ enum PickListType {
   """
   PROJECT
   REFERRAL_OUTCOME
+
+  """
+  Residential Projects
+  """
+  RESIDENTIAL_PROJECTS
   STATE
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
@@ -5426,6 +5406,7 @@ type Project {
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
   access: ProjectAccess!
   active: Boolean!
+  affiliatedProjects: [Project!]!
   contactInformation: String
   continuumProject: NoYes
   customDataElements: [CustomDataElement!]!
@@ -5436,7 +5417,6 @@ type Project {
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   hasUnits: Boolean!
-  hmisParticipationStatus: HMISParticipationType
   households(filters: HouseholdFilterOptions, limit: Int, offset: Int, sortOrder: HouseholdSortOption): HouseholdsPaginated!
   housingType: HousingType
   hudId: ID!
@@ -5452,6 +5432,8 @@ type Project {
   projectType: ProjectType
   referralRequests(limit: Int, offset: Int): ReferralRequestsPaginated!
   residentialAffiliation: NoYes
+  residentialAffiliationProjectIds: [ID!]!
+  residentialAffiliationProjects: [Project!]!
   rrhSubType: RRHSubType
   services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   targetPopulation: TargetPopulation

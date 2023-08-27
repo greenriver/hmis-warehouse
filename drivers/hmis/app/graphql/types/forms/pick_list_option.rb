@@ -41,6 +41,15 @@ module Types
           sort_by_option(:organization_and_name).
           preload(:organization).
           map(&:to_pick_list_option)
+      when 'RESIDENTIAL_PROJECTS'
+        Hmis::Hud::Project.viewable_by(user).
+          # TODO: replace with call to HudUtility once project type groupings are moved there.
+          # FIXME: internally our definition of "residential" includes 4 (SO) and 9 (OPH) which
+          # are not valid for Residential project affiliations.
+          where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'

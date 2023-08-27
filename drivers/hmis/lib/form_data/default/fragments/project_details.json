@@ -37,10 +37,9 @@
         },
         {
           "type": "CHOICE",
-          "required": false,
+          "required": true,
           "link_id": "2.02.B",
-          "text": "Residential Affiliation?",
-          "_comment": "TODO: should ask follow up question to identify all affiliated residential projects, and put them in Affiliation.csv",
+          "text": "Affiliated with a residential project?",
           "pick_list_reference": "NoYes",
           "mapping": {
             "field_name": "residentialAffiliation"
@@ -58,6 +57,26 @@
               "answer_code": "RRH_SERVICES_ONLY"
             }
           ]
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "warn_if_empty": true,
+          "repeats": true,
+          "link_id": "2.02.B.affiliations",
+          "text": "Affiliated Projects",
+          "pick_list_reference": "RESIDENTIAL_PROJECTS",
+          "mapping": {
+            "field_name": "residentialAffiliationProjectIds"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "2.02.B",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
         }
       ]
     },
@@ -69,7 +88,51 @@
       "pick_list_reference": "HousingType",
       "mapping": {
         "field_name": "housingType"
-      }
+      },
+      "enable_behavior": "ANY",
+      "_comment": "Dependent to Field 6 responses 0, 1, 2, 3, 8, 9, 10, 13 (If 13, Dependent A = 2)",
+      "enable_when": [
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "ES_NBN"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "ES_ENTRY_EXIT"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "TH"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "PH_PSH"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "PH_PH"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "PH_OPH"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "SH"
+        },
+        {
+          "question": "2.02.A",
+          "operator": "EQUAL",
+          "answer_code": "RRH_SERVICES_ONLY"
+        }
+      ]
     },
     {
       "type": "CHOICE",
@@ -99,26 +162,6 @@
       "pick_list_reference": "NoYes",
       "mapping": {
         "field_name": "continuumProject"
-      }
-    },
-    {
-      "type": "CHOICE",
-      "required": true,
-      "link_id": "2.08",
-      "text": "HMIS Participation Status",
-      "pick_list_reference": "HMISParticipationType",
-      "mapping": {
-        "field_name": "hmisParticipationStatus"
-      }
-    },
-    {
-      "type": "CHOICE",
-      "required": true,
-      "link_id": "2.09",
-      "text": "CE Participation Status",
-      "pick_list_reference": "HMISParticipationType",
-      "mapping": {
-        "field_name": "hmisParticipationStatus"
       }
     }
   ]

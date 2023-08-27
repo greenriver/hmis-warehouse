@@ -57,7 +57,9 @@ module Types
     hud_field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac
     hud_field :continuum_project, HmisSchema::Enums::Hud::NoYes, null: true
     hud_field :residential_affiliation, HmisSchema::Enums::Hud::NoYes, null: true
-    field :hmis_participation_status, HmisSchema::Enums::Hud::HMISParticipationType, null: true
+    field :residential_affiliation_project_ids, [ID], null: false
+    field :residential_affiliation_projects, [HmisSchema::Project], null: false
+    field :affiliated_projects, [HmisSchema::Project], null: false
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
@@ -128,6 +130,18 @@ module Types
 
     def services(**args)
       resolve_services(**args)
+    end
+
+    def residential_affiliation_projects
+      load_ar_association(object, :residential_projects)
+    end
+
+    def residential_affiliation_project_ids
+      residential_affiliation_projects.map(&:id)
+    end
+
+    def affiliated_projects
+      load_ar_association(object, :affiliated_projects)
     end
 
     # Build OpenStructs to resolve as UnitTypeCapacity
