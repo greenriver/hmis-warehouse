@@ -10,18 +10,27 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   include AcHmisLoaderHelpers
 
   let(:ds) { create(:hmis_data_source) }
+  let(:mci_cred) do
+    create(:ac_hmis_mci_credential)
+  end
   let(:mci_id) do
-    mci_cred = create(:ac_hmis_mci_credential)
     create :mci_external_id, source: client, remote_credential: mci_cred
   end
+  let(:other_mci_id) do
+    create :mci_external_id, source: other_client, remote_credential: mci_cred
+  end
   let!(:client) { create(:hmis_hud_client, data_source: ds) }
+  let!(:other_client) { create(:hmis_hud_client, data_source: ds) }
   let(:project) { create(:hmis_hud_project, data_source: ds) }
   let(:referral_id) { Hmis::Hud::Base.generate_uuid }
-  let!(:unit_type_id) do
-    unit_type = create(:hmis_unit_type)
-    external_id = mper.create_external_id(source: unit_type, value: '22')
+  let(:unit_type) {
+    create(:hmis_unit_type)
+  }
+  let!(:unit) {
     create(:hmis_unit, project: project, unit_type: unit_type)
-    external_id.value
+  }
+  let!(:unit_type_id) do
+    mper.create_external_id(source: unit_type, value: '22').value
   end
   let!(:mper) do
     create(:ac_hmis_mper_credential)
@@ -73,6 +82,11 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
         'RELATIONSHIP_TO_HOH_ID' => '1',
       },
       {
+        'REFERRAL_ID' => referral_id,
+        'MCI_ID' => other_mci_id.value,
+        'RELATIONSHIP_TO_HOH_ID' => '4',
+      },
+      {
         'REFERRAL_ID' => bogus_referral_id,
         'MCI_ID' => 'bogus_mci',
         'RELATIONSHIP_TO_HOH_ID' => '1',
@@ -85,11 +99,13 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
     let(:posting_rows) do
       base_posting_rows.each do |row|
         row['STATUS'] = 'Accepted'
-        row['ENROLLMENTID'] = enrollment.enrollment_id
+        row['ENROLLMENTID'] = enrollment.enrollment_id if row['REFERRAL_ID'] == referral_id
       end
     end
 
     it 'creates referral records, unit occupancy, but not enrollment' do
+      create(:hmis_hud_enrollment, personal_id: other_client.personal_id, data_source: ds, project: project)
+
       csv_files = {
         'ReferralPostings.csv' => posting_rows,
         'ReferralHouseholdMembers.csv' => household_member_rows,
@@ -98,9 +114,10 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
         run_cde_import(csv_files: csv_files, clobber: true)
       end.to change(HmisExternalApis::AcHmis::Referral, :count).by(1)
         .and change(HmisExternalApis::AcHmis::ReferralPosting, :count).by(1)
-        .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(1)
+        .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(2)
         .and change(enrollment.unit_occupancies, :count).by(1)
         .and not_change(Hmis::Hud::Enrollment, :count)
+      expect(Hmis::UnitOccupancy.distinct.pluck(:unit_id)).to eq([unit.id])
     end
   end
 
@@ -118,10 +135,12 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
         run_cde_import(csv_files: csv_files, clobber: true)
       end.to change(HmisExternalApis::AcHmis::Referral, :count).by(1)
         .and change(HmisExternalApis::AcHmis::ReferralPosting, :count).by(1)
-        .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(1)
-        .and change(Hmis::Wip, :count).by(1)
-        .and change(Hmis::Hud::Enrollment, :count).by(1)
-        .and change(Hmis::UnitOccupancy, :count).by(1)
+        .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(2)
+        .and change(Hmis::Wip, :count).by(2)
+        .and change(Hmis::Hud::Enrollment, :count).by(2)
+        .and change(Hmis::UnitOccupancy, :count).by(2)
+
+      expect(Hmis::UnitOccupancy.distinct.pluck(:unit_id)).to eq([unit.id])
     end
   end
 end
