@@ -703,7 +703,7 @@ module Concerns::HudLists2022
     # 4.14
     def bed_night_options
       {
-        200 => 'BedNight',
+        200 => 'Bed Night',
       }.freeze
     end
 
