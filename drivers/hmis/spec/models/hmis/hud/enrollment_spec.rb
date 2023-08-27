@@ -21,31 +21,35 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
   it 'detects date conflicts' do
     [
       # [ enter, exit, cmp enter, cmp exit, conflict expected ]
-      ['2000-01-01', '2000-01-01', '2000-01-01', nil, true],
-      ['2000-01-01', '2000-01-03', '2000-01-02', nil, true],
-      ['2000-01-02', '2000-01-03', '2000-01-01', nil, true],
-      ['2000-01-01', nil,          '2000-01-02', nil, true],
-      ['2000-01-01', '2000-01-02', '2000-01-02', nil, false],
-      ['2000-01-01', '2000-01-02', '2000-01-03', nil, false],
+      ['2000-01-01', '2000-01-01', '2000-01-01', nil, true, 'enter on exited entry date'],
+      ['2000-01-01', '2000-01-03', '2000-01-02', nil, true, 'enter between exited entry and exit'],
+      ['2000-01-02', '2000-01-03', '2000-01-01', nil, true, 'enter before existing entry'],
+      ['2000-01-01', nil,          '2000-01-02', nil, true, 'enter after another active'],
+      ['2000-01-01', '2000-01-02', '2000-01-02', nil, false, 'enter on exited exit date'],
+      ['2000-01-01', '2000-01-02', '2000-01-03', nil, false, 'enter after exited exit date'],
 
-      ['2001-01-02', nil,          '2001-01-01', '2001-01-03', true],
-      ['2001-01-02', '2001-01-02', '2001-01-01', '2001-01-02', false],
-      ['2001-01-02', nil,          '2001-01-01', '2001-01-02', false],
-      ['2001-01-01', '2001-01-02', '2001-01-02', '2001-01-02', false],
-      ['2001-01-03', '2001-01-04', '2001-01-01', '2001-01-02', false],
-      ['2001-01-01', '2001-01-02', '2001-01-03', '2001-01-04', false],
-    ].each do |ary|
-      expect_conflict = ary.pop
-      entry_date, exit_date, range_start, range_end = ary.map { |s| s ? Date.parse(s) : nil }
+      ['2000-01-01', '2000-01-01', '2000-01-01', '2001-01-01', true, 'exit and enter on same day'],
+      ['2001-01-02', nil,          '2001-01-01', '2001-01-03', true, 'exit after open entry'],
+      ['2001-01-02', '2001-01-02', '2001-01-01', '2001-01-02', false, 'exit on same-day exited entry date'],
+      ['2001-01-01', '2001-01-02', '2001-01-02', '2001-01-02', false, 'exit on exited entry date'],
+      ['2001-01-02', nil,          '2001-01-01', '2001-01-02', false, 'exit on active entry date'],
+      ['2001-01-03', '2001-01-04', '2001-01-01', '2001-01-02', false, 'exit before entry date'],
+      ['2001-01-01', '2001-01-02', '2001-01-03', '2001-01-04', false, 'exit after exit date'],
+    ].each do |row|
+      message = row.pop
+      expect_conflict = row.pop
+      entry_date, exit_date, range_start, range_end = row.map { |s| s ? Date.parse(s) : nil }
 
       enrollment = create(:hmis_hud_enrollment, EntryDate: entry_date, data_source: ds1)
       if exit_date
-        exit = create(:hmis_hud_exit,
-                      enrollment: enrollment,
-                      data_source: ds1,
-                      EnrollmentID: enrollment.enrollment_id,
-                      PersonalID: enrollment.personal_id)
-        # override trash date from factory
+        exit = create(
+          :hmis_hud_exit,
+          enrollment: enrollment,
+          data_source: ds1,
+          EnrollmentID: enrollment.enrollment_id,
+          PersonalID: enrollment.personal_id,
+        )
+        # override calculated date from factory
         exit.update!(exit_date: exit_date)
       end
 
@@ -53,8 +57,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         .client.enrollments
         .with_conflicting_dates(range_start..range_end)
         .any?
-      # byebug if conflict != expect_conflict
-      expect(conflict).to eq(expect_conflict)
+      expect(conflict).to eq(expect_conflict), "#{message} should #{expect_conflict ? 'conflict' : 'not conflict'}"
     end
   end
 

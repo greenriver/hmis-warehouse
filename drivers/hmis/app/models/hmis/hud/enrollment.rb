@@ -138,11 +138,20 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # * multiple entry dates on same day are not allowed
   scope :with_conflicting_dates, ->(range) do
     entry_date = range.begin
+    raise unless entry_date
+
     exit_date = range.end # maybe nil if endless range
     if exit_date
       left_outer_joins(:exit)
-        .where(e_t[:entry_date].lt(exit_date)) # enrollments started before exit date
-        .where(ex_t[:exit_date].gt(entry_date).or(ex_t[:exit_date].eq(nil))) # enrollments with an exit date after the entry date
+        .where(
+          e_t[:entry_date].eq(entry_date)
+          .or(
+            e_t[:entry_date].lt(exit_date) # enrollments started before exit date
+            .and(
+              ex_t[:exit_date].gt(entry_date).or(ex_t[:exit_date].eq(nil)),
+            ), # enrollments with an exit date after the entry date
+          ),
+        )
     else
       left_outer_joins(:exit)
         .where(
