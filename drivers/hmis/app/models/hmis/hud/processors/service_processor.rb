@@ -23,7 +23,7 @@ module Hmis::Hud::Processors
         end
       when 'sub_type_provided'
         # Enum value is set up like "144:4:6" (record type : type provided : sub type provided)
-        { attribute_name => attribute_value.split(':').last }
+        { attribute_name => attribute_value&.split(':')&.last }
       else
         { attribute_name => attribute_value }
       end
