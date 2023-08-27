@@ -649,4 +649,10 @@ module Types::HmisSchema::Enums::Hud
     graphql_name 'AdHocYesNo'
     hud_enum HudUtility2024.ad_hoc_yes_nos
   end
+
+  class PreferredLanguage < Types::BaseEnum
+    description 'C4.A'
+    graphql_name 'PreferredLanguage'
+    hud_enum HudUtility2024.preferred_languages
+  end
 end
