@@ -7,10 +7,27 @@
       "type": "DATE",
       "link_id": "4.12.1",
       "text": "Information Date",
+      "required": true,
       "mapping": {
         "field_name": "informationDate"
       },
-      "required": true
+      "bounds": [
+        {
+          "id": "min-info-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-info-date",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        },
+        {
+          "id": "max-info-date-exit-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
+        }
+      ]
     },
     {
       "type": "CHOICE",
@@ -23,27 +40,51 @@
       }
     },
     {
-      "type": "CHOICE",
-      "link_id": "4.12.A",
-      "text": "Rental subsidy type",
-      "required": true,
-      "pick_list_reference": "RentalSubsidyType",
-      "mapping": {
-        "field_name": "CLSSubsidyType"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
+      "type": "GROUP",
+      "link_id": "4.12.A.subsidy-group",
+      "item": [
         {
-          "question": "4.12.2",
-          "operator": "EQUAL",
-          "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
+          "type": "CHOICE",
+          "link_id": "4.12.A",
+          "text": "Rental subsidy type",
+          "required": true,
+          "pick_list_reference": "RentalSubsidyType",
+          "mapping": {
+            "field_name": "CLSSubsidyType"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "4.12.2",
+              "operator": "EQUAL",
+              "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
+            }
+          ]
         }
       ]
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "hidden": true,
+      "repeats": false,
+      "link_id": "4.12.3",
+      "text": "Living situation verified by",
+      "_comment": "FIXME: this needs to be implemented. It should be a list of Continuum projects.",
+      "mapping": {
+        "field_name": "verifiedBy"
+      },
+      "rule": {
+        "variable": "projectType",
+        "operator": "EQUAL",
+        "value": 14
+      }
     },
     {
       "type": "GROUP",
       "link_id": "4.12-conditionals",
       "enable_behavior": "ANY",
+      "_comment": "Dependent to Field 2 Responses all non- homeless situation responses (17, 37, and all responses between 200 and 499 inclusive)",
       "enable_when": [
         {
           "question": "4.12.2",
@@ -59,6 +100,16 @@
           "question": "4.12.2",
           "operator": "EQUAL",
           "answer_group_code": "PERMANENT"
+        },
+        {
+          "question": "4.12.2",
+          "operator": "EQUAL",
+          "answer_code": "OTHER"
+        },
+        {
+          "question": "4.12.2",
+          "operator": "EQUAL",
+          "answer_code": "WORKER_UNABLE_TO_DETERMINE"
         }
       ],
       "item": [

@@ -51,7 +51,7 @@
       "link_id": "3.12.conditional",
       "item": [
         {
-          "type": "STRING",
+          "type": "CHOICE",
           "link_id": "3.12.A",
           "required": true,
           "text": "Rental subsidy type",
