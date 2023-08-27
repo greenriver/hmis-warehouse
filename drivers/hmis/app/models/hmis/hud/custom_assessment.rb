@@ -193,4 +193,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   private def form_processor_is_valid
     form_processor.valid?(:form_submission)
   end
+
+  def deletion_would_cause_conflicting_enrollments?
+    return false if in_progress?
+
+    exit? && enrollment.client.enrollments
+      .where(data_source: enrollment.data_source, project_id: enrollment.project_id)
+      .where.not(id: enrollment.id)
+      .where(e_t[:entry_date].gteq(enrollment.entry_date))
+      .any?
+  end
 end

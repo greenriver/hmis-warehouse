@@ -17,6 +17,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: true
 
   # Related records that were created/updated from this assessment
+  #  * NOTE: add association names to related_records below
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
@@ -66,6 +67,24 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     owner.enrollment = enrollment_factory if owner.is_a?(Hmis::Hud::CustomAssessment)
+  end
+
+  def related_records
+    [
+      :health_and_dv,
+      :income_benefit,
+      :enrollment_coc,
+      :physical_disability,
+      :developmental_disability,
+      :chronic_health_condition,
+      :hiv_aids,
+      :mental_health_disorder,
+      :substance_use_disorder,
+      :exit,
+      :youth_education_status,
+      :employment_education,
+      :current_living_situation,
+    ].map { |field| send(field) }.compact
   end
 
   def parse_key(key)
