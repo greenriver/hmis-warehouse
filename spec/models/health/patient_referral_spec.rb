@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Health::PatientReferral, type: :model do
   before(:all) do
     @paper_trail_was = PaperTrail.enabled?
-    PaperTrail.enabled = false
+    PaperTrail.enabled = true
   end
   after(:all) do
     PaperTrail.enabled = @paper_trail_was
