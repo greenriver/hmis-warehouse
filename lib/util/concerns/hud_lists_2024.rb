@@ -1454,6 +1454,10 @@ module Concerns::HudLists2024
         424 => 'Zulu',
         425 => 'Zuni',
         426 => 'Zyphe',
+        21 => 'Different preferred language',
+        8 => "Client doesn't know",
+        9 => 'Client prefers not to answer',
+        99 => 'Data not collected',
       }.freeze
     end
 
