@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
+gem 'activesupport', '>= 6.1.7.5' # CVE-2023-38037
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
 gem 'rack', '>= 2.2.6.3'
 gem 'rexml'
@@ -80,6 +81,7 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 gem 'rack-cors'
+gem 'doorkeeper'
 
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
