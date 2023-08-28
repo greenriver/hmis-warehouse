@@ -23,12 +23,12 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   let!(:other_client) { create(:hmis_hud_client, data_source: ds) }
   let(:project) { create(:hmis_hud_project, data_source: ds) }
   let(:referral_id) { Hmis::Hud::Base.generate_uuid }
-  let(:unit_type) {
+  let(:unit_type) do
     create(:hmis_unit_type)
-  }
-  let!(:unit) {
+  end
+  let!(:unit) do
     create(:hmis_unit, project: project, unit_type: unit_type)
-  }
+  end
   let!(:unit_type_id) do
     mper.create_external_id(source: unit_type, value: '22').value
   end
@@ -39,39 +39,39 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   # we expect the bogus referral to be skipped
   let(:bogus_referral_id) { 'bogus_referral' }
 
-  let(:base_posting_rows) do
-    [
-      {
-        'REFERRAL_ID' => referral_id,
-        'REFERRAL_DATE' => '2022-12-01 14:00:00',
-        'SERVICE_COORDINATOR' => 'test1',
-        'REFERRAL_NOTES' => 'test2',
-        'CHRONIC' => 'No',
-        'SCORE' => '2',
-        'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
-        'POSTING_ID' => Hmis::Hud::Base.generate_uuid,
-        'PROGRAM_ID' => project.project_id,
-        'UNIT_TYPE_ID' => unit_type_id,
-        'ASSIGNED_AT' => '2022-12-01 14:00:00',
-        'STATUS_UPDATED_AT' => '2022-12-01 14:00:00',
-        'RESOURCE_COORDINATOR_NOTES' => '',
-      },
-      {
-        'REFERRAL_ID' => bogus_referral_id,
-        'REFERRAL_DATE' => '2022-12-01 14:00:00',
-        'SERVICE_COORDINATOR' => 'test1',
-        'REFERRAL_NOTES' => 'test2',
-        'CHRONIC' => 'No',
-        'SCORE' => '2',
-        'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
-        'POSTING_ID' => Hmis::Hud::Base.generate_uuid,
-        'PROGRAM_ID' => project.project_id,
-        'UNIT_TYPE_ID' => unit_type_id,
-        'ASSIGNED_AT' => '2022-12-01 14:00:00',
-        'STATUS_UPDATED_AT' => '2022-12-01 14:00:00',
-        'RESOURCE_COORDINATOR_NOTES' => '',
-      },
-    ]
+  let(:base_posting_row) do
+    {
+      'REFERRAL_ID' => referral_id,
+      'REFERRAL_DATE' => '2022-12-01 14:00:00',
+      'SERVICE_COORDINATOR' => 'test1',
+      'REFERRAL_NOTES' => 'test2',
+      'CHRONIC' => 'No',
+      'SCORE' => '2',
+      'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
+      'POSTING_ID' => Hmis::Hud::Base.generate_uuid,
+      'PROGRAM_ID' => project.project_id,
+      'UNIT_TYPE_ID' => unit_type_id,
+      'ASSIGNED_AT' => '2022-12-01 14:00:00',
+      'STATUS_UPDATED_AT' => '2022-12-01 14:00:00',
+      'RESOURCE_COORDINATOR_NOTES' => '',
+    }
+  end
+  let(:bogus_posting_row) do
+    {
+      'REFERRAL_ID' => bogus_referral_id,
+      'REFERRAL_DATE' => '2022-12-01 14:00:00',
+      'SERVICE_COORDINATOR' => 'test1',
+      'REFERRAL_NOTES' => 'test2',
+      'CHRONIC' => 'No',
+      'SCORE' => '2',
+      'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
+      'POSTING_ID' => Hmis::Hud::Base.generate_uuid,
+      'PROGRAM_ID' => project.project_id,
+      'UNIT_TYPE_ID' => unit_type_id,
+      'ASSIGNED_AT' => '2022-12-01 14:00:00',
+      'STATUS_UPDATED_AT' => '2022-12-01 14:00:00',
+      'RESOURCE_COORDINATOR_NOTES' => '',
+    }
   end
 
   let(:household_member_rows) do
@@ -95,17 +95,18 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   end
 
   describe 'for an accepted referral' do
-    let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds, project: project) }
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let(:enrollment) { create(:hmis_hud_enrollment, personal_id: client.personal_id, data_source: ds, project: project, household_id: household_id) }
+    let(:other_enrollment) { create(:hmis_hud_enrollment, personal_id: other_client.personal_id, data_source: ds, project: project, household_id: household_id) }
     let(:posting_rows) do
-      base_posting_rows.each do |row|
-        row['STATUS'] = 'Accepted'
-        row['ENROLLMENTID'] = enrollment.enrollment_id if row['REFERRAL_ID'] == referral_id
-      end
+      [
+        base_posting_row.merge('STATUS' => 'Accepted', 'ENROLLMENTID' => enrollment.enrollment_id),
+        base_posting_row.merge('STATUS' => 'Accepted', 'ENROLLMENTID' => other_enrollment.enrollment_id),
+        bogus_posting_row.merge('STATUS' => 'Accepted'),
+      ]
     end
 
     it 'creates referral records, unit occupancy, but not enrollment' do
-      create(:hmis_hud_enrollment, personal_id: other_client.personal_id, data_source: ds, project: project)
-
       csv_files = {
         'ReferralPostings.csv' => posting_rows,
         'ReferralHouseholdMembers.csv' => household_member_rows,
@@ -116,6 +117,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
         .and change(HmisExternalApis::AcHmis::ReferralPosting, :count).by(1)
         .and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(2)
         .and change(enrollment.unit_occupancies, :count).by(1)
+        .and change(other_enrollment.unit_occupancies, :count).by(1)
         .and not_change(Hmis::Hud::Enrollment, :count)
       expect(Hmis::UnitOccupancy.distinct.pluck(:unit_id)).to eq([unit.id])
     end
@@ -123,7 +125,10 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
 
   describe 'with accepted pending referral' do
     let(:posting_rows) do
-      base_posting_rows.each { |r| r['STATUS'] = 'Accepted Pending' }
+      [
+        base_posting_row.merge('STATUS' => 'Accepted Pending'),
+        bogus_posting_row.merge('STATUS' => 'Accepted Pending'),
+      ]
     end
 
     it 'creates referral records, enrollment, and unit occupancy' do
