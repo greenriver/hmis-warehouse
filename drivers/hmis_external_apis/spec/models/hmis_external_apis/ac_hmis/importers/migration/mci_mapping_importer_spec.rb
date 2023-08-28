@@ -7,6 +7,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporter, type: :model do
+  let!(:mci_cred) { create(:ac_hmis_mci_credential) }
   let(:ds) { create(:hmis_data_source) }
   let(:client) { create(:hmis_hud_client, data_source: ds) }
   let(:io) { File.open('drivers/hmis_external_apis/spec/fixtures/hmis_external_apis/ac_hmis/importers/migration/mci-unique-id-to-mci-id-mappings.xls') }
@@ -21,7 +22,6 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporte
 
   it 'makes an MCI ID' do
     create(:mci_unique_id_external_id, source: client, value: '1234567')
-    create(:ac_hmis_mci_credential)
 
     subject.run!
 
@@ -32,7 +32,6 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporte
 
   it 'creates multiple MCI IDs' do
     create(:mci_unique_id_external_id, source: client, value: '171717')
-    create(:ac_hmis_mci_credential)
 
     subject.run!
 
@@ -43,7 +42,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Migration::MciMappingImporte
 
   it 'does nothing if the MCI ID is already there' do
     create(:mci_unique_id_external_id, source: client, value: '1234567')
-    create(:mci_external_id, source: client, value: '7654321')
+    create(:mci_external_id, source: client, value: '7654321', remote_credential: mci_cred)
 
     subject.run!
 
