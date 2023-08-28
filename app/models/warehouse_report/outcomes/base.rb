@@ -1165,7 +1165,7 @@ class WarehouseReport::Outcomes::Base
     scope = scope.where(race: @race&.to_s) unless @race == :current_scope
     scope = scope.where(ethnicity: @ethnicity&.to_s&.to_i) unless @ethnicity == :current_scope
     if @gender != :current_scope
-      gender_column = HudUtility.gender_id_to_field_name[@gender]
+      gender_column = HudUtility2024.gender_id_to_field_name[@gender]
       scope = scope.where(gender_column.downcase => 1)
     end
     scope = scope.where(veteran_status: @veteran_status&.to_s&.to_i) unless @veteran_status == :current_scope
@@ -1248,7 +1248,7 @@ class WarehouseReport::Outcomes::Base
         when 'Ethnicity'
           row[header] = HudUtility.ethnicity(value)
         when 'Gender'
-          row[header] = HudUtility.gender(value)
+          row[header] = HudUtility2024.gender(value)
         else
           value
         end

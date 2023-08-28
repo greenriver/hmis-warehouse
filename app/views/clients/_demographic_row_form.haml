@@ -14,7 +14,7 @@
     %td
       = f.input :DOB, as: :date_picker, label: false
     %td
-      = f.input :Gender, collection: HudUtility.genders.invert, label: false
+      = f.input :Gender, collection: HudUtility2024.genders.invert, label: false
     %td= client.race_fields.map{ |f| HudUtility.race f }.join ', '
     %td= HudUtility.ethnicity client.Ethnicity
     %td

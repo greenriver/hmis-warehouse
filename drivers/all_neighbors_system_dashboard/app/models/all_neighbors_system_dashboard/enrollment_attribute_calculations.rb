@@ -104,7 +104,7 @@ module AllNeighborsSystemDashboard
       end
 
       def gender(enrollment)
-        HudUtility.gender(enrollment.client.gender_binary)
+        HudUtility2024.gender(enrollment.client.gender_binary)
       end
 
       def primary_race(enrollment)

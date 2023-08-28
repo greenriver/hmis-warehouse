@@ -126,6 +126,7 @@ module TxClientReports
           row[:hh_size],
           row[:income],
           '', # % AMI
+          # TODO: this needs to be updated in the receiving system before we update here
           row[:genders].map { |k| ::HudUtility.gender(k) }.join(', '),
           row[:races].map { |f| ::HudUtility.race(f) }.join(', '),
           ::HudUtility.ethnicity(row[:ethnicity]),

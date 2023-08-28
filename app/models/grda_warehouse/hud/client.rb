@@ -607,11 +607,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_female, -> do
-      where(Female: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
+      where(Woman: 1).where(arel_table[:NonBinary].not_eq(1).or(arel_table[:NonBinary].eq(nil)))
     end
 
     scope :gender_male, -> do
-      where(Male: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
+      where(Man: 1).where(arel_table[:NonBinary].not_eq(1).or(arel_table[:NonBinary].eq(nil)))
     end
 
     scope :gender_mtf, -> do
@@ -623,7 +623,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :no_single_gender, -> do
-      where(NoSingleGender: 1)
+      where(NonBinary: 1)
     end
 
     scope :questioning, -> do
@@ -1858,7 +1858,7 @@ module GrdaWarehouse::Hud
     end
 
     def gender
-      gender_multi.map { |k| ::HudUtility.gender(k) }.join(', ')
+      gender_multi.map { |k| ::HudUtility2024.gender(k) }.join(', ')
     end
 
     # while the entire warehouse is updated to accept and use the new gender setup, this will provide
@@ -1870,12 +1870,14 @@ module GrdaWarehouse::Hud
     # Accepts a hash containing the gender columns and values
     # Returns a single value that roughly represents the client's gender
     def self.gender_binary(genders)
-      return 4 if genders[:NoSingleGender] == 1
+      return 4 if genders[:NonBinary] == 1
       return 5 if genders[:Transgender] == 1
       return 6 if genders[:Questioning] == 1
-      return 4 if genders[:Female] == 1 && genders[:Male] == 1
-      return 0 if genders[:Female] == 1
-      return 1 if genders[:Male] == 1
+      return 4 if [genders[:Woman], genders[:Man], genders[:CulturallySpecific], genders[:DifferentIdentity]].compact.sum > 1
+      return 2 if genders[:CulturallySpecific] == 1
+      return 3 if genders[:DifferentIdentity] == 1
+      return 0 if genders[:Woman] == 1
+      return 1 if genders[:Man] == 1
 
       genders[:GenderNone]
     end
@@ -1883,12 +1885,12 @@ module GrdaWarehouse::Hud
     def self.gender_binary_sql_case
       acase(
         [
-          [arel_table[:NoSingleGender].eq(1), 4],
+          [arel_table[:NonBinary].eq(1), 4],
           [arel_table[:Transgender].eq(1), 5],
           [arel_table[:Questioning].eq(1), 6],
-          [arel_table[:Male].eq(1).and(arel_table[:Female].eq(1)), 4],
-          [arel_table[:Female].eq(1), 0],
-          [arel_table[:Male].eq(1), 1],
+          [(arel_table[:Man] + arel_table[:Woman] + arel_table[:CulturallySpecific] + arel_table[:DifferentIdentity]).gt(1)],
+          [arel_table[:Woman].eq(1), 0],
+          [arel_table[:Man].eq(1), 1],
         ],
         elsewise: arel_table[:GenderNone],
       )
@@ -2026,15 +2028,15 @@ module GrdaWarehouse::Hud
     end
 
     def cas_gender_female
-      self.Female == 1
+      self.Woman == 1
     end
 
     def cas_gender_male
-      self.Male == 1
+      self.Man == 1
     end
 
     def cas_gender_no_single_gender
-      self.NoSingleGender == 1
+      self.NonBinary == 1
     end
 
     def cas_gender_transgender

@@ -28,18 +28,22 @@ module
       {}.tap do |hashes|
         [
           :adult_scope,
-          :adult_female_scope,
-          :adult_male_scope,
+          :adult_woman_scope,
+          :adult_man_scope,
+          :adult_culturally_specific_scope,
+          :adult_different_identity,
           :adult_trans_scope,
           :adult_questioning_scope,
-          :adult_no_single_gender_scope,
+          :adult_non_binary_scope,
           :adult_unknown_gender_scope,
           :child_scope,
-          :child_female_scope,
-          :child_male_scope,
+          :child_woman_scope,
+          :child_man_scope,
+          :child_culturally_specific_scope,
+          :child_different_identity,
           :child_trans_scope,
           :child_questioning_scope,
-          :child_no_single_gender_scope,
+          :child_non_binary_scope,
           :child_unknown_gender_scope,
         ].each do |key|
           title = key.to_s.sub('_scope', '').titleize.pluralize
@@ -59,7 +63,7 @@ module
           }
         end
         age_categories.each do |age_key, age_title|
-          HudUtility.genders.each do |gender, gender_title|
+          HudUtility2024.genders.each do |gender, gender_title|
             hashes["age_#{age_key}_gender_#{gender}"] = {
               title: "Age - #{age_title} #{gender_title}",
               headers: client_headers,
@@ -81,24 +85,44 @@ module
       report_scope.joins(:client).where(adult_clause)
     end
 
-    def adult_female_count
+    def adult_woman_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        mask_small_population(adult_female_scope.select(:client_id).distinct.count)
+        mask_small_population(adult_woman_scope.select(:client_id).distinct.count)
       end
     end
 
-    def adult_female_scope
-      report_scope.joins(:client).where(adult_clause.and(female_clause))
+    def adult_woman_scope
+      report_scope.joins(:client).where(adult_clause.and(woman_clause))
     end
 
-    def adult_male_count
+    def adult_man_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        mask_small_population(adult_male_scope.select(:client_id).distinct.count)
+        mask_small_population(adult_man_scope.select(:client_id).distinct.count)
       end
     end
 
-    def adult_male_scope
-      report_scope.joins(:client).where(adult_clause.and(male_clause))
+    def adult_man_scope
+      report_scope.joins(:client).where(adult_clause.and(man_clause))
+    end
+
+    def adult_culturally_specific_count
+      Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        mask_small_population(adult_culturally_specific_scope.select(:client_id).distinct.count)
+      end
+    end
+
+    def adult_culturally_specific_scope
+      report_scope.joins(:client).where(adult_clause.and(culturally_specific_clause))
+    end
+
+    def adult_different_identity_count
+      Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        mask_small_population(adult_different_identity_scope.select(:client_id).distinct.count)
+      end
+    end
+
+    def adult_different_identity_scope
+      report_scope.joins(:client).where(adult_clause.and(different_identity_clause))
     end
 
     def adult_trans_count
@@ -121,14 +145,14 @@ module
       report_scope.joins(:client).where(adult_clause.and(questioning_clause))
     end
 
-    def adult_no_single_gender_count
+    def adult_non_binary_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        mask_small_population(adult_no_single_gender_scope.select(:client_id).distinct.count)
+        mask_small_population(adult_non_binary_scope.select(:client_id).distinct.count)
       end
     end
 
-    def adult_no_single_gender_scope
-      report_scope.joins(:client).where(adult_clause.and(no_single_gender_clause))
+    def adult_non_binary_scope
+      report_scope.joins(:client).where(adult_clause.and(non_binary_clause))
     end
 
     def adult_unknown_gender_count
@@ -151,24 +175,44 @@ module
       report_scope.joins(:client).where(child_clause)
     end
 
-    def child_female_count
+    def child_woman_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        mask_small_population(child_female_scope.select(:client_id).distinct.count)
+        mask_small_population(child_woman_scope.select(:client_id).distinct.count)
       end
     end
 
-    def child_female_scope
-      report_scope.joins(:client).where(child_clause.and(female_clause))
+    def child_woman_scope
+      report_scope.joins(:client).where(child_clause.and(woman_clause))
     end
 
-    def child_male_count
+    def child_man_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        mask_small_population(child_male_scope.select(:client_id).distinct.count)
+        mask_small_population(child_man_scope.select(:client_id).distinct.count)
       end
     end
 
-    def child_male_scope
-      report_scope.joins(:client).where(child_clause.and(male_clause))
+    def child_man_scope
+      report_scope.joins(:client).where(child_clause.and(man_clause))
+    end
+
+    def child_culturally_specific_count
+      Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        mask_small_population(child_culturally_specific_scope.select(:client_id).distinct.count)
+      end
+    end
+
+    def child_culturally_specific_scope
+      report_scope.joins(:client).where(child_clause.and(culturally_specific_clause))
+    end
+
+    def child_different_identity_count
+      Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        mask_small_population(child_different_identity_scope.select(:client_id).distinct.count)
+      end
+    end
+
+    def child_different_identity_scope
+      report_scope.joins(:client).where(child_clause.and(different_identity_clause))
     end
 
     def child_trans_count
@@ -191,14 +235,14 @@ module
       report_scope.joins(:client).where(child_clause.and(questioning_clause))
     end
 
-    def child_no_single_gender_count
+    def child_non_binary_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        mask_small_population(child_no_single_gender_scope.select(:client_id).distinct.count)
+        mask_small_population(child_non_binary_scope.select(:client_id).distinct.count)
       end
     end
 
-    def child_no_single_gender_scope
-      report_scope.joins(:client).where(child_clause.and(no_single_gender_clause))
+    def child_non_binary_scope
+      report_scope.joins(:client).where(child_clause.and(non_binary_clause))
     end
 
     def child_unknown_gender_count
@@ -217,15 +261,27 @@ module
       end
     end
 
-    def average_adult_male_age
+    def average_adult_man_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: adult_clause.and(male_clause))
+        average_age(clause: adult_clause.and(man_clause))
       end
     end
 
-    def average_adult_female_age
+    def average_adult_woman_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: adult_clause.and(female_clause))
+        average_age(clause: adult_clause.and(woman_clause))
+      end
+    end
+
+    def average_adult_culturally_specific_age
+      Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        average_age(clause: adult_clause.and(culturally_specific_clause))
+      end
+    end
+
+    def average_adult_different_identity_age
+      Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        average_age(clause: adult_clause.and(different_identity_clause))
       end
     end
 
@@ -241,9 +297,9 @@ module
       end
     end
 
-    def average_adult_no_single_gender_age
+    def average_adult_non_binary_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: adult_clause.and(no_single_gender_clause))
+        average_age(clause: adult_clause.and(non_binary_clause))
       end
     end
 
@@ -259,15 +315,27 @@ module
       end
     end
 
-    def average_child_male_age
+    def average_child_man_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: child_clause.and(male_clause))
+        average_age(clause: child_clause.and(man_clause))
       end
     end
 
-    def average_child_female_age
+    def average_child_woman_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: child_clause.and(female_clause))
+        average_age(clause: child_clause.and(woman_clause))
+      end
+    end
+
+    def average_child_culturally_specific_age
+      Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        average_age(clause: child_clause.and(culturally_specific_clause))
+      end
+    end
+
+    def average_child_different_identity_age
+      Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        average_age(clause: child_clause.and(different_identity_clause))
       end
     end
 
@@ -283,9 +351,9 @@ module
       end
     end
 
-    def average_child_no_single_gender_age
+    def average_child_non_binary_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: child_clause.and(no_single_gender_clause))
+        average_age(clause: child_clause.and(non_binary_clause))
       end
     end
 
@@ -323,16 +391,20 @@ module
       rows['*Adults'] += ['Gender', nil, 'Count', 'Average Age', nil]
       rows['_Adults - All'] ||= []
       rows['_Adults - All'] += ['All', nil, adult_count, average_adult_age, nil]
-      rows['_Adults - Female'] ||= []
-      rows['_Adults - Female'] += ['Female', nil, adult_female_count, average_adult_female_age, nil]
-      rows['_Adults - Male'] ||= []
-      rows['_Adults - Male'] += ['Male', nil, adult_male_count, average_adult_male_age, nil]
+      rows['_Adults - Woman'] ||= []
+      rows['_Adults - Woman'] += ['Woman', nil, adult_woman_count, average_adult_woman_age, nil]
+      rows['_Adults - Man'] ||= []
+      rows['_Adults - Man'] += ['Man', nil, adult_man_count, average_adult_man_age, nil]
+      rows['_Adults - Culturally Specific'] ||= []
+      rows['_Adults - Culturally Specific'] += ['Culturally Specific', nil, adult_culturally_specific_count, average_adult_culturally_specific_age, nil]
+      rows['_Adults - Different Identity'] ||= []
+      rows['_Adults - Different Identity'] += ['Different Identity', nil, adult_different_identity_count, average_adult_different_identity_age, nil]
       rows['_Adults - Transgender'] ||= []
       rows['_Adults - Transgender'] += ['Transgender', nil, adult_trans_count, average_adult_trans_age, nil]
       rows['_Adults - Questioning'] ||= []
       rows['_Adults - Questioning'] += ['Questioning', nil, adult_questioning_count, average_adult_questioning_age, nil]
-      rows['_Adults - No Single Gender'] ||= []
-      rows['_Adults - No Single Gender'] += ['No Single Gender', nil, adult_no_single_gender_count, average_adult_no_single_gender_age, nil]
+      rows['_Adults - Non-Binary'] ||= []
+      rows['_Adults - Non-Binary'] += ['Non-Binary', nil, adult_non_binary_count, average_adult_non_binary_age, nil]
       rows['_Adults - Unknown Gender'] ||= []
       rows['_Adults - Unknown Gender'] += ['Unknown Gender', nil, adult_unknown_gender_count, average_adult_unknown_gender_age, nil]
 
@@ -341,16 +413,20 @@ module
       rows['*Children'] += ['Gender', nil, 'Count', 'Average Age', nil]
       rows['_Children - All'] ||= []
       rows['_Children - All'] += ['All', nil, child_count, average_child_age, nil]
-      rows['_Children - Female'] ||= []
-      rows['_Children - Female'] += ['Female', nil, child_female_count, average_child_female_age, nil]
-      rows['_Children - Male'] ||= []
-      rows['_Children - Male'] += ['Male', nil, child_male_count, average_child_male_age, nil]
+      rows['_Children - Woman'] ||= []
+      rows['_Children - Woman'] += ['Woman', nil, child_woman_count, average_child_woman_age, nil]
+      rows['_Children - Man'] ||= []
+      rows['_Children - Man'] += ['Man', nil, child_man_count, average_child_man_age, nil]
+      rows['_Children - Culturally Specific'] ||= []
+      rows['_Children - Culturally Specific'] += ['Culturally Specific', nil, child_culturally_specific_count, average_child_culturally_specific_age, nil]
+      rows['_Children - Different Identity'] ||= []
+      rows['_Children - Different Identity'] += ['Different Identity', nil, child_different_identity_count, average_child_different_identity_age, nil]
       rows['_Children - Transgender'] ||= []
       rows['_Children - Transgender'] += ['Transgender', nil, child_trans_count, average_child_trans_age, nil]
       rows['_Children - Questioning'] ||= []
       rows['_Children - Questioning'] += ['Questioning', nil, child_questioning_count, average_child_questioning_age, nil]
-      rows['_Children - No Single Gender'] ||= []
-      rows['_Children - No Single Gender'] += ['No Single Gender', nil, child_no_single_gender_count, average_child_no_single_gender_age, nil]
+      rows['_Children - Non-Binary'] ||= []
+      rows['_Children - Non-Binary'] += ['Non-Binary', nil, child_non_binary_count, average_child_non_binary_age, nil]
       rows['_Children - Unknown Gender'] ||= []
       rows['_Children - Unknown Gender'] += ['Unknown Gender', nil, child_unknown_gender_count, average_child_unknown_gender_age, nil]
       rows['_Age Breakdowns Break'] ||= []
