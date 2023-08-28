@@ -33,9 +33,7 @@ module HmisCsvTwentyTwentyFour::Exporter
         { hud_field: :HousingType, override_field: :housing_type_override },
         { hud_field: :OperatingStartDate, override_field: :operating_start_date_override },
         { hud_field: :OperatingEndDate, override_field: :operating_end_date_override },
-        { hud_field: :HMISParticipatingProject, override_field: :hmis_participating_project_override, default_value: 99 },
         { hud_field: :TargetPopulation, override_field: :target_population_override },
-        { hud_field: :TrackingMethod, override_field: :tracking_method_override },
       ].each do |settings|
         row = simple_override(row, **settings)
       end
@@ -48,26 +46,18 @@ module HmisCsvTwentyTwentyFour::Exporter
         row.ProjectName = GrdaWarehouse::Hud::Project.confidential_project_name
         row.ProjectCommonName = row.ProjectName
       end
+      row.ProjectName = row.ProjectName[0...200] if row.ProjectName.present?
       row.ProjectCommonName = row.ProjectName if row.ProjectCommonName.blank?
       row.ProjectCommonName = row.ProjectCommonName[0...200] if row.ProjectCommonName.present?
 
       row
     end
 
-    # If we are not ES and overriding to ES, we need a tracking method of 0
     def self.override_project_type(row)
       return row unless GrdaWarehouse::Config.get(:project_type_override)
       return row if row.computed_project_type.blank?
       return row if row.ProjectType == row.computed_project_type
 
-      es_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es]
-      # changing to ES project type, set tracking method to 0
-      row.TrackingMethod = if es_types.include?(row.computed_project_type) && ! es_types.include?(row.ProjectType)
-        0
-        # changing from ES project type, set tracking method to nil
-      elsif es_types.include?(row.ProjectType) && ! es_types.include?(row.computed_project_type)
-        nil
-      end
       row.ProjectType = row.computed_project_type
 
       row
