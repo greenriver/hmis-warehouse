@@ -26,6 +26,7 @@ module HmisCsvTwentyTwentyFour::Exporter
     def self.apply_overrides(row)
       row = replace_blank(row, hud_field: :TypeProvided, default_value: 99)
       row.OtherTypeProvided = row.OtherTypeProvided[0...50] if row.OtherTypeProvided
+      row.MovingOnOtherType = row.MovingOnOtherType[0...50] if row.MovingOnOtherType
 
       row
     end
