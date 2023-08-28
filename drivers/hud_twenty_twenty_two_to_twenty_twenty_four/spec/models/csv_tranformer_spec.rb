@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer, type: :model do
   FIXTURES = 'drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures'.freeze
+  TEST_DIR = 'tmp/test'.freeze
   SOURCE_DIR = 'tmp/test/in'.freeze
   DEST_DIR = 'tmp/test/out'.freeze
 
@@ -19,11 +20,15 @@ RSpec.describe HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer, type: :mode
   end
 
   def create_test_dir
+    FileUtils.mkdir_p(TEST_DIR)
+
     # Clean up any old tests
     FileUtils.rm_rf(SOURCE_DIR)
     FileUtils.rm_rf(DEST_DIR)
+
+    # Create/populate the test directories
     FileUtils.cp_r(File.join(FIXTURES, 'in'), SOURCE_DIR)
-    FileUtils.mkdir(DEST_DIR)
+    FileUtils.mkdir_p(DEST_DIR)
   end
 
   def compare_test_results
