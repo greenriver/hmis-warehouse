@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer, type: :model do
   FIXTURES = 'drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures'.freeze
   TEST_DIR = 'tmp/test'.freeze
-  SOURCE_DIR = 'tmp/test/in'.freeze
+  SOURCE_DIR = 'tmp/test/in/merged/source'.freeze
   DEST_DIR = 'tmp/test/out'.freeze
 
   before(:each) do
@@ -11,6 +11,8 @@ RSpec.describe HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer, type: :mode
   end
 
   it 'generates an output' do
+    skip('Ignoring test, no input files') unless File.exist?(File.join(SOURCE_DIR, 'Export.csv'))
+
     ENV['TZ'] = 'US/Eastern' # Force the TZ to make the calls to Time.current in the transformer work
     travel_to Time.local(2023, 8, 24, 1, 2, 3) do
       HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer.up(SOURCE_DIR, DEST_DIR)
