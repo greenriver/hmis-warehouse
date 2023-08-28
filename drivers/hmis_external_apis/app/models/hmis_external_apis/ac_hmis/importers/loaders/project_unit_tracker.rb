@@ -18,12 +18,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       # {enrollment_pk => hoh_entry_date}
       @enrollment_entry_dates = {}
       enrollment_scope.preload(:project).preload(wip: :project).find_each do |enrollment|
-        project_pk = enrollment.project_id ? enrollment.project.id : enrollment.wip&.project&.id
-        @enrollment_lookup[enrollment.id] = [project_pk, enrollment.household_id] if project_pk
-        @enrollment_entry_dates[enrollment.id] ||= enrollment.entry_date if enrollment.head_of_household?
+        add_enrollment(enrollment)
       end
 
+      # { [project_pk, household_id] => unit_id }
       @household_assignments = {}
+      # { enrollment_pk => { unit_id, enrollment_pk, start_date } }
       @assignments = {}
 
       # we don't check if the unit is occupied, assumption is that all unit occupancies
@@ -35,6 +35,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .to_a
         .group_by { |u| [u.project_id, u.unit_type.mper_id.value] }
         .transform_values { |v| v.map(&:id) }
+    end
+
+    def add_enrollment(enrollment)
+      project_pk = enrollment.project_id ? enrollment.project.id : enrollment.wip&.project&.id
+      @enrollment_lookup[enrollment.id] = [project_pk, enrollment.household_id] if project_pk
+      @enrollment_entry_dates[enrollment.id] ||= enrollment.entry_date if enrollment.head_of_household?
     end
 
     def assign_next_unit(enrollment_pk:, unit_type_mper_id:, fallback_start_date: nil)
@@ -65,7 +71,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def enrollment_scope
-      # .open_including_wip
       # include exited enrollments in the scope because they happen to be coming up
       # its fine to assign to exited enrollments, the assignment will have an end date equal to the exit date
       Hmis::Hud::Enrollment.where(data_source: data_source)
