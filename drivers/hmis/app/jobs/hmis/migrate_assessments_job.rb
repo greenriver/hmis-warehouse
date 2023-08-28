@@ -5,7 +5,7 @@
 ###
 
 module Hmis
-  class MigrateAssessmentsJob < ApplicationJob
+  class MigrateAssessmentsJob < BaseJob
     include Hmis::Concerns::HmisArelHelper
     attr_accessor :data_source_id
 
