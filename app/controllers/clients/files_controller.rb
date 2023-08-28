@@ -33,6 +33,7 @@ module Clients
 
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
       @pre_checked = params[:file_ids].split(',').map(&:to_i) if params[:file_ids].present?
+      @visible_confidential_ids = GrdaWarehouse::ClientFile.confidential_visible_by(current_user).pluck(:id)
     end
 
     def show
@@ -229,6 +230,8 @@ module Clients
           :effective_date,
           :expiration_date,
           :consent_revoked_at,
+          :confidential,
+          :enrollment_id,
           coc_codes: [],
           tag_list: [],
         )

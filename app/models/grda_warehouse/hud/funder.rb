@@ -56,9 +56,9 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :viewable_by, ->(user) do
+    scope :viewable_by, ->(user, permission: :can_view_projects) do
       joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission))
     end
 
     def valid_funder_code?

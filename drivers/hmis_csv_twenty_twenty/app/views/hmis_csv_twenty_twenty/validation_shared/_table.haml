@@ -25,7 +25,7 @@
               - source.hmis_data.each do |key, value|
                 - validation_class = if key.to_s == error.validated_column then 'bg-warning' else '' end
                 %td{class: validation_class}
-                  - if key == 'PersonalID' && can_search_window?
+                  - if key == 'PersonalID' && can_search_own_clients?
                     - search_string = value
                     - search_string = GrdaWarehouse::Hud::Client.uuid(value) if @data_source.munged_personal_id? || value.length == 32
                     = link_to value, clients_path(q: search_string)

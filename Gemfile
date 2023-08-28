@@ -20,7 +20,7 @@ gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'order_as_specified'
 
-gem 'activerecord', '>= 6.1.7.3' # for CVE-2023-22796
+gem 'activerecord', '>= 6.1.7.5' # for CVE-2023-38037
 gem 'active_record_extended'
 gem 'active_median'
 gem 'strong_migrations'

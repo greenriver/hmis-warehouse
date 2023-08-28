@@ -189,7 +189,7 @@ module SystemPathways::WarehouseReports
     end
 
     def filter_params
-      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [@filter.coc_code_options_for_select(user: current_user).first]
+      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [@filter&.coc_code_options_for_select(user: current_user)&.first]
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,
@@ -204,7 +204,7 @@ module SystemPathways::WarehouseReports
     helper_method :filter_params
 
     def sub_category_params
-      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [@filter.coc_code_options_for_select(user: current_user).first]
+      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes || [@filter&.coc_code_options_for_select(user: current_user)&.first]
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,

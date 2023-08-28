@@ -150,6 +150,9 @@ module GrdaWarehouse::Hud
     end
 
     scope :visible_in_window_to, ->(user) do
+      # visible_to also includes logic to include visible_in_window
+      # Now that we are using ACLs the expectation is that you grant access
+      # to the data a user should be able to see
       visible_to(user)
     end
 

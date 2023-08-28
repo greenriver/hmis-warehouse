@@ -643,6 +643,7 @@ Rails.application.routes.draw do
   resources :source_data, only: [:index, :show]
 
   resources :weather, only: [:index]
+  resources :access_controls, only: [:show]
 
   resources :notifications, only: [:show] do
     resources :projects, only: [:show] do
@@ -757,11 +758,22 @@ Rails.application.routes.draw do
       post :confirm
     end
 
+    resources :collections
+
+    # TODO: START_ACL cleanup after ACL migration
+    # resources :roles
     resources :roles do
       resources :users, only: [:create, :destroy], controller: 'roles/users'
     end
     resources :groups do
-      resources :users, only: [:create, :destroy], controller: 'groups/users'
+       resources :users, only: [:create, :destroy], controller: 'groups/users'
+    end
+    # END_ACL
+    resources :access_controls do
+       post :assign, on: :collection
+     end
+    resources :user_groups do
+      resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end
     resources :agencies
     resource :theme, only: [:edit, :update]

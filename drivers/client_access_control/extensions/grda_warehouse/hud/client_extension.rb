@@ -33,11 +33,17 @@ module ClientAccessControl::GrdaWarehouse::Hud
       # hide previous declaration of :searchable_to, we'll use this one
       # can search even if no ROI
       replace_scope :searchable_to, ->(user, client_ids: nil) do
-        limited_scope = if user.can_search_all_clients? || user.system_user?
-          current_scope || all
-        else
+        # TODO: START_ACL cleanup after ACL migration is complete
+        limited_scope = if user.using_acls?
           arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
+        else
+          if user.can_search_all_clients? || user.system_user? # rubocop:disable Style/IfInsideElse
+            current_scope || all
+          else
+            arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
+          end
         end
+        # END_ACL
         limited_scope = limited_scope.where(id: client_ids) if client_ids.present?
         merge(limited_scope)
       end
@@ -65,17 +71,27 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
       # Instance Methods
       def show_demographics_to?(user)
-        return false unless user.can_view_clients?
+        # START_ACLS cleanup after ACL migration is complete
+        if user.using_acls?
+          return false unless user.can_view_clients? || user.can_view_client_enrollments_with_roi?
+        else
+          return false unless user.can_view_clients?
+        end
 
         visible_because_of_permission?(user) || visible_because_of_relationship?(user)
       end
 
       private def visible_because_of_permission?(user)
-        visible_because_of_window?(user) ||
-        visible_because_of_release?(user) ||
-        visible_because_of_data_assignment?(user)
+        # TODO: START_ACL cleanup after ACL migration is complete
+        visible = false
+        visible ||= visible_because_of_window?(user) unless user.using_acls?
+        visible ||= visible_because_of_release?(user)
+        visible ||= visible_because_of_data_assignment?(user)
+        visible
+        # END_ACL
       end
 
+      # TODO: START_ACL remove after ACL migration is complete
       private def visible_because_of_window?(user)
         # defer this to release if required
         return false if GrdaWarehouse::Config.get(:window_access_requires_release)
@@ -83,15 +99,22 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
         (source_clients.distinct.pluck(:data_source_id) & GrdaWarehouse::DataSource.visible_in_window.pluck(:id)).any?
       end
+      # END_ACL
 
       # Check all project ids visible to the user
       private def visible_because_of_data_assignment?(user)
         return false unless user.can_view_clients?
 
-        visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all).pluck(:id)).present?
-        visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+        # TODO: START_ACL cleanup after ACL migration is complete
+        if user.using_acls?
+          (source_enrollments.joins(:project).pluck(p_t[:id]) & user.viewable_project_ids(:can_view_clients).to_a).present?
+        else
+          visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all, permission: :can_view_clients).pluck(:id)).present?
+          visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
 
-        visible_because_of_enrollments || visible_because_of_data_sources
+          visible_because_of_enrollments || visible_because_of_data_sources
+        end
+        # END_ACL
       end
 
       def active_confirmed_consent_in_cocs?(coc_codes)
@@ -106,16 +129,23 @@ module ClientAccessControl::GrdaWarehouse::Hud
       end
 
       private def visible_because_of_release?(user)
-        return false unless user.can_view_clients?
-        # access isn't governed by release if a client can only search their assigned clients
-        return false if user.can_search_own_clients?
-        return unless consent_form_valid?
+        # TODO: START_ACL cleanup after ACL migration is complete
+        if user.using_acls?
+          return false unless user.can_view_client_enrollments_with_roi?
+          return false unless consent_form_valid?
+        else
+          return false unless user.can_view_clients?
+          # access isn't governed by release if a client can only search their assigned clients
+          return false if user.can_search_own_clients?
+          return unless consent_form_valid?
+        end
+        # END_ACL
 
         valid_in_coc(user.coc_codes)
       end
 
       private def visible_because_of_relationship?(user)
-        user_clients.pluck(:user_id).include?(user.id) && consent_form_valid? && user.can_search_window?
+        user_clients.pluck(:user_id).include?(user.id) && consent_form_valid? && user.can_search_own_clients?
       end
 
       def enrollments_for_rollup(user:, en_scope: scope, include_confidential_names: false, only_ongoing: false)
