@@ -682,7 +682,7 @@ module Filters
     end
 
     def all_project_scope
-      GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
+      GrdaWarehouse::Hud::Project.viewable_by(user)
     end
 
     def all_organizations_scope

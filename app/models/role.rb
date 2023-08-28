@@ -5,32 +5,12 @@
 ###
 
 class Role < ApplicationRecord
-  include UserPermissionCache
-
-  # Keep for health roles
-  has_many :user_roles
-  has_many :health_users, through: :user_roles
-  # TODO: START_ACL remove after ACL migration is complete
-  # has_many :user_roles, dependent: :destroy, inverse_of: :role
-  has_many :legacy_users, through: :user_roles # FIXME: need to track down where we use this and update as appropriate
-  # END_ACL
-
-  has_many :access_controls, inverse_of: :role
-  has_many :users, through: :access_controls
-
-  after_save :invalidate_user_permission_cache
+  has_many :user_roles, dependent: :destroy, inverse_of: :role
+  has_many :users, through: :user_roles
   validates :name, presence: true
 
   def role_name
     name.to_s
-  end
-
-  replace_scope :system, -> do
-    not_system.where(system: true)
-  end
-
-  scope :not_system, -> do
-    where(system: false)
   end
 
   scope :health, -> do
@@ -38,50 +18,11 @@ class Role < ApplicationRecord
   end
 
   scope :editable, -> do
-    not_system.where(health_role: false)
-  end
-
-  scope :homeless, -> do
-    editable
+    where(health_role: false)
   end
 
   scope :nurse_care_manager, -> do
     health.where(name: 'Nurse Care Manager')
-  end
-
-  scope :with_all_permissions, ->(*perms) do
-    where(**perms.map { |p| [p, true] }.to_h)
-  end
-
-  scope :with_any_permissions, ->(*perms) do
-    r_t = Role.arel_table
-    where_clause = perms.map { |perm| r_t[perm.to_sym].eq(true) }.reduce(:or)
-    where(where_clause)
-  end
-
-  scope :with_editable_permissions, -> do
-    with_any_permissions(*permissions_for_access(:editable))
-  end
-
-  scope :with_viewable_permissions, -> do
-    with_any_permissions(*permissions_for_access(:viewable))
-  end
-
-  def self.system_user_role
-    where(
-      system: true,
-      name: 'System User Role',
-      can_view_projects: true,
-      can_edit_projects: true,
-      can_manage_cohort_data: true,
-      can_edit_project_groups: true,
-      can_view_all_reports: true,
-      can_view_assigned_reports: true,
-    ).first_or_create
-  end
-
-  def health?
-    health_role
   end
 
   def has_super_admin_permissions? # rubocop:disable Naming/PredicateName
@@ -95,9 +36,10 @@ class Role < ApplicationRecord
     [
       :can_edit_roles,
       :can_edit_users,
+      :can_edit_anything_super_user, # deprecated
       :can_manage_config,
       :can_manage_sessions,
-      :can_edit_collections,
+      :can_edit_access_groups,
     ]
   end
 
@@ -134,25 +76,20 @@ class Role < ApplicationRecord
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
   end
 
-  def self.permissions_for_access(access)
-    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
-  end
-
-  def enabled_permissions
-    self.class.permissions_with_descriptions.select { |k, _| send(k) }
-  end
-
   def self.permissions_with_descriptions
     {
-      can_view_clients: {
-        description: 'Allows access to view client details based on client data source and enrollments via user\'s access.',
-        administrative: false,
+      # Deprecated, this is now covered by visible_to
+      can_edit_anything_super_user: {
+        description: '[DEPRECATED] This permission grants access to all data sources, organizations and projects, regardless of assignment. This should only be given to administrator level users.',
+        administrative: true,
         categories: [
+          'Administration',
           'Client Access',
+          'Data Sources & Inventory',
         ],
       },
-      can_view_client_enrollments_with_roi: {
-        description: 'When combined with an Entity Group through an Access Control, exposes enrollments at projects in the entity group for clients with an active ROI in a CoC assigned to the user.',
+      can_view_clients: {
+        description: 'Allows access to view client details based on client data source and enrollments via user\'s access.',
         administrative: false,
         categories: [
           'Client Access',
@@ -193,6 +130,13 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
+      can_view_census_details: {
+        description: '[DEPRECATED] Ability to "drill down" on census reports and see who was where on a given day',
+        administrative: true,
+        categories: [
+          'Reporting',
+        ],
+      },
       can_edit_users: {
         description: 'Ability to add and edit user accounts for all users',
         administrative: true,
@@ -228,7 +172,7 @@ class Role < ApplicationRecord
           'Administration',
         ],
       },
-      can_edit_collections: {
+      can_edit_access_groups: {
         description: 'Ability to add and remove groups and assign entities to all groups',
         administrative: true,
         categories: [
@@ -333,8 +277,6 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
-      # TODO: START_ACL remove after ACL migration is complete
-      # DEPRECATED, superseded by can_search_own_clients in combination with access controls
       can_search_all_clients: {
         description: 'Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data',
         administrative: false,
@@ -342,7 +284,13 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
-      # DEPRECATED, superseded by can_search_own_clients in combination with access controls
+      can_use_strict_search: {
+        description: 'Access to the client search screen that requires more exact matching. Assigning "Can Search Window" or "Can View Clients" will take precedence and grant additional access',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_search_window: {
         description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access',
         administrative: false,
@@ -350,23 +298,8 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
-      # END_ACL
-      can_use_strict_search: {
-        description: 'Access to the client search screen that requires more exact matching. To search at all, user must also have "Can search own clients".',
-        administrative: false,
-        categories: [
-          'Client Access',
-        ],
-      },
       can_search_own_clients: {
-        description: 'Ability to use some version of the client search. If no additional search permissions are chosen, the user can use the free-form search. You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards',
-        administrative: false,
-        categories: [
-          'Client Access',
-        ],
-      },
-      can_search_clients_with_roi: {
-        description: 'When combined with an Entity Group through an Access Control, exposes clients with an active ROI in a CoC assigned to the user in search results',
+        description: 'Ability to use the client search where results are limited to clients assigned to the user. Must be used in conjunction with "Can View Clients" for access to client dashboards',
         administrative: false,
         categories: [
           'Client Access',
@@ -375,6 +308,14 @@ class Role < ApplicationRecord
       can_view_cached_client_enrollments: {
         description: 'Ability to see all enrollments for a client as cached in the history log of client enrollments.  There is no limit imposed on these cached views.',
         administrative: true,
+        categories: [
+          'Client Access',
+        ],
+      },
+      # Deprecated, this is replaced by can view clients
+      can_view_client_window: {
+        description: '[DEPRECATED] Ability to drill into the client data',
+        administrative: false,
         categories: [
           'Client Access',
         ],
@@ -428,13 +369,6 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
-      can_see_confidential_files: {
-        description: 'Access to client confidential files.  Without this, a user can see that the file exists, which labels were applied to it, and when it was uploaded, but not what is in the file. Access is limited to the associated projects, files must be assigned to a project.',
-        administrative: false,
-        categories: [
-          'Client Extras',
-        ],
-      },
       can_use_separated_consent: {
         description: 'If granted, the user will see a top level consent option for clients.  If unchecked, consent will fall under the files tab',
         administrative: false,
@@ -451,6 +385,14 @@ class Role < ApplicationRecord
       },
       can_manage_sessions: {
         description: 'If granted, the user can see a list of active sessions and can cancel any session',
+        administrative: true,
+        categories: [
+          'Administration',
+        ],
+      },
+      # Deprecated TODO: remove references, then remove permission
+      can_edit_dq_grades: {
+        description: '[DEPRECATED] Management interface for setup of data quality grading scheme',
         administrative: true,
         categories: [
           'Administration',
@@ -704,7 +646,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_all_reports: {
-        description: 'Access to all reports, regardless the user who ran the report',
+        description: 'Access to all reports, regardless of assignment to the user',
         administrative: true,
         categories: [
           'Reporting',
@@ -719,7 +661,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_assigned_reports: {
-        description: 'Required for access to reports assigned to a user and to indicate which projects a user can report on',
+        description: 'Required for access to reports assigned to a user',
         administrative: false,
         categories: [
           'Reporting',
@@ -739,6 +681,15 @@ class Role < ApplicationRecord
           'Reporting',
         ],
       },
+      # Removed 11/24/2019 -- no longer in use
+      # can_view_project_data_quality_client_details: {
+      #   description: 'Drill-down access to client level details on project data quality reports',
+      #   administrative: true,
+      # },
+      # can_manage_organization_users: {
+      #   description: 'Can assign users to organizations',
+      #   administrative: true,
+      # },
       can_view_all_user_client_assignments: {
         description: 'Administrative permission to see all assignments',
         administrative: true,
@@ -752,6 +703,14 @@ class Role < ApplicationRecord
         administrative: true,
         categories: [
           'Administration',
+        ],
+      },
+      # Deprecated, this is now covered by visible_to
+      can_see_clients_in_window_for_assigned_data_sources: {
+        description: '[DEPRECATED] This allows a user to see clients in the window where the data source may not be visible in the window.  It is an override that should only be given to users who work at the assigned data source, organization, project.  It must be used in conjunction with assignments on the user edit page.',
+        administrative: false,
+        categories: [
+          'Client Access',
         ],
       },
       can_upload_deidentified_hud_hmis_files: {
@@ -815,6 +774,14 @@ class Role < ApplicationRecord
         administrative: true,
         categories: [
           'Administration',
+        ],
+      },
+      # Deprecated, this is now covered by visible_to
+      can_view_clients_with_roi_in_own_coc: {
+        description: '[DEPRECATED] This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
+        administrative: false,
+        categories: [
+          'Client Access',
         ],
       },
       can_edit_help: {
@@ -1139,14 +1106,11 @@ class Role < ApplicationRecord
     end
   end
 
-  # Only used in the Healthcare context (once ACL migration is complete) START_ACL
   def add(users)
-    self.health_users = (health_users + Array.wrap(users)).uniq
-    self.legacy_users = (legacy_users + Array.wrap(users)).uniq # START_ACL remove after ACL migration is complete
+    self.users = (self.users + Array.wrap(users)).uniq
   end
 
   def remove(users)
-    self.health_users = (health_users - Array.wrap(users))
-    self.legacy_users = (legacy_users - Array.wrap(users)) # START_ACL remove after ACL migration is complete
+    self.users = (self.users - Array.wrap(users))
   end
 end

@@ -5,7 +5,7 @@
 ###
 
 module HmisExternalApis::AcHmis
-  class WarehouseChangesJob < ApplicationJob
+  class WarehouseChangesJob < BaseJob
     include ArelHelper
 
     attr_accessor :since, :records_needing_processing, :clients, :external_ids, :merge_sets, :actor_id

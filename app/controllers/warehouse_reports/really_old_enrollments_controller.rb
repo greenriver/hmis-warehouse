@@ -14,7 +14,7 @@ module WarehouseReports
       et = GrdaWarehouse::Hud::Enrollment.arel_table
       @clients = client_source.
         joins(source_enrollments: :project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         preload(:source_enrollments).
         where(et[:EntryDate].lt(@date)).
         order(:LastName, :FirstName)

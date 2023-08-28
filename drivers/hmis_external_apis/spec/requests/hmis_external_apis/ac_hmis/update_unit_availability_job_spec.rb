@@ -24,37 +24,35 @@ RSpec.describe HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob do
       p1
     end
 
-    let(:requested_by) do
-      'test1234@example.com'
-    end
-
     it 'has no smoke' do
       unit_type = create(:hmis_unit_type)
       unit_type_mper_id = SecureRandom.uuid
       mper.create_external_id(source: unit_type, value: unit_type_mper_id)
 
-      create(:hmis_unit, project: project, unit_type: unit_type)
-      create(:hmis_unit, project: project, unit_type: unit_type)
-      create(:hmis_unit_occupancy, unit: create(:hmis_unit, project: project, unit_type: unit_type))
+      capacity = 3
+      units = capacity.times.map do
+        create(:hmis_unit, project: project, unit_type: unit_type)
+      end
+
+      enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: project, client: c1, user: u1)
+      enrollment.assign_unit(unit: units.first, start_date: Date.current, user: hmis_user)
+      enrollment.save!
 
       result = HmisExternalApis::OauthClientResult.new(parsed_body: {})
       expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:patch)
         .with(
           'Unit/Capacity',
           {
-            'availableUnits' => 2,
+            'availableUnits' => capacity - 1,
+            'capacity' => capacity,
             'programID' => project.ProjectID,
-            'requestedBy' => requested_by,
+            'requestedBy' => hmis_user.email,
             'unitTypeID' => unit_type_mper_id,
           },
         )
         .and_return(result)
 
-      HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now(
-        project_id: project.id,
-        unit_type_id: unit_type.id,
-        requested_by: requested_by,
-      )
+      HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.perform_now
     end
   end
 end

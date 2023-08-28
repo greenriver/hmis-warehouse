@@ -6,7 +6,7 @@
 
 # An HMIS User indicates that there is a vacancy in a program.
 module HmisExternalApis::AcHmis
-  class FetchClientsWithActiveReferralsJob < ApplicationJob
+  class FetchClientsWithActiveReferralsJob < BaseJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
     def perform

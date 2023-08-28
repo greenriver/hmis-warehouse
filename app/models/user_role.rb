@@ -14,11 +14,7 @@ class UserRole < ApplicationRecord
   acts_as_paranoid
 
   belongs_to :user, inverse_of: :user_roles
-  belongs_to :legacy_user, inverse_of: :user_roles, class_name: 'User', foreign_key: :user_id
-  belongs_to :health_user, inverse_of: :user_roles, class_name: 'User', foreign_key: :user_id
-  belongs_to :legacy_role, inverse_of: :user_roles, class_name: 'Role', foreign_key: :role_id # TODO: START_ACL remove after ACL migration is complete
-  belongs_to :role
-  belongs_to :health_role, inverse_of: :user_roles, class_name: 'Role', foreign_key: :role_id
+  belongs_to :role, inverse_of: :user_roles
 
   delegate :administrative?, to: :role
 

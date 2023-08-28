@@ -21,7 +21,7 @@ module WarehouseReports
             HudUtility2024.residential_project_type_ids,
           ),
         ).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         where(ex_t[:ExitDate].eq s_t[:DateProvided]).
         where(e_t[:EntryDate].eq s_t[:DateProvided]).
         distinct
