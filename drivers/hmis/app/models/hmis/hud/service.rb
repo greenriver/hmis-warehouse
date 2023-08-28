@@ -16,7 +16,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]

@@ -6,7 +6,7 @@
 
 # job =  HmisExternalApis::AcHmis::UploadClientsJob.new
 module HmisExternalApis::AcHmis
-  class UploadClientsJob < ApplicationJob
+  class UploadClientsJob < BaseJob
     include NotifierConfig
 
     attr_accessor :state
