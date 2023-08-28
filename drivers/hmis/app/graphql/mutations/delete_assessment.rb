@@ -14,10 +14,17 @@ module Mutations
       record = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
+      if record.deletion_would_cause_conflicting_enrollments?
+        errors = HmisErrors::Errors.new
+        errors.add :base, :invalid, full_message: 'Cannot reopen this enrollment because it would conflict with newer enrollments for this client'
+        return {
+          assessment_id: record.id,
+          errors: errors,
+        }
+      end
+
       record.with_lock do
         is_wip = record.in_progress?
-
-        raise HmisErrors::ApiError, 'Cannot reopen an enrollment with an entry date before other enrollments' if record.deletion_would_cause_conflicting_enrollments?
 
         result = default_delete_record(
           record: record,
