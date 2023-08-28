@@ -5,17 +5,6 @@
   "link_id": "identification",
   "item": [
     {
-      "type": "DATE",
-      "link_id": "age-18-dob",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$age18Dob"
-        }
-      ]
-    },
-    {
       "type": "BOOLEAN",
       "link_id": "see-dob",
       "hidden": true,
