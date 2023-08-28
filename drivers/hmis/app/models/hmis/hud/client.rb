@@ -161,6 +161,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
 
+  # BEGIN: TEMPORARY - delete when warehouse moves to 2024. These override methods in HudConcerns::Client.
+  def race_fields
+    HudUtility2024.races.keys.select { |f| send(f).to_i == 1 }
+  end
+
+  def gender_fields
+    HudUtility2024.gender_fields.select { |f| send(f).to_i == 1 }
+  end
+
+  def gender_multi
+    @gender_multi ||= [].tap do |gm|
+      HudUtility2024.gender_id_to_field_name.each { |id, field| gm << id if send(field) == 1 }
+      # Per the data standards, only look to GenderNone if we don't have a more specific response
+      gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
+    end
+  end
+  # END: TEMPORARY - delete when warehouse moves to 2024
+
   def enrolled?
     enrollments.any?
   end
