@@ -200,7 +200,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.health_and_dvs.count).to eq(1)
 
       health_and_dv = assessment.enrollment.health_and_dvs.first
-      expect(health_and_dv.domestic_violence_victim).to eq(0)
+      expect(health_and_dv.domestic_violence_survivor).to eq(0)
       expect(health_and_dv.currently_fleeing).to eq(nil)
       expect(health_and_dv.when_occurred).to eq(nil)
     end
@@ -219,7 +219,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.health_and_dvs.count).to eq(1)
 
       health_and_dv = assessment.enrollment.health_and_dvs.first
-      expect(health_and_dv.domestic_violence_victim).to eq(99)
+      expect(health_and_dv.domestic_violence_survivor).to eq(99)
       expect(health_and_dv.currently_fleeing).to eq(nil)
       expect(health_and_dv.when_occurred).to eq(nil)
     end
@@ -238,7 +238,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.health_and_dvs.count).to eq(1)
 
       health_and_dv = assessment.enrollment.health_and_dvs.first
-      expect(health_and_dv.domestic_violence_victim).to eq(1)
+      expect(health_and_dv.domestic_violence_survivor).to eq(1)
       expect(health_and_dv.currently_fleeing).to eq(99)
       expect(health_and_dv.when_occurred).to eq(9)
     end
@@ -465,7 +465,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
       assessment.reload
       expect(assessment.enrollment.health_and_dvs.count).to eq(1)
-      expect(assessment.enrollment.health_and_dvs.first.domestic_violence_victim).to eq(0)
+      expect(assessment.enrollment.health_and_dvs.first.domestic_violence_survivor).to eq(0)
 
       income_benefits = assessment.enrollment.income_benefits.first
       expect(income_benefits.income_from_any_source).to eq(1)
