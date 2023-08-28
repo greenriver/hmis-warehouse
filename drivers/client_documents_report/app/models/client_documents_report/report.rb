@@ -21,6 +21,11 @@ module ClientDocumentsReport
       'client_documents_report/warehouse_reports/reports'
     end
 
+    def self.default_project_type_codes
+      # TODO: moved for 2024 to HudUtility2024
+      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
+    end
+
     # Find the most recent date from the documents of the appropriate type in the chosen group
     # for the client
     def date_for_group(group, client, type:)
