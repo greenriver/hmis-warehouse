@@ -25,7 +25,8 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.apply_overrides(row)
       row = replace_blank(row, hud_field: :GrantID, default_value: 'Unknown')
-      row.OtherFunder = row.OtherFunder[0...50] if row.OtherFunder
+      row.GrantID = row.GrantID[0..100] if row.GrantID
+      row.OtherFunder = row.OtherFunder[0...100] if row.OtherFunder
 
       row
     end
