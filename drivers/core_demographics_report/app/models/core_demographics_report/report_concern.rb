@@ -78,6 +78,16 @@ module
       Rails.cache.delete_matched("#{[name]}*")
     end
 
+    def self.genders
+      g = HudUtility2024.gender_field_name_label.dup
+      g[:GenderNone] = 'Unknown Gender'
+      g
+    end
+
+    def genders
+      @genders ||= self.class.genders
+    end
+
     private def hoh_scope
       report_scope.where(she_t[:head_of_household].eq(true))
     end
@@ -98,27 +108,9 @@ module
       age_calculation.in((0..17).to_a)
     end
 
-    private def male_clause
-      c_t[:Male].eq(1)
-    end
+    private def gender_clause(gender_col)
+      return c_t[gender_col].eq(1) unless gender_col == :GenderNone
 
-    private def female_clause
-      c_t[:Female].eq(1)
-    end
-
-    private def trans_clause
-      c_t[:Transgender].eq(1)
-    end
-
-    private def questioning_clause
-      c_t[:Questioning].eq(1)
-    end
-
-    private def no_single_gender_clause
-      c_t[:NoSingleGender].eq(1)
-    end
-
-    private def unknown_gender_clause
       c_t[:GenderNone].in([8, 9, 99])
     end
 

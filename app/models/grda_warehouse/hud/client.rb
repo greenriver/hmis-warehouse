@@ -1981,7 +1981,7 @@ module GrdaWarehouse::Hud
       @race_black_af_american ||= @limited_scope.where(id: self.class.race_black_af_american.select(:id)).distinct.pluck(:id).to_set
       @race_native_hi_other_pacific ||= @limited_scope.where(id: self.class.race_native_hi_other_pacific.select(:id)).distinct.pluck(:id).to_set
       @race_white ||= @limited_scope.where(id: self.class.race_white.select(:id)).distinct.pluck(:id).to_set
-      @race_hispanic_latineao ||= @limited_scope.where(id: self.class.race_hispanic_latineao.select(:id)).distinct.pluck(:id).to_set
+      @race_hispanic_latinaeo ||= @limited_scope.where(id: self.class.race_hispanic_latinaeo.select(:id)).distinct.pluck(:id).to_set
       @race_mid_east_n_african ||= @limited_scope.where(id: self.class.race_mid_east_n_african.select(:id)).distinct.pluck(:id).to_set
       @multiracial ||= begin
         multi = @race_am_ind_ak_native.to_a +
@@ -2000,7 +2000,7 @@ module GrdaWarehouse::Hud
 
       return 'NativeHIPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
-      return 'HispanicLatinaeo' if @race_hispanic_latineao.include?(destination_id)
+      return 'HispanicLatinaeo' if @race_hispanic_latinaeo.include?(destination_id)
       return 'MidEastNAfrican' if @race_mid_east_n_african.include?(destination_id)
 
       if include_none_reason
@@ -2035,7 +2035,7 @@ module GrdaWarehouse::Hud
       self.White == 1
     end
 
-    def cas_race_hispanic_latineao
+    def cas_race_hispanic_latinaeo
       self.HispanicLatinaeo == 1
     end
 

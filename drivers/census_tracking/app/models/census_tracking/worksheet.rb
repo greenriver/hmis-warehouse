@@ -65,13 +65,13 @@ module CensusTracking
             ->(client) { client.age.present? && client.age < 18 },
             ->(client) { client.gender_multi == [1, 5] },
           ],
-        'Individual Females Under Age 18' =>
+        'Individual Women Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
             ->(client) { client.gender_multi == [0] },
           ],
-        'Individual Trans Females Under Age 18' =>
+        'Individual Trans Women Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
@@ -95,13 +95,13 @@ module CensusTracking
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
             ->(client) { client.gender_multi == [1, 5] },
           ],
-        'Individual Adult Females Age 18-24' =>
+        'Individual Adult Women Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
             ->(client) { client.gender_multi == [0] },
           ],
-        'Individual Adult Trans Females Age 18-24' =>
+        'Individual Adult Trans Women Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
@@ -125,13 +125,13 @@ module CensusTracking
             ->(client) { client.age.present? && client.age >= 25 },
             ->(client) { client.gender_multi == [1, 5] },
           ],
-        'Individual Adult Females Age 25+' =>
+        'Individual Adult Women Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
             ->(client) { client.gender_multi == [0] },
           ],
-        'Individual Adult Trans Females Age 25+' =>
+        'Individual Adult Trans Women Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },

@@ -6,6 +6,7 @@
 
 module CoreDemographicsReport::DemographicSummary
   class Report
+    include CoreDemographicsReport::ReportConcern # NOTE: this must come before age calculations
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
@@ -21,7 +22,6 @@ module CoreDemographicsReport::DemographicSummary
     include CoreDemographicsReport::OutcomeCalculations
     include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
-    include CoreDemographicsReport::ReportConcern
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
