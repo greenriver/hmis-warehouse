@@ -13,7 +13,6 @@ module Types
     end
 
     hud_field :id, ID, null: false
-    hud_field :project, Types::HmisSchema::Project, null: false
     hud_field :coc_code
     hud_field :geocode
     hud_field :address1
@@ -26,5 +25,9 @@ module Types
     hud_field :date_created
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
+
+    def user
+      load_ar_association(object, :user)
+    end
   end
 end

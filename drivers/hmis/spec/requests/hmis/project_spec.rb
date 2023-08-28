@@ -29,6 +29,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code, inventory_start_date: '2022-01-01' }
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
   let!(:f2) { create :hmis_hud_funder, data_source: ds1, project: p1 }
+  let!(:cep1) { create :hmis_hud_ce_participation, data_source: ds1, project: p1 }
+  let!(:hp1) { create :hmis_hud_hmis_participation, data_source: ds1, project: p1 }
   let!(:referral_request) do
     create(:hmis_external_api_ac_hmis_referral_request, project: p1)
   end
@@ -59,6 +61,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodesCount
               nodes {
                 id
+              }
+            }
+            ceParticipations {
+              nodesCount
+              nodes {
+                #{scalar_fields(Types::HmisSchema::CeParticipation)}
+              }
+            }
+            hmisParticipations {
+              nodesCount
+              nodes {
+                #{scalar_fields(Types::HmisSchema::HmisParticipation)}
               }
             }
             organization {
@@ -94,6 +108,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
         expect(record.dig('organization', 'id').to_i).to eq(o1.id)
         expect(record.dig('referralRequests', 'nodes', 0, 'id')).to eq(referral_request.id&.to_s)
+        expect(record.dig('ceParticipations', 'nodes', 0, 'id')).to eq(cep1.id&.to_s)
+        expect(record.dig('hmisParticipations', 'nodes', 0, 'id')).to eq(hp1.id&.to_s)
       end
     end
 

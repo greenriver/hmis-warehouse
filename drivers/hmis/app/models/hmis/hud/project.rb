@@ -28,6 +28,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :residential_projects, through: :affiliations
 
   has_many :hmis_participations, **hmis_relation(:ProjectID, 'HmisParticipation'), inverse_of: :project, dependent: :destroy
+  has_many :ce_participations, **hmis_relation(:ProjectID, 'CeParticipation'), inverse_of: :project, dependent: :destroy
   # Enrollments in this Project, NOT including WIP Enrollments
   has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
   # WIP records representing Enrollments for this Project

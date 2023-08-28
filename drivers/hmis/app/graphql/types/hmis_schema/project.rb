@@ -18,6 +18,8 @@ module Types
     include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasServices
+    include Types::HmisSchema::HasHmisParticipations
+    include Types::HmisSchema::HasCeParticipations
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -46,6 +48,8 @@ module Types
     funders_field
     units_field
     households_field
+    hmis_participations_field
+    ce_participations_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
     hud_field :operating_start_date
     hud_field :operating_end_date

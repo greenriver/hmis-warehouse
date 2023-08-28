@@ -33,16 +33,6 @@ module Types
       @audit_event_type ||= BaseAuditEvent.build(self, **args)
     end
 
-    def self.dynamic_define_class(dynamic_name, &block)
-      if Object.const_defined?(dynamic_name)
-        Object.const_get(dynamic_name)
-      else
-        Object.const_set(dynamic_name, Class.new(self) do
-          yield block
-        end)
-      end
-    end
-
     # Use data loader to load an ActiveRecord association.
     # Note: 'scope' is intended for ordering or to modify the default
     # association in a way that is constant with respect to the resolver,

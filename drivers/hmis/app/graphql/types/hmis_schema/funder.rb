@@ -14,7 +14,6 @@ module Types
     end
 
     hud_field :id, ID, null: false
-    hud_field :project, Types::HmisSchema::Project, null: false
     hud_field :funder, HmisSchema::Enums::Hud::FundingSource
     hud_field :other_funder
     hud_field :grant_id
@@ -26,5 +25,9 @@ module Types
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     custom_data_elements_field
+  end
+
+  def user
+    load_ar_association(object, :user)
   end
 end

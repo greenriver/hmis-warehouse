@@ -14,7 +14,6 @@ module Types
     end
 
     hud_field :id, ID, null: false
-    hud_field :project, Types::HmisSchema::Project, null: false
     hud_field :coc_code
     hud_field :household_type, HmisSchema::Enums::Hud::HouseholdType
     hud_field :availability, HmisSchema::Enums::Hud::Availability
@@ -36,5 +35,9 @@ module Types
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     custom_data_elements_field
+
+    def user
+      load_ar_association(object, :user)
+    end
   end
 end
