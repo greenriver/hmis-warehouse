@@ -5,7 +5,7 @@
 ###
 
 module Hmis
-  class MergeClientsJob < ApplicationJob
+  class MergeClientsJob < BaseJob
     attr_accessor :clients
     attr_accessor :client_to_retain
     attr_accessor :clients_needing_reference_updates

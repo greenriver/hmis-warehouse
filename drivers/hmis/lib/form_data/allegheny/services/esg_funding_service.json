@@ -77,7 +77,6 @@
     {
       "type": "CHOICE",
       "required": false,
-      "warn_if_empty": true,
       "link_id": "payment-type",
       "text": "Payment Type",
       "mapping": {

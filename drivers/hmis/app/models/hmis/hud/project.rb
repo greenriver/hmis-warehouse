@@ -27,7 +27,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   has_many :client_projects
   has_many :clients_including_wip, through: :client_projects, source: :client
