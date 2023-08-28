@@ -8,14 +8,20 @@
       "link_id": "V1.1",
       "required": false,
       "text": "Year Entered Military Service",
-      "mapping": { "field_name": "yearEnteredService" }
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "yearEnteredService"
+      }
     },
     {
       "type": "INTEGER",
       "link_id": "V1.2",
       "required": false,
       "text": "Year Separated from Military Service",
-      "mapping": { "field_name": "yearSeparated" }
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "yearSeparated"
+      }
     },
     {
       "type": "GROUP",
@@ -29,7 +35,10 @@
           "component": "RADIO_BUTTONS",
           "link_id": "V1.3",
           "text": "World War II",
-          "mapping": { "field_name": "worldWarIi" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "worldWarIi"
+          }
         },
         {
           "type": "CHOICE",
@@ -37,7 +46,10 @@
           "component": "RADIO_BUTTONS",
           "link_id": "V1.4",
           "text": "Korean War",
-          "mapping": { "field_name": "koreanWar" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "koreanWar"
+          }
         },
         {
           "type": "CHOICE",
@@ -45,7 +57,10 @@
           "component": "RADIO_BUTTONS",
           "link_id": "V1.5",
           "text": "Vietnam War",
-          "mapping": { "field_name": "vietnamWar" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "vietnamWar"
+          }
         },
         {
           "type": "CHOICE",
@@ -53,7 +68,10 @@
           "component": "RADIO_BUTTONS",
           "link_id": "V1.6",
           "text": "Persian Gulf War (Operation Desert Storm)",
-          "mapping": { "field_name": "desertStorm" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "desertStorm"
+          }
         },
         {
           "type": "CHOICE",
@@ -61,7 +79,10 @@
           "component": "RADIO_BUTTONS",
           "link_id": "V1.7",
           "text": "Afghanistan (Operation Enduring Freedom)",
-          "mapping": { "field_name": "afghanistanOef" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "afghanistanOef"
+          }
         },
         {
           "type": "CHOICE",
@@ -69,7 +90,10 @@
           "component": "RADIO_BUTTONS",
           "link_id": "V1.8",
           "text": "Iraq (Operation Iraqi Freedom)",
-          "mapping": { "field_name": "iraqOif" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "iraqOif"
+          }
         },
         {
           "type": "CHOICE",
@@ -77,7 +101,10 @@
           "component": "RADIO_BUTTONS",
           "link_id": "V1.9",
           "text": "Iraq (Operation New Dawn)",
-          "mapping": { "field_name": "iraqOnd" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "iraqOnd"
+          }
         },
         {
           "type": "CHOICE",
@@ -85,7 +112,10 @@
           "component": "RADIO_BUTTONS",
           "link_id": "V1.10",
           "text": "Other Peace-keeping Operations or Military Interventions (such as Lebanon, Panama, Somalia, Bosnia, Kosovo)",
-          "mapping": { "field_name": "otherTheater" }
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "otherTheater"
+          }
         }
       ]
     },
@@ -95,7 +125,10 @@
       "required": false,
       "text": "Branch of the Military",
       "pick_list_reference": "MilitaryBranch",
-      "mapping": { "field_name": "militaryBranch" }
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "militaryBranch"
+      }
     },
     {
       "type": "CHOICE",
@@ -103,7 +136,10 @@
       "required": false,
       "text": "Discharge Status",
       "pick_list_reference": "DischargeStatus",
-      "mapping": { "field_name": "dischargeStatus" }
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "dischargeStatus"
+      }
     }
   ]
 }

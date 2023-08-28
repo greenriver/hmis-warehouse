@@ -1056,6 +1056,8 @@ module Filters
         label(key, labels) if includes_comparison?
       when :data_source_ids
         label(:data_sources, labels)
+      when :organization_ids
+        label(:organizations, labels)
       when :project_ids
         label(:projects, labels)
       when :project_group_ids
@@ -1446,6 +1448,19 @@ module Filters
               id,
             ]
           end.to_h,
+          # TODO(2024)
+          # 'Temporary' => HudUtility.temporary_housing_situation_options(as: :prior).map do |id, title|
+          #   [
+          #     "#{title} (#{id})",
+          #     id,
+          #   ]
+          # end.to_h,
+          # 'Permanent' => HudUtility.permanent_housing_situation_options(as: :prior).map do |id, title|
+          #   [
+          #     "#{title} (#{id})",
+          #     id,
+          #   ]
+          # end.to_h,
           'Other' => HudUtility.other_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",

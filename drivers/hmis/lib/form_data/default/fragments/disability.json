@@ -3,17 +3,241 @@
   "link_id": "disability",
   "text": "Disability",
   "data_collected_about": "ALL_CLIENTS",
-  "prefill": "DISABILITY_GROUP",
+  "prefill": true,
   "item": [
+    {
+      "link_id": "3.08",
+      "text": "Disabling Condition",
+      "type": "CHOICE",
+      "required": false,
+      "warn_if_empty": true,
+      "mapping": {
+        "record_type": "DISABILITY_GROUP",
+        "field_name": "disablingCondition"
+      },
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "_comment": "This field should always be collected, even if no other disabilities are collected for this project.",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "4.05.2",
+          "operator": "ENABLED",
+          "answer_boolean": false
+        }
+      ]
+    },
     {
       "type": "DISPLAY",
       "link_id": "disability-info",
-      "text": "The following questions help determine if there are additional housing services or benefits available for the client.<br /><br/>Select YES to 'Disabling Condition' IF (1) Expected to be of long, continued and indefinite duration, (2) Substantially impedes an individual's ability to live independently, and (3) Of such a nature that such ability could be improved by more suitable housing conditions."
+      "text": "The following questions help determine if there are additional housing services or benefits available for the client.<br /><br/>Select YES to 'Disabling Condition' IF (1) Expected to be of long, continued and indefinite duration, (2) Substantially impedes an individual's ability to live independently, and (3) Of such a nature that such ability could be improved by more suitable housing conditions.",
+      "readonly_text": "The following questions help determine if there are additional housing services or benefits available for the client.",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "4.05.2",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        }
+      ]
     },
     {
       "type": "GROUP",
       "link_id": "disability-table",
       "component": "DISABILITY_TABLE",
+      "rule": {
+        "operator": "ANY",
+        "parts": [
+          {
+            "operator": "ALL",
+            "_comment": "HUD: CoC – Collection required for all components except SSO Coordinated Entry",
+            "parts": [
+              {
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "HUD: CoC"
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 6
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 14
+              }
+            ]
+          },
+          {
+            "operator": "ALL",
+            "_comment": "HUD: ESG – Collection required for all components except ES-NbN",
+            "parts": [
+              {
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "HUD: ESG"
+              },
+              {
+                "variable": "projectFunders",
+                "operator": "NOT_INCLUDE",
+                "_comment": "Exclude RUSH since it follows the next rule",
+                "value": 53
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "operator": "ALL",
+            "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
+            "parts": [
+              {
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 54
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 0
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 1
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 4
+              }
+            ]
+          },
+          {
+            "_comment": "HUD: HOPWA – Collection required for all components",
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: HOWPA"
+          },
+          {
+            "operator": "ALL",
+            "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
+            "parts": [
+              {
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 54
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 6
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 14
+              }
+            ]
+          },
+          {
+            "operator": "ALL",
+            "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
+            "parts": [
+              {
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 55
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 6
+              },
+              {
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 14
+              }
+            ]
+          },
+          {
+            "_comment": "HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management",
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 20
+          },
+          {
+            "operator": "ALL",
+            "_comment": "HUD: PFS – Collection required for all permanent housing projects",
+            "parts": [
+              {
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 35
+              },
+              {
+                "operator": "ANY",
+                "parts": [
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 3
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 9
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 10
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 13
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_comment": "HHS: PATH – Collection required for all components",
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HHS: PATH"
+          },
+          {
+            "_comment": "HHS: RHY – Collection required for all components",
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HHS: RHY"
+          },
+          {
+            "_comment": "VA: GPD – Collection required for all components",
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: Grant Per Diem"
+          },
+          {
+            "_comment": "VA: Community Contract Safe Haven",
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 30
+          },
+          {
+            "_comment": "VA: CRS Contract Residential Services",
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 27
+          }
+        ]
+      },
       "item": [
         {
           "type": "GROUP",
@@ -24,7 +248,10 @@
               "type": "CHOICE",
               "link_id": "4.05.2",
               "text": "Physical Disability",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "physicalDisability" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "physicalDisability"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData",
               "required": false,
               "warn_if_empty": true
@@ -34,7 +261,10 @@
               "link_id": "4.05.A",
               "text": "Is this a disabling condition?",
               "brief_text": "Physical Disability Indefinite and Impairs",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "physicalDisabilityIndefiniteAndImpairs" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "physicalDisabilityIndefiniteAndImpairs"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData",
               "required": false,
               "warn_if_empty": true,
@@ -61,7 +291,10 @@
               "required": false,
               "warn_if_empty": true,
               "text": "Developmental Disability",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "developmentalDisability" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "developmentalDisability"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData"
             },
             {
@@ -82,7 +315,10 @@
               "required": false,
               "warn_if_empty": true,
               "text": "Chronic Health Condition",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "chronicHealthCondition" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "chronicHealthCondition"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData"
             },
             {
@@ -92,7 +328,10 @@
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
               "brief_text": "Chronic Indefinite and Impairs",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "chronicHealthConditionIndefiniteAndImpairs" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "chronicHealthConditionIndefiniteAndImpairs"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData",
               "disabled_display": "PROTECTED",
               "enable_behavior": "ALL",
@@ -110,6 +349,188 @@
           "type": "GROUP",
           "link_id": "disability-table-r4",
           "text": "HIV/AIDS",
+          "rule": {
+            "operator": "ANY",
+            "parts": [
+              {
+                "operator": "ALL",
+                "_comment": "HUD: CoC – Collection required for all components except SSO Coordinated Entry",
+                "parts": [
+                  {
+                    "variable": "projectFunderComponents",
+                    "operator": "INCLUDE",
+                    "value": "HUD: CoC"
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 6
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 14
+                  }
+                ]
+              },
+              {
+                "operator": "ALL",
+                "_comment": "HUD: ESG – Collection required for all components except ES-NbN",
+                "parts": [
+                  {
+                    "variable": "projectFunderComponents",
+                    "operator": "INCLUDE",
+                    "value": "HUD: ESG"
+                  },
+                  {
+                    "variable": "projectFunders",
+                    "operator": "NOT_INCLUDE",
+                    "_comment": "Exclude RUSH since it follows the next rule",
+                    "value": 53
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "operator": "ALL",
+                "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
+                "parts": [
+                  {
+                    "variable": "projectFunders",
+                    "operator": "INCLUDE",
+                    "value": 54
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 0
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 1
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 4
+                  }
+                ]
+              },
+              {
+                "_comment": "HUD: HOPWA – Collection required for all components",
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "HUD: HOWPA"
+              },
+              {
+                "operator": "ALL",
+                "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
+                "parts": [
+                  {
+                    "variable": "projectFunders",
+                    "operator": "INCLUDE",
+                    "value": 54
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 6
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 14
+                  }
+                ]
+              },
+              {
+                "operator": "ALL",
+                "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
+                "parts": [
+                  {
+                    "variable": "projectFunders",
+                    "operator": "INCLUDE",
+                    "value": 55
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 6
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "NOT_EQUAL",
+                    "value": 14
+                  }
+                ]
+              },
+              {
+                "_comment": "HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management",
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 20
+              },
+              {
+                "operator": "ALL",
+                "_comment": "HUD: PFS – Collection required for all permanent housing projects",
+                "parts": [
+                  {
+                    "variable": "projectFunders",
+                    "operator": "INCLUDE",
+                    "value": 35
+                  },
+                  {
+                    "operator": "ANY",
+                    "parts": [
+                      {
+                        "variable": "projectType",
+                        "operator": "EQUAL",
+                        "value": 3
+                      },
+                      {
+                        "variable": "projectType",
+                        "operator": "EQUAL",
+                        "value": 9
+                      },
+                      {
+                        "variable": "projectType",
+                        "operator": "EQUAL",
+                        "value": 10
+                      },
+                      {
+                        "variable": "projectType",
+                        "operator": "EQUAL",
+                        "value": 13
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "_comment": "VA: GPD – Collection required for all components",
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "VA: Grant Per Diem"
+              },
+              {
+                "_comment": "VA: Community Contract Safe Haven",
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 30
+              },
+              {
+                "_comment": "VA: CRS Contract Residential Services",
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 27
+              }
+            ]
+          },
           "item": [
             {
               "type": "CHOICE",
@@ -117,7 +538,10 @@
               "required": false,
               "warn_if_empty": true,
               "text": "HIV/AIDS",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "hivAids" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "hivAids"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData"
             },
             {
@@ -138,7 +562,10 @@
               "required": false,
               "warn_if_empty": true,
               "text": "Mental Health Disorder",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "mentalHealthDisorder" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "mentalHealthDisorder"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData"
             },
             {
@@ -148,7 +575,10 @@
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
               "brief_text": "Mental Health Indefinite and Impairs",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "mentalHealthDisorderIndefiniteAndImpairs" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "mentalHealthDisorderIndefiniteAndImpairs"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData",
               "disabled_display": "PROTECTED",
               "enable_behavior": "ALL",
@@ -173,7 +603,10 @@
               "required": false,
               "warn_if_empty": true,
               "text": "Substance Use Disorder",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "substanceUseDisorder" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "substanceUseDisorder"
+              },
               "pick_list_reference": "DisabilityResponse"
             },
             {
@@ -183,7 +616,10 @@
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
               "brief_text": "Substance Use Indefinite and Impairs",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "substanceUseDisorderIndefiniteAndImpairs" },
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "substanceUseDisorderIndefiniteAndImpairs"
+              },
               "pick_list_reference": "NoYesReasonsForMissingData",
               "disabled_display": "PROTECTED",
               "enable_behavior": "ANY",
@@ -211,126 +647,34 @@
           "type": "GROUP",
           "link_id": "disability-table-r7",
           "text": "Overall Disabling Condition",
-          "_ignore": "HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>",
+          "_comment": "IGNORE: HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>",
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "3.08",
+              "link_id": "3.08.inferred",
               "required": false,
               "warn_if_empty": true,
               "text": "Disabling Condition",
-              "mapping": { "record_type": "DISABILITY_GROUP", "field_name": "disablingCondition" },
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "autofill_values": [
-                {
-                  "value_code": "YES",
-                  "autofill_behavior": "ANY",
-                  "autofill_when": [
-                    {
-                      "question": "4.05.A",
-                      "operator": "EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.06.2",
-                      "operator": "EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.07.A",
-                      "operator": "EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.08.2",
-                      "operator": "EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.09.A",
-                      "operator": "EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.10.A",
-                      "operator": "EQUAL",
-                      "answer_code": "YES"
-                    }
-                  ]
-                },
-                {
-                  "value_code": "NO",
-                  "autofill_behavior": "ALL",
-                  "autofill_when": [
-                    {
-                      "question": "4.05.A",
-                      "operator": "NOT_EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.06.2",
-                      "operator": "NOT_EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.07.A",
-                      "operator": "NOT_EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.08.2",
-                      "operator": "NOT_EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.09.A",
-                      "operator": "NOT_EQUAL",
-                      "answer_code": "YES"
-                    },
-                    {
-                      "question": "4.10.A",
-                      "operator": "NOT_EQUAL",
-                      "answer_code": "YES"
-                    }
-                  ]
-                },
-                {
-                  "value_code": "NO",
-                  "autofill_behavior": "ALL",
-                  "_comment": "It should autofull when ANY element is interacted with, so add these as dependencies even though they do not determine disabling condition status. This autofill will only occur if none of the above rules matcheed.",
-                  "autofill_when": [
-                    {
-                      "question": "4.05.2",
-                      "operator": "EXISTS",
-                      "answer_boolean": true
-                    },
-                    {
-                      "question": "4.07.2",
-                      "operator": "EXISTS",
-                      "answer_boolean": true
-                    },
-                    {
-                      "question": "4.09.2",
-                      "operator": "EXISTS",
-                      "answer_boolean": true
-                    },
-                    {
-                      "question": "4.10.2",
-                      "operator": "EXISTS",
-                      "answer_boolean": true
-                    }
-                  ]
-                }
-              ]
+              "disabled_display": "PROTECTED_WITH_VALUE",
+              "mapping": {
+                "record_type": "DISABILITY_GROUP",
+                "field_name": "disablingCondition"
+              },
+              "pick_list_reference": "NoYesReasonsForMissingData"
             },
             {
               "type": "DISPLAY",
               "link_id": "overall-placeholder",
-              "text": "This field is auto-filled based on the above responses. The user may override a system-generated NO with a YES."
+              "text": "This field may be auto-filled based on the above responses.",
+              "readonly_text": ""
             }
           ]
         }
       ]
+    },
+    {
+      "text": "HOPWA Questions",
+      "fragment": "#w4_w6_hopwa_disability"
     }
   ]
 }

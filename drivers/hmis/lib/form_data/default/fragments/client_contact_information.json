@@ -9,7 +9,10 @@
       "component": "ADDRESS",
       "repeats": true,
       "link_id": "addresses",
-      "mapping": { "field_name": "addresses" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "addresses"
+      },
       "text": "Address"
     },
     {
@@ -17,7 +20,10 @@
       "component": "PHONE",
       "repeats": true,
       "link_id": "phones",
-      "mapping": { "field_name": "phoneNumbers" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "phoneNumbers"
+      },
       "text": "Phone"
     },
     {
@@ -25,7 +31,10 @@
       "component": "EMAIL",
       "repeats": true,
       "link_id": "emails",
-      "mapping": { "field_name": "emailAddresses" },
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "emailAddresses"
+      },
       "text": "Email"
     }
   ]

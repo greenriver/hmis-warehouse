@@ -647,7 +647,8 @@ CREATE TABLE public.hmis_access_controls (
     role_id bigint,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    user_group_id bigint
 );
 
 
@@ -793,6 +794,71 @@ CREATE SEQUENCE public.hmis_user_access_controls_id_seq
 --
 
 ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user_access_controls.id;
+
+
+--
+-- Name: hmis_user_group_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_user_group_members (
+    id bigint NOT NULL,
+    user_group_id bigint,
+    user_id bigint,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_user_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_user_group_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_user_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_user_group_members_id_seq OWNED BY public.hmis_user_group_members.id;
+
+
+--
+-- Name: hmis_user_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_user_groups (
+    id bigint NOT NULL,
+    name character varying,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_user_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_user_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_user_groups_id_seq OWNED BY public.hmis_user_groups.id;
 
 
 --
@@ -1396,7 +1462,8 @@ CREATE TABLE public.roles (
     can_search_clients_with_roi boolean DEFAULT false,
     can_see_confidential_files boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL
+    system boolean DEFAULT false NOT NULL,
+    can_edit_collections boolean DEFAULT false
 );
 
 
@@ -2143,6 +2210,20 @@ ALTER TABLE ONLY public.hmis_user_access_controls ALTER COLUMN id SET DEFAULT ne
 
 
 --
+-- Name: hmis_user_group_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_group_members ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_group_members_id_seq'::regclass);
+
+
+--
+-- Name: hmis_user_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_groups_id_seq'::regclass);
+
+
+--
 -- Name: imports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2496,6 +2577,22 @@ ALTER TABLE ONLY public.hmis_roles
 
 ALTER TABLE ONLY public.hmis_user_access_controls
     ADD CONSTRAINT hmis_user_access_controls_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_user_group_members hmis_user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_group_members
+    ADD CONSTRAINT hmis_user_group_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_user_groups hmis_user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_groups
+    ADD CONSTRAINT hmis_user_groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -2927,6 +3024,13 @@ CREATE INDEX index_hmis_access_controls_on_role_id ON public.hmis_access_control
 
 
 --
+-- Name: index_hmis_access_controls_on_user_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_access_controls_on_user_group_id ON public.hmis_access_controls USING btree (user_group_id);
+
+
+--
 -- Name: index_hmis_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2938,6 +3042,20 @@ CREATE INDEX index_hmis_user_access_controls_on_access_control_id ON public.hmis
 --
 
 CREATE INDEX index_hmis_user_access_controls_on_user_id ON public.hmis_user_access_controls USING btree (user_id);
+
+
+--
+-- Name: index_hmis_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_user_group_members_on_user_group_id ON public.hmis_user_group_members USING btree (user_group_id);
+
+
+--
+-- Name: index_hmis_user_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_user_group_members_on_user_id ON public.hmis_user_group_members USING btree (user_id);
 
 
 --
@@ -3565,6 +3683,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230726183720'),
 ('20230730013646'),
 ('20230730013746'),
-('20230730021030');
+('20230730021030'),
+('20230807121912'),
+('20230807142127'),
+('20230807193335');
 
 

@@ -25,7 +25,7 @@ module HmisExternalApis::AcHmis
   class UpdateReferralPostingJob < ApplicationJob
     include HmisExternalApis::AcHmis::ReferralJobMixin
 
-    # map from HudLists.referral_result_map to implementation-specific codes
+    # map from HudUtility.referral_results to implementation-specific codes
     REFERRAL_RESULT_CODE_MAP = {
       1 => 157, # 157 Successful referral: client accepted
       2 => 158, # 158 Unsuccessful referral: client rejected

@@ -203,8 +203,8 @@ module FormHelpers
     },
     FILE: {
       values: {
-        'confidential' => false,
-        'enrollmentId' => nil,
+        'file-confidential' => false,
+        'file-enrollment' => nil,
       },
       hud_values: {
         'confidential' => false,
@@ -242,6 +242,40 @@ module FormHelpers
         'leaseOwn60Day' => 'CLIENT_DOESN_T_KNOW',
         'movedTwoOrMore' => 'YES',
         'locationDetails' => 'test',
+      },
+    },
+    CE_ASSESSMENT: {
+      values: {
+        '4.19.1' => '2023-08-15',
+        '4.19.2' => 'test',
+        '4.19.3' => 'PHONE',
+        '4.19.4' => 'CRISIS_NEEDS_ASSESSMENT',
+        '4.19.7' => 'PLACED_ON_PRIORITIZATION_LIST',
+      },
+      hud_values: {
+        'assessmentDate' => '2023-08-15',
+        'assessmentLocation' => 'test',
+        'assessmentType' => 'PHONE',
+        'assessmentLevel' => 'CRISIS_NEEDS_ASSESSMENT',
+        'prioritizationStatus' => 'PLACED_ON_PRIORITIZATION_LIST',
+      },
+    },
+    CE_EVENT: {
+      values: {
+        '4.20.1' => '2023-08-12',
+        '4.20.2' => 'REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING',
+        '4.20.C' => 'test',
+        '4.20.D' => 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED',
+        '4.20.E' => '2023-08-16',
+      },
+      hud_values: {
+        'eventDate' => '2023-08-12',
+        'event' => 'REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING',
+        'probSolDivRrResult' => '_HIDDEN',
+        'referralCaseManageAfter' => '_HIDDEN',
+        'locationCrisisOrPhHousing' => 'test',
+        'referralResult' => 'SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED',
+        'resultDate' => '2023-08-16',
       },
     },
   }.freeze

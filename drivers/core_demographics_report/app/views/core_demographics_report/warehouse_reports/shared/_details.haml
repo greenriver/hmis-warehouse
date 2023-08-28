@@ -7,10 +7,11 @@
       %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
       %span.input-group-append
         %button.btn.btn-secondary Search
-  .ml-auto
-    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-      %i.icon.icon-download2
-      Download Excel
+  - unless @pdf
+    .ml-auto
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+        %i.icon.icon-download2
+        Download Excel
 
 - scope = @report.detail_scope_from_key(@key)
 - unless scope.exists?

@@ -56,11 +56,13 @@ module Types
       value == ::HudUtility.ignored_enum_value ? nil : value
     end
 
-    # Use data loader to load an ActiveRecored association.
+    # Use data loader to load an ActiveRecord association.
     # Note: 'scope' is intended for ordering or to modify the default
     # association in a way that is constant with respect to the resolver,
     # for example `scope: FooBar.order(:name)`. It is NOT used to filter down results.
     def load_ar_association(object, association, scope: nil)
+      raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
+
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
     end
 
