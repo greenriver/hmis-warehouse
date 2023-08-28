@@ -27,7 +27,7 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
       next if unit_counts_by_project_and_unit_type_id[key]
 
       # If this ProjectID is not already mapped to this UnitTypeID, add it and add the number of units specified in the UnitCapacity column.
-      record.unit_capacity.to_i.times.map do |i|
+      record.unit_capacity.to_i.times.map do
         {
           project_id: project.id,
           unit_type_id: unit_type.id,

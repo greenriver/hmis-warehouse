@@ -9,6 +9,7 @@
 module ArelHelper
   extend ActiveSupport::Concern
 
+  # and to the class itself (so they can be used in scopes, for example)
   class_methods do
     # convert non-node into a node
     def qt(value)
@@ -223,18 +224,6 @@ module ArelHelper
     end
 
     # Some shortcuts for arel tables
-    def r_t
-      Role.arel_table
-    end
-
-    def ag_t
-      AccessGroup.arel_table
-    end
-
-    def collection_t
-      Collection.arel_table
-    end
-
     def she_t
       GrdaWarehouse::ServiceHistoryEnrollment.arel_table
     end
@@ -508,7 +497,7 @@ module ArelHelper
     end
 
     # Table calls
-    delegate :she_t, :shs_t, :shsm_t, :s_t, :g_t, :e_t, :ec_t, :ex_t, :ds_t, :c_t, :cn_t, :p_t, :pc_t, :o_t, :i_t, :af_t, :as_t, :asq_t, :ev_t, :ch_t, :hc_t, :wc_t, :wcp_t, :ib_t, :d_t, :hdv_t, :f_t, :cls_t, :enx_t, :hmis_form_t, :hmis_c_t, :c_client_t, :c_c_change_t, :yib_t, :vispdat_t, :hp_t, :hpr_t, :hapr_t, :hqa_t, :hpf_t, :hpff_t, :h_ssm_t, :h_epic_ssm_t, :h_sdhcmn_t, :h_ehs_t, :h_ecn_t, :h_cha_t, :h_echa_t, :h_rf_t, :h_cp_t, :htca_t, :htco_t, :h_sd_t, :r_monthly_t, :hr_ri_t, :r_t, :ag_t, :collection_t, to: 'self.class'
+    delegate :she_t, :shs_t, :shsm_t, :s_t, :g_t, :e_t, :ec_t, :ex_t, :ds_t, :c_t, :cn_t, :p_t, :pc_t, :o_t, :i_t, :af_t, :as_t, :asq_t, :ev_t, :ch_t, :hc_t, :wc_t, :wcp_t, :ib_t, :d_t, :hdv_t, :f_t, :cls_t, :enx_t, :hmis_form_t, :hmis_c_t, :c_client_t, :c_c_change_t, :yib_t, :vispdat_t, :hp_t, :hpr_t, :hapr_t, :hqa_t, :hpf_t, :hpff_t, :h_ssm_t, :h_epic_ssm_t, :h_sdhcmn_t, :h_ehs_t, :h_ecn_t, :h_cha_t, :h_echa_t, :h_rf_t, :h_cp_t, :htca_t, :htco_t, :h_sd_t, :r_monthly_t, :hr_ri_t, to: 'self.class'
 
     # Other methods
     delegate :qt, :nf, :unionize, :add_alias, :cl, :ct, :greatest, :bool_or, :confidentialized_project_name, :checksum, :datepart, :seconds_diff, :datediff, :cast, :acase, :lit, to: 'self.class'

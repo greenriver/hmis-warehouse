@@ -8,31 +8,15 @@ require 'roo'
 module GrdaWarehouse
   class ProjectGroup < GrdaWarehouseBase
     include ArelHelper
-    include AccessGroups # TODO: START_ACL remove after migration to ACLs
-    include EntityAccess
+    include AccessGroups
     acts_as_paranoid
     has_paper_trail
-
-    attr_accessor :editor_ids
 
     validates_presence_of :name
     after_create :maintain_system_group
 
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
     has_many :clients, through: :projects
-
-    # START_ACL remove after migration to ACLs
-    has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::ProjectGroup') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
-    # NOTE: these are in the app DB
-    has_many :access_groups, through: :group_viewable_entities
-    has_many :access_controls, through: :access_groups
-    # has_many :users, through: :access_controls
-    # END_ACL
-
-    # NOTE: these are in the app DB
-    has_many :collections, through: :group_viewable_entities
-    has_many :access_controls, through: :collections
-    # has_many :users, through: :access_controls
 
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_many :cohorts, class_name: 'GrdaWarehouse::Cohort'
@@ -44,48 +28,27 @@ module GrdaWarehouse
     has_many :organization_contacts, through: :projects
 
     scope :viewable_by, ->(user) do
-      # TODO: We may want to build a read-only version of project groups
-      # so someone can see the makeup of the project groups assigned to them,
-      # but be able to add or remove projects.
-      # This probably doesn't need a new permission, project groups would just be visible
-      # if the user has access to use any project groups for reporting.
-      editable_by(user)
-    end
-
-    # TODO: START_ACL cleanup after migration to ACLs
-    scope :editable_by, ->(user) do
-      return none unless user.present?
-
-      if user.using_acls?
-        return unless editable_permissions.map { |perm| user.send("#{perm}?") }.any?
-
-        ids = editable_permissions.flat_map do |perm|
-          group_ids = user.collections_for_permission(perm)
-          next [] if group_ids.empty?
-
-          GrdaWarehouse::GroupViewableEntity.where(
-            collection_id: group_ids,
-            entity_type: 'GrdaWarehouse::ProjectGroup',
-          ).pluck(:entity_id)
-        end.compact
-        return none if ids.empty?
-
-        where(id: ids)
+      if user.can_edit_project_groups?
+        current_scope
+      elsif current_scope.present?
+        current_scope.merge(user.project_groups)
       else
-        if user.can_edit_project_groups? # rubocop:disable Style/IfInsideElse
-          current_scope
-        elsif user.can_edit_assigned_project_groups?
-          if current_scope.present?
-            current_scope.merge(user.project_groups)
-          else
-            user.project_groups
-          end
-        else
-          none
-        end
+        user.project_groups
       end
     end
-    # END_ACL
+    scope :editable_by, ->(user) do
+      if user.can_edit_project_groups?
+        current_scope
+      elsif user.can_edit_assigned_project_groups?
+        if current_scope.present?
+          current_scope.merge(user.project_groups)
+        else
+          user.project_groups
+        end
+      else
+        none
+      end
+    end
 
     scope :text_search, ->(text) do
       query = text.gsub(/[^0-9a-zA-Z ]/, '')
@@ -275,21 +238,6 @@ module GrdaWarehouse
     def data_source_ids=(ids)
       filter.update(data_source_ids: ids)
       save_filter!
-    end
-
-    private def editable_role_name
-      'System Role - Can Edit Project Groups'
-    end
-
-    def self.editable_permission
-      :can_edit_project_groups
-    end
-
-    def self.editable_permissions
-      [
-        :can_edit_assigned_project_groups,
-        editable_permission,
-      ]
     end
   end
 end

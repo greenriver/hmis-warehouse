@@ -29,13 +29,7 @@ class DataSourcesController < ApplicationController
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
       eager_load(:projects).
-      merge(
-        GrdaWarehouse::Hud::Project.viewable_by(
-          current_user,
-          confidential_scope_limiter: :all,
-          permission: :can_view_projects,
-        ),
-      ).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all)).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
   end
 
@@ -47,8 +41,7 @@ class DataSourcesController < ApplicationController
     @data_source = data_source_source.new(new_data_source_params)
     @data_source.source_type = :authoritative if new_data_source_params[:authoritative]
     if @data_source.save
-      @data_source.replace_access([current_user], scope: :editor)
-      current_user.add_viewable(@data_source) # TODO: START_ACL remove when ACL transition complete
+      current_user.add_viewable @data_source
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else

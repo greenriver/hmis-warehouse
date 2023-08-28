@@ -790,6 +790,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         open_enrollments.
           joins(enrollment: [:project, :services]).
           group(she_t[:client_id], p_t[:id]).maximum(s_t[:date_provided]).
+          reject { |_, d| d.blank? }.
           sort_by { |_, d| d }.
           reverse_each do |(service_client_id, project_id), date|
             h[service_client_id] ||= {}

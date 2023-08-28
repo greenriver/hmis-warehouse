@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
+gem 'activesupport', '>= 6.1.7.5' # CVE-2023-38037
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
 gem 'rack', '>= 2.2.6.3'
 gem 'rexml'
@@ -8,7 +9,7 @@ gem 'rexml'
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
-gem 'nokogiri', '>= 1.13.10' # >= 1.13.10 due to GHSA-qv4q-mr5r-qprj
+gem 'nokogiri', '>= 1.13.10' # CVE-2017-15412
 gem 'loofah', '>= 2.19.1' # >= 2.19.1 due to GHSA-228g-948r-83gx
 gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519
@@ -20,7 +21,7 @@ gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'order_as_specified'
 
-gem 'activerecord', '>= 6.1.7.5' # for CVE-2023-38037
+gem 'activerecord', '>= 6.1.7.3' # for CVE-2023-22796
 gem 'active_record_extended'
 gem 'active_median'
 gem 'strong_migrations'
@@ -80,6 +81,7 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 gem 'rack-cors'
+gem 'doorkeeper'
 
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'

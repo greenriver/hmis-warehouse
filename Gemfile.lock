@@ -391,6 +391,8 @@ GEM
     diff-lcs (1.5.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
+    doorkeeper (5.6.6)
+      railties (>= 5)
     dotenv (2.7.6)
     dotenv-rails (2.7.6)
       dotenv (= 2.7.6)
@@ -561,7 +563,7 @@ GEM
     mini_histogram (0.3.1)
     mini_magick (4.11.0)
     mini_mime (1.1.2)
-    mini_portile2 (2.8.2)
+    mini_portile2 (2.8.4)
     minitest (5.19.0)
     minitest-reporters (1.4.3)
       ansi
@@ -592,14 +594,14 @@ GEM
     net-ssh (7.0.1)
     netrc (0.11.0)
     nio4r (2.5.9)
-    nokogiri (1.15.2)
+    nokogiri (1.15.4)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.15.2-aarch64-linux)
+    nokogiri (1.15.4-aarch64-linux)
       racc (~> 1.4)
-    nokogiri (1.15.2-x86_64-darwin)
+    nokogiri (1.15.4-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.15.2-x86_64-linux)
+    nokogiri (1.15.4-x86_64-linux)
       racc (~> 1.4)
     oauth (0.5.6)
     oauth2 (2.0.9)
@@ -976,11 +978,12 @@ DEPENDENCIES
   active_record_distinct_on
   active_record_extended
   active_record_query_trace
-  activerecord (>= 6.1.7.5)
+  activerecord (>= 6.1.7.3)
   activerecord-import
   activerecord-postgis-adapter
   activerecord-session_store
   activerecord-sqlserver-adapter
+  activesupport (>= 6.1.7.5)
   acts-as-taggable-on (~> 7.0)
   addressable
   ajax_modal_rails (~> 1.0)
@@ -1049,6 +1052,7 @@ DEPENDENCIES
   devise-security
   devise-two-factor
   devise_invitable (~> 2.0)
+  doorkeeper
   dotenv-rails
   ed25519
   email_check

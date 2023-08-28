@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# TODO: START_ACL remove when ACL transition complete
 module AccessGroups
   extend ActiveSupport::Concern
 

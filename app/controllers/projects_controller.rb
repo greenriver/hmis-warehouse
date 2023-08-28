@@ -71,7 +71,7 @@ class ProjectsController < ApplicationController
   end
 
   private def project_scope
-    project_source.viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_projects)
+    project_source.viewable_by(current_user, confidential_scope_limiter: :all)
   end
 
   private def project_source
