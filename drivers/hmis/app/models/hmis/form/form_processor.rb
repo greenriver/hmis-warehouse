@@ -17,7 +17,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: true
 
   # Related records that were created/updated from this assessment
-  #  * NOTE: add association names to related_records below
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
