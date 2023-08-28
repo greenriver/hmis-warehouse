@@ -216,6 +216,14 @@ module HmisCsvTwentyTwentyFour::Exporter
           hmis_class: hmis_class(GrdaWarehouse::Hud::YouthEducationStatus),
           enrollment_scope: enrollment_scope,
         },
+        HmisCsvTwentyTwentyFour::Exporter::HmisParticipation => {
+          hmis_class: hmis_class(GrdaWarehouse::Hud::HmisParticipation),
+          project_scope: project_scope,
+        },
+        HmisCsvTwentyTwentyFour::Exporter::CeParticipation => {
+          hmis_class: hmis_class(GrdaWarehouse::Hud::CeParticipation),
+          project_scope: project_scope,
+        },
         # NOTE: User must be last since we collect user_ids from the other files
         HmisCsvTwentyTwentyFour::Exporter::User => {
           hmis_class: hmis_class(GrdaWarehouse::Hud::User),
