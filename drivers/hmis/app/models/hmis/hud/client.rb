@@ -44,6 +44,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
+  # FIXME(#185905151) add back "dependent: :destroy"
   has_many :custom_data_elements, as: :owner
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
@@ -153,8 +154,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :with_open_enrollment_in_organization, ->(organization_ids) do
-    ds_ids, hud_org_ids = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
-    ds_ids = ds_ids.compact.map(&:to_i).uniq
+    tuples = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
+    ds_ids = tuples.map(&:first).compact.map(&:to_i).uniq
+    hud_org_ids = tuples.map(&:second)
     raise 'orgs are in multiple data sources' if ds_ids.size > 1
 
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
