@@ -52,7 +52,7 @@ class Deployer
 
   attr_accessor :service_registry_arns
 
-  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:, service_registry_arns:)
+  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:, service_registry_arns:) # rubocop:disable Metrics/ParameterLists
     self.service_registry_arns    = service_registry_arns
     self.cluster                  = _cluster_name
     self.target_group_name        = target_group_name
@@ -110,6 +110,14 @@ class Deployer
     roll_out.bootstrap_databases!
   end
 
+  def self.check_that_you_pushed_to_remote!
+    branch = `git rev-parse --abbrev-ref HEAD`.chomp
+    remote = `git ls-remote origin | grep refs/heads/#{branch}$`.chomp
+    our_commit = `git rev-parse #{branch}`.chomp
+
+    raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)
+  end
+
   private
 
   def _initial_steps
@@ -150,11 +158,7 @@ class Deployer
   end
 
   def _check_that_you_pushed_to_remote!
-    branch = `git rev-parse --abbrev-ref HEAD`.chomp
-    remote = `git ls-remote origin | grep refs/heads/#{branch}$`.chomp
-    our_commit = `git rev-parse #{branch}`.chomp
-
-    raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)
+    self.class.check_that_you_pushed_to_remote!
   end
 
   def _check_compiled_assets!
