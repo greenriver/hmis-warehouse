@@ -110,7 +110,22 @@
         "record_type": "CLIENT",
         "field_name": "veteranStatus"
       },
-      "pick_list_reference": "NoYesReasonsForMissingData"
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "_comment": "18yo cutoff date >= DOB. Aka client is adult.",
+          "local_constant": "$age18Dob",
+          "operator": "GREATER_THAN_EQUAL",
+          "compare_question": "dob"
+        },
+        {
+          "_comment": "DOB is unknown",
+          "question": "dob",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ]
     }
   ]
 }

@@ -228,8 +228,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   attr_accessor :unit_occupancy_changes
   after_save :track_unit_occupancy_changes, if: :unit_occupancy_changes
   def track_unit_occupancy_changes
-    unit_type, user_id = unit_occupancy_changes.fetch_values(:unit_type, :user_id)
-    unit_type.track_availability(project_id: project.id, user_id: user_id)
+    unit_type, user_id, project_id = unit_occupancy_changes.fetch_values(:unit_type, :user_id, :project_id)
+    unit_type.track_availability(project_id: project_id, user_id: user_id)
   end
 
   def assign_unit(unit:, start_date:, user:)
@@ -244,7 +244,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     occupants = unit.occupants_on(start_date)
     raise 'Unit is already assigned to a different household' if occupants.where.not(household_id: household_id).present?
 
-    self.unit_occupancy_changes = { unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
+    # include project id here since it may not be available during after_save hooks due to WIP
+    self.unit_occupancy_changes = { project_id: unit.project_id, unit_type: unit.unit_type, user_id: user.id } if unit.unit_type
     unit_occupancies.build(
       unit: unit,
       occupancy_period_attributes: {

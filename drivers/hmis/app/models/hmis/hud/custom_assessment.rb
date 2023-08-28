@@ -27,7 +27,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
   has_one :definition, through: :form_processor
