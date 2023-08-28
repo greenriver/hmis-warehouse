@@ -92,18 +92,8 @@ module Types
       object.project_id
     end
 
-    # TODO(2024-followup) resolve related HMISParticipation and CEParticipation records
-    # For now, only do it in the form
-    def hmis_participation_status
-      # Choose the active participation record
-      hp_t = Hmis::Hud::HmisParticipation.arel_table
-      participation = object.hmis_participations.where(hp_t[:HMISParticipationStatusEndDate].eq(nil).or(hp_t[:HMISParticipationStatusEndDate].gteq(Date.current))).order(:date_updated).last
-      return participation.HMISParticipationType if participation.present?
-      # If there was no participation record, fall back to 2022 field (0 and 1 have same meaning)
-      return object.HMISParticipatingProject if [0, 1].include?(object.HMISParticipatingProject)
-
-      nil
-    end
+    # TODO: resolve related HMISParticipation records
+    # TODO: resolve related CEParticipation records
 
     def enrollments(**args)
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
