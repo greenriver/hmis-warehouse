@@ -3357,6 +3357,11 @@ enum FormRole {
   NEW_CLIENT_ENROLLMENT
 
   """
+  (OCCURRENCE_POINT) Occurrence point collection form
+  """
+  OCCURRENCE_POINT
+
+  """
   (ORGANIZATION) Organization
   """
   ORGANIZATION

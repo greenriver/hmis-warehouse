@@ -53,14 +53,47 @@ module HmisUtil
       end
     end
 
-    def service_forms
-      @service_forms ||= begin
+    def client_override(file_path)
+      return file_path unless ENV['CLIENT'].present?
+
+      client_override_fpath = file_path.gsub('/default/', "/#{ENV['CLIENT']}/")
+      if File.exist?(client_override_fpath)
+        client_override_fpath
+      else
+        file_path
+      end
+    end
+
+    # { ROLE => { identifier => definition }}
+    def record_forms_by_role
+      @record_forms_by_role ||= begin
         forms = {}
-        if ENV['CLIENT'].present?
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/services/*.json") do |file_path|
+
+        # Load system forms. File name = role.
+        Dir.glob("#{DATA_DIR}/default/records/*.json") do |file_path|
+          identifier = File.basename(file_path, '.json')
+          role = identifier.upcase.to_sym
+          raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+
+          file_path = client_override(file_path)
+          puts "Loading #{identifier} from #{file_path}"
+          file = File.read(file_path)
+          forms[role] ||= {}
+          forms[role][identifier] = JSON.parse(file)
+        end
+
+        # Load non-system forms
+        [
+          [:services, :SERVICE],
+          [:occurrence_point_forms, :OCCURRENCE_POINT],
+        ].each do |dirname, role|
+          forms[role] ||= {}
+          Dir.glob("#{DATA_DIR}/default/#{dirname}/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
+            file_path = client_override(file_path)
+            puts "Loading #{identifier} from #{file_path}"
             file = File.read(file_path)
-            forms[identifier] = JSON.parse(file)
+            forms[role][identifier] = JSON.parse(file)
           end
         end
         forms
@@ -184,27 +217,41 @@ module HmisUtil
       record.save!
     end
 
-    # Load form definitions for editing and creating records
-    public def seed_record_form_definitions
-      record_forms.merge(service_forms).each do |identifier, form_definition|
+    SYSTEM_INSTANCE_IDENTIFIERS = [
+      :project,
+      :organization,
+      :project_coc,
+      :funder,
+      :inventory,
+      :client,
+      :new_client_enrollment,
+      :enrollment,
+    ].freeze
+
+    public def ensure_system_instances_exist!
+      SYSTEM_INSTANCE_IDENTIFIERS.each do |identifier|
         role = identifier.upcase.to_sym
-        role = :SERVICE if service_forms.key?(identifier)
         raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
 
-        load_definition(
-          form_definition: form_definition,
-          identifier: identifier,
-          role: role,
-        )
+        default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
+        default_instance.update(system: true, active: true)
+        default_instance.touch
+      end
+    end
 
-        # Make this form the default instance  for this role. Don't do it for service forms since those
-        # need specialized instances based on service type.
-        unless service_forms.key?(identifier)
-          instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
-          instance.save!
+    # Load form definitions for editing and creating records
+    public def seed_record_form_definitions
+      record_forms_by_role.each do |role, definition_hash|
+        definition_hash.each do |identifier, form_definition|
+          # puts "#{identifier} => #{role}"
+          load_definition(
+            form_definition: form_definition,
+            identifier: identifier,
+            role: role,
+          )
         end
       end
-
+      ensure_system_instances_exist!
       puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
     end
 
@@ -233,8 +280,9 @@ module HmisUtil
         )
 
         # Make this form the default instance for this role
-        instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
-        instance.save!
+        default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
+        default_instance.update(system: true, active: true)
+        default_instance.touch
       end
       puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end

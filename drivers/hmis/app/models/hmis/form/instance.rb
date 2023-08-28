@@ -15,6 +15,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
+  # TODO: data collected about enum
+
   # 'system' instances can't be deleted
   scope :system, -> { where(system: true) }
 
@@ -23,7 +25,17 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   scope :for_projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
   scope :for_organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
-  scope :defaults, -> { where(entity_type: nil, entity_id: nil, project_type: nil, funder: nil) }
+  scope :defaults, -> do
+                     where(
+                       entity_type: nil,
+                       entity_id: nil,
+                       custom_service_type_id: nil,
+                       custom_service_category_id: nil,
+                       funder: nil,
+                       other_funder: nil,
+                       project_type: nil,
+                     )
+                   end
 
   # Find instances that are for a specific Project
   scope :for_project, ->(project_id) { for_projects.where(entity_id: project_id) }

@@ -87,6 +87,38 @@ module Types
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
 
+    # What happens when the funder/ptype changes and an instance "falls out of use", even though
+    # we have data for it? also icebox that. basically when you change the ptype or funder,
+    # we should be able to check (1) are there instances that are no longer going to be applicable,
+    # and (2) do those instances "have any data". If they do, we need to handle or block it somehow.
+    #
+    # NON-MVP: its based on any funders EVER, even closed ones. deleting them will cause data to be hidden.
+    #
+    # data_collection_features
+    # data_collection_forms {
+    #   # Move role from Definition=>Instance
+    #   # Definition table = just the forms
+    #   # Instance table = how the forms should be used
+    #   # Role is include in list IF there is an instance (active or inactive) that suits this project.
+
+    #   feature/role: CURRENT_LIVING_SITUATIONS | CE_ASSESSMENTS | CE_EVENTS | SERVICES | OCCURRENCE_POINT
+
+    #   # where does this come from? the form? yeesh
+    #   title: 'Move-in Date'
+
+    #   # this comes from the instance
+    #   data_collected_about:  ALL_CLIENTS | HOH | HOH_AND_ADULTS
+
+    #   # Definition used for viewing/creating/editing
+    #   definition: FormDefinition
+
+    #   # *** GIG: put of 'legacy' implementation to the icebox.****
+    #   # Don't allow adding NEW records if this is legacy. It should just be used for editing.
+    #   # This should be set to true if (1) there are only inactive forms, not active forms, and (2) there is data for it.
+    #   # Note: (?) this only applies to 'feature'-level things. think about how it would work for others.
+    #   legacy: boolean
+    # }
+
     def hud_id
       object.project_id
     end
@@ -94,16 +126,7 @@ module Types
     def enrollments(**args)
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
 
-      # Apply the enrollment limit before we pass it in, to avoid doing an unnecessary join to the WIP table
-      scope = if args[:enrollment_limit] == 'NON_WIP_ONLY'
-        object.enrollments
-      elsif args[:enrollment_limit] == 'WIP_ONLY'
-        object.wip_enrollments
-      else
-        object.enrollments_including_wip
-      end
-
-      resolve_enrollments(scope, **args)
+      resolve_enrollments(object.enrollments_including_wip, **args)
     end
 
     def organization

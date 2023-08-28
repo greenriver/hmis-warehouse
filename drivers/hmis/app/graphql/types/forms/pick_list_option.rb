@@ -192,6 +192,9 @@ module Types
       options
     end
 
+    # TODO: does this need to be updated?
+    # probably not, but maybe it can use a cache, because we definitely JUST checked this while rendering the page.r)
+
     def self.available_service_types_picklist(project)
       return [] unless project.present?
 
