@@ -1,0 +1,288 @@
+[
+  {
+    "link_id": "income-and-sources",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Permanent Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted street outreach"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Transitional Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Homelessness Prevention"
+        }
+      ]
+    },
+    "append_items": [
+      {
+        "link_id": "ac-federal-poverty-level",
+        "text": "Federal Poverty Level",
+        "type": "CHOICE",
+        "mapping": {
+          "record_type": "INCOME_BENEFIT",
+          "custom_field_key": "federal_poverty_level"
+        },
+        "enable_behavior": "ANY",
+        "enable_when": [
+          {
+            "question": "4.02.2",
+            "operator": "EQUAL",
+            "answer_code": "YES"
+          },
+          {
+            "question": "4.02.2",
+            "operator": "EQUAL",
+            "answer_code": "NO"
+          },
+          {
+            "question": "4.02.2",
+            "operator": "EXISTS",
+            "answer_boolean": false
+          }
+        ],
+        "pick_list_options": [
+          {
+            "code": "Less than 100%"
+          },
+          {
+            "code": "100 to 200%"
+          },
+          {
+            "code": "Greater than 200%"
+          },
+          {
+            "code": "Data not collected"
+          }
+        ],
+        "rule": {
+          "operator": "ANY",
+          "parts": [
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "HAP Case Management"
+            },
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "HAP Bridge Housing"
+            },
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "HAP Penn Free Bridge RRH"
+            },
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "HAP Innovative"
+            },
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "HAP Rental Assistance "
+            }
+          ]
+        }
+      },
+      {
+        "type": "GROUP",
+        "required": false,
+        "link_id": "es-allowance",
+        "rule": {
+          "operator": "ANY",
+          "parts": [
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "HAP Innovative"
+            },
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "HAP Rental Assistance"
+            },
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "Needs-Based Block Grant Homelessness Prevention"
+            },
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
+              "value": "Human Services Block Grant Homelessness Prevention"
+            }
+          ]
+        },
+        "item": [
+          {
+            "type": "CHOICE",
+            "required": false,
+            "warn_if_empty": true,
+            "link_id": "es-allowance-referral",
+            "text": "Was the client referred to the County Assistance Office for the Emergency Shelter Allowance Grant?",
+            "brief_text": "Referred for ES Allowance Grant",
+            "readonly_text": "Referred to the County Assistance Office Emergency Shelter Allowance Grant?",
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "custom_field_key": "esg_allowance_grant_referred"
+            },
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              },
+              {
+                "code": "Client prefers not to answer"
+              },
+              {
+                "code": "Client doesn't know"
+              },
+              {
+                "code": "Data not collected"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "link_id": "es-allowance-grant-conditionals",
+            "item": [
+              {
+                "type": "CHOICE",
+                "required": false,
+                "warn_if_empty": true,
+                "link_id": "es-allowance-received",
+                "text": "Did the client receive funding?",
+                "brief_text": "Received ES Allowance Grant",
+                "readonly_text": "Received Emergency Shelter Allowance Grant funding?",
+                "mapping": {
+                  "record_type": "ENROLLMENT",
+                  "custom_field_key": "esg_allowance_grant_received"
+                },
+                "enable_behavior": "ALL",
+                "enable_when": [
+                  {
+                    "question": "es-allowance-referral",
+                    "operator": "EQUAL",
+                    "answer_code": "Yes"
+                  }
+                ],
+                "pick_list_options": [
+                  {
+                    "code": "Yes"
+                  },
+                  {
+                    "code": "No"
+                  },
+                  {
+                    "code": "Client prefers not to answer"
+                  },
+                  {
+                    "code": "Client doesn't know"
+                  },
+                  {
+                    "code": "Data not collected"
+                  }
+                ]
+              },
+              {
+                "type": "CURRENCY",
+                "required": false,
+                "warn_if_empty": true,
+                "link_id": "es-allowance-amount",
+                "text": "How much?",
+                "brief_text": "ES Allowance Grant amount",
+                "readonly_text": "Amount received",
+                "mapping": {
+                  "record_type": "ENROLLMENT",
+                  "custom_field_key": "esg_allowance_grant_received_amount"
+                },
+                "enable_behavior": "ALL",
+                "enable_when": [
+                  {
+                    "question": "es-allowance-referral",
+                    "operator": "EQUAL",
+                    "answer_code": "Yes"
+                  },
+                  {
+                    "question": "es-allowance-received",
+                    "operator": "EQUAL",
+                    "answer_code": "Yes"
+                  }
+                ]
+              },
+              {
+                "type": "CHOICE",
+                "required": false,
+                "warn_if_empty": true,
+                "link_id": "es-allowance-not-received-reason",
+                "text": "Why not?",
+                "brief_text": "Reason ES Allowance Grant not received",
+                "readonly_text": "Reason ES Allowance Grant not received",
+                "mapping": {
+                  "record_type": "ENROLLMENT",
+                  "custom_field_key": "esg_allowance_grant_reason_not_referred"
+                },
+                "enable_behavior": "ALL",
+                "enable_when": [
+                  {
+                    "question": "es-allowance-referral",
+                    "operator": "EQUAL",
+                    "answer_code": "No"
+                  }
+                ],
+                "pick_list_options": [
+                  {
+                    "code": "Not Eligible"
+                  },
+                  {
+                    "code": "Did not apply"
+                  },
+                  {
+                    "code": "Pending Decision"
+                  },
+                  {
+                    "code": "Client doesn't know"
+                  },
+                  {
+                    "code": "Client prefers not to answer"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

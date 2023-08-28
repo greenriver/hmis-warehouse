@@ -853,22 +853,4 @@ module HudUtility
 
     cocs.select { |code, _| code.starts_with?(state) }
   end
-
-  # This value indicates that the field is null if the column is non-nullable
-  def ignored_enum_value
-    999
-  end
-
-  # tranform up hud list for use as an enum
-  # {1 => 'Test (this)'} => {'test_this' => 1}
-  # @param name [Symbol] method on HudLists
-  def hud_list_map_as_enumerable(name)
-    original = send(name)
-    keyed = original.invert.transform_keys do |key|
-      key.downcase.gsub(/[^a-z0-9]+/, ' ').strip.gsub(' ', '_')
-    end
-    raise "cannot key #{name}" if keyed.size != original.size
-
-    keyed
-  end
 end

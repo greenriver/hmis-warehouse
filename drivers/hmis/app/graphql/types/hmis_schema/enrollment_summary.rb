@@ -10,6 +10,8 @@ module Types
     field :can_view_enrollment, Boolean, null: false
 
     def project_name
+      return 'Confidential Project' if project.confidential
+
       project.project_name
     end
 

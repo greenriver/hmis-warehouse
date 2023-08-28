@@ -10,7 +10,7 @@ wb.add_worksheet(name: 'Clients') do |sheet|
   sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
   header = ['Warehouse ID']
   header += ['Last Name', 'First Name'] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-
+  header << 'DOB' if can_view_full_dob? && GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
   header += [
     'Age',
     'Last Seen',
@@ -26,10 +26,10 @@ wb.add_worksheet(name: 'Clients') do |sheet|
   sheet.add_row(header, style: header_style)
   @report.clients.find_each do |client|
     projects = client.last_intentional_contacts( current_user, include_confidential_names: false, include_dates: true).select(&:present?)
-
     row = [client.id]
     row += [client.last_name, client.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-    row << dob_or_age(client.dob)
+    row << client.dob if can_view_full_dob? && GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    row << GrdaWarehouse::Hud::Client.age(date: Date.current, dob: client.dob)
     row << projects.join('; ')
     row << client.service_history_entry_ongoing.map { |en| en&.project&.name(current_user, include_project_type: true) }.compact.join('; ')
     row << client.processed_service_history&.days_homeless_last_three_years

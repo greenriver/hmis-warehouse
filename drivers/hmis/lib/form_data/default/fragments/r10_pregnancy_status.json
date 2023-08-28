@@ -1,0 +1,115 @@
+{
+  "type": "GROUP",
+  "link_id": "R10",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 22
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 25
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 26
+          }
+        ]
+      },
+      {
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 2
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 4
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 12
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R10.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Pregnancy Status",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "HEALTH_AND_DV",
+        "field_name": "pregnancyStatus"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R10.1-conditionals",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R10.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "DATE",
+          "link_id": "R10.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Due Date",
+          "mapping": {
+            "record_type": "HEALTH_AND_DV",
+            "field_name": "dueDate"
+          },
+          "bounds": [
+            {
+              "id": "min-due-date",
+              "type": "MIN",
+              "value_local_constant": "$today"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

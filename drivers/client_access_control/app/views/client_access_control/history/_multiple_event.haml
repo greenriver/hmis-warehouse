@@ -1,0 +1,18 @@
+%tr
+  %td.client__calendar-tooltip__table__icon{colspan: '2'}
+    .d-flex.justify-content-between
+      %div= render 'event_icon', key: key, name: values[:name], icon: values[:icon]
+      - total = project["total_#{key}".to_sym]
+      - if total&.positive?
+        %strong= "#{total} Total"
+- items = project[key.to_sym].sort.last(5)
+- items.reverse.each_with_index do |date, date_index|
+  %tr
+    %td
+      - name_key = "#{key}_names".to_sym
+      - label = if project[name_key].present? && project[name_key][date_index] then  project[name_key][date_index] else values[:name] end
+      - if date_index.zero?
+        %strong Most Recent #{label}
+      - else
+        = label
+    %td= date&.to_date

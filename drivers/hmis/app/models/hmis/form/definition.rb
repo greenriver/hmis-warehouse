@@ -46,6 +46,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     DATE_OF_ENGAGEMENT: 'Date of Engagement',
     UNIT_ASSIGNMENT: 'Unit Assignment',
     PATH_STATUS: 'PATH Status',
+    CE_ASSESSMENT: 'CE Assessment',
+    CE_EVENT: 'CE Event',
   }.freeze
 
   validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
@@ -64,6 +66,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
     INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
+    CE_ASSESSMENT: { class_name: 'Hmis::Hud::Assessment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CeAssessment' },
+    CE_EVENT: { class_name: 'Hmis::Hud::Event', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Event' },
     FILE: {
       class_name: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
@@ -102,9 +106,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
-  scope :for_project, ->(project:, role:) do
-    # Consider all instances for this role
-    base_scope = Hmis::Form::Instance.joins(:definition).merge(Hmis::Form::Definition.with_role(role))
+  scope :for_project, ->(project:, role:, service_type: nil) do
+    # Consider all instances for this role (and service type, if applicable)
+    definition_scope = Hmis::Form::Definition.with_role(role)
+    definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
+    base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
     # Choose the first scope that has any records. Prefer more specific instances.
     instance_scope = [
@@ -146,8 +152,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def self.find_definition_for_service_type(service_type, project:)
     Hmis::Form::Definition.
-      for_project(project: project, role: :SERVICE).
-      for_service_type(service_type).
+      for_project(project: project, role: :SERVICE, service_type: service_type).
       order(version: :desc).first
   end
 

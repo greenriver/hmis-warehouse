@@ -1,0 +1,95 @@
+[
+  {
+    "link_id": "disability",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Permanent Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted street outreach"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Transitional Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Non-contracted Homelessness Prevention"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "HAP Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "HAP Innovative"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "HAP Rental Assistance"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Needs-Based Block Grant Homelessness Prevention"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "ARPA Homelessness Prevention"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "ARPA Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "PHFA Home 4 Good Homelessness Prevention"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "PHFA Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Human Services Block Grant Homelessness Prevention"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "NOT_INCLUDE",
+          "value": "Human Services Block Grant Case Management"
+        }
+      ]
+    }
+  }
+]

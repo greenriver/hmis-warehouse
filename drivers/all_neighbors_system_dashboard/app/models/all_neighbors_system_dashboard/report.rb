@@ -17,6 +17,8 @@ module AllNeighborsSystemDashboard
     include EnrollmentAttributeCalculations
     include DemographicRatioCalculations
 
+    has_one_attached :result_file
+
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
       return where(user_id: user.id) if user.can_view_assigned_reports?
@@ -37,6 +39,7 @@ module AllNeighborsSystemDashboard
         update(failed_at: Time.current)
         raise e
       end
+      attach_rendered_xlsx
       complete
     end
 
@@ -99,6 +102,8 @@ module AllNeighborsSystemDashboard
 
       # Attach the CE Events to the first report enrollment (requires at least one enrollment)
       enrollment = universe.members.first.universe_membership
+      return unless enrollment.present?
+
       event_scope.find_in_batches do |batch|
         events = []
         batch.each do |event|
@@ -128,7 +133,11 @@ module AllNeighborsSystemDashboard
         preload(:enrollment, :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date)
-      filter.apply(scope)
+      filter.apply(scope, report_scope_source)
+    end
+
+    def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
     def event_scope

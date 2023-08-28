@@ -49,9 +49,10 @@ module AllNeighborsSystemDashboard::WarehouseReports
       respond_to do |format|
         # format.html {}
         format.xlsx do
-          @sheets = @report.sheets
+          file = @report.result_file
+          @report.attach_rendered_xlsx if file.download.nil? # Generate the XLSX if it is missing
           filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
-          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+          send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
         end
       end
     end
@@ -82,6 +83,13 @@ module AllNeighborsSystemDashboard::WarehouseReports
 
     private def report_class
       AllNeighborsSystemDashboard::Report
+    end
+
+    private def set_filter
+      @filter = filter_class.new(user_id: current_user.id)
+      @filter.update(enforce_one_year_range: false)
+      @filter.set_from_params(filter_params[:filters]) if filter_params[:filters].present?
+      @comparison_filter = @filter.to_comparison
     end
 
     private def filter_class

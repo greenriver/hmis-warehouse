@@ -1951,19 +1951,45 @@ module Concerns::HudLists2022
     end
 
     # W5.A
+    def subsidy_information_as
+      {
+        1 => 'Without a subsidy',
+        2 => 'With the subsidy they had at project entry',
+        3 => 'With an on-going subsidy acquired since project entry',
+        4 => 'Only with financial assistance other than a subsidy',
+      }.freeze
+    end
+
+    def subsidy_information_a(id, reverse = false)
+      _translate subsidy_information_as, id, reverse
+    end
+
+    # W5.AB
     def subsidy_informations
       {
-        1 => 'Without a subsidy 1',
-        2 => 'With the subsidy they had at project entry 1',
-        3 => 'With an on-going subsidy acquired since project entry 1',
-        4 => 'But only with other financial assistance 1',
-        11 => 'With on-going subsidy 2',
-        12 => 'Without an on-going subsidy 2',
+        1 => 'Without a subsidy',
+        2 => 'With the subsidy they had at project entry',
+        3 => 'With an on-going subsidy acquired since project entry',
+        4 => 'Only with financial assistance other than a subsidy',
+        11 => 'With on-going subsidy',
+        12 => 'Without an on-going subsidy',
       }.freeze
     end
 
     def subsidy_information(id, reverse = false)
       _translate subsidy_informations, id, reverse
+    end
+
+    # W5.B
+    def subsidy_information_bs
+      {
+        11 => 'With on-going subsidy',
+        12 => 'Without an on-going subsidy',
+      }.freeze
+    end
+
+    def subsidy_information_b(id, reverse = false)
+      _translate subsidy_information_bs, id, reverse
     end
 
     # ad_hoc_yes_no
@@ -1982,7 +2008,7 @@ module Concerns::HudLists2022
     end
 
     # race
-    def races
+    def race_field_name_to_description
       {
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous',
         'Asian' => 'Asian or Asian American',
@@ -1994,7 +2020,7 @@ module Concerns::HudLists2022
     end
 
     def race(id, reverse = false)
-      _translate races, id, reverse
+      _translate race_field_name_to_description, id, reverse
     end
   end
 end

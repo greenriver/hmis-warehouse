@@ -69,7 +69,7 @@ module HealthPctp
     end
 
     def editable?
-      patient_signed_on.nil?
+      sent_to_pcp_on.nil?
     end
 
     def completed?
@@ -98,6 +98,10 @@ module HealthPctp
 
     def signature_path
       [edit_client_health_pctp_careplan_update_signature_path(patient.client, id), data: { loads_in_ajax_modal: true }]
+    end
+
+    def signature_complete?
+      patient_signed_on.present? && health_file.present?
     end
 
     def download_partial

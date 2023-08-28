@@ -46,7 +46,7 @@ module InactiveClientReport::WarehouseReports
       {
         filters: {
           require_service_during_range: false,
-          inactivity_days: 90,
+          project_type_codes: ['ca'],
           end_date: Date.yesterday,
           start_date: 3.months.ago.to_date,
         },

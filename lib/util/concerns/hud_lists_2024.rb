@@ -177,6 +177,30 @@ module Concerns::HudLists2024
       _translate project_types, id, reverse
     end
 
+    # 2.02.6.brief
+    def project_type_briefs
+      {
+        0 => 'ES - Entry/Exit',
+        1 => 'ES - NBN',
+        2 => 'TH',
+        3 => 'PH - PSH',
+        4 => 'SO',
+        6 => 'SSO',
+        8 => 'SH',
+        9 => 'PH - PH',
+        7 => 'Other',
+        10 => 'PH - OPH',
+        11 => 'Day Shelter',
+        12 => 'HP',
+        13 => 'PH - RRH',
+        14 => 'CE',
+      }.freeze
+    end
+
+    def project_type_brief(id, reverse = false)
+      _translate project_type_briefs, id, reverse
+    end
+
     # 2.02.7
     def target_populations
       {
@@ -509,11 +533,13 @@ module Concerns::HudLists2024
     # 3.6.1
     def genders
       {
-        0 => 'Female',
-        1 => 'Male',
-        4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
+        0 => 'Woman (Girl, if child)',
+        1 => 'Man (Boy, if child)',
+        2 => 'Culturally Specific Identity (e.g., Two-Spirit)',
+        4 => 'Non-Binary',
         5 => 'Transgender',
         6 => 'Questioning',
+        3 => 'Different Identity',
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
         99 => 'Data not collected',
@@ -1988,19 +2014,45 @@ module Concerns::HudLists2024
     end
 
     # W5.A
+    def subsidy_information_as
+      {
+        1 => 'Without a subsidy',
+        2 => 'With the subsidy they had at project entry',
+        3 => 'With an on-going subsidy acquired since project entry',
+        4 => 'Only with financial assistance other than a subsidy',
+      }.freeze
+    end
+
+    def subsidy_information_a(id, reverse = false)
+      _translate subsidy_information_as, id, reverse
+    end
+
+    # W5.AB
     def subsidy_informations
       {
-        1 => 'Without a subsidy 1',
-        2 => 'With the subsidy they had at project entry 1',
-        3 => 'With an on-going subsidy acquired since project entry 1',
-        4 => 'But only with other financial assistance 1',
-        11 => 'With on-going subsidy 2',
-        12 => 'Without an on-going subsidy 2',
+        1 => 'Without a subsidy',
+        2 => 'With the subsidy they had at project entry',
+        3 => 'With an on-going subsidy acquired since project entry',
+        4 => 'Only with financial assistance other than a subsidy',
+        11 => 'With on-going subsidy',
+        12 => 'Without an on-going subsidy',
       }.freeze
     end
 
     def subsidy_information(id, reverse = false)
       _translate subsidy_informations, id, reverse
+    end
+
+    # W5.B
+    def subsidy_information_bs
+      {
+        11 => 'With on-going subsidy',
+        12 => 'Without an on-going subsidy',
+      }.freeze
+    end
+
+    def subsidy_information_b(id, reverse = false)
+      _translate subsidy_information_bs, id, reverse
     end
 
     # ad_hoc_yes_no
@@ -2009,7 +2061,7 @@ module Concerns::HudLists2024
         0 => 'No',
         1 => 'Yes',
         8 => "Don't Know",
-        9 => 'Refused',
+        9 => 'Prefers not to answer',
         99 => 'Data not collected',
       }.freeze
     end
@@ -2019,19 +2071,21 @@ module Concerns::HudLists2024
     end
 
     # race
-    def races
+    def race_field_name_to_description
       {
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous',
         'Asian' => 'Asian or Asian American',
         'BlackAfAmerican' => 'Black, African American, or African',
         'NativeHIPacific' => 'Native Hawaiian or Pacific Islander',
         'White' => 'White',
-        'RaceNone' => "Doesn't Know, refused, or not collected",
+        'HispanicLatinaeo' => 'Hispanic/Latina/e/o',
+        'MidEastNAfrican' => 'Middle Eastern or North African',
+        'RaceNone' => "Doesn't know, prefers not to answer, or not collected",
       }.freeze
     end
 
     def race(id, reverse = false)
-      _translate races, id, reverse
+      _translate race_field_name_to_description, id, reverse
     end
   end
 end

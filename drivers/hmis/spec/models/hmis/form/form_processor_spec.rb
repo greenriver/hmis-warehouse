@@ -397,6 +397,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'DisabilityGroup.chronicHealthCondition' => 'YES',
         'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => 'NO',
         'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.tCellCountAvailable' => 'YES',
         'DisabilityGroup.mentalHealthDisorder' => 'NO',
         'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
         'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => 'YES',
@@ -418,6 +419,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
+      # HIV/AIDS
+      expect(disabilities.find_by(disability_type: 8).disability_response).to eq(1)
+      expect(disabilities.find_by(disability_type: 8).t_cell_count_available).to eq(1)
     end
 
     it 'can process nil and _HIDDEN DisabilityGroup fields' do
@@ -426,7 +430,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'DisabilityGroup.physicalDisability' => nil,
         'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => HIDDEN,
         'DisabilityGroup.developmentalDisability' => 'NO',
-        'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => HIDDEN,
         'DisabilityGroup.chronicHealthCondition' => 'YES',
         'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => nil,
         'DisabilityGroup.hivAids' => nil,
@@ -448,7 +451,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to be_nil # hidden is saved as nil
       # Developmental Disability
       expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
-      expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil # hidden is saved as nil
       # Substance Use
       expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
       expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
@@ -550,6 +552,72 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       expect(assessment.enrollment.exit).to be_present
       expect(assessment.enrollment.exit.destination).to eq(18)
+    end
+
+    it 'processes aftercare and counseling multi-select fields correctly' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.form_processor.hud_values = {
+        'Exit.exitDate' => assessment.enrollment.entry_date + 7.days,
+        'Exit.destination' => 'SAFE_HAVEN',
+        'Exit.aftercareMethods' => ['VIA_EMAIL_SOCIAL', 'IN_PERSON_1_ON_1'],
+        'Exit.counselingMethods' => ['INDIVIDUAL', 'FAMILY'],
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.save!
+      assessment.save!
+      assessment.reload
+
+      expect(assessment.enrollment.exit.aftercare_methods).to eq([1, 3])
+      expect(assessment.enrollment.exit.email_social_media).to eq(1)
+      expect(assessment.enrollment.exit.telephone).to eq(0)
+      expect(assessment.enrollment.exit.in_person_individual).to eq(1)
+      expect(assessment.enrollment.exit.in_person_group).to eq(0)
+
+      expect(assessment.enrollment.exit.counseling_methods).to eq([1, 2])
+      expect(assessment.enrollment.exit.individual_counseling).to eq(1)
+      expect(assessment.enrollment.exit.family_counseling).to eq(1)
+      expect(assessment.enrollment.exit.group_counseling).to eq(0)
+
+      assessment.form_processor.hud_values = {
+        'Exit.exitDate' => assessment.enrollment.entry_date + 7.days,
+        'Exit.destination' => 'SAFE_HAVEN',
+        'Exit.aftercareMethods' => [],
+        'Exit.counselingMethods' => [],
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.save!
+      assessment.save!
+      assessment.reload
+
+      expect(assessment.enrollment.exit).to be_present
+      expect(assessment.enrollment.exit.aftercare_methods).to eq([])
+      expect(assessment.enrollment.exit.email_social_media).to eq(99)
+      expect(assessment.enrollment.exit.telephone).to eq(99)
+      expect(assessment.enrollment.exit.in_person_individual).to eq(99)
+      expect(assessment.enrollment.exit.in_person_group).to eq(99)
+      expect(assessment.enrollment.exit.counseling_methods).to eq([])
+
+      assessment.form_processor.hud_values = {
+        'Exit.exitDate' => assessment.enrollment.entry_date + 7.days,
+        'Exit.destination' => 'SAFE_HAVEN',
+        'Exit.aftercareMethods' => HIDDEN,
+        'Exit.counselingMethods' => HIDDEN,
+      }
+
+      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.save!
+      assessment.save!
+      assessment.reload
+
+      expect(assessment.enrollment.exit).to be_present
+      expect(assessment.enrollment.exit.aftercare_methods).to eq([])
+      expect(assessment.enrollment.exit.email_social_media).to be_nil
+      expect(assessment.enrollment.exit.telephone).to be_nil
+      expect(assessment.enrollment.exit.in_person_individual).to be_nil
+      expect(assessment.enrollment.exit.in_person_group).to be_nil
+      expect(assessment.enrollment.exit.counseling_methods).to eq([])
     end
 
     it 'updates enrollment entry date when appropriate' do

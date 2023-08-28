@@ -32,6 +32,8 @@ class AcHmisStubApplication
         return update_referral_request
       when /\/api\/Referral\/PostingStatus/
         return update_referral_posting_status
+      when /\/api\/Unit\/Capacity/
+        return update_unit_capacity
       end
     when 'GET'
       case path
@@ -55,6 +57,10 @@ class AcHmisStubApplication
 
   def update_referral_posting_status
     [201, json_headers, [{ postings: [] }.to_json]]
+  end
+
+  def update_unit_capacity
+    [200, json_headers, [{ success: true }.to_json]]
   end
 
   def update_referral_request

@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
+gem 'activesupport', '>= 6.1.7.5' # CVE-2023-38037
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
 gem 'rack', '>= 2.2.6.3'
 gem 'rexml'
@@ -80,6 +81,7 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 gem 'rack-cors'
+gem 'doorkeeper'
 
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
@@ -134,7 +136,7 @@ gem 'babel-transpiler'
 # gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
-gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
+# gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
 gem 'linefit'
 gem 'jquery-minicolors-rails'
 gem 'htmlentities'
@@ -174,7 +176,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 4.3.11'
+gem 'puma', '~> 6.3'
 
 gem 'dotenv-rails'
 

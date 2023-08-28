@@ -84,7 +84,7 @@ class RollOut
 
     if target_group_name.match?(/production|prd/)
       self.rails_env = 'production'
-    elsif target_group_name.match?(/staging|stg/)
+    elsif target_group_name.match?(/staging|stg|training/)
       self.rails_env = 'staging'
     else
       raise 'Cannot figure out environment from target_group_name!'

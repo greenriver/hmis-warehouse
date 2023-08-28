@@ -18,7 +18,6 @@ module Types
     # we might need to apply filter. Probably the filtering should get moved to it's own
     # class down the road
     def definition
-      # the col is jsonb... somehow we get a string here?
       eval_items([object.definition])[0]
     end
 
@@ -27,6 +26,10 @@ module Types
     # @param items [Array<Hash>]
     # @return items [Array<Hash>]
     def eval_items(items)
+      # Comment in to disable rule filtering, to help with
+      # testing all available form items
+      # return items if Rails.env.development?
+
       items.filter do |item|
         if eval_rule(item['rule'])
           if item['item']
@@ -54,9 +57,15 @@ module Types
       when 'EQUAL'
         # { variable: 'projectType', operator: 'EQUAL', value: 1 }
         eval_var(rule.fetch('variable')) == rule.fetch('value')
+      when 'NOT_EQUAL'
+        # { variable: 'projectType', operator: 'NOT_EQUAL', value: 1 }
+        eval_var(rule.fetch('variable')) != rule.fetch('value')
       when 'INCLUDE'
         # { variable: 'projectFunders', operator: 'INCLUDE', value: 1 }
         eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
+      when 'NOT_INCLUDE'
+        # { variable: 'projectFunders', operator: 'NOT_INCLUDE', value: 1 }
+        eval_var_multi(rule.fetch('variable')).exclude?(rule.fetch('value'))
       when 'ANY'
         # { operator: 'ANY', parts: [ ... ] },
         rule.fetch('parts').any? { |r| eval_rule(r) }
@@ -75,7 +84,7 @@ module Types
       when 'projectType'
         project&.project_type
       else
-        raise "unknown variable #{key}"
+        raise "unknown variable for eval_var #{key}"
       end
     end
 
@@ -85,10 +94,12 @@ module Types
       case key
       when 'projectFunders'
         project_funders.map { |f| f.funder&.to_i }.compact_blank
+      when 'projectFunderComponents'
+        project_funders.map { |f| HudUtility2024.funder_component(f.funder&.to_i) }.compact_blank
       when 'projectOtherFunders'
         project_funders.map(&:other_funder).compact_blank
       else
-        raise "unknown variable #{key}"
+        raise "unknown variable for eval_var_multi #{key}"
       end
     end
 
@@ -96,8 +107,17 @@ module Types
       object.filter_context&.fetch(:project, nil)
     end
 
+    # Context can optionally include an "active date", so that funder-based rules
+    # only consider funders that are active on the specified date.
+    def active_date
+      object.filter_context&.fetch(:active_date, nil) || Date.current
+    end
+
     def project_funders
-      project ? load_ar_association(project, :funders) : []
+      return [] unless project.present?
+
+      funders = load_ar_association(project, :funders)
+      funders.to_a.select { |f| f.active_on?(active_date) }
     end
   end
 end

@@ -1,0 +1,5 @@
+%tr
+  %td
+    = render 'event_icon', key: key, name: values[:name], icon: values[:icon]
+  %td
+    %strong= project[:move_in_dates]&.last&.to_date

@@ -29,7 +29,7 @@ module
 
     # @return filtered scope
     def report_scope(all_project_types: false, include_date_range: true)
-      filter.apply(report_scope_source, all_project_types: all_project_types, include_date_range: include_date_range)
+      filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types, include_date_range: include_date_range)
     end
 
     def report_scope_source

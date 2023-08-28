@@ -4,7 +4,23 @@
       "fragment": "#entry"
     },
     {
-      "fragment": "#prior_living_situation"
+      "fragment": "#prior_living_situation_a"
+    },
+    {
+      "fragment": "#prior_living_situation_b"
+    },
+    {
+      "fragment": "#rhy_enrollment_entry"
+    },
+    {
+      "fragment": "#v6_vamc_station_number",
+      "text": "Veteran Info"
+    },
+    {
+      "fragment": "#c3_youth_education_status"
+    },
+    {
+      "fragment": "#r4_r5_r6_employment_education"
     },
     {
       "fragment": "#income_and_sources"
@@ -20,12 +36,6 @@
     },
     {
       "fragment": "#health_and_dv"
-    },
-    {
-      "fragment": "#youth_education_status"
-    },
-    {
-      "fragment": "#employment_education"
     }
   ]
 }
