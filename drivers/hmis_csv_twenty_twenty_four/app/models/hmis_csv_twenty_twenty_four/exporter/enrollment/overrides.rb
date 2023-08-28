@@ -27,8 +27,6 @@ module HmisCsvTwentyTwentyFour::Exporter
       # NOTE: RelationshipToHoH changes must come before HouseholdID
       row = fix_relationship_to_hoh(row)
       row = fix_household_id(row)
-      row = fix_last_permanent_zip(row)
-      row = fix_last_permanent_city(row)
       row = assign_move_in_date(row)
 
       row
@@ -47,18 +45,6 @@ module HmisCsvTwentyTwentyFour::Exporter
       else
         row.HouseholdID = Digest::MD5.hexdigest("#{row.data_source_id}_#{row.ProjectID}_#{row.HouseholdID}")
       end
-
-      row
-    end
-
-    def self.fix_last_permanent_zip(row)
-      row.LastPermanentZIP = row.LastPermanentZIP.to_s[0...5] if row.LastPermanentZIP.present?
-
-      row
-    end
-
-    def self.fix_last_permanent_city(row)
-      row.LastPermanentCity = row.LastPermanentCity.to_s[0...50] if row.LastPermanentCity.present?
 
       row
     end
