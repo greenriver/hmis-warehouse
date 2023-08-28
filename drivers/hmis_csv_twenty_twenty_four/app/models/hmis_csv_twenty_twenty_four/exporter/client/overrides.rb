@@ -30,25 +30,34 @@ module HmisCsvTwentyTwentyFour::Exporter
       row = apply_length_limits(row)
       row = apply_hash_status(row, export)
       row = enforce_gender_none(row)
+      row = enforce_race_none(row)
+
       [
         :NameDataQuality,
         :SSNDataQuality,
         :DOBDataQuality,
-        :Female,
-        :Male,
-        :NoSingleGender,
-        :Transgender,
-        :Questioning,
-        :VeteranStatus,
-        :AmIndAKNative,
-        :Asian,
-        :BlackAfAmerican,
-        :NativeHIPacific,
-        :White,
-        :Ethnicity,
         :VeteranStatus,
       ].each do |hud_field|
         row = replace_blank(row, hud_field: hud_field, default_value: 99)
+      end
+
+      [
+        :Woman,
+        :Man,
+        :NonBinary,
+        :CulturallySpecific,
+        :Transgender,
+        :Questioning,
+        :DifferentIdentity,
+        :AmIndAKNative,
+        :Asian,
+        :BlackAfAmerican,
+        :HispanicLatinaeo,
+        :MidEastNAfrican,
+        :NativeHIPacific,
+        :White,
+      ].each do |hud_field|
+        row = replace_blank(row, hud_field: hud_field, default_value: 0)
       end
 
       row
@@ -80,16 +89,35 @@ module HmisCsvTwentyTwentyFour::Exporter
     end
 
     def self.enforce_gender_none(row)
-      # GenderNone should be 99 if it was blank and all other gender columns are blank, 0, or 99
+      # GenderNone should be 99 if it was blank and all other gender columns are blank or 0
       gender_columns = [
-        :Female,
-        :Male,
-        :NoSingleGender,
+        :Woman,
+        :Man,
+        :NonBinary,
+        :CulturallySpecific,
         :Transgender,
         :Questioning,
+        :DifferentIdentity,
       ]
-      any_genders = gender_columns.map { |c| ! row[c].in?([nil, 99, 0]) }.any?
+      any_genders = gender_columns.map { |c| ! row[c].in?([nil, 0]) }.any?
       row.GenderNone ||= 99 unless any_genders
+
+      row
+    end
+
+    def self.enforce_race_none(row)
+      # RaceNone should be 99 if it was blank and all other gender columns are blank or 0
+      race_columns = [
+        :AmIndAKNative,
+        :Asian,
+        :BlackAfAmerican,
+        :HispanicLatinaeo,
+        :MidEastNAfrican,
+        :NativeHIPacific,
+        :White,
+      ]
+      any_races = race_columns.map { |c| ! row[c].in?([nil, 0]) }.any?
+      row.RaceNone ||= 99 unless any_races
 
       row
     end
