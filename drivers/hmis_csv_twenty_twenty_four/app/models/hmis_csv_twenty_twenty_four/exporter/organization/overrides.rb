@@ -35,8 +35,9 @@ module HmisCsvTwentyTwentyFour::Exporter
         row.OrganizationName = GrdaWarehouse::Hud::Organization.confidential_organization_name
         row.OrganizationCommonName = row.OrganizationName
       end
+      row.OrganizationName = row.OrganizationName[0..200] if row.OrganizationName.present?
       row.OrganizationCommonName = row.OrganizationName if row.OrganizationCommonName.blank?
-      row.OrganizationCommonName = row.OrganizationCommonName[0...50] if row.OrganizationCommonName.present?
+      row.OrganizationCommonName = row.OrganizationCommonName[0...200] if row.OrganizationCommonName.present?
 
       row
     end
