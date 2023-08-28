@@ -50,7 +50,7 @@
           "required": true,
           "pick_list_reference": "RentalSubsidyType",
           "mapping": {
-            "field_name": "CLSSubsidyType"
+            "field_name": "clsSubsidyType"
           },
           "enable_behavior": "ALL",
           "enable_when": [

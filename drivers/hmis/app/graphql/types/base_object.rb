@@ -33,10 +33,6 @@ module Types
       @audit_event_type ||= BaseAuditEvent.build(self, **args)
     end
 
-    def resolve_null_enum(value)
-      value == ::HudUtility2024.ignored_enum_value ? nil : value
-    end
-
     def self.dynamic_define_class(dynamic_name, &block)
       if Object.const_defined?(dynamic_name)
         Object.const_get(dynamic_name)

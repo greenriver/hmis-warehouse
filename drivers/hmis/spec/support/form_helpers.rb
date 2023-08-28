@@ -230,7 +230,7 @@ module FormHelpers
       hud_values: {
         'informationDate' => '2023-07-27',
         'currentLivingSituation' => 'FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME',
-        'CLSSubsidyType' => '_HIDDEN',
+        'clsSubsidyType' => '_HIDDEN',
         'leaveSituation14Days' => 'YES',
         'subsequentResidence' => 'NO',
         'resourcesToObtain' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
