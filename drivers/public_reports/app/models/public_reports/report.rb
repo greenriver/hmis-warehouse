@@ -92,6 +92,7 @@ module PublicReports
         :organization_ids,
         :data_source_ids,
         :project_type_numbers,
+        :project_group_ids,
         :hoh_only,
       ]
     end
