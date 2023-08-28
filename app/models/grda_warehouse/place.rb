@@ -25,8 +25,14 @@ module GrdaWarehouse
         place = @places[key] = begin
           nr = nominatim_lookup(query, city, state, postalcode, country)
           if nr.present?
-            lat_lon = { lat: nr.lat, lon: nr.lon, bounds: nr.boundingbox }.with_indifferent_access
-            Place.create!(location: key, lat_lon: lat_lon) if nr.present?
+            lat_lon = { lat: nr.coordinates.first, lon: nr.coordinates.last, bounds: nr.boundingbox }.with_indifferent_access
+            Place.create!(
+              location: key,
+              lat_lon: lat_lon,
+              city: nr.town,
+              state: nr.state,
+              zipcode: nr.postal_code,
+            )
           end
         end
       end
@@ -34,19 +40,16 @@ module GrdaWarehouse
     rescue NominatimApiPaused
       return nil
     rescue StandardError
-      send_single_notification('Error contacting the OSM Nominatim API.')
+      send_single_notification('Error contacting the OSM Nominatim API.', 'NominatimWarning')
     end
 
     def self.nominatim_lookup(query, city, state, postalcode, country)
       raise NominatimApiPaused if Rails.cache.read(['Nominatim', 'API PAUSE'])
 
-      n = Nominatim.search(query)
-      n = n.city(city) if city.present?
-      n = n.state(state) if state.present?
-      n = n.postalcode(postalcode) if postalcode.present?
-      n = n.country(country) if country.present?
+      address = [query, city, state, postalcode, country].compact.join(',')
+      n = Geocoder.search(address)
 
-      # Limit Nominatim calls to 1 per second
+      # Limit calls to 1 per second (we are defaulting to using Nominatim, and this is their policy)
       @rate_limit ||= Time.new(0)
       sleep 1 if (Time.current - @rate_limit) < 1
       result = n.first

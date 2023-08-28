@@ -278,6 +278,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
+      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
+      Event: Hmis::Hud::Processors::CeEventProcessor,
     }.freeze
   end
 

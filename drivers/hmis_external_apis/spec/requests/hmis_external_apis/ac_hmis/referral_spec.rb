@@ -38,7 +38,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         {
           mci_id: mci_id,
           # make the first client the hoh
-          relationship_to_hoh: ::HudUtility.hud_list_map_as_enumerable(:relationships_to_hoh).fetch(relationship_to_hoh),
+          relationship_to_hoh: ::HudUtility2024.hud_list_map_as_enumerable(:relationships_to_hoh).fetch(relationship_to_hoh),
           first_name: client.first_name,
           middle_name: client.middle_name,
           last_name: client.last_name,

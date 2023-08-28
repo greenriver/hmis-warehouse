@@ -348,6 +348,68 @@
     ]
   },
   {
+    "name": "ProjectTypeBrief",
+    "code": "2.02.6.brief",
+    "values": [
+      {
+        "key": 0,
+        "description": "ES - Entry/Exit"
+      },
+      {
+        "key": 1,
+        "description": "ES - NBN"
+      },
+      {
+        "key": 2,
+        "description": "TH"
+      },
+      {
+        "key": 3,
+        "description": "PH - PSH"
+      },
+      {
+        "key": 4,
+        "description": "SO"
+      },
+      {
+        "key": 6,
+        "description": "SSO"
+      },
+      {
+        "key": 8,
+        "description": "SH"
+      },
+      {
+        "key": 9,
+        "description": "PH - PH"
+      },
+      {
+        "key": 7,
+        "description": "Other"
+      },
+      {
+        "key": 10,
+        "description": "PH - OPH"
+      },
+      {
+        "key": 11,
+        "description": "Day Shelter"
+      },
+      {
+        "key": 12,
+        "description": "HP"
+      },
+      {
+        "key": 13,
+        "description": "PH - RRH"
+      },
+      {
+        "key": 14,
+        "description": "CE"
+      }
+    ]
+  },
+  {
     "name": "RRHSubType",
     "code": "2.02.A",
     "values": [
@@ -987,15 +1049,19 @@
     "values": [
       {
         "key": 0,
-        "description": "Female"
+        "description": "Woman (Girl, if child)"
       },
       {
         "key": 1,
-        "description": "Male"
+        "description": "Man (Boy, if child)"
+      },
+      {
+        "key": 2,
+        "description": "Culturally Specific Identity (e.g., Two-Spirit)"
       },
       {
         "key": 4,
-        "description": "A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)"
+        "description": "Non-Binary"
       },
       {
         "key": 5,
@@ -1004,6 +1070,10 @@
       {
         "key": 6,
         "description": "Questioning"
+      },
+      {
+        "key": 3,
+        "description": "Different Identity"
       },
       {
         "key": 8,
@@ -4421,7 +4491,7 @@
       },
       {
         "key": 9,
-        "description": "Refused"
+        "description": "Prefers not to answer"
       },
       {
         "key": 99,
@@ -4454,8 +4524,16 @@
         "description": "White"
       },
       {
+        "key": "HispanicLatinaeo",
+        "description": "Hispanic/Latina/e/o"
+      },
+      {
+        "key": "MidEastNAfrican",
+        "description": "Middle Eastern or North African"
+      },
+      {
         "key": "RaceNone",
-        "description": "Doesn't Know, refused, or not collected"
+        "description": "Doesn't know, prefers not to answer, or not collected"
       }
     ]
   }

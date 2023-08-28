@@ -44,12 +44,9 @@ module Types
     end
 
     def client_omni_search(text_search:)
-      client_scope = Hmis::Hud::Client.searchable_to(current_user).
+      Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
-        includes(:enrollments).
-        order(qualified_column(e_t[:date_updated]))
-
-      resolve_clients(client_scope, no_sort: true)
+        sort_by_option(:recently_added)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do

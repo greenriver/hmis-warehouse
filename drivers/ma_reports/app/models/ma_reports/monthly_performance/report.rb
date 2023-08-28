@@ -294,10 +294,10 @@ module MaReports::MonthlyPerformance
           key: key,
           count: enrollments_for(*key).count,
         }
-        HudUtility.gender_id_to_field_name.
+        HudUtility2024.gender_id_to_field_name.
           reject { |k, _| k.in?([8, 9, 99]) }.
           each do |gender_id, gender_column|
-            label = HudUtility.gender(gender_id)
+            label = HudUtility2024.gender(gender_id)
             key = ['Gender', gender_column]
             breakdowns["Gender: #{label}"] = {
               key: key,
@@ -354,7 +354,7 @@ module MaReports::MonthlyPerformance
 
         enrollments.where(ethnicity: sub_key.to_i)
       when 'Gender'
-        return enrollments.none unless HudUtility.gender_id_to_field_name.value?(sub_key)
+        return enrollments.none unless HudUtility2024.gender_id_to_field_name.value?(sub_key)
 
         enrollments.where(sub_key.to_s.underscore => true)
       when 'DisablingCondition'
@@ -391,7 +391,7 @@ module MaReports::MonthlyPerformance
         label = HudUtility.ethnicity(sub_key.to_i)
         "#{key}: #{label}"
       when 'Gender'
-        label = HudUtility.gender(sub_key.to_i)
+        label = HudUtility2024.gender(sub_key.to_i)
         "#{key}: #{label}"
       when 'DisablingCondition'
         'Disabling Condition'

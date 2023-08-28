@@ -10,7 +10,7 @@ module
   included do
     def gender_detail_hash
       {}.tap do |hashes|
-        HudUtility.genders.each do |key, title|
+        HudUtility2024.genders.each do |key, title|
           hashes["gender_#{key}"] = {
             title: "Gender - #{title}",
             headers: client_headers,
@@ -55,7 +55,7 @@ module
       rows['_Gender Break'] ||= []
       rows['*Gender Breakdowns'] ||= []
       rows['*Gender Breakdowns'] += ['Gender', nil, 'Count', 'Percentage', nil]
-      HudUtility.genders.each do |id, title|
+      HudUtility2024.genders.each do |id, title|
         rows["_Gender Breakdowns_data_#{title}"] ||= []
         rows["_Gender Breakdowns_data_#{title}"] += [
           title,
@@ -68,7 +68,7 @@ module
       rows['_Gender/Age Breakdowns Break'] ||= []
       rows['*Gender/Age Breakdowns'] ||= []
       rows['*Gender/Age Breakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
-      HudUtility.genders.each do |gender, gender_title|
+      HudUtility2024.genders.each do |gender, gender_title|
         age_categories.each do |age_range, age_title|
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] ||= []
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] += [
@@ -116,12 +116,14 @@ module
         {}.tap do |clients|
           report_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
-            pluck(:client_id, age_calculation, c_t[:Female], c_t[:Male], c_t[:NoSingleGender], c_t[:Transgender], c_t[:Questioning], c_t[:GenderNone], :first_date_in_program).
-            each do |client_id, age, female, male, no_single_gender, transgender, questioning, gender_none, _|
+            pluck(:client_id, age_calculation, c_t[:Woman], c_t[:Man], c_t[:NonBinary], c_t[:CulturallySpecific], c_t[:DifferentIdentity], c_t[:Transgender], c_t[:Questioning], c_t[:GenderNone], :first_date_in_program).
+            each do |client_id, age, woman, man, culturally_specific, different_identity, non_binary, transgender, questioning, gender_none, _| # rubocop:disable Metrics/ParameterLists
               genders = {
-                Male: male,
-                Female: female,
-                NoSingleGender: no_single_gender,
+                Man: man,
+                Woman: woman,
+                CulturallySpecific: culturally_specific,
+                DifferentIdentity: different_identity,
+                NonBinary: non_binary,
                 Transgender: transgender,
                 Questioning: questioning,
                 GenderNone: gender_none,

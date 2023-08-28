@@ -37,7 +37,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   accepts_nested_attributes_for :projects
 
   scope :importable, -> do
-    source.where(authoritative: false, hmis: nil)
+    # Authoritative data sources are not importable. There is a temporary exception for HMIS data sources,
+    # since they need to continue to accept imports during the migration phase. (PT #185835773)
+    source.where(arel_table[:authoritative].eq(false).or(arel_table[:hmis].not_eq(nil)))
   end
 
   scope :source, -> do
@@ -446,6 +448,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def project_count
     projects.joins(:organization).count
+  end
+
+  def hmis?
+    hmis.present?
   end
 
   private def maintain_system_group

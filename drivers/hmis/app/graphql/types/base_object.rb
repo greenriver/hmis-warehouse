@@ -53,7 +53,7 @@ module Types
     end
 
     def resolve_null_enum(value)
-      value == ::HudUtility.ignored_enum_value ? nil : value
+      value == ::HudUtility2024.ignored_enum_value ? nil : value
     end
 
     # Use data loader to load an ActiveRecord association.

@@ -27,7 +27,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   has_many :client_projects
   has_many :clients_including_wip, through: :client_projects, source: :client
@@ -85,11 +85,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   scope :open_on_date, ->(date = Date.current) do
-    where(p_t[:operating_end_date].eq(nil).or(p_t[:operating_end_date].gteq(date)))
+    on_or_after_start = p_t[:operating_start_date].lteq(date)
+    on_or_before_end = p_t[:operating_end_date].eq(nil).or(p_t[:operating_end_date].gteq(date))
+    where(on_or_after_start.and(on_or_before_end))
   end
 
   scope :closed_on_date, ->(date = Date.current) do
-    where(p_t[:operating_end_date].lt(date))
+    where(p_t[:operating_end_date].lt(date).or(p_t[:operating_start_date].gt(date)))
   end
 
   scope :with_statuses, ->(statuses) do

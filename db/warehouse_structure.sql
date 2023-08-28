@@ -14634,7 +14634,28 @@ CREATE TABLE public.hmis_dqt_clients (
     ethnicity integer,
     reporting_age integer,
     ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false
+    ch_at_any_entry boolean DEFAULT false,
+    woman integer,
+    man integer,
+    culturally_specific integer,
+    different_identity integer,
+    non_binary integer,
+    hispanic_latinaeo integer,
+    mid_east_n_african integer,
+    spm_hispanic_latinaeo integer,
+    _all_persons__hispanic_latinaeo integer,
+    spm_with_children__hispanic_latinaeo integer,
+    spm_only_children__hispanic_latinaeo integer,
+    spm_without_children__hispanic_latinaeo integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__hispan integer,
+    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
+    spm_mid_east_n_african integer,
+    _all_persons__mid_east_n_african integer,
+    spm_with_children__mid_east_n_african integer,
+    spm_only_children__mid_east_n_african integer,
+    spm_without_children__mid_east_n_african integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer
 );
 
 
@@ -15144,6 +15165,39 @@ CREATE SEQUENCE public.hmis_external_referrals_id_seq
 --
 
 ALTER SEQUENCE public.hmis_external_referrals_id_seq OWNED BY public.hmis_external_referrals.id;
+
+
+--
+-- Name: hmis_external_unit_availability_syncs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_unit_availability_syncs (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    unit_type_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    local_version integer DEFAULT 0 NOT NULL,
+    synced_version integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: hmis_external_unit_availability_syncs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_unit_availability_syncs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_unit_availability_syncs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_unit_availability_syncs_id_seq OWNED BY public.hmis_external_unit_availability_syncs.id;
 
 
 --
@@ -18030,7 +18084,14 @@ CREATE TABLE public.ma_monthly_performance_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    woman boolean,
+    man boolean,
+    culturally_specific boolean,
+    different_identity boolean,
+    non_binary boolean,
+    hispanic_latinaeo boolean,
+    mid_east_n_african boolean
 );
 
 
@@ -18410,7 +18471,10 @@ CREATE TABLE public.places (
     location character varying NOT NULL,
     lat_lon jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    city character varying,
+    state character varying,
+    zipcode character varying
 );
 
 
@@ -21494,7 +21558,14 @@ CREATE TABLE public.system_pathways_clients (
     report_id bigint,
     deleted_at timestamp without time zone,
     days_to_return integer,
-    ce_assessment boolean DEFAULT false NOT NULL
+    ce_assessment boolean DEFAULT false NOT NULL,
+    woman boolean,
+    man boolean,
+    culturally_specific boolean,
+    different_identity boolean,
+    non_binary boolean,
+    hispanic_latinaeo boolean,
+    mid_east_n_african boolean
 );
 
 
@@ -24546,6 +24617,13 @@ ALTER TABLE ONLY public.hmis_external_referral_requests ALTER COLUMN id SET DEFA
 --
 
 ALTER TABLE ONLY public.hmis_external_referrals ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_referrals_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_unit_availability_syncs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_unit_availability_syncs_id_seq'::regclass);
 
 
 --
@@ -27905,6 +27983,14 @@ ALTER TABLE ONLY public.hmis_external_referral_requests
 
 ALTER TABLE ONLY public.hmis_external_referrals
     ADD CONSTRAINT hmis_external_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_unit_availability_syncs hmis_external_unit_availability_syncs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT hmis_external_unit_availability_syncs_pkey PRIMARY KEY (id);
 
 
 --
@@ -45577,6 +45663,20 @@ CREATE INDEX index_hmis_external_referrals_on_enrollment_id ON public.hmis_exter
 
 
 --
+-- Name: index_hmis_external_unit_availability_syncs_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_unit_availability_syncs_on_unit_type_id ON public.hmis_external_unit_availability_syncs USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_external_unit_availability_syncs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_unit_availability_syncs_on_user_id ON public.hmis_external_unit_availability_syncs USING btree (user_id);
+
+
+--
 -- Name: index_hmis_form_instances_on_entity; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51128,6 +51228,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_exter
 
 
 --
+-- Name: uidx_hmis_external_unit_availability_syncs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
+
+
+--
 -- Name: uidx_hmis_project_unit_type_mappings; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52723,6 +52830,14 @@ ALTER TABLE ONLY public.service_history_services_2038
 
 
 --
+-- Name: hmis_external_unit_availability_syncs fk_rails_80312f3d27; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT fk_rails_80312f3d27 FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: Affiliation fk_rails_81babe0602; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -52760,6 +52875,14 @@ ALTER TABLE ONLY public.project_pass_fails_projects
 
 ALTER TABLE ONLY public.project_pass_fails_clients
     ADD CONSTRAINT fk_rails_8455b3472c FOREIGN KEY (project_pass_fail_id) REFERENCES public.project_pass_fails(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_unit_availability_syncs fk_rails_8463fd3c5a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT fk_rails_8463fd3c5a FOREIGN KEY (project_id) REFERENCES public."Project"(id);
 
 
 --
@@ -54120,6 +54243,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230804124734'),
 ('20230804232249'),
 ('20230805224003'),
-('20230817154337');
+('20230817154337'),
+('20230818044939'),
+('20230822183752'),
+('20230824192127');
 
 

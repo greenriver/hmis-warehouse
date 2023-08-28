@@ -44,6 +44,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
+  # FIXME(#185905151) add back "dependent: :destroy"
   has_many :custom_data_elements, as: :owner
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
@@ -148,6 +149,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
   end
 
+  scope :with_open_enrollment_in_project, ->(project_ids) do
+    joins(:projects_including_wip).where(p_t[:id].in(Array.wrap(project_ids)))
+  end
+
+  scope :with_open_enrollment_in_organization, ->(organization_ids) do
+    tuples = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
+    ds_ids = tuples.map(&:first).compact.map(&:to_i).uniq
+    hud_org_ids = tuples.map(&:second)
+    raise 'orgs are in multiple data sources' if ds_ids.size > 1
+
+    joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
+  end
+
   def enrolled?
     enrollments.any?
   end
@@ -174,6 +188,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     :first_name_z_to_a,
     :age_youngest_to_oldest,
     :age_oldest_to_youngest,
+    :recently_added,
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
@@ -183,6 +198,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     first_name_z_to_a: 'First Name: Z-A',
     age_youngest_to_oldest: 'Age: Youngest to Oldest',
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
+    recently_added: 'Recently Added',
   }.freeze
 
   # Unused
@@ -263,6 +279,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ClientFilter.new(input).filter_scope(self)
   end
 
   # fix these so they use DATA_NOT_COLLECTED And the other standard names

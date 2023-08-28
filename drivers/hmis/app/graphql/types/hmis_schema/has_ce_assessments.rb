@@ -22,7 +22,7 @@ module Types
         end
       end
 
-      def ce_resolve_assessments(scope = object.assessments, **args)
+      def resolve_ce_assessments(scope = object.assessments, **args)
         scoped_ce_assessments(scope, **args)
       end
 

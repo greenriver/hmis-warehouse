@@ -33,5 +33,6 @@ module Types
     value 'AVAILABLE_FILE_TYPES'
     value 'ENROLLMENTS_FOR_CLIENT', 'Enrollments for the client, including WIP and Exited.'
     value 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT', 'Open HoH enrollments at the project.'
+    value 'CE_EVENTS', 'Grouped HUD CE Event types'
   end
 end
