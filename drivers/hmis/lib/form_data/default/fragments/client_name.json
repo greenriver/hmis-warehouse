@@ -61,6 +61,7 @@
           "type": "CHOICE",
           "required": false,
           "link_id": "name-dq",
+          "size": "MEDIUM",
           "text": "Name Data Quality",
           "mapping": {
             "record_type": "CLIENT",
