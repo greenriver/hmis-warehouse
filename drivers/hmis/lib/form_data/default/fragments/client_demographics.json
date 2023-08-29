@@ -17,27 +17,21 @@
       "pick_list_reference": "Race"
     },
     {
-      "type": "GROUP",
-      "link_id": "race-conditionals",
-      "item": [
+      "type": "STRING",
+      "required": false,
+      "warn_if_empty": false,
+      "link_id": "race-other",
+      "text": "Additional Race and Ethnicity Detail",
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "additionalRaceEthnicity"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
         {
-          "type": "STRING",
-          "required": false,
-          "warn_if_empty": false,
-          "link_id": "race-other",
-          "text": "Additional Race and Ethnicity Detail",
-          "mapping": {
-            "record_type": "CLIENT",
-            "field_name": "additionalRaceEthnicity"
-          },
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "race",
-              "operator": "ENABLED",
-              "answer_boolean": true
-            }
-          ]
+          "question": "race",
+          "operator": "ENABLED",
+          "answer_boolean": true
         }
       ]
     },
