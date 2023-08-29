@@ -160,7 +160,7 @@ module HmisStructure::Base
     end
 
     def keys_for_migrations(version: hud_csv_version)
-      hmis_configuration(version: version).keys.map(&:to_s) + ['id']
+      hmis_configuration(version: version).keys.map(&:to_s) + ['id', 'data_source_id']
     end
 
     HMIS_STRUCTURE_KEYS = [:type, :limit, :null].freeze
