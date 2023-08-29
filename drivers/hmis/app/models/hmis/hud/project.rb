@@ -15,6 +15,20 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
+
+  # Affiliations to residential projects. This should only be present if this project is SSO or RRH Services Only.
+  has_many :affiliations, **hmis_relation(:ProjectID, 'Affiliation'), inverse_of: :project
+  # Affiliations to SSO/RRH SSO projects. This should only be present if this project is residential.
+  # NOTE: you can't use hmis_relation for residential project, the keys don't match
+  has_many :residential_affiliations, class_name: 'Hmis::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ResProjectID', :data_source_id]
+
+  # Affiliated SSO/RRH SSO projects
+  has_many :affiliated_projects, through: :residential_affiliations, source: :project
+  # Affiliated residential projects
+  has_many :residential_projects, through: :affiliations
+
+  has_many :hmis_participations, **hmis_relation(:ProjectID, 'HmisParticipation'), inverse_of: :project, dependent: :destroy
+  has_many :ce_participations, **hmis_relation(:ProjectID, 'CeParticipation'), inverse_of: :project, dependent: :destroy
   # Enrollments in this Project, NOT including WIP Enrollments
   has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
   # WIP records representing Enrollments for this Project
@@ -36,7 +50,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+  accepts_nested_attributes_for :custom_data_elements, :affiliations, allow_destroy: true
 
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
@@ -155,7 +169,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     {
       code: id,
       label: project_name,
-      secondary_label: HudUtility.project_type_brief(project_type),
+      secondary_label: HudUtility2024.project_type_brief(project_type),
       group_label: organization.organization_name,
       group_code: organization.id,
     }

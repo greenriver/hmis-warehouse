@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::EmploymentEducation < Types::BaseObject
     def self.configuration
-      Hmis::Hud::EmploymentEducation.hmis_configuration(version: '2022')
+      Hmis::Hud::EmploymentEducation.hmis_configuration(version: '2024')
     end
 
     description 'HUD Employment Education'

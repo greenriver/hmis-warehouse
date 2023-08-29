@@ -1512,7 +1512,7 @@ CREATE TABLE public."Enrollment" (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation" integer,
+    "VAMCStation_deleted" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -1569,7 +1569,8 @@ CREATE TABLE public."Enrollment" (
     "RentalSubsidyType" integer,
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
-    "PreferredLanguageDifferent" character varying
+    "PreferredLanguageDifferent" character varying,
+    "VAMCStation" character varying
 );
 
 
@@ -2982,6 +2983,25 @@ CREATE SEQUENCE public.available_file_tags_id_seq
 --
 
 ALTER SEQUENCE public.available_file_tags_id_seq OWNED BY public.available_file_tags.id;
+
+
+--
+-- Name: bi_Organization; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public."bi_Organization" AS
+ SELECT "Organization".id AS "OrganizationID",
+    "Organization"."OrganizationName",
+    "Organization"."VictimServicesProvider",
+    "Organization"."OrganizationCommonName",
+    "Organization"."DateCreated",
+    "Organization"."DateUpdated",
+    "Organization"."UserID",
+    "Organization"."DateDeleted",
+    "Organization"."ExportID",
+    "Organization".data_source_id
+   FROM public."Organization"
+  WHERE ("Organization"."DateDeleted" IS NULL);
 
 
 --
@@ -18805,7 +18825,7 @@ CREATE VIEW public.report_enrollments AS
     "Enrollment"."CoercedToContinueWork",
     "Enrollment"."LaborExploitPastThreeMonths",
     "Enrollment"."HPScreeningScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -53147,6 +53167,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230818044939'),
 ('20230822200902'),
 ('20230824192127'),
-('20230827232228');
+('20230827232228'),
+('20230828180700'),
+('20230828180743'),
+('20230828180842');
 
 

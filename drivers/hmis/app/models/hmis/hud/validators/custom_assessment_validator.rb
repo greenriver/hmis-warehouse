@@ -18,7 +18,7 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
   ].freeze
 
   def configuration
-    Hmis::Hud::CustomAssessment.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::CustomAssessment.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   # Validate assessment date
