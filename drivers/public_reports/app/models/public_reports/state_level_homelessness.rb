@@ -822,12 +822,14 @@ module PublicReports
     end
 
     private def gender_breakdowns
+      # NOTE: only minorly updating this for now.  Since these are published publicly, we'll wait until we
+      # have better direction on the scope of what's desired
       setup = {
-        'Female' => GrdaWarehouse::Hud::Client.gender_female,
-        'Male' => GrdaWarehouse::Hud::Client.gender_male,
+        'Woman' => GrdaWarehouse::Hud::Client.gender_woman,
+        'Man' => GrdaWarehouse::Hud::Client.gender_man,
         'Transgender' => GrdaWarehouse::Hud::Client.gender_transgender,
-        'No Single Gender' => GrdaWarehouse::Hud::Client.no_single_gender.or(GrdaWarehouse::Hud::Client.questioning),
-        'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown,
+        'Non-Binary' => GrdaWarehouse::Hud::Client.gender_non_binary,
+        'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown.or(GrdaWarehouse::Hud::Client.questioning),
       }
       {}.tap do |charts|
         iteration_dates.each do |date|
@@ -855,6 +857,8 @@ module PublicReports
     end
 
     private def race_breakdowns
+      # TODO: DEPRECATED_FY2024 need to revisit this since race and ethnicity have been combined.
+      # We need to figure out how we'll represent that given the census data has a different shape.
       setup = {
         'American Indian or Alaska Native' => GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative']),
         'Asian' => GrdaWarehouse::Hud::Client.with_races(['Asian']),
