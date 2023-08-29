@@ -25,7 +25,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2000-01-01' }
-  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true }
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, user: u1, end_date: nil }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500', user: u1 }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
@@ -114,7 +114,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           {
             form_definition_id: definition.id,
             organization_id: o1.id,
-            project_id: p1.id,
+            project_id: role == :ENROLLMENT ? p2.id : p1.id, # use p2 because it has 1 coc code
             enrollment_id: e1.id,
             service_type_id: hmis_hud_service1.custom_service_type_id,
             client_id: c2.id,
@@ -387,7 +387,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       {
         form_definition_id: definition.id,
         **completed_form_values_for_role(:ENROLLMENT),
-        project_id: p1.id,
+        project_id: p2.id,
         client_id: c3.id,
         confirmed: false,
       }
@@ -433,7 +433,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should warn if client already enrolled' do
       input = merge_hud_values(
-        test_input.merge(client_id: e1.client.id),
+        test_input.merge(client_id: e1.client.id, project_id: e1.project.id),
       )
       expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message)
     end
@@ -498,7 +498,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                                              'Client.ssn' => nil,
                                              'Client.ssnDataQuality' => nil,
                                              'Client.race' => [],
-                                             'Client.ethnicity' => nil,
                                              'Client.gender' => [],
                                              'Client.pronouns' => [],
                                              'Client.veteranStatus' => nil })

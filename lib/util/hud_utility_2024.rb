@@ -467,11 +467,6 @@ module HudUtility2024
     HudUtility2024.cocs_in_state(state)
   end
 
-  # This value indicates that the field is null if the column is non-nullable
-  def ignored_enum_value
-    999
-  end
-
   # tranform up hud list for use as an enum
   # {1 => 'Test (this)'} => {'test_this' => 1}
   # @param name [Symbol] method on HudLists

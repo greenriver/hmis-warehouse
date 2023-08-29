@@ -57,6 +57,9 @@ module GrdaWarehouse::Hud
 
     has_many :enrollment_cocs, **hud_assoc(:ProjectID, 'EnrollmentCoc'), inverse_of: :project
 
+    has_many :hmis_participations, **hud_assoc(:ProjectID, 'HmisParticipation'), inverse_of: :project
+    has_many :ce_participations, **hud_assoc(:ProjectID, 'CeParticipation'), inverse_of: :project
+
     # Warehouse Reporting
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_one :current_data_quality_report, -> do

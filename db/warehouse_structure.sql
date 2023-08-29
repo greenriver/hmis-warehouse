@@ -520,6 +520,50 @@ ALTER SEQUENCE public."Assessment_id_seq" OWNED BY public."Assessment".id;
 
 
 --
+-- Name: CEParticipation; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CEParticipation" (
+    id bigint NOT NULL,
+    "CEParticipationID" character varying NOT NULL,
+    "ProjectID" character varying NOT NULL,
+    "AccessPoint" integer NOT NULL,
+    "PreventionAssessment" integer,
+    "CrisisAssessment" integer,
+    "HousingAssessment" integer,
+    "DirectServices" integer,
+    "ReceivesReferrals" integer,
+    "CEParticipationStatusStartDate" date NOT NULL,
+    "CEParticipationStatusEndDate" date,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "UserID" character varying NOT NULL,
+    "ExportID" character varying NOT NULL,
+    data_source_id integer
+);
+
+
+--
+-- Name: CEParticipation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CEParticipation_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CEParticipation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CEParticipation_id_seq" OWNED BY public."CEParticipation".id;
+
+
+--
 -- Name: Client; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1863,7 +1907,8 @@ CREATE TABLE public."Export" (
     "SourceType" integer,
     effective_export_end_date date,
     source_hash character varying,
-    "CSVVersion" character varying
+    "CSVVersion" character varying,
+    "ImplementationID" character varying
 );
 
 
@@ -2163,7 +2208,9 @@ CREATE TABLE public."IncomeBenefits" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "RyanWhiteMedDent" integer,
-    "NoRyanWhiteReason" integer
+    "NoRyanWhiteReason" integer,
+    "VHAServices" integer,
+    "NoVHAReason" character varying
 );
 
 
@@ -22856,6 +22903,13 @@ ALTER TABLE ONLY public."AssessmentResults" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: CEParticipation id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CEParticipation" ALTER COLUMN id SET DEFAULT nextval('public."CEParticipation_id_seq"'::regclass);
+
+
+--
 -- Name: Client id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25951,6 +26005,14 @@ ALTER TABLE ONLY public."AssessmentResults"
 
 ALTER TABLE ONLY public."Assessment"
     ADD CONSTRAINT "Assessment_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CEParticipation CEParticipation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CEParticipation"
+    ADD CONSTRAINT "CEParticipation_pkey" PRIMARY KEY (id);
 
 
 --
@@ -42401,6 +42463,20 @@ CREATE INDEX "index_Assessment_on_pending_date_deleted" ON public."Assessment" U
 
 
 --
+-- Name: index_CEParticipation_on_CEParticipationID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CEParticipation_on_CEParticipationID" ON public."CEParticipation" USING btree ("CEParticipationID");
+
+
+--
+-- Name: index_CEParticipation_on_ProjectID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CEParticipation_on_ProjectID" ON public."CEParticipation" USING btree ("ProjectID");
+
+
+--
 -- Name: index_Client_on_AmIndAKNative; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54243,9 +54319,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230804124734'),
 ('20230804232249'),
 ('20230805224003'),
+('20230815171824'),
 ('20230817154337'),
 ('20230818044939'),
 ('20230822183752'),
+('20230822200902'),
 ('20230824192127');
 
 

@@ -39,7 +39,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should resolve invalid enum values as INVALID enum' do
       p1.update(project_type: 300)
       p1.update(housing_type: 300)
-      p1.update(tracking_method: 300)
       p1.update(residential_affiliation: 50)
       p1.update(continuum_project: 50)
 
@@ -51,7 +50,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'id' => p1.id.to_s,
           'projectType' => 'INVALID',
           'housingType' => 'INVALID',
-          'trackingMethod' => 'INVALID',
           'residentialAffiliation' => 'INVALID',
           'continuumProject' => 'INVALID',
         )

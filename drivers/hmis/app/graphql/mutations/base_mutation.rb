@@ -89,7 +89,7 @@ module Mutations
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
       raise HmisErrors::ApiError, 'Access denied' unless allowed?(record: record, **auth_args)
 
-      record.destroy
+      record.destroy!
       after_delete&.call
 
       {
