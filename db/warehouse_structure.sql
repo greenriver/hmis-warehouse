@@ -47582,6 +47582,13 @@ CREATE INDEX index_shape_states_on_simplified_geom ON public.shape_states USING 
 
 
 --
+-- Name: index_shape_states_on_statefp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_statefp ON public.shape_states USING btree (statefp);
+
+
+--
 -- Name: index_shape_states_on_stusps; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54175,6 +54182,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230815171824'),
 ('20230818044939'),
 ('20230822200902'),
-('20230824192127');
+('20230824192127'),
+('20230829171917');
 
 
