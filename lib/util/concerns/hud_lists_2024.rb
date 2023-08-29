@@ -380,19 +380,6 @@ module Concerns::HudLists2024
       _translate hmis_participation_types, id, reverse
     end
 
-    # 2.7.B
-    def youth_age_groups
-      {
-        1 => 'Only under age 18',
-        2 => 'Only ages 18 to 24',
-        3 => 'Only youth under age 24 (both of the above)',
-      }.freeze
-    end
-
-    def youth_age_group(id, reverse = false)
-      _translate youth_age_groups, id, reverse
-    end
-
     # 3.01.5
     def name_data_quality_options
       {
@@ -661,25 +648,6 @@ module Concerns::HudLists2024
       _translate reason_not_insureds, id, reverse
     end
 
-    # 4.1.1
-    def housing_statuses
-      {
-        1 => 'Category 1 - Homeless',
-        2 => 'Category 2 - At imminent risk of losing housing',
-        3 => 'At-risk of homelessness',
-        4 => 'Stably housed',
-        5 => 'Category 3 - Homeless only under other federal statutes',
-        6 => 'Category 4 - Fleeing domestic violence',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def housing_status(id, reverse = false)
-      _translate housing_statuses, id, reverse
-    end
-
     # 4.10.2
     def disability_responses
       {
@@ -759,30 +727,6 @@ module Concerns::HudLists2024
       _translate bed_night_options, id, reverse
     end
 
-    # 4.18.1
-    def housing_assessment_dispositions
-      {
-        1 => 'Referred to emergency shelter/safe haven',
-        2 => 'Referred to transitional housing',
-        3 => 'Referred to rapid re-housing',
-        4 => 'Referred to permanent supportive housing',
-        5 => 'Referred to homelessness prevention',
-        6 => 'Referred to street outreach',
-        7 => 'Referred to other continuum project type',
-        8 => 'Referred to a homelessness diversion program',
-        9 => 'Unable to refer/accept within continuum; ineligible for continuum projects',
-        10 => 'Unable to refer/accept within continuum; continuum services unavailable',
-        11 => 'Referred to other community project (non-continuum)',
-        12 => 'Applicant declined referral/acceptance',
-        13 => 'Applicant terminated assessment prior to completion',
-        14 => 'Other/specify',
-      }.freeze
-    end
-
-    def housing_assessment_disposition(id, reverse = false)
-      _translate housing_assessment_dispositions, id, reverse
-    end
-
     # 4.19.3
     def assessment_types
       {
@@ -859,184 +803,6 @@ module Concerns::HudLists2024
 
     def referral_result(id, reverse = false)
       _translate referral_results, id, reverse
-    end
-
-    # 4.21.6
-    def service_provideds
-      {
-        0 => 'None',
-        1 => 'Financial Assistance',
-        2 => 'Other Assistance',
-        3 => 'Both Financial & Other Assistance',
-      }.freeze
-    end
-
-    def service_provided(id, reverse = false)
-      _translate service_provideds, id, reverse
-    end
-
-    # 4.21.A
-    def prevention_outcomes
-      {
-        1 => 'Referral to a HP project opening',
-        2 => 'No HP referral – no availability, placed on priority/waiting list',
-        3 => 'No HP referral - determined ineligible',
-        4 => 'Referral to emergency assistance/flex fund/furniture assistance',
-        5 => 'Client declined HP referral',
-        6 => 'Don’t know outcome or outcome pending',
-      }.freeze
-    end
-
-    def prevention_outcome(id, reverse = false)
-      _translate prevention_outcomes, id, reverse
-    end
-
-    # 4.21.E
-    def shelter_outcomes
-      {
-        1 => 'Referral to Diversion project opening',
-        2 => 'Client declined Diversion referral',
-        3 => 'Referral to Emergency Shelter bed opening',
-        4 => 'Client declined shelter referral - street outreach connection made',
-        5 => 'Client declined shelter referral - no connections/referrals',
-        6 => 'Placed on prioritization list',
-        7 => 'No connections/referrals provided',
-        8 => 'Don’t know yet or outcome pending',
-      }.freeze
-    end
-
-    def shelter_outcome(id, reverse = false)
-      _translate shelter_outcomes, id, reverse
-    end
-
-    # 4.21.I
-    def housing_outcomes
-      {
-        1 => 'Referral to Diversion project opening',
-        2 => 'Referral to Transitional Housing bed/unit opening',
-        3 => 'Referral to Joint TH-RRH project/unit opening',
-        4 => 'Referral to RRH project/unit opening',
-        5 => 'Referral to PSH project/unit opening',
-        6 => 'Referral to Other PH project/unit opening',
-        7 => 'Referral to a Housing Stability Voucher',
-        8 => 'Client declined Diversion referral',
-        9 => 'Placed on prioritization list',
-        10 => 'No availability - Provided other housing information',
-        11 => 'Ineligible – Provided other housing information',
-        12 => 'Client declined housing referral',
-        13 => 'Don’t know yet or outcome pending',
-      }.freeze
-    end
-
-    def housing_outcome(id, reverse = false)
-      _translate housing_outcomes, id, reverse
-    end
-
-    # 4.21.M
-    def service_outcomes
-      {
-        1 => 'Maintained housing they had at CE entry',
-        2 => 'Secured other permanent housing',
-        3 => 'Referred back to CE for shelter assessment',
-        4 => 'Referred back to CE for housing assessment',
-        5 => "Don't know yet or outcome pending",
-      }.freeze
-    end
-
-    def service_outcome(id, reverse = false)
-      _translate service_outcomes, id, reverse
-    end
-
-    # 4.33.A
-    def incarcerated_parent_statuses
-      {
-        1 => 'One parent / legal guardian is incarcerated',
-        2 => 'Both parents / legal guardians are incarcerated',
-        3 => 'The only parent / legal guardian is incarcerated',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def incarcerated_parent_status(id, reverse = false)
-      _translate incarcerated_parent_statuses, id, reverse
-    end
-
-    # 4.36.1
-    def exit_actions
-      {
-        0 => 'No',
-        1 => 'Yes',
-        9 => 'Client prefers not to answer',
-      }.freeze
-    end
-
-    def exit_action(id, reverse = false)
-      _translate exit_actions, id, reverse
-    end
-
-    # 4.37.A
-    def early_exit_reasons
-      {
-        1 => 'Left for other opportunities - independent living',
-        2 => 'Left for other opportunities - education',
-        3 => 'Left for other opportunities - military',
-        4 => 'Left for other opportunities - other',
-        5 => 'Needs could not be met by project',
-      }.freeze
-    end
-
-    def early_exit_reason(id, reverse = false)
-      _translate early_exit_reasons, id, reverse
-    end
-
-    # 4.49.1
-    def crisis_services_uses
-      {
-        0 => '0',
-        1 => '1-2',
-        2 => '3-5',
-        3 => '6-10',
-        4 => '11-20',
-        5 => 'More than 20',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def crisis_services_use(id, reverse = false)
-      _translate crisis_services_uses, id, reverse
-    end
-
-    # 4.9.D
-    def path_how_confirmeds
-      {
-        1 => 'Unconfirmed; presumptive or self-report',
-        2 => 'Confirmed through assessment and clinical evaluation',
-        3 => 'Confirmed by prior evaluation or clinical records',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def path_how_confirmed(id, reverse = false)
-      _translate path_how_confirmeds, id, reverse
-    end
-
-    # 4.9.E
-    def pathsmi_informations
-      {
-        0 => 'No',
-        1 => 'Unconfirmed; presumptive or self-report',
-        2 => 'Confirmed through assessment and clinical evaluation',
-        3 => 'Confirmed by prior evaluation or clinical records',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def pathsmi_information(id, reverse = false)
-      _translate pathsmi_informations, id, reverse
     end
 
     # 5.03.1
@@ -1627,6 +1393,21 @@ module Concerns::HudLists2024
 
     def project_completion_status(id, reverse = false)
       _translate project_completion_statuses, id, reverse
+    end
+
+    # R17.A
+    def early_exit_reasons
+      {
+        1 => 'Left for other opportunities - independent living',
+        2 => 'Left for other opportunities - education',
+        3 => 'Left for other opportunities - military',
+        4 => 'Left for other opportunities - other',
+        5 => 'Needs could not be met by project',
+      }.freeze
+    end
+
+    def early_exit_reason(id, reverse = false)
+      _translate early_exit_reasons, id, reverse
     end
 
     # R17.A
