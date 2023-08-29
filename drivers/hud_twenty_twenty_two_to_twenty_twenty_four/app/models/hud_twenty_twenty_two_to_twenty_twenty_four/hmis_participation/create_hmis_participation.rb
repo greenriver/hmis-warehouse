@@ -34,7 +34,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
           participation_type = if victim_service_providers[key] == 1
             2
           else
-            row['HMISParticipatingProject']
+            row['HMISParticipatingProject'].presence || 0
           end
 
           timestamp = Time.current
@@ -44,7 +44,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
             HMISParticipationID: participation_id,
             ProjectID: row['ProjectID'],
             HMISParticipationType: participation_type,
-            HMISParticipationStatusStartDate: row['OperatingStartDate'],
+            HMISParticipationStatusStartDate: row['OperatingStartDate'] || Date.current,
             HMISParticipationStatusEndDate: row['OperatingEndDate'],
             DateCreated: timestamp,
             DateUpdated: timestamp,
