@@ -161,5 +161,56 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     }
   end
 
+  def instances_for_role(role)
+    eligible_instances = Hmis::Form::Instance.
+      for_project_through_entities(self).
+      joins(:definition).
+      where(fd_t[:role].eq(role)).
+      to_a
+
+    # Group by data_collected_about, and choose the most
+    # specific form instance per group.
+    eligible_instances.group_by(&:data_collected_about).values.map do |instance_list|
+      Hmis::Form::Instance.sort_by_specificity(instance_list)
+    end.map(&:first)
+  end
+
+  def data_collection_feature_instances
+    [
+      # any mini form taht only collects 1 value
+      # :OCCURRENCE_POINT,
+      # forms that collect data "at occurrence" but have multiple values over time
+      :CURRENT_LIVING_SITUATION,
+      :SERVICE,
+      :CE_EVENT,
+      :CE_ASSESSMENT,
+      # :FILE ?
+    ].map do |role|
+      # Get the selected instances that would be used for this project.
+      # If there were no matching instances, this feature is not enabled for this project.
+      chosen_instances = instances_for_role(role)
+      next unless chosen_instances.any?
+
+      [role, chosen_instances]
+    end.compact.to_h
+  end
+
+  def data_collection_point_instances
+    instances = Hmis::Form::Instance.
+      for_project_through_entities(self).
+      active.
+      joins(:definition).
+      where(fd_t[:role].eq(:OCCURRENCE_POINT)).
+      to_a
+
+    # Group by definition_identifier, and choose the most
+    # specific form instance per group.
+
+    # FIXME: how to handle data_collected_about? - come back to it
+    instances.group_by(&:definition_identifier).values.map do |instance_list|
+      Hmis::Form::Instance.sort_by_specificity(instance_list)
+    end.map(&:first)
+  end
+
   include RailsDrivers::Extensions
 end

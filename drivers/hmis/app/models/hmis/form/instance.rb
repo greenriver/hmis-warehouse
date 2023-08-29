@@ -19,6 +19,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   # 'system' instances can't be deleted
   scope :system, -> { where(system: true) }
+  scope :not_system, -> { where(system: false) }
 
   scope :active, -> { where(active: true) }
   scope :inactive, -> { where(active: false) }
@@ -29,8 +30,9 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
                      where(
                        entity_type: nil,
                        entity_id: nil,
-                       custom_service_type_id: nil,
-                       custom_service_category_id: nil,
+                       # ok to remove this?
+                       #  custom_service_type_id: nil,
+                       #  custom_service_category_id: nil,
                        funder: nil,
                        other_funder: nil,
                        project_type: nil,
@@ -89,5 +91,38 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     ids += Hmis::Form::Instance.for_project_by_project_type(project.project_type).pluck(:id)
     ids += defaults.pluck(:id)
     where(id: ids)
+  end
+
+  # Sort by specificity group, with a tie-breaker on date updated (more recent preferred)
+  def self.sort_by_specificity(instance_array)
+    instance_array.sort_by do |inst|
+      has_funder = inst.funder.present? || inst.other_funder.present?
+
+      # 1: associated directly to project
+      specificity = if inst.entity_id.present? && inst.entity_type == 'Hmis::Hud::Project'
+        1
+      # 2: associated directly to org
+      elsif inst.entity_id.present? && inst.entity_type == 'Hmis::Hud::Organization'
+        2
+      # 3: associated to project type and funder
+      elsif inst.project_type.present? && has_funder
+        3
+      # 4: associated to funder
+      elsif has_funder
+        4
+      # 5: associated to project_type
+      elsif inst.project_type.present?
+        5
+      # default
+      else
+        1000
+      end
+
+      [
+        inst.active == true ? 0 : 1, # Put active instances before inactive ones
+        specificity, # Put more specific instances first
+        Time.current - inst.updated_at, # Tie breaker: choose more recently updated
+      ]
+    end
   end
 end

@@ -1457,6 +1457,21 @@ enum DataCollectedAbout {
   VETERAN_HOH
 }
 
+type DataCollectionFeature {
+  dataCollectedAbout: [DataCollectedAbout!]!
+  id: ID!
+  legacy: Boolean!
+  legacyDataCollectedAbout: [DataCollectedAbout!]!
+  role: FormRole!
+}
+
+type DataCollectionPoint {
+  dataCollectedAbout: DataCollectedAbout!
+  definition: FormDefinition!
+  id: ID!
+  title: String!
+}
+
 """
 5.03.1
 """
@@ -5501,6 +5516,8 @@ type Project {
   contactInformation: String
   continuumProject: NoYesMissing
   customDataElements: [CustomDataElement!]!
+  dataCollectionFeatures: [DataCollectionFeature!]!
+  dataCollectionPoints: [DataCollectionPoint!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
