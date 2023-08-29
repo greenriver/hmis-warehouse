@@ -11,7 +11,7 @@ module Types
     # Instance id - caching issues with proj? may need to add proj id
     field :id, ID, null: false
     # Title of the form
-    field :title, String, null: false
+    field :title, String, null: false, extras: [:parent]
     # Which clients this data should be collected for
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false
     # Form used for Viewing/Creating/Editing records
@@ -21,8 +21,8 @@ module Types
 
     # TODO: add "title" column to definition.
     # that makes sense as a thing to do when you're creating in a form builder.
-    def title
-      'fix me pls'
+    def title(parent:)
+      definition(parent: parent).title
     end
 
     def data_collected_about
