@@ -162,7 +162,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
 
-  # BEGIN: TEMPORARY - delete when warehouse moves to 2024. These override methods in HudConcerns::Client.
+  # DEPRECATED_FY2024 - delete when warehouse moves to 2024. These override methods in HudConcerns::Client.
   def race_fields
     HudUtility2024.races.keys.select { |f| send(f).to_i == 1 }
   end
@@ -178,7 +178,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
     end
   end
-  # END: TEMPORARY - delete when warehouse moves to 2024
+  # DEPRECATED_FY2024 - delete when warehouse moves to 2024
 
   def enrolled?
     enrollments.any?
