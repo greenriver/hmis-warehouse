@@ -25,7 +25,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
   end
 
   def self.enrollment_conflict_message
-    'overlaps with another enrollment for this client and project'
+    'Exit Date conflicts with another enrollment for this client and project'
   end
 
   def self.validate_exit_date(exit, household_members: nil, options: {})
@@ -44,6 +44,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     errors.add :exit_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > exit_date
     errors.add :exit_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if exit_date < (Date.today - 30.days)
     errors.add :exit_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > exit_date
+    return errors.errors if errors.any?
 
     conflict_scope = enrollment.project
       .enrollments_including_wip
@@ -51,8 +52,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
       .with_conflicting_dates(entry_date...exit_date)
 
     conflict_scope = conflict_scope.where.not(id: enrollment.id) if enrollment.persisted?
-    errors.add(:exit_date, :out_or_range, full_message: enrollment_conflict_message) if conflict_scope.any?
-    return errors.errors if errors.any?
+    errors.add(:exit_date, :out_or_range, severity: :warning, full_message: enrollment_conflict_message) if conflict_scope.any?
 
     if household_members.size > 1
       member_exit_dates ||= household_members.map(&:exit_date).compact

@@ -30,7 +30,31 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
   end
 
   def self.already_enrolled_full_message
-    'Client is already enrolled in this project.'
+    'Client has another enrollment in this project that conflicts with this entry date.'
+  end
+
+  def self.find_conflict_severity(enrollment)
+    conflict_scope = enrollment.project
+      .enrollments_including_wip
+      .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
+      .with_conflicting_dates(enrollment.entry_date...enrollment.exit_date)
+
+    if enrollment.persisted?
+      # If the entry date is being changed on an EXISTING enrollment, and it overlaps with another one, it should be a warning
+      conflict_scope = conflict_scope.where.not(id: enrollment.id)
+      return :warning if conflict_scope.any?
+    else
+      min_conflict_date = conflict_scope.minimum(:entry_date)
+      if min_conflict_date
+        # If the entry date is being set on a NEW enrollment, and the entry date is on or after the entry date of any conflicting enrollments, it should be an error.
+        if enrollment.entry_date >= min_conflict_date
+          return :error
+        # if the entry date is being set on a NEW enrollment, and the entry date is before the entry date of any conflicting enrollments, it should be a warning
+        elsif enrollment.entry_date < min_conflict_date
+          return :warning
+        end
+      end
+    end
   end
 
   def self.validate_entry_date(enrollment, household_members: nil, options: {})
@@ -45,15 +69,10 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     errors.add :entry_date, :out_of_range, message: over_twenty_years_ago_message, **options if entry_date < (Date.today - 20.years)
     errors.add :entry_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > entry_date
     errors.add :entry_date, :out_of_range, message: after_exit_message(exit_date), **options if exit_date.present? && exit_date < entry_date
-
-    conflict_scope = enrollment.project
-      .enrollments_including_wip
-      .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
-      .with_conflicting_dates(enrollment.entry_date...)
-
-    conflict_scope = conflict_scope.where.not(id: enrollment.id) if enrollment.persisted?
-    errors.add(:entry_date, :out_of_range, full_message: already_enrolled_full_message) if conflict_scope.any?
     return errors.errors if errors.any?
+
+    conflict_severity = find_conflict_severity(enrollment)
+    errors.add(:entry_date, :out_of_range, severity: conflict_severity, full_message: already_enrolled_full_message) if conflict_severity
 
     unless enrollment.head_of_household?
       household_members ||= enrollment.household_members
