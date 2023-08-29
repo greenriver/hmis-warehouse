@@ -13,6 +13,7 @@ module Types
     value 'COC'
     value 'PROJECT', 'All Projects that the User can see'
     value 'ENROLLABLE_PROJECTS', 'Projects that the User can enroll Clients in'
+    value 'RESIDENTIAL_PROJECTS', 'Residential Projects'
     value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'GEOCODE'
     value 'STATE'

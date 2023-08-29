@@ -14,7 +14,7 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
   ].freeze
 
   def configuration
-    Hmis::Hud::Client.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Client.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def self.hmis_validate(record, options: {}, **_)
@@ -26,8 +26,8 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
 
   def validate(record)
     super(record) do
-      record.errors.add :gender, :required if !skipped_attributes(record).include?(:gender) && ::HudUtility.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
-      record.errors.add :race, :required if !skipped_attributes(record).include?(:race) && ::HudUtility.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
+      record.errors.add :gender, :required if !skipped_attributes(record).include?(:gender) && ::HudUtility2024.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
+      record.errors.add :race, :required if !skipped_attributes(record).include?(:race) && ::HudUtility2024.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
 
       # Validate exactly 1 primary name
       if record.names.any?

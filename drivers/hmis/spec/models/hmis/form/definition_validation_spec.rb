@@ -34,7 +34,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       {
         "information-date-input": '2023-02-15',
         "3.16": 'SC-501',
-        "4.02.2": 'CLIENT_REFUSED',
+        "4.02.2": 'CLIENT_PREFERS_NOT_TO_ANSWER',
         "4.03.2": 'YES',
         "4.03.3": nil,
         "4.03.4": nil,
@@ -50,7 +50,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         "4.08.2": 'NO',
         "4.09.2": 'NO',
         "4.10.2": 'NO',
-        "3.08": 'CLIENT_REFUSED',
+        "3.08": 'CLIENT_PREFERS_NOT_TO_ANSWER',
         "4.11.2": 'NO',
       }
     end

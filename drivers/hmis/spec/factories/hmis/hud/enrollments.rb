@@ -16,6 +16,7 @@ FactoryBot.define do
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
     DisablingCondition { 99 }
     sequence(:EnrollmentID, 500)
+    EnrollmentCoC { 'XX-500' }
     sequence(:EntryDate) do |n|
       dates = [
         3.weeks.ago,
@@ -26,6 +27,9 @@ FactoryBot.define do
       ]
       dates[n % 5].to_date
     end
+    # after(:build) do |enrollment|
+    #   enrollment.data_source = enrollment.project.data_source
+    # end
   end
 
   factory :hmis_hud_wip_enrollment, parent: :hmis_hud_enrollment do

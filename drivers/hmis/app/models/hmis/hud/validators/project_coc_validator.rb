@@ -12,7 +12,7 @@ class Hmis::Hud::Validators::ProjectCocValidator < Hmis::Hud::Validators::BaseVa
   ].freeze
 
   def configuration
-    Hmis::Hud::ProjectCoc.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::ProjectCoc.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   # TODO add validations for length of state, zip, geocode, etc.

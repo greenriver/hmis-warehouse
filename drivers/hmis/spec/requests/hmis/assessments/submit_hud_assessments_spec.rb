@@ -346,9 +346,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'DisabilityGroup.disablingCondition': 'YES',
             # income
             'IncomeBenefit.incomeFromAnySource': 'NO',
-            'IncomeBenefit.insuranceFromAnySource': 'CLIENT_REFUSED',
+            'IncomeBenefit.insuranceFromAnySource': 'CLIENT_PREFERS_NOT_TO_ANSWER',
             # health & dv
-            'HealthAndDv.domesticViolenceVictim': 'NO',
+            'HealthAndDv.domesticViolenceSurvivor': 'NO',
           },
         ),
         confirmed: true,
@@ -365,8 +365,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment['disabilityGroup']['disablingCondition']).to eq('YES')
       expect(assessment['enrollment']['disablingCondition']).to eq('YES')
       expect(assessment['incomeBenefit']['incomeFromAnySource']).to eq('NO')
-      expect(assessment['incomeBenefit']['insuranceFromAnySource']).to eq('CLIENT_REFUSED')
-      expect(assessment['healthAndDv']['domesticViolenceVictim']).to eq('NO')
+      expect(assessment['incomeBenefit']['insuranceFromAnySource']).to eq('CLIENT_PREFERS_NOT_TO_ANSWER')
+      expect(assessment['healthAndDv']['domesticViolenceSurvivor']).to eq('NO')
     end
 
     it 'fails if trying to create a second intake assessment' do

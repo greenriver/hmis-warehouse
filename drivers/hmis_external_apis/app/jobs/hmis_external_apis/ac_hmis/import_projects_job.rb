@@ -5,7 +5,7 @@
 ###
 
 module HmisExternalApis::AcHmis
-  class ImportProjectsJob < ApplicationJob
+  class ImportProjectsJob < BaseJob
     include NotifierConfig
 
     def perform

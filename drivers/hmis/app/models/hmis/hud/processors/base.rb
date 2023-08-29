@@ -64,8 +64,8 @@ class Hmis::Hud::Processors::Base
 
   # Transform the received value into the value that should be stored in the database
   # For example:
-  #     'CLIENT_REFUSED' => 9
-  #     ['PH', 'ES'] => [10, 1]
+  #     'CLIENT_PREFERS_NOT_TO_ANSWER' => 9
+  #     ['PH', 'ES_NBN'] => [10, 1]
   #     nil => 99
   #     _HIDDEN => nil
   #     'some value' => 'some value'

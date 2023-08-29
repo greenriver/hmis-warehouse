@@ -13,7 +13,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
   OTHER_DESTINATION = 17
 
   def configuration
-    Hmis::Hud::Exit.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Exit.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def self.hoh_exits_before_others

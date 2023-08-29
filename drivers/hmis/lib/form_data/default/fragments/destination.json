@@ -49,24 +49,43 @@
     {
       "type": "GROUP",
       "link_id": "3.12.conditional",
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "3.12",
-          "operator": "EQUAL",
-          "answer_code": "OTHER"
-        }
-      ],
       "item": [
         {
+          "type": "CHOICE",
+          "link_id": "3.12.A",
+          "required": true,
+          "text": "Rental subsidy type",
+          "pick_list_reference": "RentalSubsidyType",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "destinationSubsidyType"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.12",
+              "operator": "EQUAL",
+              "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
+            }
+          ]
+        },
+        {
           "type": "STRING",
-          "link_id": "3.12.A ",
+          "link_id": "3.12.B",
           "required": true,
           "text": "Other destination",
           "mapping": {
             "record_type": "EXIT",
             "field_name": "otherDestination"
-          }
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.12",
+              "operator": "EQUAL",
+              "answer_code": "OTHER"
+            }
+          ]
         }
       ]
     }

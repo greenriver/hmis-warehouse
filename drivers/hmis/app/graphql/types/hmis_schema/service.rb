@@ -12,7 +12,7 @@ module Types
     description 'HUD or Custom Service rendered'
 
     def self.configuration
-      Hmis::Hud::Service.hmis_configuration(version: '2022')
+      Hmis::Hud::Service.hmis_configuration(version: '2024')
     end
 
     available_filter_options do

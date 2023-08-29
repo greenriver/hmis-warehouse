@@ -11,7 +11,7 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
-      Hmis::Hud::IncomeBenefit.hmis_configuration(version: '2022')
+      Hmis::Hud::IncomeBenefit.hmis_configuration(version: '2024')
     end
 
     field :id, ID, null: false
@@ -77,8 +77,8 @@ module Types
     hud_field :no_medicare_reason, HmisSchema::Enums::Hud::ReasonNotInsured
     hud_field :schip, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :no_schip_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :va_medical_services, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_va_med_reason, HmisSchema::Enums::Hud::ReasonNotInsured
+    hud_field :vha_services, HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :no_vha_reason, HmisSchema::Enums::Hud::ReasonNotInsured
     hud_field :employer_provided, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :no_employer_provided_reason, HmisSchema::Enums::Hud::ReasonNotInsured
     hud_field :cobra, HmisSchema::Enums::Hud::NoYesMissing
@@ -92,8 +92,6 @@ module Types
     hud_field :other_insurance, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :other_insurance_identify
 
-    hud_field :hivaids_assistance, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :no_hivaids_assistance_reason, HmisSchema::Enums::Hud::NoAssistanceReason
     hud_field :adap, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :no_adap_reason, HmisSchema::Enums::Hud::NoAssistanceReason
     hud_field :ryan_white_med_dent, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
@@ -106,8 +104,6 @@ module Types
     hud_field :date_deleted
 
     custom_data_elements_field
-
-    # TODO ADD: source assessment
 
     def enrollment
       load_ar_association(object, :enrollment)
