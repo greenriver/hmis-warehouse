@@ -125,21 +125,23 @@ module
       end
     end
 
+    private def genders
+      @genders ||= HudUtility2024.gender_field_name_label.map do |col, label|
+        label = 'Unknown Gender' if col == :GenderNone
+        [
+          c_t[col],
+          label,
+        ]
+      end.to_h
+    end
+
     def client_headers
       [
         'Client ID',
         'First Name',
         'Last Name',
         'DOB',
-        'Woman',
-        'Man',
-        'CulturallySpecific',
-        'DifferentIdentity',
-        'Non-Binary',
-        'Transgender',
-        'Questioning',
-        'Unknown Gender',
-      ] + HudUtility2024.races.values
+      ] + genders.values + HudUtility2024.races.values
     end
 
     def client_columns
@@ -148,15 +150,7 @@ module
         c_t[:FirstName],
         c_t[:LastName],
         c_t[:DOB],
-        c_t[:Female],
-        c_t[:Male],
-        c_t[:CulturallySpecific],
-        c_t[:DifferentIdentity],
-        c_t[:NonBinary],
-        c_t[:Transgender],
-        c_t[:Questioning],
-        c_t[:GenderNone],
-      ] + HudUtility2024.races.keys.map { |k| c_t[k.to_sym] }
+      ] + genders.keys + HudUtility2024.races.keys.map { |k| c_t[k.to_sym] }
     end
   end
 end
