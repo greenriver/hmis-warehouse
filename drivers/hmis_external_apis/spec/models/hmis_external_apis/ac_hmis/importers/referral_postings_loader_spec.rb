@@ -21,7 +21,8 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
   end
   let!(:client) { create(:hmis_hud_client, data_source: ds) }
   let!(:other_client) { create(:hmis_hud_client, data_source: ds) }
-  let(:project) { create(:hmis_hud_project, data_source: ds) }
+  let!(:project) { create(:hmis_hud_project, data_source: ds) }
+  let!(:project_coc) { create(:hmis_hud_project_coc, data_source: ds, project: project) }
   let(:referral_id) { Hmis::Hud::Base.generate_uuid }
   let(:unit_type) do
     create(:hmis_unit_type)

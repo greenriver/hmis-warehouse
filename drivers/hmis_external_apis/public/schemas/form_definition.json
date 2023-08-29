@@ -40,7 +40,8 @@
         "type": { "type": "string" },
         "question": { "type": "string" },
         "value_local_constant": { "type": "string" },
-        "offset": { "type": "integer" }
+        "offset": { "type": "integer" },
+        "severity": { "enum": ["error", "warning"] }
       }
     },
     "rule": {

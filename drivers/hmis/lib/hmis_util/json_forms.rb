@@ -240,12 +240,45 @@ module HmisUtil
     end
 
     def validate_definition(json, role)
-      Hmis::Form::Definition.validate_json(json)
+      Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists)
       schema_errors = Hmis::Form::Definition.validate_schema(json)
       return unless schema_errors.present?
 
       pp schema_errors
       raise "schema invalid for role: #{role}"
+    end
+
+    def valid_pick_lists
+      @valid_pick_lists ||= begin
+        pick_list_references = []
+        pick_list_references << all_enums_in_schema(Types::HmisSchema::QueryType)
+        pick_list_references << all_enums_in_schema(Types::HmisSchema::MutationType)
+        pick_list_references << Types::Forms::Enums::PickListType.values.keys
+        pick_list_references.flatten.uniq.sort
+      end
+    end
+
+    # Traverse schema to find ALL enums used
+    def all_enums_in_schema(schema, traversed_types: [])
+      enums = []
+      schema.fields.each do |_, field|
+        type = field.type
+        (type = type&.of_type) while type.non_null? || type.list?
+        seen = traversed_types.include?(type)
+        traversed_types << type
+        if type.respond_to?(:fields) && type.to_s.include?('::HmisSchema::') && !seen
+          enums << all_enums_in_schema(type, traversed_types: traversed_types)
+        elsif type.to_s.include?('::Enums::')
+          enums << type.graphql_name
+        # Hacky way to traverse into paginated node, because its an anonymous class
+        elsif type.to_s&.ends_with?('Paginated') && !type.to_s.include?('AuditEvent')
+          node_type = "Types::HmisSchema::#{type.to_s.gsub('Paginated', '').singularize}".constantize
+          seen_node_type = traversed_types.include?(node_type)
+          traversed_types << node_type
+          enums << all_enums_in_schema(node_type, traversed_types: traversed_types) unless seen_node_type
+        end
+      end
+      return enums.flatten.sort.uniq
     end
   end
 end

@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::CurrentLivingSituation < Types::BaseObject
     def self.configuration
-      Hmis::Hud::CurrentLivingSituation.hmis_configuration(version: '2022')
+      Hmis::Hud::CurrentLivingSituation.hmis_configuration(version: '2024')
     end
 
     description 'HUD Current Living Situation'
@@ -19,9 +19,7 @@ module Types
     field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
     hud_field :information_date
-    hud_field :current_living_situation, HmisSchema::Enums::Hud::LivingSituation
-    # TODO(2024) enable
-    # hud_field :cls_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    hud_field :current_living_situation, HmisSchema::Enums::Hud::CurrentLivingSituation
     hud_field :verified_by
     hud_field :cls_subsidy_type, HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :leave_situation14_days, HmisSchema::Enums::Hud::NoYesReasonsForMissingData

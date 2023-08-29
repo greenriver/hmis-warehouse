@@ -21,7 +21,7 @@ module GrdaWarehouse::Hud
     has_many :disabilities, **hud_assoc(:UserID, 'Disability')
     has_many :employment_educations, **hud_assoc(:UserID, 'EmploymentEducation')
     has_many :enrollments, **hud_assoc(:UserID, 'Enrollment')
-    has_many :enrollment_cocs, **hud_assoc(:UserID, 'EnrollmentCoc')
+    has_many :enrollment_cocs, **hud_assoc(:UserID, 'EnrollmentCoc') # <= 2022
     has_many :exits, **hud_assoc(:UserID, 'Exit')
     has_many :funders, **hud_assoc(:UserID, 'Funder')
     has_many :health_and_dvs, **hud_assoc(:UserID, 'HealthAndDv')
@@ -37,6 +37,8 @@ module GrdaWarehouse::Hud
     has_many :assessment_results, **hud_assoc(:UserID, 'AssessmentResult')
     has_many :events, **hud_assoc(:UserID, 'Event')
     has_many :youth_education_statuses, **hud_assoc(:UserID, 'YouthEducationStatus')
+    has_many :hmis_participations, **hud_assoc(:UserID, 'HmisParticipation')
+    has_many :ce_participations, **hud_assoc(:UserID, 'CeParticipation')
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users, optional: true
     belongs_to :data_source
