@@ -1000,32 +1000,6 @@
     ]
   },
   {
-    "name": "Ethnicity",
-    "code": "3.05.1",
-    "values": [
-      {
-        "key": 0,
-        "description": "Non-Hispanic/Non-Latin(a)(o)(x)"
-      },
-      {
-        "key": 1,
-        "description": "Hispanic/Latin(a)(o)(x)"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
     "name": "Gender",
     "code": "3.6.1",
     "values": [

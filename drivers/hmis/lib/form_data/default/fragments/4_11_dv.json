@@ -216,11 +216,11 @@
       "link_id": "4.11.2",
       "required": false,
       "warn_if_empty": true,
-      "text": "Domestic Violence Victim/Survivor",
+      "text": "Survivor of Domestic Violence",
       "pick_list_reference": "NoYesReasonsForMissingData",
       "mapping": {
         "record_type": "HEALTH_AND_DV",
-        "field_name": "domesticViolenceVictim"
+        "field_name": "domesticViolenceSurvivor"
       }
     },
     {

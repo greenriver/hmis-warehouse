@@ -42,7 +42,7 @@
     {
       "type": "CHOICE",
       "link_id": "subTypeProvided3",
-      "required": false,
+      "required": true,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_3",
       "mapping": {
@@ -60,7 +60,7 @@
     {
       "type": "CHOICE",
       "link_id": "subTypeProvided4",
-      "required": false,
+      "required": true,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_4",
       "mapping": {
@@ -78,7 +78,7 @@
     {
       "type": "CHOICE",
       "link_id": "subTypeProvided5",
-      "required": false,
+      "required": true,
       "text": "Sub Type Provided",
       "pick_list_reference": "SUB_TYPE_PROVIDED_5",
       "mapping": {
@@ -116,6 +116,62 @@
           "id": "max-service-date-exit-date",
           "type": "MAX",
           "value_local_constant": "$exitDate"
+        },
+        {
+          "_comment": "if there is an end date, start date cannot be after it",
+          "id": "max-fa-start",
+          "type": "MAX",
+          "question": "faEndDate"
+        }
+      ],
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "NOT_EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "required": true,
+      "link_id": "faStartDate",
+      "text": "Financial Assistance Start Date",
+      "mapping": {
+        "field_name": "faStartDate"
+      },
+      "enable_behavior": "ANY",
+      "service_detail_type": "CLIENT",
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "required": false,
+      "link_id": "faEndDate",
+      "text": "Financial Assistance End Date",
+      "mapping": {
+        "field_name": "faEndDate"
+      },
+      "enable_behavior": "ANY",
+      "service_detail_type": "CLIENT",
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        }
+      ],
+      "bounds": [
+        {
+          "id": "min-fa-end",
+          "type": "MIN",
+          "question": "faStartDate"
         }
       ]
     },
@@ -123,7 +179,7 @@
       "type": "CURRENCY",
       "required": false,
       "link_id": "faAmount",
-      "text": "Financial Assistance",
+      "text": "Financial Assistance Amount",
       "mapping": {
         "field_name": "faAmount"
       },
@@ -143,7 +199,7 @@
         {
           "local_constant": "$hudTypeProvided",
           "operator": "EQUAL",
-          "answer_code": "MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES"
+          "answer_code": "MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON"
         }
       ]
     },

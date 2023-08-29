@@ -34,10 +34,16 @@ module Hmis::Hud::Processors
       enrollment = @processor.send(factory_name)
 
       # Create Household ID if not present. Should only be the case if this is a new Enrollment creation.
-      enrollment&.household_id ||= Hmis::Hud::Base.generate_uuid if enrollment.new_record?
-      # TODO: set EnrollmentCoC if there is only 1 option
+      enrollment.household_id ||= Hmis::Hud::Base.generate_uuid if enrollment.new_record?
+
+      # If there is only 1 possible Enrollment CoC, set it
+      unless enrollment.enrollment_coc.present?
+        coc_codes = enrollment.project&.project_cocs&.pluck(:CoCCode) || []
+        enrollment.enrollment_coc = coc_codes.first if coc_codes.size == 1
+      end
+
       # Set HUD metadata
-      enrollment&.assign_attributes(
+      enrollment.assign_attributes(
         user: @processor.hud_user,
         data_source_id: @processor.hud_user.data_source_id,
       )

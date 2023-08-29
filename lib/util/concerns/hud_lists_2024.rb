@@ -425,21 +425,6 @@ module Concerns::HudLists2024
       _translate dob_data_quality_options, id, reverse
     end
 
-    # 3.05.1
-    def ethnicities
-      {
-        0 => 'Non-Hispanic/Non-Latin(a)(o)(x)',
-        1 => 'Hispanic/Latin(a)(o)(x)',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def ethnicity(id, reverse = false)
-      _translate ethnicities, id, reverse
-    end
-
     # 3.12
     def destinations
       {

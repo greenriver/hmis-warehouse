@@ -55,7 +55,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         fragment ClientFields on Client {
           ...ClientIdentificationFields
           dobDataQuality
-          ethnicity
           gender
           pronouns
           nameDataQuality

@@ -54,12 +54,17 @@
           "text": "Availability",
           "pick_list_reference": "Availability",
           "mapping": { "field_name": "availability" },
-          "enable_behavior": "ALL",
+          "enable_behavior": "ANY",
           "enable_when": [
             {
               "local_constant": "$projectType",
               "operator": "EQUAL",
-              "answer_code": "ES"
+              "answer_code": "ES_NBN"
+            },
+            {
+              "local_constant": "$projectType",
+              "operator": "EQUAL",
+              "answer_code": "ES_ENTRY_EXIT"
             }
           ]
         },
@@ -71,12 +76,17 @@
           "text": "ES Bed Type",
           "pick_list_reference": "BedType",
           "mapping": { "field_name": "esBedType" },
-          "enable_behavior": "ALL",
+          "enable_behavior": "ANY",
           "enable_when": [
             {
               "local_constant": "$projectType",
               "operator": "EQUAL",
-              "answer_code": "ES"
+              "answer_code": "ES_NBN"
+            },
+            {
+              "local_constant": "$projectType",
+              "operator": "EQUAL",
+              "answer_code": "ES_ENTRY_EXIT"
             }
           ]
         },
