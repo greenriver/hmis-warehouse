@@ -22,6 +22,7 @@ module Types
     field :delete_client, mutation: Mutations::DeleteClient
     field :delete_ce_assessment, mutation: Mutations::DeleteCeAssessment
     field :delete_ce_event, mutation: Mutations::DeleteCeEvent
+    field :delete_current_living_situation, mutation: Mutations::DeleteCurrentLivingSituation
 
     field :create_units, mutation: Mutations::CreateUnits
     field :update_units, mutation: Mutations::UpdateUnits
