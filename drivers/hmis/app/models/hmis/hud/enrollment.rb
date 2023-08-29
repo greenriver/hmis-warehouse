@@ -149,17 +149,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     joins(:bed_nights).where(s_t[:date_provided].eq(date))
   end
 
+  # @param project [Project]
   # @param range [DateRange]
   # enrollments that conflict with an entry/exit date
   # * entry date on exit date is allowed
   # * multiple entry dates on same day are not allowed
-  scope :with_conflicting_dates, ->(range) do
+  scope :with_conflicting_dates, ->(project:, range:) do
     entry_date = range.begin
     raise unless entry_date
 
+    scope = where(project_id: project.project_id, data_source: project.data_source_id)
     exit_date = range.end # maybe nil if endless range
     if exit_date
-      left_outer_joins(:exit)
+      scope.left_outer_joins(:exit)
         .where(
           e_t[:entry_date].eq(entry_date)
           .or(
@@ -170,7 +172,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
           ),
         )
     else
-      left_outer_joins(:exit)
+      scope.left_outer_joins(:exit)
         .where(
           ex_t[:exit_date].eq(nil) # we already have an open enrollment
           .or(ex_t[:exit_date].gt(entry_date))

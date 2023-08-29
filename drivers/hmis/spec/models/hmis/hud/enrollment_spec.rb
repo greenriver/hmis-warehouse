@@ -55,7 +55,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
       conflict = enrollment
         .client.enrollments
-        .with_conflicting_dates(range_start..range_end)
+        .with_conflicting_dates(project: enrollment.project, range: range_start..range_end)
         .any?
       expect(conflict).to eq(expect_conflict), "#{message} should #{expect_conflict ? 'conflict' : 'not conflict'}"
     end

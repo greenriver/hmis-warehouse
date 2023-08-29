@@ -34,10 +34,10 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
   end
 
   def self.find_conflict_severity(enrollment)
-    conflict_scope = enrollment.project
+    conflict_scope = Hmis::Hud::Enrollment
       .enrollments_including_wip
       .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
-      .with_conflicting_dates(enrollment.entry_date...enrollment.exit_date)
+      .with_conflicting_dates(project: enrollment.project, range: enrollment.entry_date...enrollment.exit_date)
 
     if enrollment.persisted?
       # If the entry date is being changed on an EXISTING enrollment, and it overlaps with another one, it should be a warning

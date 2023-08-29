@@ -46,10 +46,10 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     errors.add :exit_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > exit_date
     return errors.errors if errors.any?
 
-    conflict_scope = enrollment.project
+    conflict_scope = Hmis::Hud::Enrollment
       .enrollments_including_wip
       .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
-      .with_conflicting_dates(entry_date...exit_date)
+      .with_conflicting_dates(project: enrollment.project, range: entry_date...exit_date)
 
     conflict_scope = conflict_scope.where.not(id: enrollment.id) if enrollment.persisted?
     errors.add(:exit_date, :out_or_range, severity: :warning, full_message: enrollment_conflict_message) if conflict_scope.any?
