@@ -19,9 +19,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client
-  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client
+  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client, dependent: :destroy
+  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy
+  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client, dependent: :destroy
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
 
   # Enrollments for this Client, including WIP Enrollments
@@ -44,8 +44,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  # FIXME(#185905151) add back "dependent: :destroy"
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
 
