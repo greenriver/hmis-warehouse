@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::YouthEducationStatus < Types::BaseObject
     def self.configuration
-      Hmis::Hud::YouthEducationStatus.hmis_configuration(version: '2022')
+      Hmis::Hud::YouthEducationStatus.hmis_configuration(version: '2024')
     end
 
     description 'HUD Youth Education Status'

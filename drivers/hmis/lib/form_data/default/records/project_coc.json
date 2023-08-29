@@ -41,7 +41,7 @@
           "required": false,
           "link_id": "address2",
           "text": "Apt, suite, etc (Optional)",
-          "mapping": { "field_name": "address1" }
+          "mapping": { "field_name": "address2" }
         },
         {
           "type": "STRING",
