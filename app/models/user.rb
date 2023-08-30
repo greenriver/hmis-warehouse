@@ -80,7 +80,7 @@ class User < ApplicationRecord
     # e.g. User.can_administer_health
     scope permission, -> do
       joins(:legacy_roles).
-        where(roles: { permission => true })
+        merge(Role.where(permission => true))
     end
   end
 

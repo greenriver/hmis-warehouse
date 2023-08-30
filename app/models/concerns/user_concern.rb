@@ -76,7 +76,8 @@ module UserConcern
     belongs_to :agency, optional: true
 
     scope :diet, -> do
-      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes', 'deprecated_provider', 'deprecated_provider_raw_info', 'deprecated_uid', 'deprecated_agency', 'deprecated_provider_set_at'].map { |c| arel_table[c].to_sql }))
+      cols = (column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes', 'deprecated_provider', 'deprecated_provider_raw_info', 'deprecated_uid', 'deprecated_agency', 'deprecated_provider_set_at']).map { |c| arel_table[c].to_sql }
+      select(*cols)
     end
 
     scope :receives_file_notifications, -> do

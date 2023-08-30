@@ -359,14 +359,14 @@ class Role < ApplicationRecord
         ],
       },
       can_search_own_clients: {
-        description: 'Ability to use some version of the client search. If no additional search permissions are chosen, the user can use the free-form search. You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards',
+        description: 'Ability to use some version of the client search. If no additional search permissions are chosen, the user can use the free-form search. You can enforce the strict search by also selecting the Can use strict search permission. Must be used in conjunction with "Can View Clients" for access to client dashboards (NOTE: used in ACLs)',
         administrative: false,
         categories: [
           'Client Access',
         ],
       },
       can_search_clients_with_roi: {
-        description: 'When combined with an Entity Group through an Access Control, exposes clients with an active ROI in a CoC assigned to the user in search results',
+        description: 'When combined with an Entity Group through an Access Control, exposes clients with an active ROI in a CoC assigned to the user in search results (NOTE: used in ACLs)',
         administrative: false,
         categories: [
           'Client Access',
