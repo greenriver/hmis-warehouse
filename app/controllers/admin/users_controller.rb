@@ -100,8 +100,7 @@ module Admin
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update!(user_params)
           # if we have a user to copy user groups from, add them
-          copy_user_groups
-
+          copy_user_groups if @user.using_acls?
           # TODO: START_ACL remove when ACL transition complete
           # Restore any health roles we previously had
           if ! @user.using_acls?

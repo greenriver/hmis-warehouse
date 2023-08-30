@@ -23,7 +23,7 @@ class User < ApplicationRecord
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :legacy_roles, through: :user_roles # TODO: START_ACL remove after ACL migration is complete
-  has_many :health_roles, through: :user_roles
+  has_many :health_roles, -> { health }, through: :user_roles
 
   # load a hash of permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
