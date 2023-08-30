@@ -10,7 +10,7 @@ module Types
   class Forms::FormDefinition < Types::BaseObject
     description 'FormDefinition'
     field :id, ID, null: false
-    field :cache_key, ID, null: true
+    field :cache_key, ID, null: false
     field :role, Types::Forms::Enums::FormRole, null: false
     field :definition, Forms::FormDefinitionJson, null: false
 
