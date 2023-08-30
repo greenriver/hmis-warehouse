@@ -122,12 +122,6 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.availabilities
   end
 
-  class YouthAgeGroup < Types::BaseEnum
-    description '2.7.B'
-    graphql_name 'YouthAgeGroup'
-    hud_enum HudUtility2024.youth_age_groups
-  end
-
   class GeographyType < Types::BaseEnum
     description '2.03.4'
     graphql_name 'GeographyType'
@@ -212,12 +206,6 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.reason_not_insureds
   end
 
-  class HousingStatus < Types::BaseEnum
-    description '4.1.1'
-    graphql_name 'HousingStatus'
-    hud_enum HudUtility2024.housing_statuses
-  end
-
   class DisabilityResponse < Types::BaseEnum
     description '4.10.2'
     graphql_name 'DisabilityResponse'
@@ -246,12 +234,6 @@ module Types::HmisSchema::Enums::Hud
     description 'V3.3'
     graphql_name 'SSVFFinancialAssistance'
     hud_enum HudUtility2024.ssvf_financial_assistance_options
-  end
-
-  class HousingAssessmentDisposition < Types::BaseEnum
-    description '4.18.1'
-    graphql_name 'HousingAssessmentDisposition'
-    hud_enum HudUtility2024.housing_assessment_dispositions
   end
 
   class AssessmentType < Types::BaseEnum
@@ -284,70 +266,10 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.referral_results
   end
 
-  class PreventionOutcome < Types::BaseEnum
-    description '4.21.A'
-    graphql_name 'PreventionOutcome'
-    hud_enum HudUtility2024.prevention_outcomes
-  end
-
-  class ShelterOutcome < Types::BaseEnum
-    description '4.21.E'
-    graphql_name 'ShelterOutcome'
-    hud_enum HudUtility2024.shelter_outcomes
-  end
-
-  class HousingOutcome < Types::BaseEnum
-    description '4.21.I'
-    graphql_name 'HousingOutcome'
-    hud_enum HudUtility2024.housing_outcomes
-  end
-
-  class ServiceProvided < Types::BaseEnum
-    description '4.21.6'
-    graphql_name 'ServiceProvided'
-    hud_enum HudUtility2024.service_provideds
-  end
-
-  class ServiceOutcome < Types::BaseEnum
-    description '4.21.M'
-    graphql_name 'ServiceOutcome'
-    hud_enum HudUtility2024.service_outcomes
-  end
-
-  class IncarceratedParentStatus < Types::BaseEnum
-    description '4.33.A'
-    graphql_name 'IncarceratedParentStatus'
-    hud_enum HudUtility2024.incarcerated_parent_statuses
-  end
-
-  class ExitAction < Types::BaseEnum
-    description '4.36.1'
-    graphql_name 'ExitAction'
-    hud_enum HudUtility2024.exit_actions
-  end
-
   class EarlyExitReason < Types::BaseEnum
-    description '4.37.A'
+    description 'R17.A'
     graphql_name 'EarlyExitReason'
     hud_enum HudUtility2024.early_exit_reasons
-  end
-
-  class CrisisServicesUse < Types::BaseEnum
-    description '4.49.1'
-    graphql_name 'CrisisServicesUse'
-    hud_enum HudUtility2024.crisis_services_uses
-  end
-
-  class PATHHowConfirmed < Types::BaseEnum
-    description '4.9.D'
-    graphql_name 'PATHHowConfirmed'
-    hud_enum HudUtility2024.path_how_confirmeds
-  end
-
-  class PATHSMIInformation < Types::BaseEnum
-    description '4.9.E'
-    graphql_name 'PATHSMIInformation'
-    hud_enum HudUtility2024.pathsmi_informations
   end
 
   class DataCollectionStage < Types::BaseEnum
