@@ -36,7 +36,6 @@ def setup_data
   end
 
   @disabilities = create_list :hud_disability, 5, data_source_id: @data_source.id, InformationDate: 1.week.ago
-  @enrollment_cocs = create_list :hud_enrollment_coc, 5, data_source_id: @data_source.id, InformationDate: 1.week.ago
   @employment_educations = create_list :hud_employment_education, 5, data_source_id: @data_source.id, InformationDate: 1.week.ago
   @health_and_dvs = create_list :hud_health_and_dv, 5, data_source_id: @data_source.id, InformationDate: 1.week.ago
   @income_benefits = create_list :hud_income_benefit, 5, data_source_id: @data_source.id, InformationDate: 1.week.ago
@@ -47,6 +46,8 @@ def setup_data
   @assessment_results = create_list :hud_assessment_result, 5, data_source_id: @data_source.id
   @events = create_list :hud_event, 5, data_source_id: @data_source.id
   @current_living_situations = create_list :hud_current_living_situation, 5, data_source_id: @data_source.id
+  @ce_participations = create_list :hud_ce_participation, 5, data_source_id: @data_source.id
+  @hmis_participations = create_list :hud_hmis_participation, 5, data_source_id: @data_source.id
 
   @project_class = HmisCsvTwentyTwentyFour::Exporter::Project
   @project_coc_class = HmisCsvTwentyTwentyFour::Exporter::ProjectCoc
@@ -76,7 +77,6 @@ end
 def enrollment_related_items
   {
     disabilities: HmisCsvTwentyTwentyFour::Exporter::Disability,
-    enrollment_cocs: HmisCsvTwentyTwentyFour::Exporter::EnrollmentCoc,
     employment_educations: HmisCsvTwentyTwentyFour::Exporter::EmploymentEducation,
     health_and_dvs: HmisCsvTwentyTwentyFour::Exporter::HealthAndDv,
     income_benefits: HmisCsvTwentyTwentyFour::Exporter::IncomeBenefit,

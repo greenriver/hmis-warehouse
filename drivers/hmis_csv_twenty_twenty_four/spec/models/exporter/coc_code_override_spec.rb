@@ -18,8 +18,8 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
     @inventories.each do |item|
       item.update(CoCCode: 'XX-501')
     end
-    @enrollment_cocs.each do |item|
-      item.update(CoCCode: 'XX-505')
+    @enrollments.each do |item|
+      item.update(EnrollmentCoC: 'XX-505')
     end
   end
 
@@ -71,7 +71,6 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
 
   describe 'When exporting enrollment related item' do
     [
-      HmisCsvTwentyTwentyFour::Exporter::EnrollmentCoc,
       HmisCsvTwentyTwentyFour::Exporter::Inventory,
       HmisCsvTwentyTwentyFour::Exporter::ProjectCoc,
     ].each do |klass|
@@ -95,7 +94,6 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
 
     describe 'when CoC Code is missing' do
       [
-        HmisCsvTwentyTwentyFour::Exporter::EnrollmentCoc,
         HmisCsvTwentyTwentyFour::Exporter::Inventory,
       ].each do |klass|
         describe "when exporting #{klass}" do
@@ -149,7 +147,7 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
 
   describe 'When exporting enrollment related item' do
     [
-      HmisCsvTwentyTwentyFour::Exporter::EnrollmentCoc,
+      HmisCsvTwentyTwentyFour::Exporter::Enrollment,
     ].each do |klass|
       describe "when exporting #{klass}" do
         before(:all) do
@@ -167,36 +165,6 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
         it "adds one row to the #{klass} CSV file" do
           csv = CSV.read(csv_file_path(klass), headers: true)
           expect(csv.count).to eq 1
-        end
-        it 'ProjectID from CSV matches ProjectID from EnrollmentCoC' do
-          csv = CSV.read(csv_file_path(klass), headers: true)
-          # Note, by the time this gets exported, it is re-written to the project.id
-          expect(csv.first['ProjectID']).to eq @projects.first.id.to_s
-        end
-      end
-    end
-
-    describe 'when Project ID is missing' do
-      [
-        HmisCsvTwentyTwentyFour::Exporter::EnrollmentCoc,
-      ].each do |klass|
-        describe "when exporting #{klass}" do
-          before(:all) do
-            warehouse_fixture.restore
-            app_fixture.restore
-            klass.hmis_class.update_all(ProjectID: nil)
-            @exporter.remove_export_files
-            @exporter.export!(cleanup: false, zip: false, upload: false)
-          end
-
-          it "adds one row to the #{klass} CSV file" do
-            csv = CSV.read(csv_file_path(klass), headers: true)
-            expect(csv.count).to eq 1
-          end
-          it 'ProjectID from CSV matches ProjectID from Enrollment' do
-            csv = CSV.read(csv_file_path(klass), headers: true)
-            expect(csv.first['ProjectID']).to eq @projects.first.id.to_s
-          end
         end
       end
     end
