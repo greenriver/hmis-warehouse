@@ -23,7 +23,7 @@ module Types
     end
 
     def cache_key
-      [id, project&.id, active_date].join('|')
+      [object.id, project&.id, active_date].join('|')
     end
 
     protected
