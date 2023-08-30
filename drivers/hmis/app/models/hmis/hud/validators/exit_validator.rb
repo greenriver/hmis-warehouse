@@ -47,7 +47,6 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     return errors.errors if errors.any?
 
     conflict_scope = Hmis::Hud::Enrollment
-      .enrollments_including_wip
       .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
       .with_conflicting_dates(project: enrollment.project, range: entry_date...exit_date)
 
