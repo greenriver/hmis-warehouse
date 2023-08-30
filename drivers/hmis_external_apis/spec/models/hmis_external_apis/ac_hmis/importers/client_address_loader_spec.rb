@@ -35,5 +35,6 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ClientAddressLoader
     expect do
       run_cde_import(csv_files: csv_files, clobber: true)
     end.to change(client.addresses, :count).by(1)
+    expect(client.addresses.first.use).to eq('home')
   end
 end
