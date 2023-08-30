@@ -121,6 +121,60 @@ module HmisStructure::Funder
             null: false,
           },
         }
+      when '2024'
+        {
+          FunderID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          ProjectID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          Funder: {
+            type: :integer,
+            null: false,
+          },
+          OtherFunder: {
+            type: :string,
+            limit: 100,
+          },
+          GrantID: {
+            type: :string,
+            limit: 100,
+            null: false,
+          },
+          StartDate: {
+            type: :date,
+            null: false,
+          },
+          EndDate: {
+            type: :date,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
       end
     end
 

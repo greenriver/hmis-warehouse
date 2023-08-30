@@ -7,8 +7,27 @@
       "type": "DATE",
       "link_id": "4.12.1",
       "text": "Information Date",
-      "mapping": { "field_name": "informationDate" },
-      "required": true
+      "required": true,
+      "mapping": {
+        "field_name": "informationDate"
+      },
+      "bounds": [
+        {
+          "id": "min-info-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-info-date",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        },
+        {
+          "id": "max-info-date-exit-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
+        }
+      ]
     },
     {
       "type": "CHOICE",
@@ -16,27 +35,56 @@
       "link_id": "4.12.2",
       "text": "Current Living Situation",
       "pick_list_reference": "CURRENT_LIVING_SITUATION",
-      "mapping": { "field_name": "currentLivingSituation" }
+      "mapping": {
+        "field_name": "currentLivingSituation"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "4.12.A.subsidy-group",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "4.12.A",
+          "text": "Rental subsidy type",
+          "required": true,
+          "pick_list_reference": "RentalSubsidyType",
+          "mapping": {
+            "field_name": "clsSubsidyType"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "4.12.2",
+              "operator": "EQUAL",
+              "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
+            }
+          ]
+        }
+      ]
     },
     {
       "type": "CHOICE",
-      "link_id": "4.12.A",
-      "text": "Rental Subsidy Type",
-      "pick_list_reference": "RentalSubsidyType",
-      "mapping": { "field_name": "CLSSubsidyType" },
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "4.12.2",
-          "operator": "EQUAL",
-          "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
-        }
-      ]
+      "required": false,
+      "hidden": true,
+      "repeats": false,
+      "link_id": "4.12.3",
+      "text": "Living situation verified by",
+      "_comment": "FIXME: this needs to be implemented. It should be a list of Continuum projects.",
+      "mapping": {
+        "field_name": "verifiedBy"
+      },
+      "rule": {
+        "variable": "projectType",
+        "operator": "EQUAL",
+        "value": 14
+      }
     },
     {
       "type": "GROUP",
       "link_id": "4.12-conditionals",
       "enable_behavior": "ANY",
+      "_comment": "Dependent to Field 2 Responses all non- homeless situation responses (17, 37, and all responses between 200 and 499 inclusive)",
       "enable_when": [
         {
           "question": "4.12.2",
@@ -56,8 +104,12 @@
         {
           "question": "4.12.2",
           "operator": "EQUAL",
-          "answer_group_code": "TEMPORARY_PERMANENT_OTHER",
-          "_comment": "Only present in 2022 spec, remove this when switching to 2024"
+          "answer_code": "OTHER"
+        },
+        {
+          "question": "4.12.2",
+          "operator": "EQUAL",
+          "answer_code": "WORKER_UNABLE_TO_DETERMINE"
         }
       ],
       "item": [
@@ -67,7 +119,9 @@
           "link_id": "4.12.B",
           "text": "Is client going to have to leave their current living situation within 14 days?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "leaveSituation14Days" }
+          "mapping": {
+            "field_name": "leaveSituation14Days"
+          }
         },
         {
           "type": "CHOICE",
@@ -75,7 +129,9 @@
           "link_id": "4.12.C",
           "text": "Has a subsequent residence been identified?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "subsequentResidence" },
+          "mapping": {
+            "field_name": "subsequentResidence"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -91,7 +147,9 @@
           "link_id": "4.12.D",
           "text": "Does individual or family have resources or support networks to obtain other permanent housing?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "resourcesToObtain" },
+          "mapping": {
+            "field_name": "resourcesToObtain"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -107,7 +165,9 @@
           "link_id": "4.12.E",
           "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "leaseOwn60Day" },
+          "mapping": {
+            "field_name": "leaseOwn60Day"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -123,7 +183,9 @@
           "link_id": "4.12.F",
           "text": "Has the client moved 2 or more times in the last 60 days?",
           "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": { "field_name": "movedTwoOrMore" },
+          "mapping": {
+            "field_name": "movedTwoOrMore"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -139,7 +201,9 @@
       "type": "TEXT",
       "link_id": "4.12.4",
       "text": "Location details",
-      "mapping": { "field_name": "locationDetails" }
+      "mapping": {
+        "field_name": "locationDetails"
+      }
     }
   ]
 }

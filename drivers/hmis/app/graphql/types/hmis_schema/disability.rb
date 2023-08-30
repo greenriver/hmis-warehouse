@@ -9,7 +9,7 @@
 module Types
   class HmisSchema::Disability < Types::BaseObject
     def self.configuration
-      Hmis::Hud::Disability.hmis_configuration(version: '2022')
+      Hmis::Hud::Disability.hmis_configuration(version: '2024')
     end
 
     field :id, ID, null: false
@@ -30,8 +30,6 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
-
-    # TODO ADD: source assessment
 
     def enrollment
       load_ar_association(object, :enrollment)

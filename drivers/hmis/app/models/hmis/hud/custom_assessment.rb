@@ -27,7 +27,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
   has_one :definition, through: :form_processor
@@ -192,5 +192,15 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   # must check form_processor.errors for any validation errors.
   private def form_processor_is_valid
     form_processor.valid?(:form_submission)
+  end
+
+  def deletion_would_cause_conflicting_enrollments?
+    return false if in_progress?
+
+    exit? && enrollment.client.enrollments
+      .where(data_source: enrollment.data_source, project_id: enrollment.project_id)
+      .where.not(id: enrollment.id)
+      .where(e_t[:entry_date].gteq(enrollment.entry_date))
+      .any?
   end
 end

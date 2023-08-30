@@ -9,10 +9,11 @@ class Hmis::Hud::Validators::IncomeBenefitValidator < Hmis::Hud::Validators::Bas
     :ExportID,
     :DateCreated,
     :DateUpdated,
+    :NoVHAReason, # skip for now since its not added yet
   ].freeze
 
   def configuration
-    Hmis::Hud::IncomeBenefit.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::IncomeBenefit.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   INCOME_SOURCES_UNSPECIFIED = 'At least one income source must be selected.'.freeze
@@ -50,7 +51,7 @@ class Hmis::Hud::Validators::IncomeBenefitValidator < Hmis::Hud::Validators::Bas
         :medicaid,
         :medicare,
         :schip,
-        :va_medical_services,
+        :vha_services,
         :employer_provided,
         :cobra,
         :private_pay,
