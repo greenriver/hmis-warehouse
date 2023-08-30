@@ -47,12 +47,10 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
       min_conflict_date = conflict_scope.minimum(:entry_date)
       if min_conflict_date
         # If the entry date is being set on a NEW enrollment, and the entry date is on or after the entry date of any conflicting enrollments, it should be an error.
-        if enrollment.entry_date >= min_conflict_date
-          return :error
+        return :error if enrollment.entry_date >= min_conflict_date
+
         # if the entry date is being set on a NEW enrollment, and the entry date is before the entry date of any conflicting enrollments, it should be a warning
-        elsif enrollment.entry_date < min_conflict_date
-          return :warning
-        end
+        return :warning if enrollment.entry_date < min_conflict_date
       end
     end
   end
