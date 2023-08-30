@@ -3,7 +3,7 @@
     {
       "type": "CHOICE",
       "link_id": "unit",
-      "text": "Select Unit",
+      "text": "Unit Assignment",
       "mapping": {
         "record_type": "ENROLLMENT",
         "field_name": "currentUnit"

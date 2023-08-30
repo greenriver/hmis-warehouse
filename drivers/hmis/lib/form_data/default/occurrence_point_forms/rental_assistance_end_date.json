@@ -1,0 +1,14 @@
+{
+  "item": [
+    {
+      "link_id": "rental-assistance-end-date",
+      "type": "DATE",
+      "text": "Rental Assistance End Date",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "custom_field_key": "rental_assistance_end_date"
+      },
+      "_comment": "TODO any bounds?"
+    }
+  ]
+}
