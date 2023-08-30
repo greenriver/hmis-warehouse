@@ -3160,7 +3160,7 @@ type FilesPaginated {
 FormDefinition
 """
 type FormDefinition {
-  cacheKey: ID
+  cacheKey: ID!
   definition: FormDefinitionJson!
   id: ID!
   role: FormRole!
