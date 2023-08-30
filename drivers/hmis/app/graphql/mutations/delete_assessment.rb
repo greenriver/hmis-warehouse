@@ -14,8 +14,16 @@ module Mutations
       record = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
-      # FIXME(#185552893): this mutation should delete all the related records linked to the FormProcessor
-      record.transaction do
+      if record.deletion_would_cause_conflicting_enrollments?
+        errors = HmisErrors::Errors.new
+        errors.add :base, :invalid, full_message: 'Cannot reopen this enrollment because it would conflict with newer enrollments for this client'
+        return {
+          assessment_id: record.id,
+          errors: errors,
+        }
+      end
+
+      record.with_lock do
         is_wip = record.in_progress?
 
         result = default_delete_record(
@@ -32,12 +40,11 @@ module Mutations
             end
           end,
           after_delete: -> do
+            record.form_processor.related_records.each(&:destroy!)
+
             # Deleting the Exit Assessment "un-exits" the client by deleting the Exit record,
             # and moving the referral back to "accepted" status
-            if record.exit? && !is_wip
-              record.enrollment&.exit&.destroy # FIXME(#185552893) this becomes redundant
-              record.enrollment&.accept_referral!(current_user: current_user)
-            end
+            record.enrollment&.accept_referral!(current_user: current_user) if record.exit? && !is_wip
 
             # Deleting the Intake Assessment deletes the enrollment
             record.enrollment&.destroy if record.intake?

@@ -28,6 +28,9 @@ module WarehouseReports
     end
 
     private def set_report
+      # On multi-coc installations, not having CoC on the form was causing all visible projects to be included
+      # make sure these are blanked out since we'll never be choosing them
+      @filter.coc_codes = []
       @report = WarehouseReport::BedUtilization.new(filter: @filter)
     end
 

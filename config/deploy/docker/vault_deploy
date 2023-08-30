@@ -1,4 +1,8 @@
 #!/usr/bin/env ruby
 
+# Confirm we've pushed/pulled before we ask for a password
+require_relative 'lib/deployer'
+Deployer.check_that_you_pushed_to_remote!
+
 cmd = "aws-vault exec openpath -- bin/deploy #{ARGV.join(' ')}"
 system(cmd)

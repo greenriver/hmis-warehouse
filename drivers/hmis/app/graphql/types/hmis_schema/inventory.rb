@@ -10,11 +10,10 @@ module Types
   class HmisSchema::Inventory < Types::BaseObject
     include Types::HmisSchema::HasCustomDataElements
     def self.configuration
-      Hmis::Hud::Inventory.hmis_configuration(version: '2022')
+      Hmis::Hud::Inventory.hmis_configuration(version: '2024')
     end
 
     hud_field :id, ID, null: false
-    hud_field :project, Types::HmisSchema::Project, null: false
     hud_field :coc_code
     hud_field :household_type, HmisSchema::Enums::Hud::HouseholdType
     hud_field :availability, HmisSchema::Enums::Hud::Availability
@@ -36,5 +35,9 @@ module Types
     field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     custom_data_elements_field
+
+    def user
+      load_ar_association(object, :user)
+    end
   end
 end
