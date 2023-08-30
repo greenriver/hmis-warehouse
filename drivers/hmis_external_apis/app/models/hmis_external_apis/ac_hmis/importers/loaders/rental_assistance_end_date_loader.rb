@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def build_records
       owner_id_by_enrollment_id = Hmis::Hud::Enrollment
-        .heads_of_households # enrollments should HOH
+        # .heads_of_households # enrollments should HOH but many are not
         .where(data_source: data_source)
         .pluck(:enrollment_id, :id)
         .to_h
