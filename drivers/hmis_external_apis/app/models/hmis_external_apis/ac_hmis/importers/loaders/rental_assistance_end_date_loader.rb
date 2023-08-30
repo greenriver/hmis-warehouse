@@ -36,7 +36,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           value: parse_date(row_value(row, field: 'RENTALASSISTANCEENDDATE')),
           definition_key: :rental_assistance_end_date,
         ).merge(owner_id: owner_id)
-      end
+      end.compact
       log_processed_result(expected: expected, actual: records.size)
       records
     end
