@@ -13,6 +13,13 @@ module Types
     field :role, Types::Forms::Enums::FormRole, null: false
     field :definition, Forms::FormDefinitionJson, null: false
 
+    def id
+      project_id = object.filter_context&.fetch(:project, nil)
+      return object.id unless project_id.present?
+
+      "#{object.id}:#{project_id}"
+    end
+
     # Filtering is implemented within this resolver rather than a separate concern. This
     # gives us convenient to access the lazy batch loader for records (funder, orgs) that
     # we might need to apply filter. Probably the filtering should get moved to it's own
