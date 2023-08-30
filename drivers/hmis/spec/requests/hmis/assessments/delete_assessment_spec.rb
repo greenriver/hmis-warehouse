@@ -128,8 +128,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should un-exit when deleting a submitted exit assessment' do
     a1.save_not_in_progress
-    a1.update(data_collection_stage: 3) # exit
-    create(:hmis_hud_exit, enrollment: e1, client: c1, user: u1, data_source: ds1)
+    a1.update!(data_collection_stage: 3) # exit
+    a1.form_processor.update!(
+      exit: create(:hmis_hud_exit, enrollment: e1, client: c1, user: u1, data_source: ds1),
+    )
 
     mutate(input: { id: a1.id }) do |assessment_id, errors|
       expect(assessment_id).to be_present

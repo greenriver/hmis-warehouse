@@ -6,16 +6,17 @@
 
 module HmisExternalApis::AcHmis::Importers::Loaders
   class BaseLoader
-    attr_reader :reader, :clobber, :tracker, :table_names
+    attr_reader :reader, :clobber, :tracker, :table_names, :log_file
 
     def self.perform(...)
       new(...).perform
     end
 
-    def initialize(reader:, tracker: nil, clobber:)
+    def initialize(reader:, tracker: nil, clobber:, log_file: ENV['AC_HMIS_IMPORT_LOG_FILE'])
       @reader = reader
       @clobber = clobber
       @tracker = tracker
+      @log_file = log_file
       @table_names = []
     end
 
@@ -119,11 +120,20 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       table_names.push(table_name)
 
       # report ids.size, since num_inserts is only last batch
-      log_info "inserted #{result.ids.size} records into #{table_name}"
+      warning = result.ids.size == records.size ? nil : "(WARNING, expected to insert #{records.size} records)"
+      log_info "inserted #{result.ids.size} records into #{table_name} #{warning}"
     end
 
     def log_info(msg)
-      Rails.logger.info "#{loader_name}: #{msg}"
+      msg = "#{loader_name}: #{msg}"
+      append_to_log(msg)
+      Rails.logger.info msg
+    end
+
+    def append_to_log(msg)
+      return unless log_file
+
+      File.open(log_file, 'a') { |f| f.puts(msg) }
     end
 
     def loader_name

@@ -22,14 +22,6 @@ module Types
     field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
 
-    [
-      :assessment_level,
-      :assessment_type,
-      :prioritization_status,
-    ].each do |field_name|
-      define_method(field_name) { resolve_null_enum(object.send(field_name)) }
-    end
-
     def enrollment
       load_ar_association(object, :enrollment)
     end

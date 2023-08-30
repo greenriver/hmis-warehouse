@@ -33,27 +33,6 @@
       ]
     },
     {
-      "type": "DATE",
-      "link_id": "date-provided",
-      "hidden": true,
-      "mapping": {
-        "field_name": "dateProvided"
-      },
-      "autofill_values": [
-        {
-          "value_question": "fa-start-date",
-          "autofill_behavior": "ANY",
-          "autofill_when": [
-            {
-              "question": "fa-start-date",
-              "operator": "EXISTS",
-              "answer_boolean": true
-            }
-          ]
-        }
-      ]
-    },
-    {
       "type": "CHOICE",
       "required": true,
       "link_id": "funding-source",

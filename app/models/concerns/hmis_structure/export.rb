@@ -169,6 +169,88 @@ module HmisStructure::Export
             null: false,
           },
         }
+      when '2024'
+        {
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          SourceType: {
+            type: :integer,
+            null: false,
+          },
+          SourceID: {
+            type: :string,
+            limit: 32,
+          },
+          SourceName: {
+            type: :string,
+            limit: 50,
+          },
+          SourceContactFirst: {
+            type: :string,
+            limit: 50,
+          },
+          SourceContactLast: {
+            type: :string,
+            limit: 50,
+          },
+          SourceContactPhone: {
+            type: :string,
+            limit: 10,
+          },
+          SourceContactExtension: {
+            type: :string,
+            limit: 5,
+          },
+          SourceContactEmail: {
+            type: :string,
+            limit: 320,
+          },
+          ExportDate: {
+            type: :datetime,
+            null: false,
+          },
+          ExportStartDate: {
+            type: :date,
+            null: false,
+          },
+          ExportEndDate: {
+            type: :date,
+            null: false,
+          },
+          SoftwareName: {
+            type: :string,
+            limit: 50,
+            null: false,
+          },
+          SoftwareVersion: {
+            type: :string,
+            limit: 50,
+          },
+          CSVVersion: {
+            type: :string,
+            limit: 50,
+          },
+          ExportPeriodType: {
+            type: :integer,
+            null: false,
+          },
+          ExportDirective: {
+            type: :integer,
+            null: false,
+          },
+          HashStatus: {
+            type: :integer,
+            null: false,
+          },
+          ImplementationID: {
+            type: :string,
+            limit: 200,
+            null: false,
+          },
+        }
       end
     end
 

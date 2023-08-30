@@ -11,8 +11,8 @@ module Types
     description 'HUD Project Types'
     graphql_name 'ProjectType'
 
-    HudUtility.project_types.each do |id, description|
-      key = HudUtility.project_type_briefs[id].gsub(/ -?\s?/, '_').gsub('/', '_').upcase
+    HudUtility2024.project_types.each do |id, description|
+      key = HudUtility2024.project_type_briefs[id].gsub(/ -?\s?/, '_').gsub('/', '_').upcase
       description = description.sub(/\s*\(.+\)$/, '')
       value key, description, value: id
     end

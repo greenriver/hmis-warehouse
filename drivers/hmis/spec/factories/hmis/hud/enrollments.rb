@@ -15,6 +15,7 @@ FactoryBot.define do
     DateUpdated { DateTime.current }
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
     DisablingCondition { 99 }
+    EnrollmentCoC { 'XX-500' }
     sequence(:EnrollmentID, 500)
     sequence(:EntryDate) do |n|
       dates = [
@@ -26,6 +27,9 @@ FactoryBot.define do
       ]
       dates[n % 5].to_date
     end
+    # after(:build) do |enrollment|
+    #   enrollment.data_source = enrollment.project.data_source
+    # end
   end
 
   factory :hmis_hud_wip_enrollment, class: 'Hmis::Hud::Enrollment' do
@@ -38,6 +42,7 @@ FactoryBot.define do
     DateUpdated { DateTime.current }
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
     DisablingCondition { 99 }
+    EnrollmentCoC { 'XX-500' }
     sequence(:EnrollmentID, 500)
     sequence(:EntryDate) do |n|
       dates = [

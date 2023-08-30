@@ -14,7 +14,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
   ].freeze
 
   def configuration
-    Hmis::Hud::Enrollment.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Enrollment.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def self.one_hoh_full_message

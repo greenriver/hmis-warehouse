@@ -13,7 +13,7 @@ class Hmis::Hud::Validators::FunderValidator < Hmis::Hud::Validators::BaseValida
   OTHER_FUNDER = 46
 
   def configuration
-    Hmis::Hud::Funder.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Funder.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def validate(record)

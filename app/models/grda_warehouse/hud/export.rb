@@ -21,7 +21,7 @@ module GrdaWarehouse::Hud
     has_many :disabilities, **hud_assoc(:DisabilityID, 'Disability'), inverse_of: :export
     has_many :employment_educations, **hud_assoc(:EmploymentEducationID, 'EmploymentEducation'), inverse_of: :export
     has_many :enrollments, **hud_assoc(:EnrollmentID, 'Enrollment'), inverse_of: :export
-    has_many :enrollment_cocs, **hud_assoc(:EnrollmentCocID, 'EnrollmentCoc'), inverse_of: :export
+    has_many :enrollment_cocs, **hud_assoc(:EnrollmentCocID, 'EnrollmentCoc'), inverse_of: :export # <= 2022
     has_many :exits, **hud_assoc(:ExitID, 'Exit'), inverse_of: :export
     has_many :funders, **hud_assoc(:FunderID, 'Funder'), inverse_of: :export
     has_many :health_and_dvs, **hud_assoc(:HealthAndDvID, 'HealthAndDv'), inverse_of: :export
@@ -39,6 +39,8 @@ module GrdaWarehouse::Hud
     has_many :assessment_results, **hud_assoc(:AssessmentResultID, 'AssessmentResult'), inverse_of: :export
     has_many :events, **hud_assoc(:EventID, 'Event'), inverse_of: :export
     has_many :youth_education_statuses, **hud_assoc(:YouthEducationStatusID, 'YouthEducationStatus'), inverse_of: :export
+    has_many :hmis_participations, **hud_assoc(:HMISParticiationID, 'HmisParticipation'), inverse_of: :export
+    has_many :ce_participations, **hud_assoc(:CEParticipationID, 'CeParticipation'), inverse_of: :export
 
     belongs_to :data_source, inverse_of: :exports
   end

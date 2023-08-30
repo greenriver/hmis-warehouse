@@ -417,19 +417,19 @@ CREATE TABLE public."CEParticipation" (
     id bigint NOT NULL,
     "CEParticipationID" character varying NOT NULL,
     "ProjectID" character varying NOT NULL,
-    "AccessPoint" integer NOT NULL,
+    "AccessPoint" integer,
     "PreventionAssessment" integer,
     "CrisisAssessment" integer,
     "HousingAssessment" integer,
     "DirectServices" integer,
     "ReceivesReferrals" integer,
-    "CEParticipationStatusStartDate" date NOT NULL,
+    "CEParticipationStatusStartDate" date,
     "CEParticipationStatusEndDate" date,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    "UserID" character varying NOT NULL,
-    "ExportID" character varying NOT NULL,
+    "UserID" character varying,
+    "ExportID" character varying,
     data_source_id integer
 );
 
@@ -1925,14 +1925,14 @@ CREATE TABLE public."HMISParticipation" (
     id bigint NOT NULL,
     "HMISParticipationID" character varying NOT NULL,
     "ProjectID" character varying NOT NULL,
-    "HMISParticipationType" integer NOT NULL,
-    "HMISParticipationStatusStartDate" date NOT NULL,
+    "HMISParticipationType" integer,
+    "HMISParticipationStatusStartDate" date,
     "HMISParticipationStatusEndDate" date,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    "UserID" character varying NOT NULL,
-    "ExportID" character varying NOT NULL,
+    "UserID" character varying,
+    "ExportID" character varying,
     data_source_id integer
 );
 
@@ -13970,7 +13970,8 @@ CREATE TABLE public.hmis_form_definitions (
     status character varying NOT NULL,
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    title character varying
 );
 
 
@@ -53170,6 +53171,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230827232228'),
 ('20230828180700'),
 ('20230828180743'),
-('20230828180842');
+('20230828180842'),
+('20230829155747'),
+('20230830121811');
 
 
