@@ -13,9 +13,9 @@ class Hmis::FieldMap
       null: true,
     },
     {
-      key: :client_refused,
+      key: :client_prefers_not_to_answer,
       value: 9,
-      desc: 'Client refused',
+      desc: 'Client prefers not to answer',
       null: true,
     },
     {
@@ -61,42 +61,5 @@ class Hmis::FieldMap
 
   def null_member?(key: nil, value: nil)
     @null_members.any? { |member| member[:key] == key || member[:value] == value }
-  end
-
-  def self.no_yes
-    Hmis::FieldMap.new(
-      ::HudUtility.no_yes_reasons_for_missing_data_options.slice(0, 1).map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-        }
-      end,
-      include_base_null: true,
-    )
-  end
-
-  def self.no_yes_reasons
-    Hmis::FieldMap.new(
-      ::HudUtility.no_yes_reasons_for_missing_data_options.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-        }
-      end,
-    )
-  end
-
-  def self.yes_no_missing
-    Hmis::FieldMap.new(
-      ::HudUtility.yes_no_missing_options.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-        }
-      end,
-    )
   end
 end

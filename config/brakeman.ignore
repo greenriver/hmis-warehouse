@@ -69,6 +69,29 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "07ab3a48e4c84f40fe8acb270d962ed39424807b21c01793b91e44b25acfaf9e",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/shape/installer.rb",
+      "line": 86,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{ENV[\"RELEVANT_COC_STATE\"]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::Installer",
+        "method": "handle_one_geography!"
+      },
+      "user_input": "conf.dir",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "File Access",
       "warning_code": 16,
       "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",
@@ -98,7 +121,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 369,
+      "line": 372,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -167,7 +190,7 @@
       "check_name": "FileAccess",
       "message": "Parameter value used in file name",
       "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
-      "line": 104,
+      "line": 119,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
       "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
       "render_path": null,
@@ -180,6 +203,29 @@
       "confidence": "Weak",
       "cwe_id": [
         22
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "13d40d39bffa94f44c6f95387fdabf76e416286b0719000122e9aef86aa19737",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/shape/zip_code.rb",
+      "line": 84,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"UPDATE\\n  shape_zip_codes AS z\\nSET\\n  county_name_lower = LOWER(namelsad)\\nFROM\\n  shape_counties c\\nWHERE\\n  z.county_name_lower IS NULL\\n  AND z.st_geoid = '#{state_code}'\\n  AND\\n    (\\n      ST_Area(ST_Intersection(z.geom, c.geom))\\n      /\\n      ST_Area(z.geom)\\n      >\\n      0.95\\n    )\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::ZipCode",
+        "method": "GrdaWarehouse::Shape::ZipCode.calculate_counties"
+      },
+      "user_input": "state_code",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -871,29 +917,6 @@
       "note": "Considering AWS provided URI okay to inject"
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "54f8e790a2519455109daadf5dd74297f7684aa397825fa9c2f1bf9bdef73192",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 154,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "_check_that_you_pushed_to_remote!"
-      },
-      "user_input": "`git rev-parse --abbrev-ref HEAD`.chomp",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "560654d4119023b98ace9aa621f8578d4bbf9842e89acc251bda37a3ca2476ab",
@@ -913,6 +936,29 @@
       "confidence": "Weak",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "5bc404c91fe46e9bbcfd3cd9bdca6c45a1bd7fb89281f8a8fda56fc1da2ff876",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/deploy/docker/lib/deployer.rb",
+      "line": 116,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Deployer",
+        "method": "s(:self).check_that_you_pushed_to_remote!"
+      },
+      "user_input": "`git rev-parse --abbrev-ref HEAD`.chomp",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
       ],
       "note": ""
     },
@@ -960,29 +1006,6 @@
         470
       ],
       "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "5fb07f23d96197864df77d4b7aa712e9cf74547e169e91a8f107307827019e80",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/grda_warehouse/shape/installer.rb",
-      "line": 49,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{ENV[\"RELEVANT_COC_STATE\"]}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Shape::Installer",
-        "method": "run!"
-      },
-      "user_input": "conf.dir",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": "Injection from internal sources"
     },
     {
       "warning_type": "Dynamic Render Path",
@@ -1084,29 +1107,6 @@
       "confidence": "Medium",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "6cfd47b3522f879e176ed00c1639c8431e26cf5798564e7ba8e89633bdda9f61",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 155,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "_check_that_you_pushed_to_remote!"
-      },
-      "user_input": "`git rev-parse --abbrev-ref HEAD`.chomp",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
       ],
       "note": ""
     },
@@ -1507,7 +1507,7 @@
       "check_name": "FileAccess",
       "message": "Parameter value used in file name",
       "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
-      "line": 107,
+      "line": 122,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
       "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"))",
       "render_path": null,
@@ -1520,29 +1520,6 @@
       "confidence": "Weak",
       "cwe_id": [
         22
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "827d6fcb660cb26aba48a6def2aada678b23bca67e2e931a04fd245373cd51f8",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/importers/custom_data_elements_importer.rb",
-      "line": 84,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "connection.exec_query(\"ANALYZE #{table_names.uniq.map do\n connection.quote_table_name(n)\n end.join(\",\")};\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter",
-        "method": "analyze_tables"
-      },
-      "user_input": "table_names.uniq.map do\n connection.quote_table_name(n)\n end.join(\",\")",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
       ],
       "note": ""
     },
@@ -1731,6 +1708,29 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "85e335c4575b12b61263ca6d933cb810fe5f86ad44c5f53e83e8558af7897a58",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/deploy/docker/lib/deployer.rb",
+      "line": 115,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Deployer",
+        "method": "s(:self).check_that_you_pushed_to_remote!"
+      },
+      "user_input": "`git rev-parse --abbrev-ref HEAD`.chomp",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "88ba6947358eb613f838a50fc8a1b137f655dda08126594643d90dca1df7daa9",
@@ -1760,7 +1760,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 333,
+      "line": 337,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
       "render_path": null,
@@ -2139,7 +2139,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 149,
+      "line": 157,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse HEAD > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -2537,7 +2537,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 73,
+      "line": 75,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -3134,7 +3134,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "drivers/hmis/app/graphql/types/hmis_schema/submit_form_result.rb",
-      "line": 32,
+      "line": 34,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Hmis::Form::Definition::FORM_ROLE_CONFIG.find do\n (value[:class_name] == object.class.name)\n end.last[:resolve_as].constantize",
       "render_path": null,
@@ -3151,6 +3151,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-08-15 14:33:13 +0000",
+  "updated": "2023-08-30 17:59:52 +0000",
   "brakeman_version": "5.4.1"
 }

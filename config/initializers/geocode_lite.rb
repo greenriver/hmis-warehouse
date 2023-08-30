@@ -5,5 +5,6 @@ Geocoder.configure(
   },
   http_headers: {
     "User-Agent" => "info@greenriver.com"
-  }
+  },
+  timeout: 10,
 )

@@ -16,7 +16,7 @@ module HmisStructure::Affiliation
   module ClassMethods
     def hmis_configuration(version: nil)
       case version
-      when '6.11', '6.12', '2020', '2022'
+      when '6.11', '6.12', '2020', '2022', '2024'
         {
           AffiliationID: {
             type: :string,

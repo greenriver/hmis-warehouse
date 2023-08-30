@@ -9,7 +9,7 @@ gem 'rexml'
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
-gem 'nokogiri', '>= 1.13.10' # >= 1.13.10 due to GHSA-qv4q-mr5r-qprj
+gem 'nokogiri', '>= 1.13.10' # CVE-2017-15412
 gem 'loofah', '>= 2.19.1' # >= 2.19.1 due to GHSA-228g-948r-83gx
 gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519
