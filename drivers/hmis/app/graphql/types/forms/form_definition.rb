@@ -10,6 +10,7 @@ module Types
   class Forms::FormDefinition < Types::BaseObject
     description 'FormDefinition'
     field :id, ID, null: false
+    field :for_project_id, ID, null: true
     field :role, Types::Forms::Enums::FormRole, null: false
     field :definition, Forms::FormDefinitionJson, null: false
 
@@ -19,6 +20,10 @@ module Types
     # class down the road
     def definition
       eval_items([object.definition])[0]
+    end
+
+    def for_project_id
+      project&.id
     end
 
     protected
