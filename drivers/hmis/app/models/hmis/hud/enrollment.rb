@@ -158,7 +158,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     entry_date = range.begin
     raise unless entry_date
 
-    scope = where(project_id: project.project_id, data_source: project.data_source_id)
+    scope = with_project([project.id])
     exit_date = range.end # maybe nil if endless range
     if exit_date
       scope.left_outer_joins(:exit)
