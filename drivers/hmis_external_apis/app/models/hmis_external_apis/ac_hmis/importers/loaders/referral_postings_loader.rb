@@ -22,6 +22,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       import_enrollment_records
       import_referral_records
       import_referral_posting_records
+      delete_orphan_referral_posting_records
       import_referral_household_members_records
       assign_unit_occupancies
     end
@@ -88,6 +89,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         build_posting_records,
         on_duplicate_key_update: { conflict_target: :identifier, columns: :all },
       )
+    end
+
+    def delete_orphan_referral_posting_records
+      orphans = HmisExternalApis::AcHmis::Referral.where.not(id: HmisExternalApis::AcHmis::ReferralPosting.select(:referral_id))
+      total = orphans.count
+      log_info "Deleting #{total} referrals with no postings"
+      orphans.find_each(&:destroy!)
     end
 
     def import_referral_household_members_records
