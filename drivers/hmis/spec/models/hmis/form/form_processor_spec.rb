@@ -913,7 +913,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       existing_client = c1
       new_client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
       [existing_client, new_client].each do |client|
-        hud_values = empty_hud_values.merge({ 'veteranStatus': HIDDEN_FIELD_VALUE })
+        hud_values = empty_hud_values.merge({ 'veteranStatus': HIDDEN })
         process_record(record: client, hud_values: hud_values, user: hmis_user)
         expect(client.veteran_status).to eq(99)
       end
