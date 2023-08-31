@@ -58,15 +58,18 @@ namespace :import do
     FileUtils.mkdir_p dir
     creds = GrdaWarehouse::RemoteCredentials::S3.find_by(slug: HmisExternalApis::AcHmis::Importers::S3ZipFilesImporter::MPER_SLUG)
     s3 = creds.s3
-    s3.list_objects(prefix: 'initial-migration')
     zipfile = "#{dir}/custom.zip"
-    s3.fetch(file_name: '2023-08-18-HMIS-Legacy-Data-csv-a28b08c4-3098-4d34-8575-d5896a018f6c-.zip', prefix: 'initial-migration', target_path: zipfile)
+    s3.list_objects(prefix: 'initial-migration')
+    selected = s3.list_objects(prefix: 'initial-migration').filter { |o| o.key.include?('Custom') }.first.key
+    selected_file_name = selected.gsub('initial-migration/', '')
+    ### ALERT! Check and make sure its the right file. ###
+    s3.fetch(file_name: selected_file_name, prefix: 'initial-migration', target_path: zipfile)
     system("unzip #{zipfile} -d #{dir}")
 
     # ls /tmp/s3-2023-08-22/custom-data
     # rm /tmp/s3-2023-08-22/custom-data/custom.zip
 
-    # rails driver:hmis_external_apis:import:ac_custom_data_elements[/tmp/migration/2023-08-25/custom-data,true]
+    # AC_HMIS_IMPORT_LOG_FILE=/tmp/gig-import.log rails driver:hmis_external_apis:import:ac_custom_data_elements[/tmp/migration/2023-08-30/custom-data,true]
 
     # Run custom data importers
     importer = HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter.new(dir: dir, clobber: true)
