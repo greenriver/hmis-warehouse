@@ -17,9 +17,14 @@ module Health
       set_hpc_patient
       # set_patient if @patient.blank?
       a_t = Health::Appointment.arel_table
-      @appointments = @patient.appointments.order(appointment_time: :desc)
+      @appointments = if @patent.present?
+        @patient.appointments.order(appointment_time: :desc)
+      else
+        Health::Appointment.none
+      end
       @upcoming = @appointments.limited.where(a_t[:appointment_time].gt(Time.now)).order(appointment_time: :asc)
       @past = @appointments.where(a_t[:appointment_time].lteq(Time.now)).order(appointment_time: :desc)
+
       render layout: !request.xhr?
     end
 
@@ -36,10 +41,15 @@ module Health
       else
         end_date = start_date + 2.weeks
       end
-      @appointments = @patient.appointments.
-        limited.
-        where(appointment_time: (start_date..end_date)).
-        order(appointment_time: :asc)
+      @appointments = if @patent.present?
+        @patient.appointments.
+          limited.
+          where(appointment_time: (start_date..end_date)).
+          order(appointment_time: :asc)
+      else
+        Health::Appointment.none
+      end
+
       render layout: !request.xhr?
     end
 
@@ -49,11 +59,15 @@ module Health
       start_date = Date.current.beginning_of_week(:sunday)
       end_date = Date.current + 2.weeks
 
-      appointments = @patient.appointments.
-        limited.
-        where(appointment_time: (start_date..end_date)).
-        order(appointment_time: :asc).
-        group_by { |appointment| appointment.appointment_time.to_date }
+      appointments = if @patient.present?
+        @patient.appointments.
+          limited.
+          where(appointment_time: (start_date..end_date)).
+          order(appointment_time: :asc).
+          group_by { |appointment| appointment.appointment_time.to_date }
+      else
+        {}
+      end
 
       @appointments = (start_date..end_date).map do |d|
         {
