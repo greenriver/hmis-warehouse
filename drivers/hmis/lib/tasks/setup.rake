@@ -4,6 +4,8 @@ task seed_definitions: [:environment, 'log:info_to_stdout'] do
     builder.seed_record_form_definitions
     builder.seed_assessment_form_definitions
   end
+
+  ::HmisUtil::JsonForms.create_default_occurrence_point_instances! if Rails.env.development?
 end
 
 desc 'Seed service types'
