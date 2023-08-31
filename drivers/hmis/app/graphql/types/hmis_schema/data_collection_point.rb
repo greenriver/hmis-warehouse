@@ -19,8 +19,6 @@ module Types
 
     # object is a Hmis::Form::Instance
 
-    # TODO: add "title" column to definition.
-    # that makes sense as a thing to do when you're creating in a form builder.
     def title(parent:)
       definition(parent: parent).title
     end
