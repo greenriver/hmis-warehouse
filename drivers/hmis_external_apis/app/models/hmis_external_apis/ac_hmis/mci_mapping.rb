@@ -91,10 +91,12 @@ module HmisExternalApis::AcHmis
     #   '8' => 'Another Hispanic, Latino, Or Spanish Origin',
     # }.freeze
     def self.mci_ethnicity(client)
-      if client.ethnicity == 1
+      if client.hispanic_latinaeo == 1
         1
-      elsif client.ethnicity.zero?
+      elsif client.hispanic_latinaeo&.zero?
         2
+      else
+        3
       end
     end
   end
