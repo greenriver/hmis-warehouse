@@ -12,6 +12,10 @@ module ClientSearch
       return none unless text.present?
 
       text.strip!
+      qtext  = connection.quote(text)
+      cond = "word_similarity(search_name_fml, #{qtext})"
+      return where("#{qtext} <% search_name_fml").order(Arel.sql("#{cond} DESC"))
+
       sa = arel_table
       alpha_numeric = /[[[:alnum:]]-]+/.match(text).try(:[], 0) == text
       numeric = /[\d-]+/.match(text).try(:[], 0) == text

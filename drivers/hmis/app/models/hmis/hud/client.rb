@@ -228,6 +228,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
     if input.text_search.present?
+      return scope.matching_search_term(input.text_search)
       scope = text_searcher(input.text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
         scope.left_outer_joins(:names).where(where).pluck(:id)
       end
