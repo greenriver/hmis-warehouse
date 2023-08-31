@@ -33,9 +33,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .pluck(:enrollment_id, :personal_id)
         .to_h
 
-      rows.map do |row|
+      expected = 0
+      records = rows.map do |row|
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
         personal_id = personal_id_by_enrollment_id[enrollment_id]
+        expected += 1
         unless personal_id
           log_skipped_row(row, field: 'ENROLLMENTID')
           next # early return
@@ -61,6 +63,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         end
         record
       end.compact
+      log_processed_result(expected: expected, actual: records.size)
+      records
     end
 
     def cde_attrs(row)

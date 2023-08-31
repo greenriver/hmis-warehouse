@@ -21,13 +21,23 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     protected
 
     def build_records
-      rows.map do |row|
+      valid_personal_ids = Hmis::Hud::Client.hmis.pluck(:personal_id).to_set
+      expected = 0
+      records = rows.map do |row|
+        expected += 1
+        use_value = row_value(row, field: 'use')
+        use_mapped = USE_MAP[use_value.downcase]
+
+        personal_id = row_value(row, field: 'PersonalID')
+        next nil unless personal_id.in?(valid_personal_ids)
+
         default_attrs.merge(
           {
             AddressID: Hmis::Hud::Base.generate_uuid,
             UserID: row_value(row, field: 'UserID', required: false) || system_user_id,
-            PersonalID: row_value(row, field: 'PersonalID'),
-            use: row_value(row, field: 'use'),
+            PersonalID: personal_id,
+            use: use_mapped,
+            notes: use_value && use_mapped.nil? ? use_value : nil, # save use as a note if we can't map it
             line1: row_value(row, field: 'line1', required: false),
             line2: row_value(row, field: 'line2', required: false),
             city: row_value(row, field: 'city', required: false),
@@ -39,7 +49,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             DateUpdated: parse_date(row_value(row, field: 'DateUpdated')),
           },
         )
-      end
+      end.compact
+      log_processed_result(expected: expected, actual: records.size)
+      records
     end
 
     def date_created(row)
@@ -66,6 +78,17 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         row_value(row, field: 'Zipextension', required: false),
       ].compact.join('-')
     end
+
+    USE_MAP = {
+      'home' => 'home',
+      'school' => 'school',
+      'mail' => 'mail',
+      'billing address' => 'mail',
+      'mailing' => 'mail',
+      'business' => 'work',
+      'others' => nil,
+      'other' => nil,
+    }.freeze
 
     def model_class
       Hmis::Hud::CustomClientAddress

@@ -241,7 +241,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         section: link_id_section_hash[item.link_id],
       }
 
-      is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
+      is_missing = value.nil? || (value.respond_to?(:empty?) && value.empty?) || value == 'DATA_NOT_COLLECTED'
       field_name = item.mapping&.field_name
       # Validate required status
       if item.required && is_missing

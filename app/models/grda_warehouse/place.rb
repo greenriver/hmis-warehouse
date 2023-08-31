@@ -8,6 +8,9 @@ module GrdaWarehouse
   class Place < GrdaWarehouseBase
     include NotifierConfig
 
+    belongs_to :shape_zip_code, class_name: 'GrdaWarehouse::Shape::ZipCode', primary_key: 'zcta5ce10', foreign_key: 'zipcode', optional: true
+    belongs_to :shape_state, class_name: 'GrdaWarehouse::Shape::State', primary_key: 'stusps', foreign_key: 'state', optional: true
+
     NominatimApiPaused = Class.new(StandardError)
 
     def self.lookup_lat_lon(query: nil, city: nil, state: nil, postalcode: nil, country: 'us')
