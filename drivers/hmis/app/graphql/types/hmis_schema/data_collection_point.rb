@@ -33,12 +33,7 @@ module Types
       definition = load_ar_association(object, :definition)
       raise "Unable to load definition for instance: #{object.id}" unless definition.present?
 
-      definition.filter_context = {
-        project: parent,
-        # Could add in active date, or active range, if we need to apply rules based on who was funding
-        # the program at the time of an enrollment. Doesn't work when resolving on project tho.
-        # active_date: object.assessment_date,
-      }
+      definition.filter_context = { project: parent }
       definition
     end
   end

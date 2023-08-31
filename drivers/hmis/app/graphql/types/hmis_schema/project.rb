@@ -93,18 +93,10 @@ module Types
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
 
-    # Move role from Definition=>Instance
-    # Definition table = just the forms
-    # Instance table = how the forms should be used
-
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false
     field :data_collection_points, [Types::HmisSchema::DataCollectionPoint], null: false, method: :data_collection_point_instances
-    # What happens when the funder/ptype changes and an instance "falls out of use", even though
-    # we have data for it? also icebox that. basically when you change the ptype or funder,
-    # we should be able to check (1) are there instances that are no longer going to be applicable,
-    # and (2) do those instances "have any data". If they do, we need to handle or block it somehow.
-    #
-    # NON-MVP: its based on any funders EVER, even closed ones. deleting them will cause data to be hidden.
+    # TODO: resolve related HMISParticipation records
+    # TODO: resolve related CEParticipation records
 
     def data_collection_features
       object.data_collection_feature_instances.map do |role, instances|
@@ -113,7 +105,6 @@ module Types
           id: [object.id, *instances.map(&:id)].join(':'),
           role: role.to_s,
           legacy: active_instances.none?,
-          # TODO: deal with data_collected_about enums
           data_collected_about: active_instances.map { |i| i.data_collected_about || 'ALL_CLIENTS' }.uniq,
           legacy_data_collected_about: legacy_instances.map { |i| i.data_collected_about || 'ALL_CLIENTS' }.uniq,
         )
@@ -123,9 +114,6 @@ module Types
     def hud_id
       object.project_id
     end
-
-    # TODO: resolve related HMISParticipation records
-    # TODO: resolve related CEParticipation records
 
     def enrollments(**args)
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
