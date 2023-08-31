@@ -44,7 +44,7 @@ module HmisUtil
         if ENV['CLIENT'].present?
           Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/records/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            puts "Applying #{ENV['CLIENT']} override for #{identifier} form"
+            # puts "Applying #{ENV['CLIENT']} override for #{identifier} form"
             file = File.read(file_path)
             forms[identifier] = JSON.parse(file)
           end
@@ -69,14 +69,14 @@ module HmisUtil
       @record_forms_by_role ||= begin
         forms = {}
 
-        # Load system forms. File name = role.
+        # Load system forms. File name = role. Apply client override file if present.
         Dir.glob("#{DATA_DIR}/default/records/*.json") do |file_path|
           identifier = File.basename(file_path, '.json')
           role = identifier.upcase.to_sym
           raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
 
           file_path = client_override(file_path)
-          puts "Loading #{identifier} from #{file_path}"
+          # puts "Loading #{identifier} from #{file_path}"
           file = File.read(file_path)
           forms[role] ||= {}
           forms[role][identifier] = JSON.parse(file)
@@ -88,10 +88,20 @@ module HmisUtil
           [:occurrence_point_forms, :OCCURRENCE_POINT],
         ].each do |dirname, role|
           forms[role] ||= {}
+          # Load defaults
           Dir.glob("#{DATA_DIR}/default/#{dirname}/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
+            # puts "Loading #{identifier} from #{file_path}"
+            file = File.read(file_path)
+            forms[role][identifier] = JSON.parse(file)
+          end
+          next unless ENV['CLIENT'].present?
+
+          # Load client-specific
+          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/#{dirname}/*.json") do |file_path|
+            identifier = File.basename(file_path, '.json')
             file_path = client_override(file_path)
-            puts "Loading #{identifier} from #{file_path}"
+            # puts "Loading #{identifier} from #{file_path}"
             file = File.read(file_path)
             forms[role][identifier] = JSON.parse(file)
           end
@@ -214,7 +224,7 @@ module HmisUtil
         status: 'draft',
       ).first_or_create!
       record.definition = form_definition
-      record.title = title
+      record.title ||= title
       record.save!
     end
 
@@ -299,7 +309,7 @@ module HmisUtil
         end
       end
       ensure_system_instances_exist!
-      puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
+      # puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
     end
 
     # Load form definitions for HUD assessments
@@ -331,7 +341,7 @@ module HmisUtil
         default_instance.update(system: true, active: true)
         default_instance.touch
       end
-      puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
+      # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
     def validate_definition(json, role)

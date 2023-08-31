@@ -11,7 +11,7 @@ module Types
     # Instance id - caching issues with proj? may need to add proj id
     field :id, ID, null: false
     # Title of the form
-    field :title, String, null: false, extras: [:parent]
+    field :title, String, null: true, extras: [:parent]
     # Which clients this data should be collected for
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false
     # Form used for Viewing/Creating/Editing records

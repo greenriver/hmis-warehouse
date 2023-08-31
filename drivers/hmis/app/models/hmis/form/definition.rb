@@ -40,17 +40,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FILE: 'File',
     REFERRAL_REQUEST: 'Referral Request',
     ENROLLMENT: 'Enrollment',
-    CURRENT_LIVING_SITUATION: 'Current Living Situation',
-    # Occurrence-point collection forms
-    # TODO:
-    # forms of this type are displayed in EnrollmentDetails card
-    # as a table. the frontend has no idea what they are.
     OCCURRENCE_POINT: 'Occurrence point collection form',
-    # FIXME remove all, these become OCCURRENCE_POINT
-    MOVE_IN_DATE: 'Move-in Date',
-    DATE_OF_ENGAGEMENT: 'Date of Engagement',
-    UNIT_ASSIGNMENT: 'Unit Assignment',
-    PATH_STATUS: 'PATH Status',
+    CURRENT_LIVING_SITUATION: 'Current Living Situation',
     CE_ASSESSMENT: 'CE Assessment',
     CE_EVENT: 'CE Event',
   }.freeze
@@ -89,11 +80,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
     NEW_CLIENT_ENROLLMENT: { **ENROLLMENT_CONFIG, permission: [:can_edit_clients, :can_edit_enrollments] },
     OCCURRENCE_POINT: ENROLLMENT_CONFIG,
-    # FIXME remove all, these become OCCURRENCE_POINT
-    MOVE_IN_DATE: ENROLLMENT_CONFIG,
-    DATE_OF_ENGAGEMENT: ENROLLMENT_CONFIG,
-    UNIT_ASSIGNMENT: ENROLLMENT_CONFIG,
-    PATH_STATUS: ENROLLMENT_CONFIG,
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {

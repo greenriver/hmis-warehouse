@@ -6,7 +6,7 @@
       "text": "Has Active Referrals in LINK",
       "read_only": true,
       "mapping": {
-        "record_type": "ENROLLMENT",
+        "record_type": "CLIENT",
         "custom_field_key": "has_active_referrals_in_link"
       }
     }
