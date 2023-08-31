@@ -25,7 +25,7 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
 
   def warehouse_fixture
     @warehouse_fixture ||= PgFixtures.new(
-      directory: 'drivers/hmis_csv_twenty_twenty_two/spec/fixpoints',
+      directory: 'drivers/hmis_csv_twenty_twenty_four/spec/fixpoints',
       excluded_tables: default_excluded_tables,
       model: GrdaWarehouseBase,
     )
@@ -33,7 +33,7 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
 
   def app_fixture
     @app_fixture ||= PgFixtures.new(
-      directory: 'drivers/hmis_csv_twenty_twenty_two/spec/fixpoints',
+      directory: 'drivers/hmis_csv_twenty_twenty_four/spec/fixpoints',
       excluded_tables: ['versions'],
       model: ApplicationRecord,
     )
