@@ -246,62 +246,21 @@ module HmisExternalApis::AcHmis
       return false
     end
 
-    # Accepts a list of 2024 integer values for gender
-    # https://files.hudexchange.info/resources/documents/HMIS-Data-Dictionary-2024.pdf
+    # Accepts a list of 2024 integer values for gender from Data Dictionary
     def gender_attributes_from_codes(codes)
-      # {
-      #   Woman: [0],
-      #   Man: [1],
-      #   CulturallySpecific: [2],
-      #   DifferentIdentity: [3],
-      #   NonBinary: [4],
-      #   Transgender: [5],
-      #   Questioning: [6],
-      # }
-
-      # TODO replace with map above to use 2024 columns, move it to HudUtility2024
-      mapping = {
-        Female: [0],
-        Male: [1],
-        NoSingleGender: [2, 3, 4],
-        Transgender: [5],
-        Questioning: [6],
-      }
-
-      attributes = mapping.keys.map do |k|
-        [k, mapping[k]&.intersect?(codes) ? 1 : 0]
+      attributes = HudUtility2024.gender_id_to_field_name.invert.map do |k, v|
+        [k, codes.include?(v) ? 1 : 0]
       end.to_h
       attributes[:GenderNone] = attributes.values.sum.zero? ? 99 : nil
       attributes
     end
 
-    # Accepts a list of 2024 integer values for race and ethnicity
-    # https://files.hudexchange.info/resources/documents/HMIS-Data-Dictionary-2024.pdf
+    # Accepts a list of 2024 integer values for race from Data Dictionary
     def race_attributes_from_codes(codes)
-      # {
-      #   AmIndAKNative: [1],
-      #   Asian: [2],
-      #   BlackAfAmerican: [3],
-      #   HispanicLatinaeo: [6],
-      #   MidEastNAfrican: [7],
-      #   NativeHIPacific: [4],
-      #   White: [5],
-      # }
-
-      # TODO replace with map above to use 2024 columns, move it to HudUtility2024
-      mapping = {
-        AmIndAKNative: [1],
-        Asian: [2],
-        BlackAfAmerican: [3, 7],
-        NativeHIPacific: [4],
-        White: [5],
-      }
-
-      attributes = mapping.keys.map do |k|
-        [k, mapping[k]&.intersect?(codes) ? 1 : 0]
+      attributes = HudUtility2024.race_id_to_field_name.invert.map do |k, v|
+        [k, codes.include?(v) ? 1 : 0]
       end.to_h
       attributes[:RaceNone] = attributes.values.sum.zero? ? 99 : nil
-      attributes[:Ethnicity] = codes.include?(6) ? 1 : 0
       attributes
     end
   end

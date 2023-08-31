@@ -57,13 +57,13 @@ begin
     })
   end
 rescue Aws::S3::Errors::NoSuchBucket
-  puts "[#{__FILE__}] Cannot find the bucket: #{bucket}"
+  abort "[#{__FILE__}] Cannot find the bucket: #{bucket}"
 rescue Aws::S3::Errors::AccessDenied
-  puts "[#{__FILE__}] Access denied to s3://#{bucket}/#{prefix}"
+  abort "[#{__FILE__}] Access denied to s3://#{bucket}/#{prefix}"
 rescue Aws::Errors::MissingRegionError
-  puts "[#{__FILE__}] specify a region to sync!"
+  abort "[#{__FILE__}] specify a region to sync!"
 rescue KeyError => e
-  puts "[#{__FILE__}] #{e.message}: Cannot sync"
+  abort "[#{__FILE__}] #{e.message}: Cannot sync"
 rescue StandardError => e
-  puts "[#{__FILE__}] #{e.message}"
+  abort "[#{__FILE__}] #{e.message}"
 end

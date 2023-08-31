@@ -35,6 +35,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability'), dependent: :destroy
   has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv'), dependent: :destroy
   has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
+  # TODO: remove
   has_many :enrollment_cocs, **hmis_relation(:EnrollmentID, 'EnrollmentCoc'), dependent: :destroy
   has_many :employment_educations, **hmis_relation(:EnrollmentID, 'EmploymentEducation'), dependent: :destroy
   has_many :youth_education_statuses, **hmis_relation(:EnrollmentID, 'YouthEducationStatus'), dependent: :destroy
@@ -65,11 +66,26 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   alias_to_underscore [:EnrollmentCoC]
 
-  SORT_OPTIONS = [:most_recent, :household_id].freeze
+  SORT_OPTIONS = [
+    :most_recent,
+    :household_id,
+    :last_name_a_to_z,
+    :last_name_z_to_a,
+    :first_name_a_to_z,
+    :first_name_z_to_a,
+    :age_youngest_to_oldest,
+    :age_oldest_to_youngest,
+  ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
     most_recent: 'Most Recent',
     household_id: 'Household ID',
+    last_name_a_to_z: 'Last Name: A-Z',
+    last_name_z_to_a: 'Last Name: Z-A',
+    first_name_a_to_z: 'First Name: A-Z',
+    first_name_z_to_a: 'First Name: Z-A',
+    age_youngest_to_oldest: 'Age: Youngest to Oldest',
+    age_oldest_to_youngest: 'Age: Oldest to Youngest',
   }.freeze
 
   scope :with_access, ->(user, *permissions) do
@@ -150,6 +166,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       )
     when :household_id
       order(household_id: :asc, date_created: :desc)
+    when :last_name_a_to_z
+      joins(:client).order(c_t[:last_name].asc.nulls_last)
+    when :last_name_z_to_a
+      joins(:client).order(c_t[:last_name].desc.nulls_last)
+    when :first_name_a_to_z
+      joins(:client).order(c_t[:first_name].asc.nulls_last)
+    when :first_name_z_to_a
+      joins(:client).order(c_t[:first_name].desc.nulls_last)
+    when :age_youngest_to_oldest
+      joins(:client).order(c_t[:dob].desc.nulls_last)
+    when :age_oldest_to_youngest
+      joins(:client).order(c_t[:dob].asc.nulls_last)
     else
       raise NotImplementedError
     end
@@ -171,7 +199,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     saved_project_id = project.id
 
     self.project_id = nil
-    save!(validate: false)
     self.wip = Hmis::Wip.find_or_create_by(
       {
         source: self,
@@ -180,6 +207,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
         date: entry_date,
       },
     )
+    save!(validate: false)
   end
 
   def save_not_in_progress

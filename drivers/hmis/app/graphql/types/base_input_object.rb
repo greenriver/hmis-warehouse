@@ -20,25 +20,6 @@ module Types
       @transformer = transformer_class
     end
 
-    def self.yes_no_missing_argument(name, description = nil, yes_value: 1, no_value: 0, null_value: 99, **kwargs)
-      argument(
-        name,
-        Boolean,
-        description,
-        **kwargs,
-        prepare: ->(value, _ctx) do
-          case value
-          when true
-            yes_value
-          when false
-            no_value
-          when nil
-            null_value
-          end
-        end,
-      )
-    end
-
     # Infers type from warehouse configuration
     def self.hud_argument(name, type = nil, **kwargs)
       return field name, type, **kwargs unless source_type&.configuration.present?

@@ -14,27 +14,26 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
   ].freeze
 
   TYPE_PROVIDED_MAP = {
-    141 => ::HudUtility.path_services_options,
-    142 => ::HudUtility.rhy_services_options,
-    143 => ::HudUtility.hopwa_services_options,
-    144 => ::HudUtility.ssvf_services_options,
-    151 => ::HudUtility.hopwa_financial_assistance_options,
-    152 => ::HudUtility.ssvf_financial_assistance_options,
-    161 => ::HudUtility.path_referral_options,
-    162 => ::HudUtility.rhy_referral_options,
-    200 => ::HudUtility.bed_night_options,
-    210 => ::HudUtility.voucher_tracking_options,
-    300 => ::HudUtility.moving_on_assistance_options,
+    141 => ::HudUtility2024.path_services_options,
+    142 => ::HudUtility2024.rhy_services_options,
+    143 => ::HudUtility2024.hopwa_services_options,
+    144 => ::HudUtility2024.ssvf_services_options,
+    151 => ::HudUtility2024.hopwa_financial_assistance_options,
+    152 => ::HudUtility2024.ssvf_financial_assistance_options,
+    161 => ::HudUtility2024.path_referral_options,
+    200 => ::HudUtility2024.bed_night_options,
+    210 => ::HudUtility2024.voucher_tracking_options,
+    300 => ::HudUtility2024.moving_on_assistance_options,
   }.freeze
 
   SUB_TYPE_PROVIDED_MAP = {
-    3 => ::HudUtility.ssvf_sub_type3s,
-    4 => ::HudUtility.ssvf_sub_type4s,
-    5 => ::HudUtility.ssvf_sub_type5s,
+    3 => ::HudUtility2024.ssvf_sub_type3s,
+    4 => ::HudUtility2024.ssvf_sub_type4s,
+    5 => ::HudUtility2024.ssvf_sub_type5s,
   }.freeze
 
   def configuration
-    Hmis::Hud::Service.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Service.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def validate(record)
@@ -51,7 +50,7 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
     record.errors.add type_provided_field, :required unless record_type.present? && type_provided.present?
     return unless record_type.present? && type_provided.present?
 
-    unless ::HudUtility.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record_type == k }
+    unless HudUtility2024.record_types.any? { |k, _v| record_type == k }
       record.errors.add type_provided_field, :invalid, full_message: "Service type category '#{record_type}' is not a valid category"
       return
     end

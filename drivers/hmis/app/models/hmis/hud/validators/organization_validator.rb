@@ -12,6 +12,6 @@ class Hmis::Hud::Validators::OrganizationValidator < Hmis::Hud::Validators::Base
   ].freeze
 
   def configuration
-    Hmis::Hud::Organization.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Organization.hmis_configuration(version: '2024').except(*IGNORED)
   end
 end

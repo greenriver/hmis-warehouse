@@ -21,7 +21,10 @@ module Types
     end
 
     def self.to_enum_key(value)
-      key = value.to_s.underscore.upcase.gsub(/\W+/, '_').gsub(/_+/, '_').gsub(/_$/, '').gsub(/^_/, '')
+      key = value.to_s.underscore.upcase.
+        gsub(/\s*\(.{18,}\)$/, ''). # remove long parenthesized text
+        gsub(/\W+/, '_'). # replace spaces with underscores
+        gsub(/_+/, '_').gsub(/_$/, '').gsub(/^_/, '') # clean up
       key = "NUM_#{key}" if key.match(/^[0-9]/)
       key
     end
