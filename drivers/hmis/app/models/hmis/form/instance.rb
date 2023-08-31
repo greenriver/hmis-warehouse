@@ -15,7 +15,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
-  # TODO: data collected about enum
+  validates :data_collected_about, inclusion: { in: Types::Forms::Enums::DataCollectedAbout.values.keys }
 
   # 'system' instances can't be deleted
   scope :system, -> { where(system: true) }

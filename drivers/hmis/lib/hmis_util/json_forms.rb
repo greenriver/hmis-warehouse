@@ -196,7 +196,7 @@ module HmisUtil
     # and then apply a patch just to that link id. A use-case would be if you
     # want to change something about Disability fragment just for Intake,
     # not other assessments.
-    def load_definition(form_definition:, identifier:, role:)
+    def load_definition(form_definition:, identifier:, role:, title: nil)
       raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role.to_sym)
 
       # Resolve all fragments, so we have a full definition
@@ -214,22 +214,21 @@ module HmisUtil
         status: 'draft',
       ).first_or_create!
       record.definition = form_definition
+      record.title = title
       record.save!
     end
 
-    SYSTEM_INSTANCE_IDENTIFIERS = [
-      :project,
-      :organization,
-      :project_coc,
-      :funder,
-      :inventory,
-      :client,
-      :new_client_enrollment,
-      :enrollment,
-    ].freeze
-
     public def ensure_system_instances_exist!
-      SYSTEM_INSTANCE_IDENTIFIERS.each do |identifier|
+      [
+        :project,
+        :organization,
+        :project_coc,
+        :funder,
+        :inventory,
+        :client,
+        :new_client_enrollment,
+        :enrollment,
+      ].each do |identifier|
         role = identifier.upcase.to_sym
         raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
 
@@ -238,6 +237,53 @@ module HmisUtil
         default_instance.touch
       end
     end
+
+    # Create some default HUD occurrence point instances
+    public def create_default_occurrence_point_instances!
+      # Move-in Date
+      unless Hmis::Form::Instance.where(definition_identifier: 'move_in_date').exists?
+        [3, 9, 10, 13].each do |ptype|
+          Hmis::Form::Instance.create!(
+            definition_identifier: 'move_in_date',
+            project_type: ptype,
+            data_collected_about: :HOH,
+            active: true,
+            system: false,
+          )
+        end
+      end
+
+      # Date of Engagement
+      unless Hmis::Form::Instance.where(definition_identifier: 'date_of_engagement').exists?
+        # Note: spec has funder components too, but by default we just show it for all 3 project types.
+        [1, 4, 6].each do |ptype|
+          Hmis::Form::Instance.create!(
+            definition_identifier: 'date_of_engagement',
+            project_type: ptype,
+            data_collected_about: :HOH_AND_ADULTS,
+            active: true,
+            system: false,
+          )
+        end
+      end
+
+      # PATH Status
+      return if Hmis::Form::Instance.where(definition_identifier: 'path_status').exists?
+
+      Hmis::Form::Instance.create!(
+        definition_identifier: 'path_status',
+        funder: 21,
+        data_collected_about: :HOH_AND_ADULTS,
+        active: true,
+        system: false,
+      )
+    end
+
+    FORM_TITLES = {
+      'move_in_date' => 'Move-in Date',
+      'date_of_engagement' => 'Date of Engagement',
+      'path_status' => 'PATH Status',
+    }.freeze
 
     # Load form definitions for editing and creating records
     public def seed_record_form_definitions
@@ -248,6 +294,7 @@ module HmisUtil
             form_definition: form_definition,
             identifier: identifier,
             role: role,
+            title: FORM_TITLES[identifier] || identifier.humanize,
           )
         end
       end
