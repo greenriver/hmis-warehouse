@@ -49,6 +49,9 @@ module Hmis::Hud::Processors
       when 'mci_id'
         process_mci(value)
         {}
+      when 'veteran_status'
+        # Veteran status is non-nullable. It should be saved as 99 even if hidden. (It's hidden for minors)
+        { attribute_name => attribute_value || 99 }
       else
         { attribute_name => attribute_value }
       end
