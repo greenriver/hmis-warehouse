@@ -12884,7 +12884,12 @@ CREATE TABLE public.hmis_aggregated_enrollments (
     source_id integer NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
-    clean_at timestamp without time zone
+    clean_at timestamp without time zone,
+    "EnrollmentCoC" character varying,
+    "RentalSubsidyType" integer,
+    "TranslationNeeded" integer,
+    "PreferredLanguage" integer,
+    "PreferredLanguageDifferent" character varying
 );
 
 
@@ -12963,7 +12968,8 @@ CREATE TABLE public.hmis_aggregated_exits (
     source_id integer NOT NULL,
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
-    clean_at timestamp without time zone
+    clean_at timestamp without time zone,
+    "DestinationSubsidyType" integer
 );
 
 
@@ -60975,6 +60981,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230822200902'),
 ('20230824192127'),
 ('20230830121811'),
-('20230901135749');
+('20230901135749'),
+('20230901203722');
 
 
