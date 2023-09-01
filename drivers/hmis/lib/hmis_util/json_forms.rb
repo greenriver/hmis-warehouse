@@ -73,7 +73,7 @@ module HmisUtil
         Dir.glob("#{DATA_DIR}/default/records/*.json") do |file_path|
           identifier = File.basename(file_path, '.json')
           role = identifier.upcase.to_sym
-          raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+          raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.include?(role)
 
           file_path = client_override(file_path)
           # puts "Loading #{identifier} from #{file_path}"
@@ -207,7 +207,7 @@ module HmisUtil
     # want to change something about Disability fragment just for Intake,
     # not other assessments.
     def load_definition(form_definition:, identifier:, role:, title: nil)
-      raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role.to_sym)
+      raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       # Resolve all fragments, so we have a full definition
       resolve_all_fragments!(form_definition)
@@ -224,7 +224,7 @@ module HmisUtil
         status: 'draft',
       ).first_or_create!
       record.definition = form_definition
-      record.title ||= title
+      record.title = title if title.present?
       record.save!
     end
 
@@ -240,7 +240,7 @@ module HmisUtil
         :enrollment,
       ].each do |identifier|
         role = identifier.upcase.to_sym
-        raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+        raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::SYSTEM_FORM_ROLES.include?(role)
 
         default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
         default_instance.update(system: true, active: true)
@@ -293,6 +293,10 @@ module HmisUtil
       'move_in_date' => 'Move-in Date',
       'date_of_engagement' => 'Date of Engagement',
       'path_status' => 'PATH Status',
+      'base-intake' => 'Intake Assessment',
+      'base-exit' => 'Exit Assessment',
+      'base-update' => 'Update Assessment',
+      'base-annual' => 'Annual Assessment',
     }.freeze
 
     # Load form definitions for editing and creating records
@@ -304,7 +308,7 @@ module HmisUtil
             form_definition: form_definition,
             identifier: identifier,
             role: role,
-            title: FORM_TITLES[identifier] || identifier.humanize,
+            title: FORM_TITLES[identifier],
           )
         end
       end
@@ -334,6 +338,7 @@ module HmisUtil
           form_definition: form_definition,
           identifier: identifier,
           role: role,
+          title: FORM_TITLES[identifier],
         )
 
         # Make this form the default instance for this role
