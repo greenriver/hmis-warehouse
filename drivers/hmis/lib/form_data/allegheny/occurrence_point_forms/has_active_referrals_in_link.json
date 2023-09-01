@@ -8,7 +8,13 @@
       "mapping": {
         "record_type": "CLIENT",
         "custom_field_key": "has_active_referrals_in_link"
-      }
+      },
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_boolean": false
+        }
+      ]
     }
   ]
 }
