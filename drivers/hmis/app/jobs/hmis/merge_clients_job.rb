@@ -203,7 +203,7 @@ module Hmis
 
     def destroy_merged_clients
       Rails.logger.info 'soft-deleting merged clients'
-      clients_needing_reference_updates.map(&:destroy!)
+      clients_needing_reference_updates.map(&:reload).map(&:destroy!)
     end
   end
 end

@@ -27,13 +27,17 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .where(data_source: data_source)
         .pluck(:enrollment_id, :id)
         .to_h
-      rows.flat_map do |row|
+      expected = 0
+      actual = 0
+      records = rows.flat_map do |row|
+        expected += 1
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
         owner_id = owner_id_by_enrollment_id[enrollment_id]
         unless owner_id
           log_skipped_row(row, field: 'ENROLLMENTID')
           next [] # early return
         end
+        actual += 1
         [
           new_cde_record(
             value: cde_value(row_value(row, field: 'REFERREDTOALLOWANCEGRANT')),
@@ -52,7 +56,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             definition_key: :esg_allowance_grant_reason_not_referred,
           ),
         ].compact_blank.each { |r| r[:owner_id] = owner_id }
-      end
+      end.compact
+      log_processed_result(expected: expected, actual: actual)
+      records
     end
 
     CDE_VALUE_MAP = {

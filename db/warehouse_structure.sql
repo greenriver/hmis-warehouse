@@ -520,6 +520,50 @@ ALTER SEQUENCE public."Assessment_id_seq" OWNED BY public."Assessment".id;
 
 
 --
+-- Name: CEParticipation; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CEParticipation" (
+    id bigint NOT NULL,
+    "CEParticipationID" character varying NOT NULL,
+    "ProjectID" character varying NOT NULL,
+    "AccessPoint" integer,
+    "PreventionAssessment" integer,
+    "CrisisAssessment" integer,
+    "HousingAssessment" integer,
+    "DirectServices" integer,
+    "ReceivesReferrals" integer,
+    "CEParticipationStatusStartDate" date,
+    "CEParticipationStatusEndDate" date,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "UserID" character varying,
+    "ExportID" character varying,
+    data_source_id integer
+);
+
+
+--
+-- Name: CEParticipation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CEParticipation_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CEParticipation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CEParticipation_id_seq" OWNED BY public."CEParticipation".id;
+
+
+--
 -- Name: Client; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1578,7 +1622,7 @@ CREATE TABLE public."Enrollment" (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation" integer,
+    "VAMCStation_deleted" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -1635,7 +1679,8 @@ CREATE TABLE public."Enrollment" (
     "RentalSubsidyType" integer,
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
-    "PreferredLanguageDifferent" character varying
+    "PreferredLanguageDifferent" character varying,
+    "VAMCStation" character varying
 );
 
 
@@ -1863,7 +1908,8 @@ CREATE TABLE public."Export" (
     "SourceType" integer,
     effective_export_end_date date,
     source_hash character varying,
-    "CSVVersion" character varying
+    "CSVVersion" character varying,
+    "ImplementationID" character varying
 );
 
 
@@ -1989,14 +2035,14 @@ CREATE TABLE public."HMISParticipation" (
     id bigint NOT NULL,
     "HMISParticipationID" character varying NOT NULL,
     "ProjectID" character varying NOT NULL,
-    "HMISParticipationType" integer NOT NULL,
-    "HMISParticipationStatusStartDate" date NOT NULL,
+    "HMISParticipationType" integer,
+    "HMISParticipationStatusStartDate" date,
     "HMISParticipationStatusEndDate" date,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    "UserID" character varying NOT NULL,
-    "ExportID" character varying NOT NULL,
+    "UserID" character varying,
+    "ExportID" character varying,
     data_source_id integer
 );
 
@@ -2163,7 +2209,9 @@ CREATE TABLE public."IncomeBenefits" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "RyanWhiteMedDent" integer,
-    "NoRyanWhiteReason" integer
+    "NoRyanWhiteReason" integer,
+    "VHAServices" integer,
+    "NoVHAReason" character varying
 );
 
 
@@ -3440,7 +3488,7 @@ CREATE VIEW public."bi_Enrollment" AS
     "Enrollment"."FemVet",
     "Enrollment"."HPScreeningScore",
     "Enrollment"."ThresholdScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -19959,7 +20007,7 @@ CREATE VIEW public.report_enrollments AS
     "Enrollment"."CoercedToContinueWork",
     "Enrollment"."LaborExploitPastThreeMonths",
     "Enrollment"."HPScreeningScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -22853,6 +22901,13 @@ ALTER TABLE ONLY public."AssessmentQuestions" ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public."AssessmentResults" ALTER COLUMN id SET DEFAULT nextval('public."AssessmentResults_id_seq"'::regclass);
+
+
+--
+-- Name: CEParticipation id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CEParticipation" ALTER COLUMN id SET DEFAULT nextval('public."CEParticipation_id_seq"'::regclass);
 
 
 --
@@ -25951,6 +26006,14 @@ ALTER TABLE ONLY public."AssessmentResults"
 
 ALTER TABLE ONLY public."Assessment"
     ADD CONSTRAINT "Assessment_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CEParticipation CEParticipation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CEParticipation"
+    ADD CONSTRAINT "CEParticipation_pkey" PRIMARY KEY (id);
 
 
 --
@@ -42401,6 +42464,20 @@ CREATE INDEX "index_Assessment_on_pending_date_deleted" ON public."Assessment" U
 
 
 --
+-- Name: index_CEParticipation_on_CEParticipationID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CEParticipation_on_CEParticipationID" ON public."CEParticipation" USING btree ("CEParticipationID");
+
+
+--
+-- Name: index_CEParticipation_on_ProjectID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CEParticipation_on_ProjectID" ON public."CEParticipation" USING btree ("ProjectID");
+
+
+--
 -- Name: index_Client_on_AmIndAKNative; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47641,6 +47718,13 @@ CREATE INDEX index_shape_states_on_geom ON public.shape_states USING gist (geom)
 --
 
 CREATE INDEX index_shape_states_on_simplified_geom ON public.shape_states USING gist (simplified_geom);
+
+
+--
+-- Name: index_shape_states_on_statefp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_statefp ON public.shape_states USING btree (statefp);
 
 
 --
@@ -54243,9 +54327,16 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230804124734'),
 ('20230804232249'),
 ('20230805224003'),
+('20230815171824'),
 ('20230817154337'),
 ('20230818044939'),
 ('20230822183752'),
-('20230824192127');
+('20230822200902'),
+('20230824192127'),
+('20230828180700'),
+('20230828180743'),
+('20230828180842'),
+('20230829171917'),
+('20230830121811');
 
 

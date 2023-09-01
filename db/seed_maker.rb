@@ -285,11 +285,6 @@ class SeedMaker
     end
   end
 
-  def maintain_zip_code_shapes
-    GrdaWarehouse::Shape::ZipCode.calculate_states
-    GrdaWarehouse::Shape::ZipCode.calculate_counties
-  end
-
   # These tables are partitioned and need to have triggers and functions that
   # schema loading doesn't include.  This will ensure that they exist on each deploy
   def ensure_db_triggers_and_functions
@@ -384,11 +379,10 @@ class SeedMaker
     maintain_health_seeds
     setup_hmis_admin_access
     load_hmis_data
-    # install_shapes() # run manually as needed
+    install_shapes
     maintain_lookups
     GrdaWarehouse::Help.setup_default_links
     maintain_system_groups
-    maintain_zip_code_shapes
     populate_internal_system_choices
     GrdaWarehouse::SystemColor.ensure_colors
 

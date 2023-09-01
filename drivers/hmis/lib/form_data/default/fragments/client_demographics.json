@@ -8,7 +8,7 @@
       "type": "CHOICE",
       "required": false,
       "link_id": "race",
-      "text": "Race",
+      "text": "Race and Ethnicity",
       "repeats": true,
       "mapping": {
         "record_type": "CLIENT",
@@ -17,16 +17,23 @@
       "pick_list_reference": "Race"
     },
     {
-      "type": "CHOICE",
+      "type": "STRING",
       "required": false,
-      "link_id": "ethnicity",
-      "text": "Ethnicity",
-      "repeats": false,
+      "warn_if_empty": false,
+      "link_id": "race-other",
+      "text": "Additional Race and Ethnicity Detail",
       "mapping": {
         "record_type": "CLIENT",
-        "field_name": "ethnicity"
+        "field_name": "additionalRaceEthnicity"
       },
-      "pick_list_reference": "Ethnicity"
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "race",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        }
+      ]
     },
     {
       "type": "CHOICE",
@@ -39,6 +46,31 @@
         "field_name": "gender"
       },
       "pick_list_reference": "Gender"
+    },
+    {
+      "type": "GROUP",
+      "link_id": "gender-conditionals",
+      "item": [
+        {
+          "type": "TEXT",
+          "required": false,
+          "warn_if_empty": false,
+          "link_id": "gender-other",
+          "text": "If different identity, please specify",
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "differentIdentityText"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "gender",
+              "operator": "INCLUDES",
+              "answer_code": "DIFFERENT_IDENTITY"
+            }
+          ]
+        }
+      ]
     },
     {
       "type": "OPEN_CHOICE",

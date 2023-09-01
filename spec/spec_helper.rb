@@ -32,6 +32,8 @@ RSpec.configure do |config|
     # ...rather than:
     #     # => "be bigger than 2"
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
+    # longer strings so error messages are not excessively truncated
+    expectations.max_formatted_output_length = 1000
   end
 
   # rspec-mocks config goes here. You can use an alternate test double

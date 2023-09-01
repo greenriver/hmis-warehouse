@@ -19,9 +19,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client
-  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client
+  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client, dependent: :destroy
+  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy
+  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client, dependent: :destroy
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
 
   # Enrollments for this Client, including WIP Enrollments
@@ -44,8 +44,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  # FIXME(#185905151) add back "dependent: :destroy"
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
 
@@ -162,6 +161,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
 
+  # DEPRECATED_FY2024 - delete when warehouse moves to 2024. These override methods in HudConcerns::Client.
+  def race_fields
+    HudUtility2024.races.keys.select { |f| send(f).to_i == 1 }
+  end
+
+  def gender_fields
+    HudUtility2024.gender_fields.select { |f| send(f).to_i == 1 }
+  end
+
+  def gender_multi
+    @gender_multi ||= [].tap do |gm|
+      HudUtility2024.gender_id_to_field_name.each { |id, field| gm << id if send(field) == 1 }
+      # Per the data standards, only look to GenderNone if we don't have a more specific response
+      gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
+    end
+  end
+  # DEPRECATED_FY2024 - delete when warehouse moves to 2024
+
   def enrolled?
     enrollments.any?
   end
@@ -200,17 +217,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
     recently_added: 'Recently Added',
   }.freeze
-
-  # Unused
-  def fake_client_image_data
-    gender = if self[:Male].in?([1]) then 'male' else 'female' end
-    age_group = if age.blank? || age > 18 then 'adults' else 'children' end
-    image_directory = File.join('public', 'fake_photos', age_group, gender)
-    available = Dir[File.join(image_directory, '*.jpg')]
-    image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-    Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
-    image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
-  end
 
   def self.client_search(input:, user: nil)
     # Apply ID searches directly, as they can only ever return a single client
@@ -286,10 +292,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   # fix these so they use DATA_NOT_COLLECTED And the other standard names
-  use_enum(:gender_enum_map, ::HudUtility.genders) do |hash|
+  use_enum(:gender_enum_map, ::HudUtility2024.genders) do |hash|
     hash.map do |value, desc|
       {
-        key: [8, 9, 99].include?(value) ? desc : ::HudUtility.gender_id_to_field_name[value],
+        key: [8, 9, 99].include?(value) ? desc : ::HudUtility2024.gender_id_to_field_name[value],
         value: value,
         desc: desc,
         null: [8, 9, 99].include?(value),
@@ -297,7 +303,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  use_enum(:race_enum_map, ::HudUtility.races.except('RaceNone'), include_base_null: true) do |hash|
+  use_enum(:race_enum_map, ::HudUtility2024.races.except('RaceNone'), include_base_null: true) do |hash|
     hash.map do |value, desc|
       {
         key: value,

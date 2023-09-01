@@ -123,9 +123,13 @@ module Mutations
 
     def build_enrollments(posting)
       project = posting.project
+      coc_code = project.project_cocs.pluck(:coc_code).first
+      raise "No CoC codes for project #{project.id}" unless coc_code.present?
+
       posting.referral.household_members.preload(:client).map do |member|
         Hmis::Hud::Enrollment.new(
           user: Hmis::Hud::User.from_user(current_user),
+          enrollment_coc: coc_code,
           data_source: project.data_source,
           entry_date: Date.current,
           project: project,

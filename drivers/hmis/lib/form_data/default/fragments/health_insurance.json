@@ -123,8 +123,8 @@
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.6",
-          "text": "VA Medical Services",
-          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "vaMedicalServices" }
+          "text": "Veteran's Health Administration (VHA)",
+          "mapping": { "record_type": "INCOME_BENEFIT", "field_name": "vhaServices" }
         },
         {
           "type": "CHOICE",

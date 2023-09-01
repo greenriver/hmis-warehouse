@@ -49,6 +49,9 @@
       },
       "brief_text": "Location",
       "pick_list_reference": "COC"
+    },
+    {
+      "fragment": "#c4_translation_assistance"
     }
   ]
 }

@@ -16,14 +16,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
-  include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, p1) }
+  let!(:ds1) { create :hmis_data_source }
+  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let(:hmis_user) { user.related_hmis_user(ds1) }
+  let(:u1) { create :hmis_hud_user, data_source: ds1 }
+  let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
+  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
   let!(:pc2) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-503' }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
   let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code, inventory_start_date: '2022-01-01' }
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
   let!(:f2) { create :hmis_hud_funder, data_source: ds1, project: p1 }
+  let!(:cep1) { create :hmis_hud_ce_participation, data_source: ds1, project: p1 }
+  let!(:hp1) { create :hmis_hud_hmis_participation, data_source: ds1, project: p1 }
   let!(:referral_request) do
     create(:hmis_external_api_ac_hmis_referral_request, project: p1)
   end
@@ -54,6 +61,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               nodesCount
               nodes {
                 id
+              }
+            }
+            ceParticipations {
+              nodesCount
+              nodes {
+                #{scalar_fields(Types::HmisSchema::CeParticipation)}
+              }
+            }
+            hmisParticipations {
+              nodesCount
+              nodes {
+                #{scalar_fields(Types::HmisSchema::HmisParticipation)}
               }
             }
             organization {
@@ -89,6 +108,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
         expect(record.dig('organization', 'id').to_i).to eq(o1.id)
         expect(record.dig('referralRequests', 'nodes', 0, 'id')).to eq(referral_request.id&.to_s)
+        expect(record.dig('ceParticipations', 'nodes', 0, 'id')).to eq(cep1.id&.to_s)
+        expect(record.dig('hmisParticipations', 'nodes', 0, 'id')).to eq(hp1.id&.to_s)
       end
     end
 

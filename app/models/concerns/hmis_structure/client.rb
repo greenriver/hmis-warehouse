@@ -306,6 +306,180 @@ module HmisStructure::Client
             null: false,
           },
         }
+      when '2024'
+        {
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          FirstName: {
+            type: :string,
+            limit: 50,
+          },
+          MiddleName: {
+            type: :string,
+            limit: 50,
+          },
+          LastName: {
+            type: :string,
+            limit: 50,
+          },
+          NameSuffix: {
+            type: :string,
+            limit: 50,
+          },
+          NameDataQuality: {
+            type: :integer,
+            null: false,
+          },
+          SSN: {
+            type: :string,
+            limit: 9,
+          },
+          SSNDataQuality: {
+            type: :string,
+            null: false,
+          },
+          DOB: {
+            type: :date,
+          },
+          DOBDataQuality: {
+            type: :string,
+            null: false,
+          },
+          AmIndAKNative: {
+            type: :integer,
+            null: false,
+          },
+          Asian: {
+            type: :integer,
+            null: false,
+          },
+          BlackAfAmerican: {
+            type: :integer,
+            null: false,
+          },
+          HispanicLatinaeo: {
+            type: :integer,
+            null: false,
+          },
+          MidEastNAfrican: {
+            type: :integer,
+            null: false,
+          },
+          NativeHIPacific: {
+            type: :integer,
+            null: false,
+          },
+          White: {
+            type: :integer,
+            null: false,
+          },
+          RaceNone: {
+            type: :integer,
+          },
+          AdditionalRaceEthnicity: {
+            type: :string,
+            limit: 100,
+          },
+          Woman: {
+            type: :integer,
+            null: false,
+          },
+          Man: {
+            type: :integer,
+            null: false,
+          },
+          NonBinary: {
+            type: :integer,
+            null: false,
+          },
+          CulturallySpecific: {
+            type: :integer,
+            null: false,
+          },
+          Transgender: {
+            type: :integer,
+            null: false,
+          },
+          Questioning: {
+            type: :integer,
+            null: false,
+          },
+          DifferentIdentity: {
+            type: :integer,
+            null: false,
+          },
+          GenderNone: {
+            type: :integer,
+          },
+          DifferentIdentityText: {
+            type: :string,
+            limit: 100,
+          },
+          VeteranStatus: {
+            type: :integer,
+            null: false,
+          },
+          YearEnteredService: {
+            type: :integer,
+          },
+          YearSeparated: {
+            type: :integer,
+          },
+          WorldWarII: {
+            type: :integer,
+          },
+          KoreanWar: {
+            type: :integer,
+          },
+          VietnamWar: {
+            type: :integer,
+          },
+          DesertStorm: {
+            type: :integer,
+          },
+          AfghanistanOEF: {
+            type: :integer,
+          },
+          IraqOIF: {
+            type: :integer,
+          },
+          IraqOND: {
+            type: :integer,
+          },
+          OtherTheater: {
+            type: :integer,
+          },
+          MilitaryBranch: {
+            type: :integer,
+          },
+          DischargeStatus: {
+            type: :integer,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
       end
     end
 
