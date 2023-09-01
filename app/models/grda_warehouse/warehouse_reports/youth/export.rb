@@ -71,7 +71,7 @@ module GrdaWarehouse::WarehouseReports::Youth
               HudUtility2024.no_yes_reasons_for_missing_data(report_calculator.mental_disability_for_client(client)&.IndefiniteAndImpairs),
               HudUtility2024.disability_response(report_calculator.substance_disability_for_client(client)&.DisabilityResponse),
               HudUtility2024.no_yes_reasons_for_missing_data(report_calculator.substance_disability_for_client(client)&.IndefiniteAndImpairs),
-              HudUtility2024.no_yes_reasons_for_missing_data(report_calculator.health_for_client(client)&.DomesticViolenceVictim),
+              HudUtility2024.no_yes_reasons_for_missing_data(report_calculator.health_for_client(client)&.DomesticViolenceSurvivor),
               HudUtility2024.sexual_orientation(report_calculator.enrollment_for_client(client)&.SexualOrientation),
               HudUtility2024.last_grade_completed(report_calculator.education_for_client(client)&.LastGradeCompleted),
               HudUtility2024.no_yes_reasons_for_missing_data(report_calculator.education_for_client(client)&.Employed),

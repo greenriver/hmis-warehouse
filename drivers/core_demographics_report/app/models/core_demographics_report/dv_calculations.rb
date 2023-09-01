@@ -60,7 +60,7 @@ module
             merge(
               GrdaWarehouse::Hud::HealthAndDv.where(
                 InformationDate: @filter.range,
-                DomesticViolenceVictim: 1,
+                DomesticViolenceSurvivor: 1,
               ),
             ).
             distinct.
@@ -131,7 +131,7 @@ module
           report_scope.joins(enrollment: :health_and_dvs).order(hdv_t[:InformationDate].desc).
             merge(GrdaWarehouse::Hud::HealthAndDv.where(InformationDate: @filter.range)).
             distinct.
-            pluck(:client_id, hdv_t[:DomesticViolenceVictim], hdv_t[:InformationDate]).
+            pluck(:client_id, hdv_t[:DomesticViolenceSurvivor], hdv_t[:InformationDate]).
             each do |client_id, status, _|
               clients[client_id] ||= status
             end

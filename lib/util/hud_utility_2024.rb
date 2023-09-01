@@ -542,4 +542,82 @@ module HudUtility2024
       18,
     ]
   end
+
+  def service_types_provided_map
+    {
+      141 => {
+        list: ::HudUtility2024.path_services_options,
+        label_method: :path_services,
+      },
+      142 => {
+        list: ::HudUtility2024.rhy_services_options,
+        label_method: :rhy_services,
+      },
+      143 => {
+        list: ::HudUtility2024.hopwa_services_options,
+        label_method: :hopwa_services,
+      },
+      144 => {
+        list: ::HudUtility2024.ssvf_services_options,
+        label_method: :ssvf_services,
+      },
+      151 => {
+        list: ::HudUtility2024.hopwa_financial_assistance_options,
+        label_method: :hopwa_financial_assistance,
+      },
+      152 => {
+        list: ::HudUtility2024.ssvf_financial_assistance_options,
+        label_method: :ssvf_financial_assistance,
+      },
+      161 => {
+        list: ::HudUtility2024.path_referral_options,
+        label_method: :path_referral_options,
+      },
+      200 => {
+        list: ::HudUtility2024.bed_night_options,
+        label_method: :bed_night,
+      },
+      210 => {
+        list: ::HudUtility2024.voucher_tracking_options,
+        label_method: :voucher_tracking,
+      },
+      300 => {
+        list: ::HudUtility2024.moving_on_assistance_options,
+        label_method: :moving_on_assistance,
+      },
+    }.freeze
+  end
+
+  def service_type_provided(record_type, type_provided)
+    label_method = service_types_provided_map.dig(record_type, :label_method)
+    return type_provided unless label_method.present?
+
+    send(label_method, type_provided)
+  end
+
+  def service_sub_types_provided_map
+    {
+      3 => {
+        list: ::HudUtility2024.ssvf_sub_type3s,
+        label_method: :ssvf_sub_type3,
+      },
+      4 => {
+        list: ::HudUtility2024.ssvf_sub_type4s,
+        label_method: :ssvf_sub_type4,
+      },
+      5 => {
+        list: ::HudUtility2024.ssvf_sub_type5s,
+        label_method: :ssvf_sub_type5,
+      },
+    }
+  end
+
+  def service_sub_type_provided(record_type, type_provided, sub_type_provided)
+    return nil unless record_type == 144 && type_provided.in?(service_sub_types_provided_map.keys)
+
+    label_method = service_sub_types_provided_map.dig(type_provided, :label_method)
+    return sub_type_provided unless label_method.present?
+
+    send(label_method, sub_type_provided)
+  end
 end

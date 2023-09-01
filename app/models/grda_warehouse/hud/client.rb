@@ -1193,7 +1193,7 @@ module GrdaWarehouse::Hud
       return pathways_domestic_violence if pathways_domestic_violence
 
       # To allow preload(:source_health_and_dvs) do the calculation in memory
-      dv_scope = source_health_and_dvs.select { |m| m.DomesticViolenceVictim == 1 }
+      dv_scope = source_health_and_dvs.select { |m| m.DomesticViolenceSurvivor == 1 }
       lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
       if lookback_days&.positive?
         dv_scope.select do |m|

@@ -18,27 +18,31 @@
           %tr
             %th Date of Service
             %th Locations
+            %th Record Type
+            %th Type Provided
             %th
         %tbody
-          - services.group_by{ |s| s.DateProvided }.each do |date, services|
+          - services.each do |service|
             %tr
-              %td= date
+              %td= service.DateProvided
               %td
-                - services.each do |service|
-                  - project = service.project
-                  .client__full-service-project
-                    %span
-                      .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
-                    %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(current_user), project: projects[project] } }
-                      = project&.name(current_user) || 'Unable to determine project name'
-                  .text-right
-                    - if @client.hmis_source_visible_by?(current_user)
-                      = link_to 'HMIS', source_datum_path(service, type: 'Services'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
-                      .text-teeny.font-weight-light
-                        .text-nowrap
-                          Created: #{service.DateCreated}
-                        .text-nowrap
-                          Updated: #{service.DateUpdated}
+                - project = service.project
+                .client__full-service-project
+                  %span
+                    .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
+                  %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(current_user), project: projects[project] } }
+                    = project&.name(current_user) || 'Unable to determine project name'
+              %td= HudUtility2024.record_type(service.record_type)
+              %td= HudUtility2024.service_type_provided(service.record_type, service.type_provided)
+              %td
+                .text-right
+                  - if @client.hmis_source_visible_by?(current_user)
+                    = link_to 'HMIS', source_datum_path(service, type: 'Services'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                    .text-teeny.font-weight-light
+                      .text-nowrap
+                        Created: #{service.DateCreated}
+                      .text-nowrap
+                        Updated: #{service.DateUpdated}
   - else
     .no-data
       No services on file

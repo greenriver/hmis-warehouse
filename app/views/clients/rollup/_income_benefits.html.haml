@@ -16,8 +16,8 @@
             %th Project
             %th Program Entry Date
             %th Collection Date
-            %th Collection Stage
             %th Total Monthly Income
+            %th Data Collection Stage
             %th
         %tbody
           - incomes.each do |benefit|
@@ -28,11 +28,11 @@
               %td= project&.name(current_user)
               %td= benefit.enrollment.EntryDate
               %td= benefit.InformationDate
-              %td= HudUtility2024.data_collection_stage(benefit.DataCollectionStage)
               %td
                 - total = benefit.TotalMonthlyIncome&.round(2)
                 - if total
                   = format('$%.2f', total)
+              %td= HudUtility2024.data_collection_stage(benefit.DataCollectionStage)
               %td.text-right
                 - if @client.hmis_source_visible_by?(current_user)
                   = link_to 'HMIS', source_datum_path(benefit, type: 'IncomeBenefits'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

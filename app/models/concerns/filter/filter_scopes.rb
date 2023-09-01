@@ -279,7 +279,7 @@ module Filter::FilterScopes
         merge(
           GrdaWarehouse::Hud::HealthAndDv.where(
             InformationDate: @filter.range,
-            DomesticViolenceVictim: @filter.dv_status,
+            DomesticViolenceSurvivor: @filter.dv_status,
           ),
         )
     end

@@ -276,7 +276,7 @@ module HmisDataQualityTool
       report_item.has_disability = enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.any?
       report_item.days_between_entry_and_create = (enrollment.DateCreated.to_date - enrollment.EntryDate).to_i
 
-      report_item.domestic_violence_victim_at_entry = enrollment.health_and_dvs_at_entry&.first&.DomesticViolenceVictim
+      report_item.domestic_violence_victim_at_entry = enrollment.health_and_dvs_at_entry&.first&.DomesticViolenceSurvivor
 
       entry_income_assessment = enrollment.income_benefits_at_entry
       annual_income_assessment = annual_assessment(enrollment, hoh.first_date_in_program)

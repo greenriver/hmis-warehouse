@@ -15,10 +15,11 @@
           %th Project
           %th Entry Date
           %th Information Date
-          %th Domestic Violence
+          %th Domestic Violence Survivor
           %th Currently Fleeing?
           %th Pregnancy Status
           %th Due Date
+          %th Data Collection Stage
           %th
       %tbody
         - special_populations.each do |h|
@@ -29,10 +30,11 @@
             %td= project&.name(current_user)
             %td.date-cell= h.enrollment.EntryDate
             %td= h.InformationDate
-            %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.DomesticViolenceVictim
+            %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.DomesticViolenceSurvivor
             %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.CurrentlyFleeing
             %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.PregnancyStatus
             %td= lighten_no HudUtility2024.no_yes_reasons_for_missing_data h.DueDate
+            %td= HudUtility2024.data_collection_stage(h.DataCollectionStage)
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
                 = link_to 'HMIS', source_datum_path(h, type: 'HealthAndDV'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
