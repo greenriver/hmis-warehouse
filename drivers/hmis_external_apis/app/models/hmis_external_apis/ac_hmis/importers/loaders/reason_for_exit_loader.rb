@@ -28,7 +28,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .where(data_source: data_source)
         .pluck(:exit_id, :id, :enrollment_id)
         .to_h { |exit_id, pk, enrollment_id| [exit_id, [pk, enrollment_id]] }
-      rows.flat_map do |row|
+      expected = 0
+      actual = 0
+      records = rows.flat_map do |row|
+        expected += 1
         exit_id = row_value(row, field: 'ExitID')
         owner_id, enrollment_id = exit_lookup[exit_id]
 
@@ -39,6 +42,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
         raise 'ExitID/EnrollmentID mismatch' if enrollment_id != row_value(row, field: 'EnrollmentID')
 
+        actual += 1
         ret = [
           new_cde_record(
             # voluntary_termination_value is supposed to be required but is sometimes missing
@@ -60,7 +64,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           )
         end
         ret.compact_blank.each { |r| r[:owner_id] = owner_id }
-      end
+      end.compact
+      log_processed_result(expected: expected, actual: actual)
+      records
     end
 
     def owner_class
