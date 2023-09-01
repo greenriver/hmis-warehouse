@@ -8,14 +8,18 @@
 
 module Types
   class HmisSchema::OccurrencePointForm < Types::BaseObject
-    # Instance id - caching issues with proj? may need to add proj id
-    field :id, ID, null: false
+    field :id, ID, null: false, extras: [:parent]
     # Which clients this data should be collected for
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false
     # Form used for Viewing/Creating/Editing records
     field :definition, Types::Forms::FormDefinition, null: false, extras: [:parent]
 
     # object is a Hmis::Form::Instance
+
+    def id(parent:)
+      # Include project id (if present) so that instance is not cached for use across projects.
+      [object.id, parent&.id].compact.join(':')
+    end
 
     def data_collected_about
       object.data_collected_about || 'ALL_CLIENTS'
