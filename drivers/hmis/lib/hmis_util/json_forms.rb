@@ -222,7 +222,7 @@ module HmisUtil
         role: role,
         version: 0,
         status: 'draft',
-      ).first_or_create!
+      ).first_or_create!(title: title || role.to_s.humanize)
       record.definition = form_definition
       record.title = title if title.present?
       record.save!

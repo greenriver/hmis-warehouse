@@ -477,7 +477,7 @@ CREATE TABLE public."Client" (
     "Ethnicity" integer,
     "Gender" integer,
     "OtherGender" character varying(50),
-    "VeteranStatus" integer DEFAULT 99,
+    "VeteranStatus" integer,
     "YearEnteredService" integer,
     "YearSeparated" integer,
     "WorldWarII" integer,
@@ -1442,7 +1442,7 @@ CREATE TABLE public."Enrollment" (
     "LivingSituation" integer,
     "OtherResidencePrior" character varying,
     "LengthOfStay" integer,
-    "DisablingCondition" integer DEFAULT 99,
+    "DisablingCondition" integer,
     "EntryFromStreetESSH" integer,
     "DateToStreetESSH" date,
     "ContinuouslyHomelessOneYear" integer,
@@ -2982,25 +2982,6 @@ CREATE SEQUENCE public.available_file_tags_id_seq
 --
 
 ALTER SEQUENCE public.available_file_tags_id_seq OWNED BY public.available_file_tags.id;
-
-
---
--- Name: bi_Organization; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Organization" AS
- SELECT "Organization".id AS "OrganizationID",
-    "Organization"."OrganizationName",
-    "Organization"."VictimServicesProvider",
-    "Organization"."OrganizationCommonName",
-    "Organization"."DateCreated",
-    "Organization"."DateUpdated",
-    "Organization"."UserID",
-    "Organization"."DateDeleted",
-    "Organization"."ExportID",
-    "Organization".data_source_id
-   FROM public."Organization"
-  WHERE ("Organization"."DateDeleted" IS NULL);
 
 
 --
@@ -6836,8 +6817,7 @@ CREATE TABLE public.group_viewable_entities (
     access_group_id integer NOT NULL,
     entity_id integer NOT NULL,
     entity_type character varying NOT NULL,
-    deleted_at timestamp without time zone,
-    collection_id bigint
+    deleted_at timestamp without time zone
 );
 
 
@@ -18422,6 +18402,11 @@ CREATE TABLE public.recent_report_enrollments (
     "CoCPrioritized" integer,
     "TargetScreenReqd" integer,
     "HOHLeaseholder" integer,
+    "EnrollmentCoC" character varying,
+    "RentalSubsidyType" integer,
+    "TranslationNeeded" integer,
+    "PreferredLanguage" integer,
+    "PreferredLanguageDifferent" character varying,
     demographic_id integer,
     client_id integer
 );
@@ -43344,13 +43329,6 @@ CREATE INDEX index_grades_on_type ON public.grades USING btree (type);
 
 
 --
--- Name: index_group_viewable_entities_on_collection_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_group_viewable_entities_on_collection_id ON public.group_viewable_entities USING btree (collection_id);
-
-
---
 -- Name: index_hap_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49889,17 +49867,10 @@ CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports U
 
 
 --
--- Name: one_entity_per_type_per_collection; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX one_entity_per_type_per_collection ON public.group_viewable_entities USING btree (collection_id, entity_id, entity_type) WHERE (collection_id IS NOT NULL);
-
-
---
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type) WHERE (access_group_id <> 0);
+CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type);
 
 
 --
@@ -53175,8 +53146,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230803172055'),
 ('20230803173117'),
 ('20230804124734'),
-('20230804232249'),
-('20230805224003'),
 ('20230815171824'),
 ('20230818044939'),
 ('20230822200902'),
@@ -53187,7 +53156,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230828180842'),
 ('20230829171917'),
 ('20230830121811'),
-('20230831190756'),
 ('20230831211739'),
 ('20230901123748'),
 ('20230901124730'),
