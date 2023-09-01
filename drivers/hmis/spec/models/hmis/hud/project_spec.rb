@@ -123,6 +123,42 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
   end
 
+  describe 'data_collection_features for Services' do
+    let(:role) { :SERVICE }
+    let!(:csc) { create(:hmis_custom_service_category, name: 'Test Service Category', data_source: project.data_source) }
+    let!(:cst) { create(:hmis_custom_service_type, name: 'Custom Type', custom_service_category: csc, data_source: project.data_source) }
+
+    def selected_instance
+      object = project.data_collection_features.find { |os| os.role == role.to_s }
+      # Always make sure the service type picklist matches. If the service feature is "enabled", there should be something in the picklist.
+      expect(Types::Forms::PickListOption.available_service_types_picklist(project).size).to eq(object.present? ? 1 : 0)
+
+      object&.instance
+    end
+
+    it 'returns none if none' do
+      expect(selected_instance).to be_nil
+    end
+
+    it 'does NOT choose default instance if no service type/category specified' do
+      create(:hmis_form_instance, role: role, entity: nil)
+      expect(selected_instance).to be_nil
+    end
+
+    it 'chooses instance specified by category' do
+      create(:hmis_form_instance, role: role, entity: nil)
+      expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc)
+      expect(selected_instance).to eq(expected)
+    end
+
+    it 'chooses instance specified by type (type > category)' do
+      create(:hmis_form_instance, role: role, entity: nil)
+      create(:hmis_form_instance, role: role, entity: nil, custom_service_category: csc)
+      expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
+      expect(selected_instance).to eq(expected)
+    end
+  end
+
   describe 'occurrence_point_form_instances' do
     let(:role) { :OCCURRENCE_POINT }
 

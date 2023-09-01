@@ -189,6 +189,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
       base_scope = Hmis::Form::Instance.with_role(role)
+      # Service instances must specify a service type or category.
+      base_scope = base_scope.for_services if role == :SERVICE
 
       # Choose the "best" instance, i.e. the one that would actually be selected when recording new data.
       # We need to do this so that we can accurately set "data collected about" based on the most applicable form.

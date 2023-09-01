@@ -30,9 +30,6 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
                      where(
                        entity_type: nil,
                        entity_id: nil,
-                       # ok to remove this?
-                       #  custom_service_type_id: nil,
-                       #  custom_service_category_id: nil,
                        funder: nil,
                        other_funder: nil,
                        project_type: nil,
