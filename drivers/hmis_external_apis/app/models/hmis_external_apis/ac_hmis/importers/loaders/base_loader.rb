@@ -165,5 +165,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       value = row_value(row, field: field)
       log_info "#{row.context} could not resolve \"#{field}\":\"#{value}\""
     end
+
+    def log_processed_result(name: nil, expected:, actual:)
+      name ||= model_class.name
+      rate = expected.zero? ? 0 : (actual.to_f / expected).round(3)
+      log_info("processed #{name}: #{actual} of #{expected} records (#{(1.0 - rate) * 100}% skipped)")
+    end
   end
 end

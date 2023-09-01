@@ -53,7 +53,7 @@
         },
         {
           "type": "BOOLEAN",
-          "required": false,
+          "required": true,
           "link_id": "file-confidential",
           "text": "Confidential File?",
           "readonly_text": "Confidential File",
