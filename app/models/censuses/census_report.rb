@@ -22,7 +22,7 @@ module Censuses
       # Limit ES projects to Night-by-night only
       if @filter.limit_es_to_nbn
         nbn_project_ids = scope.merge(GrdaWarehouse::Hud::Project.night_by_night).pluck(:id)
-        is_not_es = p_t[GrdaWarehouse::Hud::Project.project_type_column].not_eq(1)
+        is_not_es = p_t[GrdaWarehouse::Hud::Project.project_type_column].not_in(HudUtility2024.project_type_number_from_code(:es))
         scope = scope.where(is_not_es.or(p_t[:id].in(nbn_project_ids)))
       end
 
