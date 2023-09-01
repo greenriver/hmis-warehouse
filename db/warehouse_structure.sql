@@ -13970,7 +13970,7 @@ CREATE TABLE public.hmis_form_definitions (
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    title character varying
+    title character varying NOT NULL
 );
 
 
@@ -53178,10 +53178,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230828180700'),
 ('20230828180743'),
 ('20230828180842'),
-('20230829155747'),
 ('20230829171917'),
 ('20230830121811'),
 ('20230831190756'),
-('20230831211739');
+('20230831211739'),
+('20230901123748'),
+('20230901124730'),
+('20230901124955');
 
 

@@ -7,21 +7,15 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::DataCollectionPoint < Types::BaseObject
+  class HmisSchema::OccurrencePointForm < Types::BaseObject
     # Instance id - caching issues with proj? may need to add proj id
     field :id, ID, null: false
-    # Title of the form
-    field :title, String, null: true, extras: [:parent]
     # Which clients this data should be collected for
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false
     # Form used for Viewing/Creating/Editing records
     field :definition, Types::Forms::FormDefinition, null: false, extras: [:parent]
 
     # object is a Hmis::Form::Instance
-
-    def title(parent:)
-      definition(parent: parent).title
-    end
 
     def data_collected_about
       object.data_collected_about || 'ALL_CLIENTS'

@@ -1562,13 +1562,6 @@ type DataCollectionFeature {
   role: FormRole!
 }
 
-type DataCollectionPoint {
-  dataCollectedAbout: DataCollectedAbout!
-  definition: FormDefinition!
-  id: ID!
-  title: String
-}
-
 """
 5.03.1
 """
@@ -3178,6 +3171,7 @@ type FormDefinition {
   definition: FormDefinitionJson!
   id: ID!
   role: FormRole!
+  title: String!
 }
 
 type FormDefinitionJson {
@@ -5174,6 +5168,12 @@ enum NotEmployedReason {
   (2) Unable to work
   """
   UNABLE_TO_WORK
+}
+
+type OccurrencePointForm {
+  dataCollectedAbout: DataCollectedAbout!
+  definition: FormDefinition!
+  id: ID!
 }
 
 """
@@ -7206,8 +7206,11 @@ type Project {
   contactInformation: String
   continuumProject: NoYes
   customDataElements: [CustomDataElement!]!
+
+  """
+  Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)
+  """
   dataCollectionFeatures: [DataCollectionFeature!]!
-  dataCollectionPoints: [DataCollectionPoint!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -7222,6 +7225,11 @@ type Project {
   id: ID!
   incomingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
+
+  """
+  Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)
+  """
+  occurrencePointForms: [OccurrencePointForm!]!
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date!
   organization: Organization!

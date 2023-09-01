@@ -209,7 +209,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end.compact.to_h
   end
 
-  def data_collection_point_instances
+  def occurrence_point_form_instances
     instances = Hmis::Form::Instance.
       for_project_through_entities(self).
       active.
