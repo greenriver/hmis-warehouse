@@ -120,7 +120,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :calculate_vispdat_priority_score,
         :days_homeless_for_vispdat_prioritization,
         :disabling_condition?,
-        :domestic_violence?,
+        :domestic_violence,
         :currently_fleeing,
       ]
     end
@@ -459,7 +459,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     # Any open enrollments 4.11.2 DomesticViolenceVictim = 1
-    private def domestic_violence?(client)
+    private def domestic_violence(client)
       return 1 if client.source_health_and_dvs.select do |m|
         m.DomesticViolenceVictim == 1 &&
         [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))

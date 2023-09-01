@@ -1181,7 +1181,7 @@ module GrdaWarehouse::Hud
     end
 
     # Use the Pathways answer if available, otherwise, HMIS
-    def domestic_violence?
+    def domestic_violence
       # To allow preload(:source_health_and_dvs) do the calculation in memory
       dv_scope = source_health_and_dvs.select { |m| m.DomesticViolenceVictim == 1 }
       lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
