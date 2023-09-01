@@ -2,13 +2,23 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "unit",
+      "link_id": "unit-assignment",
       "text": "Unit Assignment",
       "mapping": {
         "record_type": "ENROLLMENT",
         "field_name": "currentUnit"
       },
-      "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT"
+      "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
+      "_comment": "Hacky way to disallow changing unit after exit. It would be better if the most recent unit was displayed, or show full unit assignment history. Exited enrollments shouldnt have currently assigned units.",
+      "disabled_display": "PROTECTED_WITH_VALUE",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "local_constant": "$exitDate",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ]
     }
   ]
 }
