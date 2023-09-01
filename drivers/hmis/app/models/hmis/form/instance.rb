@@ -15,7 +15,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
-  validates :data_collected_about, inclusion: { in: Types::Forms::Enums::DataCollectedAbout.values.keys }
+  validates :data_collected_about, inclusion: { in: Types::Forms::Enums::DataCollectedAbout.values.keys }, allow_blank: true
 
   # 'system' instances can't be deleted
   scope :system, -> { where(system: true) }
@@ -38,6 +38,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
                        project_type: nil,
                      )
                    end
+
+  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].eq(role)) }
 
   # Find instances that are for a specific Project
   scope :for_project, ->(project_id) { for_projects.where(entity_id: project_id) }
@@ -93,36 +95,14 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     where(id: ids)
   end
 
-  # Sort by specificity group, with a tie-breaker on date updated (more recent preferred)
-  def self.sort_by_specificity(instance_array)
-    instance_array.sort_by do |inst|
-      has_funder = inst.funder.present? || inst.other_funder.present?
-
-      # 1: associated directly to project
-      specificity = if inst.entity_id.present? && inst.entity_type == 'Hmis::Hud::Project'
-        1
-      # 2: associated directly to org
-      elsif inst.entity_id.present? && inst.entity_type == 'Hmis::Hud::Organization'
-        2
-      # 3: associated to project type and funder
-      elsif inst.project_type.present? && has_funder
-        3
-      # 4: associated to funder
-      elsif has_funder
-        4
-      # 5: associated to project_type
-      elsif inst.project_type.present?
-        5
-      # default
-      else
-        1000
-      end
-
-      [
-        inst.active == true ? 0 : 1, # Put active instances before inactive ones
-        specificity, # Put more specific instances first
-        Time.current - inst.updated_at, # Tie breaker: choose more recently updated
-      ]
-    end
+  def self.detect_best_instance_scope_for_project(base_scope, project:)
+    [
+      base_scope.for_project(project.id),
+      base_scope.for_organization(project.organization.id),
+      base_scope.for_project_by_funder_and_project_type(project),
+      base_scope.for_project_by_funder(project),
+      base_scope.for_project_by_project_type(project.project_type),
+      base_scope.defaults,
+    ].detect(&:exists?)
   end
 end

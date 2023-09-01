@@ -1533,10 +1533,9 @@ enum DataCollectedAbout {
 }
 
 type DataCollectionFeature {
-  dataCollectedAbout: [DataCollectedAbout!]!
+  dataCollectedAbout: DataCollectedAbout!
   id: ID!
   legacy: Boolean!
-  legacyDataCollectedAbout: [DataCollectedAbout!]!
   role: DataCollectionFeatureRole!
 }
 

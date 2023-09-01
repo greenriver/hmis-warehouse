@@ -16,7 +16,6 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     cleanup_test_environment
   end
 
-  # include_context 'hmis base setup'
   let!(:project) { create :hmis_hud_project }
   before(:each) do
     create(:hmis_hud_enrollment, project: project, data_source: project.data_source)
@@ -62,18 +61,25 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
   end
 
-  describe 'instances_for_role' do
+  describe 'data_collection_features' do
     let(:role) { :CURRENT_LIVING_SITUATION }
 
+    def selected_instances
+      res = project.data_collection_features.find { |os| os.role == role.to_s }
+      return [] unless res.present?
+
+      [res.instance]
+    end
+
     it 'returns none if none' do
-      expect(project.instances_for_role(role).size).to eq(0)
+      expect(selected_instances.size).to eq(0)
     end
 
     it 'chooses default instance, prefers active > inactive' do
       default_inst = create(:hmis_form_instance, role: role, entity: nil)
       create(:hmis_form_instance, role: role, entity: nil, active: false) # not chosen
 
-      expect(project.instances_for_role(role)).to contain_exactly(default_inst)
+      expect(selected_instances).to contain_exactly(default_inst)
     end
 
     it 'chooses more specific instance (project type > default)' do
@@ -81,7 +87,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       create(:hmis_form_instance, role: role, entity: nil, active: false)
       inst_for_project_type = create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type)
 
-      expect(project.instances_for_role(role)).to contain_exactly(inst_for_project_type)
+      expect(selected_instances).to contain_exactly(inst_for_project_type)
     end
 
     it 'chooses more specific instance (project > project type > default)' do
@@ -89,7 +95,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       create(:hmis_form_instance, role: role, entity: nil, active: false)
       create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type)
       inst_for_project = create(:hmis_form_instance, role: role, entity: project)
-      expect(project.instances_for_role(role)).to contain_exactly(inst_for_project)
+      expect(selected_instances).to contain_exactly(inst_for_project)
     end
 
     it 'tie-breaks on date updated' do
@@ -98,44 +104,50 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type)
       inst_for_project = create(:hmis_form_instance, role: role, entity: project)
       create(:hmis_form_instance, role: role, entity: project, updated_at: inst_for_project.updated_at - 1.day)
-      expect(project.instances_for_role(role)).to contain_exactly(inst_for_project)
+      expect(selected_instances).to contain_exactly(inst_for_project)
     end
 
-    it 'returns 2 instances if they have different data_collected_about values' do
+    it 'returns more specific instance, even if 2 have different data_collected_about values' do
       create(:hmis_form_instance, role: role, entity: nil)
       inst_for_project = create(:hmis_form_instance, role: role, entity: project)
-      inst_for_project_type = create(:hmis_form_instance, data_collected_about: 'HOH', role: role, entity: nil, project_type: project.project_type)
+      create(:hmis_form_instance, data_collected_about: 'HOH', role: role, entity: nil, project_type: project.project_type)
 
-      expect(project.instances_for_role(role)).to contain_exactly(
-        inst_for_project, # Chosen over default. Still included because data_collected_about = nil.
-        inst_for_project_type, # Most specific for this data_collected_about group.
-      )
-    end
-
-    it 'chooses active > inactive' do
-      # only option for HOH
-      inst_for_project_type = create(:hmis_form_instance, data_collected_about: 'HOH', role: role, entity: nil, project_type: project.project_type)
-
-      # default, active
-      default_inst = create(:hmis_form_instance, role: role, entity: nil)
-      # more specific, but inactive
-      create(:hmis_form_instance, role: role, entity: project, active: false)
-
-      expect(project.instances_for_role(role)).to contain_exactly(
-        default_inst, # Chosen over inst_for_project because its active, even though its less specific
-        inst_for_project_type, # Most specific for this data_collected_about group.
-      )
+      expect(selected_instances).to contain_exactly(inst_for_project)
     end
 
     it 'if all are inactive, includes the most specific inactive' do
       create(:hmis_form_instance, role: role, entity: nil, active: false)
-      inst_for_project_type = create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type, data_collected_about: 'HOH')
       inst_for_project = create(:hmis_form_instance, role: role, entity: project, active: false)
 
-      expect(project.instances_for_role(role)).to contain_exactly(
-        inst_for_project, # Chosen even though its inactive, because its the most specific option for this data_collected_about group.
-        inst_for_project_type, # Most specific for this data_collected_about group.
-      )
+      expect(selected_instances).to contain_exactly(inst_for_project)
+    end
+  end
+
+  describe 'occurrence_point_form_instances' do
+    let(:role) { :OCCURRENCE_POINT }
+
+    def selected_instances
+      project.occurrence_point_form_instances
+    end
+
+    it 'returns none if none' do
+      expect(selected_instances.size).to eq(0)
+    end
+
+    it 'does not return inactive instance' do
+      create(:hmis_form_instance, role: role, entity: project, active: false)
+
+      expect(selected_instances.size).to eq(0)
+    end
+
+    it 'returns most specific instance per definition identifier' do
+      mid_ptype = create(:hmis_form_instance, role: role, entity: nil, project_type: 13, definition_identifier: 'move_in_date')
+      mid_project = create(:hmis_form_instance, role: role, entity: project, definition_identifier: mid_ptype.definition_identifier)
+
+      doe_default = create(:hmis_form_instance, role: role, entity: nil, definition_identifier: 'date_of_engagement')
+      doe_org = create(:hmis_form_instance, role: role, entity: project.organization, definition_identifier: doe_default.definition_identifier)
+
+      expect(selected_instances).to contain_exactly(mid_project, doe_org)
     end
   end
 end

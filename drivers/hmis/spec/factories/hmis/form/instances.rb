@@ -15,6 +15,7 @@ FactoryBot.define do
     end
     after(:create) do |instance, evaluator|
       instance.definition.update(role: evaluator.role) if evaluator.role.present?
+      instance.definition.update(identifier: evaluator.definition_identifier) if evaluator.definition_identifier.present?
     end
   end
 end

@@ -175,46 +175,61 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     }
   end
 
-  def instances_for_role(role)
-    eligible_instances = Hmis::Form::Instance.
-      for_project_through_entities(self).
-      joins(:definition).
-      where(fd_t[:role].eq(role)).
-      to_a
-
-    # Group by data_collected_about, and choose the most
-    # specific form instance per group.
-    eligible_instances.group_by(&:data_collected_about).values.map do |instance_list|
-      Hmis::Form::Instance.sort_by_specificity(instance_list)
-    end.map(&:first)
-  end
-
-  def data_collection_feature_instances
+  # Data Collection Features that are enabled for this project (e.g. Current Living Situation)
+  #
+  # Is it enabled?
+  #   If ANY instances exist for it for this project, even inactive ones, then yes.
+  #
+  # Who is data collected about?
+  #   Choose the "best" instance – IE the one that would actually be selected
+  #   when creating a new record – and return the data_collected_about on it.
+  #
+  # Returns an OpenStruct that is resolved by the DataCollectionFeature GQL type.
+  def data_collection_features
+    # Create OpenStruct for each enabled feature
     Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
-      # Get the selected instances that would be used for this project.
-      # If there were no matching instances, this feature is not enabled for this project.
-      chosen_instances = instances_for_role(role)
-      next unless chosen_instances.any?
+      base_scope = Hmis::Form::Instance.with_role(role)
 
-      [role, chosen_instances]
-    end.compact.to_h
+      # Choose the "best" instance, i.e. the one that would actually be selected when recording new data.
+      # We need to do this so that we can accurately set "data collected about" based on the most applicable form.
+      #
+      # If there are no active instances, but there are IN-active ones, then choose the best out of the inactives.
+      # Inactive features need to continue to be "turned on" in order to view and edit legacy data.
+      # If/when there is no legacy data, the instance can be fully deleted.
+
+      best_active_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope.active, project: self)
+      best_inactive_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope.inactive, project: self)
+      best_instances = [best_active_instances, best_inactive_instances].detect(&:present?)
+      next unless best_instances.present?
+
+      best_instance = best_instances.order(updated_at: :desc).first
+
+      OpenStruct.new(
+        role: role.to_s,
+        id: [id, best_instance.id].join(':'), # Unique ID for Apollo caching
+        legacy: best_instance.active == false,
+        data_collected_about: best_instance.data_collected_about || 'ALL_CLIENTS',
+        instance: best_instance, # just for testing
+      )
+    end.compact
   end
 
+  # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
   def occurrence_point_form_instances
-    instances = Hmis::Form::Instance.
-      for_project_through_entities(self).
-      active.
-      joins(:definition).
-      where(fd_t[:role].eq(:OCCURRENCE_POINT)).
-      to_a
+    # All instances for Occurrence Point forms
+    base_scope = Hmis::Form::Instance.with_role(:OCCURRENCE_POINT).active
 
-    # Group by definition_identifier, and choose the most
-    # specific form instance per group.
+    # All possible form identifiers used for Occurrence Point collection
+    occurrence_point_identifiers = base_scope.pluck(:definition_identifier).uniq
 
-    # FIXME: how to handle data_collected_about? - come back to it
-    instances.group_by(&:definition_identifier).values.map do |instance_list|
-      Hmis::Form::Instance.sort_by_specificity(instance_list)
-    end.map(&:first)
+    # Choose the most specific instance for each definition identifier
+    occurrence_point_identifiers.map do |identifier|
+      scope = base_scope.where(definition_identifier: identifier)
+      best_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(scope, project: self)
+      next unless best_instances.present?
+
+      best_instances.order(updated_at: :desc).first
+    end.compact
   end
 
   include RailsDrivers::Extensions

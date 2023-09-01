@@ -10,10 +10,9 @@ module Types
   class HmisSchema::DataCollectionFeature < Types::BaseObject
     field :id, ID, null: false
     field :role, Types::Forms::Enums::DataCollectionFeatureRole, null: false
-    field :data_collected_about, [Types::Forms::Enums::DataCollectedAbout], null: false
+    field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false
 
     # Don't allow adding NEW records if this is legacy. It should just be used for viewing/editing.
     field :legacy, Boolean, null: false
-    field :legacy_data_collected_about, [Types::Forms::Enums::DataCollectedAbout], null: false
   end
 end

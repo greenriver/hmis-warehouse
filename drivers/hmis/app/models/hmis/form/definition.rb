@@ -112,15 +112,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
     # Choose the first scope that has any records. Prefer more specific instances.
-    instance_scope = [
-      base_scope.for_project(project.id),
-      base_scope.for_organization(project.organization.id),
-      base_scope.for_project_by_funder_and_project_type(project),
-      base_scope.for_project_by_funder(project),
-      base_scope.for_project_by_project_type(project.project_type),
-      base_scope.defaults,
-    ].detect(&:exists?)
-
+    instance_scope = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope, project: project)
     return none unless instance_scope.present?
 
     where(identifier: instance_scope.pluck(:definition_identifier))

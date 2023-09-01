@@ -99,19 +99,6 @@ module Types
     # TODO: resolve related HMISParticipation records
     # TODO: resolve related CEParticipation records
 
-    def data_collection_features
-      object.data_collection_feature_instances.map do |role, instances|
-        active_instances, legacy_instances = instances.partition(&:active)
-        OpenStruct.new(
-          id: [object.id, *instances.map(&:id)].join(':'),
-          role: role.to_s,
-          legacy: active_instances.none?,
-          data_collected_about: active_instances.map { |i| i.data_collected_about || 'ALL_CLIENTS' }.uniq,
-          legacy_data_collected_about: legacy_instances.map { |i| i.data_collected_about || 'ALL_CLIENTS' }.uniq,
-        )
-      end
-    end
-
     def hud_id
       object.project_id
     end
