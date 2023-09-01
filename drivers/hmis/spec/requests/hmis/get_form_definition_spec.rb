@@ -35,7 +35,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  Hmis::Form::Definition::FORM_ROLES.except(:CE, :POST_EXIT, :CUSTOM, :REFERRAL_REQUEST).keys.each do |role|
+  Hmis::Form::Definition::HUD_ASSESSMENT_FORM_ROLES.excluding(:CE, :POST_EXIT, :CUSTOM_ASSESSMENT).each do |role|
     it 'should find default definition by role' do
       response, result = post_graphql({ enrollment_id: e1.id.to_s, role: role }) { query }
 
@@ -75,8 +75,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should find definition if there is an instance for it (by project type and service type)' do
       create(
         :hmis_form_instance,
-        entity_type: 'ProjectType',
-        entity_id: p1.project_type,
+        entity: nil,
+        project_type: p1.project_type,
         definition_identifier: service_form_definition.identifier,
         custom_service_type_id: cst1.id,
       )
