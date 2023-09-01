@@ -29,10 +29,12 @@ class Users::InvitationsController < Devise::InvitationsController
     end
 
     @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?
-    @user = User.invite!(invite_params, current_user)
+    @user = User.invite!(invite_params.except(:legacy_role_ids), current_user)
+    # Roles need to be added as a second pass
+    @user.update(invite_params)
     @user&.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h) # TODO: START_ACL remove when ACL transition complete
     # if we have a user to copy user groups from, add them
-    copy_user_groups
+    copy_user_groups if @user.using_acls?
 
     if resource.errors.empty?
       set_flash_message :notice, :send_instructions, email: resource.email if is_flashing_format? && resource.invitation_sent_at
@@ -88,7 +90,7 @@ class Users::InvitationsController < Devise::InvitationsController
       :copy_form_id,
       access_control_ids: [],
       # TODO: START_ACL remove when ACL transition complete
-      role_ids: [],
+      legacy_role_ids: [],
       access_group_ids: [],
       coc_codes: [],
       # END_ACL
@@ -136,7 +138,7 @@ class Users::InvitationsController < Devise::InvitationsController
         end
       end
       # TODO: START_ACL remove when ACL transition complete
-      role_ids = invite_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
+      role_ids = invite_params[:legacy_role_ids]&.select(&:present?)&.map(&:to_i) || []
       role_ids.each do |id|
         role = Role.find(id)
         if role.administrative?
