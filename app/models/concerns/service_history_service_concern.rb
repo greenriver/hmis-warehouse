@@ -74,7 +74,7 @@ module ServiceHistoryServiceConcern
     end
 
     scope :bed_night, -> do
-      where(service_type: 200)
+      where(service_type: HudUtility2024.record_type('Bed Night'))
     end
 
     def self.service_types

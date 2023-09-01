@@ -205,7 +205,7 @@ module HmisDataQualityTool
     # check for overlapping ES entry exit, TH, SH
     def self.overlapping_entry_exit(enrollments:, report:)
       involved_enrollments = enrollments.select do |en|
-        (en.project&.es? && ! en.project&.bed_night_tracking?) || en.project&.sh? || en.project&.th?
+        en.project&.es_entry_exit? || en.project&.sh? || en.project&.th?
       end
 
       return 0 if involved_enrollments.blank? || involved_enrollments.count == 1
@@ -226,7 +226,7 @@ module HmisDataQualityTool
 
     def self.overlapping_nbn(enrollments:, report:)
       nbn_enrollments = enrollments.select do |en|
-        en.project&.es? && en.project&.bed_night_tracking?
+        en.project&.es_nbn?
       end
       return 0 if nbn_enrollments.blank?
 

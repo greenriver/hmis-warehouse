@@ -338,13 +338,13 @@ module HmisDataQualityTool
       report_item.annual_assessment_status = annual_assessment_complete(enrollment, hoh.first_date_in_program) if annual_expected
 
       # NOTE: we exclude HIV/AIDS from this calculation as it may not be asked everywhere
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3, 8, 9]) } || false
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?(HudUtility2024.disability_responses - [99]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided.present? && s.DateProvided <= max_date }
       en_cls = enrollment.current_living_situations&.select { |s| s.InformationDate.present? && s.InformationDate <= max_date }
 
-      lot = if project_type == 1 # NbN ES
+      lot = if project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
         # count services <= min of report end and current date
         en_services.select(&:bed_night?)&.count || 0
       else
@@ -354,10 +354,10 @@ module HmisDataQualityTool
       end
       report_item.lot = lot
       end_date = [enrollment.exit&.ExitDate, report.filter.end, Date.current].compact.min
-      max_service = if project_type == 1 # NbN ES
+      max_service = if project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
         # most recent service, or start date if no service
         en_services.max_by(&:DateProvided)&.DateProvided || enrollment.EntryDate
-      elsif enrollment.project.project_type_to_use == 4 # SO
+      elsif enrollment.project.project_type_to_use.in?(HudUtility2024.project_type_number_from_code(:so))
         # max CLS for SO, or start date if no CLS
         en_cls.max_by(&:InformationDate)&.InformationDate || enrollment.EntryDate
       else
@@ -712,12 +712,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type) && item.project_tracking_method == 3
+            HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
-            return false unless item.project_tracking_method == 3
+            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 90
           },
@@ -732,12 +731,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type) && item.project_tracking_method == 3
+            HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
-            return false unless item.project_tracking_method == 3
+            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 180
           },
@@ -752,12 +750,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type) && item.project_tracking_method == 3
+            HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
-            return false unless item.project_tracking_method == 3
+            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 365
           },
