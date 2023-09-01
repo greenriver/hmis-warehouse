@@ -19,34 +19,43 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :form_processors
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
-  FORM_ROLES = {
-    # Assessment forms
-    INTAKE: 'Intake Assessment',
-    UPDATE: 'Update Assessment',
-    ANNUAL: 'Annual Assessment',
-    EXIT: 'Exit Assessment',
-    CE: 'Coordinated Entry',
-    POST_EXIT: 'Post-Exit Assessment',
-    CUSTOM: 'Custom Assessment',
-    # Record-editing forms
-    SERVICE: 'Service',
-    PROJECT: 'Project',
-    ORGANIZATION: 'Organization',
-    CLIENT: 'Client',
-    NEW_CLIENT_ENROLLMENT: 'New Client Enrollment',
-    FUNDER: 'Funder',
-    INVENTORY: 'Inventory',
-    PROJECT_COC: 'Project CoC',
-    FILE: 'File',
-    REFERRAL_REQUEST: 'Referral Request',
-    ENROLLMENT: 'Enrollment',
-    OCCURRENCE_POINT: 'Occurrence point collection form',
-    CURRENT_LIVING_SITUATION: 'Current Living Situation',
-    CE_ASSESSMENT: 'CE Assessment',
-    CE_EVENT: 'CE Event',
-  }.freeze
+  # Forms that are assessments
+  HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
 
-  validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
+  # System forms (required for basic HMIS functionality)
+  SYSTEM_FORM_ROLES = [
+    :PROJECT,
+    :ORGANIZATION,
+    :PROJECT_COC,
+    :FUNDER,
+    :INVENTORY,
+    :CLIENT,
+    :NEW_CLIENT_ENROLLMENT,
+    :ENROLLMENT,
+  ].freeze
+
+  # Forms used for data collection on Enrollments (features that can be "toggled" on and off by specifying Instances)
+  DATA_COLLECTION_FEATURE_ROLES = [
+    :CURRENT_LIVING_SITUATION,
+    :SERVICE,
+    :CE_EVENT,
+    :CE_ASSESSMENT,
+    # Would be nice if we could use instances to enable/disable the referral feature (instead of using permissions for it).
+    # That would mean creating an Instance for this form for each non-Direct Entry program.
+    # Maybe less cumbersome than dealing with data access groups, but we'd need that anyway to handle Direct Enrollment permission?
+    :REFERRAL_REQUEST,
+  ].freeze
+
+  FORM_ROLES = [
+    *HUD_ASSESSMENT_FORM_ROLES,
+    *SYSTEM_FORM_ROLES,
+    *DATA_COLLECTION_FEATURE_ROLES,
+    :OCCURRENCE_POINT,
+    # Other/misc forms
+    :FILE, # should maybe be considered a data collection feature, but different becase its at Client-level (not Project)
+  ].freeze
+
+  validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
 
   ENROLLMENT_CONFIG = {
     class_name: 'Hmis::Hud::Enrollment',
@@ -76,10 +85,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
     CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
+    OCCURRENCE_POINT: ENROLLMENT_CONFIG,
     ENROLLMENT: ENROLLMENT_CONFIG,
     # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
     NEW_CLIENT_ENROLLMENT: { **ENROLLMENT_CONFIG, permission: [:can_edit_clients, :can_edit_enrollments] },
-    OCCURRENCE_POINT: ENROLLMENT_CONFIG,
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
@@ -90,10 +99,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
   }.freeze
 
-  HUD_ASSESSMENT_FORM_ROLES = FORM_ROLES.slice(:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT).freeze
-
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES
   use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES
+  use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
 
   scope :with_role, ->(role) { where(role: role) }
 
@@ -176,7 +184,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def hud_assessment?
-    HUD_ASSESSMENT_FORM_ROLES.keys.include?(role.to_sym)
+    HUD_ASSESSMENT_FORM_ROLES.include?(role.to_sym)
   end
 
   def intake?

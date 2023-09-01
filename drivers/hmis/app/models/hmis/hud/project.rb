@@ -190,16 +190,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def data_collection_feature_instances
-    [
-      # any mini form taht only collects 1 value
-      # :OCCURRENCE_POINT,
-      # forms that collect data "at occurrence" but have multiple values over time
-      :CURRENT_LIVING_SITUATION,
-      :SERVICE,
-      :CE_EVENT,
-      :CE_ASSESSMENT,
-      # :FILE ?
-    ].map do |role|
+    Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES.map do |role|
       # Get the selected instances that would be used for this project.
       # If there were no matching instances, this feature is not enabled for this project.
       chosen_instances = instances_for_role(role)

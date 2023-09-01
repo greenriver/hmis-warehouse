@@ -9,14 +9,11 @@
 module Types
   class HmisSchema::DataCollectionFeature < Types::BaseObject
     field :id, ID, null: false
-    # Data collection role
-    # TODO: should really be subset of FormRole
-    field :role, Types::Forms::Enums::FormRole, null: false
+    field :role, Types::Forms::Enums::DataCollectionFeatureRole, null: false
     field :data_collected_about, [Types::Forms::Enums::DataCollectedAbout], null: false
 
-    field :legacy_data_collected_about, [Types::Forms::Enums::DataCollectedAbout], null: false
-    # Don't allow adding NEW records if this is legacy. It should just be used for editing.
-    # This should be set to true if (1) there are only inactive forms, not active forms, and (2) there is data for it.
+    # Don't allow adding NEW records if this is legacy. It should just be used for viewing/editing.
     field :legacy, Boolean, null: false
+    field :legacy_data_collected_about, [Types::Forms::Enums::DataCollectedAbout], null: false
   end
 end

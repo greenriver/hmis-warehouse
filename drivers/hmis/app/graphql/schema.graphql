@@ -263,34 +263,12 @@ enum AssessmentLevel {
 }
 
 enum AssessmentRole {
-  """
-  (ANNUAL) Annual Assessment
-  """
   ANNUAL
-
-  """
-  (CE) Coordinated Entry
-  """
   CE
-
-  """
-  (EXIT) Exit Assessment
-  """
+  CUSTOM_ASSESSMENT
   EXIT
-
-  """
-  (INTAKE) Intake Assessment
-  """
   INTAKE
-
-  """
-  (POST_EXIT) Post-Exit Assessment
-  """
   POST_EXIT
-
-  """
-  (UPDATE) Update Assessment
-  """
   UPDATE
 }
 
@@ -1559,7 +1537,15 @@ type DataCollectionFeature {
   id: ID!
   legacy: Boolean!
   legacyDataCollectedAbout: [DataCollectedAbout!]!
-  role: FormRole!
+  role: DataCollectionFeatureRole!
+}
+
+enum DataCollectionFeatureRole {
+  CE_ASSESSMENT
+  CE_EVENT
+  CURRENT_LIVING_SITUATION
+  REFERRAL_REQUEST
+  SERVICE
 }
 
 """
@@ -3324,118 +3310,28 @@ type FormItem {
   warnIfEmpty: Boolean!
 }
 
-"""
-Form Role
-"""
 enum FormRole {
-  """
-  (ANNUAL) Annual Assessment
-  """
   ANNUAL
-
-  """
-  (CE) Coordinated Entry
-  """
   CE
-
-  """
-  (CE_ASSESSMENT) CE Assessment
-  """
   CE_ASSESSMENT
-
-  """
-  (CE_EVENT) CE Event
-  """
   CE_EVENT
-
-  """
-  (CLIENT) Client
-  """
   CLIENT
-
-  """
-  (CURRENT_LIVING_SITUATION) Current Living Situation
-  """
   CURRENT_LIVING_SITUATION
-
-  """
-  (CUSTOM) Custom Assessment
-  """
-  CUSTOM
-
-  """
-  (ENROLLMENT) Enrollment
-  """
+  CUSTOM_ASSESSMENT
   ENROLLMENT
-
-  """
-  (EXIT) Exit Assessment
-  """
   EXIT
-
-  """
-  (FILE) File
-  """
   FILE
-
-  """
-  (FUNDER) Funder
-  """
   FUNDER
-
-  """
-  (INTAKE) Intake Assessment
-  """
   INTAKE
-
-  """
-  (INVENTORY) Inventory
-  """
   INVENTORY
-
-  """
-  (NEW_CLIENT_ENROLLMENT) New Client Enrollment
-  """
   NEW_CLIENT_ENROLLMENT
-
-  """
-  (OCCURRENCE_POINT) Occurrence point collection form
-  """
   OCCURRENCE_POINT
-
-  """
-  (ORGANIZATION) Organization
-  """
   ORGANIZATION
-
-  """
-  (POST_EXIT) Post-Exit Assessment
-  """
   POST_EXIT
-
-  """
-  (PROJECT) Project
-  """
   PROJECT
-
-  """
-  (PROJECT_COC) Project CoC
-  """
   PROJECT_COC
-
-  """
-  (REFERRAL_REQUEST) Referral Request
-  """
   REFERRAL_REQUEST
-
-  """
-  (SERVICE) Service
-  """
   SERVICE
-
-  """
-  (UPDATE) Update Assessment
-  """
   UPDATE
 }
 
