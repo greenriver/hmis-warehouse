@@ -456,15 +456,30 @@ module HudUtility2024
   end
 
   def cocs_with_codes
-    HudUtility2024.cocs_with_codes
+    cocs.map do |code, name|
+      [
+        code,
+        "#{name} (#{code})",
+      ]
+    end.to_h.freeze
   end
 
   def cocs
-    HudUtility2024.cocs
+    codes = coc_codes_options
+    return codes.freeze if Rails.env.production?
+
+    codes.merge(
+      {
+        'XX-500' => 'Test CoC',
+        'XX-501' => '2nd Test CoC',
+      },
+    ).freeze
   end
 
   def cocs_in_state(state)
-    HudUtility2024.cocs_in_state(state)
+    return cocs if state.blank?
+
+    cocs.select { |code, _| code.starts_with?(state) }
   end
 
   # tranform up hud list for use as an enum

@@ -200,22 +200,22 @@ module GrdaWarehouse
     def self.project_type(enrollment)
       ptype = enrollment.project.computed_project_type
       result = HudUtility2024.chronic_project_types.include?(ptype) ? :continue : :skip
-      { result: result, display_value: "#{ptype} (#{::HudUtility20204.project_type_brief(ptype)})", line: 3 }
+      { result: result, display_value: "#{ptype} (#{::HudUtility2024.project_type_brief(ptype)})", line: 3 }
     end
 
     # Line 9  (3.917.1)
     def self.prior_living_sitation_homeless(enrollment)
       value = enrollment.LivingSituation
-      result = HudUtility20204.homeless_situations(as: :prior).include?(value) ? :continue : :skip
-      display_value = value ? "#{value} (#{::HudUtility20204.living_situation(value)})" : ''
+      result = HudUtility2024.homeless_situations(as: :prior).include?(value) ? :continue : :skip
+      display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 9 }
     end
 
     # Line 14 (3.917.1)
     def self.prior_living_sitation_institutional(enrollment)
       value = enrollment.LivingSituation
-      result = HudUtility20204.institutional_situations(as: :prior).include?(value) ? :continue : :skip
-      display_value = value ? "#{value} (#{::HudUtility20204.living_situation(value)})" : ''
+      result = HudUtility2024.institutional_situations(as: :prior).include?(value) ? :continue : :skip
+      display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 14 }
     end
 

@@ -37,7 +37,7 @@ module Filter::FilterScopes
         merge(
           GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @filter.coc_codes).
           or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
-          or(GrdaWarehouse::Hud::Enrollment.where.not(CoCCode: HudUtility2024.cocs.keys)),
+          or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudUtility2024.cocs.keys)),
         )
     end
 
