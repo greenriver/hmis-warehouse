@@ -6,15 +6,39 @@
 
 module ClientSearch
   extend ActiveSupport::Concern
+
+  class ClientSearchHelper
+    def full_text_search(scope, term)
+      # lower boundary for word similarity
+      # FIXME: use operator form here for index. Use word-similarity here to include partial matches
+      #return where("word_similarity(#{qtext}, search_name_fml) > 0.1")
+        # order by similarity to full text (not just words prefix)
+      #  .order(Arel.sql("similarity(#{qtext}, search_name_fml) DESC"))
+      #sn_t = Hmis::ClientSearchName.arel_table
+
+      qterm = Hmis::ClientSearchableName.connection.quote(term)
+      csn_t = Hmis::ClientSearchableName.arel_table
+
+      score_sql = <<~SQL
+        (
+          (similarity(#{qterm}, #{csn_t[:last_name].to_sql}) * 0.25 + similarity(#{qterm}, #{csn_t[:full_name].to_sql})) / 2
+        ) * (CASE WHEN #{csn_t[:name_type].to_sql} = 'primary' THEN 1.0 ELSE 0.75 END)
+      SQL
+      name_scope = Hmis::ClientSearchableName
+        .where("word_similarity(f_unaccent(#{qterm}), #{csn_t[:full_name].to_sql}) > 0.3")
+        .group(:client_id)
+        .select(:client_id, Arel.sql("MAX(#{score_sql}) AS search_score"))
+      scope.joins("JOIN (#{name_scope.to_sql}) names ON \"Client\".id = names.client_id").order(Arel.sql('search_score DESC'))
+    end
+  end
+
   included do
     # Requires a block!
     def self.text_searcher(text, **kwargs, &block)
       return none unless text.present?
 
       text.strip!
-      qtext  = connection.quote(text)
-      cond = "word_similarity(search_name_fml, #{qtext})"
-      return where("#{qtext} <% search_name_fml").order(Arel.sql("#{cond} DESC"))
+      return ClientSearchHelper.new.full_text_search(self, text)
 
       sa = arel_table
       alpha_numeric = /[[[:alnum:]]-]+/.match(text).try(:[], 0) == text
@@ -94,6 +118,7 @@ module ClientSearch
       where
     end
 
+    # name_search(arel_t, :LastName, "#{term}%", **kwargs)
     def self.name_search(arel_t, field, text, custom_name_options: {})
       query = arel_t[field].lower.matches(text)
       return with_custom_name_search(query, field, text, **custom_name_options) if  custom_name_options.present?
@@ -101,6 +126,13 @@ module ClientSearch
       query
     end
 
+    # with_custom_name_search(
+    #  "LastName like 'foo%'",
+    #  :LastName,
+    #  "foo",
+    #  association: :names,
+    #  klass: Hmis::Hud::CustomClientName
+    # )
     def self.with_custom_name_search(where, field, text, association:, klass:, field_map: {})
       column = field_map[field] || field
       return where unless reflect_on_association(association)&.klass == klass
