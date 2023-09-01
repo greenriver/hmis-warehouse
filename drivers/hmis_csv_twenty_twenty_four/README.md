@@ -6,7 +6,7 @@ Exporting logic for HMIS CSV files in the 2024 HUD format.
 
 `HmisCsvTwentyTwentyFour::Exporter::Base.new(....).export!` will export a specified date range for specified projects
 
-### Importer Modules (Not Yet Implemented)
+### Importer Modules
 
 Importing and processing logic for HMIS CSV files in the 2024 HUD format.
 
