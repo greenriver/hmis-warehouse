@@ -17,7 +17,7 @@ module Health
       set_hpc_patient
       # set_patient if @patient.blank?
       a_t = Health::Appointment.arel_table
-      @appointments = if @patent.present?
+      @appointments = if @patient.present?
         @patient.appointments.order(appointment_time: :desc)
       else
         Health::Appointment.none
@@ -41,7 +41,8 @@ module Health
       else
         end_date = start_date + 2.weeks
       end
-      @appointments = if @patent.present?
+
+      @appointments = if @patient.present?
         @patient.appointments.
           limited.
           where(appointment_time: (start_date..end_date)).
