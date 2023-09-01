@@ -32,97 +32,139 @@
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-movein",
-          "text": "Move-in (including first, last and security)"
+          "text": "Move-in (including first, last and security)",
+          "mapping": {
+            "custom_field_key": "flex_funds_move_in"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-rent",
-          "text": "Rent"
+          "text": "Rent",
+          "mapping": {
+            "custom_field_key": "flex_funds_rent"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-rent-arrears",
-          "text": "Rent Arrears"
+          "text": "Rent Arrears",
+          "mapping": {
+            "custom_field_key": "flex_funds_rent_arrears"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "ff-rent-utilities",
-          "text": "Utilities"
+          "link_id": "ff-utilities",
+          "text": "Utilities",
+          "mapping": {
+            "custom_field_key": "flex_funds_utilities"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-transportation",
-          "text": "Transportation"
+          "text": "Transportation",
+          "mapping": {
+            "custom_field_key": "flex_funds_transportation"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-education",
-          "text": "Education"
+          "text": "Education",
+          "mapping": {
+            "custom_field_key": "flex_funds_education"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-legal",
-          "text": "Legal"
+          "text": "Legal",
+          "mapping": {
+            "custom_field_key": "flex_funds_legal"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-child-care",
-          "text": "Child care"
+          "text": "Child care",
+          "mapping": {
+            "custom_field_key": "flex_funds_child_care"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-work",
-          "text": "Work"
+          "text": "Work",
+          "mapping": {
+            "custom_field_key": "flex_funds_work"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-medical",
-          "text": "Medical"
+          "text": "Medical",
+          "mapping": {
+            "custom_field_key": "flex_funds_medical"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-cell-phone",
-          "text": "Cell phone"
+          "text": "Cell phone",
+          "mapping": {
+            "custom_field_key": "flex_funds_cell"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-food",
-          "text": "Food/Groceries"
+          "text": "Food/Groceries",
+          "mapping": {
+            "custom_field_key": "flex_funds_food"
+          }
         },
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "ff-other",
-          "text": "Other"
+          "text": "Other",
+          "mapping": {
+            "custom_field_key": "flex_funds_other"
+          }
         },
         {
           "type": "TEXT",
           "link_id": "ff-other-describe",
           "text": "Describe other assistance provided",
           "brief_text": "Other assistance",
+          "mapping": {
+            "custom_field_key": "flex_funds_other_details"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
