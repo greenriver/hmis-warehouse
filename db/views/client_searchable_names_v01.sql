@@ -15,7 +15,7 @@ UNION
     "Client"."id" as client_id,
     "CustomClientName".search_name_full AS full_name,
     "CustomClientName".search_name_full AS last_name,
-    'secondary' as "name_type"
+    CASE WHEN "CustomClientName".primary THEN 'primary' ELSE 'secondary' END AS "name_type"
   FROM
     "CustomClientName"
   JOIN "Client" ON "Client"."PersonalID" = "CustomClientName"."PersonalID"

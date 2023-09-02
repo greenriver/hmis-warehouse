@@ -45,20 +45,6 @@ COMMENT ON EXTENSION hstore IS 'data type for storing sets of (key, value) pairs
 
 
 --
--- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
-
-
---
--- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
-
-
---
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -84,20 +70,6 @@ CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 --
 
 COMMENT ON EXTENSION postgis IS 'PostGIS geometry, geography, and raster spatial types and functions';
-
-
---
--- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
-
-
---
--- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
 
 
 --
@@ -142,17 +114,6 @@ CREATE TYPE public.record_type AS ENUM (
     'service',
     'extrapolated'
 );
-
-
---
--- Name: f_unaccent(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.f_unaccent(text) RETURNS text
-    LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
-    AS $_$
-SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
-$_$;
 
 
 --
@@ -740,9 +701,7 @@ CREATE TABLE public."Client" (
     "NonBinary" integer,
     "CulturallySpecific" integer,
     "DifferentIdentity" integer,
-    "DifferentIdentityText" character varying,
-    search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
-    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED
+    "DifferentIdentityText" character varying
 );
 
 
@@ -1119,9 +1078,7 @@ CREATE TABLE public."CustomClientName" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE(first, ''::character varying))::text || ' '::text) || (COALESCE(middle, ''::character varying))::text) || ' '::text) || (COALESCE(last, ''::character varying))::text))) STORED,
-    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent((last)::text)) STORED
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -5840,27 +5797,6 @@ ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
 
 
 --
--- Name: client_searchable_names; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.client_searchable_names AS
- SELECT "Client".id AS client_id,
-    "Client".search_name_full AS full_name,
-    "Client".search_name_last AS last_name,
-    'primary'::text AS name_type
-   FROM public."Client"
-  WHERE ("Client"."DateDeleted" IS NULL)
-UNION
- SELECT "Client".id AS client_id,
-    "CustomClientName".search_name_full AS full_name,
-    "CustomClientName".search_name_full AS last_name,
-    'secondary'::text AS name_type
-   FROM (public."CustomClientName"
-     JOIN public."Client" ON (((("Client"."PersonalID")::text = ("CustomClientName"."PersonalID")::text) AND ("Client".data_source_id = "CustomClientName".data_source_id))))
-  WHERE ("CustomClientName"."DateDeleted" IS NULL);
-
-
---
 -- Name: client_split_histories; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6304,9 +6240,6 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
-    "order" integer DEFAULT 0 NOT NULL,
-    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
-    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -8172,7 +8105,8 @@ CREATE TABLE public.group_viewable_entities (
     access_group_id integer NOT NULL,
     entity_id integer NOT NULL,
     entity_type character varying NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    collection_id bigint
 );
 
 
@@ -14747,7 +14681,28 @@ CREATE TABLE public.hmis_dqt_clients (
     ethnicity integer,
     reporting_age integer,
     ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false
+    ch_at_any_entry boolean DEFAULT false,
+    woman integer,
+    man integer,
+    culturally_specific integer,
+    different_identity integer,
+    non_binary integer,
+    hispanic_latinaeo integer,
+    mid_east_n_african integer,
+    spm_hispanic_latinaeo integer,
+    _all_persons__hispanic_latinaeo integer,
+    spm_with_children__hispanic_latinaeo integer,
+    spm_only_children__hispanic_latinaeo integer,
+    spm_without_children__hispanic_latinaeo integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__hispan integer,
+    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
+    spm_mid_east_n_african integer,
+    _all_persons__mid_east_n_african integer,
+    spm_with_children__mid_east_n_african integer,
+    spm_only_children__mid_east_n_african integer,
+    spm_without_children__mid_east_n_african integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer
 );
 
 
@@ -18176,7 +18131,14 @@ CREATE TABLE public.ma_monthly_performance_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    woman boolean,
+    man boolean,
+    culturally_specific boolean,
+    different_identity boolean,
+    non_binary boolean,
+    hispanic_latinaeo boolean,
+    mid_east_n_african boolean
 );
 
 
@@ -21643,7 +21605,14 @@ CREATE TABLE public.system_pathways_clients (
     report_id bigint,
     deleted_at timestamp without time zone,
     days_to_return integer,
-    ce_assessment boolean DEFAULT false NOT NULL
+    ce_assessment boolean DEFAULT false NOT NULL,
+    woman boolean,
+    man boolean,
+    culturally_specific boolean,
+    different_identity boolean,
+    non_binary boolean,
+    hispanic_latinaeo boolean,
+    mid_east_n_african boolean
 );
 
 
@@ -42200,34 +42169,6 @@ CREATE INDEX idx_cibs_p_id_ds_id ON public.custom_imports_b_services_rows USING 
 
 
 --
--- Name: idx_client_custom_names_full_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_client_custom_names_full_idx ON public."CustomClientName" USING gin (search_name_full public.gin_trgm_ops);
-
-
---
--- Name: idx_client_custom_names_last_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_client_custom_names_last_idx ON public."CustomClientName" USING gin (search_name_last public.gin_trgm_ops);
-
-
---
--- Name: idx_client_name_full_gin; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_client_name_full_gin ON public."Client" USING gin (search_name_full public.gin_trgm_ops);
-
-
---
--- Name: idx_client_name_last_gin; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_last public.gin_trgm_ops);
-
-
---
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44570,6 +44511,13 @@ CREATE INDEX index_generic_services_on_client_id ON public.generic_services USIN
 --
 
 CREATE INDEX index_grades_on_type ON public.grades USING btree (type);
+
+
+--
+-- Name: index_group_viewable_entities_on_collection_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_group_viewable_entities_on_collection_id ON public.group_viewable_entities USING btree (collection_id);
 
 
 --
@@ -51076,10 +51024,17 @@ CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports U
 
 
 --
+-- Name: one_entity_per_type_per_collection; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_entity_per_type_per_collection ON public.group_viewable_entities USING btree (collection_id, entity_id, entity_type) WHERE (collection_id IS NOT NULL);
+
+
+--
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type);
+CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type) WHERE (access_group_id <> 0);
 
 
 --
@@ -51310,7 +51265,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -52508,22 +52463,6 @@ CREATE STATISTICS public.stats_shs_2050_age_literally_homeless ON age, literally
 --
 
 CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless FROM public.service_history_services_2050;
-
-
---
--- Name: client_searchable_names attempt_client_searchable_names_del; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_client_searchable_names_del AS
-    ON DELETE TO public.client_searchable_names DO INSTEAD NOTHING;
-
-
---
--- Name: client_searchable_names attempt_client_searchable_names_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_client_searchable_names_up AS
-    ON UPDATE TO public.client_searchable_names DO INSTEAD NOTHING;
 
 
 --
@@ -54385,13 +54324,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230803172055'),
 ('20230803173117'),
 ('20230804124734'),
+('20230804232249'),
+('20230805224003'),
 ('20230815171824'),
+('20230817154337'),
 ('20230818044939'),
-('20230820225855'),
+('20230822183752'),
 ('20230822200902'),
 ('20230824192127'),
 ('20230829171917'),
-('20230830121811'),
-('20230831162622');
+('20230830121811');
 
 

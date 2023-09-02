@@ -30,12 +30,12 @@ class AddClientNameTrgmSearch < ActiveRecord::Migration[6.1]
     # unaccent() is STABLE but not IMMUTABLE. The following creates an IMMUTABLE SQL wrapper for use in generated / index cols
     # reference: https://stackoverflow.com/questions/11005036/does-postgresql-support-accent-insensitive-collations/11007216#11007216
     execute <<~SQL
-    CREATE OR REPLACE FUNCTION public.f_unaccent(text)
-      RETURNS text
-      LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT AS
-    $func$
-    SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
-    $func$;
+      CREATE OR REPLACE FUNCTION public.f_unaccent(text)
+        RETURNS text
+        LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT AS
+      $func$
+      SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
+      $func$;
     SQL
   end
 
@@ -91,5 +91,4 @@ class AddClientNameTrgmSearch < ActiveRecord::Migration[6.1]
       CREATE INDEX idx_client_custom_names_last_idx ON "CustomClientName" USING gin (search_name_last gin_trgm_ops)
     SQL
   end
-
 end

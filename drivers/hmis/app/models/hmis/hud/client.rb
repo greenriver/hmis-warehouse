@@ -48,7 +48,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :custom_data_elements, as: :owner
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
-  has_many :client_searchable_names, foreign_key: :client_id
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
