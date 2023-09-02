@@ -234,6 +234,11 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def households
+      female_column = if importable_file_class('Client').name.include?('TwentyFour')
+        :Woman
+      else
+        :Female
+      end
       ic_t = importable_file_class('Client').arel_table
       @households ||= {}.tap do |hh|
         enrollment_scope.joins(:client).
@@ -244,7 +249,7 @@ module HmisCsvImporter::HmisCsvCleanup
             :HouseholdID,
             :PersonalID,
             ic_t[:DOB],
-            ic_t[:Woman],
+            ic_t[female_column],
             :RelationshipToHoH,
             :id,
           ).

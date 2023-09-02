@@ -16070,7 +16070,24 @@ CREATE TABLE public.homeless_summary_report_clients (
     spm_adults_with_children_where_parenting_adult_18_to_24__b_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__a_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__n_n_h_ integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer
+    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer,
+    spm_all_persons__mid_east_n_afric integer,
+    spm_without_children__mid_east_n_ integer,
+    spm_with_children__mid_east_n_afr integer,
+    spm_only_children__mid_east_n_afr integer,
+    spm_without_children_and_fifty_fi integer,
+    spm_adults_with_children_where_pa integer,
+    spm_all_persons__mid_east_n_african integer,
+    spm_all_persons__hispanic_latinaeo integer,
+    spm_without_children__mid_east_n_african integer,
+    spm_without_children__hispanic_latinaeo integer,
+    spm_with_children__mid_east_n_african integer,
+    spm_with_children__hispanic_latinaeo integer,
+    spm_only_children__mid_east_n_african integer,
+    spm_only_children__hispanic_latinaeo integer,
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer,
+    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer
 );
 
 
@@ -54337,6 +54354,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230828180743'),
 ('20230828180842'),
 ('20230829171917'),
-('20230830121811');
+('20230830121811'),
+('20230902183854');
 
 

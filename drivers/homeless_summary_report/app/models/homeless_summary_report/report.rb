@@ -100,7 +100,7 @@ module HomelessSummaryReport
     end
 
     def self.default_project_type_codes
-      HudUtility20242024.spm_project_type_codes
+      HudUtility2024.spm_project_type_codes
     end
 
     def url
@@ -812,7 +812,7 @@ module HomelessSummaryReport
 
     def self.demographic_variants
       {
-        hispanic_latino: {
+        hispanic_latinaeo: {
           name: HudUtility2024.race('HispanicLatinaeo'), # non-hispanic latino
           extra_filters: {
             races: ['HispanicLatinaeo'],
