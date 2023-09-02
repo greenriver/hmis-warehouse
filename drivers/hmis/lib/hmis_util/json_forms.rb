@@ -229,18 +229,9 @@ module HmisUtil
     end
 
     public def ensure_system_instances_exist!
-      [
-        :project,
-        :organization,
-        :project_coc,
-        :funder,
-        :inventory,
-        :client,
-        :new_client_enrollment,
-        :enrollment,
-      ].each do |identifier|
-        role = identifier.upcase.to_sym
-        raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::SYSTEM_FORM_ROLES.include?(role)
+      Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
+        identifier = role.to_s.downcase
+        raise "No definition found for role: #{role}" unless Hmis::Form::Definition.where(identifier: identifier).exists?
 
         default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
         default_instance.update(system: true, active: true)
@@ -252,7 +243,7 @@ module HmisUtil
     public def create_default_occurrence_point_instances!
       # Move-in Date
       unless Hmis::Form::Instance.where(definition_identifier: 'move_in_date').exists?
-        [3, 9, 10, 13].each do |ptype|
+        HudUtility2024.permanent_housing_project_types.each do |ptype|
           Hmis::Form::Instance.create!(
             definition_identifier: 'move_in_date',
             project_type: ptype,
@@ -265,8 +256,8 @@ module HmisUtil
 
       # Date of Engagement
       unless Hmis::Form::Instance.where(definition_identifier: 'date_of_engagement').exists?
-        # Note: spec has funder components too, but by default we just show it for all 3 project types.
-        [1, 4, 6].each do |ptype|
+        # Note: spec has funder components too, but by default we just show it for the project types.
+        HudUtility2024.doe_project_types.each do |ptype|
           Hmis::Form::Instance.create!(
             definition_identifier: 'date_of_engagement',
             project_type: ptype,
@@ -280,13 +271,15 @@ module HmisUtil
       # PATH Status
       return if Hmis::Form::Instance.where(definition_identifier: 'path_status').exists?
 
-      Hmis::Form::Instance.create!(
-        definition_identifier: 'path_status',
-        funder: 21,
-        data_collected_about: :HOH_AND_ADULTS,
-        active: true,
-        system: false,
-      )
+      HudUtility2024.path_funders.each do |funder|
+        Hmis::Form::Instance.create!(
+          definition_identifier: 'path_status',
+          funder: funder,
+          data_collected_about: :HOH_AND_ADULTS,
+          active: true,
+          system: false,
+        )
+      end
     end
 
     FORM_TITLES = {

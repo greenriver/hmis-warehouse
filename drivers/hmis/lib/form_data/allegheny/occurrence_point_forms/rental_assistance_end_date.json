@@ -8,7 +8,13 @@
         "record_type": "ENROLLMENT",
         "custom_field_key": "rental_assistance_end_date"
       },
-      "_comment": "TODO any bounds?"
+      "bounds": [
+        {
+          "id": "min-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        }
+      ]
     }
   ]
 }

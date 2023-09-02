@@ -9,7 +9,7 @@
         "field_name": "currentUnit"
       },
       "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
-      "_comment": "Hacky way to disallow changing unit after exit. It would be better if the most recent unit was displayed, or show full unit assignment history. Exited enrollments shouldnt have currently assigned units.",
+      "_comment": "FIXME: for exited enrollments, this just displays non-editable unit value, which should be DNC because units should not remain assigned after exit. It would be better if the most recent unit was displayed, or show full unit assignment history.",
       "disabled_display": "PROTECTED_WITH_VALUE",
       "enable_behavior": "ANY",
       "enable_when": [
