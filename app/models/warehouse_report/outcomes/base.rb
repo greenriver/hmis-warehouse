@@ -7,7 +7,7 @@
 class WarehouseReport::Outcomes::Base
   include ArelHelper
 
-  attr_accessor :organization_ids, :data_source_ids, :project_ids, :coc_codes, :start_date, :end_date, :subpopulation, :household_type, :race, :gender, :veteran_status, :filter
+  attr_accessor :organization_ids, :data_source_ids, :project_ids, :coc_codes, :start_date, :end_date, :subpopulation, :household_type, :races, :genders, :age_ranges, :veteran_status, :filter
 
   def initialize(filter)
     @filter = filter
@@ -19,8 +19,9 @@ class WarehouseReport::Outcomes::Base
     @end_date = @filter.end
     @subpopulation = self.class.subpopulation(@filter.sub_population)
     @household_type = Reporting::Housed.household_type(@filter.household_type)
-    @race = Reporting::Housed.race(@filter.races.first)
-    @gender = Reporting::Housed.gender(@filter.genders.first)
+    @races = @filter.races.presence || :current_scope
+    @genders = @filter.genders.presence || :current_scope
+    @age_ranges = @filter.age_ranges.presence || :current_scope
     @veteran_status = Reporting::Housed.veteran_status(@filter.veteran_statuses.first)
   end
 
@@ -1150,15 +1151,67 @@ class WarehouseReport::Outcomes::Base
       send(@subpopulation).
       send(@household_type)
 
-    scope = scope.where(race: @race&.to_s) unless @race == :current_scope
-    if @gender != :current_scope
-      gender_column = HudUtility2024.gender_id_to_field_name[@gender]
-      scope = scope.where(gender_column.downcase => 1)
+    # NOTE: race is a single column in the reporting database table
+    scope = scope.where(race: @races) if @races.present? && @races != :current_scope
+    if @genders.present? && @genders != :current_scope
+      gender = @genders.first
+      column = HudUtility2024.gender_id_to_field_name[gender].downcase
+      a_t = scope.arel_table
+      value = 1
+      value = gender if column == :gendernone
+      gender_query = a_t[column].eq(value)
+
+      @genders.drop(1).each do |gender_number|
+        column = HudUtility2024.gender_id_to_field_name[gender_number].downcase
+        value = 1
+        value = gender_number if column == :gendernone
+        gender_query = gender_query.or(a_t[column].eq(value))
+      end
+      scope = scope.where(gender_query)
+    end
+
+    if @age_ranges.present? && @age_ranges != :current_scope
+      # Or'ing ages is very slow, instead we'll build up an acceptable
+      # array of ages
+      ages = []
+      ages += Filters::FilterBase.age_range(:zero_to_four).to_a if @age_ranges.include?(:zero_to_four)
+      ages += Filters::FilterBase.age_range(:five_to_ten).to_a if @age_ranges.include?(:five_to_ten)
+      ages += Filters::FilterBase.age_range(:eleven_to_fourteen).to_a if @age_ranges.include?(:eleven_to_fourteen)
+      ages += Filters::FilterBase.age_range(:fifteen_to_seventeen).to_a if @age_ranges.include?(:fifteen_to_seventeen)
+      ages += Filters::FilterBase.age_range(:under_eighteen).to_a if @age_ranges.include?(:under_eighteen)
+      ages += Filters::FilterBase.age_range(:eighteen_to_twenty_four).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
+      ages += Filters::FilterBase.age_range(:twenty_five_to_twenty_nine).to_a if @age_ranges.include?(:twenty_five_to_twenty_nine)
+      ages += Filters::FilterBase.age_range(:thirty_to_thirty_four).to_a if @age_ranges.include?(:thirty_to_thirty_four)
+      ages += Filters::FilterBase.age_range(:thirty_five_to_thirty_nine).to_a if @age_ranges.include?(:thirty_five_to_thirty_nine)
+      ages += Filters::FilterBase.age_range(:thirty_to_thirty_nine).to_a if @age_ranges.include?(:thirty_to_thirty_nine)
+      ages += Filters::FilterBase.age_range(:forty_to_forty_four).to_a if @age_ranges.include?(:forty_to_forty_four)
+      ages += Filters::FilterBase.age_range(:forty_five_to_forty_nine).to_a if @age_ranges.include?(:forty_five_to_forty_nine)
+      ages += Filters::FilterBase.age_range(:forty_to_forty_nine).to_a if @age_ranges.include?(:forty_to_forty_nine)
+      ages += Filters::FilterBase.age_range(:fifty_to_fifty_four).to_a if @age_ranges.include?(:fifty_to_fifty_four)
+      ages += Filters::FilterBase.age_range(:fifty_five_to_fifty_nine).to_a if @age_ranges.include?(:fifty_five_to_fifty_nine)
+      ages += Filters::FilterBase.age_range(:sixty_to_sixty_one).to_a if @age_ranges.include?(:sixty_to_sixty_one)
+      ages += Filters::FilterBase.age_range(:sixty_two_to_sixty_four).to_a if @age_ranges.include?(:sixty_two_to_sixty_four)
+      ages += Filters::FilterBase.age_range(:over_sixty_one).to_a if @age_ranges.include?(:over_sixty_one)
+      ages += Filters::FilterBase.age_range(:over_sixty_four).to_a if @age_ranges.include?(:over_sixty_four)
+
+      scope = scope.where(age_on_date(@start_date).in(ages))
     end
     scope = scope.where(veteran_status: @veteran_status&.to_s&.to_i) unless @veteran_status == :current_scope
     scope = scope.heads_of_households if @filter.hoh_only
 
     scope
+  end
+
+  private def age_on_date(start_date)
+    a_t = Reporting::Housed.arel_table
+    cast(
+      datepart(
+        Reporting::Housed,
+        'YEAR',
+        nf('AGE', [nf('GREATEST', [a_t[:search_start], start_date]), a_t[:dob]]),
+      ),
+      'integer',
+    )
   end
 
   def all_projects
@@ -1175,7 +1228,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   private def any_options_chosen?
-    @project_ids.any? || @coc_codes.present? || ! [@race, @gender, @veteran_status, @household_type, @subpopulation, @filter.only_hoh].all?(:current_scope)
+    @project_ids.any? || @coc_codes.present? || ! [@races, @genders, @age_ranges, @veteran_status, @household_type, @subpopulation, @filter.only_hoh].all?(:current_scope)
   end
 
   def ho_t

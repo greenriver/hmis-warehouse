@@ -868,7 +868,7 @@ module Filters
       }
     end
 
-    def available_age_ranges
+    def self.available_age_ranges
       {
         zero_to_four: '0 - 4',
         five_to_ten: '5 - 10',
@@ -887,6 +887,10 @@ module Filters
         sixty_two_to_sixty_four: '62 - 64',
         over_sixty_four: '65+',
       }.invert.freeze
+    end
+
+    def available_age_ranges
+      self.class.available_age_ranges
     end
 
     def self.age_range(description)

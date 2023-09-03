@@ -200,6 +200,10 @@ module Reporting
       ::HudUtility2024.no_yes_reasons_for_missing_data_options
     end
 
+    def self.available_age_ranges
+      ::Filters::FilterBase.available_age_ranges.invert
+    end
+
     def self.household_type(key)
       if available_household_types[key].present?
         key
