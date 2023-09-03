@@ -17,10 +17,20 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
     Hmis::Hud::Client.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
-  def self.hmis_validate(record, options: {}, **_)
+  def self.hmis_validate(record, options: {}, role: nil, **_kwargs)
     errors = HmisErrors::Errors.new
     errors.add :dob, :out_of_range, severity: :error, message: future_message, **options if record.dob&.future?
     errors.add :dob, :invalid, severity: :error, **options if record.dob && record.dob < (Date.current - 120.years)
+
+    # If validating client form submission, and MCI API enabled, validate presence of MCI.
+    if role&.to_sym == :CLIENT && HmisExternalApis::AcHmis::Mci.enabled?
+      has_mci = record.ac_hmis_mci_ids.exists? || record.create_mci_id
+      if !has_mci && record.persisted?
+        # MCI clearance is required UNLESS client is enrolled at any Street Outreach or ES NBN projects
+        so_or_nbn_enrollments = record.enrollments.with_project_type([1, 4])
+        errors.add :mci_id, :required, readable_attribute: 'MCI ID', **options unless so_or_nbn_enrollments.exists?
+      end
+    end
     errors.errors
   end
 
