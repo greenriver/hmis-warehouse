@@ -1787,6 +1787,10 @@ module GrdaWarehouse::Hud
       else
         text_searcher(text, sorted: sorted)
       end
+    rescue RangeError => e
+      # FIXME: what is this range error?
+      Sentry.capture_exception(e)
+      return none
     end
 
     # Must match 3 of four First Name, Last Name, SSN, DOB
@@ -1850,6 +1854,8 @@ module GrdaWarehouse::Hud
           map { |m| m.destination_client.id }
         where(id: ids)
       rescue RangeError
+        # FIXME: what is this range error?
+        Sentry.capture_exception(e)
         return none
       end
     end

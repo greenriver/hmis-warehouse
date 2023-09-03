@@ -121,6 +121,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :matching_search_term, ->(text_search) do
     text_searcher(text_search, sorted: true)
+  rescue RangeError => e
+    # FIXME: what is this range error?
+    Sentry.capture_exception(e)
+    return none
   end
 
   scope :older_than, ->(age, or_equal: false) do
@@ -214,7 +218,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
-    scope = scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
+    begin
+      scope = scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
+    rescue RangeError => e
+      # FIXME: what is this range error?
+      Sentry.capture_exception(e)
+      return none
+    end
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
