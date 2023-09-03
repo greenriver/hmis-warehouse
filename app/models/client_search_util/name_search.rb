@@ -1,7 +1,5 @@
 module ClientSearchUtil
   class NameSearch
-    attr_reader :term
-
     # Hmis::Hud::Client.matching_search_term(term).pluck(:id, :search_name_full, Arel.sql('ROUND(names.search_score * 100)')).take(20)
     def self.perform(...)
       new.perform(...)
@@ -9,10 +7,13 @@ module ClientSearchUtil
 
     # @param term [String]
     # @param clients [ClientScope]
-    def perform(term:, clients:)
+    def perform(term:, clients:, sorted:)
       term = normalize_search_term(term)
       return clients.none unless term
-      search(term, clients)
+
+      results = filter_clients(term, clients)
+      results = results.order(Arel.sql('search_score DESC')) if sorted
+      results
     end
 
     protected
@@ -28,7 +29,7 @@ module ClientSearchUtil
       @term = term.slice(0, 100)
     end
 
-    def search(original_term, scope)
+    def filter_clients(original_term, scope)
       # Remove diacritics after we expand variants. If a word has diacritic, the
       # nickname map probably wouldn't be helpful since it's only english names
       variants = expand_nicknames(original_term).map do |variant|
@@ -37,7 +38,7 @@ module ClientSearchUtil
       original_term = ActiveSupport::Inflector.transliterate(original_term)
 
       # string similarity matches on all variants
-      name_queries = variants.map do |variant|
+      name_queries = ([original_term] + variants).map do |variant|
         # give the original term more weight than the variants
         term_weight = variant == original_term ? 1.0 : 0.75
         score_sql = term_score_sql(variant, term_weight: term_weight)
@@ -52,9 +53,7 @@ module ClientSearchUtil
       if prefix_query
         score_sql = term_score_sql(original_term, term_weight: 1.0)
         name_queries.push(
-          prefix_query
-          .group(:client_id)
-          .select(:client_id, Arel.sql("MAX(#{score_sql}) AS search_score")),
+          prefix_query.group(:client_id).select(:client_id, Arel.sql("MAX(#{score_sql}) AS search_score")),
         )
       end
 
@@ -64,7 +63,6 @@ module ClientSearchUtil
       end.join(' UNION ')
 
       scope.joins("JOIN (#{name_scope_sql}) names ON \"Client\".id = names.client_id")
-        .order(Arel.sql('search_score DESC'))
     end
 
     def term_score_sql(term, term_weight:)
@@ -104,7 +102,7 @@ module ClientSearchUtil
       return unless q_fn_pfx && q_ln_pfx
 
       ClientSearchUtil::ClientSearchableName
-        .where("#{csn_fn(:last_name)} LIKE #{q_ln_pfx} AND #{csn_fn(:full_name)} LIKE #{q_fn_pfx}")
+        .where("#{csn_fn(:last_name)} ILIKE #{q_ln_pfx} AND #{csn_fn(:full_name)} ILIKE #{q_fn_pfx}")
     end
 
     def search_term_scope(term)

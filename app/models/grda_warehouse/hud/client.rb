@@ -397,7 +397,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :full_text_search, ->(text) do
-      text_search(text, client_scope: current_scope)
+      text_search(text)
     end
 
     scope :needs_history_pdf, -> do
@@ -1779,16 +1779,13 @@ module GrdaWarehouse::Hud
       ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown' # rubocop:disable Style/RescueModifier
     end
 
-    def self.text_search(text, client_scope:)
-      text_searcher(text) do |where|
-        client_scope.
-          joins(:warehouse_client_source).searchable.
-          where(where).
-          preload(:destination_client).
-          map { |m| m.destination_client&.id }.
-          compact
-      rescue RangeError
-        return none
+    # @param client_scope [GrdaWarehouse::Hud::Client.source] DOCUMENTATION NEEDED
+    def self.text_search(text, client_scope: nil, sorted: true)
+      if client_scope
+        joined_scope = client_scope.searchable.joins(:warehouse_client_source)
+        where(id: joined_scope.select(Arel.sql('warehouse_clients.destination_id'))).text_searcher(text, sorted: sorted)
+      else
+        text_searcher(text, sorted: sorted)
       end
     end
 
