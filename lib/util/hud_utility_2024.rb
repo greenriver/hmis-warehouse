@@ -236,6 +236,10 @@ module HudUtility2024
     }.freeze
   end
 
+  def race_fields
+    race_id_to_field_name.values.uniq.freeze
+  end
+
   def race_id_to_field_name
     # Integer values from HUD Data Dictionary
     {
@@ -246,9 +250,9 @@ module HudUtility2024
       5 => :White,
       6 => :HispanicLatinaeo,
       7 => :MidEastNAfrican,
-      8 => :GenderNone,
-      9 => :GenderNone,
-      99 => :GenderNone,
+      8 => :RaceNone,
+      9 => :RaceNone,
+      99 => :RaceNone,
     }.freeze
   end
 
