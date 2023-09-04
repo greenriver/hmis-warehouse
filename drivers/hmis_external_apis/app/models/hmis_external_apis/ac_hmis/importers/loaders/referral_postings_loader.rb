@@ -146,7 +146,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             personal_id: personal_id,
             entry_date: entry_date,
             household_id: household_id,
-            relationship_to_hoh: relationship_to_hoh(member_row),
+            relationship_to_hoh: row_value(member_row, field: 'RELATIONSHIP_TO_HOH_ID'),
             enrollment_coc: enrollment_coc_by_project_id[project_id],
           }
           enrollment.build_wip(
@@ -264,7 +264,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         end
         HmisExternalApis::AcHmis::ReferralHouseholdMember.new(
           referral_id: referral_id,
-          relationship_to_hoh: relationship_to_hoh(row),
+          relationship_to_hoh: relationship_to_hoh_string_enum(row),
           mci_id: mci_id,
           client_id: client_pk,
         )
@@ -392,8 +392,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .to_h { |mci_id, client_pk, personal_id| [mci_id, [client_pk, personal_id]] }
     end
 
-    def relationship_to_hoh(row)
-      row_value(row, field: 'RELATIONSHIP_TO_HOH_ID') || 99
+    def relationship_to_hoh_string_enum(row)
+      @posting_status_map ||= HmisExternalApis::AcHmis::ReferralHouseholdMember
+        .relationship_to_hohs
+        .invert.stringify_keys
+      @posting_status_map.fetch(row_value(row, field: 'RELATIONSHIP_TO_HOH_ID'))
     end
 
     def posting_status(row)
