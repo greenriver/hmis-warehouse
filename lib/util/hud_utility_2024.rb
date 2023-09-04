@@ -400,7 +400,7 @@ module HudUtility2024
   end
 
   def destination_type(id)
-    situation_type(id)
+    situation_type(id).gsub('Housing', '').strip
   end
 
   def permanent_destinations

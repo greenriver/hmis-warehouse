@@ -31,7 +31,7 @@ module HmisDataQualityTool
         non_binary: { title: 'Non-Binary', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
         transgender: { title: 'Transgender', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
         questioning: { title: 'Questioning', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
-        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudUtility20242024.gender_none(v)} (#{v})" } },
+        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudUtility2024.gender_none(v)} (#{v})" } },
         am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v&.to_i)} (#{v})" } },
         asian: { title: 'Asian or Asian American', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v&.to_i)} (#{v})" } },
         black_af_american: { title: 'Black, African American, or African', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v&.to_i)} (#{v})" } },
@@ -307,7 +307,7 @@ module HmisDataQualityTool
       overlaps
     end
 
-    def self.sections(_) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    def self.sections(_)
       {
         gender_issues: {
           title: 'Gender',

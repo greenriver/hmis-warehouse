@@ -227,7 +227,7 @@ module HmisDataQualityTool
       report_item.household_id = enrollment.HouseholdID
       report_item.living_situation = enrollment.LivingSituation
       report_item.relationship_to_hoh = enrollment.RelationshipToHoH
-      report_item.coc_code = enrollment.enrollment_coc_at_entry&.CoCCode
+      report_item.coc_code = enrollment.EnrollmentCoC
       report_item.destination = enrollment.exit&.Destination
       report_item.project_operating_start_date = enrollment.project.OperatingStartDate
       report_item.project_operating_end_date = enrollment.project.OperatingEndDate
@@ -338,7 +338,7 @@ module HmisDataQualityTool
       report_item.annual_assessment_status = annual_assessment_complete(enrollment, hoh.first_date_in_program) if annual_expected
 
       # NOTE: we exclude HIV/AIDS from this calculation as it may not be asked everywhere
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?(HudUtility2024.disability_responses - [99]) } || false
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?(HudUtility2024.disability_responses.keys - [99]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided.present? && s.DateProvided <= max_date }
