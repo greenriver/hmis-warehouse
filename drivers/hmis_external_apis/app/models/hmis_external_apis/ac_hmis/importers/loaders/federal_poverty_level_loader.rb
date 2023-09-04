@@ -22,10 +22,12 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .where(data_source: data_source)
         .pluck(:income_benefits_id, :id, :enrollment_id)
         .to_h { |income_benefits_id, pk, enrollment_id| [income_benefits_id, [pk, enrollment_id]] }
-      rows.map do |row|
+      expected = 0
+      records = rows.map do |row|
         value = row_value(row, field: 'FEDERALPOVERTYLEVEL', required: false)
         next if value.nil? || value == 'Data not collected'
 
+        expected += 1
         benefits_id = row_value(row, field: 'INCOMEBENEFITSID')
         benefit_pk, enrollment_id = benefit_id_lookup[benefits_id]
 
@@ -40,7 +42,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           value: value,
           definition_key: :federal_poverty_level,
         ).merge(owner_id: benefit_pk)
-      end
+      end.compact
+      log_processed_result(expected: expected, actual: records.size)
+      records
     end
 
     def owner_class

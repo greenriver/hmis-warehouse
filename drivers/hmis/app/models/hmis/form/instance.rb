@@ -15,9 +15,28 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
+  validates :data_collected_about, inclusion: { in: Types::Forms::Enums::DataCollectedAbout.values.keys }, allow_blank: true
+
+  # 'system' instances can't be deleted
+  scope :system, -> { where(system: true) }
+  scope :not_system, -> { where(system: false) }
+
+  scope :active, -> { where(active: true) }
+  scope :inactive, -> { where(active: false) }
+
   scope :for_projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
   scope :for_organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
-  scope :defaults, -> { where(entity_type: nil, entity_id: nil, project_type: nil, funder: nil) }
+  scope :defaults, -> do
+                     where(
+                       entity_type: nil,
+                       entity_id: nil,
+                       funder: nil,
+                       other_funder: nil,
+                       project_type: nil,
+                     )
+                   end
+
+  scope :with_role, ->(role) { joins(:definition).where(fd_t[:role].eq(role)) }
 
   # Find instances that are for a specific Project
   scope :for_project, ->(project_id) { for_projects.where(entity_id: project_id) }
@@ -71,5 +90,16 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     ids += Hmis::Form::Instance.for_project_by_project_type(project.project_type).pluck(:id)
     ids += defaults.pluck(:id)
     where(id: ids)
+  end
+
+  def self.detect_best_instance_scope_for_project(base_scope, project:)
+    [
+      base_scope.for_project(project.id),
+      base_scope.for_organization(project.organization.id),
+      base_scope.for_project_by_funder_and_project_type(project),
+      base_scope.for_project_by_funder(project),
+      base_scope.for_project_by_project_type(project.project_type),
+      base_scope.defaults,
+    ].detect(&:exists?)
   end
 end
