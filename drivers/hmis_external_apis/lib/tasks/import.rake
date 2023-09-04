@@ -39,16 +39,20 @@ namespace :import do
     Hmis::Hud::Enrollment.hmis.in_progress.each(&:really_destroy!)
     Hmis::Wip.destroy_all
 
+    # To speed things up: delete all Client Address and Contacts using delete_all. Its really slow in the migration because it does each(&:really_destroy!)
+
     # Delete all CDEs except for Direct Entry flag
     cdeds = Hmis::Hud::CustomDataElementDefinition.where.not(key: :direct_entry).pluck(:id)
-    Hmis::Hud::CustomDataElement.where(data_element_definition_id: cdeds).destroy_all
+    Hmis::Hud::CustomDataElement.where(data_element_definition_id: cdeds).delete_all
 
     # PersonalID => MCI Uniq ID
     # (Deletes all MCI Unique IDs)
+    HmisExternalApis::ExternalId.where(namespace: :ac_hmis_mci_unique_id).count # 56,371 => 58,528
     HmisExternalApis::AcHmis::Migration::InitialMciUniqueIdCreationJob.perform_now(clobber: true)
 
     # Import MCI Uniq => MCI
     # (Deletes all MCI IDs)
+    HmisExternalApis::ExternalId.where(namespace: :ac_hmis_mci).count # 56,076 => 58,264
     HmisExternalApis::AcHmis::Migration::MciMappingImporterJob.new.best_import_file_key
     HmisExternalApis::AcHmis::Migration::MciMappingImporterJob.perform_now
 
@@ -72,10 +76,15 @@ namespace :import do
     # AC_HMIS_IMPORT_LOG_FILE=/tmp/gig-import.log rails driver:hmis_external_apis:import:ac_custom_data_elements[/tmp/migration/2023-08-30/custom-data,true]
 
     # Run custom data importers
+    ENV['AC_HMIS_IMPORT_LOG_FILE'] = '/tmp/migration/log.txt'
     importer = HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter.new(dir: dir, clobber: true)
     importer.run!
 
+    # UPLOAD LOG FILE
+    s3.put(file_name: ENV['AC_HMIS_IMPORT_LOG_FILE'], prefix: 'initial-migration')
+
     # Num referrals by type
+    # {"denied_pending_status"=>1, "assigned_status"=>137, "accepted_pending_status"=>14, "accepted_status"=>877}
     HmisExternalApis::AcHmis::ReferralPosting.group(:status).count
     # The below should be 0. All Accepted/Pending should be tied to a household.
     HmisExternalApis::AcHmis::ReferralPosting.where(status: ['accepted_status', 'accepted_pending_status']).where(HouseholdID: nil).count
@@ -88,7 +97,10 @@ namespace :import do
     Hmis::Hud::Client.hmis.left_outer_joins(:ac_hmis_mci_ids).where(ac_hmis_mci_ids: { id: nil }).count
 
     # TODO VALIDATE: how many *open* enrollment have an assigned unit?
+    Hmis::Hud::Enrollment.hmis.open_on_date.joins(:current_unit).count
 
     # TODO: kick off MigrateAssessmentsJob
+    # ADD CHECK: how many non-wip enrollments DONT HAVE intake assessments?
+    # ADD CHECK: how many exited enrollments DONT HAVE exit assessments?
   end
 end
