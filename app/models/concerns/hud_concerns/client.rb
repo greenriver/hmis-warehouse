@@ -7,6 +7,9 @@
 module HudConcerns::Client
   extend ActiveSupport::Concern
   included do
+    # generated columns for search
+    ignored_columns = [:search_name_full, :search_name_last]
+
     def self.race_fields
       ::HudUtility.races.keys
     end
