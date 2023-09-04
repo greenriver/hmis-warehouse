@@ -8,9 +8,8 @@
 
 module Types
   class Forms::Enums::FormRole < Types::BaseEnum
-    description 'Form Role'
     graphql_name 'FormRole'
 
-    with_enum_map Hmis::Form::Definition.form_role_enum_map
+    with_enum_map Hmis::Form::Definition.form_role_enum_map, prefix_description_with_key: false
   end
 end
