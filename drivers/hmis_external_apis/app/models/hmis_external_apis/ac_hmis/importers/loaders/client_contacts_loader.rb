@@ -23,13 +23,17 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def build_records
       valid_personal_ids = Hmis::Hud::Client.hmis.pluck(:personal_id).to_set
       expected = 0
+      seen = Set.new
       records = rows.map do |row|
         value = phone_value(row)
         next unless value
 
         expected += 1
         personal_id = row_value(row, field: 'PersonalID')
-        next nil unless personal_id.in?(valid_personal_ids)
+        unless personal_id.in?(valid_personal_ids)
+          log_skipped_row(row, field: 'PersonalID')
+          next nil
+        end
 
         attrs = {
           ContactPointID: Hmis::Hud::Base.generate_uuid,
@@ -43,6 +47,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           DateCreated: parse_date(row_value(row, field: 'DateCreated', required: false)),
           DateUpdated: parse_date(row_value(row, field: 'DateUpdated', required: false)),
         }
+
+        # Skip duplicates
+        uniq_key = attrs.except(:ContactPointID, :UserID, :DateCreated, :DateUpdated).values.join('|')
+        next nil if seen.add?(uniq_key).nil?
+
         default_attrs.merge(attrs)
       end.compact
       log_processed_result(expected: expected, actual: records.size)

@@ -393,10 +393,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def relationship_to_hoh(row)
-      @posting_status_map ||= HmisExternalApis::AcHmis::ReferralHouseholdMember
-        .relationship_to_hohs
-        .invert.stringify_keys
-      @posting_status_map.fetch(row_value(row, field: 'RELATIONSHIP_TO_HOH_ID'))
+      row_value(row, field: 'RELATIONSHIP_TO_HOH_ID') || 99
     end
 
     def posting_status(row)
