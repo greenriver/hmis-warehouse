@@ -19,11 +19,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def build_records
       owner_id_by_enrollment_id = Hmis::Hud::Enrollment
-        .heads_of_households # enrollments should HOH
+        # .heads_of_households # enrollments should HOH but many are not
         .where(data_source: data_source)
         .pluck(:enrollment_id, :id)
         .to_h
-      rows.map do |row|
+      expected = 0
+      records = rows.map do |row|
+        expected += 1
         enrollment_id = row_value(row, field: 'ENROLLMENTID')
         owner_id = owner_id_by_enrollment_id[enrollment_id]
         unless owner_id
@@ -34,7 +36,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           value: parse_date(row_value(row, field: 'RENTALASSISTANCEENDDATE')),
           definition_key: :rental_assistance_end_date,
         ).merge(owner_id: owner_id)
-      end
+      end.compact
+      log_processed_result(expected: expected, actual: records.size)
+      records
     end
 
     def owner_class

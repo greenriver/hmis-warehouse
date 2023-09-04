@@ -149,6 +149,38 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     joins(:bed_nights).where(s_t[:date_provided].eq(date))
   end
 
+  # @param project [Project]
+  # @param range [DateRange]
+  # enrollments that conflict with an entry/exit date
+  # * entry date on exit date is allowed
+  # * multiple entry dates on same day are not allowed
+  scope :with_conflicting_dates, ->(project:, range:) do
+    entry_date = range.begin
+    raise unless entry_date
+
+    scope = with_project([project.id])
+    exit_date = range.end # maybe nil if endless range
+    if exit_date
+      scope.left_outer_joins(:exit)
+        .where(
+          e_t[:entry_date].eq(entry_date)
+          .or(
+            e_t[:entry_date].lt(exit_date) # enrollments started before exit date
+            .and(
+              ex_t[:exit_date].gt(entry_date).or(ex_t[:exit_date].eq(nil)),
+            ), # enrollments with an exit date after the entry date
+          ),
+        )
+    else
+      scope.left_outer_joins(:exit)
+        .where(
+          ex_t[:exit_date].eq(nil) # we already have an open enrollment
+          .or(ex_t[:exit_date].gt(entry_date))
+          .or(e_t[:entry_date].gteq(entry_date)),
+        )
+    end
+  end
+
   def project
     super || Hmis::Hud::Project.find_by(id: wip.project_id)
   end
