@@ -46,7 +46,7 @@
 
     $('.internal-group-dropdown a.dropdown-item').on('click', function(e) {
       e.preventDefault();
-      let current_demographic = $('.internal-demographic-dropdown:visible a.dropdown-item.active').data('value');
+      let current_demographic = 'race'; // ethnicity removed for FY2024
       '.internal-chart-wrapper'
       let new_group = $(this).data('value');
       $('.internal-chart-wrapper').addClass('hide');

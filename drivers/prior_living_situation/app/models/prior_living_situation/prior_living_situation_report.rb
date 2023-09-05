@@ -106,7 +106,7 @@ module PriorLivingSituation
             :LengthOfStay,
             :CoCCode,
           ).each do |client_id, living_situation_id, length_of_stay, coc_code|
-            living_situation = HudUtility2024.situation_type(living_situation_id, include_homeless_breakout: true)
+            living_situation = HudUtility2024.situation_type(living_situation_id).gsub('Housing', '').strip
 
             data[:all] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
             data[:all][living_situation] << client_id
@@ -150,7 +150,8 @@ module PriorLivingSituation
       [
         'Homeless',
         'Institutional',
-        'Temporary or Permanent',
+        'Temporary',
+        'Permanent',
         'Other',
       ]
     end

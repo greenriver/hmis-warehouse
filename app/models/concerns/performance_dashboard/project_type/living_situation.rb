@@ -35,7 +35,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
       top_situations = all_situations.last(5).to_h
       summary = {}
       all_situations.each do |id, situation|
-        type = ::HudUtility2024.situation_type(id, include_homeless_breakout: true)
+        type = ::HudUtility2024.situation_type(id)
         summary[type] ||= 0
         summary[type] += situation.count
       end

@@ -182,7 +182,8 @@ module SystemPathways
         :ph,
         :oph,
         :th,
-        :es,
+        :es_nbn,
+        :es_entry_exit,
         :so,
         :sh,
         :ce,
@@ -276,6 +277,7 @@ module SystemPathways
         # Transition order is defined by array
         # ES Entry/Exit (0), ES NbN (1), SH (8), TH (2), SO (4), PH - RRH (13), PH - PSH (3), PH - PH (9), PH - OPH (10)
         nil => [0, 1, 8, 2, 4, 13, 3, 9, 10],
+        0 => [1, 3, 9, 10, 13],
         1 => [2, 3, 9, 10, 13],
         2 => [3, 9, 10, 13],
         3 => [],
@@ -393,7 +395,7 @@ module SystemPathways
 
           accepted_enrollments.each.with_index do |en, i|
             from_project_type = nil
-            from_project_type = accepted_enrollments[i - 1].computed_project_type if i.positive?
+            from_project_type = accepted_enrollments[i - 1].computed_project_type if i >= 0
             stay_length = (en.entry_date .. [en.exit_date, filter.end].compact.min).count
             household_id = get_hh_id(en)
             household_type = household_makeup(household_id, date)

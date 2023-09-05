@@ -13,8 +13,8 @@ module SystemPathways
 
     # returns an object with arrays for entering and leaving
     memoize def combinations_for(label)
-      incoming = combinations.select { |row| row[:target] == label }.sort_by { |m| node_weights[m[:source]] }.reverse
-      outgoing = combinations.select { |row| row[:source] == label }.sort_by { |m| node_weights[m[:target]] }.reverse
+      incoming = combinations.select { |row| row[:target] == label }.sort_by { |m| node_weights[m[:source]] || 100 }.reverse
+      outgoing = combinations.select { |row| row[:source] == label }.sort_by { |m| node_weights[m[:target]] || 100 }.reverse
       enrolled_count = incoming.map { |m| m[:value] }.sum # should be equivalent to node_clients(label).distinct.count but without the query
       days_enrolled = SystemPathways::Enrollment.where(id: node_clients(label).select(:id)).pluck(sp_e_t[:stay_length])
       days_before_move_in = SystemPathways::Enrollment.where(id: node_clients(label).select(:id)).pluck(sp_e_t[:days_to_move_in]).reject(&:blank?)

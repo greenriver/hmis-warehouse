@@ -29,7 +29,6 @@ module ClientDetailReports
         :ph,
         genders: [],
         races: [],
-        ethnicities: [],
         age_ranges: [],
         organization_ids: [],
         project_ids: [],

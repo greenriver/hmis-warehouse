@@ -39,7 +39,7 @@
             %th Count
             %th Percent
         %tbody
-          - data.incoming.sort_by { |m| pathways.node_columns[m[:source]] }.each do |row|
+          - data.incoming.sort_by { |m| pathways.node_columns[m[:source]] || 100 }.each do |row|
             - next if row[:value].zero?
 
             %tr
@@ -56,7 +56,7 @@
             %th Count
             %th Percent
         %tbody
-          - data.outgoing.sort_by { |m| pathways.node_columns[m[:target]] }.each do |row|
+          - data.outgoing.sort_by { |m| pathways.node_columns[m[:target]] || 100 }.each do |row|
             - next if row[:value].zero?
 
             %tr

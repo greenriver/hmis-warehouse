@@ -118,6 +118,10 @@ module CePerformance
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_native_hi_other_pacific)
     end
 
+    scope :race_native_hi_pacific, -> do
+      race_native_hi_other_pacific
+    end
+
     scope :race_white, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_white)
     end
@@ -196,8 +200,8 @@ module CePerformance
         pops['LGBTQ'] = :client_lgbtq
         pops['Household LGBTQ'] = :lgbtq_household_members
       end
-      race_pops = HudUtility2024.races(multi_racial: true).transform_keys { |k| "race_#{k.underscore}".to_sym }.except(:race_none).invert.freeze
-      gender_pops = HudUtility2024.gender_field_name_label.transform_keys { |k| "gender_#{k.to_s.underscore}".to_sym }.except(:gender_none).invert.freeze
+      race_pops = HudUtility2024.races(multi_racial: true).except('RaceNone').transform_keys { |k| "race_#{k.underscore}".to_sym }.invert.freeze
+      gender_pops = HudUtility2024.gender_field_name_label.except(:GenderNone).transform_keys { |k| "gender_#{k.to_s.underscore}".to_sym }.invert.freeze
 
       pops = pops.merge(race_pops)
       pops = pops.merge(gender_pops)

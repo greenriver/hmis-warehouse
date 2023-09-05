@@ -53,13 +53,13 @@ module CensusTracking
 
     def populations # rubocop:disable Metrics/AbcSize
       @populations ||= {
-        'Individual Males Under Age 18' =>
+        'Individual Men Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
             ->(client) { client.gender_multi == [1] },
           ],
-        'Individual Trans Males Under Age 18' =>
+        'Individual Trans Men Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
@@ -83,13 +83,13 @@ module CensusTracking
             ->(client) { client.age.present? && client.age < 18 },
             ->(client) { client.gender_multi.include?(4) },
           ],
-        'Individual Adult Males Age 18-24' =>
+        'Individual Adult Men Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
             ->(client) { client.gender_multi == [1] },
           ],
-        'Individual Adult Trans Males Age 18-24' =>
+        'Individual Adult Trans Men Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
@@ -113,13 +113,13 @@ module CensusTracking
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
             ->(client) { client.gender_multi.include?(4) },
           ],
-        'Individual Adult Males Age 25+' =>
+        'Individual Adult Men Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
             ->(client) { client.gender_multi == [1] },
           ],
-        'Individual Adult Trans Males Age 25+' =>
+        'Individual Adult Trans Men Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },

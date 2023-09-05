@@ -382,7 +382,7 @@ module Filter::FilterScopes
     private def filter_for_ce_cls_homeless(scope)
       return scope unless @filter.ce_cls_as_homeless
 
-      client_ids_with_two_homeless_cls = scope.ca.joins(enrollment: :current_living_situations).
+      client_ids_with_two_homeless_cls = scope.ce.joins(enrollment: :current_living_situations).
         merge(GrdaWarehouse::Hud::CurrentLivingSituation.homeless.between(start_date: @filter.start_date, end_date: @filter.end_date)).group(she_t[:client_id]).
         having(nf('COUNT', [she_t[:client_id]]).gt(1)).
         select(:client_id)
