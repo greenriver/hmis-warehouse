@@ -39,31 +39,31 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         PreventionAssessment: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         CrisisAssessment: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         HousingAssessment: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         DirectServices: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         ReceivesReferrals: [
@@ -72,7 +72,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         CEParticipationStatusStartDate: [

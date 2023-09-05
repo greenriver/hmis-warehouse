@@ -25,10 +25,6 @@ module HmisCsvTwentyTwentyFour::Importer
       where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
     end
 
-    scope :night_by_night, -> do
-      where(TrackingMethod: 3)
-    end
-
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
       return none unless project_ids.present?
 
@@ -59,31 +55,25 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         ProjectType: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.project_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.project_types.keys.map(&:to_s).freeze },
           },
         ],
         HousingType: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.housing_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.housing_types.keys.map(&:to_s).freeze },
           },
         ],
         ResidentialAffiliation: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        TrackingMethod: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.tracking_methods.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         HMISParticipatingProject: [
@@ -92,19 +82,19 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         TargetPopulation: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.target_populations.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.target_populations.keys.map(&:to_s).freeze },
           },
         ],
         HOPWAMedAssistedLivingFac: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.hopwa_med_assisted_living_facs.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.hopwa_med_assisted_living_facs.keys.map(&:to_s).freeze },
           },
         ],
       }

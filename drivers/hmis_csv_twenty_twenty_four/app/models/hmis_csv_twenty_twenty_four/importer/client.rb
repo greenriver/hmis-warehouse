@@ -32,28 +32,19 @@ module HmisCsvTwentyTwentyFour::Importer
         NameDataQuality: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.name_data_quality_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.name_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         SSNDataQuality: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.ssn_data_quality_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.ssn_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         DOBDataQuality: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.dob_data_quality_options.keys.map(&:to_s).freeze },
-          },
-        ],
-        Ethnicity: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.ethnicities.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.dob_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         VeteranStatus: [
@@ -62,35 +53,44 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
           },
         ],
         # TODO: Enforce Race and Gender constraints?
-        Female: [
+        Woman: [
           {
             class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
-        Male: [
+        Man: [
           {
             class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
-        NoSingleGender: [
+        NonBinary: [
           {
             class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        CulturallySpecific: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         Transgender: [
@@ -99,7 +99,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         Questioning: [
@@ -108,13 +108,22 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        DifferentIdentity: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         GenderNone: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.race_gender_none_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         AmIndAKNative: [
@@ -123,7 +132,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         Asian: [
@@ -132,7 +141,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         BlackAfAmerican: [
@@ -141,7 +150,25 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        HispanicLatinaeo: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        MidEastNAfrican: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         NativeHIPacific: [
@@ -150,7 +177,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         White: [
@@ -159,13 +186,13 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
           },
         ],
         RaceNone: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.race_gender_none_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.race_gender_none_options.keys.map(&:to_s).freeze },
           },
         ],
       }

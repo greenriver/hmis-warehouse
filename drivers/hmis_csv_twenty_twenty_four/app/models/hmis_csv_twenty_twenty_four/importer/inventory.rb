@@ -36,7 +36,7 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.cocs.keys.freeze },
+            arguments: { valid_options: HudUtility2024.cocs.keys.freeze },
           },
         ],
         HouseholdType: [
@@ -45,13 +45,13 @@ module HmisCsvTwentyTwentyFour::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.household_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.household_types.keys.map(&:to_s).freeze },
           },
         ],
         Availability: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.availabilities.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.availabilities.keys.map(&:to_s).freeze },
           },
         ],
         UnitInventory: [
