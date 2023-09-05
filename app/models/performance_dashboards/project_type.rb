@@ -17,7 +17,7 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base
   end
 
   def project_type_title
-    HudUtility2024.project_group_titles[filter.project_type_codes.first&.to_sym]
+    HudUtility2024.project_type_group_titles[filter.project_type_codes.first&.to_sym]
   end
 
   def multiple_project_types?

@@ -725,7 +725,7 @@ module Filters
     end
 
     def project_type_code_options_for_select
-      HudUtility2024.project_group_titles.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
+      HudUtility2024.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
     end
 
     def project_options_for_select(user:)
@@ -791,7 +791,7 @@ module Filters
     end
 
     def available_project_types
-      HudUtility2024.project_group_titles.invert
+      HudUtility2024.project_type_group_titles.invert
     end
 
     def available_residential_project_types

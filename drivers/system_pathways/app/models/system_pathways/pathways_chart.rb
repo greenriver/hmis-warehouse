@@ -13,8 +13,8 @@ module SystemPathways
 
     # returns an object with arrays for entering and leaving
     memoize def combinations_for(label)
-      incoming = combinations.select { |row| row[:target] == label }.sort_by { |m| node_weights[m[:source]] || 100 }.reverse
-      outgoing = combinations.select { |row| row[:source] == label }.sort_by { |m| node_weights[m[:target]] || 100 }.reverse
+      incoming = combinations.select { |row| row[:target] == label }.sort_by { |m| node_weights[m[:source]] }.reverse
+      outgoing = combinations.select { |row| row[:source] == label }.sort_by { |m| node_weights[m[:target]] }.reverse
       enrolled_count = incoming.map { |m| m[:value] }.sum # should be equivalent to node_clients(label).distinct.count but without the query
       days_enrolled = SystemPathways::Enrollment.where(id: node_clients(label).select(:id)).pluck(sp_e_t[:stay_length])
       days_before_move_in = SystemPathways::Enrollment.where(id: node_clients(label).select(:id)).pluck(sp_e_t[:days_to_move_in]).reject(&:blank?)
@@ -65,9 +65,10 @@ module SystemPathways
     end
 
     private def project_type_label_lookup(key)
-      return 'Served by Homeless System' unless key.present?
+      return 'Served by Homeless System' if key.nil?
 
-      HudUtility2024.project_type_brief(key)
+      # Normalize ES - NBN and ES - Entry/Exit into  ES
+      HudUtility2024.project_type_brief(key).gsub(' - NBN', '').gsub(' - Entry/Exit', '')
     end
 
     def chart_data

@@ -105,7 +105,7 @@ module
     protected def describe_project_type_control_section
       if @filter.chosen_project_types_only_homeless?
         'Only Homeless'
-      elsif filter.project_type_codes.sort == HudUtility2024.project_group_titles.keys.map(&:to_s).sort
+      elsif filter.project_type_codes.sort == HudUtility2024.project_type_group_titles.keys.map(&:to_s).sort
         'All'
       else
         @filter.chosen_project_types

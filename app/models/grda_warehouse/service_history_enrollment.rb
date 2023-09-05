@@ -398,7 +398,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # Relevant Project Types/Program Types
-  # 1: Emergency Shelter (ES)
+  # 0: Emergency Shelter (ES Entry/Exit)
+  # 1: Emergency Shelter (ES NBN)
   # 2: Transitional Housing (TH)
   # 3: Permanent Supportive Housing (disability required for entry) (PH)
   # 4: Street Outreach (SO)
@@ -417,6 +418,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   def service_type_brief
     ::HudUtility2024.project_type_brief(computed_project_type)
+  end
+
+  def computed_project_type_group_es
+    pt = computed_project_type
+    pt = 1 if computed_project_type&.zero?
+    pt
   end
 
   def start_time

@@ -78,10 +78,12 @@ module HudUtility2024
     }.freeze
   end
 
-  def project_group_titles
+  def project_type_group_titles
     {
       ph: 'Permanent Housing (PH, PSH, & RRH)',
       es: 'Emergency Shelter (ES NBN & ES Entry/Exit)',
+      es_nbn: 'Emergency Shelter (ES NBN)',
+      es_entry_exit: 'Emergency Shelter (ES Entry/Exit)',
       th: 'Transitional Housing (TH)',
       sh: 'Safe Haven (SH)',
       so: 'Street Outreach (SO)',
@@ -175,7 +177,7 @@ module HudUtility2024
   end
 
   def project_type_titles
-    project_group_titles.
+    project_type_group_titles.
       select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }.
       freeze
   end
@@ -189,7 +191,7 @@ module HudUtility2024
   end
 
   def residential_type_titles
-    project_group_titles.
+    project_type_group_titles.
       select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh, :oph]) }.
       freeze
   end

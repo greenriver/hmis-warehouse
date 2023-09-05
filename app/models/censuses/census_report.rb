@@ -128,7 +128,7 @@ module Censuses
 
     private def for_project_type(start_date, end_date, project_type, project_scope)
       project_type_ids = HudUtility2024.residential_project_type_numbers_by_code[project_type]
-      project_group_title = HudUtility2024.project_group_titles[project_type]
+      project_group_title = HudUtility2024.project_type_group_titles[project_type]
       dimension_scope = census_data_scope(project_scope).by_project_type(project_type_ids)
       project_count = dimension_scope.group_by(&:project_id).count
       dimension_label = project_count_str(project_count, prefix: project_group_title)
@@ -182,7 +182,7 @@ module Censuses
 
     def detail_name(project_count, project_type, data_source_id, organization_id, project_id)
       if project_type != 'all'
-        ptype = HudUtility2024.project_group_titles[project_type]
+        ptype = HudUtility2024.project_type_group_titles[project_type]
         return "#{project_count_str(project_count, prefix: ptype)} on"
       end
 

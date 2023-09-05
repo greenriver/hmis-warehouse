@@ -50,6 +50,7 @@ module SystemPathways::ChartBase
 
     def long_project_type(project_type_brief)
       number = HudUtility2024.project_type_number(project_type_brief)
+      number = 1 if number&.zero?
       HudUtility2024.project_type(number)
     end
 
@@ -294,6 +295,7 @@ module SystemPathways::ChartBase
           distinct
       else
         to_project_type = HudUtility2024.project_type_number(node)
+        to_project_type = 1 if to_project_type&.zero?
         SystemPathways::Enrollment.where(project_type: to_project_type).
           joins(:client).
           merge(filtered_clients).
