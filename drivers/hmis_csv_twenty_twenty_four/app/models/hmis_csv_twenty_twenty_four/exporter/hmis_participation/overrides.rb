@@ -24,6 +24,15 @@ module HmisCsvTwentyTwentyFour::Exporter
     end
 
     def self.apply_overrides(row)
+      missing_type = if row.project.organization.VictimServiceProvider == 1
+        2 # Assume VSPs are using a CD if we don't know
+      else
+        0
+      end
+
+      row = replace_blank(row, hud_field: :HMISParticipationType, default_value: missing_type)
+      row.HMISParticipationStatusStartDate ||= project.ProjectStartDate
+
       row
     end
   end
