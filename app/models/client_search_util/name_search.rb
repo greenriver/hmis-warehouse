@@ -12,7 +12,7 @@ module ClientSearchUtil
       return clients.none unless term
 
       results = filter_clients(term, clients)
-      results = results.order(Arel.sql('search_score DESC')) if sorted
+      results = results.order(Arel.sql('search_score DESC'), :id) if sorted
       results
     end
 

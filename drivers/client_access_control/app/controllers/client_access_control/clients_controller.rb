@@ -55,7 +55,6 @@ class ClientAccessControl::ClientsController < ApplicationController
     end
 
     @clients = @clients.
-      distinct.
       destination.
       preload(preloads)
 

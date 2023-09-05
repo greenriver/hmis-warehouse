@@ -49,7 +49,6 @@ module ClientSearch
 
       where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
 
-      # WARNING: Any ids added to client_ids below here could be outside of the search scope
       if numeric
         client_ids = self.where(where).pluck(&:id)
         source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: text).pluck(:source_id)
