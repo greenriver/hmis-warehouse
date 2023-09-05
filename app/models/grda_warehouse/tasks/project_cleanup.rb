@@ -167,9 +167,9 @@ module GrdaWarehouse::Tasks
     def fix_client_locations(project)
       # debug_log("Setting client locations for #{project.ProjectName}")
       coc_codes = project.project_cocs.map(&:effective_coc_code).uniq
-      project.enrollments.where.not(CoCCode: coc_codes).update_all(CoCCode: coc_codes.first) if coc_codes.count == 1
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first) if coc_codes.count == 1
 
-      project.enrollments.where.not(CoCCode: coc_codes).update_all(CoCCode: nil)
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil)
     end
 
     def project_source

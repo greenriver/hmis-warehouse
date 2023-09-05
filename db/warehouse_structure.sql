@@ -430,7 +430,9 @@ CREATE TABLE public."CEParticipation" (
     "DateDeleted" timestamp without time zone,
     "UserID" character varying,
     "ExportID" character varying,
-    data_source_id integer
+    data_source_id integer,
+    pending_date_deleted date,
+    source_hash character varying
 );
 
 
@@ -1932,7 +1934,9 @@ CREATE TABLE public."HMISParticipation" (
     "DateDeleted" timestamp without time zone,
     "UserID" character varying,
     "ExportID" character varying,
-    data_source_id integer
+    data_source_id integer,
+    pending_date_deleted date,
+    source_hash character varying
 );
 
 
@@ -60982,6 +60986,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230824192127'),
 ('20230830121811'),
 ('20230901135749'),
-('20230901203722');
+('20230901203722'),
+('20230905182026');
 
 
