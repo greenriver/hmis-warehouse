@@ -33,13 +33,15 @@ namespace :import do
   end
 
   def reimport_everything
-    Hmis::UnitOccupancy.delete_all
+    Hmis::UnitOccupancy.delete_all #3621
     Hmis::ActiveRange.where(entity_type: 'Hmis::UnitOccupancy').delete_all
     Hmis::Hud::CustomService.delete_all
     Hmis::Hud::Enrollment.hmis.in_progress.each(&:really_destroy!)
     Hmis::Wip.destroy_all
 
     # To speed things up: delete all Client Address and Contacts using delete_all. Its really slow in the migration because it does each(&:really_destroy!)
+    Hmis::Hud::CustomClientAddress.with_deleted.delete_all
+    Hmis::Hud::CustomClientContactPoint.with_deleted.delete_all
 
     # Delete all CDEs except for Direct Entry flag
     cdeds = Hmis::Hud::CustomDataElementDefinition.where.not(key: :direct_entry).pluck(:id)
@@ -76,11 +78,11 @@ namespace :import do
     # AC_HMIS_IMPORT_LOG_FILE=/tmp/gig-import.log rails driver:hmis_external_apis:import:ac_custom_data_elements[/tmp/migration/2023-08-30/custom-data,true]
 
     # Run custom data importers
-    ENV['AC_HMIS_IMPORT_LOG_FILE'] = '/tmp/migration/log.txt'
+    ENV['AC_HMIS_IMPORT_LOG_FILE'] = "/tmp/migration/#{today}-custom-migration-log.txt"
     importer = HmisExternalApis::AcHmis::Importers::CustomDataElementsImporter.new(dir: dir, clobber: true)
     importer.run!
 
-    # UPLOAD LOG FILE
+    # Upload log file
     s3.put(file_name: ENV['AC_HMIS_IMPORT_LOG_FILE'], prefix: 'initial-migration')
 
     # Num referrals by type
@@ -97,7 +99,7 @@ namespace :import do
     Hmis::Hud::Client.hmis.left_outer_joins(:ac_hmis_mci_ids).where(ac_hmis_mci_ids: { id: nil }).count
 
     # TODO VALIDATE: how many *open* enrollment have an assigned unit?
-    Hmis::Hud::Enrollment.hmis.open_on_date.joins(:current_unit).count
+    Hmis::Hud::Enrollment.hmis.open_on_date.joins(:current_unit).count # 3486
 
     # TODO: kick off MigrateAssessmentsJob
     # ADD CHECK: how many non-wip enrollments DONT HAVE intake assessments?
