@@ -1,4 +1,4 @@
-- if can_manage_all_agencies? || can_manage_agency? || GrdaWarehouse::Config.client_search_available? && can_search_own_clients? || can_access_some_cohorts?
+- if can_manage_all_agencies? || can_manage_agency? || GrdaWarehouse::Config.client_search_available? && current_user.can_access_some_client_search? || can_access_some_cohorts?
   %ul.o-menu__group.list-unstyled
     - if can_manage_all_agencies?
       %li.o-menu__item
