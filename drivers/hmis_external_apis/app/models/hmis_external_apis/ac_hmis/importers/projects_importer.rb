@@ -27,7 +27,12 @@ module HmisExternalApis::AcHmis::Importers
       timeout_seconds = 60
       success = false
       Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: timeout_seconds) do
-        _run
+        Dir.mktmpdir do |tmpdir|
+          walkin_map = load_walkins
+          HudTwentyTwentyToTwentyTwentyTwo::CsvTransformer.up(dir, tmpdir)
+          dir = tmpdir
+          _run
+        end
         success = true
       end
       raise "Could not acquire lock within #{timeout_seconds} seconds" unless success
@@ -40,6 +45,8 @@ module HmisExternalApis::AcHmis::Importers
     def _run
       start
       sanity_check
+      self.dir = transform_csv
+
       ProjectsImportAttempt.transaction do
         upsert_funders
         upsert_orgs
@@ -122,7 +129,10 @@ module HmisExternalApis::AcHmis::Importers
 
       check_columns(
         file: file,
-        expected_columns: ['ProjectID', 'OrganizationID', 'ProjectName', 'ProjectCommonName', 'OperatingStartDate', 'OperatingEndDate', 'ContinuumProject', 'ProjectType', 'HousingType', 'ResidentialAffiliation', 'TrackingMethod', 'HMISParticipatingProject', 'TargetPopulation', 'HOPWAMedAssistedLivingFac', 'PITCount', 'Walkin', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        #expected_columns: ['ProjectID', 'OrganizationID', 'ProjectName', 'ProjectCommonName', 'OperatingStartDate', 'OperatingEndDate', 'ContinuumProject', 'ProjectType', 'HousingType', 'ResidentialAffiliation', 'TrackingMethod', 'HMISParticipatingProject', 'TargetPopulation', 'HOPWAMedAssistedLivingFac', 'PITCount', 'Walkin', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        # new: ["RRHSubType"]
+        # removed: ["TrackingMethod", "HMISParticipatingProject", "Walkin"]
+        expected_columns: ["ProjectID", "OrganizationID", "ProjectName", "ProjectCommonName", "OperatingStartDate", "OperatingEndDate", "ContinuumProject", "ProjectType", "HousingType", "RRHSubType", "ResidentialAffiliation", "TargetPopulation", "HOPWAMedAssistedLivingFac", "PITCount", "DateCreated", "DateUpdated", "UserID", "DateDeleted", "ExportID"],
         critical_columns: ['ProjectID'],
       )
 
@@ -232,6 +242,21 @@ module HmisExternalApis::AcHmis::Importers
           columns: [:unit_capacity, :active],
         },
       )
+    end
+
+    def load_walkins
+      records_from_csv('Project.csv').map do |row|
+        project_id = row['ProjectID']&.strip # later we'll map this to a primary key, after doing the 2024 load
+        next nil unless project_id
+
+        walkin_bool = case row['Walkin']&.downcase
+        # when '0', 'n', 'no' then false
+        when '1', 'y', 'yes' then true
+        else false
+        end
+
+        [project_id, walkin_bool]
+      end.compact.to_h
     end
 
     def analyze
