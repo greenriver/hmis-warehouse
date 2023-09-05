@@ -50,6 +50,7 @@ module Bi
       safe_drop_view(view_name(GrdaWarehouse::Lookups::LivingSituation))
       safe_drop_view(view_name(GrdaWarehouse::Lookups::ProjectType))
       safe_drop_view(view_name(GrdaWarehouse::Lookups::Relationship))
+      # FIXME: Tracking method lookup is no longer necessary once dropped
       safe_drop_view(view_name(GrdaWarehouse::Lookups::TrackingMethod))
       safe_drop_view(view_name(GrdaWarehouse::Lookups::YesNoEtc))
       safe_drop_view(view_name(GrdaWarehouse::Census::ByProject))
@@ -109,7 +110,6 @@ module Bi
       generic_view(GrdaWarehouse::Lookups::LivingSituation)
       generic_view(GrdaWarehouse::Lookups::ProjectType)
       generic_view(GrdaWarehouse::Lookups::Relationship)
-      generic_view(GrdaWarehouse::Lookups::TrackingMethod)
       generic_view(GrdaWarehouse::Lookups::YesNoEtc)
       generic_view(GrdaWarehouse::Census::ByProject, GrdaWarehouse::Census::ByProject.view_column_names)
     end

@@ -23,95 +23,13 @@ module GrdaWarehouse::Hud
 
     include Filterable
 
-    RESIDENTIAL_PROJECT_TYPES = {}.tap do |pt|
-      h = { # duplicate of code in various places
-        ph: [3, 9, 10, 13],
-        rrh: [13],
-        psh: [3],
-        oph: [9, 10],
-        th: [2],
-        es: [1],
-        so: [4],
-        sh: [8],
-      }
-      pt.merge! h
-      pt[:permanent_housing]    = h[:ph]
-      pt[:transitional_housing] = h[:th]
-      pt[:emergency_shelter]    = h[:es]
-      pt[:street_outreach]      = h[:so]
-      pt[:safe_haven]           = h[:sh]
-      pt.freeze
-    end.freeze
-
-    HOMELESS_PROJECT_TYPE_CODES = [:es, :so, :sh, :th].freeze
-    SPM_PROJECT_TYPE_CODES = [:es, :so, :sh, :th, :ph].freeze
-    PATH_PROJECT_TYPE_CODES = [:so, :services_only].freeze
-
-    RESIDENTIAL_PROJECT_TYPE_IDS = RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq.sort
-
-    CHRONIC_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh).flatten
-    LITERALLY_HOMELESS_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh).flatten
-    HOMELESS_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh, :th).flatten
-    HOMELESS_SHELTERED_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :sh, :th).flatten
-    HOMELESS_UNSHELTERED_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten
-
-    PROJECT_GROUP_TITLES = {
-      ph: 'Permanent Housing (PH, PSH, & RRH)',
-      es: 'Emergency Shelter (ES)',
-      th: 'Transitional Housing (TH)',
-      sh: 'Safe Haven (SH)',
-      so: 'Street Outreach (SO)',
-      rrh: 'Rapid Re-Housing (RRH)',
-      ca: 'Coordinated Entry (CE)',
-      psh: 'Permanent Supportive Housing (PSH)',
-      oph: 'Permanent Housing Only (OPH)',
-      other: 'Other',
-      day_shelter: 'Day Shelter',
-      prevention: 'Homelessness Prevention',
-      services_only: 'Services Only',
-    }.freeze
-    PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }.freeze
-    HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
-    CHRONIC_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
-    RESIDENTIAL_TYPE_TITLES = PROJECT_GROUP_TITLES.select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh, :oph]) }.freeze
-    PROJECT_TYPE_COLORS = {
-      ph: 'rgba(150, 3, 130, 0.5)',
-      th: 'rgba(103, 81, 140, 0.5)',
-      es: 'rgba(87, 132, 93, 0.5)',
-      so: 'rgba(132, 26, 7, 0.5)',
-      sh: 'rgba(61, 99, 130, 0.5)',
-    }.freeze
-
-    ALL_PROJECT_TYPES = ::HudUtility.project_types.keys
-    PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14].freeze
-    PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
-    WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
-    PERFORMANCE_REPORTING = { # duplicate of code in various places
-      ph: [3, 9, 10, 13],
-      oph: [9, 10],
-      th: [2],
-      es: [1],
-      so: [4],
-      sh: [8],
-      ca: [14],
-      ce: [14],
-      rrh: [13],
-      psh: [3],
-      other: [7],
-      day_shelter: [11],
-      prevention: [12],
-      services_only: [6],
-    }.freeze
-
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override
     belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects, optional: true
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :projects, optional: true
 
-    has_and_belongs_to_many :project_groups,
-                            class_name: 'GrdaWarehouse::ProjectGroup',
-                            join_table: :project_project_groups
+    has_and_belongs_to_many :project_groups, class_name: 'GrdaWarehouse::ProjectGroup', join_table: :project_project_groups
 
     has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
     has_many :service_history_services, through: :service_history_enrollments
@@ -155,42 +73,42 @@ module GrdaWarehouse::Hud
     belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
 
     scope :residential, -> do
-      where(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
+      where(ProjectType: HudUtility2024.residential_project_type_ids)
     end
     scope :hud_residential, -> do
-      where(project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
+      where(project_type_override.in(HudUtility2024.residential_project_type_ids))
     end
     scope :non_residential, -> do
-      where.not(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
+      where.not(ProjectType: HudUtility2024.residential_project_type_ids)
     end
     scope :hud_non_residential, -> do
-      where.not(project_type_override.in(RESIDENTIAL_PROJECT_TYPE_IDS))
+      where.not(project_type_override.in(HudUtility2024.residential_project_type_ids))
     end
 
     scope :chronic, -> do
-      where(project_type_override.in(CHRONIC_PROJECT_TYPES))
+      where(project_type_override.in(HudUtility2024.chronic_project_types))
     end
     scope :hud_chronic, -> do
-      where(project_type_override.in(CHRONIC_PROJECT_TYPES))
+      where(project_type_override.in(HudUtility2024.chronic_project_types))
     end
     scope :homeless, -> do
-      where(project_type_override.in(HOMELESS_PROJECT_TYPES))
+      where(project_type_override.in(HudUtility2024.homeless_project_types))
     end
     scope :hud_homeless, -> do
-      where(project_type_override.in(CHRONIC_PROJECT_TYPES))
+      where(project_type_override.in(HudUtility2024.chronic_project_types))
     end
     scope :homeless_sheltered, -> do
-      where(project_type_override.in(HOMELESS_SHELTERED_PROJECT_TYPES))
+      where(project_type_override.in(HudUtility2024.homeless_sheltered_project_types))
     end
     scope :homeless_unsheltered, -> do
-      where(project_type_override.in(HOMELESS_UNSHELTERED_PROJECT_TYPES))
+      where(project_type_override.in(HudUtility2024.homeless_unsheltered_project_types))
     end
     scope :residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
       where(ProjectType: r_non_homeless)
     end
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
       where(project_type_override.in(r_non_homeless))
     end
 
@@ -210,11 +128,17 @@ module GrdaWarehouse::Hud
     end
 
     scope :night_by_night, -> do
-      where(cl(p_t[:tracking_method_override], p_t[:TrackingMethod]).eq(3))
+      es_nbn
     end
 
     def night_by_night?
-      (tracking_method_override.presence || self.TrackingMethod) == 3
+      es_nbn?
+    end
+
+    # DEPRECATED_FY2024 - remove this once the transition 2024 is complete
+    # Make some tests work
+    def es_nbn_pre_2024?
+      tracking_method_to_use == 3 && project_type_to_use == 1
     end
 
     scope :confidential, -> do
@@ -404,7 +328,6 @@ module GrdaWarehouse::Hud
         operating_end_date_override: :OperatingEndDate,
         hmis_participating_project_override: :HMISParticipatingProject,
         target_population_override: :TargetPopulation,
-        tracking_method_override: :TrackingMethod,
       }
     end
 
@@ -581,7 +504,7 @@ module GrdaWarehouse::Hud
     end
 
     # make a scope for every project type and a type? method for instances
-    RESIDENTIAL_PROJECT_TYPES.each do |k, v|
+    HudUtility2024.residential_project_type_numbers_by_code.each do |k, v|
       scope k, -> { where(project_type_column => v) }
       define_method "#{k}?" do
         v.include? project_type_to_use
@@ -589,11 +512,11 @@ module GrdaWarehouse::Hud
     end
 
     def rrh?
-      project_type_to_use.in?(PERFORMANCE_REPORTING[:rrh])
+      project_type_to_use.in?(HudUtility2024.performance_reporting[:rrh])
     end
 
     def psh?
-      project_type_to_use.in?(PERFORMANCE_REPORTING[:psh])
+      project_type_to_use.in?(HudUtility2024.performance_reporting[:psh])
     end
 
     def self.related_item_keys
@@ -611,7 +534,7 @@ module GrdaWarehouse::Hud
 
     # Originally wasn't PH, but is overridden to PH
     def project_type_overridden_as_ph?
-      @psh_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      @psh_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
       ! @psh_types.include?(self.ProjectType) &&
         @psh_types.include?(compute_project_type)
     end
@@ -707,7 +630,7 @@ module GrdaWarehouse::Hud
     end
 
     def bed_night_tracking?
-      tracking_method_to_use == 3 || street_outreach_and_acts_as_bednight?
+      es_nbn? || street_outreach_and_acts_as_bednight?
     end
 
     # Some Street outreach are counted like bed-night shelters, others aren't yet
@@ -839,6 +762,7 @@ module GrdaWarehouse::Hud
       operating_end_date_override.presence || self.OperatingEndDate
     end
 
+    # DEPRECATED_FY2024 no longer used in FY2024
     def tracking_method_to_use
       tracking_method_override.presence || self.TrackingMethod
     end

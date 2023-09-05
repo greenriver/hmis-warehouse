@@ -51,7 +51,7 @@ module PerformanceMeasurement
     end
 
     def self.default_project_type_codes
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+      HudUtility2024.spm_project_type_codes
     end
 
     def run_and_save!
@@ -183,7 +183,7 @@ module PerformanceMeasurement
     end
 
     def default_project_types
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+      HudUtility2024.spm_project_type_codes
     end
 
     def report_path_array

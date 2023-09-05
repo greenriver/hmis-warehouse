@@ -316,12 +316,12 @@ module GrdaWarehouse::Hud
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode?
-      return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.ProjectType)
+      return false unless HudUtility2024.chronic_project_types.include?(project.ProjectType)
 
       thirty_days_ago = self.EntryDate - 30.days
       ninety_days_ago = self.EntryDate - 90.days
 
-      non_homeless_residential = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      non_homeless_residential = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
       currently_housed = client.destination_client.service_history_enrollments.
         joins(:service_history_services).
         merge(
@@ -349,7 +349,7 @@ module GrdaWarehouse::Hud
             date: thirty_days_ago...self.EntryDate,
           ),
         ).
-        where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
+        where(project_type: HudUtility2024.chronic_project_types).
         where.not(enrollment_group_id: self.EnrollmentID).
         exists?
       return true if ! currently_housed && housed_for_week_in_past_90_days && ! other_homeless

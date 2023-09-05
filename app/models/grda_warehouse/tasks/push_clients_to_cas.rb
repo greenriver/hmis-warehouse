@@ -372,11 +372,12 @@ module GrdaWarehouse::Tasks
           black_af_american: "Race: #{::HudUtility.race('BlackAfAmerican')}",
           native_hi_pacific: "Race: #{::HudUtility.race('NativeHIPacific')}",
           white: "Race: #{::HudUtility.race('White')}",
-          female: "Gender: #{::HudUtility.gender(0)}",
-          male: "Gender: #{::HudUtility.gender(1)}",
-          no_single_gender: "Gender: #{::HudUtility.gender(4)}",
-          transgender: "Gender: #{::HudUtility.gender(5)}",
-          questioning: "Gender: #{::HudUtility.gender(6)}",
+          female: "Gender: #{::HudUtility2024.gender(0)}",
+          male: "Gender: #{::HudUtility2024.gender(1)}",
+          # TODO: need to update this with :CulturallySpecific, DifferentIdentity, NonBinary
+          no_single_gender: "Gender: #{::HudUtility2024.gender(4)}",
+          transgender: "Gender: #{::HudUtility2024.gender(5)}",
+          questioning: "Gender: #{::HudUtility2024.gender(6)}",
         },
       )
       @title_override[column]

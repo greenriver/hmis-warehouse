@@ -46,7 +46,7 @@ module WarehouseReports
     end
 
     def first_time_homeless_client_ids
-      @filter.project_type_codes = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES unless @filter.project_type_ids.present?
+      @filter.project_type_codes = HudUtility2024.homeless_project_type_codes unless @filter.project_type_ids.present?
       @first_time_homeless_client_ids ||= begin
         ids = []
         # Ensure first project also has services in the correct project type

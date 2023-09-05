@@ -15,7 +15,7 @@ module PerformanceDashboard::ProjectType::LengthOfTime
   end
 
   # Note Handle PH differently
-  # return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+  # return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.computed_project_type) &&
   #       (self.MoveInDate.present? && date > self.MoveInDate)
   #     return nil
 

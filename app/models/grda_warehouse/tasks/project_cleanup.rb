@@ -107,7 +107,7 @@ module GrdaWarehouse::Tasks
 
     # Just check the last two years for discrepancies to speed checking
     private def homeless_status_correct?(project)
-      if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
+      if HudUtility2024.homeless_project_types.include?(project.computed_project_type)
         # ES, SO, SH, TH
         any_non_homeless_history = service_history_service_source.
           where(date: 2.years.ago..Date.current).
@@ -136,7 +136,7 @@ module GrdaWarehouse::Tasks
 
     # Just check the last two years for discrepancies to speed checking
     private def literally_homeless_status_correct?(project)
-      if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
+      if HudUtility2024.chronic_project_types.include?(project.computed_project_type)
         # ES, SO, SH
         any_non_literally_homeless_history = service_history_service_source.
           where(date: 2.years.ago..Date.current).

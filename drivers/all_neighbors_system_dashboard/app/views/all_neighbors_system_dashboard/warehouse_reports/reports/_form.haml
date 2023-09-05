@@ -18,7 +18,7 @@
       .col-sm-6
         = f.input :secondary_project_group_ids, as: :select_two, collection: @filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, data: {placeholder: 'Choose Project Groups' }}, include_blank: false, label: _('Tracked Project Groups')
       .col-sm-6
-        = f.input :secondary_project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.secondary_project_ids, project_types: [:ca]) } }, label: _('Associated CE Projects')
+        = f.input :secondary_project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.secondary_project_ids, project_types: [:ce]) } }, label: _('Associated CE Projects')
 
     %h2 Limits
     .row.mt-4

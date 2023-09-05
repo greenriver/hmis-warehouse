@@ -187,7 +187,6 @@ module SystemPathways
         :so,
         :sh,
         :ce,
-        :ca, # Note, this is currently :ca, not :ce
         :rrh,
         :psh,
       ]
@@ -511,7 +510,7 @@ module SystemPathways
     end
 
     private def nbn_with_no_service?(enrollment)
-      enrollment.project_tracking_method == 3 &&
+      enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn)) &&
         ! enrollment.service_history_services.
           bed_night.
           service_within_date_range(start_date: filter.start, end_date: filter.end).

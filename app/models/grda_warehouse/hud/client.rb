@@ -299,9 +299,9 @@ module GrdaWarehouse::Hud
       # clearer and composable but less efficient would be to use an exists subquery
 
       if chronic_types_only
-        project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        project_types = HudUtility2024.chronic_project_types
       else
-        project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+        project_types = HudUtility2024.homeless_project_types
       end
 
       inner_table = sh_t.
@@ -607,11 +607,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_female, -> do
-      where(Female: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
+      where(Woman: 1).where(arel_table[:NonBinary].not_eq(1).or(arel_table[:NonBinary].eq(nil)))
     end
 
     scope :gender_male, -> do
-      where(Male: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
+      where(Man: 1).where(arel_table[:NonBinary].not_eq(1).or(arel_table[:NonBinary].eq(nil)))
     end
 
     scope :gender_mtf, -> do
@@ -623,7 +623,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :no_single_gender, -> do
-      where(NoSingleGender: 1)
+      where(NonBinary: 1)
     end
 
     scope :questioning, -> do
@@ -930,7 +930,7 @@ module GrdaWarehouse::Hud
     def moved_in_with_ph?
       enrollments.
         open_on_date.
-        with_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+        with_project_type(HudUtility2024.residential_project_type_numbers_by_code[:ph]).
         where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lt(Date.current)).exists?
     end
 
@@ -1681,7 +1681,7 @@ module GrdaWarehouse::Hud
     end
 
     def last_seen_in_type(type, include_confidential_names: false)
-      return nil unless type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys + [:homeless])
+      return nil unless type.in?(HudUtility2024.residential_project_type_numbers_by_code.keys + [:homeless])
 
       service_history_enrollments.ongoing.
         joins(:service_history_services, :project, :organization).
@@ -1857,7 +1857,7 @@ module GrdaWarehouse::Hud
     end
 
     def gender
-      gender_multi.map { |k| ::HudUtility.gender(k) }.join(', ')
+      gender_multi.map { |k| ::HudUtility2024.gender(k) }.join(', ')
     end
 
     # while the entire warehouse is updated to accept and use the new gender setup, this will provide
@@ -1869,12 +1869,14 @@ module GrdaWarehouse::Hud
     # Accepts a hash containing the gender columns and values
     # Returns a single value that roughly represents the client's gender
     def self.gender_binary(genders)
-      return 4 if genders[:NoSingleGender] == 1
+      return 4 if genders[:NonBinary] == 1
       return 5 if genders[:Transgender] == 1
       return 6 if genders[:Questioning] == 1
-      return 4 if genders[:Female] == 1 && genders[:Male] == 1
-      return 0 if genders[:Female] == 1
-      return 1 if genders[:Male] == 1
+      return 4 if [genders[:Woman], genders[:Man], genders[:CulturallySpecific], genders[:DifferentIdentity]].compact.sum > 1
+      return 2 if genders[:CulturallySpecific] == 1
+      return 3 if genders[:DifferentIdentity] == 1
+      return 0 if genders[:Woman] == 1
+      return 1 if genders[:Man] == 1
 
       genders[:GenderNone]
     end
@@ -1882,12 +1884,12 @@ module GrdaWarehouse::Hud
     def self.gender_binary_sql_case
       acase(
         [
-          [arel_table[:NoSingleGender].eq(1), 4],
+          [arel_table[:NonBinary].eq(1), 4],
           [arel_table[:Transgender].eq(1), 5],
           [arel_table[:Questioning].eq(1), 6],
-          [arel_table[:Male].eq(1).and(arel_table[:Female].eq(1)), 4],
-          [arel_table[:Female].eq(1), 0],
-          [arel_table[:Male].eq(1), 1],
+          [(arel_table[:Man] + arel_table[:Woman] + arel_table[:CulturallySpecific] + arel_table[:DifferentIdentity]).gt(1)],
+          [arel_table[:Woman].eq(1), 0],
+          [arel_table[:Man].eq(1), 1],
         ],
         elsewise: arel_table[:GenderNone],
       )
@@ -2025,15 +2027,15 @@ module GrdaWarehouse::Hud
     end
 
     def cas_gender_female
-      self.Female == 1
+      self.Woman == 1
     end
 
     def cas_gender_male
-      self.Male == 1
+      self.Man == 1
     end
 
     def cas_gender_no_single_gender
-      self.NoSingleGender == 1
+      self.NonBinary == 1
     end
 
     def cas_gender_transgender
@@ -2922,7 +2924,7 @@ module GrdaWarehouse::Hud
     end
 
     private def residential_dates enrollments:
-      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      @non_homeless_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
       @residential_dates ||= enrollments.select do |e|
         @non_homeless_types.include?(e.computed_project_type)
       end.map do |e|
@@ -2935,7 +2937,7 @@ module GrdaWarehouse::Hud
 
     private def homeless_dates enrollments:
       @homeless_dates ||= enrollments.select do |e|
-        e.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+        e.computed_project_type.in?(HudUtility2024.residential_project_type_ids)
       end.map do |e|
         # Use select to allow for preloading
         e.service_history_services.select do |s|
@@ -2952,7 +2954,7 @@ module GrdaWarehouse::Hud
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode? enrollments:, enrollment:
-      return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(enrollment.computed_project_type)
+      return false unless HudUtility2024.chronic_project_types.include?(enrollment.computed_project_type)
 
       entry_date = enrollment.first_date_in_program
       thirty_days_ago = entry_date - 30.days

@@ -16,7 +16,7 @@ module DisabilitySummary
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
       @comparison_pattern = filter.comparison_pattern
     end
 
@@ -130,7 +130,7 @@ module DisabilitySummary
           entry_date: she_t[:first_date_in_program],
           ethnicity: c_t[:Ethnicity],
         }
-        HudUtility.gender_fields.each do |field|
+        HudUtility2024.gender_fields.each do |field|
           columns[field] = c_t[field]
         end
         # race_cache_client = GrdaWarehouse::Hud::Client.new
@@ -177,7 +177,7 @@ module DisabilitySummary
               ethnicity: row[:ethnicity],
               id: client_id,
             }
-            HudUtility.gender_fields.each do |field|
+            HudUtility2024.gender_fields.each do |field|
               client_data[field] = row[field]
             end
 

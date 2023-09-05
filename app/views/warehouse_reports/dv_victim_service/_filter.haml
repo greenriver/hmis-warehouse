@@ -6,7 +6,7 @@
       .col-3
         = f.input :end, label: 'End Date', as: :date_picker
       .col-3
-        = f.input :project_type_codes, label: 'Project Types', as: :select_two, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, as: :select_two, input_html: { multiple: true, placeholder: 'Choose Project Types' }
+        = f.input :project_type_codes, label: 'Project Types', as: :select_two, collection: HudUtility2024.project_group_titles.invert, as: :select_two, input_html: { multiple: true, placeholder: 'Choose Project Types' }
       .col-3
         = f.input :project_ids, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, multiple: true, placeholder: 'Any Project'}, label: 'Projects'
     .row

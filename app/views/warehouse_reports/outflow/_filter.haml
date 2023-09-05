@@ -34,7 +34,7 @@
       .col-4
         = f.input :ethnicities, collection: HudUtility.ethnicities.invert, selected: @filter.ethnicities, required: false, input_html: {multiple: true, placeholder: 'Any Ethnicity'}, as: :select_two
       .col-4
-        = f.input :genders, collection: HudUtility.genders.invert, selected: @filter.genders, required: false, input_html: {multiple: true, placeholder: 'Any Gender'}, as: :select_two
+        = f.input :genders, collection: HudUtility2024.genders.invert, selected: @filter.genders, required: false, input_html: {multiple: true, placeholder: 'Any Gender'}, as: :select_two
 
     .row.mt-6
       .col

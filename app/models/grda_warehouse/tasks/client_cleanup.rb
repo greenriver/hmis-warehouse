@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
         merge(
           GrdaWarehouse::Hud::Project.
           with_project_type(
-            GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten,
+            HudUtility2024.performance_reporting.values.flatten,
           ),
         ).
         where.not(HouseholdID: nil).
@@ -482,7 +482,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def gender_columns
-      @gender_columns ||= ::HudUtility.gender_fields - [:GenderNone]
+      @gender_columns ||= ::HudUtility2024.gender_fields - [:GenderNone]
     end
 
     def choose_best_race dest_attr, source_clients
@@ -573,9 +573,11 @@ module GrdaWarehouse::Tasks
       changed_count = 0
       changed = {
         dobs: Set.new,
-        females: Set.new,
-        males: Set.new,
-        nosinglegenders: Set.new,
+        women: Set.new,
+        men: Set.new,
+        culturally_specific: Set.new,
+        different_identity: Set.new,
+        nonbinary: Set.new,
         transgenders: Set.new,
         questionings: Set.new,
         gendernones: Set.new,
@@ -623,9 +625,11 @@ module GrdaWarehouse::Tasks
           changed_batch << dest if dest.changed? && ! @dry_run
 
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
-          changed[:females] << dest.id if dest.Female != dest_attr[:Female]
-          changed[:males] << dest.id if dest.Male != dest_attr[:Male]
-          changed[:nosinglegenders] << dest.id if dest.NoSingleGender != dest_attr[:NoSingleGender]
+          changed[:women] << dest.id if dest.Woman != dest_attr[:Woman]
+          changed[:men] << dest.id if dest.Man != dest_attr[:Man]
+          changed[:culturally_specific] << dest.id if dest.CulturallySpecific != dest_attr[:CulturallySpecific]
+          changed[:different_identity] << dest.id if dest.DifferentIdentity != dest_attr[:DifferentIdentity]
+          changed[:nonbinary] << dest.id if dest.NonBinary != dest_attr[:NonBinary]
           changed[:transgenders] << dest.id if dest.Transgender != dest_attr[:Transgender]
           changed[:questionings] << dest.id if dest.Questioning != dest_attr[:Questioning]
           changed[:gendernones] << dest.id if dest.GenderNone != dest_attr[:GenderNone]
@@ -680,9 +684,11 @@ module GrdaWarehouse::Tasks
         LastName: c_t[:LastName].to_sql,
         SSN: c_t[:SSN].to_sql,
         DOB: c_t[:DOB].to_sql,
-        Female: c_t[:Female].to_sql,
-        Male: c_t[:Male].to_sql,
-        NoSingleGender: c_t[:NoSingleGender].to_sql,
+        Woman: c_t[:Woman].to_sql,
+        Man: c_t[:Man].to_sql,
+        CulturallySpecific: c_t[:CulturallySpecific].to_sql,
+        DifferentIdentity: c_t[:DifferentIdentity].to_sql,
+        NonBinary: c_t[:NonBinary].to_sql,
         Transgender: c_t[:Transgender].to_sql,
         Questioning: c_t[:Questioning].to_sql,
         GenderNone: c_t[:GenderNone].to_sql,

@@ -212,7 +212,8 @@ module HmisDataQualityTool
       report_item.data_source_id = enrollment.data_source_id
       report_item.project_id = enrollment.project.id
       report_item.project_name = enrollment.project.name(report.user)
-      report_item.project_type = enrollment.project.project_type_to_use
+      project_type =  enrollment.project.project_type_to_use
+      report_item.project_type = project_type
       report_item.entry_date = enrollment.EntryDate
       report_item.move_in_date = enrollment.MoveInDate
       report_item.exit_date = enrollment.exit&.ExitDate
@@ -230,8 +231,6 @@ module HmisDataQualityTool
       report_item.destination = enrollment.exit&.Destination
       report_item.project_operating_start_date = enrollment.project.OperatingStartDate
       report_item.project_operating_end_date = enrollment.project.OperatingEndDate
-      project_tracking_method = enrollment.project.tracking_method_to_use
-      report_item.project_tracking_method = project_tracking_method
       report_age_date = [enrollment.EntryDate, report.filter.start].max
       report_item.age = enrollment.client.age_on(report_age_date)
       report_item.ch_at_entry = enrollment.chronically_homeless_at_start?
@@ -339,13 +338,13 @@ module HmisDataQualityTool
       report_item.annual_assessment_status = annual_assessment_complete(enrollment, hoh.first_date_in_program) if annual_expected
 
       # NOTE: we exclude HIV/AIDS from this calculation as it may not be asked everywhere
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3, 8, 9]) } || false
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?(HudUtility2024.disability_responses - [99]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided.present? && s.DateProvided <= max_date }
       en_cls = enrollment.current_living_situations&.select { |s| s.InformationDate.present? && s.InformationDate <= max_date }
 
-      lot = if project_tracking_method == 3
+      lot = if project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
         # count services <= min of report end and current date
         en_services.select(&:bed_night?)&.count || 0
       else
@@ -355,10 +354,10 @@ module HmisDataQualityTool
       end
       report_item.lot = lot
       end_date = [enrollment.exit&.ExitDate, report.filter.end, Date.current].compact.min
-      max_service = if project_tracking_method == 3 # NbN ES
+      max_service = if project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
         # most recent service, or start date if no service
         en_services.max_by(&:DateProvided)&.DateProvided || enrollment.EntryDate
-      elsif enrollment.project.project_type_to_use == 4 # SO
+      elsif enrollment.project.project_type_to_use.in?(HudUtility2024.project_type_number_from_code(:so))
         # max CLS for SO, or start date if no CLS
         en_cls.max_by(&:InformationDate)&.InformationDate || enrollment.EntryDate
       else
@@ -458,9 +457,9 @@ module HmisDataQualityTool
     end
 
     def self.chronic_denominator?(item)
-      return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+      return false unless hoh_or_adult?(item) && HudUtility2024.residential_project_type_ids.include?(item.project_type)
       # required for HoH and Adults in ES, SO, SH
-      return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
+      return true if HudUtility2024.chronic_project_types.include?(item.project_type)
 
       return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
       return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh == 1
@@ -538,7 +537,7 @@ module HmisDataQualityTool
           denominator: ->(_item) { true },
           limiter: ->(item) {
             return false unless item.exit_date.present?
-            return item.exit_date <= item.entry_date if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+            return item.exit_date <= item.entry_date if HudUtility2024.residential_project_type_ids.include?(item.project_type)
 
             item.exit_date < item.entry_date
           },
@@ -659,12 +658,12 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 90 && HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           es_stay_length: 90,
         },
@@ -677,12 +676,12 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 180 && HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           es_stay_length: 180,
         },
@@ -695,12 +694,12 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 365 && HudUtility2024.residential_project_type_numbers_by_code[:es].include?(item.project_type)
           },
           es_stay_length: 365,
         },
@@ -713,12 +712,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) && item.project_tracking_method == 3
+            HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
-            return false unless item.project_tracking_method == 3
+            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 90
           },
@@ -733,12 +731,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) && item.project_tracking_method == 3
+            HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
-            return false unless item.project_tracking_method == 3
+            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 180
           },
@@ -753,12 +750,11 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) && item.project_tracking_method == 3
+            HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
-            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
-            return false unless item.project_tracking_method == 3
+            return false unless HudUtility2024.residential_project_type_numbers_by_code[:es_nbn].include?(item.project_type)
 
             item.days_since_last_service >= 365
           },
@@ -773,12 +769,12 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            HudUtility2024.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 90 && HudUtility2024.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           so_missed_exit_length: 90,
         },
@@ -791,12 +787,12 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            HudUtility2024.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 180 && HudUtility2024.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           so_missed_exit_length: 180,
         },
@@ -809,12 +805,12 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            HudUtility2024.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 365 && HudUtility2024.residential_project_type_numbers_by_code[:so].include?(item.project_type)
           },
           so_missed_exit_length: 365,
         },
@@ -828,13 +824,13 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 90 && HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 90,
         },
@@ -848,13 +844,13 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 180 && HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 180,
         },
@@ -868,13 +864,13 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 365 && HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 365,
         },
@@ -887,12 +883,12 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.blank?
-            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            return false unless HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
 
             item.move_in_date < item.entry_date
           },
@@ -906,12 +902,12 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
             return false unless hoh?(item)
             return false if item.move_in_date.blank? || item.exit_date.blank?
-            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            return false unless HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(item.project_type)
 
             item.move_in_date > item.exit_date
           },

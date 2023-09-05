@@ -43,14 +43,167 @@ module HudUtility2024
     project_type_brief(type, true) # reversed
   end
 
+  def residential_project_type_numbers_by_code
+    {
+      ph: [3, 9, 10, 13],
+      rrh: [13],
+      psh: [3],
+      oph: [9, 10],
+      th: [2],
+      es: [0, 1],
+      es_nbn: [1],
+      es_entry_exit: [0],
+      so: [4],
+      sh: [8],
+    }.freeze
+  end
+
+  def performance_reporting
+    { # duplicate of code in various places
+      ph: [3, 9, 10, 13],
+      rrh: [13],
+      psh: [3],
+      oph: [9, 10],
+      th: [2],
+      es: [0, 1],
+      es_nbn: [1],
+      es_entry_exit: [0],
+      so: [4],
+      sh: [8],
+      ce: [14],
+      other: [7],
+      day_shelter: [11],
+      prevention: [12],
+      services_only: [6],
+    }.freeze
+  end
+
+  def project_group_titles
+    {
+      ph: 'Permanent Housing (PH, PSH, & RRH)',
+      es: 'Emergency Shelter (ES NBN & ES Entry/Exit)',
+      th: 'Transitional Housing (TH)',
+      sh: 'Safe Haven (SH)',
+      so: 'Street Outreach (SO)',
+      rrh: 'Rapid Re-Housing (RRH)',
+      ce: 'Coordinated Entry (CE)',
+      psh: 'Permanent Supportive Housing (PSH)',
+      oph: 'Permanent Housing Only (OPH)',
+      other: 'Other',
+      day_shelter: 'Day Shelter',
+      prevention: 'Homelessness Prevention',
+      services_only: 'Services Only',
+    }.freeze
+  end
+
+  def project_types_without_inventory
+    [4, 6, 7, 11, 12, 14].freeze
+  end
+
   def homeless_project_type_numbers
-    [
-      0, # ES E/E
-      1, # ES NBN
-      2, # TH
-      4, # SO
-      8, # SH
-    ].freeze
+    residential_project_type_numbers_by_code.
+      values_at(*homeless_project_type_codes).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def project_type_number_from_code(code)
+    residential_project_type_numbers_by_code[code.to_sym]
+  end
+
+  def homeless_project_type_codes
+    [:es, :so, :sh, :th].freeze
+  end
+
+  def spm_project_type_codes
+    [:es, :so, :sh, :th, :ph].freeze
+  end
+
+  def path_project_type_codes
+    [:so, :services_only].freeze
+  end
+
+  def residential_project_type_ids
+    residential_project_type_numbers_by_code.
+      values.
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def chronic_project_types
+    literally_homeless_project_types
+  end
+
+  def literally_homeless_project_types
+    residential_project_type_numbers_by_code.
+      values_at(:es, :so, :sh).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def homeless_project_types
+    residential_project_type_numbers_by_code.
+      values_at(:es, :so, :sh, :th).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def homeless_sheltered_project_types
+    residential_project_type_numbers_by_code.
+      values_at(:es, :sh, :th).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def homeless_unsheltered_project_types
+    residential_project_type_numbers_by_code.
+      values_at(:so).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def project_type_titles
+    project_group_titles.
+      select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }.
+      freeze
+  end
+
+  def homeless_type_titles
+    project_type_titles.except(:ph)
+  end
+
+  def chronic_type_titles
+    project_type_titles.except(:ph)
+  end
+
+  def residential_type_titles
+    project_group_titles.
+      select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh, :oph]) }.
+      freeze
+  end
+
+  def all_project_types
+    project_types.keys
+  end
+
+  def project_types_with_inventory
+    all_project_types - project_types_without_inventory
+  end
+
+  def project_types_with_move_in_dates
+    residential_project_type_numbers_by_code[:ph]
   end
 
   def permanent_housing_project_types
