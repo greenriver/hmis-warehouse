@@ -1009,8 +1009,7 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "UserID" character varying(32) NOT NULL,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    at_occurrence boolean DEFAULT false NOT NULL
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -1514,7 +1513,7 @@ CREATE TABLE public."Enrollment" (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation" integer,
+    "VAMCStation_deleted" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -1571,7 +1570,8 @@ CREATE TABLE public."Enrollment" (
     "RentalSubsidyType" integer,
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
-    "PreferredLanguageDifferent" character varying
+    "PreferredLanguageDifferent" character varying,
+    "VAMCStation" character varying
 );
 
 
@@ -3381,7 +3381,7 @@ CREATE VIEW public."bi_Enrollment" AS
     "Enrollment"."FemVet",
     "Enrollment"."HPScreeningScore",
     "Enrollment"."ThresholdScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -17834,7 +17834,8 @@ CREATE TABLE public.hmis_form_definitions (
     status character varying NOT NULL,
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    title character varying NOT NULL
 );
 
 
@@ -17892,7 +17893,11 @@ CREATE TABLE public.hmis_form_instances (
     custom_service_type_id integer,
     custom_service_category_id integer,
     funder integer,
-    project_type integer
+    project_type integer,
+    other_funder character varying,
+    data_collected_about character varying,
+    system boolean DEFAULT false NOT NULL,
+    active boolean DEFAULT true NOT NULL
 );
 
 
@@ -22579,7 +22584,7 @@ CREATE VIEW public.report_enrollments AS
     "Enrollment"."CoercedToContinueWork",
     "Enrollment"."LaborExploitPastThreeMonths",
     "Enrollment"."HPScreeningScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -54482,6 +54487,13 @@ CREATE INDEX index_shape_states_on_simplified_geom ON public.shape_states USING 
 
 
 --
+-- Name: index_shape_states_on_statefp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_statefp ON public.shape_states USING btree (statefp);
+
+
+--
 -- Name: index_shape_states_on_stusps; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57412,6 +57424,13 @@ CREATE INDEX index_tx_research_exports_on_export_id ON public.tx_research_export
 --
 
 CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports USING btree (user_id);
+
+
+--
+-- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
 
 
 --
@@ -60998,8 +61017,19 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230818044939'),
 ('20230822200902'),
 ('20230824192127'),
+('20230827232228'),
+('20230828180700'),
+('20230828180743'),
+('20230828180842'),
+('20230829171917'),
 ('20230830121811'),
+('20230831211739'),
+('20230901123748'),
+('20230901124730'),
+('20230901124955'),
 ('20230901135749'),
+('20230901143829'),
+('20230901144153'),
 ('20230901203722'),
 ('20230905182026');
 

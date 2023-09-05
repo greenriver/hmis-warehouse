@@ -15,20 +15,30 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       records = build_records
       # destroy existing records and re-import
       model_class.where(data_source: data_source).each(&:really_destroy!) if clobber
-      ar_import(model_class, records.compact)
+      ar_import(model_class, records)
     end
 
     protected
 
     def build_records
-      rows.map do |row|
+      valid_personal_ids = Hmis::Hud::Client.hmis.pluck(:personal_id).to_set
+      expected = 0
+      seen = Set.new
+      records = rows.map do |row|
         value = phone_value(row)
         next unless value
+
+        expected += 1
+        personal_id = row_value(row, field: 'PersonalID')
+        unless personal_id.in?(valid_personal_ids)
+          log_skipped_row(row, field: 'PersonalID')
+          next nil
+        end
 
         attrs = {
           ContactPointID: Hmis::Hud::Base.generate_uuid,
           UserID: user_id_value(row),
-          PersonalID: row_value(row, field: 'PersonalID'),
+          PersonalID: personal_id,
           use: use_value(row),
           system: row_value(row, field: 'SYSTM').downcase,
           notes: row_value(row, field: 'NOTES', required: false),
@@ -37,8 +47,15 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           DateCreated: parse_date(row_value(row, field: 'DateCreated', required: false)),
           DateUpdated: parse_date(row_value(row, field: 'DateUpdated', required: false)),
         }
+
+        # Skip duplicates
+        uniq_key = attrs.except(:ContactPointID, :UserID, :DateCreated, :DateUpdated).values.join('|')
+        next nil if seen.add?(uniq_key).nil?
+
         default_attrs.merge(attrs)
-      end
+      end.compact
+      log_processed_result(expected: expected, actual: records.size)
+      records
     end
 
     PHONE_TYPE_MAP = {
