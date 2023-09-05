@@ -34,21 +34,21 @@ module HmisExternalApis::AcHmis::Importers
         Loaders::ReferralRequestsLoader,
       ]
 
-      Hmis::Hud::Base.transaction do
-        loaders.each do |loader_class|
-          loader = loader_class.new(
-            clobber: clobber,
-            reader: Loaders::CsvReader.new(dir),
-            tracker: tracker,
-          )
-          run_loader(loader)
-        end
-
-        # process collected unit occupancy assignments
-        run_loader(
-          Loaders::DeferredProjectUnitOccupancyLoader.new(clobber: clobber, tracker: tracker),
+      # disable paper trail to improve importer performance
+      PaperTrail.enabled = false
+      loaders.each do |loader_class|
+        loader = loader_class.new(
+          clobber: clobber,
+          reader: Loaders::CsvReader.new(dir),
+          tracker: tracker,
         )
+        run_loader(loader)
       end
+
+      # process collected unit occupancy assignments
+      run_loader(
+        Loaders::DeferredProjectUnitOccupancyLoader.new(clobber: clobber, tracker: tracker),
+      )
 
       analyze_tables
     rescue StandardError => e

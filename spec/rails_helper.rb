@@ -83,6 +83,9 @@ RSpec.configure do |config|
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     AccessGroup.maintain_system_groups
 
+    # disable papertrail for test performance
+    PaperTrail.enabled = false
+
     if ENV['ENABLE_HMIS_API'] == 'true'
       ::HmisUtil::JsonForms.new.tap do |builder|
         builder.seed_record_form_definitions

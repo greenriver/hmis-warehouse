@@ -50,7 +50,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .pluck('external_ids.value', :id)
         .to_h
 
-      rows.map do |row|
+      records = rows.map do |row|
         {
           identifier: row_value(row, field: 'REFERRAL_REQUEST_ID'),
           project_id: projects_by_id.fetch(row_value(row, field: 'PROGRAM_ID')),
@@ -63,6 +63,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           requestor_email: row_value(row, field: 'REQUESTOR_EMAIL', required: false) || '',
         }
       end
+      # this crashes on missed rows so report 100%
+      log_processed_result(expected: records.size, actual: records.size)
+      records
     end
   end
 end
