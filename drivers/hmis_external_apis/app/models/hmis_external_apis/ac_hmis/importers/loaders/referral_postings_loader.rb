@@ -317,7 +317,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           # For Accepted referrals, the Enrollment ID should be present on the row.
           enrollment_id = row_value(row, field: 'ENROLLMENTID', required: false)
           unless enrollment_id.present?
-            log_info("#{posting_row.context} ENROLLMENTID missing from Accepted referral")
+            log_info("#{row.context} ENROLLMENTID missing from Accepted referral")
             next
           end
           household_id = household_id_by_enrollment_id[enrollment_id]

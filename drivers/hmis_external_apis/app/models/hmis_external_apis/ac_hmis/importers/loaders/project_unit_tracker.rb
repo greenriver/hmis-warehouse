@@ -15,7 +15,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
       # {enrollment_pk => [project_pk, household_id]}
       @enrollment_lookup = {}
-      # {enrollment_pk => hoh_entry_date}
+      # {enrollment_pk => entry_date}
       @enrollment_entry_dates = {}
       enrollment_scope.preload(:project).preload(wip: :project).find_each do |enrollment|
         add_enrollment(enrollment)
@@ -40,7 +40,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def add_enrollment(enrollment)
       project_pk = enrollment.project_id ? enrollment.project.id : enrollment.wip&.project&.id
       @enrollment_lookup[enrollment.id] = [project_pk, enrollment.household_id] if project_pk
-      @enrollment_entry_dates[enrollment.id] ||= enrollment.entry_date if enrollment.head_of_household?
+      @enrollment_entry_dates[enrollment.id] ||= enrollment.entry_date
     end
 
     def assign_next_unit(enrollment_pk:, unit_type_mper_id:, fallback_start_date: nil)
