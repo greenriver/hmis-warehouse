@@ -9,6 +9,8 @@ module HmisStructure::Client
   include ::HmisStructure::Base
 
   included do
+    # pg generated columns for search
+    self.ignored_columns = [:search_name_full, :search_name_last]
     self.hud_key = :PersonalID
     self.additional_upsert_columns = [:demographic_dirty]
     acts_as_paranoid(column: :DateDeleted)
