@@ -282,7 +282,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         .where(data_source: data_source)
         .pluck(:project_id, :id)
         .to_h
-
+      household_id_by_enrollment_id = Hmis::Hud::Enrollment
+        .where(data_source: data_source)
+        .pluck(:enrollment_id, :household_id)
+        .to_h
       unit_types_by_mper = Hmis::UnitType
         .joins(:mper_id)
         .pluck('external_ids.value', :id)
@@ -294,6 +297,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         project_id = row_value(row, field: 'PROGRAM_ID')
         referral_id = row_value(row, field: 'REFERRAL_ID')
 
+        # There is one row per household member in the referral, but we only need to process one of them.
+        next if seen.include?(referral_id)
+
         # find household id for this posting:
         # 1) find the head-of-household's MCI for this referral
         hoh_member_row = household_member_rows_by_referral(referral_id).detect do |mr|
@@ -303,17 +309,31 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           log_info "#{row.context} Skipping Referral #{referral_id} - no HoH"
           next
         end
-        hoh_mci_id = row_value(hoh_member_row, field: 'MCI_ID')
-        # 2) find the household_id for the project enrollment with that MCI
-        household_id = referral_household_id(hoh_mci_id, project_id)
-        # Household must be present for Accepted and Accepted Pending postings
+
         status = posting_status(row)
+        # 2) Find the household_id for the enrollment linked to this ReferralPosting row, if any.
+        household_id = nil
+        if status == accepted_status
+          # For Accepted referrals, the Enrollment ID should be present on the row.
+          enrollment_id = row_value(row, field: 'ENROLLMENTID', required: false)
+          unless enrollment_id.present?
+            log_info("#{posting_row.context} ENROLLMENTID missing from Accepted referral")
+            next
+          end
+          household_id = household_id_by_enrollment_id[enrollment_id]
+        elsif status == accepted_pending_status
+          # For Accepted Pending referrals, we should have created the WIP Enrollment(s) in an earlier step.
+          # find the HoH's MCI ID
+          hoh_mci_id = row_value(hoh_member_row, field: 'MCI_ID')
+          # find the household_id for the project enrollment with that MCI
+          household_id = referral_household_id(hoh_mci_id, project_id)
+        end
+
+        # Household MUST be present on Accepted and Accepted Pending postings
         if household_id.nil? && [accepted_status, accepted_pending_status].include?(status)
           log_info "#{row.context} No enrollments match Referral #{referral_id} with status #{status}. Skipping"
           next
         end
-
-        next if seen.include?(referral_id)
 
         expected += 1
 
@@ -321,6 +341,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           log_info "#{row.context} Skipping posting for referral #{referral_id} because the referral didn't get created."
           next
         end
+
+        # Only add to "seen" once we successfully processed the row
         seen.add(referral_id)
 
         HmisExternalApis::AcHmis::ReferralPosting.new(
