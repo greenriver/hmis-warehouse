@@ -32726,6 +32726,20 @@ CREATE UNIQUE INDEX dq_client_conflict_columns ON public.hud_report_dq_clients U
 
 
 --
+-- Name: ds_ceparticipation_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ds_ceparticipation_idx ON public."CEParticipation" USING btree (data_source_id, "CEParticipationID");
+
+
+--
+-- Name: ds_hmisparticipation_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ds_hmisparticipation_idx ON public."HMISParticipation" USING btree (data_source_id, "HMISParticipationID");
+
+
+--
 -- Name: e_a_c_d_a_idx; Type: INDEX; Schema: public; Owner: -
 --
 

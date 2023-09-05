@@ -33,6 +33,51 @@ module HmisCsvTwentyTwentyFour::Importer
         ProjectID: [
           class: HmisCsvImporter::HmisCsvValidation::NonBlank,
         ],
+        AccessPoint: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+          },
+        ],
+        PreventionAssessment: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+          },
+        ],
+        CrisisAssessment: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+          },
+        ],
+        HousingAssessment: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+          },
+        ],
+        DirectServices: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+          },
+        ],
+        ReceivesReferrals: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.no_yes_options.keys },
+          },
+        ],
+        CEParticipationStatusStartDate: [
+          class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+        ],
       }
     end
   end

@@ -33,6 +33,18 @@ module HmisCsvTwentyTwentyFour::Importer
         ProjectID: [
           class: HmisCsvImporter::HmisCsvValidation::NonBlank,
         ],
+        HMISParticipationType: [
+          {
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HudUtility2024.hmis_participation_types.keys },
+          },
+        ],
+        HMISParticipationStatusStartDate: [
+          class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+        ],
       }
     end
   end
