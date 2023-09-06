@@ -1782,11 +1782,11 @@ module GrdaWarehouse::Hud
     # @param sorted [Boolean] order results by closest match to text
     def self.text_search(text, client_scope: nil, sorted: true)
       # if searching by ID
-      if client_scope && text.to_s =~ /\A[-0-9]+\z/
+      if client_scope
         # WARNING: Any ids added to client_ids below here could be outside of the search scope
-        client_ids = client_scope.searchable.text_searcher(text, sorted: false).pluck(:id)
-        result = self.where(id: client_ids)
-        sorted ? result.order(:last_name, :id) : result
+        # if text.to_s =~ /\A[-0-9]+\z/
+        result = client_scope.text_searcher(text, sorted: sorted)
+        result.where(id: self.select(:id))
       else
         text_searcher(text, sorted: sorted)
       end

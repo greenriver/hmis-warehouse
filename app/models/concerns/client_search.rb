@@ -35,18 +35,11 @@ module ClientSearch
             .select(:source_id)
           matches_external_ids = self.where(id: external_id_scope.select(:source_id)).any?
         end
-
-        # rubocop:disable Style/GuardClause
-        if matches_external_ids
-          # dummy where to pass to OR. This method needs refactoring :(
-          where = sa[:id] = -1
-        else
-          # this is a proper name search
-          return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted)
-        end
-        # rubocop:enable Style/GuardClause
+        return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted) unless matches_external_ids
       end
 
+      # dummy where to pass to OR. This method needs refactoring :(
+      where ||= sa[:id].eq(-1)
       where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
 
       if numeric
