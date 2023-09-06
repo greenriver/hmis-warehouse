@@ -5,6 +5,12 @@ namespace :import do
     HmisExternalApis::AcHmis::ImportProjectsJob.perform_now
   end
 
+  # ./bin/rake driver:hmis_external_apis:import:ac_clients_with_active_referrals
+  desc 'Fetch MCI IDs of Clients with active referrals in LINK'
+  task :ac_clients_with_active_referrals, [] => [:environment] do
+    HmisExternalApis::AcHmis::FetchClientsWithActiveReferralsJob.perform_now
+  end
+
   # Usage: rails driver:hmis_external_apis:import:ac_custom_data_elements[/tmp/dir,true]
   #   * dir: directory containing CSV files to import. Consult the loader classes for expected
   #     CSV filenames

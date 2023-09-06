@@ -140,6 +140,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     scope
   end
 
+  scope :not_hmis, -> { where(hmis: nil) }
+
   scope :scannable, -> do
     where(service_scannable: true)
   end

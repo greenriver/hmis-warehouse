@@ -92,26 +92,21 @@ module Types
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
-    def hud_id
-      object.project_id
-    end
+
+    field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
+    field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
 
     # TODO: resolve related HMISParticipation records
     # TODO: resolve related CEParticipation records
 
+    def hud_id
+      object.project_id
+    end
+
     def enrollments(**args)
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
 
-      # Apply the enrollment limit before we pass it in, to avoid doing an unnecessary join to the WIP table
-      scope = if args[:enrollment_limit] == 'NON_WIP_ONLY'
-        object.enrollments
-      elsif args[:enrollment_limit] == 'WIP_ONLY'
-        object.wip_enrollments
-      else
-        object.enrollments_including_wip
-      end
-
-      resolve_enrollments(scope, **args)
+      resolve_enrollments(object.enrollments_including_wip, **args)
     end
 
     def organization

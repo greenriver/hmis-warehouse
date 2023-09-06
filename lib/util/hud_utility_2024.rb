@@ -53,6 +53,24 @@ module HudUtility2024
     ].freeze
   end
 
+  def permanent_housing_project_types
+    [
+      3, # PH – Permanent Supportive Housing
+      9, # PH – Housing Only
+      10, # PH – Housing with Services (no disability required for entry)
+      13, # PH – Rapid Re-Housing
+    ].freeze
+  end
+
+  # Projects collecting 4.13 Date of Engagement
+  def doe_project_types
+    [
+      1, # Emergency Shelter – Night-by-Night
+      4, # Street Outreach
+      6, # Services Only
+    ].freeze
+  end
+
   def gender_fields
     gender_id_to_field_name.values.uniq.freeze
   end
@@ -75,6 +93,14 @@ module HudUtility2024
       9 => :GenderNone,
       99 => :GenderNone,
     }.freeze
+  end
+
+  def race_fields
+    race_id_to_field_name.values.uniq.freeze
+  end
+
+  def race_field_name_to_id
+    race_id_to_field_name.invert.freeze
   end
 
   def race_id_to_field_name
@@ -352,6 +378,10 @@ module HudUtility2024
     funding_sources.
       transform_values { |d| funder_description_to_component(d) }.
       compact[funder]
+  end
+
+  def path_funders
+    [21]
   end
 
   # field name => ID from Data Dictionary

@@ -29,7 +29,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # Project: direct_entry
         { owner_type: 'Hmis::Hud::Project', field_type: :boolean, key: :direct_entry, label: 'Direct Entry' },
         # Enrollment: rental_assistance_end_date
-        { owner_type: 'Hmis::Hud::Enrollment', field_type: :date, key: :rental_assistance_end_date, label: 'Rental Assistance End Date', at_occurrence: true },
+        { owner_type: 'Hmis::Hud::Enrollment', field_type: :date, key: :rental_assistance_end_date, label: 'Rental Assistance End Date' },
         # Enrollment: esg_allowance_grant_referred
         { owner_type: 'Hmis::Hud::Enrollment', field_type: :string, key: :esg_allowance_grant_referred, label: 'ESG Allowance Grant Referred' },
 
