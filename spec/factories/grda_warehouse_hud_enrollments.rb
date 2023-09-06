@@ -13,6 +13,7 @@ FactoryBot.define do
       ]
       dates[n % 5].to_date
     end
+    sequence(:EnrollmentCoC) { |n| "XX-00#{n}" }
   end
   factory :grda_warehouse_hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
     sequence(:EnrollmentID, 1)

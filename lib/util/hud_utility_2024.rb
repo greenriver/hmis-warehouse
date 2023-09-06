@@ -95,6 +95,14 @@ module HudUtility2024
     }.freeze
   end
 
+  def race_fields
+    race_id_to_field_name.values.uniq.freeze
+  end
+
+  def race_field_name_to_id
+    race_id_to_field_name.invert.freeze
+  end
+
   def race_id_to_field_name
     # Integer values from HUD Data Dictionary
     {
