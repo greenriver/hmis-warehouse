@@ -28,6 +28,9 @@ module HmisCsvTwentyTwentyFour::Exporter
       row = fix_relationship_to_hoh(row)
       row = fix_household_id(row)
       row = assign_move_in_date(row)
+      row = assign_missing_coc(row)
+
+      row.PreferredLanguageDifferent row.PreferredLanguageDifferent[0...100] if row.PreferredLanguageDifferent
 
       row
     end
@@ -57,6 +60,17 @@ module HmisCsvTwentyTwentyFour::Exporter
       return row unless row.project.project_type_overridden_as_ph?
 
       row.MoveInDate ||= row.EntryDate
+
+      row
+    end
+
+    # If the EnrollmentCoC is invalid, and there is only a single CoC associated with the project,
+    # use that
+    def self.assign_missing_coc(row)
+      return row if row.EnrollmentCoC.in?(HudUtility2024.cocs.keys)
+
+      coc_codes = row.project.project_cocs.pluck(:CoCCode).uniq
+      row.EnrollmentCoC = coc_codes.first if coc_codes.count == 1
 
       row
     end

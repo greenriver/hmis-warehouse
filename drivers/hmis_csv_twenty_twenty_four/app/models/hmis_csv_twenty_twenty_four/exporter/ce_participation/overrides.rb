@@ -24,6 +24,16 @@ module HmisCsvTwentyTwentyFour::Exporter
     end
 
     def self.apply_overrides(row)
+      required_columns = [
+        :AccessPoint,
+        :ReceivesReferrals,
+      ]
+      required_columns.each do |hud_field|
+        row = replace_blank(row, hud_field: hud_field, default_value: 0)
+      end
+
+      row.CEParticipationStatusStartDate ||= project.ProjectStartDate
+
       row
     end
   end

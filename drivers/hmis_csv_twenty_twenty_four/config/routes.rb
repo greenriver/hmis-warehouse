@@ -6,7 +6,5 @@
 
 BostonHmis::Application.routes.draw do
   scope :hmis_csv_twenty_twenty_four do
-    # TODO
-    # get '/my_path', to: 'hmis_csv_twenty_twenty_four/my_controller'
   end
 end
