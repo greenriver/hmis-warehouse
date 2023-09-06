@@ -19,6 +19,8 @@ module HmisExternalApis::AcHmis
     end
 
     def perform(since: Time.now - 3.days, actor_id:)
+      return unless HmisExternalApis::AcHmis::DataWarehouseApi.enabled?
+
       self.since = since
       self.records_needing_processing = []
       self.actor_id = actor_id

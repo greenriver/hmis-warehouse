@@ -15,10 +15,7 @@ module HmisExternalApis::AcHmis
     end
 
     def perform
-      unless HmisExternalApis::AcHmis::LinkApi.enabled?
-        Rails.logger.info 'Not running FetchClientsWithActiveReferralsJob due to lack of credentials'
-        return
-      end
+      return unless HmisExternalApis::AcHmis::LinkApi.enabled?
 
       # Fetch MCI IDs for clients with active referrals in LINK
       mci_ids = link.active_referral_mci_ids.parsed_body
