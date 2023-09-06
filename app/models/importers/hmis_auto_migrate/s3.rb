@@ -94,7 +94,16 @@ module Importers::HmisAutoMigrate
       files = []
       # Returns oldest first
       @s3.fetch_key_list(prefix: @s3_path).each do |entry|
-        files << entry if entry.include?(@s3_path) && (@file_name.blank? || entry.include?(@file_name))
+        matches_path = if @s3_path.present?
+          entry.include?(@s3_path) # Path was specified, so make sure we match it
+        else
+          entry.exclude?('/') # Path was NOT specified, so make sure we only look at the "root"
+        end
+
+        matches_file_name = @file_name.blank? || entry.include?(@file_name)
+
+        # TODO: should we also make sure it's a ZIP file?
+        files << entry if matches_path && matches_file_name
       end
       return nil if files.empty?
 
