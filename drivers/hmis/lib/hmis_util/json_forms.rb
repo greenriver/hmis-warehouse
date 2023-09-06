@@ -44,7 +44,7 @@ module HmisUtil
         if ENV['CLIENT'].present?
           Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/records/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            puts "Applying #{ENV['CLIENT']} override for #{identifier} form"
+            # puts "Applying #{ENV['CLIENT']} override for #{identifier} form"
             file = File.read(file_path)
             forms[identifier] = JSON.parse(file)
           end
@@ -53,14 +53,57 @@ module HmisUtil
       end
     end
 
-    def service_forms
-      @service_forms ||= begin
+    def client_override(file_path)
+      return file_path unless ENV['CLIENT'].present?
+
+      client_override_fpath = file_path.gsub('/default/', "/#{ENV['CLIENT']}/")
+      if File.exist?(client_override_fpath)
+        client_override_fpath
+      else
+        file_path
+      end
+    end
+
+    # { ROLE => { identifier => definition }}
+    def record_forms_by_role
+      @record_forms_by_role ||= begin
         forms = {}
-        if ENV['CLIENT'].present?
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/services/*.json") do |file_path|
+
+        # Load system forms. File name = role. Apply client override file if present.
+        Dir.glob("#{DATA_DIR}/default/records/*.json") do |file_path|
+          identifier = File.basename(file_path, '.json')
+          role = identifier.upcase.to_sym
+          raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.include?(role)
+
+          file_path = client_override(file_path)
+          # puts "Loading #{identifier} from #{file_path}"
+          file = File.read(file_path)
+          forms[role] ||= {}
+          forms[role][identifier] = JSON.parse(file)
+        end
+
+        # Load non-system forms
+        [
+          [:services, :SERVICE],
+          [:occurrence_point_forms, :OCCURRENCE_POINT],
+        ].each do |dirname, role|
+          forms[role] ||= {}
+          # Load defaults
+          Dir.glob("#{DATA_DIR}/default/#{dirname}/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
+            # puts "Loading #{identifier} from #{file_path}"
             file = File.read(file_path)
-            forms[identifier] = JSON.parse(file)
+            forms[role][identifier] = JSON.parse(file)
+          end
+          next unless ENV['CLIENT'].present?
+
+          # Load client-specific
+          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/#{dirname}/*.json") do |file_path|
+            identifier = File.basename(file_path, '.json')
+            file_path = client_override(file_path)
+            # puts "Loading #{identifier} from #{file_path}"
+            file = File.read(file_path)
+            forms[role][identifier] = JSON.parse(file)
           end
         end
         forms
@@ -163,8 +206,8 @@ module HmisUtil
     # and then apply a patch just to that link id. A use-case would be if you
     # want to change something about Disability fragment just for Intake,
     # not other assessments.
-    def load_definition(form_definition:, identifier:, role:)
-      raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role.to_sym)
+    def load_definition(form_definition:, identifier:, role:, title: nil)
+      raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       # Resolve all fragments, so we have a full definition
       resolve_all_fragments!(form_definition)
@@ -179,33 +222,91 @@ module HmisUtil
         role: role,
         version: 0,
         status: 'draft',
-      ).first_or_create!
+      ).first_or_create!(title: title || role.to_s.humanize)
       record.definition = form_definition
+      record.title = title if title.present?
       record.save!
     end
 
-    # Load form definitions for editing and creating records
-    public def seed_record_form_definitions
-      record_forms.merge(service_forms).each do |identifier, form_definition|
-        role = identifier.upcase.to_sym
-        role = :SERVICE if service_forms.key?(identifier)
-        raise "Unrecognized record form: #{identifier}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
+    public def ensure_system_instances_exist!
+      Hmis::Form::Definition::SYSTEM_FORM_ROLES.each do |role|
+        identifier = role.to_s.downcase
+        raise "No definition found for role: #{role}" unless Hmis::Form::Definition.where(identifier: identifier).exists?
 
-        load_definition(
-          form_definition: form_definition,
-          identifier: identifier,
-          role: role,
-        )
+        default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
+        default_instance.update(system: true, active: true)
+        default_instance.touch
+      end
+    end
 
-        # Make this form the default instance  for this role. Don't do it for service forms since those
-        # need specialized instances based on service type.
-        unless service_forms.key?(identifier)
-          instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
-          instance.save!
+    # Create some default HUD occurrence point instances
+    public def create_default_occurrence_point_instances!
+      # Move-in Date
+      unless Hmis::Form::Instance.where(definition_identifier: 'move_in_date').exists?
+        HudUtility2024.permanent_housing_project_types.each do |ptype|
+          Hmis::Form::Instance.create!(
+            definition_identifier: 'move_in_date',
+            project_type: ptype,
+            data_collected_about: :HOH,
+            active: true,
+            system: false,
+          )
         end
       end
 
-      puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
+      # Date of Engagement
+      unless Hmis::Form::Instance.where(definition_identifier: 'date_of_engagement').exists?
+        # Note: spec has funder components too, but by default we just show it for the project types.
+        HudUtility2024.doe_project_types.each do |ptype|
+          Hmis::Form::Instance.create!(
+            definition_identifier: 'date_of_engagement',
+            project_type: ptype,
+            data_collected_about: :HOH_AND_ADULTS,
+            active: true,
+            system: false,
+          )
+        end
+      end
+
+      # PATH Status
+      return if Hmis::Form::Instance.where(definition_identifier: 'path_status').exists?
+
+      HudUtility2024.path_funders.each do |funder|
+        Hmis::Form::Instance.create!(
+          definition_identifier: 'path_status',
+          funder: funder,
+          data_collected_about: :HOH_AND_ADULTS,
+          active: true,
+          system: false,
+        )
+      end
+    end
+
+    FORM_TITLES = {
+      'move_in_date' => 'Move-in Date',
+      'date_of_engagement' => 'Date of Engagement',
+      'path_status' => 'PATH Status',
+      'base-intake' => 'Intake Assessment',
+      'base-exit' => 'Exit Assessment',
+      'base-update' => 'Update Assessment',
+      'base-annual' => 'Annual Assessment',
+    }.freeze
+
+    # Load form definitions for editing and creating records
+    public def seed_record_form_definitions
+      record_forms_by_role.each do |role, definition_hash|
+        definition_hash.each do |identifier, form_definition|
+          # puts "#{identifier} => #{role}"
+          load_definition(
+            form_definition: form_definition,
+            identifier: identifier,
+            role: role,
+            title: FORM_TITLES[identifier],
+          )
+        end
+      end
+      ensure_system_instances_exist!
+      # puts "Saved definitions with identifiers: #{record_forms.keys.join(', ')}"
     end
 
     # Load form definitions for HUD assessments
@@ -230,13 +331,15 @@ module HmisUtil
           form_definition: form_definition,
           identifier: identifier,
           role: role,
+          title: FORM_TITLES[identifier],
         )
 
         # Make this form the default instance for this role
-        instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
-        instance.save!
+        default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
+        default_instance.update(system: true, active: true)
+        default_instance.touch
       end
-      puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
+      # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
     def validate_definition(json, role)

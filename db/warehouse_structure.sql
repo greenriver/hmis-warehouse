@@ -45,6 +45,20 @@ COMMENT ON EXTENSION hstore IS 'data type for storing sets of (key, value) pairs
 
 
 --
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -70,6 +84,20 @@ CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 --
 
 COMMENT ON EXTENSION postgis IS 'PostGIS geometry, geography, and raster spatial types and functions';
+
+
+--
+-- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
 
 
 --
@@ -114,6 +142,17 @@ CREATE TYPE public.record_type AS ENUM (
     'service',
     'extrapolated'
 );
+
+
+--
+-- Name: f_unaccent(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.f_unaccent(text) RETURNS text
+    LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
+    AS $_$
+SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
+$_$;
 
 
 --
@@ -1117,8 +1156,7 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "UserID" character varying(32) NOT NULL,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    at_occurrence boolean DEFAULT false NOT NULL
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -15260,7 +15298,8 @@ CREATE TABLE public.hmis_form_definitions (
     status character varying NOT NULL,
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    title character varying NOT NULL
 );
 
 
@@ -15318,7 +15357,11 @@ CREATE TABLE public.hmis_form_instances (
     custom_service_type_id integer,
     custom_service_category_id integer,
     funder integer,
-    project_type integer
+    project_type integer,
+    other_funder character varying,
+    data_collected_about character varying,
+    system boolean DEFAULT false NOT NULL,
+    active boolean DEFAULT true NOT NULL
 );
 
 
@@ -16070,7 +16113,24 @@ CREATE TABLE public.homeless_summary_report_clients (
     spm_adults_with_children_where_parenting_adult_18_to_24__b_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__a_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__n_n_h_ integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer
+    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer,
+    spm_all_persons__mid_east_n_afric integer,
+    spm_without_children__mid_east_n_ integer,
+    spm_with_children__mid_east_n_afr integer,
+    spm_only_children__mid_east_n_afr integer,
+    spm_without_children_and_fifty_fi integer,
+    spm_adults_with_children_where_pa integer,
+    spm_all_persons__mid_east_n_african integer,
+    spm_all_persons__hispanic_latinaeo integer,
+    spm_without_children__mid_east_n_african integer,
+    spm_without_children__hispanic_latinaeo integer,
+    spm_with_children__mid_east_n_african integer,
+    spm_with_children__hispanic_latinaeo integer,
+    spm_only_children__mid_east_n_african integer,
+    spm_only_children__hispanic_latinaeo integer,
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer,
+    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer
 );
 
 
@@ -50710,6 +50770,13 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
+-- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
+
+
+--
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54333,10 +54400,18 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230822183752'),
 ('20230822200902'),
 ('20230824192127'),
+('20230827232228'),
 ('20230828180700'),
 ('20230828180743'),
 ('20230828180842'),
 ('20230829171917'),
-('20230830121811');
+('20230830121811'),
+('20230831211739'),
+('20230901123748'),
+('20230901124730'),
+('20230901124955'),
+('20230901143829'),
+('20230901144153'),
+('20230902183854');
 
 

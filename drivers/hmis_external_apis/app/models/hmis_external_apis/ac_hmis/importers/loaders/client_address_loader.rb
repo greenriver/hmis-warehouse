@@ -23,32 +23,40 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def build_records
       valid_personal_ids = Hmis::Hud::Client.hmis.pluck(:personal_id).to_set
       expected = 0
+      seen = Set.new
       records = rows.map do |row|
         expected += 1
         use_value = row_value(row, field: 'use')
         use_mapped = USE_MAP[use_value.downcase]
 
         personal_id = row_value(row, field: 'PersonalID')
-        next nil unless personal_id.in?(valid_personal_ids)
+        unless personal_id.in?(valid_personal_ids)
+          log_skipped_row(row, field: 'PersonalID')
+          next nil
+        end
 
-        default_attrs.merge(
-          {
-            AddressID: Hmis::Hud::Base.generate_uuid,
-            UserID: row_value(row, field: 'UserID', required: false) || system_user_id,
-            PersonalID: personal_id,
-            use: use_mapped,
-            notes: use_value && use_mapped.nil? ? use_value : nil, # save use as a note if we can't map it
-            line1: row_value(row, field: 'line1', required: false),
-            line2: row_value(row, field: 'line2', required: false),
-            city: row_value(row, field: 'city', required: false),
-            state: normalize_state(row),
-            district: row_value(row, field: 'county', required: false),
-            country: row_value(row, field: 'country', required: false),
-            postal_code: normalize_zipcode(row),
-            DateCreated: date_created(row),
-            DateUpdated: parse_date(row_value(row, field: 'DateUpdated')),
-          },
-        )
+        attrs = {
+          AddressID: Hmis::Hud::Base.generate_uuid,
+          UserID: row_value(row, field: 'UserID', required: false) || system_user_id,
+          PersonalID: personal_id,
+          use: use_mapped,
+          notes: use_value && use_mapped.nil? ? use_value : nil, # save use as a note if we can't map it
+          line1: row_value(row, field: 'line1', required: false),
+          line2: row_value(row, field: 'line2', required: false),
+          city: row_value(row, field: 'city', required: false),
+          state: normalize_state(row),
+          district: row_value(row, field: 'county', required: false),
+          country: row_value(row, field: 'country', required: false),
+          postal_code: normalize_zipcode(row),
+          DateCreated: date_created(row),
+          DateUpdated: parse_date(row_value(row, field: 'DateUpdated')),
+        }
+
+        # Skip duplicates
+        uniq_key = attrs.except(:AddressID, :UserID, :DateCreated, :DateUpdated).values.join('|')
+        next nil if seen.add?(uniq_key).nil?
+
+        default_attrs.merge(attrs)
       end.compact
       log_processed_result(expected: expected, actual: records.size)
       records

@@ -351,10 +351,14 @@ class SeedMaker
   def load_hmis_data
     return unless ENV['ENABLE_HMIS_API'] == 'true'
 
-    # Load FormDefinitions from JSON files
     ::HmisUtil::JsonForms.new.tap do |builder|
+      # Load ALL the latest record definitions from JSON files.
+      # This also ensures that any system-level instances exist.
       builder.seed_record_form_definitions
+      # Load ALL the latest assessment definition froms JSON files.
       builder.seed_assessment_form_definitions
+      # In development, create the initial instances for occurrence-point collection.
+      builder.create_default_occurrence_point_instances! if Rails.env.development?
     end
   end
 
