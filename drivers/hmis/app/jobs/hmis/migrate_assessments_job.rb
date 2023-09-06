@@ -240,7 +240,12 @@ module Hmis
     end
 
     def summarize(numer, denom, msg: nil)
-      pct = ((numer.to_f / denom) * 100).to_i
+      pct = if denom.positive?
+        ((numer.to_f / denom) * 100).to_i
+      else
+        0
+      end
+
       "#{pct}% #{msg} (#{numer}/#{denom})"
     end
 

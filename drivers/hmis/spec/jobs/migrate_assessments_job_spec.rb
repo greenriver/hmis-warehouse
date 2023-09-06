@@ -82,7 +82,6 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           related_records = [
             :health_and_dv,
             :income_benefit,
-            # :enrollment_coc,
             :physical_disability,
             :developmental_disability,
             :chronic_health_condition,
@@ -116,8 +115,7 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
     end
 
     describe 'bad data' do
-      # Not handled yet, job should probably be made more robust in dealing with bad data
-      xit 'doesnt create a second intake assessment' do
+      it 'doesnt create a second intake assessment' do
         # Create a second IncomeBenefit record at Entry that has a different information date
         create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 1, information_date: 1.week.ago)
 
