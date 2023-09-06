@@ -34,7 +34,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Kiba::CsvBase
         Kiba::Common::Destinations::CSV,
         {
           filename: destination_name,
-          headers: target_class.hmis_configuration(version: '2024').keys.map(&:to_s) + preserve_headers,
+          headers: (target_class.hmis_configuration(version: '2024').keys.map(&:to_s) + preserve_headers).uniq,
         },
       )
     end
