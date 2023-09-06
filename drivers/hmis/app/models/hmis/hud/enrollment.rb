@@ -102,12 +102,31 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # A user can see any enrollment associated with a project they can access
   replace_scope :viewable_by, ->(user) { with_access(user, :can_view_enrollment_details) }
 
+  # Free-text search for Enrollment
   scope :matching_search_term, ->(search_term) do
     search_term.strip!
-    # If there are Household ID matches, return those only
-    household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
-    household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.any?
-    return household_matches if household_matches&.any?
+
+    alpha_numeric = /[[[:alnum:]]-]+/.match(search_term).try(:[], 0) == search_term
+    numeric = /[\d-]+/.match(search_term).try(:[], 0) == search_term
+
+    # If numeric, check if it's an Enrollment primary key
+    if numeric
+      matching_enrollments = where(id: search_term)
+      return matching_enrollments if matching_enrollments.exists?
+    end
+
+    # If alphanumeric, check if it's an EnrollmentID
+    if alpha_numeric
+      matching_enrollments = where(enrollment_id: search_term)
+      return matching_enrollments if matching_enrollments.exists?
+    end
+
+    # If alphanumeric, check if it's a Household ID
+    if alpha_numeric
+      household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
+      household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.exists?
+      return household_matches if household_matches&.exists?
+    end
 
     # Search by client
     joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))

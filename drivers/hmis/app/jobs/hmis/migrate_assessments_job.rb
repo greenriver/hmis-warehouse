@@ -7,7 +7,11 @@
 module Hmis
   class MigrateAssessmentsJob < BaseJob
     include Hmis::Concerns::HmisArelHelper
+    include NotifierConfig
+
     attr_accessor :data_source_id
+
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     EXIT_STAGE = 3
     ENTRY_EXIT = [1, 3].freeze # entry, exit
@@ -17,7 +21,6 @@ module Hmis
       Hmis::Hud::HealthAndDv,
       Hmis::Hud::EmploymentEducation,
       Hmis::Hud::YouthEducationStatus,
-      Hmis::Hud::EnrollmentCoc,
       Hmis::Hud::Disability,
       Hmis::Hud::Exit,
     ].freeze
@@ -34,9 +37,17 @@ module Hmis
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
-    def perform(data_source_id:)
+    def perform(data_source_id:, clobber: false)
       self.data_source_id = data_source_id
-      Hmis::Hud::Enrollment.where(data_source_id: data_source_id).in_batches(of: 10_000) do |batch|
+      raise 'Not an HMIS Data source' if GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
+
+      debug_log "Building assessments for data source #{data_source_id}"
+
+      # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
+      debug_log 'Deleting old assessments' if clobber
+      Hmis::Hud::CustomAssessment.where(data_source_id: data_source_id).each(&:really_destroy!) if clobber
+
+      Hmis::Hud::Enrollment.where(data_source_id: data_source_id).in_batches(of: 5_000) do |batch|
         # Build entry/exit assessments
         build_assessments(
           enrollment_scope: batch,
@@ -52,6 +63,8 @@ module Hmis
           data_source_id: data_source_id,
         )
       end
+
+      summarize_assessments(data_source_id: data_source_id)
     end
 
     def build_assessments(enrollment_scope:, data_collection_stages:, unique_by_information_date:, data_source_id:)
@@ -68,9 +81,12 @@ module Hmis
 
       # Count of records that are skipped because they should already be tied to an assessment
       skipped_records = 0
+      # Count of records that had duplicates. E.g. Two IncomeBenefit with same information date and data collection stage.
+      duplicate_records = 0
 
       # Group together IDs of related records by key_fields
       assessment_records = {}
+
       RELATED_RECORDS.each do |klass|
         is_exit = klass == Hmis::Hud::Exit
         next if is_exit && !data_collection_stages.include?(EXIT_STAGE)
@@ -112,15 +128,21 @@ module Hmis
             else
               # Transform Hmis::Hud::HealthAndDv => health_and_dv_id
               colname = form_processor_column_name(klass)
-              Rails.logger.warn "More than 1 #{klass.name} for key. IDs: #{values[:id]}" if values[:id].size > 1
+              if values[:id].size > 1
+                Rails.logger.info "More than 1 #{klass.name} for key. IDs: #{values[:id]}"
+                duplicate_records += 1
+              end
               record_id = values[:id].last
               assessment_records.deep_merge!({ hash_key => { colname => record_id, **metadata } })
             end
           end
       end
 
-      Rails.logger.info "Skipped #{skipped_records} records. Creating #{assessment_records.keys.size} assessments..."
+      debug_log "Skipped #{duplicate_records} duplicate records"
+      debug_log "Skipped #{skipped_records} records that were already linked to an assessment"
+      debug_log "Creating #{assessment_records.keys.size} assessments..."
 
+      skipped_exit_assessments = 0
       # For each grouping of Enrollment+InformationDate+DataCollectionStage,
       # create a CustomAssessment and a FormProcessor that references the related records
       assessment_records.each do |hash_key, value|
@@ -141,8 +163,17 @@ module Hmis
 
         # Build FormProcessor with IDs to all related records
         assessment.build_form_processor(**value)
-        assessment.save!
+
+        if assessment.exit? && value[:exit_id].nil?
+          # There appear to be lots of "exit" data-collection-stage records for enrollments that don't have an Exit record. Skip those
+          Rails.logger.info "Skipping Exit Assessment for open enrollment. EnrollmentID: #{assessment.enrollment_id}"
+          skipped_exit_assessments += 1
+        else
+          assessment.save!
+        end
       end
+
+      debug_log "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open"
     end
 
     private
@@ -206,6 +237,40 @@ module Hmis
           [oldval, newval].compact.first
         end
       end
+    end
+
+    def summarize(numer, denom, msg: nil)
+      pct = if denom.positive?
+        ((numer.to_f / denom) * 100).to_i
+      else
+        0
+      end
+
+      "#{pct}% #{msg} (#{numer}/#{denom})"
+    end
+
+    def summarize_assessments(data_source_id:)
+      enrollment_scope = Hmis::Hud::Enrollment.where(data_source_id: data_source_id)
+      assessment_scope = Hmis::Hud::CustomAssessment.where(data_source_id: data_source_id)
+
+      open_enrollment_assessment_scope = Hmis::Hud::CustomAssessment.joins(:enrollment).merge(enrollment_scope.open_on_date)
+
+      num_enrollments = enrollment_scope.size
+      num_open_enrollments = enrollment_scope.open_on_date.size
+      num_exited_enrollments = enrollment_scope.exited.size
+
+      msgs = []
+      msgs << summarize(assessment_scope.intakes.size, num_enrollments, msg: 'of enrollments have intake assessments')
+      msgs << summarize(open_enrollment_assessment_scope.intakes.size, num_open_enrollments, msg: 'of open enrollments have intake assessments')
+      msgs << summarize(assessment_scope.exits.size, num_exited_enrollments, msg: 'of exited enrollments have exit assessments')
+      msgs << summarize(open_enrollment_assessment_scope.exits.size, num_open_enrollments, msg: 'of open enrollments have exit assessments')
+      msgs << summarize(assessment_scope.annuals.size, num_enrollments, msg: 'of enrollments have annual assessments')
+      msgs << summarize(assessment_scope.updates.size, num_enrollments, msg: 'of enrollments have update assessments')
+      debug_log(msgs.join("\n"))
+    end
+
+    def debug_log(message)
+      @notifier&.ping(message)
     end
   end
 end
