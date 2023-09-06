@@ -96,11 +96,56 @@ namespace :import do
     # Num Clients wihout MCI IDs
     Hmis::Hud::Client.hmis.left_outer_joins(:ac_hmis_mci_ids).where(ac_hmis_mci_ids: { id: nil }).count
 
-    # TODO VALIDATE: how many *open* enrollment have an assigned unit?
-    Hmis::Hud::Enrollment.hmis.open_on_date.joins(:current_unit).count
+    # Kick off MigrateAssessmentsJob asap in long-running delayed job queue
+    # NOTE: this is not dependent on the earlier steps... this can be run any time after the import finishes
+    # Doesn't matter if we have run Kiba yet or not
+    MigrateAssessmentsJob.set(priority: 0).perform_later(data_source_id: GrdaWarehouse::DataSource.hmis.first.id, clobber: true)
+  end
 
-    # TODO: kick off MigrateAssessmentsJob
-    # ADD CHECK: how many non-wip enrollments DONT HAVE intake assessments?
-    # ADD CHECK: how many exited enrollments DONT HAVE exit assessments?
+  def write_project_summary_file(filename: 'hmis_projects_summary.csv')
+    project_pk_to_walkin_status = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry).values.pluck(:owner_id, :value_boolean).to_h
+
+    # Grouped projects that will be removed
+    # ignored_projects = [617, 819, 654, 669, 747, 666, 1163, 641, 671, 648, 672, 638, 673, 728, 729, 674, 947, 948, 768, 820, 1075, 676, 677, 1222, 681, 727, 678, 680, 679, 1136, 683, 682, 620, 833, 1188, 988, 969, 982, 986, 1001, 1164, 1190, 1189, 1237, 1238, 1294, 1296, 1325].map(&:to_s)
+
+    rows = []
+    Hmis::Hud::Project.hmis.each do |project|
+      next if project.project_id.size == 32
+
+      wip_enrollments = project.wip_enrollments.pluck(:id)
+
+      open_enrollments = project.enrollments.open_on_date.pluck(:id)
+      open_enrollments_with_referral = project.enrollments.open_on_date.joins(:source_postings).pluck(:id)
+      open_enrollments_missing_referral = open_enrollments - open_enrollments_with_referral
+
+      open_enrollments_with_unit = project.enrollments.open_on_date.joins(:current_unit).pluck(:id)
+      open_enrollments_missing_unit = open_enrollments - open_enrollments_with_unit
+
+      accepts_walk_in = project_pk_to_walkin_status[project.id]
+      walkin_status = accepts_walk_in ? 'Yes' : 'No'
+      walkin_status = 'Unknown' if accepts_walk_in.nil?
+
+      unit_capacity = project.units.size
+      open_households = project.enrollments.open_on_date.pluck(:household_id).uniq
+      rows << {
+        ProjectID: project.project_id,
+        ProjectName: project.project_name,
+        OperatingEndDate: project.operating_end_date&.strftime('%Y-%m-%d'),
+        DirectEntry: walkin_status,
+        UnitCapacity: unit_capacity,
+        OpenHouseholds: open_households.size,
+        OverCapacity: open_households.size > unit_capacity ? 'Yes' : 'No', # Should be N for all programs
+        OpenEnrollments: open_enrollments.size,
+        OpenEnrollmentsWithoutReferral: open_enrollments_missing_referral.size, # Should be zero for non-Walkin programs
+        OpenEnrollmentsWithoutUnit: open_enrollments_missing_unit.size, # Should be zero for all programs
+        AcceptedPendingIncompleteEnrollments: wip_enrollments.size,
+      }
+    end
+
+    CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+      rows.each do |row|
+        writer << row.values
+      end
+    end
   end
 end
