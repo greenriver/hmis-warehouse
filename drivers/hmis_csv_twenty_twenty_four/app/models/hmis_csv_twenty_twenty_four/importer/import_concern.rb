@@ -183,7 +183,6 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
     end
 
     # HMIS CSV FORMAT SPECIFICATIONS says under "Data Types"
-    # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.8.pdf
     #
     # Date fields must be in the format yyyy-mm-dd
     # Datetime aka T fields must be in the format yyyy-mm-dd hh:mm:ss with no reference to timezones.
@@ -191,7 +190,7 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
     # In practice HMIS systems send us data in a local timezone and
     # we run their instance in the same timezone but we currently
     # store data in a postgres timestamp column in the databases configured
-    # timezone. Be default this is UTC. Rails can handle the timezone math for
+    # timezone. By default this is UTC. Rails can handle the timezone math for
     # us as long as we are passing around ActiveSupport::TimeWithZone objects
     # so this method is careful to generate those assuming we are in
     # Time.zone  (the configured timezone for Rails)
