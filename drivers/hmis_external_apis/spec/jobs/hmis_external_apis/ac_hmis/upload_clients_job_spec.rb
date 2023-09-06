@@ -20,9 +20,20 @@ RSpec.describe HmisExternalApis::AcHmis::UploadClientsJob, type: :job do
     )
   end
 
+  before { create(:hmis_data_source) }
+
   it 'uploads clients' do
-    create(:hmis_data_source)
-    subject.perform
+    subject.perform('clients_with_mci_ids_and_address')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads hmis csv' do
+    subject.perform('hmis_csv_export')
+    expect(subject.state).to eq(:success)
+  end
+
+  it 'uploads project crosswalk' do
+    subject.perform('project_crosswalk')
     expect(subject.state).to eq(:success)
   end
 end

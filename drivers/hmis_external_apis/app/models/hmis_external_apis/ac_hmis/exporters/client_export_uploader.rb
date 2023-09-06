@@ -8,11 +8,15 @@ module HmisExternalApis::AcHmis::Exporters
   class ClientExportUploader
     delegate :username, :host, :path, :password, :port, to: :credentials
 
-    attr_accessor :io_streams, :filename
+    attr_accessor :io_streams, :filename, :pre_zipped_data
 
-    def initialize(io_streams: [], date: Date.today)
+    def initialize(io_streams: [], pre_zipped_data: nil, date: Date.today, filename_format: 'file.zip')
       self.io_streams = io_streams
-      self.filename = date.strftime('%Y-%m-%d-clients.zip')
+      self.pre_zipped_data = pre_zipped_data
+
+      self.filename = date.strftime(filename_format)
+
+      raise 'You can only pass in an array of uncompressed I/O streams or the zipped content' unless io_streams.present? ^ pre_zipped_data.present?
 
       require 'net/sftp'
     end
@@ -21,8 +25,6 @@ module HmisExternalApis::AcHmis::Exporters
       Rails.logger.info "Sftping to #{username}@#{host}"
       args = { password: password, verbose: :error, port: port || 22 }
       Net::SFTP.start(host, username, args) do |sftp|
-        zipped_contents = zipped_io_stream.string
-
         Rails.logger.info "Uploading #{zipped_contents.length} bytes to #{path}/#{filename}"
 
         sftp.remove("#{path}/#{filename}")
@@ -45,10 +47,14 @@ module HmisExternalApis::AcHmis::Exporters
     end
 
     def self.can_run?
-      !!new.send(:credentials)
+      !!new(pre_zipped_data: 'nothing').send(:credentials)
     end
 
     private
+
+    def zipped_contents
+      @zipped_contents ||= io_streams.present? ? zipped_io_stream.string : pre_zipped_data
+    end
 
     def zipped_io_stream
       Rails.logger.info "Compressing #{filename}"
