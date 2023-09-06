@@ -21,116 +21,71 @@
       ]
     },
     {
-      "type": "GROUP",
-      "link_id": "flex-funds-group",
-      "component": "INPUT_GROUP",
+      "link_id": "flex-funds-type",
+      "type": "CHOICE",
+      "repeats": true,
       "text": "Direct financial assistance provided (check all that apply)",
       "readonly_text": "Financial assistance provided",
-      "item": [
+      "component": "RADIO_BUTTONS_VERTICAL",
+      "mapping": {
+        "custom_field_key": "flex_funds_types"
+      },
+      "pick_list_options": [
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-movein",
-          "text": "Move-in (including first, last and security)"
+          "code": "Move-in (including first last and security)"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-rent",
-          "text": "Rent"
+          "code": "Rent"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-rent-arrears",
-          "text": "Rent Arrears"
+          "code": "Rent Arrears"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-rent-utilities",
-          "text": "Utilities"
+          "code": "Utilities"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-transportation",
-          "text": "Transportation"
+          "code": "Transportation"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-education",
-          "text": "Education"
+          "code": "Education"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-legal",
-          "text": "Legal"
+          "code": "Legal"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-child-care",
-          "text": "Child care"
+          "code": "Child care"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-work",
-          "text": "Work"
+          "code": "Work"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-medical",
-          "text": "Medical"
+          "code": "Medical"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-cell-phone",
-          "text": "Cell phone"
+          "code": "Cell phone"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-food",
-          "text": "Food/Groceries"
+          "code": "Food/Groceries"
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "ff-other",
-          "text": "Other"
-        },
+          "code": "Other"
+        }
+      ]
+    },
+    {
+      "type": "TEXT",
+      "link_id": "ff-other-describe",
+      "text": "Describe other assistance provided",
+      "brief_text": "Other assistance",
+      "mapping": {
+        "custom_field_key": "flex_funds_other_details"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
         {
-          "type": "TEXT",
-          "link_id": "ff-other-describe",
-          "text": "Describe other assistance provided",
-          "brief_text": "Other assistance",
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "ff-other",
-              "answer_code": "YES",
-              "operator": "EQUAL"
-            }
-          ]
+          "question": "flex-funds-type",
+          "operator": "INCLUDES",
+          "answer_code": "Other"
         }
       ]
     }
