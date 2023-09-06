@@ -12,16 +12,11 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Kiba::CsvBase
   extend ActiveSupport::Concern
 
   included do
-    def self.up(source_name, destination_name, encoding, header_converter, references)
-      # preserve any non-HUD headers (walkin). Perhaps there's a more 'kiba' way to do this...
-      source_headers = CSV.parse(File.open(source_name, &:readline)).first
-      prev_headers = target_class.hmis_configuration(version: '2022').keys.map(&:to_s)
-      preserve_headers = source_headers - prev_headers
-
+    def self.up(source_file:, destination_file:, encoding:, header_converter:, references:, destination_headers:)
       HudTwentyTwentyTwoToTwentyTwentyFour::Kiba::Transform.up(
         Kiba::Common::Sources::CSV,
         {
-          filename: source_name,
+          filename: source_file,
           csv_options: {
             headers: :first_row,
             skip_blanks: true,
@@ -33,21 +28,21 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Kiba::CsvBase
         transforms(csv: true, references: references),
         Kiba::Common::Destinations::CSV,
         {
-          filename: destination_name,
-          headers: (target_class.hmis_configuration(version: '2024').keys.map(&:to_s) + preserve_headers).uniq,
+          filename: destination_file,
+          headers: destination_headers,
         },
       )
     end
 
-    def self.create(destination_name, references)
+    def self.create(destination_file:, references:, destination_headers:)
       HudTwentyTwentyTwoToTwentyTwentyFour::Kiba::Transform.up(
         Kiba::Common::Sources::Enumerable,
         [{}], # Generate a single input row -- transforms will produce an array of results based on the references
         transforms(csv: true, references: references),
         Kiba::Common::Destinations::CSV,
         {
-          filename: destination_name,
-          headers: target_class.hmis_configuration(version: '2024').keys.map(&:to_s),
+          filename: destination_file,
+          headers: destination_headers,
         },
       )
     end

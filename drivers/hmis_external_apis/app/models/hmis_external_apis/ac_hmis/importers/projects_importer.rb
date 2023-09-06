@@ -5,6 +5,17 @@
 ###
 
 module HmisExternalApis::AcHmis::Importers
+  class CsvTransformer2022to2024 < HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer
+    def self.destination_headers(target_class)
+      case [target_class]
+      when [GrdaWarehouse::Hud::Project]
+        super(target_class) + ['Walkin']
+      else
+        super(target_class)
+      end
+    end
+  end
+
   class ProjectsImporter
     JOB_LOCK_NAME = 'hmis_project_importer'.freeze
 
@@ -28,12 +39,9 @@ module HmisExternalApis::AcHmis::Importers
       success = false
       Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: timeout_seconds) do
         # transform data files to HUD 2024
-        Dir.mktmpdir do |tmpdir|
-          HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer.up(dir, tmpdir)
-          self.dir = tmpdir
-          Dir.chdir(dir) do
-            _run
-          end
+        Dir.mktmpdir do |hud_dir|
+          CsvTransformer2022to2024.up(dir, hud_dir)
+          _run(hud_dir)
         end
         success = true
       end
@@ -44,16 +52,29 @@ module HmisExternalApis::AcHmis::Importers
 
     protected
 
-    def _run
+    def run_in_dir(new_dir)
+      original_dir = dir
+      Dir.chdir(dir) do
+        self.dir = new_dir
+        yield
+      end
+      self.dir = original_dir
+    end
+
+    def _run(hud_dir)
       start
       sanity_check
       ProjectsImportAttempt.transaction do
-        upsert_funders
-        upsert_orgs
-        upsert_projects
-        upsert_walkins
-        upsert_inventory
-        upsert_project_unit_type_mappings
+        run_in_dir(hud_dir) do
+          upsert_funders
+          upsert_orgs
+          upsert_projects
+          upsert_walkins
+          upsert_inventory
+        end
+        run_in_dir(dir) do
+          upsert_project_unit_type_mappings
+        end
         Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
       end
       analyze
@@ -189,7 +210,6 @@ module HmisExternalApis::AcHmis::Importers
 
     def upsert_project_unit_type_mappings
       file = 'ProjectUnitTypes.csv'
-      return unless File.exist?("#{dir}/#{file}")
 
       columns = ['ProgramID', 'UnitTypeID', 'UnitCapacity', 'IsActive']
       check_columns(file: file, expected_columns: columns, critical_columns: columns)
