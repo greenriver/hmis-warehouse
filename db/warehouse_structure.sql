@@ -5853,7 +5853,7 @@ CREATE VIEW public.client_searchable_names AS
 UNION
  SELECT "Client".id AS client_id,
     "CustomClientName".search_name_full AS full_name,
-    "CustomClientName".search_name_full AS last_name,
+    "CustomClientName".search_name_last AS last_name,
         CASE
             WHEN "CustomClientName"."primary" THEN 'primary'::text
             ELSE 'secondary'::text
