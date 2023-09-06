@@ -9,13 +9,10 @@ module HmisExternalApis::AcHmis
     include HmisExternalApis::AcHmis::ReferralJobMixin
     include NotifierConfig
 
-    def initialize
-      setup_notifier('Fetch clients with active referrals in LINK')
-      super
-    end
-
     def perform
       return unless HmisExternalApis::AcHmis::LinkApi.enabled?
+
+      setup_notifier('Fetch clients with active referrals in LINK')
 
       # Fetch MCI IDs for clients with active referrals in LINK
       mci_ids = link.active_referral_mci_ids.parsed_body

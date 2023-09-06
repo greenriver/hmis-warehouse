@@ -13,17 +13,14 @@ module HmisExternalApis::AcHmis
 
     NAMESPACE = 'ac_hmis_mci_unique_id'.freeze
 
-    def initialize
-      setup_notifier('Fetch changes from AC Data Warehouse')
-      super
-    end
-
     def perform(since: Time.now - 3.days, actor_id:)
       return unless HmisExternalApis::AcHmis::DataWarehouseApi.enabled?
 
       self.since = since
       self.records_needing_processing = []
       self.actor_id = actor_id
+
+      setup_notifier('Fetch changes from AC Data Warehouse')
 
       collect_records_to_inspect
       fetch_clients
