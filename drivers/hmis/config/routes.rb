@@ -5,6 +5,12 @@
 ###
 
 BostonHmis::Application.routes.draw do
+  get 'hmis/system_status/operational', to: 'system_status#operational'
+  get 'hmis/system_status/cache_status', to: 'system_status#cache_status'
+  get 'hmis/system_status/details', to: 'system_status#details'
+  get 'hmis/system_status/ping', to: 'system_status#ping'
+  get 'hmis/system_status/exception', to: 'system_status#exception'
+
   # Routes for the HMIS API
   if ENV['ENABLE_HMIS_API'] == 'true'
     namespace :hmis, defaults: { format: :json } do
