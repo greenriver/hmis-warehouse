@@ -25,6 +25,11 @@ module Hmis
       Hmis::Hud::Exit,
     ].freeze
 
+    def initialize
+      setup_notifier('Migrate HMIS Assessments')
+      super
+    end
+
     # Construct CustomAssessment and FormProcessor records for Assessment-related records.
     #
     # For Entry/Exit assessments, records are grouped together if they have the same Data Collection Stage.
