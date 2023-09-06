@@ -7,7 +7,10 @@
 module ClientSearch
   extend ActiveSupport::Concern
   included do
-    def self.text_searcher(text, sorted:)
+    # @param text [String] search term
+    # @param sorted [Boolean] will attempt ordering against search term it seems to be free-text
+    # @param resolve_for_joins [Boolean] return results as sub query of (client_id, score) suitable for joins
+    def self.text_searcher(text, sorted:, resolve_for_join_query: false)
       return none unless text.present?
 
       text.strip!
@@ -35,13 +38,21 @@ module ClientSearch
             .select(:source_id)
           matches_external_ids = self.where(id: external_id_scope.select(:source_id)).any?
         end
-        return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted) unless matches_external_ids
+        if !matches_external_ids
+          # short circuit the rest of search as this seems to be free text
+          if resolve_for_join_query
+            return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: self)
+          end
+            return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted)
+          else
+        end
       end
 
-      # dummy where to pass to OR. This method needs refactoring :(
+      # dummy condition to start the OR chain. This method needs refactoring
       where ||= sa[:id].eq(-1)
       where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
 
+      results = nil
       if numeric
         client_ids = self.where(where).pluck(&:id)
         source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: text).pluck(:source_id)
@@ -51,10 +62,15 @@ module ClientSearch
           # append any source client ids for that destination
           client_ids += source_client_ids
         end
-        where(id: client_ids)
+        results = where(id: client_ids)
       else
-        self.where(where)
+        results = where(where)
       end
+
+      if resolve_for_join_query
+        results = results.select(Arel.sql('"Client"."id" AS client_id'), Arel.sql('NULL AS score'))
+      end
+      results
     end
 
     def self.nickname_search(where, text)

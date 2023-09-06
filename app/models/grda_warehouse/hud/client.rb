@@ -1781,15 +1781,11 @@ module GrdaWarehouse::Hud
     # @param client_scope [GrdaWarehouse::Hud::Client.source] find id matches in this scope
     # @param sorted [Boolean] order results by closest match to text
     def self.text_search(text, client_scope: nil, sorted: true)
-      # if searching by ID
-      if client_scope
-        # WARNING: Any ids added to client_ids below here could be outside of the search scope
-        # if text.to_s =~ /\A[-0-9]+\z/
-        result = client_scope.text_searcher(text, sorted: sorted)
-        result.where(id: self.select(:id))
-      else
-        text_searcher(text, sorted: sorted)
-      end
+      result = (client_scope || self).text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      mapped = joins(%{JOIN "warehouse_clients" "warehouse_clients_x" ON "warehouse_clients_x"."destination_id" = "Client"."id" })
+        .joins(%{JOIN (#{result.to_sql}) AS search_results ON search_results.client_id = "warehouse_clients_x".source_id})
+      mapped = mapped.order(Arel.sql('search_results.score DESC'), :id) if sorted
+      mapped
     rescue RangeError => e
       # FIXME: what is this range error?
       Sentry.capture_exception(e)

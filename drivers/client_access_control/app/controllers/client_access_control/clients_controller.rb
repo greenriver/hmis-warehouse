@@ -33,6 +33,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     elsif (current_user.can_access_window_search? || current_user.can_search_own_clients?) && params[:q].present?
       @clients = client_source.text_search(params[:q], client_scope: client_search_scope)
     end
+
     preloads = [
       :processed_service_history,
       :vispdats,

@@ -5,8 +5,23 @@ module ClientSearchUtil
       new.perform(...)
     end
 
+    def self.perform_as_joinable_query(...)
+      new.perform_as_joinable_query(...)
+    end
+
     # @param term [String]
     # @param clients [ClientScope]
+    def perform_as_joinable_query(term:, clients:)
+      term = normalize_search_term(term)
+      return clients.none unless term
+
+      results = filter_clients(term, clients)
+      results.select(Arel.sql('"Client"."id" AS client_id, "search_score" AS score'))
+    end
+
+    # @param term [String]
+    # @param clients [ClientScope]
+    # @param sorted [Boolean]
     def perform(term:, clients:, sorted:)
       term = normalize_search_term(term)
       return clients.none unless term
