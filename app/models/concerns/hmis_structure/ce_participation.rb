@@ -14,6 +14,10 @@ module HmisStructure::CeParticipation
   end
 
   module ClassMethods
+    def hud_csv_file_name(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      'CEParticipation.csv'
+    end
+
     def hmis_configuration(version: nil)
       case version
       when '2024'
