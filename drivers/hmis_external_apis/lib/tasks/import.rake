@@ -99,7 +99,7 @@ namespace :import do
     # Kick off MigrateAssessmentsJob asap in long-running delayed job queue
     # NOTE: this is not dependent on the earlier steps... this can be run any time after the import finishes
     # Doesn't matter if we have run Kiba yet or not
-    MigrateAssessmentsJob.set(priority: 0).perform_later(data_source_id: GrdaWarehouse::DataSource.hmis.first.id, clobber: true)
+    Hmis::MigrateAssessmentsJob.set(priority: 0).perform_later(data_source_id: GrdaWarehouse::DataSource.hmis.first.id, clobber: true)
   end
 
   def write_project_summary_file(filename: 'hmis_projects_summary.csv')
