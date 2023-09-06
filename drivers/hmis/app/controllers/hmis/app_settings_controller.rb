@@ -31,6 +31,8 @@ class Hmis::AppSettingsController < Hmis::BaseController
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
       casUrl: GrdaWarehouse::Config.get(:cas_url),
+      revision: Git.revision,
+      branch: Git.branch,
       theme: themes.first&.hmis_value,
       globalFeatureFlags: {
         # Whether to show MCI ID in client search results
