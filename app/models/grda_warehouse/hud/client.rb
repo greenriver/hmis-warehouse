@@ -1189,19 +1189,18 @@ module GrdaWarehouse::Hud
     end
 
     # Use the Pathways answer if available, otherwise, HMIS
-    def domestic_violence?
-      return pathways_domestic_violence if pathways_domestic_violence
-
+    def domestic_violence
       # To allow preload(:source_health_and_dvs) do the calculation in memory
       dv_scope = source_health_and_dvs.select { |m| m.DomesticViolenceSurvivor == 1 }
       lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
       if lookback_days&.positive?
-        dv_scope.select do |m|
+        any_dv_in_range = dv_scope.select do |m|
           m.InformationDate.present? && m.InformationDate > lookback_days.days.ago.to_date && # Limit report date to a reasonable range
           m.WhenOccurred == 1 # Limit to within 3 months of report date
         end.present?
-      else
-        dv_scope.present?
+        return 1 if any_dv_in_range
+      elsif dv_scope.present?
+        return 1
       end
     end
 

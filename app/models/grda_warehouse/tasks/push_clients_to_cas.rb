@@ -185,7 +185,7 @@ module GrdaWarehouse::Tasks
         physical_disability: :physical_response?,
         calculated_chronic_homelessness: :chronically_homeless_for_cas,
         calculated_first_homeless_night: :date_of_first_service,
-        domestic_violence: :domestic_violence?,
+        domestic_violence: :domestic_violence,
         disability_verified_on: :disability_verified_on,
         sync_with_cas: :active_in_cas?,
         force_remove_unavailable_fors: :force_remove_unavailable_fors,

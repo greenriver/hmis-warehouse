@@ -6,6 +6,7 @@
 
 module HmisExternalApis::AcHmis
   class WarehouseChangesJob < BaseJob
+    include NotifierConfig
     include ArelHelper
 
     attr_accessor :since, :records_needing_processing, :clients, :external_ids, :merge_sets, :actor_id
@@ -13,9 +14,13 @@ module HmisExternalApis::AcHmis
     NAMESPACE = 'ac_hmis_mci_unique_id'.freeze
 
     def perform(since: Time.now - 3.days, actor_id:)
+      return unless HmisExternalApis::AcHmis::DataWarehouseApi.enabled?
+
       self.since = since
       self.records_needing_processing = []
       self.actor_id = actor_id
+
+      setup_notifier('Fetch changes from AC Data Warehouse')
 
       collect_records_to_inspect
       fetch_clients
@@ -29,7 +34,7 @@ module HmisExternalApis::AcHmis
     # It's more efficent to get all the records we're interested in before
     # hitting the database to avoid excessive queries.
     def collect_records_to_inspect
-      Rails.logger.info 'Collection records to inspect'
+      Rails.logger.info 'Collecting records to inspect'
 
       count = 0
       each_record_we_are_interested_in do |record|
@@ -96,9 +101,9 @@ module HmisExternalApis::AcHmis
         end
       end
 
-      Rails.logger.info "Inserted #{insert_count} MCI unique IDs"
-      Rails.logger.info "Updated #{update_count} MCI unique IDs"
-      Rails.logger.info "Ignored #{no_change_count} MCI unique IDs"
+      debug_msg "Inserted #{insert_count} MCI unique IDs"
+      debug_msg "Updated #{update_count} MCI unique IDs"
+      debug_msg "Ignored #{no_change_count} MCI unique IDs"
     end
 
     def merge_clients_by_mci_unique_id
@@ -111,9 +116,9 @@ module HmisExternalApis::AcHmis
         .having('count(*) > 1')
         .select('value, array_agg(source_id ORDER BY source_id) AS client_ids')
 
-      Rails.logger.info "Found #{merge_sets.length} duplicate MCI unique IDs"
+      debug_msg "Found #{merge_sets.length} duplicate MCI unique IDs"
 
-      Rails.logger.info 'Enqueuing dedup jobs for each one'
+      debug_msg 'Enqueuing dedup jobs for each one'
 
       merge_sets.each do |set|
         Hmis::MergeClientsJob.perform_later(client_ids: set.client_ids, actor_id: actor_id)
@@ -130,21 +135,20 @@ module HmisExternalApis::AcHmis
         record['mci_unique_id_date_time'] = Time.zone.parse(record['mciUniqIdDate'])
 
         if record['last_modified_date_time'] < since
-          Rails.logger.info "Got to the end of the changes we're interested in. Finishing up"
+          debug_msg "Got to the end of the changes we're interested in. Finishing up"
           break
         end
 
-        # From Gig: I think we can just filter out any records where
-        # mciUniqIdDate is not within our requested 3-day period. Aka if it's
-        # only included in the response because of demographic changes, throw
-        # it out.
-        if record['mci_unique_id_date_time'] < since
-          Rails.logger.info "Skipping a record that changed for a reason we don't care about"
-          next
-        end
+        # We can filter out any records where mciUniqIdDate is not within our requested 3-day period.
+        # Aka if it's only included in the response because of demographic changes, throw it out.
+        next if record['mci_unique_id_date_time'] < since
 
         yield record
       end
+    end
+
+    def debug_msg(str)
+      @notifier.ping(str)
     end
 
     def data_warehouse_api

@@ -208,7 +208,7 @@ module GrdaWarehouse::Tasks
     # where the client has no enrollments.  These generally arise from
     # clients being merged or deleted in the sending system.
     def remove_unused_source_clients
-      ds_ids = GrdaWarehouse::DataSource.importable.source.pluck(:id)
+      ds_ids = GrdaWarehouse::DataSource.importable.source.not_hmis.pluck(:id)
       with_enrollments = GrdaWarehouse::Hud::Client.source.
         where(data_source_id: ds_ids).
         joins(:enrollments).

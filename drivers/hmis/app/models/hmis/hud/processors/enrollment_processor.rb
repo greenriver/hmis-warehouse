@@ -55,6 +55,7 @@ module Hmis::Hud::Processors
       enrollment = @processor.send(factory_name)
       unit = enrollment.project.units.find(unit_id)
       raise "Unit not found: #{unit_id}" unless unit.present?
+      raise 'Cannot assign unit to exited enrollment' if enrollment.exit&.exit_date.present?
 
       active_unit_occupancy = enrollment.active_unit_occupancy
       # If already assigned to this unit: do nothing
