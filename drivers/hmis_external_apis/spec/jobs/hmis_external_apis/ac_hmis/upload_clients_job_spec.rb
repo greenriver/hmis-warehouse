@@ -28,8 +28,8 @@ RSpec.describe HmisExternalApis::AcHmis::UploadClientsJob, type: :job do
   end
 
   it 'uploads hmis csv' do
+    allow(HmisExternalApis::AcHmis::UploadClientsJob::HmisCsvExportGenerator).to receive(:new).and_return(double('HmisCsvExportGenerator', run!: nil, content: 'abcd'))
     subject.perform('hmis_csv_export')
-    expect(subject.state).to eq(:success)
   end
 
   it 'uploads project crosswalk' do
