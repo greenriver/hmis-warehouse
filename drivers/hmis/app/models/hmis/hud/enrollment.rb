@@ -62,7 +62,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
-  validates_associated :client, on: :form_submission
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   alias_to_underscore [:EnrollmentCoC]
 

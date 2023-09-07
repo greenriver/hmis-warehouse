@@ -65,6 +65,8 @@ module Mutations
 
       # Validate record
       is_valid = record.valid?(:form_submission)
+      # If this is a NEW_CLIENT_ENROLLMENT form, we need to validate the Client record as well.
+      is_valid &&= record.client&.valid?(:form_submission) if record.is_a?(Hmis::Hud::Enrollment) && definition.role == :NEW_CLIENT_ENROLLMENT
 
       # Collect validations and warnings from AR Validator classes
       record_validations = form_processor.collect_record_validations(user: current_user)
