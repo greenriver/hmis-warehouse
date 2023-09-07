@@ -9,7 +9,13 @@ require 'rails_helper'
 RSpec.describe HmisExternalApis::AcHmis::Exporters::ProjectsCrossWalkFetcher, type: :model do
   before { create(:hmis_data_source) }
 
-  it 'runs' do
+  it 'provides projects' do
     subject.run!
+    CSV.parse(subject.projects_csv, headers: true)
+  end
+
+  it 'provides organizations' do
+    subject.run!
+    CSV.parse(subject.orgs_csv, headers: true)
   end
 end
