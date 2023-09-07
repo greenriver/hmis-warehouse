@@ -1781,11 +1781,15 @@ module GrdaWarehouse::Hud
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
     def self.text_search(text, client_scope: nil, sorted: true)
-      # Get search results from client scope. Then return the destination client records that match those source records
-      result = (client_scope || self).searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
-      mapped = joins(%(JOIN "warehouse_clients" "warehouse_clients_x" ON "warehouse_clients_x"."destination_id" = "Client"."id" ))
-        .joins(%{JOIN (#{result.to_sql}) AS search_results ON search_results.client_id = "warehouse_clients_x".source_id})
-      mapped = mapped.order(Arel.sql('search_results.score DESC'), :id) if sorted
+      # Get search results from client scope. Then return the unique destination client records that map to those matching source records
+      results = (client_scope || self).searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      grouped = GrdaWarehouse::WarehouseClient
+        .joins(%(JOIN (#{results.to_sql}) src_search_results ON "warehouse_clients"."source_id" = "src_search_results"."client_id"))
+        .select(Arel.sql(%("warehouse_clients"."destination_id" AS client_id, MAX(src_search_results.score) AS score)))
+        .group(Arel.sql('1'))
+
+      mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id))
+      mapped = mapped.order(Arel.sql('dst_search_results.score DESC'), :id) if sorted
       mapped
     rescue RangeError => e
       # FIXME: what is this range error?

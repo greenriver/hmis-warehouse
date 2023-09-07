@@ -67,6 +67,8 @@ module ClientSearch
         results = where(where)
       end
 
+      # we aren't dealing with a fuzzy string search here so we can't really rank the results
+      # return NULL as score as match is binary (either it matches an ID or it doesn't)
       results = results.select(Arel.sql('"Client"."id" AS client_id'), Arel.sql('NULL AS score')) if resolve_for_join_query
       results
     end
