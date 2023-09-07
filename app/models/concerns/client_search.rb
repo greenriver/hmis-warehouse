@@ -9,7 +9,7 @@ module ClientSearch
   included do
     # @param text [String] search term
     # @param sorted [Boolean] will attempt ordering against search term it seems to be free-text
-    # @param resolve_for_joins [Boolean] return results as sub query of (client_id, score) suitable for joins
+    # @param resolve_for_join_query [Boolean] return results as sub query of (client_id, score) suitable for joins
     def self.text_searcher(text, sorted:, resolve_for_join_query: false)
       return none unless text.present?
 
@@ -47,7 +47,7 @@ module ClientSearch
       end
 
       # dummy condition to start the OR chain. This method needs refactoring
-      where ||= sa[:id].eq(-1)
+      where ||= sa[:id].eq(nil) # should never match
       where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
 
       results = nil

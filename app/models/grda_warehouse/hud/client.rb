@@ -1778,9 +1778,10 @@ module GrdaWarehouse::Hud
       ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown' # rubocop:disable Style/RescueModifier
     end
 
-    # @param client_scope [GrdaWarehouse::Hud::Client.source] find id matches in this scope
+    # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
     def self.text_search(text, client_scope: nil, sorted: true)
+      # Get search results from client scope. Then return the destination client records that match those source records
       result = (client_scope || self).searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
       mapped = joins(%(JOIN "warehouse_clients" "warehouse_clients_x" ON "warehouse_clients_x"."destination_id" = "Client"."id" ))
         .joins(%{JOIN (#{result.to_sql}) AS search_results ON search_results.client_id = "warehouse_clients_x".source_id})
