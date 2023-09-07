@@ -47,7 +47,7 @@ module AllNeighborsSystemDashboard::WarehouseReports
 
     def show
       respond_to do |format|
-        # format.html {}
+        format.html {}
         format.xlsx do
           file = @report.result_file
           @report.attach_rendered_xlsx if file.download.nil? # Generate the XLSX if it is missing

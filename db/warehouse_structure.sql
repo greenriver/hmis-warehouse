@@ -1622,7 +1622,7 @@ CREATE TABLE public."Enrollment" (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation" integer,
+    "VAMCStation_deleted" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -1679,7 +1679,8 @@ CREATE TABLE public."Enrollment" (
     "RentalSubsidyType" integer,
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
-    "PreferredLanguageDifferent" character varying
+    "PreferredLanguageDifferent" character varying,
+    "VAMCStation" character varying
 );
 
 
@@ -3487,7 +3488,7 @@ CREATE VIEW public."bi_Enrollment" AS
     "Enrollment"."FemVet",
     "Enrollment"."HPScreeningScore",
     "Enrollment"."ThresholdScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -6240,6 +6241,9 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
+    "order" integer DEFAULT 0 NOT NULL,
+    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
+    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -8105,8 +8109,7 @@ CREATE TABLE public.group_viewable_entities (
     access_group_id integer NOT NULL,
     entity_id integer NOT NULL,
     entity_type character varying NOT NULL,
-    deleted_at timestamp without time zone,
-    collection_id bigint
+    deleted_at timestamp without time zone
 );
 
 
@@ -14681,28 +14684,7 @@ CREATE TABLE public.hmis_dqt_clients (
     ethnicity integer,
     reporting_age integer,
     ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false,
-    woman integer,
-    man integer,
-    culturally_specific integer,
-    different_identity integer,
-    non_binary integer,
-    hispanic_latinaeo integer,
-    mid_east_n_african integer,
-    spm_hispanic_latinaeo integer,
-    _all_persons__hispanic_latinaeo integer,
-    spm_with_children__hispanic_latinaeo integer,
-    spm_only_children__hispanic_latinaeo integer,
-    spm_without_children__hispanic_latinaeo integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__hispan integer,
-    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
-    spm_mid_east_n_african integer,
-    _all_persons__mid_east_n_african integer,
-    spm_with_children__mid_east_n_african integer,
-    spm_only_children__mid_east_n_african integer,
-    spm_without_children__mid_east_n_african integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
-    spm_without_children_and_fifty_five_plus__mid_east_n_african integer
+    ch_at_any_entry boolean DEFAULT false
 );
 
 
@@ -18131,14 +18113,7 @@ CREATE TABLE public.ma_monthly_performance_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     first_name character varying,
-    last_name character varying,
-    woman boolean,
-    man boolean,
-    culturally_specific boolean,
-    different_identity boolean,
-    non_binary boolean,
-    hispanic_latinaeo boolean,
-    mid_east_n_african boolean
+    last_name character varying
 );
 
 
@@ -20006,7 +19981,7 @@ CREATE VIEW public.report_enrollments AS
     "Enrollment"."CoercedToContinueWork",
     "Enrollment"."LaborExploitPastThreeMonths",
     "Enrollment"."HPScreeningScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -21605,14 +21580,7 @@ CREATE TABLE public.system_pathways_clients (
     report_id bigint,
     deleted_at timestamp without time zone,
     days_to_return integer,
-    ce_assessment boolean DEFAULT false NOT NULL,
-    woman boolean,
-    man boolean,
-    culturally_specific boolean,
-    different_identity boolean,
-    non_binary boolean,
-    hispanic_latinaeo boolean,
-    mid_east_n_african boolean
+    ce_assessment boolean DEFAULT false NOT NULL
 );
 
 
@@ -44514,13 +44482,6 @@ CREATE INDEX index_grades_on_type ON public.grades USING btree (type);
 
 
 --
--- Name: index_group_viewable_entities_on_collection_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_group_viewable_entities_on_collection_id ON public.group_viewable_entities USING btree (collection_id);
-
-
---
 -- Name: index_hap_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51024,17 +50985,10 @@ CREATE INDEX involved_in_imports_by_importer_log ON public.involved_in_imports U
 
 
 --
--- Name: one_entity_per_type_per_collection; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX one_entity_per_type_per_collection ON public.group_viewable_entities USING btree (collection_id, entity_id, entity_type) WHERE (collection_id IS NOT NULL);
-
-
---
 -- Name: one_entity_per_type_per_group; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type) WHERE (access_group_id <> 0);
+CREATE UNIQUE INDEX one_entity_per_type_per_group ON public.group_viewable_entities USING btree (access_group_id, entity_id, entity_type);
 
 
 --
@@ -54324,14 +54278,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230803172055'),
 ('20230803173117'),
 ('20230804124734'),
-('20230804232249'),
-('20230805224003'),
 ('20230815171824'),
-('20230817154337'),
 ('20230818044939'),
-('20230822183752'),
 ('20230822200902'),
 ('20230824192127'),
+('20230828180700'),
+('20230828180743'),
+('20230828180842'),
 ('20230829171917'),
 ('20230830121811');
 
