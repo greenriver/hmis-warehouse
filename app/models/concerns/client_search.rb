@@ -38,13 +38,11 @@ module ClientSearch
             .select(:source_id)
           matches_external_ids = self.where(id: external_id_scope.select(:source_id)).any?
         end
-        if !matches_external_ids
+        unless matches_external_ids
           # short circuit the rest of search as this seems to be free text
-          if resolve_for_join_query
-            return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: self)
-          end
-            return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted)
-          else
+          return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: self) if resolve_for_join_query
+
+          return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted)
         end
       end
 
@@ -67,9 +65,7 @@ module ClientSearch
         results = where(where)
       end
 
-      if resolve_for_join_query
-        results = results.select(Arel.sql('"Client"."id" AS client_id'), Arel.sql('NULL AS score'))
-      end
+      results = results.select(Arel.sql('"Client"."id" AS client_id'), Arel.sql('NULL AS score')) if resolve_for_join_query
       results
     end
 

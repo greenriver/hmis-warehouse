@@ -1782,7 +1782,7 @@ module GrdaWarehouse::Hud
     # @param sorted [Boolean] order results by closest match to text
     def self.text_search(text, client_scope: nil, sorted: true)
       result = (client_scope || self).text_searcher(text, sorted: sorted, resolve_for_join_query: true)
-      mapped = joins(%{JOIN "warehouse_clients" "warehouse_clients_x" ON "warehouse_clients_x"."destination_id" = "Client"."id" })
+      mapped = joins(%(JOIN "warehouse_clients" "warehouse_clients_x" ON "warehouse_clients_x"."destination_id" = "Client"."id" ))
         .joins(%{JOIN (#{result.to_sql}) AS search_results ON search_results.client_id = "warehouse_clients_x".source_id})
       mapped = mapped.order(Arel.sql('search_results.score DESC'), :id) if sorted
       mapped
