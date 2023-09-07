@@ -1593,6 +1593,29 @@
       "note": ""
     },
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "82e659e3c26b016652cb4f7b2ff4b27a0ecc1e24e74af02de95ac355d080738e",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called on model attribute",
+      "file": "drivers/hmis/app/graphql/mutations/submit_form.rb",
+      "line": 21,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name.constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Mutations::SubmitForm",
+        "method": "resolve"
+      },
+      "user_input": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name",
+      "confidence": "Medium",
+      "cwe_id": [
+        470
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
