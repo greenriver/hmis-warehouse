@@ -38,6 +38,8 @@ module Hmis
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
     def perform(data_source_id:, clobber: false)
+      setup_notifier('Migrate HMIS Assessments')
+
       self.data_source_id = data_source_id
       raise 'Not an HMIS Data source' if GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
 
@@ -142,6 +144,7 @@ module Hmis
       debug_log "Skipped #{skipped_records} records that were already linked to an assessment"
       debug_log "Creating #{assessment_records.keys.size} assessments..."
 
+      skipped_invalid_assessments = 0
       skipped_exit_assessments = 0
       # For each grouping of Enrollment+InformationDate+DataCollectionStage,
       # create a CustomAssessment and a FormProcessor that references the related records
@@ -164,7 +167,11 @@ module Hmis
         # Build FormProcessor with IDs to all related records
         assessment.build_form_processor(**value)
 
-        if assessment.exit? && value[:exit_id].nil?
+        if !assessment.valid?
+          # This check was added because we hit a "Client is invalid", which may have occurred if the client was deleted while the batch was processing?
+          Rails.logger.info "Skipping invalid assessment for EnrollmentID: #{assessment.enrollment_id}"
+          skipped_invalid_assessments += 1
+        elsif assessment.exit? && value[:exit_id].nil?
           # There appear to be lots of "exit" data-collection-stage records for enrollments that don't have an Exit record. Skip those
           Rails.logger.info "Skipping Exit Assessment for open enrollment. EnrollmentID: #{assessment.enrollment_id}"
           skipped_exit_assessments += 1
@@ -173,6 +180,7 @@ module Hmis
         end
       end
 
+      debug_log "Skipped creating #{skipped_invalid_assessments} invalid assessments"
       debug_log "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open"
     end
 
