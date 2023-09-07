@@ -140,8 +140,8 @@ module Hmis
           end
       end
 
-      debug_log "Skipped #{duplicate_records} duplicate records"
-      debug_log "Skipped #{skipped_records} records that were already linked to an assessment"
+      debug_log "Skipped #{duplicate_records} duplicate records" if duplicate_records.positive?
+      debug_log "Skipped #{skipped_records} records that were already linked to an assessment" if skipped_records.positive?
       debug_log "Creating #{assessment_records.keys.size} assessments..."
 
       skipped_invalid_assessments = 0
@@ -180,8 +180,8 @@ module Hmis
         end
       end
 
-      debug_log "Skipped creating #{skipped_invalid_assessments} invalid assessments"
-      debug_log "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open"
+      debug_log "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
+      debug_log "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
     end
 
     private
@@ -274,7 +274,8 @@ module Hmis
       msgs << summarize(open_enrollment_assessment_scope.exits.size, num_open_enrollments, msg: 'of open enrollments have exit assessments')
       msgs << summarize(assessment_scope.annuals.size, num_enrollments, msg: 'of enrollments have annual assessments')
       msgs << summarize(assessment_scope.updates.size, num_enrollments, msg: 'of enrollments have update assessments')
-      debug_log(msgs.join("\n"))
+      summary = msgs.join("\n")
+      debug_log("Assessments Summary:\n #{summary}")
     end
 
     def debug_log(message)
