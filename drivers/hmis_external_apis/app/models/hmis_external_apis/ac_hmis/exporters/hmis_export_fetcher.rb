@@ -1,0 +1,35 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# The export is generated elsewhere. This just orchestrates running the job and
+# returning the result.
+
+module HmisExternalApis::AcHmis::Exporters
+  class HmisExportFetcher
+    include Rails.application.routes.url_helpers
+
+    attr_accessor :export
+
+    delegate :content, to: :export
+
+    def run!
+      data_source = HmisExternalApis::AcHmis.data_source
+      user = User.system_user
+      version = '2024'
+
+      filter = ::Filters::HmisExport.new(data_source_ids: [data_source.id], version: version, user_id: user.id)
+
+      Rails.logger.info 'Generating HMIS CSV Export'
+
+      job_info = filter.execute_job(report_url: warehouse_reports_hmis_exports_url)
+
+      # FIXME: There's got to be a better way:
+      export_id = job_info.arguments[3][:args][1]
+
+      self.export = ::GrdaWarehouse::HmisExport.find(export_id)
+    end
+  end
+end
