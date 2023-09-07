@@ -5,6 +5,17 @@
 ###
 
 module HmisExternalApis::AcHmis::Importers
+  class CsvTransformer2022to2024 < HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer
+    def self.destination_headers(target_class)
+      case [target_class]
+      when [GrdaWarehouse::Hud::Project]
+        super(target_class) + ['Walkin']
+      else
+        super(target_class)
+      end
+    end
+  end
+
   class ProjectsImporter
     JOB_LOCK_NAME = 'hmis_project_importer'.freeze
 
@@ -27,7 +38,19 @@ module HmisExternalApis::AcHmis::Importers
       timeout_seconds = 60
       success = false
       Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: timeout_seconds) do
-        _run
+        # transform data files to HUD 2024
+        case infer_hud_version_from_project_cols
+        when '2022'
+          Dir.mktmpdir do |hud_dir|
+            CsvTransformer2022to2024.up(dir, hud_dir)
+            _run(hud_dir)
+          end
+        when '2024'
+          Sentry.capture_message("#{self.class.name} skipping 2024 transformation. Check if the 2024 transform can be removed.")
+          _run(dir)
+        else
+          raise 'could not infer hud version'
+        end
         success = true
       end
       raise "Could not acquire lock within #{timeout_seconds} seconds" unless success
@@ -37,16 +60,31 @@ module HmisExternalApis::AcHmis::Importers
 
     protected
 
-    def _run
+    def run_in_dir(new_dir)
+      original_dir = dir
+      ret = nil
+      Dir.chdir(dir) do
+        self.dir = new_dir
+        ret = yield
+      end
+      self.dir = original_dir
+      ret
+    end
+
+    def _run(hud_dir)
       start
       sanity_check
       ProjectsImportAttempt.transaction do
-        upsert_funders
-        upsert_orgs
-        upsert_projects
-        upsert_walkins
-        upsert_inventory
-        upsert_project_unit_type_mappings
+        run_in_dir(hud_dir) do
+          upsert_funders
+          upsert_orgs
+          upsert_projects
+          upsert_walkins
+          upsert_inventory
+        end
+        run_in_dir(dir) do
+          upsert_project_unit_type_mappings
+        end
         Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
       end
       analyze
@@ -120,9 +158,10 @@ module HmisExternalApis::AcHmis::Importers
     def upsert_projects
       file = 'Project.csv'
 
+      hud_columns = GrdaWarehouse::Hud::Project.hmis_configuration(version: '2024').keys.map(&:to_s)
       check_columns(
         file: file,
-        expected_columns: ['ProjectID', 'OrganizationID', 'ProjectName', 'ProjectCommonName', 'OperatingStartDate', 'OperatingEndDate', 'ContinuumProject', 'ProjectType', 'HousingType', 'ResidentialAffiliation', 'TrackingMethod', 'HMISParticipatingProject', 'TargetPopulation', 'HOPWAMedAssistedLivingFac', 'PITCount', 'Walkin', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        expected_columns: hud_columns + ['Walkin'],
         critical_columns: ['ProjectID'],
       )
 
@@ -360,6 +399,17 @@ module HmisExternalApis::AcHmis::Importers
 
     def sys_user
       @sys_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
+    end
+
+    def infer_hud_version_from_project_cols
+      headers = run_in_dir(dir) do
+        records_from_csv('Project.csv', row_limit: 1).first.to_h.keys.to_set
+      end
+      if headers.include?('RRHSubType')
+        '2024'
+      elsif headers.include?('ResidentialAffiliation') || headers.include?('TrackingMethod')
+        '2022'
+      end
     end
   end
 end

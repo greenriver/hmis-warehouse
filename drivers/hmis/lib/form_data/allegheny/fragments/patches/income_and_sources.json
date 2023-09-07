@@ -108,7 +108,7 @@
             {
               "variable": "projectOtherFunders",
               "operator": "INCLUDE",
-              "value": "HAP Rental Assistance "
+              "value": "HAP Rental Assistance"
             }
           ]
         }

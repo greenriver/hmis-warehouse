@@ -24,8 +24,8 @@ module HmisExternalApis
       def track_availability(project_id:, user_id:)
         return unless HmisEnforcement.hmis_enabled? && HmisExternalApis::AcHmis::Mper.enabled? && mper_id
 
-        # Skip if UUID, which means that this was a project created within the HMIS.
-        return if project_id.size == 32
+        # Skip if ProjectID is UUID, which means that this was a project created within the HMIS.
+        return if ::Hmis::Hud::Project.find(project_id).project_id.size == 32
 
         HmisExternalApis::AcHmis::UnitAvailabilitySync.upsert_or_bump_version(
           project_id: project_id,

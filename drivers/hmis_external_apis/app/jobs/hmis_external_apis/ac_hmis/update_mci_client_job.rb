@@ -25,6 +25,8 @@ module HmisExternalApis::AcHmis
     def perform(client_id:)
       return unless HmisExternalApis::AcHmis::Mci.enabled?
 
+      setup_notifier('UpdateMciClientJob')
+
       client = Hmis::Hud::Client.find(client_id)
 
       mci = HmisExternalApis::AcHmis::Mci.new
