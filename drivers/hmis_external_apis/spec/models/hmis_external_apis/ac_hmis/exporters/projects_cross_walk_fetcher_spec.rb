@@ -11,11 +11,23 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ProjectsCrossWalkFetcher, ty
 
   it 'provides projects' do
     subject.run!
-    CSV.parse(subject.projects_csv, headers: true)
+    result = CSV.parse(subject.projects_csv, headers: true)
+
+    expect(result.to_a).to eq(
+      [
+        ['Warehouse ID', 'HMIS ProjectID', 'Project Name', 'HMIS Organization ID', 'Organization Name', 'Data Source', 'Date Updated'],
+      ],
+    )
   end
 
   it 'provides organizations' do
     subject.run!
-    CSV.parse(subject.orgs_csv, headers: true)
+    result = CSV.parse(subject.orgs_csv, headers: true)
+
+    expect(result.to_a).to eq(
+      [
+        ['Warehouse ID', 'HMIS Organization ID', 'Organization Name', 'Data Source', 'Date Updated'],
+      ],
+    )
   end
 end
