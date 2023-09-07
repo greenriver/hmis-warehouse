@@ -142,7 +142,7 @@ module Hmis
 
       debug_log "Skipped #{duplicate_records} duplicate records" if duplicate_records.positive?
       debug_log "Skipped #{skipped_records} records that were already linked to an assessment" if skipped_records.positive?
-      debug_log "Creating #{assessment_records.keys.size} assessments..."
+      Rails.logger.info "Creating #{assessment_records.keys.size} assessments..."
 
       skipped_invalid_assessments = 0
       skipped_exit_assessments = 0
