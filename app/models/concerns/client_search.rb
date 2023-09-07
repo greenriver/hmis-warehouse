@@ -52,15 +52,17 @@ module ClientSearch
 
       results = nil
       if numeric
-        client_ids = self.where(where).pluck(&:id)
+        client_ids = self.where(where).pluck(:id)
         source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: text).pluck(:source_id)
         if source_client_ids.any?
           # append destination_id
           client_ids << text
           # append any source client ids for that destination
           client_ids += source_client_ids
+          results = where(id: client_ids)
+        else
+          results = where(where)
         end
-        results = where(id: client_ids)
       else
         results = where(where)
       end
