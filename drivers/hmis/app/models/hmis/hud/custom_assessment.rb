@@ -59,6 +59,9 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   scope :not_in_progress, -> { where(wip: false) }
   scope :intakes, -> { where(data_collection_stage: 1) }
   scope :exits, -> { where(data_collection_stage: 3) }
+  scope :updates, -> { where(data_collection_stage: 2) }
+  scope :annuals, -> { where(data_collection_stage: 5) }
+  scope :post_exits, -> { where(data_collection_stage: 6) }
 
   scope :with_role, ->(role) do
     stages = Array.wrap(role).map { |r| Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[r.to_sym] }.compact
