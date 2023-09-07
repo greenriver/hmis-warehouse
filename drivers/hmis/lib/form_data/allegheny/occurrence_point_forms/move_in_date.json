@@ -30,12 +30,20 @@
     {
       "link_id": "3.20.custom.address",
       "type": "TEXT",
+      "required": true,
       "text": "Move-in Address",
       "readonly_text": "Address",
       "mapping": {
         "record_type": "ENROLLMENT",
         "custom_field_key": "move_in_date_address"
-      }
+      },
+      "enable_when": [
+        {
+          "question": "3.20",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        }
+      ]
     }
   ]
 }
