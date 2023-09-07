@@ -51,41 +51,87 @@ module AllNeighborsSystemDashboard
         {
           title: 'Project Type',
           id: 'project_type',
-          label: '826 Individuals',
-          data: [
+          count_levels: [
             {
-              name: 'Rapid-Rehousing',
-              series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..1500)] },
-              key: 'rapid',
-              color: '#1865AB',
-            },
-            {
-              name: 'Permanent Housing',
-              series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..1500)] },
-              key: 'permanent',
-              color: '#B2803F',
-            },
+              count_level_name: 'Individuals',
+              total: 826,
+              series: [
+                {
+                  name: 'Rapid-Rehousing',
+                  series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..1500)] },
+                  key: 'rapid',
+                  color: '#1865AB',
+                },
+                {
+                  name: 'Permanent Housing',
+                  series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..1500)] },
+                  key: 'permanent',
+                  color: '#B2803F',
+                },
 
+              ],
+            },
+            {
+              count_level_name: 'Households',
+              total: 200,
+              series: [
+                {
+                  name: 'Rapid-Rehousing',
+                  series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..500)] },
+                  key: 'rapid',
+                  color: '#1865AB',
+                },
+                {
+                  name: 'Permanent Housing',
+                  series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..500)] },
+                  key: 'permanent',
+                  color: '#B2803F',
+                },
+
+              ],
+            },
           ],
         },
         {
           title: 'Household Type',
           id: 'household_type',
-          label: '826 Individuals',
-          data: [
+          count_levels: [
             {
-              name: 'Adults Only',
-              series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..1500)] },
-              key: 'adults_only',
-              color: '#3B528B',
+              count_level_name: 'Individuals',
+              total: 826,
+              series: [
+                {
+                  name: 'Adults Only',
+                  series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..1500)] },
+                  key: 'adults_only',
+                  color: '#3B528B',
+                },
+                {
+                  name: 'Adults and Children',
+                  series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..1500)] },
+                  key: 'adults_and_children',
+                  color: '#ABBD2A',
+                },
+              ],
             },
             {
-              name: 'Adults and Children',
-              series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..1500)] },
-              key: 'adults_and_children',
-              color: '#ABBD2A',
+              count_level_name: 'Households',
+              total: 300,
+              series: [
+                {
+                  name: 'Adults Only',
+                  series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..500)] },
+                  key: 'adults_only',
+                  color: '#3B528B',
+                },
+                {
+                  name: 'Adults and Children',
+                  series: date_range.map { |date| [date.strftime('%Y-%m-%d'), rand(10..500)] },
+                  key: 'adults_and_children',
+                  color: '#ABBD2A',
+                },
+              ],
             },
-
           ],
         },
       ]

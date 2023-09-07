@@ -5,16 +5,19 @@ class AllNeighborsSystemDashboardDonut {
     this.data = data
     this.state = initialState
     this.selector = selector
+    this.countLevel = this.data.count_levels.filter((d) => d.count_level_name === this.state.countLevel)[0]
+    this.series = this.countLevel ? this.countLevel.series : []
   }
 
   test() {
     console.log('data', this.data)
     console.log('state', this.state)
+    console.log('series', this.series)
     console.log('config', this.getConfig())
   }
 
   getColumns() {
-    return this.data.map((d) => {
+    return this.series.map((d) => {
       let col = [d.key]
       d.series.forEach((n) => {
         if(this.state.dateRange) {
@@ -34,7 +37,7 @@ class AllNeighborsSystemDashboardDonut {
 
   getColors() {
     let colors = {}
-    this.data.forEach((d) => {
+    this.series.forEach((d) => {
       colors[d.key] = d.color
     })
     return colors
@@ -42,7 +45,7 @@ class AllNeighborsSystemDashboardDonut {
 
   getNames() {
     let names = {}
-    this.data.forEach((d) => {
+    this.series.forEach((d) => {
       names[d.key] = d.name
     })
     return names

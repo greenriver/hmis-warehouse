@@ -35,8 +35,8 @@
 
       donutData.forEach(function(d) {
         var donut = new AllNeighborsSystemDashboardDonut(
-          d.data,
-          {dateRange: [Date.parse(startDate), Date.parse(endDate)]},
+          d,
+          {countLevel: 'Individuals', dateRange: [Date.parse(startDate), Date.parse(endDate)]},
           '#all-neighbors__housing-placements__'+d.id
         )
         console.log('Donut', d.title)
