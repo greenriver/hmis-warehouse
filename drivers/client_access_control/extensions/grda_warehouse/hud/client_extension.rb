@@ -136,7 +136,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
         else
           return false unless user.can_view_clients?
           # access isn't governed by release if a client can only search their assigned clients
-          return false if user.can_search_own_clients?
+          return false if user.can_search_own_clients? && ! (user.can_use_strict_search? || user.can_search_window? || user.can_search_all_clients?)
           return unless consent_form_valid?
         end
         # END_ACL
