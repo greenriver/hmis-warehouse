@@ -80,7 +80,7 @@ module Health
 
     scope :reviewed_within, ->(range) do
       v1_ids = joins(:v1).merge(Health::Careplan.reviewed_within(range)).pluck(:instrument_id)
-      v2_ids = joins(:v2).merge(HealthPctp::Careplan.reviewed_within(range)).pluck(:instrument_id)
+      v2_ids = joins(:v2).merge(HealthPctp::Careplan.reviewed_within(range).signature_present).pluck(:instrument_id)
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
