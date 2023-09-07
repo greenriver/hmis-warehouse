@@ -50,6 +50,7 @@ class HmisAdmin::AccessControlsController < ApplicationController
     params.require(:access_control).permit(
       :role_id,
       :access_group_id,
+      :user_group_id,
     )
   end
 
