@@ -56,15 +56,10 @@ module HmisExternalApis::AcHmis
       export = HmisExternalApis::AcHmis::Exporters::HmisExportFetcher.new
       export.run!
 
-      # FIXME: Not sure what this should be a hash of. I'll refactor to take content
-      # into account in a later step if that's needed. Could be a hash of the
-      # current time or content or sorted list of unique ids in the file. Or,
-      # maybe something else.
-      hash = SecureRandom.hex(8)
+      hash = Digest::MD5.hexdigest(export.content)
 
       uploader = Exporters::ClientExportUploader.new(
         filename_format: "%Y-%m-%d-HMIS-#{hash}-hudcsv.zip",
-        # FIXME: I believe this content is a string of zipped content, but I haven't confirmed that.
         pre_zipped_data: export.content,
       )
 
@@ -72,36 +67,19 @@ module HmisExternalApis::AcHmis
     end
 
     def project_crosswalk
-      # Use these for reference:
-      # app/views/warehouse_reports/hmis_cross_walks/index.xlsx.axlsx
-      # app/controllers/warehouse_reports/hmis_cross_walks_controller.rb
-
-      # From elliot to flesh out:
-      @filter = ::Filters::FilterBase.new(user_id: User.system_user.id, enforce_one_year_range: false)
-      @filter.update(
-        start: 10.years.ago.to_date,
-        end: Date.current,
-        data_source_ids: [HmisExternalApis::AcHmis.data_source.id],
-      )
-
-      # FIXME: Then you'll need to render the index.xlsx action in WarehouseReports::HmisCrossWalksController to get the file.
-
-      # Can be similar to HmisExternalApis::AcHmis::Exporters::ClientExport
-
-      # FIXME: stubs for now
-      orgs = OpenStruct.new(output:     StringIO.new('Warehouse ID,HMIS Organization ID,Organization Name,Data Source,Date Updated'))
-      projects = OpenStruct.new(output: StringIO.new('Warehouse ID,HMIS ProjectID,Project Name,HMIS Organization ID,Organization Name,Data Source,Date Updated'))
+      export = HmisExternalApis::AcHmis::Exporters::ProjectsCrossWalkFetcher.new
+      export.run!
 
       uploader = Exporters::ClientExportUploader.new(
         filename_format: '%Y-%m-%d-cross-walks.zip',
         io_streams: [
           OpenStruct.new(
             name: 'Organizations-cross-walk.csv',
-            io: orgs.output,
+            io: export.orgs_csv,
           ),
           OpenStruct.new(
             name: 'Project-cross-walk.csv',
-            io: projects.output,
+            io: export.projects_csv,
           ),
         ],
       )

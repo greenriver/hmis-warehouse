@@ -33,6 +33,15 @@ RSpec.describe HmisExternalApis::AcHmis::UploadClientsJob, type: :job do
   end
 
   it 'uploads project crosswalk' do
+    cross_walk_fetcher_double = double(
+      'ProjectCrossWalkFetcher',
+      run!: nil,
+      orgs_csv: OpenStruct.new(output: StringIO.new('Warehouse ID,HMIS Organization ID,Organization Name,Data Source,Date Updated')),
+      projects_csv: OpenStruct.new(output: StringIO.new('Warehouse ID,HMIS ProjectID,Project Name,HMIS Organization ID,Organization Name,Data Source,Date Updated')),
+    )
+
+    allow(HmisExternalApis::AcHmis::Exporters::ProjectsCrossWalkFetcher).to receive(:new).and_return(cross_walk_fetcher_double)
+
     subject.perform('project_crosswalk')
     expect(subject.state).to eq(:success)
   end
