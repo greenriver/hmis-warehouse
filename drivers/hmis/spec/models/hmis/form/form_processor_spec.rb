@@ -1255,7 +1255,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       form_processor = Hmis::Form::FormProcessor.new
       form_processor.hud_values = complete_hud_values.merge('Client.nameDataQuality' => 'INVALID')
       form_processor.run!(owner: enrollment, user: hmis_user)
-      expect(enrollment.valid?(:form_submission)).to eq(false)
+      expect(enrollment.valid?(:form_submission)).to eq(true)
+      expect(enrollment.valid?(:new_client_enrollment_form)).to eq(false)
     end
   end
 
