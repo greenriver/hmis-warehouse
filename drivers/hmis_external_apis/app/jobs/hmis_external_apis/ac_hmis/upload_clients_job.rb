@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# job =  HmisExternalApis::AcHmis::UploadClientsJob.new
+# job = HmisExternalApis::AcHmis::UploadClientsJob.new
 module HmisExternalApis::AcHmis
   class UploadClientsJob < BaseJob
     include NotifierConfig
@@ -14,6 +14,7 @@ module HmisExternalApis::AcHmis
     def perform(mode = 'clients_with_mci_ids_and_address')
       setup_notifier('HMIS Upload Clients')
       if Exporters::ClientExportUploader.can_run?
+        Rails.logger.info "Running #{mode} upload clients job"
         case mode
         when 'clients_with_mci_ids_and_address' then clients_with_mci_ids_and_address
         when 'hmis_csv_export' then hmis_csv_export
