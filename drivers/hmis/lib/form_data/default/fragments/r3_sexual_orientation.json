@@ -74,6 +74,7 @@
       "type": "CHOICE",
       "link_id": "R3.1",
       "required": false,
+      "warn_if_empty": true,
       "text": "Sexual Orientation",
       "pick_list_reference": "SexualOrientation",
       "mapping": {
@@ -89,6 +90,7 @@
           "type": "STRING",
           "link_id": "R3.A",
           "required": false,
+          "warn_if_empty": true,
           "text": "If other, please describe",
           "mapping": {
             "record_type": "ENROLLMENT",
