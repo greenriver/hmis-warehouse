@@ -79,9 +79,9 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "local_constant": "$projectHasExactlyOneCoc",
-          "operator": "EQUAL",
-          "answer_boolean": false
+          "local_constant": "$projectCocCount",
+          "operator": "NOT_EQUAL",
+          "answer_number": 1
         },
         {
           "question": "household-id",
