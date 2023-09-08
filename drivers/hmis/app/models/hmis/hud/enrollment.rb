@@ -63,6 +63,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
+  validate :client_is_valid, on: :new_client_enrollment_form
+
   alias_to_underscore [:EnrollmentCoC]
 
   SORT_OPTIONS = [
@@ -347,6 +349,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
+  end
+
+  # When submitting a new_client_enrollment form, we validate the client too, with the same validation contexts
+  private def client_is_valid
+    return unless client.present?
+
+    client.valid?(context: [:form_submission, :new_client_enrollment_form])
+    errors.merge!(client.errors)
   end
 
   include RailsDrivers::Extensions

@@ -63,10 +63,8 @@ module Mutations
       # Run processor to assign attributes to the record(s)
       form_processor.run!(owner: record, user: current_user)
 
-      # Validate record
-      is_valid = record.valid?(:form_submission)
-      # If this is a NEW_CLIENT_ENROLLMENT form, we need to validate the Client record as well.
-      is_valid &&= record.client&.valid?(:form_submission) if record.is_a?(Hmis::Hud::Enrollment) && definition.role == :NEW_CLIENT_ENROLLMENT
+      # Validate record. Pass 2 contexts: 1 for general form submission, 1 for this specific role.
+      is_valid = record.valid?([:form_submission, "#{definition.role.to_s.downcase}_form".to_sym])
 
       # Collect validations and warnings from AR Validator classes
       record_validations = form_processor.collect_record_validations(user: current_user)
