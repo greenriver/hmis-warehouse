@@ -76,15 +76,6 @@ module HmisCsvTwentyTwentyFour::Importer
             arguments: { valid_options: HudUtility2024.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
-        HMISParticipatingProject: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
-          },
-          {
-            class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.yes_no_missing_options.keys.map(&:to_s).freeze },
-          },
-        ],
         TargetPopulation: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
