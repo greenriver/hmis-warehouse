@@ -291,5 +291,9 @@ module GrdaWarehouse
         editable_permission,
       ]
     end
+
+    def entity_relation_type
+      :project_groups
+    end
   end
 end

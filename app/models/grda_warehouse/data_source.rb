@@ -579,6 +579,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     ]
   end
 
+  def entity_relation_type
+    :data_sources
+  end
+
   class << self
     include Memery
     def health_authoritative_id
