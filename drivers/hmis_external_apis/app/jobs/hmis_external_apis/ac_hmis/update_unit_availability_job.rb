@@ -14,6 +14,8 @@ module HmisExternalApis::AcHmis
 
     # @param force [Boolean]
     def perform(force: false)
+      return unless HmisExternalApis::AcHmis::LinkApi.enabled?
+
       setup_notifier(self.class.name)
 
       data_source = HmisExternalApis::AcHmis.data_source

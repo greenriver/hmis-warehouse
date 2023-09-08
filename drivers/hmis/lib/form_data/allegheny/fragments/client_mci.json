@@ -18,7 +18,7 @@
     },
     {
       "type": "STRING",
-      "required": true,
+      "required": false,
       "link_id": "mci-clearance-value",
       "component": "MCI",
       "text": "MCI ID",

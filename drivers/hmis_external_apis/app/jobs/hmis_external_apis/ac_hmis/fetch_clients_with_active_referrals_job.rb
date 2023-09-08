@@ -16,7 +16,7 @@ module HmisExternalApis::AcHmis
 
       # Fetch MCI IDs for clients with active referrals in LINK
       mci_ids = link.active_referral_mci_ids.parsed_body
-      debug_msg "Fetched #{mci_ids.uniq} MCI IDs with active referrals from LINK"
+      debug_msg "Fetched #{mci_ids.uniq.size} MCI IDs with active referrals from LINK"
 
       client_ids = HmisExternalApis::ExternalId.where(
         namespace: HmisExternalApis::AcHmis::Mci::SYSTEM_ID,
@@ -36,8 +36,8 @@ module HmisExternalApis::AcHmis
 
       # Update clients who already had a CDE value (and are present in this batch)
       cdes_to_update = Hmis::Hud::CustomDataElement.where(owner_type: 'Hmis::Hud::Client', owner_id: client_ids, data_element_definition: cded)
-      cdes_to_update.update_all(value_boolean: true, user_id: system_user.user_id)
-      debug_msg "Updated #{cdes_to_update.uniq} existing records for clients with active referrals"
+      num_updated_to_true = cdes_to_update.update_all(value_boolean: true, user_id: system_user.user_id)
+      debug_msg "Updated #{num_updated_to_true} existing records for clients with active referrals"
 
       # Create new records for clients that didn't have a CDE value
       cde_attributes_to_create = (client_ids - cdes_to_update.pluck(:owner_id)).map do |client_id|
@@ -51,14 +51,14 @@ module HmisExternalApis::AcHmis
         }
       end
       Hmis::Hud::CustomDataElement.import(cde_attributes_to_create)
-      debug_msg "Created #{cde_attributes_to_create.count} new records"
+      debug_msg "Created #{cde_attributes_to_create.size} new records"
 
       # Update clients who already had a CDE value (and are NOT present in this batch)
-      num_updated = Hmis::Hud::CustomDataElement.
+      num_updated_to_false = Hmis::Hud::CustomDataElement.
         where(owner_type: 'Hmis::Hud::Client', data_element_definition: cded).
         where.not(owner_id: client_ids).
         update_all(value_boolean: false)
-      debug_msg "Updated #{num_updated} existing records for clients without active referrals"
+      debug_msg "Updated #{num_updated_to_false} existing records for clients without active referrals"
     end
 
     def debug_msg(str)
