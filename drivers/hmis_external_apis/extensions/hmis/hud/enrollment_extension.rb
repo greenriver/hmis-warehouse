@@ -37,6 +37,24 @@ module HmisExternalApis
             )
           end
 
+          def close_referral!(current_user:)
+            return unless head_of_household?
+            return unless HmisExternalApis::AcHmis::LinkApi.enabled?
+
+            posting = source_postings.find_by(status: 'accepted_status')
+            return unless posting.present?
+
+            posting.status = 13 # closed
+            posting.save!
+            return unless posting.identifier.present? # HMIS Admin-assigned posting
+
+            HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
+              posting_id: posting.identifier,
+              posting_status_id: posting.status_before_type_cast,
+              requested_by: current_user.email,
+            )
+          end
+
           # When creating a new enrollment, validate presence of MCI on client
           def validate_client_mci
             return unless HmisExternalApis::AcHmis::Mci.enabled? && client.present?
