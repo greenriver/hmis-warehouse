@@ -41,8 +41,7 @@
       "link_id": "3.16",
       "prefix": "3.16",
       "text": "CoC Code for Client Location",
-      "required": false,
-      "warn_if_empty": true,
+      "required": true,
       "mapping": {
         "record_type": "ENROLLMENT",
         "field_name": "enrollmentCoc"

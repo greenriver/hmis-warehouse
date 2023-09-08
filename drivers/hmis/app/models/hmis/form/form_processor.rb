@@ -360,6 +360,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     # Collect errors from custom validator, in the context of this role
+    # TODO: remove this and switch to using validation contexts instead.
+    # This works OK for assessments, but not other types of forms. For example for
+    # an Enrollment form that creates/edits Client, this will NOT run he Client validator.
     role = definition&.role
     related_records.each do |record|
       validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class
