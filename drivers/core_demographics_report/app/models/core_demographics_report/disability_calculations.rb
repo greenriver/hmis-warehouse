@@ -142,7 +142,10 @@ module
     end
 
     private def disabled_client_disability_types
-      GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: distinct_client_ids.pluck(:client_id)).
+      ids = distinct_client_ids.pluck(:client_id)
+      return [] unless ids.any?
+
+      GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: ids).
         joins(:source_enrollment_disabilities).
         merge(
           GrdaWarehouse::Hud::Disability.
