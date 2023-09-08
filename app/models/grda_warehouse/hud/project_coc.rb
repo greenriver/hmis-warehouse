@@ -158,7 +158,11 @@ module GrdaWarehouse::Hud
     end
 
     def self.coc_code_coalesce
-      cl(pc_t[:hud_coc_code], pc_t[:CoCCode])
+      conditions = [
+        [pc_t[:hud_coc_code].eq(''), nil],
+        [pc_t[:hud_coc_code].not_eq(''), pc_t[:hud_coc_code]],
+      ]
+      cl(acase(conditions), pc_t[:CoCCode])
     end
 
     def for_export
