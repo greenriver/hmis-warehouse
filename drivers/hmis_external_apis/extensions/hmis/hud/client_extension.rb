@@ -27,7 +27,7 @@ module HmisExternalApis
           before_destroy :destroy_hoh_external_referrals, prepend: true
 
           # On form submission, validate that client has MCI ID (if required)
-          validate :validate_mci_id_exists, on: :form_submission
+          validate :validate_mci_id_exists, on: :form_submission, if: :persisted?
 
           # remove referrals where this client is the the HOH
           def destroy_hoh_external_referrals
@@ -48,18 +48,17 @@ module HmisExternalApis
 
           def validate_mci_id_exists
             return unless HmisExternalApis::AcHmis::Mci.enabled?
-            # Skip new records. Frontend should ensure MCI is present when creating. Can't really check it here because enrollment is maybe being created in the same form.
-            return if new_record?
-
             # Valid if client has an MCI ID, or is going to create one
             return if ac_hmis_mci_ids.exists? || send(:create_mci_id)
 
             # MCI clearance is required unless this client is ONLY enrolled at SO/NBN program(s)
-            so_nbn_enrollment_count = enrollments.with_project_type([1, 4]).size
+            ptypes = HmisExternalApis::AcHmis::Mci::PROJECT_TYPES_NOT_REQUIRING_CLEARANCE
+            so_nbn_enrollment_count = enrollments.with_project_type(ptypes).size
             only_enrolled_at_so_nbn = so_nbn_enrollment_count.positive? && so_nbn_enrollment_count == enrollments.size
 
             # Add in some custom options (handled by HmisErrors::Error) so it shows up on the correct fields
-            errors.add :id, :required, attribute_override: :mci_id, readable_attribute: 'MCI ID' unless only_enrolled_at_so_nbn
+            full_msg = HmisExternalApis::AcHmis::Mci::MCI_REQUIRED_MSG
+            errors.add :id, :required, attribute_override: :mci_id, readable_attribute: 'MCI ID', full_message: full_msg unless only_enrolled_at_so_nbn
           end
         end
       end
