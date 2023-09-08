@@ -780,5 +780,9 @@ module GrdaWarehouse
         editable_permission,
       ]
     end
+
+    def entity_relation_type
+      :cohorts
+    end
   end
 end

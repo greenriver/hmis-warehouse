@@ -52,7 +52,7 @@ module EntityAccess
   def system_collection
     @system_collection ||= begin
       collection = Collection.where(system: ['Entities'], name: name).first_or_create
-      collection.set_viewables(cohorts: [id])
+      collection.set_viewables(entity_relation_type => [id])
       collection
     end
   end
