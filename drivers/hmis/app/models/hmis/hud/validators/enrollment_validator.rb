@@ -9,7 +9,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     :ExportID,
     :DateCreated,
     :DateUpdated,
-    :EnrollmentCoC, # allowed to be null if wip record is present
+    :EnrollmentCoC,
     :ProjectID, # allowed to be null if wip record is present
     :LastPermanentZIP,
   ].freeze
@@ -111,7 +111,6 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
   def validate(record)
     super(record) do
       record.errors.add :project_id, :required if record.project_id.nil? && record.wip.nil?
-      record.errors.add :enrollment_coc, :required if record.enrollment_coc.nil? && record.wip.nil?
     end
   end
 end

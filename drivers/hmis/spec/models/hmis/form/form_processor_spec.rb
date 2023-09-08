@@ -516,7 +516,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'adds an exit record when appropriate' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'EnrollmentCoc.cocCode' => 'MA-507',
+        'Enrollment.enrollmentCoc' => 'MA-507',
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
@@ -608,7 +608,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'updates enrollment entry date when appropriate' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        'EnrollmentCoc.cocCode' => 'MA-507',
+        'Enrollment.enrollmentCoc' => 'MA-507',
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
@@ -640,7 +640,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     it 'correctly sets all fields' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
-        "EnrollmentCoc.cocCode": 'SC-501',
+        "Enrollment.enrollmentCoc": 'SC-501',
         "Enrollment.livingSituation": 'HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY',
         "Enrollment.lengthOfStay": 'ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS',
         "Enrollment.losUnderThreshold": 'YES',
@@ -670,7 +670,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
 
       assessment.form_processor.hud_values = {
-        'EnrollmentCoc.cocCode' => 'MA-507',
+        'Enrollment.enrollmentCoc' => 'MA-507',
         'Enrollment.livingSituation' => nil,
         'Enrollment.lengthOfStay' => nil,
         'Enrollment.losUnderThreshold' => nil,
@@ -1240,6 +1240,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(enrollment.client.persisted?).to eq(true)
       expect(enrollment.client.first_name).to eq('First')
       expect(enrollment.client.last_name).to eq('Last')
+    end
+
+    it 'adds new enrollment to existing household, and takes HoH\'s coc code' do
+      hoh_enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: p1, enrollment_coc: 'XX-500')
+      new_enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, project: p1, household_id: hoh_enrollment.household_id)
+      hud_values = complete_hud_values.merge('Enrollment.enrollmentCoc' => nil, 'Enrollment.relationshipToHoH' => 'CHILD')
+      process_record(record: new_enrollment, hud_values: hud_values, user: hmis_user)
+      expect(new_enrollment.enrollment_coc).to eq(hoh_enrollment.enrollment_coc)
     end
 
     it 'validates Client record' do
