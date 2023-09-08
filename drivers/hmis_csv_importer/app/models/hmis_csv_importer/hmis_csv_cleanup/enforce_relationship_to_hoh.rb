@@ -244,7 +244,7 @@ module HmisCsvImporter::HmisCsvCleanup
             :HouseholdID,
             :PersonalID,
             ic_t[:DOB],
-            ic_t[:Female],
+            ic_t[:Woman],
             :RelationshipToHoH,
             :id,
           ).
