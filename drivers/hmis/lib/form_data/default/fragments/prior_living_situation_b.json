@@ -252,6 +252,12 @@
           "answer_code": "CLIENT_PREFERS_NOT_TO_ANSWER"
         },
         {
+          "question": "3.917B.2",
+          "operator": "NOT_EQUAL",
+          "_comment": "LOS has been answered",
+          "answer_code": "DATA_NOT_COLLECTED"
+        },
+        {
           "question": "3.917B.A",
           "operator": "ENABLED",
           "_comment": "threshold message is not shown",
