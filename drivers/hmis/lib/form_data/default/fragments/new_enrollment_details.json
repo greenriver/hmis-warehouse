@@ -65,6 +65,30 @@
           ]
         }
       ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "enrollment-coc",
+      "required": true,
+      "text": "Enrollment CoC",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "enrollmentCoc"
+      },
+      "pick_list_reference": "COC",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "local_constant": "$projectHasExactlyOneCoc",
+          "operator": "EQUAL",
+          "answer_boolean": false
+        },
+        {
+          "question": "household-id",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ]
     }
   ]
 }
