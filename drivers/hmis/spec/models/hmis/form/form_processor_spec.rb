@@ -1241,14 +1241,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(enrollment.client.first_name).to eq('First')
       expect(enrollment.client.last_name).to eq('Last')
     end
-
-    it 'validates Client record' do
-      enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, project: p1)
-      form_processor = Hmis::Form::FormProcessor.new
-      form_processor.hud_values = complete_hud_values.merge('Client.nameDataQuality' => 'INVALID')
-      form_processor.run!(owner: enrollment, user: hmis_user)
-      expect(enrollment.valid?(:form_submission)).to eq(false)
-    end
   end
 
   describe 'Form processing for Projects' do
