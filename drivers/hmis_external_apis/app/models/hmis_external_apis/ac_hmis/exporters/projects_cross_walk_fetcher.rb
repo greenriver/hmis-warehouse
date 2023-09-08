@@ -46,12 +46,12 @@ module HmisExternalApis::AcHmis::Exporters
       @workbook = ::Roo::Excelx.new(StringIO.new(xlsx).binmode)
     end
 
-    def projects_csv
-      @workbook.sheet('Projects').to_csv
+    def projects_csv_stream
+      StringIO.new(@workbook.sheet('Projects').to_csv)
     end
 
-    def orgs_csv
-      @workbook.sheet('Organizations').to_csv
+    def orgs_csv_stream
+      StringIO.new(@workbook.sheet('Organizations').to_csv)
     end
   end
 end

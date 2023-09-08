@@ -166,7 +166,7 @@ module Importing
         create_statistical_matches
         generate_logging_info
 
-        if Exporters::ClientExportUploader.can_run?
+        if HmisExternalApis::AcHmis::Exporters::ClientExportUploader.can_run?
           HmisExternalApis::AcHmis::UploadClientsJob.perform_later('clients_with_mci_ids_and_address')
           HmisExternalApis::AcHmis::UploadClientsJob.perform_later('hmis_csv_export')
           HmisExternalApis::AcHmis::UploadClientsJob.perform_later('project_crosswalk')

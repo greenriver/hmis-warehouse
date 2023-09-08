@@ -76,11 +76,11 @@ module HmisExternalApis::AcHmis
         io_streams: [
           OpenStruct.new(
             name: 'Organizations-cross-walk.csv',
-            io: export.orgs_csv,
+            io: export.orgs_csv_stream,
           ),
           OpenStruct.new(
             name: 'Project-cross-walk.csv',
-            io: export.projects_csv,
+            io: export.projects_csv_stream,
           ),
         ],
       )
