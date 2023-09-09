@@ -14,8 +14,8 @@
 # missing = {}
 # splitter.results.each do |filename, result|
 #   missing[filename] = {}
-#   second_count = splitter2.results[filename][:added]
-#   missing[filename][:missing] = result[:original] - second_count - result[:added]
+#   processed_count = splitter.results[filename][:added] + splitter2.results[filename][:added]
+#   missing[filename][:missing] = result[:original] - processed_count
 #   missing[filename][:original] = result[:original]
 # end
 # missing
