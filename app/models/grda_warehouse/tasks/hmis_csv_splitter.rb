@@ -83,12 +83,12 @@ module GrdaWarehouse::Tasks
                 output << row
                 added += 1
               end
-            elsif row.key?('EnrollmentID')
-              # Add enrollment limited
-              output << row if row['EnrollmentID'].in?(enrollment_ids)
-              added += 1
             else
-              raise "Unknown file: #{filename}"
+              # Add enrollment limited
+              if row['EnrollmentID'].in?(enrollment_ids) # rubocop:disable Style/IfInsideElse
+                output << row
+                added += 1
+              end
             end
           end
         end
