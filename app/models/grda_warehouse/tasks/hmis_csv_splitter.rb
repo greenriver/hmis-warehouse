@@ -83,9 +83,9 @@ module GrdaWarehouse::Tasks
                 output << row
                 added += 1
               end
-            elsif row['EnrollmentID'].in?(enrollment_ids)
+            elsif row.key?('EnrollmentID')
               # Add enrollment limited
-              output << row
+              output << row if row['EnrollmentID'].in?(enrollment_ids)
               added += 1
             else
               raise "Unknown file: #{filename}"
