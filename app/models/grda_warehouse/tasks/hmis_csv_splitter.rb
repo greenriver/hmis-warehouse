@@ -87,6 +87,8 @@ module GrdaWarehouse::Tasks
               # Add enrollment limited
               output << row
               added += 1
+            else
+              raise "Unknown file: #{filename}"
             end
           end
         end
