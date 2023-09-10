@@ -35,7 +35,12 @@ module Types
     end
 
     def client_search(input:, **args)
-      search_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user, sorted: !args.key?(:sort_order))
+      sorted = args[:sort_order] == :best_match ? true : false
+      search_scope = Hmis::Hud::Client.client_search(
+        input: input.to_params,
+        user: current_user,
+        sorted: sorted
+      )
       resolve_clients(search_scope, **args)
     end
 

@@ -190,6 +190,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [
+    :best_match,
     :last_name_a_to_z,
     :last_name_z_to_a,
     :first_name_a_to_z,
@@ -200,6 +201,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
+    best_match: 'Best Match',
     last_name_a_to_z: 'Last Name: A-Z',
     last_name_z_to_a: 'Last Name: Z-A',
     first_name_a_to_z: 'First Name: A-Z',
@@ -218,7 +220,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
     begin
-      scope = scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
+      # early return to preserve sort order, avoids client.where(id: scope.select(:id))
+      return scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
     rescue RangeError => e
       # FIXME: what is this range error?
       Sentry.capture_exception(e)
@@ -261,6 +264,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
+    when :best_match
+      current_scope # no order, use text search rank
     when :last_name_a_to_z
       order(arel_table[:last_name].asc.nulls_last)
     when :last_name_z_to_a
