@@ -21,13 +21,7 @@ class Translation < ApplicationRecord
         # raise msg if Rails.env.development?
 
         # Notify if this isn't development so we can track it down later
-        setup_notifier('Translation')
-        @notifier.ping(
-          msg,
-          {
-            exception: StandardError.new(msg),
-          },
-        )
+        send_single_notification(msg, 'Translations', exception: StandardError.new(msg))
       end
 
       translated.presence || text
