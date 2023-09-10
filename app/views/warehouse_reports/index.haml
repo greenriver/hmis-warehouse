@@ -16,7 +16,7 @@
 .c-list-search{data: {controller: stimulus_controller}}
   .c-list-search__header
     .c-list-search__title
-      - content_for :title, _('Reports')
+      - content_for :title, Translation.translate('Reports')
       %h1= content_for :title
 
     .c-list-search__search

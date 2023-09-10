@@ -13,9 +13,9 @@ wb.add_worksheet(name: 'Decision Efficiency') do |sheet|
     'Move-in Date',
     'Client',
     'Warehouse Client ID',
-    "#{_('HSA')} Contacts",
-    "#{_('Housing Search Provider')} Contacts",
-    "#{_('Housing Search Provider')} Agencies",
+    "#{Translation.translate('HSA')} Contacts",
+    "#{Translation.translate('Housing Search Provider')} Contacts",
+    "#{Translation.translate('Housing Search Provider')} Agencies",
   ]
   sheet.add_row(columns, style: title)
   @data.each do |row|

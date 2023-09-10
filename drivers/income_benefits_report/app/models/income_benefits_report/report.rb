@@ -137,7 +137,7 @@ module IncomeBenefitsReport
     end
 
     def title
-      _('Income, Non-Cash Benefits, Health Insurance Report')
+      Translation.translate('Income, Non-Cash Benefits, Health Insurance Report')
     end
 
     def section_ready?(section)

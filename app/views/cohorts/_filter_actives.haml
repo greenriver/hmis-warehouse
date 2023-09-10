@@ -25,13 +25,13 @@
           .checkbox
             %label{for: :visible_on_dashboard}
               %input#visible_on_dashboard.boolean.optional{name: :visible_on_dashboard, type: :checkbox, value: 1, checked: @visible_on_dashboard}
-              = _('Cohort is visible on Client dashboard')
+              = Translation.translate('Cohort is visible on Client dashboard')
 
         .o-filtration__option
           .checkbox
             %label{for: :visible_in_cas}
               %input#visible_in_cas.boolean.optional{name: :visible_in_cas, type: :checkbox, value: 1, checked: @visible_in_cas}
-              = _('Cohort is visible in CAS')
+              = Translation.translate('Cohort is visible in CAS')
 
         .o-filtration__actions.form__actions
           = link_to cohorts_path, class:'btn btn-secondary' do

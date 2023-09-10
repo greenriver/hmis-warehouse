@@ -19,7 +19,7 @@ module HmisDataQualityTool::DocumentExports
       {
         report: report,
         filter: filter,
-        title: _('HMIS Data Quality Tool'),
+        title: Translation.translate('HMIS Data Quality Tool'),
         pdf: false,
       }
     end

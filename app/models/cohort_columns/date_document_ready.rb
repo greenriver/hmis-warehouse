@@ -15,7 +15,7 @@ module CohortColumns
     end
 
     def description
-      _('Manually entered date at which the client became document ready')
+      Translation.translate('Manually entered date at which the client became document ready')
     end
   end
 end

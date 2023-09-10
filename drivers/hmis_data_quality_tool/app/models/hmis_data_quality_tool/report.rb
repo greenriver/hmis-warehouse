@@ -174,7 +174,7 @@ module HmisDataQualityTool
     end
 
     def description
-      _('A tool to track data quality across HMIS data used in HUD reports.')
+      Translation.translate('A tool to track data quality across HMIS data used in HUD reports.')
     end
 
     def multiple_project_types?

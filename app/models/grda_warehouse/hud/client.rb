@@ -995,17 +995,17 @@ module GrdaWarehouse::Hud
     def self.full_release_string
       # Return the untranslated string, but force the translator to see it
       if GrdaWarehouse::Config.implicit_roi?
-        _('Implicit Release')
+        Translation.translate('Implicit Release')
         'Implicit Release'
       else
-        _('Full HAN Release')
+        Translation.translate('Full HAN Release')
         'Full HAN Release'
       end
     end
 
     def self.partial_release_string
       # Return the untranslated string, but force the translator to see it
-      _('Limited CAS Release')
+      Translation.translate('Limited CAS Release')
       'Limited CAS Release'
     end
 

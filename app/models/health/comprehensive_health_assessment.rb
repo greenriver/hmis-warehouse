@@ -34,7 +34,7 @@ module Health
       (1..number).map do |n|
         question_key = "#{section}_Q#{question}"
         answer_key = "#{section}_Q#{question}_A#{n}"
-        value = _("CHA #{answer_key}")
+        value = Translation.translate("CHA #{answer_key}")
         text = value.gsub(/^\d+\./, '').strip # Some values already have numbers
         # text = "#{text} / #{question_key}"
 
@@ -998,16 +998,16 @@ module Health
       hash = answers.dup
       QUESTION_ANSWER_OPTIONS.keys.each do |section_question|
         section_code  = section_question.to_s.upcase.split('_').first
-        section       = _("CHA #{section_code}_TITLE")
-        section_subtitle = _("CHA #{section_code}_SUBTITLE")
-        question = _("CHA #{section_question.upcase}")
+        section       = Translation.translate("CHA #{section_code}_TITLE")
+        section_subtitle = Translation.translate("CHA #{section_code}_SUBTITLE")
+        question = Translation.translate("CHA #{section_question.upcase}")
         question_header = ''
-        question_header = _("CHA #{section_question.upcase}_HEADER") unless "CHA #{section_question.upcase}_HEADER" == _("CHA #{section_question.upcase}_HEADER")
+        question_header = Translation.translate("CHA #{section_question.upcase}_HEADER") unless "CHA #{section_question.upcase}_HEADER" == Translation.translate("CHA #{section_question.upcase}_HEADER")
         question_sub_header = ''
-        question_sub_header = _("CHA #{section_question.upcase}_SUBHEADER") unless "CHA #{section_question.upcase}_SUBHEADER" == _("CHA #{section_question.upcase}_SUBHEADER")
+        question_sub_header = Translation.translate("CHA #{section_question.upcase}_SUBHEADER") unless "CHA #{section_question.upcase}_SUBHEADER" == Translation.translate("CHA #{section_question.upcase}_SUBHEADER")
         if (matches = section_question.match(/(g_q1.)p$/))
           if (code = matches.try(:[], 1)&.upcase)
-            question_header = _("CHA #{code}_HEADER")
+            question_header = Translation.translate("CHA #{code}_HEADER")
           end
         end
         hash[section_code] ||= {}

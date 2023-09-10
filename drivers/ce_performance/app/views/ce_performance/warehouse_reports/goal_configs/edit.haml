@@ -1,10 +1,10 @@
-- title = _('Coordinated Entry Performance Goal')
+- title = Translation.translate('Coordinated Entry Performance Goal')
 - report = CePerformance::Report.new(user: current_user)
 - content_for :title, title
 
 = content_for :crumbs do
   = link_to ce_performance_warehouse_reports_goal_configs_path do
-    &laquo; #{_('Coordinated Entry Performance Goal Configurator')}
+    &laquo; #{Translation.translate('Coordinated Entry Performance Goal Configurator')}
 %h1.mb-5= title
 
 = simple_form_for @goal, url: ce_performance_warehouse_reports_goal_config_path(@goal), as: :goal do |f|

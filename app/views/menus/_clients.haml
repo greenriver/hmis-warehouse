@@ -3,31 +3,31 @@
     - if can_manage_all_agencies?
       %li.o-menu__item
         = link_to assigned_all_agencies_path, class: 'o-menu__link' do
-          = _('All Assigned Clients')
+          = Translation.translate('All Assigned Clients')
     - if can_manage_agency?
       %li.o-menu__item
         = link_to assigned_agencies_path, class: 'o-menu__link' do
           - if can_view_aggregate_health? || can_view_patients_for_own_agency?
-            = _('My Agency\'s HMIS Clients')
+            = Translation.translate('My Agency\'s HMIS Clients')
           - else
-            = _('My Agency\'s Clients')
+            = Translation.translate('My Agency\'s Clients')
     - if GrdaWarehouse::Config.client_search_available? && current_user.can_access_some_client_search?
       - if current_user.user_clients.exists?
         %li.o-menu__item
           = link_to assigned_clients_path, class: 'o-menu__link' do
             - if can_view_aggregate_health? || can_view_patients_for_own_agency?
-              = _('My HMIS Clients')
+              = Translation.translate('My HMIS Clients')
             - else
-              = _('My Clients')
+              = Translation.translate('My Clients')
       %li.o-menu__item
         = link_to clients_path, class: 'o-menu__link' do
-          = _('Client Search')
+          = Translation.translate('Client Search')
 
     - if can_access_some_cohorts?
       %li.o-menu__item
         = link_to cohorts_path, class: 'o-menu__link' do
-          = _('Cohorts')
+          = Translation.translate('Cohorts')
     - if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible) && can_use_service_register?
       %li.o-menu__item
         = link_to service_scanning_services_path, class: 'o-menu__link' do
-          = _('Scan Card Services')
+          = Translation.translate('Scan Card Services')

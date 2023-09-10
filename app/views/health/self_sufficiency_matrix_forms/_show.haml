@@ -24,7 +24,7 @@
           %dd.inline= link_to @form.health_file&.name, polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form)
     - if @form.editable_by?(current_user)
       .ml-auto
-        = link_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id), class: 'btn btn-secondary btn-sm', disabled: @claim_submitted, data: { toggle: 'tooltip' }, title: (_('A claim was submitted for this SSM; it is no longer editable.') if @claim_submitted) do
+        = link_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id), class: 'btn btn-secondary btn-sm', disabled: @claim_submitted, data: { toggle: 'tooltip' }, title: (Translation.translate('A claim was submitted for this SSM; it is no longer editable.') if @claim_submitted) do
           %i.icon-pencil
           Edit SSM
 

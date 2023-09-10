@@ -26,7 +26,7 @@ class ApplicationMailer < ActionMailer::Base
 
     mail(
       to: @user.email,
-      subject: _("Sign in via #{@provider_name}"),
+      subject: Translation.translate("Sign in via #{@provider_name}"),
     )
   end
 
