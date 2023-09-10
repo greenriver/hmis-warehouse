@@ -3,8 +3,6 @@
 %h1= content_for :title
 = render partial: 'menus/admin_tabs'
 
-- locales = TranslationKey.available_locales
-
 - if @pagy.count.positive?
   .row
     .col-sm-8
@@ -14,18 +12,15 @@
           %thead
             %tr
               %th{style: 'width: 30%;'} Default strings
-              - locales.each do |locale|
-                %th= human_locale(locale)
+              %th Translation
               %th
           %tbody
-            - @translation_keys.each do |key|
+            - @translations.each do |translation|
               %tr
-                %td= key.key
-                - locales.each do |locale|
-                  %td
-                    - translation = key.translations.detect{|t| t.locale == locale }
-                    = simple_form_for(translation, remote: true, url: admin_translation_text_path(translation.id), method: :patch, html: {class: 'jTranslationTextForm'})do |t|
-                      = t.input :text, label: false, input_html: {class: 'jTranslationText', rows: 2, cols: 30}
+                %td= translation.key
+                %td
+                  = simple_form_for(translation, remote: true, url: admin_translation_text_path(translation.id), method: :patch, html: {class: 'jTranslationTextForm'})do |t|
+                    = t.input :text, label: false, input_html: {class: 'jTranslationText', rows: 2, cols: 30}
                 %td
                   %button.btn.btn-secondary.btn-sm
                     Save
@@ -35,6 +30,7 @@
         = simple_form_for :search, as: :search, url: admin_translation_keys_path, method: :get do |f|
           = f.input :q, label: 'Search'
           = f.input :missing_translations, as: :boolean, label: 'Only show untranslated strings'
+          = f.input :common, as: :boolean, label: 'Only common translations'
           = f.button :submit, value: 'Search or Filter'
 - else
   .none-found No translations found.

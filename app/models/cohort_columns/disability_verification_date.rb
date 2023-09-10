@@ -8,7 +8,7 @@ module CohortColumns
   class DisabilityVerificationDate < ReadOnly
     attribute :column, String, lazy: true, default: :disability_verification_date
     attribute :translation_key, String, lazy: true, default: 'Disability Verification Upload Date'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def cast_value(val)
       val.to_date

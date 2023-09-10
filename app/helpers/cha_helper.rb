@@ -93,19 +93,19 @@ module ChaHelper
 
   def header_for(field)
     key = "CHA #{field.upcase}_HEADER"
-    header = _(key)
+    header = Translation.translate(key)
     header.blank? || header == key ? nil : header
   end
 
   def subheader_for(field)
     key = "CHA #{field.upcase}_SUBHEADER"
-    subheader = _(key)
+    subheader = Translation.translate(key)
     subheader.blank? || subheader == key ? nil : subheader
   end
 
   def hint_for(field)
     key = "CHA #{field.upcase}_HINT"
-    footer = _(key)
+    footer = Translation.translate(key)
     footer.blank? || footer == key ? nil : footer
   end
 

@@ -10,7 +10,7 @@
         %dd
           - if @client.housing_release_status.present?
             %i.icon-unlocked
-            = _(@client.housing_release_status)
+            = Translation.translate(@client.housing_release_status)
           - else
             %i.icon-lock
             Not Signed

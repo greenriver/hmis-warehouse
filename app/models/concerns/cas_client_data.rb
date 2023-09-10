@@ -218,7 +218,7 @@ module CasClientData
       if release_duration.in?(['One Year', 'Use Expiration Date'])
         return 'Expired' unless consent_form_valid? && consent_confirmed?
       end
-      return _(housing_release_status)
+      return Translation.translate(housing_release_status)
     end
 
     def health_prioritization_options

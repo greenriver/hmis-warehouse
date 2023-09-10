@@ -1061,7 +1061,7 @@ module GrdaWarehouse::Hud
           'Expired'
         end
       else
-        _(housing_release_status)
+        Translation.translate(housing_release_status)
       end
       consent_text += " in #{consented_coc_codes.to_sentence}" if consented_coc_codes&.any?
       consent_text

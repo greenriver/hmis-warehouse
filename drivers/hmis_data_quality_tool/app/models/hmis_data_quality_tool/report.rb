@@ -170,7 +170,7 @@ module HmisDataQualityTool
     end
 
     def title
-      _(self.class.untranslated_title)
+      Translation.translate(self.class.untranslated_title)
     end
 
     def description

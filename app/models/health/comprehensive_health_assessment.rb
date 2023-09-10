@@ -1292,7 +1292,7 @@ module Health
     def detect_answer(answer_key, value_key)
       return nil unless answer(answer_key)
 
-      answer(answer_key).include?(_(value_key)) ? 1 : 0
+      answer(answer_key).include?(Translation.translate(value_key)) ? 1 : 0
     end
 
     def format_age(birth_date, reference_date)
