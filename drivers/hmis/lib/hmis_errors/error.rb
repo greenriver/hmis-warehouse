@@ -43,11 +43,13 @@ module HmisErrors
 
       # 'must exist' string as type: https://github.com/rails/rails/blob/83217025a171593547d1268651b446d3533e2019/activemodel/lib/active_model/error.rb#L65
       type = [:blank, 'must exist'].include?(error.type) ? :required : error.type
-      readable_attribute = humanize_attribute(error.attribute)
+
+      attribute = error.options[:attribute_override] || error.attribute
+      readable_attribute = error.options[:readable_attribute] || humanize_attribute(attribute)
       full_message = error.options[:full_message] || error.full_message&.gsub(error.attribute.to_s.downcase.capitalize, readable_attribute)
 
       new(
-        error.attribute,
+        attribute,
         type,
         message: error.message,
         full_message: full_message,
