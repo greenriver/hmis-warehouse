@@ -24,12 +24,19 @@ module HmisExternalApis::AcHmis::Exporters
 
       Rails.logger.info 'Generating HMIS CSV Export'
 
-      job_info = filter.execute_job(report_url: warehouse_reports_hmis_exports_url)
+      # FIXME: There's got to be a better way than these two ways.
+      #
+      # job_info = filter.execute_job(report_url: warehouse_reports_hmis_exports_url)
+      # export_id = job_info.arguments[3][:args][1]
+      # self.export = ::GrdaWarehouse::HmisExport.find(export_id)
 
-      # FIXME: There's got to be a better way:
-      export_id = job_info.arguments[3][:args][1]
+      filter.execute_job(report_url: warehouse_reports_hmis_exports_url)
 
-      self.export = ::GrdaWarehouse::HmisExport.find(export_id)
+      self.export = ::GrdaWarehouse::HmisExport
+        .where(user_id: user.id)
+        .where(version: version)
+        .order('created_at desc')
+        .first!
     end
   end
 end
