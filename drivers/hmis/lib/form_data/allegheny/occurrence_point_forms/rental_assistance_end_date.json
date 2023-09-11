@@ -13,6 +13,11 @@
           "id": "min-date",
           "type": "MIN",
           "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
         }
       ]
     }
