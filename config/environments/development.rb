@@ -11,8 +11,8 @@ Rails.application.configure do
   config.cache_classes = false
 
   config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
-  config.action_cable.allowed_request_origins = [ /.+/ ]
-  config.hosts = [ /.*/ ]
+  config.action_cable.allowed_request_origins = [/.+/]
+  config.hosts = [/.*/]
 
   # Do not eager load code on boot.
   config.eager_load = false
@@ -22,20 +22,19 @@ Rails.application.configure do
 
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
+  config.action_controller.perform_caching = true
   if Rails.root.join('tmp', 'caching-dev.txt').exist?
-    config.action_controller.perform_caching = true
     config.action_controller.enable_fragment_cache_logging = true
 
     config.cache_store = :memory_store
     config.public_file_server.headers = {
-      'Cache-Control' => "public, max-age=#{2.days.to_i}"
+      'Cache-Control' => "public, max-age=#{2.days.to_i}",
     }
   else
-    config.action_controller.perform_caching = true
 
     cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
     cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-    redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace})
+    redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace })
     config.cache_store = :redis_cache_store, redis_config
   end
 
@@ -46,8 +45,8 @@ Rails.application.configure do
 
   if ENV['SMTP_SERVER']
     config.action_mailer.delivery_method = :smtp
-    config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'http'}
-    smtp_port = ENV.fetch('SMTP_PORT'){ 587 }
+    config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'http' }
+    smtp_port = ENV.fetch('SMTP_PORT') { 587 }
     config.action_mailer.perform_deliveries = true
     if ENV['SMTP_USERNAME'] && ENV['SMTP_PASSWORD']
       config.action_mailer.smtp_settings = {
@@ -69,7 +68,7 @@ Rails.application.configure do
     # Don't care if the mailer can't send.
     config.action_mailer.raise_delivery_errors = false
 
-    config.action_mailer.delivery_method = ENV.fetch("DEV_MAILER") { :file }.to_sym
+    config.action_mailer.delivery_method = ENV.fetch('DEV_MAILER') { :file }.to_sym
     # puts "Using #{config.action_mailer.delivery_method} for mail delivery"
   end
 
@@ -107,9 +106,7 @@ Rails.application.configure do
 
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
-  if ENV['ENABLE_EVENT_FS_CHECKER'] == '1'
-    config.file_watcher = ActiveSupport::EventedFileUpdateChecker
-  end
+  config.file_watcher = ActiveSupport::EventedFileUpdateChecker if ENV['ENABLE_EVENT_FS_CHECKER'] == '1'
 
   # Web console from outside of docker
   config.web_console.allowed_ips = ['172.16.0.0/12', '192.168.0.0/16', '10.0.0.0/8']
@@ -126,6 +123,6 @@ Rails.application.configure do
 
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
-  routes.default_url_options[:script_name]= ''
+  routes.default_url_options[:script_name] = ''
   routes.default_url_options[:host] = ENV['FQDN']
 end
