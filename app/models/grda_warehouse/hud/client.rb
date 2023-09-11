@@ -1791,10 +1791,6 @@ module GrdaWarehouse::Hud
       mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id))
       mapped = mapped.order(Arel.sql('dst_search_results.score DESC'), :id) if sorted
       mapped
-    rescue RangeError => e
-      # FIXME: what is this range error?
-      Sentry.capture_exception(e)
-      return none
     end
 
     # Must match 3 of four First Name, Last Name, SSN, DOB
@@ -1850,18 +1846,12 @@ module GrdaWarehouse::Hud
       all_ids = first_name_ids + last_name_ids + dob_ids + ssn_ids
       matching_ids = all_ids.each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.select { |_, counts| counts >= 3 }&.keys
 
-      begin
-        ids = client_scope.
-          joins(:warehouse_client_source).searchable.
-          where(id: matching_ids).
-          preload(:destination_client).
-          map { |m| m.destination_client.id }
-        where(id: ids)
-      rescue RangeError
-        # FIXME: what is this range error?
-        Sentry.capture_exception(e)
-        return none
-      end
+      ids = client_scope.
+        joins(:warehouse_client_source).searchable.
+        where(id: matching_ids).
+        preload(:destination_client).
+        map { |m| m.destination_client.id }
+      where(id: ids)
     end
 
     def gender
