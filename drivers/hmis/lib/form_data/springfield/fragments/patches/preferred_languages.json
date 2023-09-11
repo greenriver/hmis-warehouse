@@ -1,0 +1,47 @@
+[
+  {
+    "link_id": "C4.A",
+    "pick_list_options": [
+      {
+        "code": "AMERICAN_SIGN_LANGUAGE",
+        "label": "American Sign Language"
+      },
+      {
+        "code": "ARABIC",
+        "label": "Arabic"
+      },
+      {
+        "code": "CHINESE",
+        "label": "Chinese"
+      },
+      {
+        "code": "HAITIAN_CREOLE",
+        "label": "Haitian Creole"
+      },
+      {
+        "code": "NIGERIAN_PIDGIN",
+        "label": "Nigerian Pidgin"
+      },
+      {
+        "code": "PORTUGUESE",
+        "label": "Portuguese"
+      },
+      {
+        "code": "RUSSIAN",
+        "label": "Russian"
+      },
+      {
+        "code": "SPANISH",
+        "label": "Spanish"
+      },
+      {
+        "code": "VIETNAMESE",
+        "label": "Vietnamese"
+      },
+      {
+        "code": "DIFFERENT_PREFERRED_LANGUAGE",
+        "label": "Different preferred language"
+      }
+    ]
+  }
+]
