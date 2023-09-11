@@ -14,7 +14,6 @@ module HmisExternalApis::AcHmis::Exporters
       #   - app/views/warehouse_reports/hmis_cross_walks/index.xlsx.axlsx
       #   - app/controllers/warehouse_reports/hmis_cross_walks_controller.rb
 
-      # From elliot to flesh out:
       filter = ::Filters::FilterBase.new(user_id: User.system_user.id, enforce_one_year_range: false)
       filter.update(
         start: 10.years.ago.to_date,
