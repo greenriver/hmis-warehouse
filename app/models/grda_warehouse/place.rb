@@ -63,6 +63,11 @@ module GrdaWarehouse
       # we've probably been banned, let the API cool off
       Rails.cache.write(['Nominatim', 'API PAUSE'], true, expires_in: 1.hours)
       raise NominatimApiPaused
+    rescue StandardError => e
+      # The API returns various errors which we don't want to prevent continuing with other attempts.
+      # Just send it along to sentry and take a quick break
+      Sentry.capture_exception(e)
+      sleep 1
     end
   end
 end
