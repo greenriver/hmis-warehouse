@@ -83,7 +83,7 @@ module WarehouseReports
     private def enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports))
     end
   end
 end

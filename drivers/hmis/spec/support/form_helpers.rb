@@ -216,6 +216,33 @@ module FormHelpers
         'relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
       },
     },
+    NEW_CLIENT_ENROLLMENT: {
+      values: {
+        'dob' => '2000-03-29T05:00:00.000Z',
+        'dob-dq' => 'FULL_DOB_REPORTED',
+        'ssn' => 'XXXXX1234',
+        'ssn-dq' => 'APPROXIMATE_OR_PARTIAL_SSN_REPORTED',
+        'race' => ['WHITE', 'ASIAN'],
+        'gender' => ['WOMAN', 'TRANSGENDER'],
+        'veteran-status' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
+        'entry-date' => '2023-09-07',
+        'relationship-to-hoh' => 'SELF_HEAD_OF_HOUSEHOLD',
+      },
+      hud_values: {
+        'Client.names' => [
+          { first: 'First', last: 'Last', nameDataQuality: 'FULL_NAME_REPORTED', primary: true },
+        ],
+        'Client.dob' => '2000-03-29',
+        'Client.dobDataQuality' => 'FULL_DOB_REPORTED',
+        'Client.ssn' => 'XXXXX1234',
+        'Client.ssnDataQuality' => 'APPROXIMATE_OR_PARTIAL_SSN_REPORTED',
+        'Client.race' => ['WHITE', 'ASIAN'],
+        'Client.gender' => ['WOMAN', 'TRANSGENDER'],
+        'Client.veteranStatus' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
+        'Enrollment.entryDate' => '2023-09-07',
+        'Enrollment.relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
+      },
+    },
     CURRENT_LIVING_SITUATION: {
       values: {
         '4.12.1' => '2023-07-27T05:00:00.000Z',
