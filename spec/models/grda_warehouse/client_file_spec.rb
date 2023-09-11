@@ -6,14 +6,17 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     let!(:other_tag) { create :available_file_tag, consent_form: false, name: 'Other Tag' }
     let!(:file) { create :client_file, effective_date: 5.days.ago }
     let!(:second_file) { create :client_file, effective_date: 3.days.ago, client: file.client }
-    let(:third_file) { create :client_file, effective_date: 1.days.ago, client: file.client }
-    let(:config) { create :config }
+    let!(:third_file) { create :client_file, effective_date: 1.days.ago, client: file.client }
+    let!(:config) { create :config }
+
     before :each do
       file.save!
     end
+
     it 'does not adjust the client consent_form_signed_on' do
       expect(file.client.consent_form_signed_on).to eq(nil)
     end
+
     describe 'when the file is tagged with a non-consent form tag' do
       before :each do
         file.tag_list.add(other_tag.name)
@@ -150,7 +153,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
   end
 
   describe 'visible_by' do
-    let!(:user) { create :user }
+    let!(:user) { create :acl_user }
     # permissions
     let!(:can_manage_client_files) { create :role, can_manage_client_files: true }
     let!(:can_manage_window_client_files) { create :role, can_manage_window_client_files: true }
@@ -166,6 +169,9 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     # other type of file created by another user, for another client
     let!(:other_file) { create :client_file }
     let!(:other_consent_file) { create :client_file }
+    let!(:no_permission_role) { create :role }
+    let!(:no_data_source_collection) { create :collection }
+    let!(:coc_code_collection) { create :collection }
 
     before :each do
       history_file.tag_list.add(verified_homeless_tag.name)
@@ -178,7 +184,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
 
     describe 'when user has can_manage_client_files' do
       before :each do
-        user.roles << can_manage_client_files
+        setup_access_control(user, can_manage_client_files, no_data_source_collection)
       end
       it 'can see all files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
@@ -187,10 +193,11 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     end
     describe 'when user has can_manage_window_client_files' do
       before :each do
-        user.roles << can_manage_window_client_files
+        setup_access_control(user, can_manage_window_client_files, no_data_source_collection)
       end
 
       it 'can see own files' do
+        # user.pause = true
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
         expect(visible_files.count).to eq(1)
         expect(visible_files).to include(own_history_file)
@@ -201,7 +208,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           GrdaWarehouse::Config.delete_all
           GrdaWarehouse::Config.invalidate_cache
         end
-        let(:config) { create :config }
+        let!(:config) { create :config }
         before :each do
           config.update(consent_visible_to_all: true)
           GrdaWarehouse::Config.invalidate_cache
@@ -233,7 +240,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           GrdaWarehouse::Config.delete_all
           GrdaWarehouse::Config.invalidate_cache
         end
-        let(:config) { create :config }
+        let!(:config) { create :config }
         before :each do
           config.update(verified_homeless_history_method: :release)
         end
@@ -248,7 +255,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
               GrdaWarehouse::Config.delete_all
               GrdaWarehouse::Config.invalidate_cache
             end
-            let(:config_b) { create :config }
+            let!(:config_b) { create :config }
             before :each do
               config_b.update(verified_homeless_history_method: :release)
               config_b.update(verified_homeless_history_visible_to_all: true)
@@ -263,7 +270,8 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         end
         describe 'and client has consent in user\'s coc' do
           before :each do
-            user.coc_codes = ['ZZ-999']
+            coc_code_collection.update(coc_codes: ['ZZ-999'])
+            setup_access_control(user, no_permission_role, coc_code_collection)
             history_file.client.update(
               housing_release_status: history_file.client.class.full_release_string,
               consent_form_signed_on: 5.days.ago,
@@ -281,7 +289,8 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         end
         describe 'and client has consent in different coc' do
           before :each do
-            user.coc_codes = ['BB-000']
+            coc_code_collection.update(coc_codes: ['BB-000'])
+            setup_access_control(user, no_permission_role, coc_code_collection)
             history_file.client.update(
               housing_release_status: history_file.client.class.full_release_string,
               consent_form_signed_on: 5.days.ago,
@@ -298,7 +307,6 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         end
         describe 'user does not have coc_codes assigned' do
           before :each do
-            user.coc_codes = []
             history_file.client.update(
               housing_release_status: history_file.client.class.full_release_string,
               consent_form_signed_on: 5.days.ago,
@@ -307,6 +315,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
             )
           end
           it 'can see own files' do
+            expect(user.coc_codes).to eq([])
             expect(GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(user.coc_codes).count).to eq(0)
             visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
             expect(visible_files.count).to eq(1)
@@ -319,7 +328,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           GrdaWarehouse::Config.delete_all
           GrdaWarehouse::Config.invalidate_cache
         end
-        let(:config) { create :config }
+        let!(:config) { create :config }
         before :each do
           config.update(verified_homeless_history_visible_to_all: true)
         end
@@ -337,9 +346,9 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let(:config) { create :config }
+      let!(:config) { create :config }
       before :each do
-        user.roles << can_see_own_file_uploads
+        setup_access_control(user, can_see_own_file_uploads, no_data_source_collection)
       end
       it 'can see own files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
@@ -365,9 +374,9 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let(:config) { create :config }
+      let!(:config) { create :config }
       before :each do
-        user.roles << can_generate_homeless_verification_pdfs
+        setup_access_control(user, can_generate_homeless_verification_pdfs, no_data_source_collection)
       end
       it 'can see own history files' do
         visible_files = GrdaWarehouse::ClientFile.visible_by?(user)

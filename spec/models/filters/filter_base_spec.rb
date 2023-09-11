@@ -4,11 +4,15 @@ RSpec.describe Filters::FilterBase, type: :model do
   let!(:data_source) { create :data_source_fixed_id }
   let!(:organization) { create :grda_warehouse_hud_organization }
   let!(:es_project) { create :grda_warehouse_hud_project, computed_project_type: 1, OrganizationID: organization.OrganizationID }
-  let!(:psh_project) { create :grda_warehouse_hud_project, computed_project_type: 3, OrganizationID: organization.OrganizationID }
-  let!(:user) { create :user }
+  let!(:psh_project) { create :grda_warehouse_hud_project, ProjectType: 3, computed_project_type: 3, OrganizationID: organization.OrganizationID }
+  let!(:user) { create :acl_user }
+  # filter permissions are governed by the projects you can see in the reporting context
+  let!(:reporting_role) { create :role, can_view_assigned_reports: true }
+  let!(:ds_entity_group) { create :collection }
 
   before :each do
-    user.add_viewable(data_source)
+    ds_entity_group.set_viewables({ data_sources: [data_source.id] })
+    setup_access_control(user, reporting_role, ds_entity_group)
   end
 
   describe 'FilterBase' do

@@ -7,7 +7,7 @@
 module Admin
   class AccountRequestsController < ApplicationController
     include AjaxModalRails::Controller
-    include ViewableEntities
+    include ViewableEntities # TODO: START_ACL remove when ACL transition complete
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!
@@ -29,7 +29,10 @@ module Admin
         return
       end
 
-      @account_request.convert_to_user!(user: current_user, role_ids: role_ids, access_group_ids: access_group_ids)
+      # TODO: START_ACL replace when ACL transition complete
+      # @account_request.convert_to_user!(access_control_ids: access_control_ids)
+      @account_request.convert_to_user!(user: current_user, role_ids: role_ids, access_group_ids: access_group_ids, access_control_ids: access_control_ids)
+      # END_ACL
       flash[:notice] = "Account created for #{@account_request.name}"
       redirect_to(action: :index)
     end
@@ -46,8 +49,9 @@ module Admin
     private def account_params
       params.require(:account_request).permit(
         :agency_id,
-        role_ids: [],
-        access_group_ids: [],
+        role_ids: [], # TODO: START_ACL remove when ACL transition complete
+        access_group_ids: [], # TODO: START_ACL remove when ACL transition complete
+        access_control_ids: [],
       )
     end
 
@@ -65,6 +69,7 @@ module Admin
       )
     end
 
+    # TODO: START_ACL remove when ACL transition complete
     private def viewable_params
       params.require(:user).permit(
         data_sources: [],
@@ -75,6 +80,7 @@ module Admin
         project_groups: [],
       )
     end
+    # END_ACL
 
     private def set_account_request
       @account_request = account_request_scope.find(params[:id].to_i)
