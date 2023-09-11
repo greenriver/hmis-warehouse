@@ -278,8 +278,9 @@ group :development do
   gem 'marginalia'
   gem 'overcommit', require: false
   gem 'rubocop', require: false
-  gem 'rubocop-rspec', require: false
-  gem 'rubocop-rails', require: false
+  # not used
+  # gem 'rubocop-rspec', require: false
+  # gem 'rubocop-rails', require: false
 
   # boot time/memory profiling
   gem 'derailed_benchmarks', require: false
