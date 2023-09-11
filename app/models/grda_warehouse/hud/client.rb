@@ -397,7 +397,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :full_text_search, ->(text) do
-      text_search(text)
+      text_search(text, sorted: false)
     end
 
     scope :needs_history_pdf, -> do
@@ -1780,9 +1780,12 @@ module GrdaWarehouse::Hud
 
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
-    def self.text_search(text, client_scope: nil, sorted: true)
+    def self.text_search(text, client_scope: nil, sorted: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
-      results = (client_scope || self).searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      relation = (client_scope || self)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      return relation.none if results.nil?
+
       grouped = GrdaWarehouse::WarehouseClient
         .joins(%(JOIN (#{results.to_sql}) src_search_results ON "warehouse_clients"."source_id" = "src_search_results"."client_id"))
         .select(Arel.sql(%("warehouse_clients"."destination_id" AS client_id, MAX(src_search_results.score) AS score)))
