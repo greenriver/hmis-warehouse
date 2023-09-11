@@ -9,6 +9,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     :ExportID,
     :DateCreated,
     :DateUpdated,
+    :EnrollmentCoC,
     :ProjectID, # allowed to be null if wip record is present
     :LastPermanentZIP,
   ].freeze

@@ -20,6 +20,9 @@ module ClientSearch
       date = /\d\d\/\d\d\/\d\d\d\d/.match(text).try(:[], 0) == text
       social = /\d\d\d-\d\d-\d\d\d\d/.match(text).try(:[], 0) == text
 
+      max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
+      term_is_possibly_pk = numeric ? text.to_i < max_pk : false
+
       if alpha_numeric && (text.size == 32 || text.size == 36)
         where = sa[:PersonalID].matches(text.gsub('-', ''))
       elsif social
@@ -28,7 +31,8 @@ module ClientSearch
         (month, day, year) = text.split('/')
         where = sa[:DOB].eq("#{year}-#{month}-#{day}")
       elsif numeric
-        where = sa[:PersonalID].eq(text).or(sa[:id].eq(text))
+        where = sa[:PersonalID].eq(text)
+        where = where.or(sa[:id].eq(text)) if term_is_possibly_pk
       else
         matches_external_ids = false
         if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
@@ -51,7 +55,7 @@ module ClientSearch
       where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
 
       results = nil
-      if numeric
+      if numeric && term_is_possibly_pk
         client_ids = self.where(where).pluck(:id)
         source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: text).pluck(:source_id)
         if source_client_ids.any?
