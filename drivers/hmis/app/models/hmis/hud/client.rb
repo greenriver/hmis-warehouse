@@ -197,7 +197,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
-    best_match: 'Best Match',
+    best_match: 'Most Relevant',
     last_name_a_to_z: 'Last Name: A-Z',
     last_name_z_to_a: 'Last Name: Z-A',
     first_name_a_to_z: 'First Name: A-Z',

@@ -867,7 +867,7 @@ enum ClientSortOption {
   AGE_YOUNGEST_TO_OLDEST
 
   """
-  Best Match
+  Most Relevant
   """
   BEST_MATCH
 
