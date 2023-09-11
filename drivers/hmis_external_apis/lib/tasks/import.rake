@@ -11,6 +11,12 @@ namespace :import do
     HmisExternalApis::AcHmis::FetchClientsWithActiveReferralsJob.perform_now
   end
 
+  # ./bin/rake driver:hmis_external_apis:import:ac_warehouse_changes
+  desc 'Fetch changes to MCI Unique IDs from AC Data Warehouse'
+  task :ac_warehouse_changes, [] => [:environment] do
+    HmisExternalApis::AcHmis::WarehouseChangesJob.perform_now
+  end
+
   # Usage: rails driver:hmis_external_apis:import:ac_custom_data_elements[/tmp/dir,true]
   #   * dir: directory containing CSV files to import. Consult the loader classes for expected
   #     CSV filenames
