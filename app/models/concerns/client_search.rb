@@ -20,6 +20,9 @@ module ClientSearch
       date = /\d\d\/\d\d\/\d\d\d\d/.match(text).try(:[], 0) == text
       social = /\d\d\d-\d\d-\d\d\d\d/.match(text).try(:[], 0) == text
 
+      # should never match
+      never_cond = sa[:id].eq(nil)
+
       max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
       term_is_possibly_pk = numeric ? text.to_i < max_pk : false
 
@@ -34,16 +37,15 @@ module ClientSearch
         where = sa[:PersonalID].eq(text)
         where = where.or(sa[:id].eq(text)) if term_is_possibly_pk
       else
+        # NOTE: per discussion with Gig, only numeric IDs are in use at this time, commenting this out for now
+        ## At this point, term could be an alpha-numeric ID or a human name. To avoid having to combine fuzzy name
+        ## search with these other conditions, first check if the term matches external ids. If no matches are
+        ## found, we do an early return with name-search results.
+        # matches_external_ids = where(search_by_external_id(never_cond, text)).any? if ENV['ALPHANUMERIC_HMIS_EXTERNAL_IDS'] && alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
         matches_external_ids = false
-        if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
-          eid_t = HmisExternalApis::ExternalId.arel_table
-          external_id_scope = HmisExternalApis::ExternalId.for_clients
-            .where(eid_t[:value].eq(text))
-            .select(:source_id)
-          matches_external_ids = self.where(id: external_id_scope.select(:source_id)).any?
-        end
         unless matches_external_ids
-          # short circuit the rest of search as this seems to be free text
+          # short circuit the rest of search. Since no external IDS are found, this seems to be free text and we can just return
+          # name search results
           return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: self) if resolve_for_join_query
 
           return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted)
@@ -51,7 +53,7 @@ module ClientSearch
       end
 
       # dummy condition to start the OR chain. This method needs refactoring
-      where ||= sa[:id].eq(nil) # should never match
+      where ||= never_cond
       where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
 
       results = nil
