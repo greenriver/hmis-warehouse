@@ -13,7 +13,7 @@ module ClientSearchUtil
     # @param clients [ClientScope]
     def perform_as_joinable_query(term:, clients:)
       term = normalize_search_term(term)
-      return clients.none unless term
+      return nil unless term
 
       results = filter_clients(term, clients)
       results.select(Arel.sql('"Client"."id" AS client_id, "search_score" AS score'))
@@ -37,8 +37,8 @@ module ClientSearchUtil
       term = term&.strip
       return if term.blank?
 
-      # skip unless term has at least one sequence of two or more chars
-      return if term.scan(/\p{Alnum}{2,}/).size.zero?
+      # skip unless term has at least three characters
+      return if term.size < 3
 
       # safety limit
       @term = term.slice(0, 100)

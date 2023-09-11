@@ -54,7 +54,7 @@ module ClientSearch
 
       # dummy condition to start the OR chain. This method needs refactoring
       where ||= never_cond
-      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
+      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis) && HmisExternalApis::AcHmis::Mci.enabled?
 
       results = nil
       if numeric && term_is_possibly_pk

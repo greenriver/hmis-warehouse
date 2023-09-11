@@ -31,7 +31,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     if current_user.can_use_strict_search?
       @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
     elsif (current_user.can_access_window_search? || current_user.can_search_own_clients?) && params[:q].present?
-      @clients = client_source.text_search(params[:q], client_scope: client_search_scope)
+      @clients = client_source.text_search(params[:q], client_scope: client_search_scope, sorted: false)
     end
 
     preloads = [
