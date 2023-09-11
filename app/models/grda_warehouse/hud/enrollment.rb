@@ -370,6 +370,18 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::ChEnrollment.chronically_homeless_at_start(self, date: date)
     end
 
+    # Taken from Client.enrollments_for to be able to use it on the chronic page more easily
+    def max_date_served
+      @max_date_served ||= begin
+        services = service_history_enrollment.service_history_services
+        if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+          services.where(record_type: GrdaWarehouse::Hud::Client.service_types).maximum(:date)
+        else
+          services.service_excluding_extrapolated.maximum(:date)
+        end
+      end
+    end
+
     # NOTE: this must be included at the end of the class so that scopes can override correctly
     include RailsDrivers::Extensions
   end # End Enrollment
