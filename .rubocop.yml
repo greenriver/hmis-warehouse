@@ -266,5 +266,3 @@ Style/ExplicitBlockArgument:
   Enabled: false
 Style/HashSyntax:
   EnforcedShorthandSyntax: never
-Style/NegatedIf:
-  EnforcedStyle: postfix
