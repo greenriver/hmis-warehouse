@@ -1783,14 +1783,18 @@ module GrdaWarehouse::Hud
     def self.text_search(text, client_scope: nil, sorted: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self)
+      # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
       results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
       return relation.none if results.nil?
 
       grouped = GrdaWarehouse::WarehouseClient
+        # join warehouse client to results subquery
         .joins(%(JOIN (#{results.to_sql}) src_search_results ON "warehouse_clients"."source_id" = "src_search_results"."client_id"))
+        # group warehouse clients to avoid duplicate results
         .select(Arel.sql(%("warehouse_clients"."destination_id" AS client_id, MAX(src_search_results.score) AS score)))
         .group(Arel.sql('1'))
 
+      # now join the results, mapped through the WarehouseClient, to the current scope
       mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id))
       mapped = mapped.order(Arel.sql('dst_search_results.score DESC'), :id) if sorted
       mapped
