@@ -118,10 +118,11 @@ module GrdaWarehouse
         collection_ids = user.collections_for_permission(:can_view_assigned_reports)
         return [] if collection_ids.empty?
 
-        GrdaWarehouse::GroupViewableEntity.where(
+        ids = GrdaWarehouse::GroupViewableEntity.where(
           collection_id: collection_ids,
           entity_type: 'GrdaWarehouse::ProjectGroup',
         ).pluck(:entity_id)
+        where(id: ids).distinct.order(name: :asc).pluck(:name, :id)
       else
         user.project_groups.distinct.order(name: :asc).pluck(:name, :id)
       end
