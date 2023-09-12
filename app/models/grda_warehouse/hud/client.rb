@@ -397,7 +397,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :full_text_search, ->(text) do
-      text_search(text, sorted: false)
+      text_search(text, client_scope: current_scope, sorted: false)
     end
 
     scope :needs_history_pdf, -> do
