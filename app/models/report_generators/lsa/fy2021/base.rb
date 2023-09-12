@@ -34,7 +34,7 @@ module ReportGenerators::Lsa::Fy2021
         @project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
         # Limit to only those projects the user who queued the report can see
         # and to only those that the LSA can handle
-        @project_ids &= GrdaWarehouse::Hud::Project.viewable_by(@report.user).
+        @project_ids &= GrdaWarehouse::Hud::Project.viewable_by(@report.user, permission: :can_view_assigned_reports).
           in_coc(coc_code: @coc_code).
           with_hud_project_type([1, 2, 3, 8, 9, 10, 13]).
           coc_funded.
@@ -46,7 +46,7 @@ module ReportGenerators::Lsa::Fy2021
     end
 
     def system_wide_project_ids
-      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user).
+      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user, permission: :can_view_assigned_reports).
         in_coc(coc_code: @coc_code).
         with_hud_project_type([1, 2, 3, 8, 9, 10, 13]).
         coc_funded.

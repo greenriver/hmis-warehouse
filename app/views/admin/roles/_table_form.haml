@@ -21,9 +21,6 @@
               .c-table__icon-key
                 Displaying
                 = pluralize(@roles.count, 'role')
-            = link_to path_for_new, class: 'btn btn-secondary btn-sm d-block mt-2 mb-2' do
-              %span.icon-plus
-              Add a role
       %tr.c-table__header.c-table__header--secondary
         %th.c-table__cell--border-r-primary{colspan:1}
           .mb-2
