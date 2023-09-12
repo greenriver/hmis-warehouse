@@ -21,7 +21,7 @@ module HmisDataQualityTool::DocumentExports
         pivot_details: report.pivot_details,
         clients: @report.clients.order(:last_name, :first_name),
         filter: filter,
-        title: _('HMIS Data Quality Tool'),
+        title: Translation.translate('HMIS Data Quality Tool'),
         pdf: false,
       }
     end

@@ -9,11 +9,11 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Number Housed Report Generator')
+      Translation.translate('Number Housed Report Generator')
     end
 
     def instance_title
-      _('Number Housed Report')
+      Translation.translate('Number Housed Report')
     end
 
     private def public_s3_directory

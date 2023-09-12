@@ -32,7 +32,7 @@
             Delete CHA
         - elsif @qa_submitted
           .alert.alert-info
-            = _('A claim was submitted for this CHA; it is no longer editable.')
+            = Translation.translate('A claim was submitted for this CHA; it is no longer editable.')
 
   %p.text-right(style="font-size:smaller;font-style:italic;")
     Only answered questions are shown.
@@ -60,8 +60,8 @@
             - answer2 = section_hash['answers'][code2]['answer']
             %div{class: classes}
               - if code == 'g_q1ap'
-                %h4= _('CHA G_Q1_HEADER')
-                %p.cha__help-text= _('CHA G_Q1_SUBHEADER')
+                %h4= Translation.translate('CHA G_Q1_HEADER')
+                %p.cha__help-text= Translation.translate('CHA G_Q1_SUBHEADER')
               %h5= question_answer.try(:[], 'header')
               .cha__help-text.mb-4
                 = question_answer.try(:[], 'sub_header')
@@ -79,7 +79,7 @@
           - elsif matches = code.match(/i_q2a1$/)
             -# = debug code
             - if code == 'i_q2a1'
-              %h4= _('CHA I_Q2_HEADER')
+              %h4= Translation.translate('CHA I_Q2_HEADER')
               - ('a'..'z').each do |letter|
                 - has_contents = (1..3).any? { |n| section_hash['answers']["i_q2#{letter}#{n}"].try(:[], 'answer').present? }
                 - next unless has_contents
@@ -100,8 +100,8 @@
             %div.row
               .col-sm-12
                 - if code == 'l_q1s1a'
-                  %h4= _('CHA L_Q1S1A_HEADER')
-                  %p.cha__help-text= _('CHA L_Q1S1A_SUBHEADER').html_safe
+                  %h4= Translation.translate('CHA L_Q1S1A_HEADER')
+                  %p.cha__help-text= Translation.translate('CHA L_Q1S1A_SUBHEADER').html_safe
                 .client__assessment-question
                   = question
                 .client__assessment-answer
@@ -120,10 +120,10 @@
             %div{class: classes}
               - # = debug code
               - if code == 'g_q2a'
-                %h4= _('CHA G_Q2_HEADER')
-                %p.cha__help-text= _('CHA G_Q2_SUBHEADER')
+                %h4= Translation.translate('CHA G_Q2_HEADER')
+                %p.cha__help-text= Translation.translate('CHA G_Q2_SUBHEADER')
               - if code == 'j_q3a'
-                %h4= _('CHA J_Q3_HEADER')
+                %h4= Translation.translate('CHA J_Q3_HEADER')
               %h5= question_answer.try(:[], 'header')
               .cha__help-text.mb-4
                 = question_answer.try(:[], 'sub_header')

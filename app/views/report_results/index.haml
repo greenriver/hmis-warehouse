@@ -1,5 +1,5 @@
 = render partial: 'breadcrumbs'
-%h1= _("Report Result: #{@report.name}")
+%h1= Translation.translate("Report Result: #{@report.name}")
 = render 'queue_form'
 
 :ruby
@@ -38,6 +38,6 @@
           %td= result.user.name
           %td= result.completed_in
           %td
-            = link_to report_report_result_path(@report, result),  method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: _("Would you really like to delete this report result?")} do
+            = link_to report_report_result_path(@report, result),  method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: Translation.translate("Would you really like to delete this report result?")} do
               %span.icon-cross
 = render 'common/pagination_bottom', item_name: 'report'

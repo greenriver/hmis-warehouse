@@ -4,14 +4,14 @@
   - days = 90
   - active = @client.homeless_service_in_last_n_days?(days)
   - if collected_on.present? || warehouse_ineligible || inactive
-    %h3.mt-0= _('Pathways')
+    %h3.mt-0= Translation.translate('Pathways')
     - if collected_on.present?
       .c-tag.c-tag--info.client-flag
         .c-tag__wrapper
           .c-tag__icon
             .icon-file-text
           .c-tag__content
-            %span #{_('Pathways')} Assessment #{collected_on.to_date}
+            %span #{Translation.translate('Pathways')} Assessment #{collected_on.to_date}
     - unless active
       .c-tag.c-tag--warning.client-flag
         .c-tag__wrapper

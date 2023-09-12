@@ -7,8 +7,8 @@
     = stylesheet_link_tag 'roi_pdf'
   %body
     %section.coc-roi.portrait.page-break-after
-      %h1= _('Authorization for Use/Disclosure of Personal Information')
-      %h2.mb-4= _('Open Path ROI')
+      %h1= Translation.translate('Authorization for Use/Disclosure of Personal Information')
+      %h2.mb-4= Translation.translate('Open Path ROI')
 
 
       .d-flex.align-items-start
@@ -41,7 +41,7 @@
           - logo = inline_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
           = image_tag(logo, width: 250) if logo.present?
 
-      = simple_format(_('Open Path ROI content'))
+      = simple_format(Translation.translate('Open Path ROI content'))
 
       %table.table.table-borderless
         %tbody
@@ -54,10 +54,10 @@
             %th.text-right Print Name
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
           %tr
-            %th.text-right= _('Homeless Service Provider Organization Name')
+            %th.text-right= Translation.translate('Homeless Service Provider Organization Name')
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
           %tr
-            %th.text-right= _('Name of Staff Assisting with Form Completion')
+            %th.text-right= Translation.translate('Name of Staff Assisting with Form Completion')
             %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
     .landscape
       .d-flex

@@ -75,7 +75,7 @@
             - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
               = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
                 .mt-2
-                  = f.input :consent_form_confirmed, as: :boolean, input_html: { class: 'submit-on-change' }, label: _('Consent form confirmed')
+                  = f.input :consent_form_confirmed, as: :boolean, input_html: { class: 'submit-on-change' }, label: Translation.translate('Consent form confirmed')
             = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
               = f.input :consent_revoked_at, as: :date_picker, label: 'Revoked or Refused On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
             - if GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'

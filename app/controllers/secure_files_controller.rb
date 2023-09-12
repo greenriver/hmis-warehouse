@@ -31,7 +31,7 @@ class SecureFilesController < ApplicationController
     # Prevent create if user forgot to include file
     unless file_params[:file]
       @secure_file = file_source.new
-      flash[:alert] = _('You must attach a file in the form.')
+      flash[:alert] = Translation.translate('You must attach a file in the form.')
       render(:index)
       return
     end
@@ -44,10 +44,10 @@ class SecureFilesController < ApplicationController
       ),
     )
     if @secure_file.save
-      flash[:notice] = _('Upload successful, please let the recipient know the file has been sent.')
+      flash[:notice] = Translation.translate('Upload successful, please let the recipient know the file has been sent.')
       redirect_to action: :index
     else
-      flash[:alert] = _('Upload failed, did you attach a file?')
+      flash[:alert] = Translation.translate('Upload failed, did you attach a file?')
       @secure_files = file_scope
       render :index
     end

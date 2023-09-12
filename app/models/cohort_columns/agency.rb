@@ -9,7 +9,7 @@ module CohortColumns
     include ArelHelper
     attribute :column, String, lazy: true, default: :agency
     attribute :translation_key, String, lazy: true, default: 'Agency'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def available_options
       Rails.cache.fetch('all_project_names', expires_in: 5.minutes) do

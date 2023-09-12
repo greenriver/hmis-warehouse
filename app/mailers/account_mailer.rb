@@ -10,7 +10,7 @@ class AccountMailer < Devise::Mailer
   ActionMailer::Base.register_interceptor CloudwatchEmailInterceptor if ENV['SES_MONITOR_OUTGOING_EMAIL'] == 'true'
 
   def invitation_instructions(record, action, opts = {})
-    opts[:subject] = _('Boston DND Warehouse') + ': Account Activation Instructions'
+    opts[:subject] = Translation.translate('Boston DND Warehouse') + ': Account Activation Instructions'
     super
   end
 end

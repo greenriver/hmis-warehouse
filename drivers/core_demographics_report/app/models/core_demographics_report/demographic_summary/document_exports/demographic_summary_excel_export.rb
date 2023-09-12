@@ -45,7 +45,7 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "#{_('Demographic Summary')} - #{Time.current.to_s(:db)}",
+          "#{Translation.translate('Demographic Summary')} - #{Time.current.to_s(:db)}",
         ) do |io|
           self.downloadable_file = io
         end
