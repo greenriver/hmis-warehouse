@@ -70,7 +70,7 @@ module HmisExternalApis::AcHmis::Exporters
     end
 
     def credentials
-      @credentials ||= GrdaWarehouse::RemoteCredentials::Sftp.find_by(slug: 'ac_hmis_client_export')
+      @credentials ||= GrdaWarehouse::RemoteCredentials::Sftp.active.find_by(slug: 'ac_data_warehouse_sftp_server')
     end
   end
 end
