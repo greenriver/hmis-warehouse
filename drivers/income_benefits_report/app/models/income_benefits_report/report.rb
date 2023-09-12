@@ -78,7 +78,41 @@ module IncomeBenefitsReport
     end
 
     def describe_filter_as_html
-      filter.describe_filter_as_html(filter.all_known_keys.reject { |k| k.in?([:on, :lsa_scope]) })
+      filter.describe_filter_as_html(known_filter_keys)
+    end
+
+    private def known_filter_keys
+      [
+        :start,
+        :comparison_pattern,
+        :household_type,
+        :hoh_only,
+        :sub_population,
+        :chronic_status,
+        :first_time_homeless,
+        :involves_ce,
+        :coordinated_assessment_living_situation_homeless,
+        :require_service_during_range,
+        :active_roi,
+        :coc_codes,
+        :project_types,
+        :project_type_codes,
+        :project_type_numbers,
+        :veteran_statuses,
+        :age_ranges,
+        :genders,
+        :races,
+        :data_source_ids,
+        :organization_ids,
+        :project_ids,
+        :funder_ids,
+        :project_group_ids,
+        :cohort_ids,
+        :disabilities,
+        :indefinite_disabilities,
+        :dv_status,
+        :times_homeless_in_last_three_years,
+      ]
     end
 
     def to_comparison

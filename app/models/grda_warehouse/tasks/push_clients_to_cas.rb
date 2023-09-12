@@ -169,12 +169,14 @@ module GrdaWarehouse::Tasks
         black_af_american: :cas_race_black_af_american,
         native_hi_pacific: :cas_race_native_hi_pacific,
         white: :cas_race_white,
+        # TODO: DEPRECATED_FY2024 enable the following after adding them to CAS
+        # hispanic_latinaeo: :cas_race_hispanic_latinaeo,
+        # mid_east_n_african: :cas_race_mid_east_n_african,
         female: :cas_gender_female,
         male: :cas_gender_male,
         no_single_gender: :cas_gender_no_single_gender,
         transgender: :cas_gender_transgender,
         questioning: :cas_gender_questioning,
-        ethnicity: :Ethnicity,
         disabling_condition: :disabling_condition?,
         hivaids_status: :hiv_response?,
         chronic_health_condition: :chronic_response?,
@@ -312,10 +314,8 @@ module GrdaWarehouse::Tasks
     def value_display_for(key, value)
       if value.in?([true, false])
         ApplicationController.helpers.yes_no(value)
-      elsif key == :ethnicity
-        HudUtility.ethnicity(value)
       elsif key.in?([:veteran_status])
-        HudUtility.no_yes_reasons_for_missing_data(value)
+        HudUtility2024.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
         value.map do |id|
           CasAccess::Neighborhood.find_by(id: id)&.name
@@ -367,15 +367,23 @@ module GrdaWarehouse::Tasks
           rrh_successful_exit: 'RRH successful exit:',
           hmis_days_homeless_last_three_years: _('Days homeless in the last three years, from HMIS'),
           hmis_days_homeless_all_time: _('Total days homeless, from HMIS'),
-          am_ind_ak_native: "Race: #{::HudUtility.race('AmIndAKNative')}",
-          asian: "Race: #{::HudUtility.race('Asian')}",
-          black_af_american: "Race: #{::HudUtility.race('BlackAfAmerican')}",
-          native_hi_pacific: "Race: #{::HudUtility.race('NativeHIPacific')}",
-          white: "Race: #{::HudUtility.race('White')}",
+          am_ind_ak_native: "Race: #{::HudUtility2024.race('AmIndAKNative')}",
+          asian: "Race: #{::HudUtility2024.race('Asian')}",
+          black_af_american: "Race: #{::HudUtility2024.race('BlackAfAmerican')}",
+          native_hi_pacific: "Race: #{::HudUtility2024.race('NativeHIPacific')}",
+          # TODO: DEPRECATED_FY2024 enable the following after adding them to CAS
+          # hispanic_latinaeo: "Race: #{::HudUtility2024.race('HispanicLatinaeo')}",
+          # mid_east_n_african: "Race: #{::HudUtility2024.race('MidEastNAfrican')}",
+          white: "Race: #{::HudUtility2024.race('White')}",
+          # TODO: DEPRECATED_FY2024 enable the following after adding them to CAS
           female: "Gender: #{::HudUtility2024.gender(0)}",
           male: "Gender: #{::HudUtility2024.gender(1)}",
-          # TODO: need to update this with :CulturallySpecific, DifferentIdentity, NonBinary
           no_single_gender: "Gender: #{::HudUtility2024.gender(4)}",
+          woman: "Gender: #{::HudUtility2024.gender(0)}",
+          man: "Gender: #{::HudUtility2024.gender(1)}",
+          # non_binary: "Gender: #{::HudUtility2024.gender(4)}",
+          # CulturallySpecific: "Gender: #{::HudUtility2024.gender(2)}",
+          # DifferentIdentity: "Gender: #{::HudUtility2024.gender(3)}",
           transgender: "Gender: #{::HudUtility2024.gender(5)}",
           questioning: "Gender: #{::HudUtility2024.gender(6)}",
         },

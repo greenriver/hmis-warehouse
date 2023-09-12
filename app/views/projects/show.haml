@@ -21,12 +21,12 @@
         %tr
           %th Project Type
           %td
-            = HudUtility.project_type @project.ProjectType
+            = HudUtility2024.project_type(@project.ProjectType)
             - if @project.act_as_project_type.present?
               %br
               %em
                 Acts as:
-                = HudUtility.project_type @project.act_as_project_type
+                = HudUtility2024.project_type(@project.act_as_project_type)
             - if @project.active_homeless_status_override.present?
               %br
               %em
@@ -70,13 +70,13 @@
           %td.d-flex
             .project__housing-type
               - if @project.HousingType.present?
-                = HudUtility.housing_type(@project.HousingType)
+                = HudUtility2024.housing_type(@project.HousingType)
                 (#{@project.HousingType})
             - if @project.housing_type_override
               .ml-2
                 %em
                   Overridden as
-                  = HudUtility.housing_type(@project.housing_type_override)
+                  = HudUtility2024.housing_type(@project.housing_type_override)
         %tr
           %th
             %span{data: {toggle: :tooltip, title: 'This has no affect currently'}}
@@ -134,12 +134,12 @@
         %tr
           %th Target Population
           %td
-            = HudUtility.target_population @project.TargetPopulation
+            = HudUtility2024.target_population(@project.TargetPopulation)
             - if @project.target_population_override.present?
               .mt-2
                 Overridden as:
                 %br
-                %em= HudUtility.target_population(@project.target_population_override)
+                %em= HudUtility2024.target_population(@project.target_population_override)
         %tr
           %th Household Type
           %td

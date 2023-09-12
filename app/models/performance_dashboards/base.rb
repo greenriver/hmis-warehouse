@@ -20,7 +20,6 @@ class PerformanceDashboards::Base
   # @param age_ranges [Array<Symbol>], when blank, defaults to any age (:under_eighteen, :eighteen_to_twenty_four, :twenty_five_to_sixty_one, :over_sixty_one)
   # @param genders [Array<Integer>] uses HUD gender values, when blank defaults to any gender
   # @param races [Hash<String=>Integer>] uses HUD race keys and values, when blank, defaults to any race
-  # @param ethnicities [Array<Integer>] uses HUD ethnicity values, when blank, defaults to any ethnicity
   # @param veteran_statuses [Array<Integer] uses HUD options, when blank, default to any status
   # @param project_types [Array<Integer>] uses HUD options, when blank, defaults to [ES, SO, TH, SH]
   def initialize(filter)
@@ -34,7 +33,6 @@ class PerformanceDashboards::Base
     @length_of_times = filter.length_of_times
     @genders = filter.genders
     @races = filter.races
-    @ethnicities = filter.ethnicities
     @veteran_statuses = filter.veteran_statuses
     @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
     @comparison_pattern = filter.comparison_pattern

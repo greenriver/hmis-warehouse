@@ -23,7 +23,7 @@ module CePerformance
 
     after_initialize :filter
 
-    HOUSING_REFERRAL_EVENTS = [12, 13, 14, 15, 17, 18].freeze
+    HOUSING_REFERRAL_EVENTS = HudUtility2024.ce_events_referrals_to_housing.freeze
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
@@ -185,7 +185,7 @@ module CePerformance
     def clients_title(sub_population_title: nil, vispdat_range: nil, vispdat_type: nil, event_type: nil)
       return "VI-SPDAT Range: #{vispdat_range}" if vispdat_range.present?
       return "VI-SPDAT Type: #{vispdat_type}" if vispdat_type.present?
-      return "Event Type: #{::HudUtility.event(event_type)}" if event_type.present?
+      return "Event Type: #{::HudUtility2024.event(event_type)}" if event_type.present?
 
       return sub_population_title
     end
@@ -373,7 +373,7 @@ module CePerformance
 
     private def any_cls_literally_homeless?(ce_apr_client)
       ce_apr_client.hud_report_apr_living_situations.any? do |m|
-        m.living_situation.in?(::HudUtility.homeless_situations(as: :current))
+        m.living_situation.in?(::HudUtility2024.homeless_situations(as: :current))
       end
     end
 

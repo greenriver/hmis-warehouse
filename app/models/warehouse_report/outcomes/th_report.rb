@@ -30,7 +30,6 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
       project_id: _('Warehouse Project ID'),
       hmis_project_id: _('HMIS Project ID'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end
@@ -44,7 +43,6 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
       project_id: _('Warehouse Project ID'),
       hmis_project_id: _('HMIS Project ID'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end
@@ -56,7 +54,6 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
       days_to_return: _('Days to Return'),
       destination: _('Destination'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end
@@ -74,7 +71,6 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
       project_id: _('Warehouse Project ID'),
       hmis_project_id: _('HMIS Project ID'),
       race: _('Race'),
-      ethnicity: _('Ethnicity'),
       gender: _('Gender'),
     }
   end

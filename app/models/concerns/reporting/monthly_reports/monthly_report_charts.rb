@@ -78,7 +78,6 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       client_scope = client_scope.filter_for_age(filter.age_ranges)
       client_scope = client_scope.filter_for_coc_codes(filter.coc_codes)
       client_scope = client_scope.filter_for_race(filter.races)
-      client_scope = client_scope.filter_for_ethnicity(filter.ethnicities)
       client_scope = client_scope.filter_for_gender(filter.genders)
 
       client_scope
@@ -146,12 +145,6 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def self.race_alternative(key)
       GrdaWarehouse::Hud::Client.destination.where(key => 1)
-    end
-
-    def self.filter_for_ethnicity(ethnicities)
-      return current_scope unless ethnicities&.present?
-
-      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Ethnicity: ethnicities).pluck(:id))
     end
 
     def self.filter_for_gender(genders)

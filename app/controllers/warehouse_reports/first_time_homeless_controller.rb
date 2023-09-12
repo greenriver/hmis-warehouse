@@ -24,7 +24,6 @@ module WarehouseReports
         she_t[:date],
         :VeteranStatus,
         :DOB,
-        :Ethnicity,
       ] + race_columns
       @clients = client_source.joins(:first_service_history).
         where(id: first_time_homeless_client_ids).
@@ -74,7 +73,6 @@ module WarehouseReports
       scope = filter_for_cocs(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
       scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports))
       scope
     end

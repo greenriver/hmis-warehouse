@@ -20,7 +20,7 @@
       .col-sm-6
         = f.input :Gender, collection: HudUtility2024.genders.invert, as: :select_two
       .col-sm-6
-        = f.input :VeteranStatus, collection: HudUtility.no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', as: :select_two
+        = f.input :VeteranStatus, collection: HudUtility2024.no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', as: :select_two
     .row
       - if GrdaWarehouse::DataSource.authoritative.scannable.count > 1
         .col-sm-4

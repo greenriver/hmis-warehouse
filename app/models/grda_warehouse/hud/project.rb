@@ -676,7 +676,7 @@ module GrdaWarehouse::Hud
       else
         safe_project_name
       end
-      project_name += " (#{HudUtility.project_type_brief(computed_project_type)})" if include_project_type && computed_project_type.present?
+      project_name += " (#{HudUtility2024.project_type_brief(computed_project_type)})" if include_project_type && computed_project_type.present?
 
       project_name
     end
@@ -784,9 +784,9 @@ module GrdaWarehouse::Hud
               d = project[h.to_s].presence
               d && DateTime.parse(d).strftime('%Y-%m-%d %H:%M:%S')
             when :current_continuum_project
-              ::HudUtility.ad_hoc_yes_no project[h.to_s].presence&.to_i
+              ::HudUtility2024.ad_hoc_yes_no project[h.to_s].presence&.to_i
             when :fed_partner_program
-              ::HudUtility.funding_source project[h.to_s].presence&.to_i
+              ::HudUtility2024.funding_source project[h.to_s].presence&.to_i
             else
               project[h.to_s]
             end
@@ -865,7 +865,7 @@ module GrdaWarehouse::Hud
     end
 
     def human_readable_project_type
-      HudUtility.project_type(project_type_to_use)
+      HudUtility2024.project_type(project_type_to_use)
     end
 
     def main_population

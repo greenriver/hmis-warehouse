@@ -184,7 +184,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
           content_tag(:h3, 'Please Note'),
           content_tag(:p, 'SSNs will appear as missing if they meet any of the following rules:', class: 'w-100'),
           content_tag(:ul) do
-            ::HudUtility.describe_valid_social_rules.map do |rule|
+            ::HudUtility2024.describe_valid_social_rules.map do |rule|
               content_tag(:li, rule)
             end.join.html_safe
           end,
@@ -198,7 +198,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
           content_tag(:h3, 'Please Note'),
           content_tag(:p, 'DOBs will appear as missing if they meet any of the following rules:', class: 'w-100'),
           content_tag(:ul) do
-            ::HudUtility.describe_valid_dob_rules.map do |rule|
+            ::HudUtility2024.describe_valid_dob_rules.map do |rule|
               content_tag(:li, rule)
             end.join.html_safe
           end,
@@ -240,7 +240,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
     end
 
     def ph_destinations_support(options)
-      enrollment_scope = exiting_clients.where(destination_id: HudUtility.permanent_destinations)
+      enrollment_scope = exiting_clients.where(destination_id: HudUtility2024.permanent_destinations)
       enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i) if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
       {
         headers: enrollment_support_columns.keys,
@@ -329,8 +329,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Last Name' => :last_name,
         'DOB' => :dob,
         'SSN' => :ssn,
-        'Gender' => :gender,
-        'Gender 2022' => :gender_multi,
+        'Gender' => :gender_multi,
         'Entry Date' => :entry_date,
         'Project' => :project_name,
         'Project ID' => :project_id,

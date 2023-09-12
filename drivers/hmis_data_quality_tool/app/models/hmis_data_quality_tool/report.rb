@@ -351,9 +351,9 @@ module HmisDataQualityTool
       when 'average_days_before_entry'
         enrollments.where.not(days_before_entry: nil)
       when 'destination_temporary'
-        enrollments.where(destination: ::HudUtility.temporary_destinations)
+        enrollments.where(destination: ::HudUtility2024.temporary_destinations)
       when 'destination_other'
-        enrollments.where(destination: ::HudUtility.other_destinations)
+        enrollments.where(destination: ::HudUtility2024.other_destinations)
       end
     end
 
@@ -385,7 +385,6 @@ module HmisDataQualityTool
           ssn_issues: Client,
           dob_issues: Client,
           race_issues: Client,
-          ethnicity_issues: Client,
           gender_issues: Client,
           veteran_issues: Client,
         },

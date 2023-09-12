@@ -30,7 +30,7 @@ module GrdaWarehouse::Hud
     has_one :destination_client, through: :enrollment
 
     scope :permanent, -> do
-      where(Destination: ::HudUtility.permanent_destinations)
+      where(Destination: ::HudUtility2024.permanent_destinations)
     end
 
     scope :closed_within_range, ->(range) do
