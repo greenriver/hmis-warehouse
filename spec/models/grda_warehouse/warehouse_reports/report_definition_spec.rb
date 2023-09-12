@@ -9,11 +9,14 @@ RSpec.describe model, type: :model do
   end
   let!(:admin_role) { create :admin_role }
   let!(:assigned_report_viewer) { create :assigned_report_viewer }
+  let!(:no_permission_role) { create :role }
 
-  let!(:user) { create :user }
+  let!(:user) { create :acl_user }
 
   let!(:r1) { create :touch_point_report }
   let!(:r2) { create :confidential_touch_point_report }
+
+  let!(:no_reports_collection) { create :collection }
 
   user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
   ids      = ->(*reports) { reports.map(&:id).sort }
@@ -28,10 +31,11 @@ RSpec.describe model, type: :model do
 
       describe 'admin user' do
         before do
-          user.roles << admin_role
+          Collection.maintain_system_groups
+          setup_access_control(user, admin_role, Collection.system_collection(:hmis_reports))
         end
         after do
-          user.roles = []
+          user.user_group_members.destroy_all
         end
         it 'sees both' do
           expect(user_ids[user]).to eq ids[r1, r2]
@@ -40,7 +44,8 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned a report without a role granting access' do
         before :each do
-          user.add_viewable(r1)
+          no_reports_collection.set_viewables({ reports: [r1.id] })
+          setup_access_control(user, no_permission_role, no_reports_collection)
         end
         it 'still sees nothing without role' do
           expect(model.viewable_by(user).exists?).to be false
@@ -49,8 +54,8 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned a report with a role granting access' do
         before :each do
-          user.roles << assigned_report_viewer
-          user.add_viewable(r1)
+          no_reports_collection.set_viewables({ reports: [r1.id] })
+          setup_access_control(user, assigned_report_viewer, no_reports_collection)
         end
         it 'sees r1 with proper role' do
           expect(user_ids[user]).to eq ids[r1]

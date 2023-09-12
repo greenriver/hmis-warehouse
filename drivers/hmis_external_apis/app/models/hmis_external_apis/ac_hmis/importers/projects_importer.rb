@@ -86,6 +86,7 @@ module HmisExternalApis::AcHmis::Importers
           upsert_project_unit_type_mappings
         end
         Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
+        cleanup_project_dates
       end
       analyze
       finish
@@ -273,6 +274,16 @@ module HmisExternalApis::AcHmis::Importers
       )
     end
 
+    # Replace "9999" end date with nil
+    def cleanup_project_dates
+      ids_to_update = Hmis::Hud::Project.where(data_source: data_source).
+        open_on_date.
+        filter { |p| p.operating_end_date&.year == 9999 }.
+        map(&:id)
+
+      Hmis::Hud::Project.where(id: ids_to_update).update_all(operating_end_date: nil)
+    end
+
     def analyze
       Rails.logger.info 'Analyzing imported tables'
       ProjectsImportAttempt.connection.exec_query('ANALYZE "Funder", "Project", "Organization", "CustomDataElements";')
@@ -303,7 +314,7 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def records_from_csv(file, row_limit: nil)
-      io = File.open(file, 'r')
+      io = File.open(File.join(dir, file), 'r')
 
       # Checking for BOM
       if io.read(3).bytes == [239, 187, 191]

@@ -10,7 +10,7 @@ module Importing::HudZip
     WAIT_MINUTES = 15
 
     attr_accessor :job
-    
+
     def initialize(upload_id:, data_source_id:, deidentified: false, project_whitelist: false)
       @upload_id = upload_id
       @data_source_id = data_source_id

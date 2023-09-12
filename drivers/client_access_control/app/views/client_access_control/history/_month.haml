@@ -37,10 +37,11 @@
                 - value = data.contact_types[key]
                 .mb-4.w-50
                   = render 'event_icon', key: key, name: value[:name], icon: value[:icon]
-    .col-lg-3.col-md-12.mb-6
-      .p-4.client__calendar-card.client__calendar-card__contact-key
-        %h5.mt-0 Generate Homeless Verification PDF
-        = render 'pdf_generation_form'
+    - if window_file_access?
+      .col-lg-3.col-md-12.mb-6
+        .p-4.client__calendar-card.client__calendar-card__contact-key
+          %h5.mt-0 Generate Homeless Verification PDF
+          = render 'pdf_generation_form'
 
   = render 'month_nav', data: data
 
