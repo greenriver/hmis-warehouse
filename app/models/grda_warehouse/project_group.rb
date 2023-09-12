@@ -114,7 +114,10 @@ module GrdaWarehouse
     end
 
     def self.options_for_select(user:)
-      viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
+      # FIXME: needs to return list of project groups on ACLs that have can run assigned reports
+      raise 'FIXME: not yet implemented' if user.using_acls?
+
+      user.project_groups.distinct.order(name: :asc).pluck(:name, :id)
     end
 
     private def maintain_system_group
