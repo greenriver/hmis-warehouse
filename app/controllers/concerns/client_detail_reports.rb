@@ -10,7 +10,7 @@ module ClientDetailReports
   included do
     private def service_history_source
       GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports))
     end
 
     private def report_scope_source

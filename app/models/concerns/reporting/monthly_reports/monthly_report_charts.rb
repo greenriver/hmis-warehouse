@@ -214,7 +214,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def clients_for_report
       @clients_for_report ||= self.class.
-        where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).
+        where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).pluck(:id)).
         in_months(filter.range).
         for_projects(filter.anded_effective_project_ids). # project ids from projects, organizations, project groups and project types
         filtered(filter)

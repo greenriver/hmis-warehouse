@@ -13,7 +13,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def service_history_source
       GrdaWarehouse::ServiceHistoryEnrollment.
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports))
     end
 
     def homeless_service_history_source
@@ -70,10 +70,10 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         in_project_type(project_type).
         order(first_date_in_program: :desc).
         pluck(:client_id, :first_date_in_program).
-      each do |client_id, first_date_in_program|
-        @entry_dates_by_client[client_id] ||= []
-        @entry_dates_by_client[client_id] << first_date_in_program
-      end
+        each do |client_id, first_date_in_program|
+          @entry_dates_by_client[client_id] ||= []
+          @entry_dates_by_client[client_id] << first_date_in_program
+        end
       @entry_dates_by_client
     end
 
@@ -101,7 +101,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def colorize(object)
       # make a hash of the object, truncate it to an appropriate size and then turn it into
       # a css friendly hash code
-      "#%06x" % (Zlib::crc32(Marshal.dump(object)) & 0xffffff)
+      format('#%06x', (Zlib.crc32(Marshal.dump(object)) & 0xffffff))
     end
 
     def run_and_save!

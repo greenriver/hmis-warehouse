@@ -48,8 +48,9 @@ module ClientAccessControl
     end
 
     def available_projects(month:, year:, client:, user:)
-      @available_projects ||= ::GrdaWarehouse::Hud::Project.viewable_by(user).
-        joins(:service_history_enrollments).
+      @available_projects ||= ::GrdaWarehouse::Hud::Project.
+        joins(service_history_enrollments: :enrollment).
+        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
         merge(
           ::GrdaWarehouse::ServiceHistoryEnrollment.open_between(
             start_date: date_range_for(month: month, year: year).first,
@@ -66,8 +67,8 @@ module ClientAccessControl
 
     private def enrollments(month:, year:, client:, week:, user:)
       @enrollments ||= client.service_history_entries.
-        joins(:project).
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        joins(:enrollment).
+        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
         open_between(
           start_date: date_range_for(month: month, year: year).first,
           end_date: date_range_for(month: month, year: year).last,
@@ -82,7 +83,7 @@ module ClientAccessControl
         joins(enrollment: [:project, { service_history_enrollment: :client }]).
         references(enrollment: [:project, { service_history_enrollment: :client }]).
         distinct.
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
         where(date_provided: date_range_for(month: month, year: year)).
         to_a
       @services.select { |item| item.date_provided.in?(week) }.
@@ -130,7 +131,7 @@ module ClientAccessControl
         joins(enrollment: [:project, { service_history_enrollment: :client }]).
         references(enrollment: [:project, { service_history_enrollment: :client }]).
         distinct.
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
         where(InformationDate: date_range_for(month: month, year: year)).
         to_a
 
@@ -162,7 +163,7 @@ module ClientAccessControl
       @events ||= client.source_events.
         joins(enrollment: [:project, { service_history_enrollment: :client }]).
         references(enrollment: [:project, { service_history_enrollment: :client }]).
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
         where(EventDate: date_range_for(month: month, year: year)).
         distinct.
         to_a
@@ -194,7 +195,7 @@ module ClientAccessControl
         joins(enrollment: [:project, { service_history_enrollment: :client }]).
         references(enrollment: [:project, { service_history_enrollment: :client }]).
         distinct.
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
         where(date: date_range_for(month: month, year: year)).to_a
 
       @custom_services.select { |item| item.date.in?(week) }.
@@ -223,9 +224,9 @@ module ClientAccessControl
     private def extrapolated(month:, year:, client:, week:, user:)
       @extrapolated ||= client.service_history_services.
         extrapolated.
-        joins(service_history_enrollment: :project).
-        references(service_history_enrollment: :project).
-        merge(::GrdaWarehouse::Hud::Project.viewable_by(user)).
+        joins(service_history_enrollment: :enrollment).
+        references(service_history_enrollment: :enrollment).
+        merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
         service_within_date_range(
           start_date: date_range_for(month: month, year: year).first,
           end_date: date_range_for(month: month, year: year).last,

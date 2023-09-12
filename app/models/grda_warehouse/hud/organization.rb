@@ -46,29 +46,55 @@ module GrdaWarehouse::Hud
     scope :dmh, -> do
       where(dmh: true)
     end
-    scope :viewable_by, ->(user) do
-      qc = ->(s) { connection.quote_column_name s }
-      q  = ->(s) { connection.quote s }
+    scope :viewable_by, ->(user, permission: :can_view_projects) do
+      # TODO: START_ACL cleanup after migration to ACLs
+      if user.using_acls?
+        return none unless user&.send("#{permission}?")
 
-      where(
-        [
+        ids = organization_ids_viewable_by(user, permission: permission)
+        # If have a set (not a nil) and it's empty, this user can't access any projects
+        return none if ids.is_a?(Set) && ids.empty?
+
+        where(id: ids)
+      else
+        qc = ->(s) { connection.quote_column_name s }
+        q  = ->(s) { connection.quote s }
+
+        where(
+          [
+            has_access_to_organization_through_viewable_entities(user, q, qc),
+            has_access_to_organization_through_data_source(user, q, qc),
+            has_access_to_organization_through_projects(user, q, qc),
+          ].join(' OR '),
+        )
+      end
+      # END_ACL
+    end
+
+    scope :editable_by, ->(user, permission: :can_edit_organizations) do
+      # TODO: START_ACL cleanup after migration to ACLs
+      if user.using_acls?
+        return none unless user&.send("#{permission}?")
+
+        ids = organization_ids_from_viewable_entities(user, permission)
+        ids += organization_ids_from_data_sources(user, permission)
+        # If have a set (not a nil) and it's empty, this user can't access any projects
+        return none if ids.is_a?(Set) && ids.empty?
+
+        where(id: ids)
+      else
+        qc = ->(s) { connection.quote_column_name s }
+        q  = ->(s) { connection.quote s }
+
+        where [
           has_access_to_organization_through_viewable_entities(user, q, qc),
           has_access_to_organization_through_data_source(user, q, qc),
-          has_access_to_organization_through_projects(user, q, qc),
-        ].join(' OR '),
-      )
+        ].join(' OR ')
+      end
+      # END_ACL
     end
 
-    scope :editable_by, ->(user) do
-      qc = ->(s) { connection.quote_column_name s }
-      q  = ->(s) { connection.quote s }
-
-      where [
-        has_access_to_organization_through_viewable_entities(user, q, qc),
-        has_access_to_organization_through_data_source(user, q, qc),
-      ].join(' OR ')
-    end
-
+    # TODO: START_ACL remove after migration to ACLs
     # def self.bed_utilization_by_project filter:
     #   user = filter.user
     #   # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
@@ -196,6 +222,64 @@ module GrdaWarehouse::Hud
         )
 
       SQL
+    end
+    # END_ACL
+
+    def self.organization_ids_viewable_by(user, permission: :can_view_projects)
+      return Set.new unless user&.send("#{permission}?")
+
+      ids = Set.new
+      ids += organization_ids_from_viewable_entities(user, permission)
+      ids += organization_ids_from_data_sources(user, permission)
+      ids += organization_ids_from_projects(user, permission)
+      ids
+    end
+
+    def self.organization_ids_from_viewable_entities(user, permission)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
+
+      group_ids = user.collections_for_permission(permission)
+      return [] if group_ids.empty?
+
+      GrdaWarehouse::GroupViewableEntity.where(
+        collection_id: group_ids,
+        entity_type: 'GrdaWarehouse::Hud::Organization',
+      ).pluck(:entity_id)
+    end
+
+    def self.organization_ids_from_entity_type(user, permission, entity_class)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
+
+      group_ids = user.collections_for_permission(permission)
+      return [] if group_ids.empty?
+
+      entity_class.where(
+        id: GrdaWarehouse::GroupViewableEntity.where(
+          collection_id: group_ids,
+          entity_type: entity_class.sti_name,
+        ).select(:entity_id),
+      ).joins(:organizations).pluck(o_t[:id])
+    end
+
+    def self.organization_ids_from_projects(user, permission)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
+
+      group_ids = user.collections_for_permission(permission)
+      return [] if group_ids.empty?
+
+      GrdaWarehouse::Hud::Project.where(
+        id: GrdaWarehouse::GroupViewableEntity.where(
+          collection_id: group_ids,
+          entity_type: GrdaWarehouse::Hud::Project.sti_name,
+        ).select(:entity_id),
+      ).joins(:organization).pluck(o_t[:id])
+    end
+
+    def self.organization_ids_from_data_sources(user, permission)
+      organization_ids_from_entity_type(user, permission, GrdaWarehouse::DataSource)
     end
 
     def for_export
