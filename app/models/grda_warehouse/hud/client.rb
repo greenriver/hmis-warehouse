@@ -613,7 +613,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :gender_ftm, -> do
-      gender_transgender.where(Male: 1)
+      gender_transgender.where(Man: 1)
     end
 
     scope :no_single_gender, -> do
