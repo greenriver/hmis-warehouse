@@ -9,7 +9,7 @@ module Filter::FilterScopes
   included do
     private def filter_for_user_access(scope)
       scope.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
     end
 
     private def filter_for_range(scope)
@@ -195,13 +195,13 @@ module Filter::FilterScopes
 
       return scope if project_ids.blank?
 
-      scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+      scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
     end
 
     private def filter_for_projects_hud(scope)
       return scope.none if @filter.project_ids.blank?
 
-      scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+      scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
     end
 
     private def filter_for_cohorts(scope)
@@ -214,7 +214,7 @@ module Filter::FilterScopes
       return scope if @filter.funder_ids.blank?
       return scope unless @filter.user.report_filter_visible?(:funder_ids)
 
-      project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user).
+      project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user, permission: :can_view_assigned_reports).
         where(Funder: @filter.funder_ids).
         joins(:project).
         select(p_t[:id])

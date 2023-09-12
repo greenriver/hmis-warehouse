@@ -5,6 +5,7 @@
 ###
 
 require 'rails_helper'
+require_relative '../../../requests/hmis/login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
