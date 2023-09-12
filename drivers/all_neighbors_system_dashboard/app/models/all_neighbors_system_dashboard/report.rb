@@ -66,7 +66,7 @@ module AllNeighborsSystemDashboard
         return_dates = return_dates_for_batch(filter, batch)
         batch.each do |enrollment|
           source_enrollment = enrollment.enrollment
-          hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household.enrollment
+          hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household&.enrollment || source_enrollment
           ce_info = ce_infos[enrollment.id]
           enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
@@ -136,11 +136,7 @@ module AllNeighborsSystemDashboard
         preload(:enrollment, :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date)
-      filter.apply(scope, report_scope_source)
-    end
-
-    def report_scope_source
-      GrdaWarehouse::ServiceHistoryEnrollment.entry
+      scope.in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
     end
 
     def event_scope
