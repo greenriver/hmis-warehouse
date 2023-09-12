@@ -13,7 +13,8 @@ class CohortsController < ApplicationController
   before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update, :new]
   before_action :require_can_access_cohort!, only: [:show]
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
-  before_action :set_groups, only: [:edit, :update, :destroy, :show]
+  before_action :set_users, only: [:edit, :update, :destroy, :show]
+  before_action :set_groups, only: [:edit, :update, :destroy, :show] # TODO: START_ACL remove when ACL transition complete
   before_action :set_thresholds, only: [:show]
   before_action :set_assessment_types, only: [:edit]
 
@@ -30,7 +31,7 @@ class CohortsController < ApplicationController
       @active_filter = true
     end
 
-    @search = search_setup(scope: :cohort_search)
+    @search = search_setup(columns: [:name], scope: :cohort_search)
     # Enforce visibility on searches
     @search = @search.where(id: cohort_scope.select(:id))
     @cohorts = @search.active_user.reorder(sort_string)
@@ -132,8 +133,12 @@ class CohortsController < ApplicationController
   def create
     GrdaWarehouse::Cohort.transaction do
       @cohort = cohort_source.create!(cohort_params)
-      # If the user doesn't have All Cohorts access, grant them access to the cohort
+      # TODO: START_ACL remove when ACL transition complete
       current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
+      # END_ACL
+
+      # If the user doesn't have All Cohorts access, grant them access to the cohort
+      @cohort.replace_access(current_user, scope: :editor)
       # Always add the cohort to the system group
       AccessGroup.maintain_system_groups(group: :cohorts)
       # Add default tabs
@@ -149,11 +154,25 @@ class CohortsController < ApplicationController
   end
 
   def update
-    cohort_options = cohort_params.except(:user_ids)
+    # TODO: START_ACL replace when ACL transition complete
+    # cohort_options = cohort_params.except(:participant_ids, :viewer_ids)
+    cohort_options = cohort_params.except(:user_ids, :participant_ids, :viewer_ids)
+    # END_ACL
     cohort_options = cohort_options.except(:name) if @cohort.system_cohort
-    user_ids = cohort_params[:user_ids].select(&:present?).map(&:to_i)
+
     @cohort.update(cohort_options)
+
+    # TODO: START_ACL remove when ACL transition complete
+    user_ids = cohort_params[:user_ids].select(&:present?).map(&:to_i)
     @cohort.update_access(user_ids)
+    # END_ACL
+
+    participant_ids = cohort_params[:participant_ids].reject(&:blank?).map(&:to_i)
+    @cohort.replace_access(User.find(participant_ids), scope: :editor)
+
+    viewer_ids = cohort_params[:viewer_ids].reject(&:blank?).map(&:to_i)
+    @cohort.replace_access(User.find(viewer_ids), scope: :viewer)
+
     @cohort.delay.maintain if @cohort.auto_maintained?
     respond_with(@cohort, location: cohort_path(@cohort))
   end
@@ -175,7 +194,9 @@ class CohortsController < ApplicationController
       :tag_id,
       :project_group_id,
       :enforce_project_visibility_on_cells,
-      user_ids: [],
+      user_ids: [], # TODO: START_ACL remove when ACL transition complete
+      participant_ids: [],
+      viewer_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:cohort).permit(opts)
   end
