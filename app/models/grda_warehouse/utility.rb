@@ -31,6 +31,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::Organization,
       GrdaWarehouse::Hud::Project,
       GrdaWarehouse::Hud::ProjectCoc,
+      GrdaWarehouse::Hud::CeParticipation,
+      GrdaWarehouse::Hud::HmisParticipation,
       GrdaWarehouse::Hud::Geography,
       GrdaWarehouse::Hud::Assessment,
       GrdaWarehouse::Hud::CurrentLivingSituation,
