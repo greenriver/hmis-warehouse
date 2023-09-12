@@ -8,7 +8,7 @@ module HmisCsvTwentyTwentyTwo::Importer::ImportConcern
   extend ActiveSupport::Concern
   SELECT_BATCH_SIZE = 10_000
   INSERT_BATCH_SIZE = 2_000
-  RE_YYYYMMDD = /(?<y>\d{4})-(?<m>\d{1,2})-(?<d>\d{1,2})/.freeze
+  RE_YYYYMMDD = /(?<y>\d{4})-(?<m>\d{1,2})-(?<d>\d{1,2})/
 
   HMIS_DATE_FORMATS = [
     ['%Y-%m-%d', RE_YYYYMMDD],
@@ -98,12 +98,16 @@ module HmisCsvTwentyTwentyTwo::Importer::ImportConcern
 
     # Override as necessary
     def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:) # rubocop:disable Lint/UnusedMethodArgument
-      involved_warehouse_scope(
+      scope = involved_warehouse_scope(
         data_source_id: data_source_id,
         project_ids: project_ids,
         date_range: date_range,
-      ).with_deleted.
-        update_all(pending_date_deleted: pending_date_deleted)
+      ).with_deleted
+      all_ids = scope.pluck(:id)
+      all_ids.each_slice(INSERT_BATCH_SIZE) do |ids|
+        # Process these in batches by id to avoid costly update query
+        scope.klass.with_deleted.where(id: ids).update_all(pending_date_deleted: pending_date_deleted)
+      end
     end
 
     def self.new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)

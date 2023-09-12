@@ -454,7 +454,21 @@ module HmisCsvImporter::Importer
           existing.update_all(pending_date_deleted: nil)
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
-          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
+          # Do this in batches to avoid the complex join during the update
+          scope = klass.existing_destination_data(
+            data_source_id: data_source.id,
+            project_ids: involved_project_ids,
+            date_range: date_range,
+          )
+          all_ids = scope.pluck(:id)
+          update_scope = if scope.klass.paranoid?
+            scope.klass.with_deleted
+          else
+            scope.klass
+          end
+          all_ids.each_slice(INSERT_BATCH_SIZE) do |ids|
+            update_scope.where(id: ids).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
+          end
           note_processed(file_name, delete_count, 'removed')
         end
       end
