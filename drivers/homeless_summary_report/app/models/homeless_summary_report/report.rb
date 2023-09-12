@@ -230,7 +230,7 @@ module HomelessSummaryReport
                   # calculate the count of people in each destination of the type
                   ids.each do |d_id|
                     count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
-                    details << "#{HudUtility.destination(d_id)}: #{count}" if count&.positive?
+                    details << "#{HudUtility2024.destination(d_id)}: #{count}" if count&.positive?
                   end
                 end
 
@@ -589,7 +589,7 @@ module HomelessSummaryReport
         },
         'Measure 7' => {
           fields: m7_fields,
-          headers: destination_buckets.keys + ::HudUtility.valid_destinations.map { |id, d| "#{d} (#{id})" },
+          headers: destination_buckets.keys + ::HudUtility2024.valid_destinations.map { |id, d| "#{d} (#{id})" },
           description: 'Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing',
         },
       }
@@ -602,17 +602,17 @@ module HomelessSummaryReport
     private def destination_buckets
       {
         'Client Count' => [],
-        'Homeless Destinations' => [16, 1, 18], # HudUtility.homeless_destinations,
-        'Permanent Destinations' => HudUtility.permanent_destinations,
-        'Temporary Destinations' => [2, 12, 13, 14, 27, 29, 32], # NOTE: this should probably be HudUtility.temporary_destinations, but HUD doesn't define homeless destinations, and some temporary destinations are also institutional, so we'll place them here.
-        'Institutional Destinations' => [4, 5, 6, 7, 15, 25], # HudUtility.institutional_destinations,
-        'Unknown, doesn\'t know, refused, or not collected' => HudUtility.other_destinations,
+        'Homeless Destinations' => [16, 1, 18], # HudUtility2024.homeless_destinations,
+        'Permanent Destinations' => HudUtility2024.permanent_destinations,
+        'Temporary Destinations' => [2, 12, 13, 14, 27, 29, 32], # NOTE: this should probably be HudUtility2024.temporary_destinations, but HUD doesn't define homeless destinations, and some temporary destinations are also institutional, so we'll place them here.
+        'Institutional Destinations' => [4, 5, 6, 7, 15, 25], # HudUtility2024.institutional_destinations,
+        'Unknown, doesn\'t know, refused, or not collected' => HudUtility2024.other_destinations,
         'Remained housed' => [0], # include those who remained housed for 7b2
       }.freeze
     end
 
     def destinations
-      @destinations ||= destination_buckets.values.select(&:present?) + HudUtility.valid_destinations.keys
+      @destinations ||= destination_buckets.values.select(&:present?) + HudUtility2024.valid_destinations.keys
     end
 
     def field_measure(field)
@@ -812,57 +812,57 @@ module HomelessSummaryReport
 
     def self.demographic_variants
       {
-        non_hispanic_latino: {
-          name: HudUtility.ethnicity(0), # non-hispanic latino
+        hispanic_latinaeo: {
+          name: HudUtility2024.race('HispanicLatinaeo'), # non-hispanic latino
           extra_filters: {
-            ethnicities: [0],
+            races: ['HispanicLatinaeo'],
           },
-          demographic_filters: [:filter_for_ethnicity],
-        },
-        hispanic_latino: {
-          name: HudUtility.ethnicity(1), # hispanic lation
-          extra_filters: {
-            ethnicities: [1],
-          },
-          demographic_filters: [:filter_for_ethnicity],
+          demographic_filters: [:filter_for_race],
         },
         black_african_american: {
-          name: HudUtility.race('BlackAfAmerican'),
+          name: HudUtility2024.race('BlackAfAmerican'),
           extra_filters: {
             races: ['BlackAfAmerican'],
           },
           demographic_filters: [:filter_for_race],
         },
         asian: {
-          name: HudUtility.race('Asian'),
+          name: HudUtility2024.race('Asian'),
           extra_filters: {
             races: ['Asian'],
           },
           demographic_filters: [:filter_for_race],
         },
         american_indian_alaskan_native: {
-          name: HudUtility.race('AmIndAKNative'),
+          name: HudUtility2024.race('AmIndAKNative'),
           extra_filters: {
             races: ['AmIndAKNative'],
           },
           demographic_filters: [:filter_for_race],
         },
         native_hawaiian_other_pacific_islander: {
-          name: HudUtility.race('NativeHIPacific'),
+          name: HudUtility2024.race('NativeHIPacific'),
           extra_filters: {
             races: ['NativeHIPacific'],
           },
           demographic_filters: [:filter_for_race],
         },
         white: {
-          name: HudUtility.race('White'),
+          name: HudUtility2024.race('White'),
           extra_filters: {
             races: ['White'],
           },
           demographic_filters: [:filter_for_race],
         },
+        mid_east_n_african: {
+          name: HudUtility2024.race('MidEastNAfrican'),
+          extra_filters: {
+            races: ['MidEastNAfrican'],
+          },
+          demographic_filters: [:filter_for_race],
+        },
         multi_racial: {
-          name: HudUtility.race('MultiRacial'),
+          name: HudUtility2024.race('MultiRacial'),
           extra_filters: {
             races: ['MultiRacial'],
           },
@@ -874,47 +874,6 @@ module HomelessSummaryReport
             races: ['RaceNone'],
           },
           demographic_filters: [:filter_for_race],
-        },
-
-        b_n_h_l: {
-          name: [HudUtility.race('BlackAfAmerican'), HudUtility.ethnicity(0)].join(' '),
-          extra_filters: {
-            ethnicities: [0],
-            races: ['BlackAfAmerican'],
-          },
-          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
-        },
-        a_n_h_l: {
-          name: [HudUtility.race('Asian'), HudUtility.ethnicity(0)].join(' '),
-          extra_filters: {
-            ethnicities: [0],
-            races: ['Asian'],
-          },
-          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
-        },
-        n_n_h_l: {
-          name: [HudUtility.race('AmIndAKNative'), HudUtility.ethnicity(0)].join(' '),
-          extra_filters: {
-            ethnicities: [0],
-            races: ['AmIndAKNative'],
-          },
-          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
-        },
-        h_n_h_l: {
-          name: [HudUtility.race('NativeHIPacific'), HudUtility.ethnicity(0)].join(' '),
-          extra_filters: {
-            ethnicities: [0],
-            races: ['NativeHIPacific'],
-          },
-          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
-        },
-        white_non_hispanic_latino: {
-          name: [HudUtility.race('White'), HudUtility.ethnicity(0)].join(' '),
-          extra_filters: {
-            ethnicities: [0],
-            races: ['White'],
-          },
-          demographic_filters: [:filter_for_ethnicity, :filter_for_race],
         },
         fleeing_dv: {
           name: 'Currently Fleeing DV',

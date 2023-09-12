@@ -137,7 +137,6 @@ module Dashboards
           :limit_to_vispdat,
           :hoh_only,
           races: [],
-          ethnicities: [],
           genders: [],
           organization_ids: [],
           project_ids: [],

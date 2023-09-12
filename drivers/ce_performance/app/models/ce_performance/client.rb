@@ -118,40 +118,52 @@ module CePerformance
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_native_hi_other_pacific)
     end
 
+    scope :race_native_hi_pacific, -> do
+      race_native_hi_other_pacific
+    end
+
     scope :race_white, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_white)
     end
 
-    scope :multi_racial, -> do
+    scope :race_mid_east_n_african, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_mid_east_n_african)
+    end
+
+    scope :race_multi_racial, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.multi_racial)
     end
 
-    scope :non_hispanic, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.where(Ethnicity: 0))
+    scope :race_hispanic_latinaeo, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
     end
 
-    scope :hispanic, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.where(Ethnicity: 1))
+    scope :gender_woman, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_woman)
     end
 
-    scope :female, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_female)
+    scope :gender_man, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_man)
     end
 
-    scope :male, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_male)
+    scope :gender_non_binary, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_non_binary)
     end
 
-    scope :agender, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.no_single_gender)
-    end
-
-    scope :transgender, -> do
+    scope :gender_transgender, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_transgender)
     end
 
-    scope :questioning, -> do
-      joins(:source_client).merge(GrdaWarehouse::Hud::Client.questioning)
+    scope :gender_questioning, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_questioning)
+    end
+
+    scope :gender_culturally_specific, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_culturally_specific)
+    end
+
+    scope :gender_different_identity, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_different_identity)
     end
 
     # FIXME eventually.  This would be much better if we could figure out how to query the events column
@@ -161,7 +173,7 @@ module CePerformance
     end
 
     def self.literally_homeless_at_entry_query
-      arel_table[:prior_living_situation].in(::HudUtility.homeless_situations(as: :prior)).
+      arel_table[:prior_living_situation].in(::HudUtility2024.homeless_situations(as: :prior)).
         or(arel_table[:los_under_threshold].eq(1).and(arel_table[:previous_street_essh].eq(1)))
     end
 
@@ -188,23 +200,9 @@ module CePerformance
         pops['LGBTQ'] = :client_lgbtq
         pops['Household LGBTQ'] = :lgbtq_household_members
       end
-      race_pops = {
-        'American Indian, Alaska Native, or Indigenous' => :race_am_ind_ak_native,
-        'Asian or Asian American' => :race_asian,
-        'Black, African American, or African' => :race_black_af_american,
-        'Native Hawaiian or Pacific Islander' => :race_native_hi_other_pacific,
-        'White' => :race_white,
-        'Multi-Racial' => :multi_racial,
-        'Non-Hispanic/Non-Latin(a)(o)(x)' => :non_hispanic,
-        'Hispanic/Latin(a)(o)(x)' => :hispanic,
-      }
-      gender_pops = {
-        'Female' => :female,
-        'Male' => :male,
-        'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)' => :agender,
-        'Transgender' => :transgender,
-        'Questioning' => :questioning,
-      }
+      race_pops = HudUtility2024.races(multi_racial: true).except('RaceNone').transform_keys { |k| "race_#{k.underscore}".to_sym }.invert.freeze
+      gender_pops = HudUtility2024.gender_field_name_label.except(:GenderNone).transform_keys { |k| "gender_#{k.to_s.underscore}".to_sym }.invert.freeze
+
       pops = pops.merge(race_pops)
       pops = pops.merge(gender_pops)
       pops

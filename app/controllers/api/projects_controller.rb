@@ -31,7 +31,7 @@ module Api
             o_name_at_ds = "#{o_name} at #{ds_name}"
             @data[[o_id, o_name_at_ds]] ||= []
 
-            p_name += " (#{HudUtility.project_type_brief(type)})" if HudUtility.project_type_brief(type).present?
+            p_name += " (#{HudUtility2024.project_type_brief(type)})" if HudUtility2024.project_type_brief(type).present?
             @data[[o_id, o_name_at_ds]] << [
               p_name,
               id,
@@ -87,7 +87,7 @@ module Api
     end
 
     private def project_types
-      return HudUtility.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
+      return HudUtility2024.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
 
       @project_types ||= begin
         types = []

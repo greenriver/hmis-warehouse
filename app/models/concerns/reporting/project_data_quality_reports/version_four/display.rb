@@ -424,15 +424,6 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           denominator: :enrolled_adults,
           label: 'Veteran Status',
         },
-        ethnicity: {
-          measures: [
-            :missing,
-            :refused,
-            :not_collected,
-          ],
-          denominator: :enrolled_clients,
-          label: 'Ethnicity',
-        },
         race: {
           measures: [
             :missing,
@@ -974,7 +965,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           denominator = exiting_clients.where(project_id: project.project_id).count
           count = exiting_clients.where(
             project_id: project.project_id,
-            destination_id: HudUtility.permanent_destinations,
+            destination_id: HudUtility2024.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round
@@ -999,7 +990,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           denominator = exiting_clients.where(project_id: project.project_id).count
           count = exiting_clients.where(
             project_id: project.project_id,
-            destination_id: HudUtility.permanent_destinations,
+            destination_id: HudUtility2024.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round
@@ -1017,7 +1008,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         if report_type == :project_group
           denominator = exiting_clients.count
           count = exiting_clients.where(
-            destination_id: HudUtility.permanent_destinations,
+            destination_id: HudUtility2024.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round

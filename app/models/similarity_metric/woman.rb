@@ -4,6 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class GrdaWarehouse::Lookups::Ethnicity < GrdaWarehouseBase
-  self.table_name = 'lookups_ethnicities'
+module SimilarityMetric
+  class Woman < SimilarityMetric::Boolean
+    def field
+      :Woman
+    end
+  end
 end

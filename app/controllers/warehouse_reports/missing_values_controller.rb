@@ -17,7 +17,6 @@ module WarehouseReports
       'SSN',
       'SSNQuality',
       'DOB',
-      'Ethnicity',
       'VeteranStatus',
       'DisablingCondition',
       'LivingSituation',

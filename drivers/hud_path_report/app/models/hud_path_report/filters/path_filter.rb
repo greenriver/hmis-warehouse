@@ -11,7 +11,7 @@ module HudPathReport::Filters
     end
 
     def path_project_types_for_select
-      HudUtility2024.project_group_titles.select { |k, _| k.in?(path_project_types) }.invert.freeze
+      HudUtility2024.project_type_group_titles.select { |k, _| k.in?(path_project_types) }.invert.freeze
     end
 
     def path_project_type_ids

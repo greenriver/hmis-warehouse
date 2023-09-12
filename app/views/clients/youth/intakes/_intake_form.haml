@@ -26,8 +26,7 @@
 
       = f.input :client_gender, as: :radio_buttons, collection: HudUtility2024.genders.invert
       = f.input :client_lgbtq, as: :radio_buttons, collection: @intake.yes_no_unknown_refused, label: 'Is the youth LGBTQ+?'
-      = f.input :client_race, as: :check_boxes, collection: HudUtility.races.invert
-      = f.input :client_ethnicity, as: :radio_buttons, collection: HudUtility.ethnicities.invert, label: 'Ethnicity'
+      = f.input :client_race, as: :check_boxes, collection: HudUtility2024.races.invert
       = f.input :client_primary_language, as: :radio_buttons, collection: @intake.languages, input_html: { class: 'jLanguage' }, label: 'Primary language'
       .jOtherLanguage
         - if ! readonly

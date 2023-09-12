@@ -62,7 +62,7 @@ module ClientAccessControl
 
     def available_project_types(month:, year:, client:, user:)
       project_types = available_projects(month: month, year: year, client: client, user: user).map(&:project_type_to_use)
-      HudUtility.project_types.select { |k, _| k.in?(project_types) }
+      HudUtility2024.project_types.select { |k, _| k.in?(project_types) }
     end
 
     private def enrollments(month:, year:, client:, week:, user:)
@@ -258,7 +258,7 @@ module ClientAccessControl
         project_id: project.id.to_s,
         project_name: project.name(user),
         project_type: project_type.to_s,
-        project_type_name: HudUtility.project_type_brief(project_type),
+        project_type_name: HudUtility2024.project_type_brief(project_type),
         entry_date: she.entry_date,
         exit_date: she.exit_date.presence || Date.current,
       }

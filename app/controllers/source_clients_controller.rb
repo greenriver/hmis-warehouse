@@ -95,8 +95,6 @@ class SourceClientsController < ApplicationController
         :MiddleName,
         :LastName,
         :VeteranStatus,
-        :Female,
-        :Male,
         Gender: [],
       )
   end

@@ -13,24 +13,9 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
     :RecordType,
   ].freeze
 
-  TYPE_PROVIDED_MAP = {
-    141 => ::HudUtility2024.path_services_options,
-    142 => ::HudUtility2024.rhy_services_options,
-    143 => ::HudUtility2024.hopwa_services_options,
-    144 => ::HudUtility2024.ssvf_services_options,
-    151 => ::HudUtility2024.hopwa_financial_assistance_options,
-    152 => ::HudUtility2024.ssvf_financial_assistance_options,
-    161 => ::HudUtility2024.path_referral_options,
-    200 => ::HudUtility2024.bed_night_options,
-    210 => ::HudUtility2024.voucher_tracking_options,
-    300 => ::HudUtility2024.moving_on_assistance_options,
-  }.freeze
+  TYPE_PROVIDED_MAP = ::HudUtility2024.service_types_provided_map.map { |k, v| [k, v[:list]] }.to_h.freeze
 
-  SUB_TYPE_PROVIDED_MAP = {
-    3 => ::HudUtility2024.ssvf_sub_type3s,
-    4 => ::HudUtility2024.ssvf_sub_type4s,
-    5 => ::HudUtility2024.ssvf_sub_type5s,
-  }.freeze
+  SUB_TYPE_PROVIDED_MAP = ::HudUtility2024.service_sub_types_provided_map.map { |k, v| [k, v[:list]] }.to_h.freeze
 
   def configuration
     Hmis::Hud::Service.hmis_configuration(version: '2024').except(*IGNORED)

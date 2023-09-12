@@ -31,8 +31,8 @@ RSpec.describe GrdaWarehouse::ChEnrollment, type: :model do
   let!(:source_project) do
     create(
       :hud_project,
-      ProjectType: 1,
-      TrackingMethod: 1,
+      ProjectType: 0,
+      computed_project_type: 0,
       ExportID: source_export.ExportID,
       data_source_id: source_client.data_source_id,
     )
@@ -133,14 +133,18 @@ RSpec.describe GrdaWarehouse::ChEnrollment, type: :model do
 
   context 'When enrollment is not chronically homeless' do
     before(:each) do
-      source_enrollment.update(LivingSituation: 25, DateToStreetESSH: Date.new(2021, 3, 1), MonthsHomelessPastThreeYears: 103, processed_as: nil)
-      source_export.update(effective_export_end_date: Date.new(2021, 6, 1))
+      source_enrollment.update(LivingSituation: 225, DateToStreetESSH: Date.new(2021, 3, 1), MonthsHomelessPastThreeYears: 103, processed_as: nil)
+      current_date = Date.new(2021, 6, 1)
+      source_export.update(effective_export_end_date: current_date)
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
     end
 
     context 'After processing' do
       before(:each) do
-        GrdaWarehouse::ChEnrollment.maintain!
+        current_date = Date.new(2021, 6, 1)
+        travel_to(current_date) do
+          GrdaWarehouse::ChEnrollment.maintain!
+        end
       end
 
       it 'ChEnrollment to have same processed_as' do

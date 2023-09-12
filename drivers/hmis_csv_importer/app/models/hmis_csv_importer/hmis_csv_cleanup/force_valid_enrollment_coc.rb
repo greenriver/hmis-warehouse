@@ -11,7 +11,7 @@ module HmisCsvImporter::HmisCsvCleanup
 
       enrollment_coc_scope.find_each do |e_coc|
         # ignore any valid CoC-codes
-        next if ::HudUtility.valid_coc?(e_coc.EnrollmentCoC)
+        next if ::HudUtility2024.valid_coc?(e_coc.EnrollmentCoC)
 
         # add a dash if we have two characters and 3 numbers
         e_coc.EnrollmentCoC = "#{e_coc.EnrollmentCoC[0..1]}-#{e_coc.EnrollmentCoC[2..4]}" if e_coc.EnrollmentCoC.match?(/^[a-z]{2}[0-9]{3}$/i)

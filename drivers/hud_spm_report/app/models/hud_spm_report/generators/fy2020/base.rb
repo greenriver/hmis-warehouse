@@ -236,7 +236,6 @@ module HudSpmReport::Generators::Fy2020
       scope = filter_for_age(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
       scope = filter_for_sub_population(scope)
       # Some additional filtering that isn't exposed in the UI but
       # is used for the homeless summary report

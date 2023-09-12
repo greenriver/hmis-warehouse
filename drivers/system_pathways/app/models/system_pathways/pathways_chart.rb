@@ -65,9 +65,10 @@ module SystemPathways
     end
 
     private def project_type_label_lookup(key)
-      return 'Served by Homeless System' unless key.present?
+      return 'Served by Homeless System' if key.nil?
 
-      HudUtility.project_type_brief(key)
+      # Normalize ES - NBN and ES - Entry/Exit into  ES
+      HudUtility2024.project_type_brief(key).gsub(' - NBN', '').gsub(' - Entry/Exit', '')
     end
 
     def chart_data

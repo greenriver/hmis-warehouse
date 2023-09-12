@@ -78,10 +78,12 @@ module HudUtility2024
     }.freeze
   end
 
-  def project_group_titles
+  def project_type_group_titles
     {
       ph: 'Permanent Housing (PH, PSH, & RRH)',
       es: 'Emergency Shelter (ES NBN & ES Entry/Exit)',
+      es_nbn: 'Emergency Shelter (ES NBN)',
+      es_entry_exit: 'Emergency Shelter (ES Entry/Exit)',
       th: 'Transitional Housing (TH)',
       sh: 'Safe Haven (SH)',
       so: 'Street Outreach (SO)',
@@ -175,7 +177,7 @@ module HudUtility2024
   end
 
   def project_type_titles
-    project_group_titles.
+    project_type_group_titles.
       select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }.
       freeze
   end
@@ -189,7 +191,7 @@ module HudUtility2024
   end
 
   def residential_type_titles
-    project_group_titles.
+    project_type_group_titles.
       select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh, :oph]) }.
       freeze
   end
@@ -232,6 +234,12 @@ module HudUtility2024
     gender_id_to_field_name.invert.freeze
   end
 
+  def gender_field_name_label
+    genders.transform_keys do |k|
+      gender_id_to_field_name[k]
+    end
+  end
+
   def gender_id_to_field_name
     # Integer values from HUD Data Dictionary
     {
@@ -266,9 +274,9 @@ module HudUtility2024
       5 => :White,
       6 => :HispanicLatinaeo,
       7 => :MidEastNAfrican,
-      8 => :GenderNone,
-      9 => :GenderNone,
-      99 => :GenderNone,
+      8 => :RaceNone,
+      9 => :RaceNone,
+      99 => :RaceNone,
     }.freeze
   end
 
@@ -276,21 +284,6 @@ module HudUtility2024
     return key if key.in?([8, 9, 99])
 
     1
-  end
-
-  # TODO(2024) update for APR/CAPER/CE APR
-  def no_single_gender_queries
-    HudUtility.no_single_gender_queries
-  end
-
-  # TODO(2024) update for APR/CAPER/CE APR
-  def questioning_gender_queries
-    HudUtility.questioning_gender_queries
-  end
-
-  # TODO(2024) update for APR/CAPER/CE APR
-  def transgender_gender_queries
-    HudUtility.transgender_gender_queries
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
@@ -431,7 +424,7 @@ module HudUtility2024
   end
 
   def destination_type(id)
-    situation_type(id)
+    situation_type(id).gsub('Housing', '').strip
   end
 
   def permanent_destinations
@@ -491,15 +484,30 @@ module HudUtility2024
   end
 
   def cocs_with_codes
-    HudUtility.cocs_with_codes
+    cocs.map do |code, name|
+      [
+        code,
+        "#{name} (#{code})",
+      ]
+    end.to_h.freeze
   end
 
   def cocs
-    HudUtility.cocs
+    codes = coc_codes_options
+    return codes.freeze if Rails.env.production?
+
+    codes.merge(
+      {
+        'XX-500' => 'Test CoC',
+        'XX-501' => '2nd Test CoC',
+      },
+    ).freeze
   end
 
   def cocs_in_state(state)
-    HudUtility.cocs_in_state(state)
+    return cocs if state.blank?
+
+    cocs.select { |code, _| code.starts_with?(state) }
   end
 
   # tranform up hud list for use as an enum
@@ -554,5 +562,94 @@ module HudUtility2024
       family_counseling: 2,
       group_counseling: 3,
     }
+  end
+
+  def ce_events_referrals_to_housing
+    [
+      12,
+      13,
+      14,
+      15,
+      17,
+      18,
+    ]
+  end
+
+  def service_types_provided_map
+    {
+      141 => {
+        list: ::HudUtility2024.path_services_options,
+        label_method: :path_services,
+      },
+      142 => {
+        list: ::HudUtility2024.rhy_services_options,
+        label_method: :rhy_services,
+      },
+      143 => {
+        list: ::HudUtility2024.hopwa_services_options,
+        label_method: :hopwa_services,
+      },
+      144 => {
+        list: ::HudUtility2024.ssvf_services_options,
+        label_method: :ssvf_services,
+      },
+      151 => {
+        list: ::HudUtility2024.hopwa_financial_assistance_options,
+        label_method: :hopwa_financial_assistance,
+      },
+      152 => {
+        list: ::HudUtility2024.ssvf_financial_assistance_options,
+        label_method: :ssvf_financial_assistance,
+      },
+      161 => {
+        list: ::HudUtility2024.path_referral_options,
+        label_method: :path_referral_options,
+      },
+      200 => {
+        list: ::HudUtility2024.bed_night_options,
+        label_method: :bed_night,
+      },
+      210 => {
+        list: ::HudUtility2024.voucher_tracking_options,
+        label_method: :voucher_tracking,
+      },
+      300 => {
+        list: ::HudUtility2024.moving_on_assistance_options,
+        label_method: :moving_on_assistance,
+      },
+    }.freeze
+  end
+
+  def service_type_provided(record_type, type_provided)
+    label_method = service_types_provided_map.dig(record_type, :label_method)
+    return type_provided unless label_method.present?
+
+    send(label_method, type_provided)
+  end
+
+  def service_sub_types_provided_map
+    {
+      3 => {
+        list: ::HudUtility2024.ssvf_sub_type3s,
+        label_method: :ssvf_sub_type3,
+      },
+      4 => {
+        list: ::HudUtility2024.ssvf_sub_type4s,
+        label_method: :ssvf_sub_type4,
+      },
+      5 => {
+        list: ::HudUtility2024.ssvf_sub_type5s,
+        label_method: :ssvf_sub_type5,
+      },
+    }
+  end
+
+  def service_sub_type_provided(record_type, type_provided, sub_type_provided)
+    return nil unless record_type == 144 && type_provided.in?(service_sub_types_provided_map.keys)
+
+    label_method = service_sub_types_provided_map.dig(type_provided, :label_method)
+    return sub_type_provided unless label_method.present?
+
+    send(label_method, sub_type_provided)
   end
 end
