@@ -1,0 +1,9 @@
+= render 'breadcrumbs'
+
+%h1 Edit User Group #{@group.name}
+%p User Groups should be used to logically group users who need similar access.  User Groups are combined with Roles and Entity Groups via Access Controls.  The intersection of Role, Entity Group, and User Group determines what each person can do and see within the warehouse.
+= simple_form_for @group, as: :user_group, url: admin_user_group_path do |f|
+  = f.error_notification
+  = render 'form', f: f
+  .form_actions.mt-4
+    = f.button :submit, value: 'Update User Group'

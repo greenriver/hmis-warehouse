@@ -3,7 +3,7 @@
 - ds_name = @import.data_source.name
 
 %h1
-  = _("Import Log from #{ds_name}")
+  = Translation.translate("Import Log from #{ds_name}")
 - if @import.importer_log&.paused?
   .alert.alert-warning
     %i.icon-warning.mr-2

@@ -14,7 +14,7 @@
             %th.pl-2 Client
             %th.text-center
               - if current_user.can_confirm_housing_release?
-                = _('Available for matching in CAS') + '?'
+                = Translation.translate('Available for matching in CAS') + '?'
                 - if GrdaWarehouse::Config.get(:cas_available_method).to_sym == :cas_flag
                   %br
                   %input#jCasActive.jCheckAll{type: :checkbox}

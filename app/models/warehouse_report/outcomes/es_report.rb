@@ -24,54 +24,54 @@ class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
 
   def default_support_columns
     {
-      residential_project: _('Project Name'),
-      housed_date: _('Entry Date'),
-      housing_exit: _('Exit Date'),
-      project_id: _('Warehouse Project ID'),
-      hmis_project_id: _('HMIS Project ID'),
-      race: _('Race'),
-      ethnicity: _('Ethnicity'),
-      gender: _('Gender'),
+      residential_project: Translation.translate('Project Name'),
+      housed_date: Translation.translate('Entry Date'),
+      housing_exit: Translation.translate('Exit Date'),
+      project_id: Translation.translate('Warehouse Project ID'),
+      hmis_project_id: Translation.translate('HMIS Project ID'),
+      race: Translation.translate('Race'),
+      ethnicity: Translation.translate('Ethnicity'),
+      gender: Translation.translate('Gender'),
     }
   end
 
   def columns_for_percent_exiting_stabilization
     {
-      residential_project: _('Project Name'),
-      destination: _('Destination'),
-      housed_date: _('Entry Date'),
-      housing_exit: _('Exit Date'),
-      project_id: _('Warehouse Project ID'),
-      hmis_project_id: _('HMIS Project ID'),
-      race: _('Race'),
-      ethnicity: _('Ethnicity'),
-      gender: _('Gender'),
+      residential_project: Translation.translate('Project Name'),
+      destination: Translation.translate('Destination'),
+      housed_date: Translation.translate('Entry Date'),
+      housing_exit: Translation.translate('Exit Date'),
+      project_id: Translation.translate('Warehouse Project ID'),
+      hmis_project_id: Translation.translate('HMIS Project ID'),
+      race: Translation.translate('Race'),
+      ethnicity: Translation.translate('Ethnicity'),
+      gender: Translation.translate('Gender'),
     }
   end
 
   def columns_for_returns_after_exit
     {
-      exit_date: _('Exit Date'),
-      return_date: _('Date of Return'),
-      days_to_return: _('Days to Return'),
-      destination: _('Destination'),
-      race: _('Race'),
-      ethnicity: _('Ethnicity'),
-      gender: _('Gender'),
+      exit_date: Translation.translate('Exit Date'),
+      return_date: Translation.translate('Date of Return'),
+      days_to_return: Translation.translate('Days to Return'),
+      destination: Translation.translate('Destination'),
+      race: Translation.translate('Race'),
+      ethnicity: Translation.translate('Ethnicity'),
+      gender: Translation.translate('Gender'),
     }
   end
 
   def columns_for_destination
     {
-      residential_project: _('Project Name'),
-      destination: _('Destination'),
-      housed_date: _('Entry Date'),
-      housing_exit: _('Exit Date'),
-      project_id: _('Warehouse Project ID'),
-      hmis_project_id: _('HMIS Project ID'),
-      race: _('Race'),
-      ethnicity: _('Ethnicity'),
-      gender: _('Gender'),
+      residential_project: Translation.translate('Project Name'),
+      destination: Translation.translate('Destination'),
+      housed_date: Translation.translate('Entry Date'),
+      housing_exit: Translation.translate('Exit Date'),
+      project_id: Translation.translate('Warehouse Project ID'),
+      hmis_project_id: Translation.translate('HMIS Project ID'),
+      race: Translation.translate('Race'),
+      ethnicity: Translation.translate('Ethnicity'),
+      gender: Translation.translate('Gender'),
     }
   end
 

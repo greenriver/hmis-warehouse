@@ -8,7 +8,7 @@ module CohortColumns
   class CalculatedDaysHomeless < ReadOnly
     attribute :column, String, lazy: true, default: :calculated_days_homeless
     attribute :translation_key, String, lazy: true, default: 'Calculated Days Homeless*'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def cast_value(val)
       val.to_i

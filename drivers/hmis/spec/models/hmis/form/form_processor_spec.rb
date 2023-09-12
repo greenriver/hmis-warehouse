@@ -5,6 +5,7 @@
 ###
 
 require 'rails_helper'
+require_relative '../../../requests/hmis/login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
@@ -29,11 +30,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
-        'IncomeBenefit.earned' => nil,
         'IncomeBenefit.earnedAmount' => nil,
-        'IncomeBenefit.unemployment' => 'YES',
         'IncomeBenefit.unemploymentAmount' => 100,
-        'IncomeBenefit.otherIncomeSource' => 'NO',
         'IncomeBenefit.otherIncomeAmount' => 0,
         'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
       }
@@ -58,11 +56,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => nil,
-        'IncomeBenefit.earned' => nil,
         'IncomeBenefit.earnedAmount' => nil,
-        'IncomeBenefit.unemployment' => nil,
         'IncomeBenefit.unemploymentAmount' => nil,
-        'IncomeBenefit.otherIncomeSource' => nil,
         'IncomeBenefit.otherIncomeAmount' => nil,
         'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
       }

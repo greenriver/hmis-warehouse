@@ -28,7 +28,7 @@ module CePerformance
     end
 
     def self.title
-      _('Median Length of Time on Prioritization List')
+      Translation.translate('Median Length of Time on Prioritization List')
     end
 
     def description

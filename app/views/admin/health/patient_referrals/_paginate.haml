@@ -1,5 +1,5 @@
 - if @active_patient_referral_group.present?
-  .alert.alert-info= _("If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff.")
+  .alert.alert-info= Translation.translate("If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff.")
   .mt-3
     .btn-group.btn-group-action-2.btn-group-xs{role: 'group'}
       - @patient_referral_groups.each do |group|
@@ -9,5 +9,5 @@
         = link_to group[:title].titleize, group[:path], class: btn_classes
     %h4.mt-3= @active_patient_referral_group == 'our patient' ? "Known by one of your agencies" : 'Not Your Patient'
 %div
-  .mb-2!= pagy_info(@pagy, item_name: _('patient').pluralize(@pagy.count))
+  .mb-2!= pagy_info(@pagy, item_name: Translation.translate('patient').pluralize(@pagy.count))
   != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1

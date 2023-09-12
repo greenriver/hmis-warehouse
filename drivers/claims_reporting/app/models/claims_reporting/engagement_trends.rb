@@ -322,7 +322,7 @@ module ClaimsReporting
     end
 
     def title
-      _('Patient Engagement Trends')
+      Translation.translate('Patient Engagement Trends')
     end
 
     def report_path_array
