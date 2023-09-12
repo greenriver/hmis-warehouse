@@ -29,7 +29,7 @@ module HmisExternalApis::AcHmis
         .count('distinct(hmis_units.id)')
 
       available = total - assigned
-      raise "Unexpected unit availability: project:#{project_id}, unit:#{unit_type_id}, #{total}-#{assigned}" if available < 0
+      raise "Unexpected unit availability: project:#{project_id}, unit:#{unit_type_id}, #{total}-#{assigned}" if available.negative?
 
       payload = {
         program_id: project_mper_id,

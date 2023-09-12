@@ -13,8 +13,8 @@ class Hmis::AccessGroup < ApplicationRecord
   has_paper_trail
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :access_group
-  has_many :user_access_controls, through: :access_controls
-  has_many :users, through: :user_access_controls
+  has_many :user_group_members, through: :access_controls
+  has_many :users, through: :user_group_members
   has_many :roles, through: :access_controls
   has_many :access_groups, through: :access_controls
 

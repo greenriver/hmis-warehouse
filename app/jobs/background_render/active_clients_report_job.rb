@@ -24,7 +24,7 @@ class BackgroundRender::ActiveClientsReportJob < BackgroundRenderJob
   end
 
   def visible_projects(user)
-    GrdaWarehouse::Hud::Project.viewable_by(user).order(id: :asc).pluck(:id, :ProjectName).to_h
+    GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).order(id: :asc).pluck(:id, :ProjectName).to_h
   end
 
   def limited(user)

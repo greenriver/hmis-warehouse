@@ -347,12 +347,13 @@ module GrdaWarehouse::Hud
     # A single scope to determine if a user can access a project within a particular context
     #
     # @param user [User] user viewing the project
-    # @param project_scope [Symbol] a symbolized scope name that is merged into the vieable projects
-    #   within the context of reporting project_scope is almost always non_confidential
-    #   within the client dashboard context, project_scope is :all, which includes confidential projects
+    # @param confidential_scope_limiter [Symbol] a symbolized scope name that is merged into the viewable projects
+    #   within the context of reporting confidential_scope_limiter is almost always non_confidential
+    #   within the client dashboard context, confidential_scope_limiter is :all, which includes confidential projects
     #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
-    scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential) do
-      query = viewable_by_entity(user)
+    # @param permission [Symbol] a permission to determine the scope for which the projects are viewable
+    scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential, permission: :can_view_projects) do
+      query = viewable_by_entity(user, permission: permission)
       # If a user can't report on confidential projects, exclude them entirely
       # return query if user.can_report_on_confidential_projects?
       return query if user.can_report_on_confidential_projects?
@@ -360,26 +361,45 @@ module GrdaWarehouse::Hud
       query.send(confidential_scope_limiter)
     end
 
-    scope :viewable_by_entity, ->(user) do
-      quoted_column = ->(s) { connection.quote_column_name s }
-      quoted_string = ->(s) { connection.quote s }
+    scope :viewable_by_entity, ->(user, permission: :can_view_projects) do
+      # TODO: START_ACL cleanup after migration to ACLs
+      if user.using_acls?
+        return none unless user&.send("#{permission}?")
 
-      where(
-        [
-          access_to_project_through_viewable_entities(user, quoted_string, quoted_column),
-          access_to_project_through_organization(user, quoted_string, quoted_column),
-          access_to_project_through_data_source(user, quoted_string, quoted_column),
-          access_to_project_through_coc_codes(user, quoted_string, quoted_column),
-          access_to_project_through_project_access_groups(user, quoted_string, quoted_column),
-        ].join(' OR '),
-      )
+        ids = user.viewable_project_ids(permission)
+        # If have a set (not a nil) and it's empty, this user can't access any projects
+        return none if ids.is_a?(Set) && ids.empty?
+
+        where(id: ids)
+      else
+        quoted_column = ->(s) { connection.quote_column_name s }
+        quoted_string = ->(s) { connection.quote s }
+
+        where(
+          [
+            access_to_project_through_viewable_entities(user, quoted_string, quoted_column),
+            access_to_project_through_organization(user, quoted_string, quoted_column),
+            access_to_project_through_data_source(user, quoted_string, quoted_column),
+            access_to_project_through_coc_codes(user, quoted_string, quoted_column),
+            access_to_project_through_project_access_groups(user, quoted_string, quoted_column),
+          ].join(' OR '),
+        )
+      end
+      # END_ACL
     end
 
     scope :editable_by, ->(user) do
-      if user&.can_edit_projects?
-        viewable_by(user)
+      return none unless user&.can_edit_projects?
+
+      # TODO: START_ACL cleanup after migration to ACLs
+      if user.using_acls?
+        ids = user.editable_project_ids
+        # If have a set (not a nil) and it's empty, this user can't access any projects
+        return none if ids.is_a?(Set) && ids.empty?
+
+        where(id: ids)
       else
-        none
+        viewable_by(user)
       end
     end
 
@@ -410,6 +430,7 @@ module GrdaWarehouse::Hud
       visible_count.positive? && visible_count == all.count
     end
 
+    # TODO: START_ACL remove after migration to ACLs
     def self.access_to_project_through_viewable_entities(user, quoted_string, quoted_column)
       return '(1=0)' unless user.present?
 
@@ -575,6 +596,82 @@ module GrdaWarehouse::Hud
         user.project_access_groups.flat_map(&:projects).map(&:id)
       end
       p_t[:id].in(project_ids).to_sql
+    end
+    # END_ACL
+
+    def self.project_ids_viewable_by(user, permission: :can_view_projects)
+      return Set.new unless user&.send("#{permission}?")
+
+      ids = Set.new
+      ids += project_ids_from_viewable_entities(user, permission)
+      ids += project_ids_from_organizations(user, permission)
+      ids += project_ids_from_data_sources(user, permission)
+      ids += project_ids_from_coc_codes(user, permission)
+      ids += project_ids_from_project_groups(user, permission)
+      ids
+    end
+
+    def self.project_ids_editable_by(user)
+      return Set.new unless user&.can_edit_projects?
+
+      ids = Set.new
+      ids += project_ids_from_viewable_entities(user, :can_edit_projects)
+      ids += project_ids_from_organizations(user, :can_edit_projects)
+      ids += project_ids_from_data_sources(user, :can_edit_projects)
+      ids += project_ids_from_coc_codes(user, :can_edit_projects)
+      ids += project_ids_from_project_groups(user, :can_edit_projects)
+      ids
+    end
+
+    def self.project_ids_from_viewable_entities(user, permission)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
+
+      collection_ids = user.collections_for_permission(permission)
+      return [] if collection_ids.empty?
+
+      GrdaWarehouse::GroupViewableEntity.where(
+        collection_id: collection_ids,
+        entity_type: 'GrdaWarehouse::Hud::Project',
+      ).pluck(:entity_id)
+    end
+
+    def self.project_ids_from_coc_codes(user, permission)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
+
+      collection_ids = user.collections_for_permission(permission)
+      return [] if collection_ids.empty?
+
+      coc_codes = Collection.where(id: collection_ids).pluck(:coc_codes).reject(&:blank?).flatten
+      GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).joins(:project).pluck(p_t[:id])
+    end
+
+    def self.project_ids_from_entity_type(user, permission, entity_class)
+      return [] unless user.present?
+      return [] unless user.send("#{permission}?")
+
+      collection_ids = user.collections_for_permission(permission)
+      return [] if collection_ids.empty?
+
+      entity_class.where(
+        id: GrdaWarehouse::GroupViewableEntity.where(
+          collection_id: collection_ids,
+          entity_type: entity_class.sti_name,
+        ).select(:entity_id),
+      ).joins(:projects).pluck(p_t[:id])
+    end
+
+    def self.project_ids_from_organizations(user, permission)
+      project_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Organization)
+    end
+
+    def self.project_ids_from_data_sources(user, permission)
+      project_ids_from_entity_type(user, permission, GrdaWarehouse::DataSource)
+    end
+
+    def self.project_ids_from_project_groups(user, permission)
+      project_ids_from_entity_type(user, permission, GrdaWarehouse::ProjectAccessGroup)
     end
 
     # make a scope for every project type and a type? method for instances
