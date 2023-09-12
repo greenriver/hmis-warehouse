@@ -61,7 +61,7 @@ module AllNeighborsSystemDashboard
               report_start: 'ReportStartDate',
               report_end: 'ReportEndDate',
               run_date: 'RunDate',
-              enrollment_id: 'EnrollID',
+              source_enrollment_id: 'EnrollID',
             },
             ce_event_data,
           ],
