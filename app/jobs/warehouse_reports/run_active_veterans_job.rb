@@ -19,11 +19,11 @@ module WarehouseReports
       report.parameters[:visible_projects] = if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         [:all, 'All']
       else
-        GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id, :ProjectName)
+        GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).pluck(:id, :ProjectName)
       end
 
       range = ::Filters::DateRangeAndProject.new(params['range'])
-      scope = service_history_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+      scope = service_history_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports))
 
       project_types = range.project_type.select(&:present?).map(&:to_sym)
       scope = scope.where(service_history_source.project_type_column => project_types.flat_map { |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] }) if project_types.any?

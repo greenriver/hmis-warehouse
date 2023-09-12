@@ -9,7 +9,8 @@ require 'memery'
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
-    include AccessGroups
+    include AccessGroups # TODO: START_ACL remove this after permission migration is complete
+    include EntityAccess
     include Memery
     include Rails.application.routes.url_helpers
 
@@ -27,9 +28,20 @@ module GrdaWarehouse
     belongs_to :tags, class_name: 'CasAccess::Tag', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
 
-    has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
+    has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::Cohort') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
-    attr_accessor :client_ids, :user_ids
+    # START_ACL remove this after permission migration is complete
+    # NOTE: these are in the app DB
+    has_many :access_groups, through: :group_viewable_entities
+    # has_many :legacy_users, through: :access_groups
+    # END_ACL
+
+    # NOTE: these are in the app DB
+    has_many :collections, through: :group_viewable_entities
+    has_many :access_controls, through: :collections
+    has_many :users, through: :access_controls
+
+    attr_accessor :client_ids, :participant_ids, :viewer_ids, :user_ids # TODO: START_ACL remove :user_ids after permission migration is complete
 
     scope :active, -> do
       where(active_cohort: true)
@@ -62,26 +74,64 @@ module GrdaWarehouse
     scope :viewable_by, ->(user) do
       return none unless user.present?
 
-      if user.can_access_some_cohorts
-        if current_scope.present?
-          current_scope.merge(user.cohorts)
-        else
-          user.cohorts
-        end
+      # TODO: START_ACL cleanup after permission migration is complete
+      if user.using_acls?
+        return none unless viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
+
+        ids = viewable_permissions.flat_map do |perm|
+          group_ids = user.collections_for_permission(perm)
+          next [] if group_ids.empty?
+
+          GrdaWarehouse::GroupViewableEntity.where(
+            collection_id: group_ids,
+            entity_type: 'GrdaWarehouse::Cohort',
+          ).pluck(:entity_id)
+        end.compact
+        return none if ids.empty?
+
+        where(id: ids)
       else
-        none
+        if user.can_access_some_cohorts # rubocop:disable Style/IfInsideElse
+          if current_scope.present?
+            current_scope.merge(user.cohorts)
+          else
+            user.cohorts
+          end
+        else
+          none
+        end
       end
+      # END_ACL
     end
 
     scope :editable_by, ->(user) do
-      if user.can_edit_some_cohorts
-        if current_scope.present?
-          current_scope.merge(user.cohorts)
-        else
-          user.cohorts
-        end
+      return none unless user.present?
+      return none unless ! user.using_acls? && viewable_permissions.map { |perm| user.send("#{perm}?") }.any? # TODO: START_ACL cleanup after permission migration is complete
+
+      # TODO: START_ACL cleanup after permission migration is complete
+      if user.using_acls?
+        ids = editable_permissions.flat_map do |perm|
+          group_ids = user.collections_for_permission(perm)
+          next [] if group_ids.empty?
+
+          GrdaWarehouse::GroupViewableEntity.where(
+            access_group_id: group_ids,
+            entity_type: 'GrdaWarehouse::Cohort',
+          ).pluck(:entity_id)
+        end.compact
+        return none if ids.empty?
+
+        where(id: ids)
       else
-        none
+        if user.can_edit_some_cohorts # rubocop:disable Style/IfInsideElse
+          if current_scope.present?
+            current_scope.merge(user.cohorts)
+          else
+            user.cohorts
+          end
+        else
+          none
+        end
       end
     end
 
@@ -583,11 +633,11 @@ module GrdaWarehouse
     end
 
     private def related_users(client)
-      users = client.user_clients.
+      client_users = client.user_clients.
         non_confidential.
         active.
         pluck(:user_id, :relationship).to_h
-      User.where(id: users.keys).map { |u| "#{users[u.id]} (#{u.name})" }.join('; ')
+      User.where(id: client_users.keys).map { |u| "#{client_users[u.id]} (#{u.name})" }.join('; ')
     end
 
     private def missing_documents(client)
@@ -700,6 +750,39 @@ module GrdaWarehouse
 
     private def cohort_client_changes_source
       GrdaWarehouse::CohortClientChange
+    end
+
+    private def editable_role_name
+      'System Role - Can Participate in Cohorts'
+    end
+
+    private def viewable_role_name
+      'System Role - Can View Cohorts'
+    end
+
+    def self.editable_permission
+      :can_participate_in_cohorts
+    end
+
+    def self.viewable_permission
+      :can_view_cohorts
+    end
+
+    def self.viewable_permissions
+      [
+        viewable_permission,
+      ]
+    end
+
+    def self.editable_permissions
+      [
+        :can_manage_cohort_data,
+        editable_permission,
+      ]
+    end
+
+    def entity_relation_type
+      :cohorts
     end
   end
 end
