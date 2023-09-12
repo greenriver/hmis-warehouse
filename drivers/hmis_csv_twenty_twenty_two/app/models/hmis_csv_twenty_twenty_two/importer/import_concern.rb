@@ -103,7 +103,8 @@ module HmisCsvTwentyTwentyTwo::Importer::ImportConcern
         project_ids: project_ids,
         date_range: date_range,
       ).with_deleted
-      scope.pluck_in_batches(:id, batch_size: INSERT_BATCH_SIZE) do |ids|
+      all_ids = scope.pluck(:id)
+      all_ids.each_slice(INSERT_BATCH_SIZE) do |ids|
         # Process these in batches by id to avoid costly update query
         scope.klass.with_deleted.where(id: ids).update_all(pending_date_deleted: pending_date_deleted)
       end
