@@ -12,7 +12,7 @@ module HmisExternalApis::AcHmis
     attr_accessor :state
 
     def perform(mode = 'clients_with_mci_ids_and_address')
-      setup_notifier('HMIS Upload Clients')
+      setup_notifier("AC Data Warehouse upload (mode: #{mode})")
       if Exporters::ClientExportUploader.can_run?
         Rails.logger.info "Running #{mode} upload clients job"
         case mode
