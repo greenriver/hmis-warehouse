@@ -114,6 +114,7 @@ module GrdaWarehouse
     end
 
     def self.options_for_select(user:)
+      # TODO: START_ACL cleanup after migration to ACLs
       if user.using_acls?
         collection_ids = user.collections_for_permission(:can_view_assigned_reports)
         return [] if collection_ids.empty?
@@ -126,6 +127,7 @@ module GrdaWarehouse
       else
         user.project_groups.distinct.order(name: :asc).pluck(:name, :id)
       end
+      # END_ACL
     end
 
     private def maintain_system_group
