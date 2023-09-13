@@ -199,7 +199,7 @@ module AllNeighborsSystemDashboard
             candidates = re_enrollments[housing_enrollment.client_id]
             next unless candidates.present?
 
-            h[housing_enrollment.id] = candidates.map(&:entry_date).min
+            h[housing_enrollment.id] = candidates.map(&:entry_date).max
           end
         end
       end
