@@ -46,7 +46,7 @@ module Types
           # TODO: replace with call to HudUtility once project type groupings are moved there.
           # FIXME: internally our definition of "residential" includes 4 (SO) and 9 (OPH) which
           # are not valid for Residential project affiliations.
-          where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
+          where(project_type: HudUtility2024.residential_project_type_ids).
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)

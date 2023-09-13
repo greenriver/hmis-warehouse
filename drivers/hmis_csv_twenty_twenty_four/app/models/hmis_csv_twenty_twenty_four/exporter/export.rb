@@ -21,7 +21,7 @@ module HmisCsvTwentyTwentyFour::Exporter
           ExportEndDate: export.end_date,
           SoftwareName: _('OpenPath HMIS Warehouse'),
           SoftwareVersion: 1,
-          CSVVersion: '2024 v1.2',
+          CSVVersion: '2024 v1.3',
           ExportPeriodType: export.period_type,
           ExportDirective: export.directive || 2,
           HashStatus: export.hash_status,

@@ -12,7 +12,7 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def self.description
-      '[DEPRECTED] Force Enrollment CoC to match Project CoC if Enrollment CoC is present'
+      '[DEPRECATED] Force Enrollment CoC to match Project CoC if Enrollment CoC is present'
     end
 
     def self.enable

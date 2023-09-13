@@ -699,9 +699,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
       # DEPRECATED_FY2024 - swap this once the transition 2024 is complete
       # using old version to prevent test failures
-      return true if project.es_nbn_pre_2024?
+      # return true if project.es_nbn_pre_2024?
 
-      # return true if project.es_nbn?
+      return true if project.es_nbn?
 
       false
     end

@@ -42,6 +42,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::YouthEducationStatus,
       GrdaWarehouse::Hud::User,
       GrdaWarehouse::Hud::Export,
+      GrdaWarehouse::Hud::HmisParticipation,
+      GrdaWarehouse::Hud::CeParticipation,
       GrdaWarehouse::ClientMatch,
       GrdaWarehouse::ImportLog,
       GrdaWarehouse::IdentifyDuplicatesLog,
