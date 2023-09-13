@@ -16,7 +16,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExportUploader, type: 
   let(:creds) do
     # port = ENV['CI'].present? ? 2222 : 22
 
-    GrdaWarehouse::RemoteCredentials::Sftp.create!(
+    GrdaWarehouse::RemoteCredentials::Sftp.active.create!(
       slug: 'ac_data_warehouse_sftp_server',
       username: 'user',
       password: 'password',
