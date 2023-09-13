@@ -2787,7 +2787,7 @@ CREATE TABLE public.ansd_enrollments (
     destination integer,
     destination_text character varying,
     relationship character varying,
-    client_id character varying,
+    personal_id character varying,
     age integer,
     gender character varying,
     primary_race character varying,
@@ -2840,7 +2840,7 @@ CREATE TABLE public.ansd_events (
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    client_id character varying,
+    personal_id character varying,
     source_enrollment_id character varying
 );
 
@@ -61088,6 +61088,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230901144153'),
 ('20230901203722'),
 ('20230905182026'),
-('20230911204506');
+('20230911204506'),
+('20230913184747');
 
 

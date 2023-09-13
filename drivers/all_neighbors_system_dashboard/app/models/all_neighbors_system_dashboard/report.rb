@@ -82,7 +82,7 @@ module AllNeighborsSystemDashboard
             destination: enrollment.destination,
             destination_text: HudUtility.destination(enrollment.destination),
             relationship: relationship(source_enrollment),
-            client_id: source_enrollment.personal_id,
+            personal_id: source_enrollment.personal_id,
             age: enrollment.age,
             gender: gender(enrollment),
             primary_race: primary_race(enrollment),
@@ -109,7 +109,7 @@ module AllNeighborsSystemDashboard
         events = []
         batch.each do |event|
           events << enrollment.events.build(
-            client_id: event.personal_id,
+            personal_id: event.personal_id,
             source_enrollment_id: event.enrollment_id,
             event_id: event.event_id,
             event_date: event.event_date,
