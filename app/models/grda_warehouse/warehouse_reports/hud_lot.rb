@@ -209,9 +209,9 @@ module GrdaWarehouse::WarehouseReports
           end
         else
           next unless project.ContinuumProject == 1
-          next unless en.computed_project_type.in?([1, 2, 4, 8, 11, 12, 14])
+          next unless en.computed_project_type.in?([0, 1, 2, 4, 8, 11, 12, 14])
           # Homeless enrollment, or institutional stay
-          if en.es? || en.sh? || en.so? || HudUtility2024.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
+          if en.es? || en.es_nbn? || en.sh? || en.so? || HudUtility2024.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
             (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
               self_report_dates[d] = self_reported_shelter
             end
