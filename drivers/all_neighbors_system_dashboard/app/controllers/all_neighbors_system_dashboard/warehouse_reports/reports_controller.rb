@@ -69,6 +69,11 @@ module AllNeighborsSystemDashboard::WarehouseReports
     end
     helper_method :filter_params
 
+    def filter_id(tab_id, name)
+      "all-neighbors__#{tab_id}__#{name}_filter"
+    end
+    helper_method :filter_id
+
     private def flash_interpolation_options
       { resource_name: @report.title }
     end

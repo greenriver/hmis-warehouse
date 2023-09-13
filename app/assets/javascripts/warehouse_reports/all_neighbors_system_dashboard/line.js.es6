@@ -1,17 +1,20 @@
 class AllNeighborsSystemDashboardLine {
-  constructor(data, initialState, selector) {
-    console.log('AllNeighborsSystemDashboardLine')
+  constructor(data, initialState, selector, options) {
     this.data = data
     this.state = initialState
     this.selector = selector
-    this.project = this.data.filter((d) => d.project_type === this.state.projectType)[0]
-    this.countLevel = this.project ? (this.project.count_levels || []).filter((d) => d.count_level_name === this.state.countLevel)[0] : null
-    this.series = this.countLevel ? this.countLevel.series : []
+    this.options = options
+    this.init()
+  }
+
+  init() {
+    this.projectType = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
+    this.countLevel = (this.projectType.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
+    this.series = this.countLevel.series || []
   }
 
   test() {
-    console.log('data', this.data)
-    console.log('state', this.state)
+    console.log(this)
   }
 
   getColumns(name) {
@@ -26,7 +29,17 @@ class AllNeighborsSystemDashboardLine {
     })
     return cols
   }
-  
+
+  redraw(state) {
+    this.state = state
+    this.init()
+    this.chart.load({
+      columns: [
+        this.getColumns("x"),
+        this.getColumns("total")
+      ],
+    })
+  }
 
   draw() {
     this.chart = bb.generate({
@@ -45,9 +58,6 @@ class AllNeighborsSystemDashboardLine {
         x: {
           type: "timeseries",
           tick: {
-            values: this.series.map(function(d) {
-              return d[0]
-            }),
             format: function(d) {
               var names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
               var month = names[d.getMonth()]

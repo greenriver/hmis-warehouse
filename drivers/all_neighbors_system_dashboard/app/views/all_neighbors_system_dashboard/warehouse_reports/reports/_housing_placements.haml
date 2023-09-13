@@ -1,0 +1,84 @@
+- start_date = (DateTime.current - 3.years).beginning_of_month
+- end_date = DateTime.current.beginning_of_month
+- all_data = AllNeighborsSystemDashboard::HousingTotalPlacementsData.new(start_date, end_date)
+- total_data = all_data.data('Total Placements', 'total_placements', :line)
+- donut_data = all_data.donut_data
+- stacked_data = all_data.stacked_data
+
+%h2= tab[:name]
+.border.my-7.p-4
+  .row.align-items-center
+    .col-xs-12.col-md-8
+      .d-flex
+        = render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
+        = render 'select_filter', tab: tab, name: 'count_level', label: 'Count Level', options: all_data.count_levels
+         
+    .col-xs-12.col-md-4
+      = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
+
+%h3 Total Placements
+.p-4.mb-7
+  #all-neighbors__housing-placements__total-placements
+.row
+  - donut_data.each do |d|
+    .col-6.mb-7
+      %h5= d[:title]
+      %div{id: "all-neighbors__housing-placements__#{d[:id]}"}
+
+%h3 Racial Composition
+#all-neighbors__housing-placements__stacked
+
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      console.log('Housing Placement -----------------')
+      var totalData = #{total_data.to_json.html_safe}
+      var donutData = #{donut_data.to_json.html_safe}
+      console.log('donutData', donutData)
+      var stackedData = #{stacked_data.to_json.html_safe}
+      console.log('stackedData', stackedData)
+
+      var charts = [
+        {
+          chart: AllNeighborsSystemDashboardLine, 
+          data: totalData,
+          selector: '#all-neighbors__housing-placements__total-placements'
+        },
+        {
+          chart: AllNeighborsSystemDashboardStack,
+          data: stackedData,
+          selector: '#all-neighbors__housing-placements__stacked',
+          options: {normalize: true}
+        }
+      ].concat(donutData.map(function(d) {
+        return {
+          chart: AllNeighborsSystemDashboardDonut,
+          data: d,
+          selector: '#all-neighbors__housing-placements__'+d.id
+        }
+      }))
+
+      var filterConfig = [
+        {
+          name: 'projectType',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'project_type')}'
+        },
+        {
+          name: 'countLevel',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'count_level')}'
+        },
+        {
+          name: 'dateRange',
+          type: 'dateRange',
+          selector: '##{filter_id(tab[:id], 'date_range')} input'
+        }
+      ]
+
+      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts)
+      filters.test()
+      
+
+    })

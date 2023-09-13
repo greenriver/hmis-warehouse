@@ -1,0 +1,51 @@
+- start_date = (DateTime.current - 3.years).beginning_of_month
+- end_date = DateTime.current.beginning_of_month
+- all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(start_date, end_date)
+
+- chart_data = all_data.stacked_data
+
+%h2 Returns To Homelessness
+
+.my-7
+  .row.justify-content-between
+    .col-xs-12.col-md-9
+      %h3 Racial Composition
+    .col-xs-12.col-md-3
+      .d-flex.justify-content-end
+        = render 'select_filter', tab: tab, name: 'demographics', label: 'Demographics', options: all_data.demographics
+
+.row
+  .col-xs-12
+    - chart_data.each_with_index do |d, i|
+      .d-flex.justify-content-between
+        %h4= d[:title]
+        - if i == 0
+          %small * Exited to permanent destinations
+      %div{id: "all-neighbors__time-to-obtain__stacked_#{d[:id]}", style: 'height:200px;'}
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      console.log('Returns To Homelessness -----------------')
+      var data = #{chart_data.to_json.html_safe}
+      console.log('data', data)
+      var charts = data.map(function(d) {
+        return {
+          chart: AllNeighborsSystemDashboardStack, 
+          data: d,
+          selector: '#all-neighbors__time-to-obtain__stacked_'+d.id,
+          options: {normalize: true}
+        }
+      })
+
+      var filterConfig = [
+        {
+          name: 'demographics',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'demographics')}'
+        },
+      ]
+
+      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts)
+      filters.test()
+    })

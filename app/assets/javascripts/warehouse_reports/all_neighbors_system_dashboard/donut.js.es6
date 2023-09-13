@@ -1,54 +1,35 @@
 class AllNeighborsSystemDashboardDonut {
 
-  constructor(data, initialState, selector) {
-    console.log('AllNeighborsSystemDashboardDonut')
+  constructor(data, initialState, selector, options) {
     this.data = data
     this.state = initialState
     this.selector = selector
-    this.countLevel = this.data.count_levels.filter((d) => d.count_level_name === this.state.countLevel)[0]
-    this.series = this.countLevel ? this.countLevel.series : []
+    this.options = options
+    this.init()
+  }
+
+  init() {
+    this.projectType = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
+    this.config = this.projectType.config || {}
+    this.countLevel = (this.projectType.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
+    this.series = this.countLevel.series || []
   }
 
   test() {
-    console.log('data', this.data)
-    console.log('state', this.state)
-    console.log('series', this.series)
-    console.log('config', this.getConfig())
+    console.log(this)
   }
 
   getColumns() {
-    return this.series.map((d) => {
-      let col = [d.key]
-      d.series.forEach((n) => {
-        if(this.state.dateRange) {
-          const date = Date.parse(n[0])
+    return this.series.map((d, i) => {
+      return [this.config.keys[i]].concat(
+        d.series.filter((n) => {
+          const date = Date.parse(n.date)
           const [s, e] = this.state.dateRange
-          if(date >= s && date <= e) {
-            col.push(n[1])
-          }
-        } else {
-          col.push(n[0])
-        }
-        
-      })
-      return col
+          return date >= s && date <= e
+        })
+        .map((s) => s.values[0])
+      )
     })
-  }
-
-  getColors() {
-    let colors = {}
-    this.series.forEach((d) => {
-      colors[d.key] = d.color
-    })
-    return colors
-  }
-
-  getNames() {
-    let names = {}
-    this.series.forEach((d) => {
-      names[d.key] = d.name
-    })
-    return names
   }
 
   getConfig() {
@@ -56,16 +37,25 @@ class AllNeighborsSystemDashboardDonut {
       data: {
         columns: this.getColumns(),
         type: 'donut',
-        colors: this.getColors(),
-        names: this.getNames(),
+        colors: this.projectType.config.colors,
+        names: this.projectType.config.names,
       },
       bindto: this.selector
     }
     return config
   }
 
+  redraw(state) {
+    this.state = state
+    this.init()
+    console.log('redraw', this)
+    this.chart.load({
+      columns: this.getColumns(),
+    })
+  }
+
   draw() {
-    bb.generate(this.getConfig())
+    this.chart = bb.generate(this.getConfig())
   }
   
 }

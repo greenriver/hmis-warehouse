@@ -1,0 +1,124 @@
+class AllNeighborsSystemDashboardStack {
+  constructor(data, initialState, selector, options) {
+    this.data = data
+    this.state = initialState
+    this.selector = selector
+    this.options = options
+    this.init()
+  }
+
+  init() {
+    this.project = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
+    
+
+    this.countLevel = (this.project.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
+    this.householdType = (this.project.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
+    
+    this.demographic = (this.householdType.demographics || this.data.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
+    
+    this.config = this.project.config || this.demographic.config || {}
+
+    console.log('demo', this.demographic)
+    console.log('config', this.config)
+    
+    this.series = this.demographic.series || this.countLevel.series || []
+  }
+
+  test() {
+    console.log(this)
+  }
+
+  getColumn(name) {
+    let col = [name]
+    if(name === 'x') {
+      return col.concat(this.series.map((d) => d.name))
+    } else {
+      const index = this.config.keys.indexOf(name)
+      this.series.forEach((d) => {
+        const total = d.series.filter((n) => {
+          if(this.state.dateRange) {
+            const date = Date.parse(n.date)
+            const [s, e] = this.state.dateRange
+            return date >= s && date <= e
+          }
+          return true
+        })
+        .map((s) => s.values[index])
+        .reduce((sum, s) => sum + s, 0)
+        col.push(total)
+      })
+      return col
+    }
+  }
+
+  getConfig() {
+    return {
+      data: {
+        x: "x",
+        columns: [
+          this.getColumn('x'),
+        ].concat(this.config.keys.map((d) => this.getColumn(d))),
+        type: "bar",
+        colors: this.config.colors,
+        names: this.config.names,
+        groups: [this.config.keys],
+        labels: {
+          show: true,
+          centered: true,
+          colors: this.config.label_colors,
+        },
+        stack: {
+          normalize: this.options.normalize,
+        }
+      },
+      axis: {
+        rotated: true,
+        x: {
+          type: "category",
+          tick: {
+            width: 200,
+          }
+        }
+      },
+      padding: {
+        left: 200,
+        top: 20,
+        right: 20,
+        bottom: 20,
+      },
+      bar: {
+        width: 50,
+      },
+      bindto: this.selector
+    }
+  }
+
+  redraw(state) {
+    const old_columns = [...this.config.keys]
+    this.state = state
+    this.init()
+    console.log('old_columns', old_columns)
+    console.log('unload', old_columns.filter((old) => this.config.keys.indexOf(old) === -1))
+    console.log(this)
+    const unload = old_columns.filter((old) => this.config.keys.indexOf(old) === -1)
+    
+    
+    this.chart.load({
+      columns: [
+          this.getColumn('x'),
+        ].concat(this.config.keys.map((d) => this.getColumn(d))),
+      colors: this.config.colors,
+      names: this.config.names,
+      unload: unload
+    })
+    this.chart.internal.config.data_groups = [this.config.keys]
+    this.chart.internal.config.data_labels_colors = this.config.label_colors
+    this.chart.show()
+    console.log('chart', this.chart)
+  }
+
+  draw() {
+    console.log('initial config', this.getConfig())
+    this.chart = bb.generate(this.getConfig())
+  }
+}

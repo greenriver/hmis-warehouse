@@ -1,0 +1,62 @@
+- start_date = (DateTime.current - 3.years).beginning_of_month
+- end_date = DateTime.current.beginning_of_month
+- all_data = AllNeighborsSystemDashboard::TimeToObtainHousing.new(start_date, end_date)
+
+- chart_data = all_data.stacked_data
+
+%h2 Time To Obtain Housing
+.border.my-7.p-4
+  .row.align-items-center
+    .col-xs-12.col-md-8
+      .d-flex
+        = render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
+        = render 'select_filter', tab: tab, name: 'household_type', label: 'Household Type', options: ['All'] + all_data.household_types
+        = render 'select_filter', tab: tab, name: 'demographics', label: 'Demographics', options: all_data.demographics
+
+         
+    .col-xs-12.col-md-4
+      = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
+
+#all-neighbors__time-to-obtain__stacked{style: 'height:800px;'}
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      console.log('Time To Obtain Housing -----------------')
+      var data = #{chart_data.to_json.html_safe}
+
+      var charts = [
+        {
+          chart: AllNeighborsSystemDashboardStack, 
+          data: data,
+          selector: '#all-neighbors__time-to-obtain__stacked',
+        },
+      ]
+
+      var filterConfig = [
+        {
+          name: 'projectType',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'project_type')}'
+        },
+        {
+          name: 'householdType',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'household_type')}'
+        },
+        {
+          name: 'demographics',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'demographics')}'
+        },
+        {
+          name: 'dateRange',
+          type: 'dateRange',
+          selector: '##{filter_id(tab[:id], 'date_range')} input'
+        }
+      ]
+
+      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts)
+      filters.test()
+    })
+
