@@ -11,15 +11,15 @@ module HmisCsvTwentyTwentyTwo::Exporter
         hmis_class.new(
           ExportID: export.export_id,
           SourceType: 3, # data warehouse
-          SourceID: _('Boston DND Warehouse')[0..31], # potentially more than one CoC
-          SourceName: _('Boston DND Warehouse'),
+          SourceID: Translation.translate('Boston DND Warehouse')[0..31], # potentially more than one CoC
+          SourceName: Translation.translate('Boston DND Warehouse'),
           SourceContactFirst: export&.user&.first_name || 'Automated',
           SourceContactLast: export&.user&.last_name || 'Export',
           SourceContactEmail: export&.user&.email,
           ExportDate: Date.current,
           ExportStartDate: export.start_date,
           ExportEndDate: export.end_date,
-          SoftwareName: _('OpenPath HMIS Warehouse'),
+          SoftwareName: Translation.translate('OpenPath HMIS Warehouse'),
           SoftwareVersion: 1,
           CSVVersion: '2022',
           ExportPeriodType: export.period_type,

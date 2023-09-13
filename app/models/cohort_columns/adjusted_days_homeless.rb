@@ -8,7 +8,7 @@ module CohortColumns
   class AdjustedDaysHomeless < ::CohortColumns::Integer
     attribute :column, String, lazy: true, default: :adjusted_days_homeless
     attribute :translation_key, String, lazy: true, default: 'Static Days Homeless'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def default_value?
       true

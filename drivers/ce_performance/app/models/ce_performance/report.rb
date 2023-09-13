@@ -114,11 +114,11 @@ module CePerformance
     end
 
     def title
-      _('Coordinated Entry Performance')
+      Translation.translate('Coordinated Entry Performance')
     end
 
     def description
-      _('A tool to track performance and utilization of Coordinated Entry resources.')
+      Translation.translate('A tool to track performance and utilization of Coordinated Entry resources.')
     end
 
     def multiple_project_types?

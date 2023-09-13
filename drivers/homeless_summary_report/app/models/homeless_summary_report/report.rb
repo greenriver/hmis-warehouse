@@ -108,11 +108,11 @@ module HomelessSummaryReport
     end
 
     def title
-      _('System Performance Measures by Sub-Population')
+      Translation.translate('System Performance Measures by Sub-Population')
     end
 
     def description
-      _('A summary of SPMs 1, 2, and 7 with sub-population and demographic details')
+      Translation.translate('A summary of SPMs 1, 2, and 7 with sub-population and demographic details')
     end
 
     def multiple_project_types?

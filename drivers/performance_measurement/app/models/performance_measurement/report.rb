@@ -175,7 +175,7 @@ module PerformanceMeasurement
     end
 
     def title
-      _('CoC Performance Measurement Dashboard')
+      Translation.translate('CoC Performance Measurement Dashboard')
     end
 
     def multiple_project_types?

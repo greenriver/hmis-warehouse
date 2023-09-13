@@ -38,6 +38,7 @@ module HealthPctp
 
     scope :rn_approved, -> { where.not(reviewed_by_rn_on: nil) }
     scope :reviewed_within, ->(range) { where(reviewed_by_rn_on: range) }
+    scope :signature_present, -> { joins(:health_file) }
 
     scope :allowed_for_engagement, -> do
       joins(patient: :patient_referrals).

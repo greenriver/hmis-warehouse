@@ -46,7 +46,7 @@ module CePerformance
     end
 
     def self.title
-      _('Clients Screened for Prevention')
+      Translation.translate('Clients Screened for Prevention')
     end
 
     def description

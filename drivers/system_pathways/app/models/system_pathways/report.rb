@@ -56,11 +56,11 @@ module SystemPathways
     end
 
     def title
-      _(self.class.untranslated_title)
+      Translation.translate(self.class.untranslated_title)
     end
 
     def description
-      _('A tool to look at client pathways through the continuum including some equity analysis.')
+      Translation.translate('A tool to look at client pathways through the continuum including some equity analysis.')
     end
 
     def describe_filter_as_html(keys = nil, inline: false, limited: true)

@@ -9,11 +9,11 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Percent Homeless Comparison Report Generator')
+      Translation.translate('Percent Homeless Comparison Report Generator')
     end
 
     def instance_title
-      _('Homeless Count Comparison Report')
+      Translation.translate('Homeless Count Comparison Report')
     end
 
     private def public_s3_directory

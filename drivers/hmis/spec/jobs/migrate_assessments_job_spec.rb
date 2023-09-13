@@ -123,6 +123,34 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
 
         expect(e1.custom_assessments.intakes.count).to eq(1)
       end
+
+      it 'deletes dangling records if specified (duplicates)' do
+        dup1 = create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 1, information_date: 1.week.ago, date_created: 2.month.ago, date_updated: 2.months.ago)
+        dup2 = create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 1, information_date: 1.week.ago, date_created: 3.months.ago, date_updated: 3.months.ago)
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, delete_dangling_records: true)
+
+        expect(e1.custom_assessments.intakes.count).to eq(1)
+
+        [dup1, dup2].each(&:reload)
+        expect(dup1.date_deleted).to be_present
+        expect(dup2.date_deleted).to be_present
+      end
+
+      it 'deletes dangling records if specified (exit dcs on open en)' do
+        # Remove exit for e1
+        e1.exit.destroy
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, delete_dangling_records: true)
+
+        expect(e1.custom_assessments.intakes.count).to eq(1)
+        expect(e1.custom_assessments.exits.count).to eq(0) # no exit assessment created
+
+        # Exit-related records should all be deleted
+        records_by_data_collaction_stage[3].each(&:reload).each do |record|
+          expect(record.date_deleted).to be_present
+        end
+      end
     end
   end
 end

@@ -35,7 +35,7 @@ module AuthenticatesWithTwoFactor
   end
 
   def locked_user_redirect(*)
-    flash.now[:alert] = _('Invalid Email or password')
+    flash.now[:alert] = Translation.translate('Invalid Email or password')
     render 'devise/sessions/new'
   end
 
@@ -59,7 +59,7 @@ module AuthenticatesWithTwoFactor
 
     user.record_failure_and_lock_access_if_exceeded!
     Rails.logger.info("Failed Login: user=#{user.email} ip=#{request.remote_ip} method=OTP")
-    flash.now[:alert] = _('Invalid two-factor code.')
+    flash.now[:alert] = Translation.translate('Invalid two-factor code.')
     prompt_for_two_factor(user, invalid_code: true)
   end
 

@@ -243,7 +243,7 @@ module UserConcern
     end
 
     def two_factor_label
-      _('Boston DND HMIS Warehouse')
+      Translation.translate('Boston DND HMIS Warehouse')
     end
 
     def two_factor_issuer

@@ -11,7 +11,7 @@ class TokensController < ApplicationController
     if @token.present?
       redirect_to @token.path
     else
-      flash[:alert] = _('Unable to find link')
+      flash[:alert] = Translation.translate('Unable to find link')
       redirect_to root_path
     end
   end
