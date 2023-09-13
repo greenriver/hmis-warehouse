@@ -7,6 +7,7 @@
 module Mutations
   class DeleteClient < BaseMutation
     argument :id, ID, required: true
+    argument :client_version, Integer, required: false
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
 
     field :client, Types::HmisSchema::Client, null: true
@@ -15,8 +16,9 @@ module Mutations
       "If this client is deleted, #{count} #{'household'.pluralize(count)} will have no Head of Household."
     end
 
-    def resolve(id:, confirmed: false)
+    def resolve(id:, client_version:, confirmed: false)
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: id)
+      client.lock_version = client_version if client_version
 
       warnings, resolvable_enrollments = check_enrollments(client, ignore_warnings: confirmed)
 

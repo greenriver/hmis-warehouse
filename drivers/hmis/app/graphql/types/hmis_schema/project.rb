@@ -39,6 +39,7 @@ module Types
     end
 
     hud_field :id, ID, null: false
+    field :version, Integer, null: false
     field :hud_id, ID, null: false
     hud_field :project_name
     hud_field :project_type, Types::HmisSchema::Enums::ProjectType

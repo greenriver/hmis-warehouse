@@ -569,6 +569,7 @@ type Client {
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: User
+  version: Int!
   veteranStatus: NoYesReasonsForMissingData!
   vietnamWar: NoYesReasonsForMissingData
   worldWarIi: NoYesReasonsForMissingData
@@ -1710,6 +1711,7 @@ input DeleteClientInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+  clientVersion: Int
 
   """
   Whether warnings have been confirmed
@@ -2634,6 +2636,7 @@ type Enrollment {
   unemploymentFam: NoYesMissing
   user: User
   vamcStation: VamcStationNumber
+  version: Int!
   youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
 }
 
@@ -7142,6 +7145,7 @@ type Project {
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   user: User
+  version: Int!
 }
 
 type ProjectAccess {
@@ -9664,6 +9668,7 @@ input UpdateRelationshipToHoHInput {
   """
   confirmed: Boolean
   enrollmentId: ID!
+  enrollmentVersion: Int
   relationshipToHoH: RelationshipToHoH!
 }
 
