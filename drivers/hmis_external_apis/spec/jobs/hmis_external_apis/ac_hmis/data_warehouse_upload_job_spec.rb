@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisExternalApis::AcHmis::UploadClientsJob, type: :job do
+RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
   let!(:creds) do
     # port = ENV['CI'].present? ? 2222 : 22
 

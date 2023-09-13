@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# job = HmisExternalApis::AcHmis::UploadClientsJob.new
+# job = HmisExternalApis::AcHmis::DataWarehouseUploadJob.new
 module HmisExternalApis::AcHmis
-  class UploadClientsJob < BaseJob
+  class DataWarehouseUploadJob < BaseJob
     include NotifierConfig
 
     attr_accessor :state

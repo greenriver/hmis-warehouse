@@ -6,8 +6,8 @@ namespace :export do
     return unless HmisEnforcement.hmis_enabled?
     return unless GrdaWarehouse::DataSource.hmis.exists?
 
-    HmisExternalApis::AcHmis::UploadClientsJob.perform_later('clients_with_mci_ids_and_address')
-    HmisExternalApis::AcHmis::UploadClientsJob.perform_later('hmis_csv_export')
-    HmisExternalApis::AcHmis::UploadClientsJob.perform_later('project_crosswalk')
+    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('clients_with_mci_ids_and_address')
+    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('hmis_csv_export')
+    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('project_crosswalk')
   end
 end
