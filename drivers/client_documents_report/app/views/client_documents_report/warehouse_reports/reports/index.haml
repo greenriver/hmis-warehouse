@@ -41,6 +41,8 @@
                   -#   %th #{group} (#{pluralize(tags.count, 'tags')})
                   -#   - tags.each do |tag|
                   -#     %th= tag
+                  -# - @report.additional_client_data_headers.each do |h|
+                  -#   %th= h
               %tbody
                 - @clients.each do |client|
                   %tr
@@ -55,6 +57,9 @@
                     -#     %td= @report.date_for_group(group, client, type: type)
                     -#     - tags.each do |tag|
                     -#       %td= @report.date_for_tag(tag, client, type: type)
+                    -# - client_details = @report.additional_client_data(client)
+                    -# - @report.additional_client_data_headers.each do |h|
+                    -#   %td= client_details[h]
           = render 'common/pagination_bottom', item_name: 'client'
         - else
           .well.none-found
