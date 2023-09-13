@@ -38,7 +38,7 @@ RUN apk add --no-cache \
   chromium nss freetype freetype-dev harfbuzz ca-certificates \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
   shared-mime-info docker \
-  vim less \
+  vim neovim less \
   tar xz p7zip \
   python3 aws-cli\
   && git config --global --add safe.directory /app
