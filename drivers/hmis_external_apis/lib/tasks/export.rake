@@ -2,6 +2,10 @@ namespace :export do
   # ./bin/rake driver:hmis_external_apis:export:ac_clients
   desc 'Export AC client data'
   task :ac_clients, [] => [:environment] do
-    HmisExternalApis::AcHmis::UploadClientsJob.perform_now
+    return unless HmisExternalApis::AcHmis::Exporters::ClientExportUploader.can_run?
+
+    HmisExternalApis::AcHmis::UploadClientsJob.perform_later('clients_with_mci_ids_and_address')
+    HmisExternalApis::AcHmis::UploadClientsJob.perform_later('hmis_csv_export')
+    HmisExternalApis::AcHmis::UploadClientsJob.perform_later('project_crosswalk')
   end
 end

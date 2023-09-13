@@ -47,7 +47,6 @@ module Importing
 
         update_from_hmis_forms
         sync_with_cas
-        run_external_lookup_exports
 
         # Importers::Samba.new.run!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
@@ -249,15 +248,6 @@ module Importing
 
       GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
       @notifier.ping('Pushed Clients to CAS')
-    end
-
-    def run_external_lookup_exports
-      return unless RailsDrivers.loaded.include?(:hmis_external_apis)
-      return unless HmisExternalApis::AcHmis::Exporters::ClientExportUploader.can_run?
-
-      HmisExternalApis::AcHmis::UploadClientsJob.perform_later('clients_with_mci_ids_and_address')
-      HmisExternalApis::AcHmis::UploadClientsJob.perform_later('hmis_csv_export')
-      HmisExternalApis::AcHmis::UploadClientsJob.perform_later('project_crosswalk')
     end
   end
 end
