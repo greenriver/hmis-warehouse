@@ -13,7 +13,7 @@ module HmisExternalApis::AcHmis
 
     def perform(mode = 'clients_with_mci_ids_and_address')
       setup_notifier("AC Data Warehouse upload (mode: #{mode})")
-      if Exporters::ClientExportUploader.can_run?
+      if Exporters::DataWarehouseUploader.can_run?
         Rails.logger.info "Running #{mode} upload clients job"
         case mode
         when 'clients_with_mci_ids_and_address' then clients_with_mci_ids_and_address
@@ -40,7 +40,7 @@ module HmisExternalApis::AcHmis
       export = Exporters::ClientExport.new
       export.run!
 
-      uploader = Exporters::ClientExportUploader.new(
+      uploader = Exporters::DataWarehouseUploader.new(
         filename_format: '%Y-%m-%d-clients.zip',
         io_streams: [
           OpenStruct.new(
@@ -59,7 +59,7 @@ module HmisExternalApis::AcHmis
 
       hash = Digest::MD5.hexdigest(export.content)
 
-      uploader = Exporters::ClientExportUploader.new(
+      uploader = Exporters::DataWarehouseUploader.new(
         filename_format: "%Y-%m-%d-HMIS-#{hash}-hudcsv.zip",
         pre_zipped_data: export.content,
       )
@@ -71,7 +71,7 @@ module HmisExternalApis::AcHmis
       export = HmisExternalApis::AcHmis::Exporters::ProjectsCrossWalkFetcher.new
       export.run!
 
-      uploader = Exporters::ClientExportUploader.new(
+      uploader = Exporters::DataWarehouseUploader.new(
         filename_format: '%Y-%m-%d-cross-walks.zip',
         io_streams: [
           OpenStruct.new(

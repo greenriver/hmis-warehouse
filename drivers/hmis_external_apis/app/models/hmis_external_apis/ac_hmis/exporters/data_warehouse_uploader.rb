@@ -5,7 +5,7 @@
 ###
 
 module HmisExternalApis::AcHmis::Exporters
-  class ClientExportUploader
+  class DataWarehouseUploader
     delegate :username, :host, :path, :password, :port, to: :credentials
 
     attr_accessor :io_streams, :filename, :pre_zipped_data
