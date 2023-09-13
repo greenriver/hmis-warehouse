@@ -135,8 +135,8 @@ module Hmis
               next
             end
 
-            data_collection_stage, _personal_id, enrollment_id = hash_key
-            # If records have DCS Exit but this enrollment is open, skip
+            enrollment_id, _personal_id, data_collection_stage = hash_key
+            # If records have DataCollectionStage of Exit, but this enrollment is open, skip and mark for deletion.
             if data_collection_stage == EXIT_STAGE && !exited_enrollment_ids.include?(enrollment_id)
               Rails.logger.info "Found #{klass.name} record with Data Collection Stage 'Exit' for an open enrollment. EnrollmentID #{enrollment_id}, record ID(s): #{values[:id]}"
               mark_for_deletion(klass, values[:id])

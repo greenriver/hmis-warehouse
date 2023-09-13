@@ -15,7 +15,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
-  self.ignored_columns = ['preferred_name']
+  self.ignored_columns += [:preferred_name]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -57,15 +57,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
 
   validates_with Hmis::Hud::Validators::ClientValidator
-
-  CUSTOM_NAME_OPTIONS = {
-    association: :names,
-    klass: Hmis::Hud::CustomClientName,
-    field_map: {
-      FirstName: :first,
-      LastName: :last,
-    },
-  }.freeze
 
   attr_accessor :image_blob_id
   attr_accessor :create_mci_id
@@ -128,11 +119,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :matching_search_term, ->(text_search) do
-    text_searcher(text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
-      left_outer_joins(:names).where(where).pluck(:id)
-    rescue RangeError
-      return none
-    end
+    text_searcher(text_search, sorted: true)
   end
 
   scope :older_than, ->(age, or_equal: false) do
@@ -199,6 +186,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [
+    :best_match,
     :last_name_a_to_z,
     :last_name_z_to_a,
     :first_name_a_to_z,
@@ -209,6 +197,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
+    best_match: 'Most Relevant',
     last_name_a_to_z: 'Last Name: A-Z',
     last_name_z_to_a: 'Last Name: Z-A',
     first_name_a_to_z: 'First Name: A-Z',
@@ -218,7 +207,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     recently_added: 'Recently Added',
   }.freeze
 
-  def self.client_search(input:, user: nil)
+  def self.client_search(input:, user: nil, sorted: false)
     # Apply ID searches directly, as they can only ever return a single client
     return searchable_to(user).where(id: input.id) if input.id.present?
     return searchable_to(user).where(PersonalID: input.personal_id) if input.personal_id
@@ -226,11 +215,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
-    if input.text_search.present?
-      scope = text_searcher(input.text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
-        scope.left_outer_joins(:names).where(where).pluck(:id)
-      end
-    end
+    # early return to preserve sort order, avoids client.where(id: scope.select(:id))
+    return scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
@@ -268,6 +254,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
+    when :best_match
+      current_scope # no order, use text search rank
     when :last_name_a_to_z
       order(arel_table[:last_name].asc.nulls_last)
     when :last_name_z_to_a
