@@ -148,7 +148,7 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
 
         # Exit-related records should all be deleted
         records_by_data_collaction_stage[3].each(&:reload).each do |record|
-          expect(record.date_deleted).to be_present
+          expect(record.date_deleted).to be_present, record.class.name
         end
       end
     end
