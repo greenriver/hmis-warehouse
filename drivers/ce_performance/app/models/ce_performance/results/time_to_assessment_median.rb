@@ -23,7 +23,7 @@ module CePerformance
     end
 
     def self.title
-      _('Median Length of time from Access to Assessment')
+      Translation.translate('Median Length of time from Access to Assessment')
     end
 
     def description

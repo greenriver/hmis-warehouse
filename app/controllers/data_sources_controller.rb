@@ -52,7 +52,7 @@ class DataSourcesController < ApplicationController
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
-      flash[:error] = _('Unable to create new Data Source')
+      flash[:error] = Translation.translate('Unable to create new Data Source')
       render action: :new
     end
   end

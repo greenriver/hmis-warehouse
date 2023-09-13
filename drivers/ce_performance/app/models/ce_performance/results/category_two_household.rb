@@ -31,7 +31,7 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Households Who Were Not Literally Homeless')
+      Translation.translate('Number of Households Who Were Not Literally Homeless')
     end
 
     def description

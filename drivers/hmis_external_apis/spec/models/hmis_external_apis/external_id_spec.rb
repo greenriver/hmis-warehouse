@@ -22,11 +22,13 @@ RSpec.describe HmisExternalApis::ExternalId, type: :model do
       expect(results).to contain_exactly(client)
     end
 
-    it 'includes client with matching external ID (alphanumeric)' do
-      external_id.update(value: 'abcdefg1234567')
-      results = Hmis::Hud::Client.matching_search_term(external_id.value)
-      expect(results).to contain_exactly(client)
-    end
+    # per discussion with team, we do not support alphanumeric external IDs at this time
+    # https://github.com/greenriver/hmis-warehouse/pull/3459#discussion_r1321662558
+    # it 'includes client with matching external ID (alphanumeric)' do
+    #   external_id.update(value: 'abcdefg1234567')
+    #   results = Hmis::Hud::Client.matching_search_term(external_id.value)
+    #   expect(results).to contain_exactly(client)
+    # end
 
     it 'does not include client if ID is not an exact match' do
       results = Hmis::Hud::Client.matching_search_term("#{external_id.value}foo")

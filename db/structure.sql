@@ -1810,6 +1810,39 @@ ALTER SEQUENCE public.translation_texts_id_seq OWNED BY public.translation_texts
 
 
 --
+-- Name: translations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.translations (
+    id bigint NOT NULL,
+    key character varying,
+    text character varying,
+    common boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: translations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.translations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: translations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.translations_id_seq OWNED BY public.translations.id;
+
+
+--
 -- Name: two_factors_memorized_devices; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2487,6 +2520,13 @@ ALTER TABLE ONLY public.translation_texts ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: translations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations ALTER COLUMN id SET DEFAULT nextval('public.translations_id_seq'::regclass);
+
+
+--
 -- Name: two_factors_memorized_devices id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2907,6 +2947,14 @@ ALTER TABLE ONLY public.translation_keys
 
 ALTER TABLE ONLY public.translation_texts
     ADD CONSTRAINT translation_texts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: translations translations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations
+    ADD CONSTRAINT translations_pkey PRIMARY KEY (id);
 
 
 --
@@ -3444,6 +3492,13 @@ CREATE INDEX index_translation_texts_on_translation_key_id ON public.translation
 
 
 --
+-- Name: index_translations_on_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_translations_on_key ON public.translations USING btree (key);
+
+
+--
 -- Name: index_two_factors_memorized_devices_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3931,6 +3986,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230730021030'),
 ('20230807121912'),
 ('20230807142127'),
-('20230807193335');
+('20230807193335'),
+('20230910175113'),
+('20230910175333'),
+('20230910180118');
 
 

@@ -24,16 +24,16 @@
 .well.assessment.assessment-community-preferences
   .row
     .col-6
-      = f.input :location_option_1, label: _('Location Option 1')
-      = f.input :location_option_2, label: _('Location Option 2')
-      = f.input :location_option_3, label: _('Location Option 3')
-      = f.input :location_option_4, label: _('Location Option 4')
+      = f.input :location_option_1, label: Translation.translate('Location Option 1')
+      = f.input :location_option_2, label: Translation.translate('Location Option 2')
+      = f.input :location_option_3, label: Translation.translate('Location Option 3')
+      = f.input :location_option_4, label: Translation.translate('Location Option 4')
     .col-6
-      = f.input :location_option_other, label: _('Other city or town:')
-      = f.input :location_option_no, label: _('Is there anyplace you do NOT want to live?')
+      = f.input :location_option_other, label: Translation.translate('Other city or town:')
+      = f.input :location_option_no, label: Translation.translate('Is there anyplace you do NOT want to live?')
   .row
     .col
-      = f.input :location_no_preference, label: _('Client does not have a community preference.')
+      = f.input :location_no_preference, label: Translation.translate('Client does not have a community preference.')
 %h3 Assessment of Life Domains
 .well.assessment.assessment-life-domains
   %p

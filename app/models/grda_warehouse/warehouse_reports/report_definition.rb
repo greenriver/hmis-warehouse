@@ -511,14 +511,14 @@ module GrdaWarehouse::WarehouseReports
           {
             url: 'warehouse_reports/cas/ce_assessments',
             name: 'Coordinated-Entry Assessment Status',
-            description: _('Find clients who need a Coordinated Entry re-assessment.'),
+            description: Translation.translate('Find clients who need a Coordinated Entry re-assessment.'),
             limitable: true,
             health: false,
           },
           {
             url: 'warehouse_reports/cas/health_prioritization',
             name: 'Health Prioritization',
-            description: _('Bulk set Health Prioritization for CAS.'),
+            description: Translation.translate('Bulk set Health Prioritization for CAS.'),
             limitable: true,
             health: false,
           },
@@ -836,7 +836,7 @@ module GrdaWarehouse::WarehouseReports
       if RailsDrivers.loaded.include?(:service_scanning)
         r_list['Operational'] << {
           url: 'service_scanning/warehouse_reports/scanned_services',
-          name: _('Scanned Services'),
+          name: Translation.translate('Scanned Services'),
           description: 'Pull a list of services added within a date range',
           limitable: true,
           health: false,
@@ -861,14 +861,14 @@ module GrdaWarehouse::WarehouseReports
       if RailsDrivers.loaded.include?(:boston_reports)
         r_list['Performance'] << {
           url: 'boston_reports/warehouse_reports/street_to_homes',
-          name: _('Street to Home'),
+          name: Translation.translate('Street to Home'),
           description: 'Boston-specific report to track progress for the Street to Home initiative',
           limitable: false,
           health: false,
         }
         r_list['Performance'] << {
           url: 'boston_reports/warehouse_reports/configs',
-          name: _('Boston Reports Configuration'),
+          name: Translation.translate('Boston Reports Configuration'),
           description: 'Report configuration for Boston-specific reports',
           limitable: false,
           health: false,
@@ -1081,7 +1081,7 @@ module GrdaWarehouse::WarehouseReports
         }
         r_list['Exports'] << {
           url: 'tx_client_reports/warehouse_reports/research_exports',
-          name: _('Offline Research Export'),
+          name: Translation.translate('Offline Research Export'),
           description: 'Download enrollment data for offline research.',
           limitable: true,
           health: false,
@@ -1099,7 +1099,7 @@ module GrdaWarehouse::WarehouseReports
       if RailsDrivers.loaded.include?(:inactive_client_report)
         r_list['Operational'] << {
           url: 'inactive_client_report/warehouse_reports/reports',
-          name: _('Client Activity Report'),
+          name: Translation.translate('Client Activity Report'),
           description: 'Identify clients who are enrolled but have not had recent contact with the homeless side of HMIS.',
           limitable: true,
           health: false,
@@ -1261,7 +1261,7 @@ module GrdaWarehouse::WarehouseReports
       if RailsDrivers.loaded.include?(:built_for_zero_report)
         r_list['Operational'] << {
           url: 'built_for_zero_report/warehouse_reports/bfz',
-          name: _('Built For Zero Monthly Report'),
+          name: Translation.translate('Built For Zero Monthly Report'),
           description: 'Generate Built For Zero monthly reporting information',
           limitable: false,
           health: false,
@@ -1279,8 +1279,8 @@ module GrdaWarehouse::WarehouseReports
       if RailsDrivers.loaded.include?(:ce_performance)
         r_list['Performance'] << {
           url: 'ce_performance/warehouse_reports/reports',
-          name: _('Coordinated Entry Performance'),
-          description: _('A tool to track performance and utilization of Coordinated Entry resources.'),
+          name: Translation.translate('Coordinated Entry Performance'),
+          description: Translation.translate('A tool to track performance and utilization of Coordinated Entry resources.'),
           limitable: true,
           health: false,
         }

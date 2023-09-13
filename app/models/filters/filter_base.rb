@@ -708,8 +708,7 @@ module Filters
     end
 
     def all_project_group_scope
-      GrdaWarehouse::ProjectGroup.joins(:projects).
-        merge(all_project_scope)
+      GrdaWarehouse::ProjectGroup.all
     end
 
     # Select display options

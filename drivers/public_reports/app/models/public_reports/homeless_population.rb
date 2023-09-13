@@ -15,11 +15,11 @@ module PublicReports
     MIN_THRESHOLD = 11
 
     def title
-      _('Homeless Populations Report Generator')
+      Translation.translate('Homeless Populations Report Generator')
     end
 
     def instance_title
-      _('Homeless Population Report')
+      Translation.translate('Homeless Population Report')
     end
 
     private def public_s3_directory
@@ -125,11 +125,11 @@ module PublicReports
 
     def populations
       {
-        overall: _('People Experiencing Homelessness'),
-        housed: _('People Housed'),
-        individuals: _('Individuals'),
-        adults_with_children: _('People in Families'),
-        veterans: _('Veterans'),
+        overall: Translation.translate('People Experiencing Homelessness'),
+        housed: Translation.translate('People Housed'),
+        individuals: Translation.translate('Individuals'),
+        adults_with_children: Translation.translate('People in Families'),
+        veterans: Translation.translate('Veterans'),
       }
     end
 
@@ -341,7 +341,7 @@ module PublicReports
                 ['Rapid-Rehousing', rrh],
                 ['Permanent Housing', psh],
               ],
-              title: _('Type of Housing'),
+              title: Translation.translate('Type of Housing'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           when :homeless
@@ -354,7 +354,7 @@ module PublicReports
                 ['Sheltered', sheltered],
                 ['Unsheltered', unsheltered],
               ],
-              title: _('Where People are Staying'),
+              title: Translation.translate('Where People are Staying'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           else
@@ -370,7 +370,7 @@ module PublicReports
                 ['Homeless', homeless],
                 ['Housed', housed],
               ],
-              title: _('Homeless or Housed'),
+              title: Translation.translate('Homeless or Housed'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           end
@@ -446,7 +446,7 @@ module PublicReports
 
           charts[date.iso8601] = {
             data: genders.to_a,
-            title: _('Gender'),
+            title: Translation.translate('Gender'),
             total: total,
           }
         end
@@ -485,7 +485,7 @@ module PublicReports
 
           charts[date.iso8601] = {
             data: ages.to_a,
-            title: _('Age'),
+            title: Translation.translate('Age'),
             total: total,
           }
         end
@@ -569,7 +569,7 @@ module PublicReports
             # sum value after getting appropriate set of rows
             # add index on [accurate_on, identifier, type, measure]
             data: combined_data,
-            title: _('Racial Composition'),
+            title: Translation.translate('Racial Composition'),
             total: total_for(with_service_in_quarter(report_scope, date, population), population),
             categories: ['Homeless Population', 'Overall Population'],
           }
@@ -660,7 +660,7 @@ module PublicReports
           end
           charts[date.iso8601] = {
             data: household_compositions.to_a,
-            title: _('Household Composition'),
+            title: Translation.translate('Household Composition'),
             total: total,
           }
         end
@@ -751,7 +751,7 @@ module PublicReports
 
           charts[date.iso8601] = {
             data: (clients.to_f / hohs).round(1),
-            title: _('Average Household Size'),
+            title: Translation.translate('Average Household Size'),
             total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
         end
@@ -794,7 +794,7 @@ module PublicReports
           end
           charts[date.iso8601] = {
             data: times.to_a,
-            title: _('Time Homeless'),
+            title: Translation.translate('Time Homeless'),
             total: total,
           }
         end
@@ -852,7 +852,7 @@ module PublicReports
           end
           charts[date.iso8601] = {
             data: times.to_a,
-            title: _('Time in Project'),
+            title: Translation.translate('Time in Project'),
             total: total,
           }
         end

@@ -742,7 +742,9 @@ CREATE TABLE public."Client" (
     "NonBinary" integer,
     "CulturallySpecific" integer,
     "DifferentIdentity" integer,
-    "DifferentIdentityText" character varying
+    "DifferentIdentityText" character varying,
+    search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
+    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED
 );
 
 
@@ -1119,7 +1121,9 @@ CREATE TABLE public."CustomClientName" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE(first, ''::character varying))::text || ' '::text) || (COALESCE(middle, ''::character varying))::text) || ' '::text) || (COALESCE(last, ''::character varying))::text))) STORED,
+    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent((last)::text)) STORED
 );
 
 
@@ -5837,6 +5841,30 @@ CREATE SEQUENCE public.client_notes_id_seq
 --
 
 ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
+
+
+--
+-- Name: client_searchable_names; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.client_searchable_names AS
+ SELECT "Client".id AS client_id,
+    "Client".search_name_full AS full_name,
+    "Client".search_name_last AS last_name,
+    'primary'::text AS name_type
+   FROM public."Client"
+  WHERE ("Client"."DateDeleted" IS NULL)
+UNION
+ SELECT "Client".id AS client_id,
+    "CustomClientName".search_name_full AS full_name,
+    "CustomClientName".search_name_last AS last_name,
+        CASE
+            WHEN "CustomClientName"."primary" THEN 'primary'::text
+            ELSE 'secondary'::text
+        END AS name_type
+   FROM (public."CustomClientName"
+     JOIN public."Client" ON (((("Client"."PersonalID")::text = ("CustomClientName"."PersonalID")::text) AND ("Client".data_source_id = "CustomClientName".data_source_id))))
+  WHERE ("CustomClientName"."DateDeleted" IS NULL);
 
 
 --
@@ -48146,6 +48174,34 @@ CREATE INDEX idx_cibs_p_id_ds_id ON public.custom_imports_b_services_rows USING 
 
 
 --
+-- Name: idx_client_custom_names_full_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_custom_names_full_idx ON public."CustomClientName" USING gin (search_name_full public.gin_trgm_ops);
+
+
+--
+-- Name: idx_client_custom_names_last_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_custom_names_last_idx ON public."CustomClientName" USING gin (search_name_last public.gin_trgm_ops);
+
+
+--
+-- Name: idx_client_name_full_gin; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_name_full_gin ON public."Client" USING gin (search_name_full public.gin_trgm_ops);
+
+
+--
+-- Name: idx_client_name_last_gin; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_last public.gin_trgm_ops);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58450,6 +58506,22 @@ CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless
 
 
 --
+-- Name: client_searchable_names attempt_client_searchable_names_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_client_searchable_names_del AS
+    ON DELETE TO public.client_searchable_names DO INSTEAD NOTHING;
+
+
+--
+-- Name: client_searchable_names attempt_client_searchable_names_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_client_searchable_names_up AS
+    ON UPDATE TO public.client_searchable_names DO INSTEAD NOTHING;
+
+
+--
 -- Name: hmis_client_projects attempt_hmis_client_projects_del; Type: RULE; Schema: public; Owner: -
 --
 
@@ -60313,6 +60385,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230815171824'),
 ('20230817154337'),
 ('20230818044939'),
+('20230820225855'),
 ('20230822183752'),
 ('20230822200902'),
 ('20230824192127'),
@@ -60322,6 +60395,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230828180842'),
 ('20230829171917'),
 ('20230830121811'),
+('20230831162622'),
 ('20230831211739'),
 ('20230901123748'),
 ('20230901124730'),

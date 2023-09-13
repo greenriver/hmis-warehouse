@@ -59,12 +59,6 @@ bundle exec rake db:seed
 T2=`date +%s`
 echo "...rake db:seed took $(expr $T2 - $T1) seconds"
 
-echo 'Translations'
-T1=`date +%s`
-bundle exec rake gettext:sync_to_po_and_db
-T2=`date +%s`
-echo "...rake gettext:sync_to_po_and_db took $(expr $T2 - $T1) seconds"
-
 echo 'Installing cron'
 T1=`date +%s`
 ./bin/cron_installer.rb

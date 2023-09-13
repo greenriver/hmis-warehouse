@@ -3,6 +3,7 @@ require:
   - ./lib/rubocop/cop/lint/last_keyword_argument.rb
 
 AllCops:
+  SuggestExtensions: false
   Exclude:
     - 'db/**/*'
     - 'config/*'
@@ -57,6 +58,8 @@ Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: comma
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
+Style/NegatedIf:
+  EnforcedStyle: postfix
 Layout/MultilineArrayBraceLayout:
   EnforcedStyle: new_line
 Layout/FirstArrayElementLineBreak:
@@ -263,5 +266,3 @@ Style/ExplicitBlockArgument:
   Enabled: false
 Style/HashSyntax:
   EnforcedShorthandSyntax: never
-Style/NegatedIf:
-  EnforcedStyle: postfix

@@ -28,7 +28,7 @@ module CePerformance
     end
 
     def self.title
-      _('Median Length of Time in CE')
+      Translation.translate('Median Length of Time in CE')
     end
 
     def description

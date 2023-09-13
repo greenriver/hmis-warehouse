@@ -397,7 +397,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :full_text_search, ->(text) do
-      text_search(text, client_scope: current_scope)
+      text_search(text, client_scope: current_scope, sorted: false)
     end
 
     scope :needs_history_pdf, -> do
@@ -1003,17 +1003,17 @@ module GrdaWarehouse::Hud
     def self.full_release_string
       # Return the untranslated string, but force the translator to see it
       if GrdaWarehouse::Config.implicit_roi?
-        _('Implicit Release')
+        Translation.translate('Implicit Release')
         'Implicit Release'
       else
-        _('Full HAN Release')
+        Translation.translate('Full HAN Release')
         'Full HAN Release'
       end
     end
 
     def self.partial_release_string
       # Return the untranslated string, but force the translator to see it
-      _('Limited CAS Release')
+      Translation.translate('Limited CAS Release')
       'Limited CAS Release'
     end
 
@@ -1069,7 +1069,7 @@ module GrdaWarehouse::Hud
           'Expired'
         end
       else
-        _(housing_release_status)
+        Translation.translate(housing_release_status)
       end
       consent_text += " in #{consented_coc_codes.to_sentence}" if consented_coc_codes&.any?
       consent_text
@@ -1786,17 +1786,26 @@ module GrdaWarehouse::Hud
       ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown' # rubocop:disable Style/RescueModifier
     end
 
-    def self.text_search(text, client_scope:)
-      text_searcher(text) do |where|
-        client_scope.
-          joins(:warehouse_client_source).searchable.
-          where(where).
-          preload(:destination_client).
-          map { |m| m.destination_client&.id }.
-          compact
-      rescue RangeError
-        return none
-      end
+    # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
+    # @param sorted [Boolean] order results by closest match to text
+    def self.text_search(text, client_scope: nil, sorted: false)
+      # Get search results from client scope. Then return the unique destination client records that map to those matching source records
+      relation = (client_scope || self)
+      # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      return relation.none if results.nil?
+
+      grouped = GrdaWarehouse::WarehouseClient
+        # join warehouse client to results subquery
+        .joins(%(JOIN (#{results.to_sql}) src_search_results ON "warehouse_clients"."source_id" = "src_search_results"."client_id"))
+        # group warehouse clients to avoid duplicate results
+        .select(Arel.sql(%("warehouse_clients"."destination_id" AS client_id, MAX(src_search_results.score) AS score)))
+        .group(Arel.sql('1'))
+
+      # now join the results, mapped through the WarehouseClient, to the current scope
+      mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id))
+      mapped = mapped.order(Arel.sql('dst_search_results.score DESC'), :id) if sorted
+      mapped
     end
 
     # Must match 3 of four First Name, Last Name, SSN, DOB
@@ -1852,16 +1861,12 @@ module GrdaWarehouse::Hud
       all_ids = first_name_ids + last_name_ids + dob_ids + ssn_ids
       matching_ids = all_ids.each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.select { |_, counts| counts >= 3 }&.keys
 
-      begin
-        ids = client_scope.
-          joins(:warehouse_client_source).searchable.
-          where(id: matching_ids).
-          preload(:destination_client).
-          map { |m| m.destination_client.id }
-        where(id: ids)
-      rescue RangeError
-        return none
-      end
+      ids = client_scope.
+        joins(:warehouse_client_source).searchable.
+        where(id: matching_ids).
+        preload(:destination_client).
+        map { |m| m.destination_client.id }
+      where(id: ids)
     end
 
     def gender

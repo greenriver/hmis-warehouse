@@ -92,7 +92,10 @@
             - destination = 'Unknown'
           %span{data: {toggle: :tooltip, title: "Destination: #{destination}"}}
             = e[:exit_date]
-        %td= e[:most_recent_service]
+        %td
+          = e[:most_recent_service]
+          - if e[:chronically_homeless_at_most_recent]
+            %i.icon-passport{data: {toggle: :tooltip, title: 'Chronic at most recent day served'}}
         %td.num-cell= e[:days]
         %td.num-cell
           - if e[:homeless]

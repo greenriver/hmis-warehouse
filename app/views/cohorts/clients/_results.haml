@@ -24,9 +24,9 @@
               %i.icon-info{data: {toggle: :tooltip, title: 'Days Literally Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
               Days Literally Homeless
             - if show_client_notes
-              %th= _('Client Notes')
+              %th= Translation.translate('Client Notes')
             - if show_removal_reason
-              %th= _('Previous Removal Reason')
+              %th= Translation.translate('Previous Removal Reason')
 
         %tbody
           - @clients.each do |client|
