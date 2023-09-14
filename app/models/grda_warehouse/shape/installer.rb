@@ -49,16 +49,16 @@ module GrdaWarehouse
       def prune!(klasses = [Coc, County])
         return unless State.any?
 
-        if Rails.env.development?
-          Rails.logger.warn "Not pruning #{klasses} since env is development"
-          return
-        end
+        # if Rails.env.development?
+        #   Rails.logger.warn "Not pruning #{klasses} since env is development"
+        #   return
+        # end
 
         Rails.logger.info 'Pruning out-of-state geometries'
 
         # Don't need to prune places or towns. They come in on a per-state basis
         klasses.each do |klass|
-          if klass.is_a?(State) || klass.is_a?(ZipCode)
+          if klass.in?([State, ZipCode]) # .include?(klass) == State || klass == ZipCode
             Rails.logger.warn "Not pruning #{klass} which we do not prune anymore"
             next
           end
