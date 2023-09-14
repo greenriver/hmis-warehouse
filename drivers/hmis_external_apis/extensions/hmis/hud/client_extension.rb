@@ -88,17 +88,20 @@ module HmisExternalApis
             # First and Last are required, regardless of context
             errors.add :first_name, :required unless names.find(&:primary)&.first.present?
             errors.add :last_name, :required unless names.find(&:primary)&.last.present?
+
+            # If this client has already cleared MCI, then the DOB/DQ fields must be present, regardless of whether clearance was required in the first place.
+            validate_required_fields_for_clearance if mci_cleared?
           end
 
           private def validate_mci_id_exists
             return unless HmisExternalApis::AcHmis::Mci.enabled?
             return unless requires_mci_clearance?
 
-            # Validate that DOB/DQ fields are there. This is needed so you can't go back and remove fields from a cleared client.
-            validate_required_fields_for_clearance
-
             # Valid if client has an MCI ID, or is going to create one
             return if mci_cleared?
+
+            # Validate that DOB/DQ fields are there. This is needed so you can't go back and remove fields from a cleared client.
+            validate_required_fields_for_clearance
 
             # Add in some custom options (handled by HmisErrors::Error) so it shows up on the correct fields
             full_msg = HmisExternalApis::AcHmis::Mci::MCI_REQUIRED_MSG
