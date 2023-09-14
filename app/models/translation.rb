@@ -21,7 +21,11 @@ class Translation < ApplicationRecord
         # raise msg if Rails.env.development?
 
         # Notify if this isn't development so we can track it down later
-        send_single_notification(msg, 'Translations', exception: StandardError.new(msg))
+        # send_single_notification(msg, 'Translations', exception: StandardError.new(msg))
+
+        # Add it to the database if we don't have it
+        Translation.where(key: text).first_or_create
+        Rails.logger.info(msg)
       end
 
       translated.presence || text
