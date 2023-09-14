@@ -50,6 +50,7 @@ module HmisExternalApis
           end
 
           private def requires_mci_clearance?
+            return false unless HmisExternalApis::AcHmis::Mci.enabled?
             # If brand new Client record (NOT in context of an Enrollment), then MCI clearance is required
             return true if new_record?
 
