@@ -26,10 +26,13 @@ module HmisExternalApis
           # prepend is needed to destroy referrals before household_members are destroyed
           before_destroy :destroy_hoh_external_referrals, prepend: true
 
+          # Validate First/Last is required, regardless of project
+          validate :validate_first_last, on: [:client_form, :new_client_enrollment_form]
+          # Validate DOB/DQ fields (required if clearance is required)
+          # This is called from enrollment_extension validator, when the Client & Enrollment are being created at the same time
+          validate :validate_required_fields_for_clearance, on: :enrollment_requiring_mci
+
           # On Client form submission, validate that client has MCI ID (if required)
-          #
-          # NOTE: important that this only happens when _client_ form is submitted, not other form types.
-          # When submitting a Client Enrollment form, the Enrollment handles validation of MCI presence.
           validate :validate_mci_id_exists, on: :client_form
 
           # remove referrals where this client is the the HOH
@@ -49,6 +52,15 @@ module HmisExternalApis
             where.or(arel_table[:id].in(client_ids))
           end
 
+          def mci_cleared?
+            return true if create_mci_id
+            return true if ac_hmis_mci_ids.exists?
+
+            # Check external_ids in addition to ac_hmis_mci_ids because if the id is unpersisted,
+            # it will only be accessible this way
+            external_ids.detect { |id| id.namespace == HmisExternalApis::AcHmis::Mci::SYSTEM_ID }.present?
+          end
+
           private def requires_mci_clearance?
             return false unless HmisExternalApis::AcHmis::Mci.enabled?
             # If brand new Client record (NOT in context of an Enrollment), then MCI clearance is required
@@ -62,23 +74,31 @@ module HmisExternalApis
             !only_so_nbn_enrollments
           end
 
-          private def validate_mci_id_exists
+          private def validate_required_fields_for_clearance
+            return unless HmisExternalApis::AcHmis::Mci.enabled?
+
+            errors.add :name_data_quality, :invalid, message: 'must be Full Name' unless name_data_quality == 1 || names.find(&:primary)&.name_data_quality == 1
+            errors.add :dob, :required unless dob.present?
+            errors.add :dob_data_quality, :invalid, message: 'must be Full DOB' unless dob_data_quality == 1
+          end
+
+          private def validate_first_last
             return unless HmisExternalApis::AcHmis::Mci.enabled?
 
             # First and Last are required, regardless of context
             errors.add :first_name, :required unless first_name.present? || names.find(&:primary)&.first.present?
             errors.add :last_name, :required unless last_name.present? || names.find(&:primary)&.last.present?
+          end
 
+          private def validate_mci_id_exists
+            return unless HmisExternalApis::AcHmis::Mci.enabled?
             return unless requires_mci_clearance?
 
-            # For contexts where clearance is required, enforce presence of additional fields.
-            # This is needed so that you can't go back and remove DOB for a client that has already cleared, for example.
-            errors.add :dob, :required unless dob.present?
-            errors.add :dob_data_quality, :invalid, message: 'must be Full Name' unless dob_data_quality == 1
-            errors.add :name_data_quality, :invalid, message: 'must be Full DOB' unless name_data_quality == 1
+            # Validate that DOB/DQ fields are there. This is needed so you can't go back and remove fields from a cleared client.
+            validate_required_fields_for_clearance
 
             # Valid if client has an MCI ID, or is going to create one
-            return if ac_hmis_mci_ids.exists? || send(:create_mci_id)
+            return if mci_cleared?
 
             # Add in some custom options (handled by HmisErrors::Error) so it shows up on the correct fields
             full_msg = HmisExternalApis::AcHmis::Mci::MCI_REQUIRED_MSG
