@@ -16,7 +16,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReasonForExitLoader
   let(:rows) do
     [
       {
-        'ExitID' => exit.exit_id,
+        'ExitID' => 'unstable-id-we-should-ignore',
         'EnrollmentID' => enrollment.enrollment_id,
         'ReasonForExit' => 'Completed project',
         'ReasonForExitOther' => 'test',
