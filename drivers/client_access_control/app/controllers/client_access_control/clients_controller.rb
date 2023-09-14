@@ -30,12 +30,12 @@ class ClientAccessControl::ClientsController < ApplicationController
     @clients = client_scope.none
     if current_user.can_use_strict_search?
       @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
-    elsif current_user.can_search_own_clients? && params[:q].present?
-      @clients = client_source.text_search(params[:q], client_scope: client_search_scope)
     elsif ! current_user.using_acls? && (current_user.can_access_window_search? || current_user.can_search_own_clients?) && params[:q].present?
       # TODO: START_ACL remove after ACL migration is complete
-      @clients = client_source.text_search(params[:q], client_scope: client_search_scope)
+      @clients = client_source.text_search(params[:q], client_scope: client_search_scope, sorted: false)
       # END_ACL
+    elsif current_user.can_search_own_clients? && params[:q].present?
+      @clients = client_source.text_search(params[:q], client_scope: client_search_scope, sorted: false)
     end
     preloads = [
       :processed_service_history,
@@ -59,7 +59,6 @@ class ClientAccessControl::ClientsController < ApplicationController
     end
 
     @clients = @clients.
-      distinct.
       destination.
       preload(preloads)
 

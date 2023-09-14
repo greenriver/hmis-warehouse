@@ -44,13 +44,28 @@ module GrdaWarehouse
     has_many :organization_contacts, through: :projects
 
     scope :viewable_by, ->(user) do
-      # TODO: We may want to build a read-only version of project groups
-      # so someone can see the makeup of the project groups assigned to them,
-      # but be able to add or remove projects.
-      # This probably doesn't need a new permission, project groups would just be visible
-      # if the user has access to use any project groups for reporting.
-      editable_by(user)
+      # only used in the context of reporting
+      return none unless user.present?
+
+      if user.using_acls?
+        perm = :can_view_assigned_reports
+        group_ids = user.collections_for_permission(perm)
+        return none unless group_ids.present?
+
+        ids = GrdaWarehouse::GroupViewableEntity.where(
+          collection_id: group_ids,
+          entity_type: 'GrdaWarehouse::ProjectGroup',
+        ).pluck(:entity_id)
+        return none if ids.empty?
+
+        where(id: ids)
+      else
+        return current_scope.merge(user.project_groups) if current_scope.present?
+
+        user.project_group
+      end
     end
+    # END_ACL
 
     # TODO: START_ACL cleanup after migration to ACLs
     scope :editable_by, ->(user) do

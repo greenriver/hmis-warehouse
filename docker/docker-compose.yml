@@ -27,8 +27,6 @@ x-app: &app
   env_file:
     - .env.development.local
     - .env.local
-  tmpfs:
-    - /tmp
 
 x-backend: &backend
   <<: *app

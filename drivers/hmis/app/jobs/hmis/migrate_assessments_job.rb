@@ -9,7 +9,7 @@ module Hmis
     include Hmis::Concerns::HmisArelHelper
     include NotifierConfig
 
-    attr_accessor :data_source_id
+    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -37,10 +37,12 @@ module Hmis
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
-    def perform(data_source_id:, clobber: false)
+    def perform(data_source_id:, clobber: false, delete_dangling_records: false)
       setup_notifier('Migrate HMIS Assessments')
 
       self.data_source_id = data_source_id
+      self.soft_delete_datetime = Time.current
+      self.delete_dangling_records = delete_dangling_records
       raise 'Not an HMIS Data source' if GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
 
       # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
@@ -63,7 +65,24 @@ module Hmis
         )
       end
 
+      # Delete any records that were marked for deletion
+      if delete_dangling_records
+        debug_log("Deleting dangling records:\n #{records_to_delete.map { |k, ids| [k.name, ids.size] }.to_h}")
+        records_to_delete.each do |klass, ids|
+          klass.where(id: ids).update_all(DateDeleted: soft_delete_datetime, source_hash: nil)
+        end
+      end
+
       summarize_assessments(data_source_id: data_source_id)
+    end
+
+    def records_to_delete
+      @records_to_delete ||= {}
+    end
+
+    def mark_for_deletion(klass, ids)
+      records_to_delete[klass] ||= []
+      records_to_delete[klass].concat(ids)
     end
 
     def build_assessments(enrollment_scope:, data_collection_stages:, unique_by_information_date:, data_source_id:)
@@ -78,10 +97,11 @@ module Hmis
       key_fields = [:enrollment_id, :personal_id, :data_collection_stage]
       key_fields << :information_date if unique_by_information_date
 
+      # EnrollmentIDs of exited enrollments
+      exited_enrollment_ids = enrollment_scope.joins(:exit).pluck(:enrollment_id).to_set
+
       # Count of records that are skipped because they should already be tied to an assessment
       skipped_records = 0
-      # Count of records that had duplicates. E.g. Two IncomeBenefit with same information date and data collection stage.
-      duplicate_records = 0
 
       # Group together IDs of related records by key_fields
       assessment_records = {}
@@ -115,29 +135,48 @@ module Hmis
               next
             end
 
-            # Choose oldest date_created and newest date_updated to apply to this hash_key
-            metadata = merge_metadata(assessment_records[hash_key], values)
+            enrollment_id, _personal_id, data_collection_stage = hash_key
+            # If records have DataCollectionStage of Exit, but this enrollment is open, skip and mark for deletion.
+            if data_collection_stage == EXIT_STAGE && !exited_enrollment_ids.include?(enrollment_id)
+              Rails.logger.info "Found #{klass.name} record with Data Collection Stage 'Exit' for an open enrollment. EnrollmentID #{enrollment_id}, record ID(s): #{values[:id]}"
+              mark_for_deletion(klass, values[:id])
+              next
+            end
 
             case klass.name
             when 'Hmis::Hud::Disability'
               # Build hash like {:physical_disability_id=>25, :developmental_disability_id=>26, ...}
               colnames = values[:disability_type].map { |type| form_processor_column_name(klass, disability_type: type) }
               disability_ids = colnames.zip(values[:id]).to_h
+              # Choose oldest date_created and newest date_updated to apply to this hash_key
+              metadata = merge_metadata(assessment_records[hash_key], values)
               assessment_records.deep_merge!({ hash_key => { **disability_ids, **metadata } })
             else
+              # Choose which arr index is going to be the "chosen" record (most recently updated)
+              chosen_idx = values[:date_updated].each_with_index.max_by { |dt, _| dt.to_date }.last
+              # Remove everything else
+              values_without_dups = values.transform_values { |vals| [vals[chosen_idx]] }
+              # Chosen Record ID
+              record_id = values_without_dups[:id].first
+
+              # If there were more than 1 matching record, log and mark others for deletion
+              if values[:id].size > 1
+                Rails.logger.info "More than 1 #{klass.name} for key. IDs: #{values[:id]}. Choosing #{record_id}."
+                ids_to_delete = values[:id].excluding(record_id)
+                mark_for_deletion(klass, ids_to_delete)
+              end
+
+              # Base metadata off of the chosen record, not any of the duplicates
+              metadata = merge_metadata(assessment_records[hash_key], values_without_dups)
               # Transform Hmis::Hud::HealthAndDv => health_and_dv_id
               colname = form_processor_column_name(klass)
-              if values[:id].size > 1
-                Rails.logger.info "More than 1 #{klass.name} for key. IDs: #{values[:id]}"
-                duplicate_records += 1
-              end
-              record_id = values[:id].last
               assessment_records.deep_merge!({ hash_key => { colname => record_id, **metadata } })
             end
           end
       end
 
-      Rails.logger.info "Skipped #{duplicate_records} duplicate records" if duplicate_records.positive?
+      deletion_count = records_to_delete.values.flatten.size
+      Rails.logger.info "Marking #{deletion_count} records for deletion" if deletion_count.positive?
       Rails.logger.info "Skipped #{skipped_records} records that were already linked to an assessment" if skipped_records.positive?
       Rails.logger.info "Creating #{assessment_records.keys.size} assessments..."
 
@@ -169,7 +208,8 @@ module Hmis
           Rails.logger.info "Skipping invalid assessment for EnrollmentID: #{assessment.enrollment_id}"
           skipped_invalid_assessments += 1
         elsif assessment.exit? && value[:exit_id].nil?
-          # There appear to be lots of "exit" data-collection-stage records for enrollments that don't have an Exit record. Skip those
+          # There appear to be lots of "exit" data-collection-stage records for enrollments that don't have an Exit record.
+          # This shouldn't happen anymore because we skip them above
           Rails.logger.info "Skipping Exit Assessment for open enrollment. EnrollmentID: #{assessment.enrollment_id}"
           skipped_exit_assessments += 1
         else

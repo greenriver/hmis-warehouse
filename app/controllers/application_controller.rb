@@ -34,8 +34,6 @@ class ApplicationController < ActionController::Base
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
-  before_action :set_gettext_locale
-  before_action :possibly_reset_fast_gettext_cache
   before_action :enforce_2fa!
   before_action :require_training!
   before_action :health_emergency?
@@ -105,21 +103,6 @@ class ApplicationController < ActionController::Base
   # don't extend the user's session if its an ajax request.
   def skip_timeout
     request.env['devise.skip_trackable'] = true if request.xhr?
-  end
-
-  def set_gettext_locale
-    session[:locale] = I18n.locale = FastGettext.set_locale(locale)
-    super
-  end
-
-  def possibly_reset_fast_gettext_cache
-    key_for_host = "translation-fresh-at-for-#{set_hostname}"
-    last_change = Rails.cache.read('translation-fresh-at') || Time.current
-    last_loaded_for_host = Rails.cache.read(key_for_host)
-    if last_loaded_for_host.blank? || last_change > last_loaded_for_host # rubocop:disable Style/GuardClause
-      FastGettext.cache.reload!
-      Rails.cache.write(key_for_host, Time.current)
-    end
   end
 
   def _basic_auth

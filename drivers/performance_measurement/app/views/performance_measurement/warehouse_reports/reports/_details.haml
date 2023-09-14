@@ -7,7 +7,7 @@
 - measure = @report.detail_measure_for(key)
 = content_for :crumbs do
   = link_to performance_measurement_warehouse_reports_report_path(@report) do
-    &laquo; #{_('CoC Performance Measurement Dashboard')}
+    &laquo; #{Translation.translate('CoC Performance Measurement Dashboard')}
 .performance-measurement
   %label.super-rounded.p-4.pl-6.pr-6{ class: "performance-measurement--highlight-#{@report.highlight_id(category)}" }
     = section

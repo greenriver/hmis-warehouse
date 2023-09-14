@@ -13,8 +13,8 @@ wb.add_worksheet(name: 'CAS Decline Reasons') do |sheet|
     'Program',
     'Sub-Program',
     'Program Type',
-    _('Shelter Agency Contacts'),
-    _('HSA Contacts'),
+    Translation.translate('Shelter Agency Contacts'),
+    Translation.translate('HSA Contacts'),
     'Vacancy ID',
     'Link',
   ]
