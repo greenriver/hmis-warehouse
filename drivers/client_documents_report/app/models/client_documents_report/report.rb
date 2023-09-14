@@ -152,8 +152,7 @@ module ClientDocumentsReport
         enrollments.preload(:client, enrollment: :income_benefits).find_each do |enrollment|
           client_data[enrollment.client_id] ||= {}
           # Make sure we get the most-recently started enrollment
-          client_data[enrollment.client_id]['Newest Entry Date'] ||= enrollment.entry_date
-          client_data[enrollment.client_id]['Newest Entry Date'] = enrollment.entry_date if enrollment.entry_date > client_data[enrollment.client_id]['Newest Entry Date']
+          client_data[enrollment.client_id]['Newest Entry Date'] = [client_data[enrollment.client_id]['Newest Entry Date'], enrollment.entry_date].compact.max
           if GrdaWarehouse::Config.cas_enabled?
             client_data[enrollment.client_id]['Active CAS Match'] = yn(active_cas_match_for?(enrollment.client))
             client_data[enrollment.client_id]['CAS Match Date'] = cas_match_date(enrollment.client)
