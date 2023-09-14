@@ -91,6 +91,10 @@ module GrdaWarehouse
           Rails.logger.warn 'Shape-loading logic relies on precense of records, so adding a fake town record'
           GrdaWarehouse::Shape::Town.create!
           return
+        elsif conf.klass == GrdaWarehouse::Shape::Place
+          Rails.logger.warn 'Shape-loading logic relies on precense of records, so adding a fake place record'
+          GrdaWarehouse::Shape::Place.create!
+          return
         else
           Rails.logger.warn "Skipping #{conf.klass}: cannot find inserts.sql file"
           return
