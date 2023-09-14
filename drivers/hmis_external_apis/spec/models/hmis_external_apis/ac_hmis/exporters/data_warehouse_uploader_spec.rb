@@ -50,14 +50,14 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::DataWarehouseUploader, type:
     expect(header).to eq('PK')
   end
 
-  it 'has ClientMciMapping.csv in it' do
+  it 'has Client.csv in it' do
     io = subject.send(:zipped_io_stream)
 
     Zip::InputStream.open(io) do |zipfile|
       while (csv = zipfile.get_next_entry)
         next unless csv.file?
 
-        expect(csv.name).to eq('ClientMciMapping.csv')
+        expect(csv.name).to eq('Client.csv')
         expect(zipfile.read).to eq("a,b,c\n1,2,3")
       end
     end
