@@ -23,11 +23,25 @@ RSpec.describe Hmis::Hud::Client, type: :model do
 
   describe 'AC client validation' do
     let!(:mci_cred) { create(:ac_hmis_mci_credential) }
-    let(:c1) {  create(:hmis_hud_client, data_source: ds1, first_name: nil, last_name: nil, dob: nil, name_data_quality: 8, dob_data_quality: 9) }
-    let(:c2) {  build(:hmis_hud_client, data_source: ds1, first_name: nil, last_name: nil, dob: nil, name_data_quality: 8, dob_data_quality: 9) }
+    # persisted
+    let(:c1) do
+      client = create(:hmis_hud_client, data_source: ds1, dob: nil, dob_data_quality: 8)
+      name = create(:hmis_hud_custom_client_name, client: client, data_source: ds1, last: nil, name_data_quality: 8, primary: true)
+      client.names = [name]
+      client.save!
+      client
+    end
+    # unpersisted
+    let(:c2) do
+      client = build(:hmis_hud_client, data_source: ds1, dob: nil, dob_data_quality: 8)
+      name = build(:hmis_hud_custom_client_name, client: client, data_source: ds1, last: nil, name_data_quality: 8, primary: true)
+      client.names = [name]
+      client
+    end
 
     FIRST_LAST = [
-      [:required, :first_name],
+      # Examples all have a first name, so that we don't hit the "first or last required" err
+      # [:required, :first_name],
       [:required, :last_name],
     ].freeze
 
@@ -51,12 +65,6 @@ RSpec.describe Hmis::Hud::Client, type: :model do
 
     it 'should accept primary name in names array as valid first/last' do
       c2.names = [build(:hmis_hud_custom_client_name, data_source: ds1, client: c2, primary: true)]
-      expect_validations(c2, expected_errors: [], context: :new_client_enrollment_form)
-    end
-
-    it 'should accept name fields as valid first/last' do
-      c2.first_name = 'first'
-      c2.last_name = 'last'
       expect_validations(c2, expected_errors: [], context: :new_client_enrollment_form)
     end
 

@@ -77,7 +77,7 @@ module HmisExternalApis
           private def validate_required_fields_for_clearance
             return unless HmisExternalApis::AcHmis::Mci.enabled?
 
-            errors.add :name_data_quality, :invalid, message: 'must be Full Name' unless name_data_quality == 1 || names.find(&:primary)&.name_data_quality == 1
+            errors.add :name_data_quality, :invalid, message: 'must be Full Name' unless names.find(&:primary)&.name_data_quality == 1
             errors.add :dob, :required unless dob.present?
             errors.add :dob_data_quality, :invalid, message: 'must be Full DOB' unless dob_data_quality == 1
           end
@@ -86,8 +86,8 @@ module HmisExternalApis
             return unless HmisExternalApis::AcHmis::Mci.enabled?
 
             # First and Last are required, regardless of context
-            errors.add :first_name, :required unless first_name.present? || names.find(&:primary)&.first.present?
-            errors.add :last_name, :required unless last_name.present? || names.find(&:primary)&.last.present?
+            errors.add :first_name, :required unless names.find(&:primary)&.first.present?
+            errors.add :last_name, :required unless names.find(&:primary)&.last.present?
           end
 
           private def validate_mci_id_exists
