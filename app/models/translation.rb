@@ -15,7 +15,7 @@ class Translation < ApplicationRecord
       end
       translated = translations[text]
       if ! translations.key?(text)
-        msg = "Unknown Translation key \"#{text}\""
+        msg = "Unknown Translation key \"#{text}\", added to DB"
         # Fail painfully if this is development so we see the error of our ways
         # Actually, don't fail because sometimes we don't know where the string is coming from (pagy)
         # raise msg if Rails.env.development?
