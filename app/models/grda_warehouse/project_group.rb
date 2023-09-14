@@ -114,7 +114,20 @@ module GrdaWarehouse
     end
 
     def self.options_for_select(user:)
-      viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
+      # TODO: START_ACL cleanup after migration to ACLs
+      if user.using_acls?
+        collection_ids = user.collections_for_permission(:can_view_assigned_reports)
+        return [] if collection_ids.empty?
+
+        ids = GrdaWarehouse::GroupViewableEntity.where(
+          collection_id: collection_ids,
+          entity_type: 'GrdaWarehouse::ProjectGroup',
+        ).pluck(:entity_id)
+        where(id: ids).distinct.order(name: :asc).pluck(:name, :id)
+      else
+        user.project_groups.distinct.order(name: :asc).pluck(:name, :id)
+      end
+      # END_ACL
     end
 
     private def maintain_system_group

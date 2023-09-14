@@ -21,7 +21,7 @@
       form = $('.jCareplanForm');
       $.ajax({
         url: form.attr('action'),
-        type: 'PATCH',
+        type: form.attr('method'),
         data: form.serialize(),
         success: function() {
           console.debug('done');
