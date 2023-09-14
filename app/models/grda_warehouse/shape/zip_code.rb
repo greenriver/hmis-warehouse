@@ -47,7 +47,10 @@ module GrdaWarehouse
       end
 
       def self.all_we_need?
-        count >= 30_000
+        # count >= 30_000
+        # There is a postgis error: (transform: point not within available datum shift grids (-48)) that is preventing many inserts
+        # We need to upgrade postgis to 3.3 or fix the shape file and then change the count here to the real number
+        count >= 26_000
       end
 
       def self.calculate_states
