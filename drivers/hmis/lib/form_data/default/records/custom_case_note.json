@@ -1,0 +1,17 @@
+{
+  "item": [
+    {
+      "type": "GROUP",
+      "link_id": "case-note-group",
+      "item": [
+        {
+          "type": "TEXT",
+          "required": true,
+          "link_id": "content",
+          "text": "Note",
+          "enable_behavior": "ANY"
+        }
+      ]
+    }
+  ]
+}

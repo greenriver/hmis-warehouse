@@ -12,6 +12,7 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCeAssessments
+    include Types::HmisSchema::HasCustomCaseNotes
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
@@ -51,6 +52,7 @@ module Types
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
+    custom_case_notes_field
     field :household_id, ID, null: false
     field :household_short_id, ID, null: false
     field :household, HmisSchema::Household, null: false
@@ -240,6 +242,10 @@ module Types
 
     def income_benefits(**args)
       resolve_income_benefits(**args)
+    end
+
+    def custom_case_notes(...)
+      resolve_custom_case_notes(...)
     end
 
     def disabilities(**args)

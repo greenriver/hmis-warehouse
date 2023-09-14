@@ -107,6 +107,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :CURRENT_LIVING_SITUATION,
       :CE_ASSESSMENT,
       :CE_EVENT,
+      :CUSTOM_CASE_NOTE,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }

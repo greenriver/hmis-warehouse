@@ -1455,6 +1455,30 @@ enum CurrentSchoolAttended {
   NOT_CURRENTLY_ENROLLED_IN_ANY_SCHOOL_OR_EDUCATIONAL_COURSE
 }
 
+"""
+Case Note
+"""
+type CustomCaseNote {
+  client: Client!
+  content: String!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  enrollment: Enrollment!
+  id: ID!
+  user: User
+}
+
+type CustomCaseNotesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CustomCaseNote!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 type CustomDataElement {
   fieldType: CustomDataElementType!
   id: ID!
@@ -1548,6 +1572,7 @@ enum DataCollectionFeatureRole {
   CE_ASSESSMENT
   CE_EVENT
   CURRENT_LIVING_SITUATION
+  CUSTOM_CASE_NOTE
   REFERRAL_REQUEST
   SERVICE
 }
@@ -2560,6 +2585,7 @@ type Enrollment {
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   currentPregnant: NoYesMissing
   currentUnit: Unit
+  customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -3322,6 +3348,7 @@ enum FormRole {
   CLIENT
   CURRENT_LIVING_SITUATION
   CUSTOM_ASSESSMENT
+  CUSTOM_CASE_NOTE
   ENROLLMENT
   EXIT
   FILE
