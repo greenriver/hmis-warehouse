@@ -202,7 +202,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
         merge(
           GrdaWarehouse::Hud::HealthAndDv.where(
             InformationDate: filter.range,
-            DomesticViolenceVictim: filter.dv_status,
+            DomesticViolenceVictim: filter.dv_status, # FIXME: DEPRECATED_FY2024 - this needs to be updated for 2024 spec changes
           ),
         ).pluck(:client_id)
       current_scope.where(client_id: client_ids)
@@ -341,7 +341,6 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def census_by_project_type
-      # raise 'hi'
       Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: EXPIRY) do
         data = Hash[homeless_project_type_ids.zip]
         counts = active_clients.group(:year, :month, :project_type).
