@@ -62,7 +62,7 @@ module GrdaWarehouse
       else
         return current_scope.merge(user.project_groups) if current_scope.present?
 
-        user.project_group
+        user.project_groups
       end
     end
     # END_ACL
