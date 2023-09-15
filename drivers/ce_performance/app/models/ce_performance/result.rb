@@ -23,6 +23,10 @@ module CePerformance
       []
     end
 
+    def sub_results
+      []
+    end
+
     def self.category
       'Participation'
     end
