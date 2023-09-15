@@ -42,14 +42,13 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       client
     end
 
-    FIRST_LAST = [
-      # Examples all have a first name, so that we don't hit the "first or last required" err
-      # [:required, :first_name],
+    # Examples all have a first name, so that we don't hit the "first or last required" err
+    LAST_REQUIRED = [
       [:required, :last_name],
     ].freeze
 
     ALL_MCI_FIELDS = [
-      *FIRST_LAST,
+      *LAST_REQUIRED,
       [:invalid, :name_data_quality],
       [:required, :dob],
       [:invalid, :dob_data_quality],
@@ -71,7 +70,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
 
       it 'should not require MCI fields (persisted client with only NBN enrollments)' do
         create(:hmis_hud_enrollment, data_source: ds1, project: nbn, client: c1)
-        expect_validations(c1, expected_errors: FIRST_LAST, context: :client_form)
+        expect_validations(c1, expected_errors: LAST_REQUIRED, context: :client_form)
       end
 
       it 'should require MCI fields (persisted client with only NBN enrollments that has already been cleared)' do
@@ -88,8 +87,8 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     end
 
     it 'should require first/last on new client enrollment form' do
-      expect_validations(c1, expected_errors: FIRST_LAST, context: :new_client_enrollment_form)
-      expect_validations(c2, expected_errors: FIRST_LAST, context: :new_client_enrollment_form)
+      expect_validations(c1, expected_errors: LAST_REQUIRED, context: :new_client_enrollment_form)
+      expect_validations(c2, expected_errors: LAST_REQUIRED, context: :new_client_enrollment_form)
     end
 
     it 'should accept primary name in names array as valid first/last' do
