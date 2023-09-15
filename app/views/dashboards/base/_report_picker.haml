@@ -33,5 +33,7 @@
         = f.input :races, collection: HudUtility2024.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
       .col-4
         = f.input :genders, collection: HudUtility2024.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
+      .col-4
+        = f.input :dv_status, collection: filter.available_dv_status, label: 'DV Status', as: :select_two, required: false, input_html: { multiple: true }
     .w-20
       = f.button :submit, 'Update View'

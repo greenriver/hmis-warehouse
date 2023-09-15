@@ -36,7 +36,7 @@
     - periods[:reporting].each do |result_class, result|
       - next unless result_class.display_result?
       %div{id: result_class.title.parameterize}
-      = render result, category_name: category_name, result_class: result_class, result: result, pdf: false
+        = render result, category_name: category_name, result_class: result_class, result: result, pdf: false
 
 
 = content_for :page_js do
@@ -51,7 +51,12 @@
       $('.j-click-row').addClass('cursor-pointer');
       $('.j-click-row').on('click', function(e) {
         e.preventDefault();
-        var link = $(this).find('.j-click-row-source');
+        var link;
+        if($(e.target).is('a')) {
+          link = $(e.target);
+        } else {
+          link = $(this).find('.j-click-row-source');
+        }
         window.open(link.attr('href'), '_blank');
       });
     });

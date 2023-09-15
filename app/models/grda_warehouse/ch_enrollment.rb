@@ -237,7 +237,7 @@ module GrdaWarehouse
         (date - ch_start_date).to_i
       end
       result = days >= 365 ? :yes : :continue
-      { result: result, display_value: "#{days} days  (#{ch_start_date.strftime('%m/%d/%Y')} - #{date.strftime('%m/%d/%Y')})" }
+      { result: result, display_value: "#{days} days  (#{ch_start_date&.strftime('%m/%d/%Y')} - #{date&.strftime('%m/%d/%Y')})" }
     end
 
     # Lines 5, 11, 18, and 25 (3.917.4)

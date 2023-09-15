@@ -1,15 +1,6 @@
 wb = xlsx_package.workbook
 wb_styles = wb.styles
-percentage_format = wb_styles.add_style format_code: '0%'
-report_style = wb_styles.add_style({ border: { style: :thick, color: '00918C', edges: [:left] } })
 header_style = wb_styles.add_style({ sz: 14 })
-th_style = wb_styles.add_style(
-  {
-    bg_color: '81adb9',
-    b: true,
-    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
-  },
-)
 wb_styles.add_style(
   {
     border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
@@ -33,6 +24,7 @@ wb.add_worksheet(name: 'Documents') do |sheet|
       end
     end
   end
+  row += @report.additional_client_data_headers
   sheet.add_row(row, style: header_style)
   # find_each doesn't support ordering the SQL, so we'll pluck the ids and loop over slices
   @report.clients.order(:last_name, :first_name).pluck(:id).each_slice(1_000) do |slice|
@@ -42,7 +34,6 @@ wb.add_worksheet(name: 'Documents') do |sheet|
       row << @report.required_documents(client).count
       row << @report.optional_documents(client).count
       row << @report.overall_documents(client).count
-
       types = [:required, :optional]
       types.each do |type|
         @report.groups_for_type(type).each do |group, tags|
@@ -51,6 +42,10 @@ wb.add_worksheet(name: 'Documents') do |sheet|
             row << @report.date_for_tag(tag, client, type: type)
           end
         end
+      end
+      client_details = @report.additional_client_data(client)
+      @report.additional_client_data_headers.each do |h|
+        row << client_details[h]
       end
       sheet.add_row(row)
     end

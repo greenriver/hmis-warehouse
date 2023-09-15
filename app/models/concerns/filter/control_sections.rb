@@ -281,5 +281,15 @@ module
         )
       end
     end
+
+    protected def build_cohort_inclusion_control_section
+      ::Filters::UiControlSection.new(id: 'secondary_cohorts', title: 'Cohort Inclusion').tap do |section|
+        section.add_control(
+          id: 'secondary_cohorts',
+          value: @filter.secondary_cohorts,
+          label: 'Cohort Inclusion',
+        )
+      end
+    end
   end
 end

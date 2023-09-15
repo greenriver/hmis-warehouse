@@ -15,13 +15,17 @@ class Translation < ApplicationRecord
       end
       translated = translations[text]
       if ! translations.key?(text)
-        msg = "Unknown Translation key \"#{text}\""
+        msg = "Unknown Translation key \"#{text}\", added to DB"
         # Fail painfully if this is development so we see the error of our ways
         # Actually, don't fail because sometimes we don't know where the string is coming from (pagy)
         # raise msg if Rails.env.development?
 
         # Notify if this isn't development so we can track it down later
-        send_single_notification(msg, 'Translations', exception: StandardError.new(msg))
+        # send_single_notification(msg, 'Translations', exception: StandardError.new(msg))
+
+        # Add it to the database if we don't have it
+        Translation.where(key: text).first_or_create
+        Rails.logger.info(msg)
       end
 
       translated.presence || text
