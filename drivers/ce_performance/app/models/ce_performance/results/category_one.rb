@@ -49,7 +49,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "#{value.to_i} #{unit}"
+      "#{number_with_delimiter(value.to_i)} #{unit}"
     end
 
     def unit
