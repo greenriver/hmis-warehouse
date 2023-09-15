@@ -52,7 +52,7 @@ class DataSourcesController < ApplicationController
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
-      flash[:error] = _('Unable to create new Data Source')
+      flash[:error] = Translation.translate('Unable to create new Data Source')
       render action: :new
     end
   end
@@ -77,9 +77,8 @@ class DataSourcesController < ApplicationController
 
   def destroy
     name = @data_source.name
-    @data_source.destroy_dependents!
-    @data_source.destroy
-    flash[:notice] = "Data Source: #{name} was successfully removed."
+    DeleteItemJob.perform_later(item_id: @data_source.id, item_class: @data_source.class.name)
+    flash[:notice] = "Data Source: #{name} was successfully queued for removal.  Please check back in a few minutes."
 
     redirect_to action: :index
   end

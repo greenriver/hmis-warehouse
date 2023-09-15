@@ -23,7 +23,7 @@ module CePerformance
     end
 
     def self.title
-      _('Median Length of time from Access to Assessment')
+      Translation.translate('Median Length of time from Access to Assessment')
     end
 
     def description
@@ -43,7 +43,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "Median: #{value.to_i} #{unit}"
+      "Median: #{number_with_delimiter(value.to_i)} #{unit}"
     end
 
     def unit

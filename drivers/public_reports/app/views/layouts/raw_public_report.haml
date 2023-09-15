@@ -1,7 +1,7 @@
 %html(lang="en")
   %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
   %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
-  %title= [@report.instance_title, _('Boston DND Warehouse')].join(' :: ')
+  %title= [@report.instance_title, Translation.translate('Boston DND Warehouse')].join(' :: ')
   %link{href: @report.font_path, rel: 'stylesheet', type: 'text/css'}
   = stylesheet_link_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.4.1/billboard.min.css')
   = stylesheet_link_tag('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.6.1/font/bootstrap-icons.min.css')
@@ -67,5 +67,5 @@
     = yield
 
     %p.completed-at
-      = _('Data accurate as of')
+      = Translation.translate('Data accurate as of')
       #{@report.completed_at.to_date}

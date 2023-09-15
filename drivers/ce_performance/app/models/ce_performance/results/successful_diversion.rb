@@ -63,7 +63,7 @@ module CePerformance
     end
 
     def self.title
-      _('Number of persons successfully Diverted')
+      Translation.translate('Number of persons successfully Diverted')
     end
 
     def description

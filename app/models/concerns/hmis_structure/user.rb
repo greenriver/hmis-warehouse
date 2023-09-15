@@ -16,7 +16,7 @@ module HmisStructure::User
   module ClassMethods
     def hmis_configuration(version: nil)
       case version
-      when '2020', '2022'
+      when '2020', '2022', '2024'
         {
           UserID: {
             type: :string,

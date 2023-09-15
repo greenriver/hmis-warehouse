@@ -20,9 +20,13 @@ module Mutations
 
       errors = HmisErrors::Errors.new
 
+      # FIXME: several of the below errors are duplicative of SubmitHouseholdAssessments error checks. They should be moved into the CustomAssessmentValidator instead.
+
+      has_already_been_submitted = assessment.persisted? && !assessment.in_progress?
+
       # HoH Exit constraints
-      if enrollment.head_of_household? && assessment.exit?
-        open_enrollments = Hmis::Hud::Enrollment.open_on_date.
+      if enrollment.head_of_household? && assessment.exit? && !has_already_been_submitted
+        open_enrollments = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow). # if other members exited today, its OK
           viewable_by(current_user).
           where(household_id: enrollment.household_id).
           where.not(id: enrollment.id)
@@ -32,8 +36,8 @@ module Mutations
       end
 
       # Non-HoH Intake constraints
-      if !enrollment.head_of_household? && assessment.intake?
-        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow).
+      if !enrollment.head_of_household? && assessment.intake? && !has_already_been_submitted
+        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow). # if HoH entered today, it's OK
           heads_of_households.
           viewable_by(current_user).
           where(household_id: enrollment.household_id).

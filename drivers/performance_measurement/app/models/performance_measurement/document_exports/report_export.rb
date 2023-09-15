@@ -19,7 +19,7 @@ module PerformanceMeasurement::DocumentExports
       {
         report: report,
         filter: filter,
-        title: _('CoC Performance Measurement Dashboard'),
+        title: Translation.translate('CoC Performance Measurement Dashboard'),
         pdf: true,
       }
     end
@@ -39,7 +39,7 @@ module PerformanceMeasurement::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{_('Performance Management Dashboard')} #{DateTime.current.to_s(:db)}",
+          file_name: "#{Translation.translate('Performance Management Dashboard')} #{DateTime.current.to_s(:db)}",
           options: {
             print_background: true,
             display_header_footer: true,

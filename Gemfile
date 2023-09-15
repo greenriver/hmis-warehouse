@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
+gem 'activesupport', '>= 6.1.7.5' # CVE-2023-38037
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
 gem 'rack', '>= 2.2.6.3'
 gem 'rexml'
@@ -20,7 +21,7 @@ gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'order_as_specified'
 
-gem 'activerecord', '>= 6.1.7.5' # for CVE-2023-38037
+gem 'activerecord', '>= 6.1.7.3' # for CVE-2023-22796
 gem 'active_record_extended'
 gem 'active_median'
 gem 'strong_migrations'
@@ -80,6 +81,7 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 gem 'rack-cors'
+gem 'doorkeeper'
 
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
@@ -212,12 +214,6 @@ gem 'amazing_print'
 
 gem 'auto-session-timeout'
 
-# Translations
-gem 'gettext_i18n_rails'
-gem 'fast_gettext'
-gem 'gettext', '>=3.0.2'
-gem 'grosser-pomo'
-
 gem 'responders'
 
 gem 'rack-attack'
@@ -276,8 +272,9 @@ group :development do
   gem 'marginalia'
   gem 'overcommit', require: false
   gem 'rubocop', require: false
-  gem 'rubocop-rspec', require: false
-  gem 'rubocop-rails', require: false
+  # not used
+  # gem 'rubocop-rspec', require: false
+  # gem 'rubocop-rails', require: false
 
   # boot time/memory profiling
   gem 'derailed_benchmarks', require: false

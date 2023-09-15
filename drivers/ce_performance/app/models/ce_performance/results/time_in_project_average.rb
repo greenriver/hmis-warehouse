@@ -28,7 +28,7 @@ module CePerformance
     end
 
     def self.title
-      _('Average Length of Time in CE')
+      Translation.translate('Average Length of Time in CE')
     end
 
     def description
@@ -66,7 +66,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "Average: #{value.to_i} days"
+      "Average: #{number_with_delimiter(value.to_i)} days"
     end
 
     def indicator(comparison)

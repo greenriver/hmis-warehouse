@@ -15,7 +15,18 @@
       },
       {
         "operator": "ANY",
+        "_comment": "TH, PSH, SSO, Other, RRH",
         "parts": [
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 2
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 3
+          },
           {
             "variable": "projectType",
             "operator": "EQUAL",
@@ -24,7 +35,7 @@
           {
             "variable": "projectType",
             "operator": "EQUAL",
-            "value": 12
+            "value": 7
           },
           {
             "variable": "projectType",
@@ -84,12 +95,12 @@
         {
           "question": "C3.2",
           "operator": "EQUAL",
-          "answer_code": "CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION"
+          "answer_code": "CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY"
         },
         {
           "question": "C3.2",
           "operator": "EQUAL",
-          "answer_code": "CURRENTLY_ENROLLED_AND_ATTENDING_REGULARLY_WHEN_SCHOOL_OR_THE_COURSE_IS_IN_SESSION"
+          "answer_code": "CURRENTLY_ENROLLED_AND_ATTENDING_REGULARLY"
         }
       ]
     }

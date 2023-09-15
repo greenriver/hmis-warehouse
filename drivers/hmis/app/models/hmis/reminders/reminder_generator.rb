@@ -43,19 +43,19 @@ module Hmis
       end
 
       def data_stages(keys)
-        @mapped ||= HudUtility.hud_list_map_as_enumerable(:data_collection_stages).symbolize_keys
+        @mapped ||= HudUtility2024.hud_list_map_as_enumerable(:data_collection_stages).symbolize_keys
         @mapped.fetch_values(*keys.map(&:to_sym))
       end
 
-      def hoh_entry_date(enrollment)
-        @hoh_anniversary_by_household_id ||= enrollments
+      def earliest_entry_date(enrollment)
+        @earliest_entry_date_by_household_id ||= enrollments
           .group_by(&:household_id)
           .map do |household_id, group|
-            hoh = group.detect { |e| e.RelationshipToHoH == 1 }
-            [household_id, hoh&.entry_date]
+            min_entry = group.map { |e| e.entry_date&.to_date }.compact.min
+            [household_id, min_entry]
           end
           .to_h
-        @hoh_anniversary_by_household_id[enrollment.household_id]
+        @earliest_entry_date_by_household_id[enrollment.household_id]
       end
 
       def last_assessment_date(enrollment:, stages:, wip:)
@@ -78,7 +78,10 @@ module Hmis
       # Show reminder if ANY client in the household is missing an Annual Assessment within the
       # range when the annual is due, and today is on or after the start of that range.
       def annual_assessment_reminder(enrollment)
-        hoh_entered_on = hoh_entry_date(enrollment)
+        # Due date is based on the anniversary of the "first" HoH, which is the earliest
+        # entry date across the whole household. This applies even if that person
+        # has since exited the household.
+        hoh_entered_on = earliest_entry_date(enrollment)
         return unless hoh_entered_on
 
         hoh_entered_on = normalize_yoy_date(hoh_entered_on)
@@ -89,6 +92,9 @@ module Hmis
         hoh_anniversary = hoh_entered_on.change(year: today.year)
         start_date = hoh_anniversary - window
         due_date = hoh_anniversary + window
+
+        # client exited before the HoH anniversary
+        return if enrollment.exit_date && enrollment.exit_date < hoh_anniversary
 
         # a relevant assessment ocurred.
         # FIXME: maybe we don't include assessments that occur after end_date? This might
@@ -117,6 +123,9 @@ module Hmis
 
         # client is still <18
         return if adulthood_birthday > today
+
+        # client exited before turning 18
+        return if enrollment.exit_date && enrollment.exit_date <= adulthood_birthday
 
         # client had an assessment after they became and adult
         last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:update, :annual_assessment], wip: [false])
@@ -155,7 +164,13 @@ module Hmis
       # Show reminder if: there has not been a CurrentLivingSituation with an Information Date in the
       # past 90 days. Applies to Coordinated Entry projects only.
       def current_living_situation_reminder(enrollment)
-        # ensure project is Coordinated Entry (14)
+        return if enrollment.exit_date.present?
+
+        # CLS is only collected for HoH or Adults
+        return unless enrollment.head_of_household? || enrollment.client.adult?
+
+        # CLS is only "due" on a cadence for Coordinated Entry (14) (even though it can be collected for other project types)
+        # FIXME: should we check funder applicability?
         cadence = project.ProjectType == 14 ? 90 : nil
         return unless cadence
 

@@ -6,6 +6,7 @@
 
 module CePerformance
   class Result < GrdaWarehouseBase
+    include ActionView::Helpers::NumberHelper
     acts_as_paranoid
 
     belongs_to :report
@@ -19,6 +20,10 @@ module CePerformance
     end
 
     def nested_results
+      []
+    end
+
+    def sub_results
       []
     end
 

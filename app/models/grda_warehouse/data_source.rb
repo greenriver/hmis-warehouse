@@ -140,12 +140,18 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     scope
   end
 
+  scope :not_hmis, -> { where(hmis: nil) }
+
   scope :scannable, -> do
     where(service_scannable: true)
   end
 
   scope :visible_in_window, -> do
     where(visible_in_window: true)
+  end
+
+  scope :available_for_new_clients, -> do
+    authoritative.not_hmis
   end
 
   # TODO: START_ACL remove after migration to ACLs

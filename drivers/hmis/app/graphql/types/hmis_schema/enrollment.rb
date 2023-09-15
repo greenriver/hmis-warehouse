@@ -22,12 +22,13 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
-      Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
+      Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
       arg :open_on_date, GraphQL::Types::ISO8601Date
+      arg :bed_night_on_date, GraphQL::Types::ISO8601Date
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :search_term, String
     end
@@ -66,9 +67,8 @@ module Types
     # 3.20.1
     field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     # 3.917
-    field :living_situation, HmisSchema::Enums::Hud::LivingSituation
-    # TODO(2024) enable 3.917.A
-    # hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    field :living_situation, HmisSchema::Enums::Hud::PriorLivingSituation
+    hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
     hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing
@@ -130,10 +130,10 @@ module Types
     field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :hp_screening_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :threshold_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    # TODO(2024): C4 with preferred language list
-    # field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    # field :preferred_language, Integer, null: true
-    # field :preferred_language_different, String, null: true
+    # C4
+    field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true
+    field :preferred_language_different, String, null: true
 
     field :in_progress, Boolean, null: false
     hud_field :date_updated
@@ -149,10 +149,9 @@ module Types
     custom_data_elements_field
 
     field :current_unit, HmisSchema::Unit, null: true
-
     field :reminders, [HmisSchema::Reminder], null: false
-
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+    field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
     def open_enrollment_summary
       return [] unless current_user.can_view_open_enrollment_summary_for?(object)
@@ -166,6 +165,12 @@ module Types
       project = object.project
       enrollments = project.enrollments_including_wip.where(household_id: object.HouseholdID)
       Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
+    end
+
+    def last_bed_night_date
+      return unless project.project_type == 1
+
+      load_ar_association(object, :bed_nights).map(&:date_provided).max
     end
 
     def project
@@ -187,11 +192,6 @@ module Types
 
     def exit
       load_ar_association(object, :exit)
-    end
-
-    # TODO(2024): remove once 2024 enrollmentcoc column is added
-    def enrollment_coc
-      object.enrollment_cocs.first&.coc_code
     end
 
     def status

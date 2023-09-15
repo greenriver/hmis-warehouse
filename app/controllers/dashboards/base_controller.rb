@@ -145,6 +145,7 @@ module Dashboards
           project_type_codes: [],
           age_ranges: [],
           coc_codes: [],
+          dv_status: [],
         )
     end
     helper_method :report_params

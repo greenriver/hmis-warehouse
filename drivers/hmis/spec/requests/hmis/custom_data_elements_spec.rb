@@ -257,20 +257,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Assessments query' do
-    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-    let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1 }
-    # define a custom field and set 2 values for it
-    let!(:cded) { create :hmis_custom_data_element_definition, label: 'Special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, repeats: true }
-    let!(:cde1) { create :hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 1' }
-    let!(:cde2) { create :hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 2' }
-
-    # this definition has no values
-    let!(:cded2) { create :hmis_custom_data_element_definition, label: 'Another special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment' }
-
-    before(:each) do
-      a1.save_not_in_progress
-    end
-
     let(:query) do
       <<~GRAPHQL
         query Assessment($id: ID!) {
@@ -291,25 +277,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'resolves custom data elements' do
+      e1 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
+      a1 = create(:hmis_custom_assessment, data_source: ds1, enrollment: e1)
+      # Create 2 values for cded
+      cded = create(:hmis_custom_data_element_definition, label: 'Special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, repeats: true)
+      create(:hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 1')
+      create(:hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 2')
+      # Create another cded with no values
+      cded2 = create(:hmis_custom_data_element_definition, label: 'Another special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment')
+
       response, result = post_graphql(id: a1.id) { query }
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         elements = result.dig('data', 'assessment', 'customDataElements')
-        expect(elements).to match_array([
-                                          a_hash_including(
-                                            'key' => cded.key,
-                                            'label' => cded.label,
-                                            'values' => [
-                                              a_hash_including('valueString' => 'value 2'),
-                                              a_hash_including('valueString' => 'value 1'),
-                                            ],
-                                          ),
-                                          a_hash_including(
-                                            'key' => cded2.key,
-                                            'label' => cded2.label,
-                                            'value' => nil,
-                                          ),
-                                        ])
+
+        expect(elements.size).to eq(2)
+        expect(elements).to contain_exactly(
+          # cded with 2 values
+          a_hash_including(
+            'key' => cded.key,
+            'label' => cded.label,
+            'values' => contain_exactly(
+              a_hash_including('valueString' => 'value 2'),
+              a_hash_including('valueString' => 'value 1'),
+            ),
+          ),
+          # cded2 even though it has no values
+          a_hash_including(
+            'key' => cded2.key,
+            'label' => cded2.label,
+            'value' => nil,
+          ),
+        )
       end
     end
   end

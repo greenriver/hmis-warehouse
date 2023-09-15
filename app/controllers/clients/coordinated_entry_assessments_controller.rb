@@ -96,7 +96,7 @@ module Clients
     end
 
     private def title_for_show
-      "#{@client.name} - #{_ 'Coordinated Entry Assessment'}"
+      "#{@client.name} - #{Translation.translate('Coordinated Entry Assessment')}"
     end
 
     def flash_interpolation_options

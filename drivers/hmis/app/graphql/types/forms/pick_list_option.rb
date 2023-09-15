@@ -41,6 +41,15 @@ module Types
           sort_by_option(:organization_and_name).
           preload(:organization).
           map(&:to_pick_list_option)
+      when 'RESIDENTIAL_PROJECTS'
+        Hmis::Hud::Project.viewable_by(user).
+          # TODO: replace with call to HudUtility once project type groupings are moved there.
+          # FIXME: internally our definition of "residential" includes 4 (SO) and 9 (OPH) which
+          # are not valid for Residential project affiliations.
+          where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
@@ -54,7 +63,7 @@ module Types
       when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
         open_hoh_enrollments_for_project(project)
       when 'ENROLLMENTS_FOR_CLIENT'
-        enrollments_for_client(client)
+        enrollments_for_client(client, user: user)
       end
     end
 
@@ -136,9 +145,9 @@ module Types
 
     def self.coc_picklist(selected_project)
       available_codes = if selected_project.present?
-        selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility.cocs[code] || code] }
+        selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility2024.cocs[code] || code] }
       else
-        ::HudUtility.cocs_in_state(ENV['RELEVANT_COC_STATE'])
+        ::HudUtility2024.cocs_in_state(ENV['RELEVANT_COC_STATE'])
       end
 
       available_codes.sort.map do |code, name|
@@ -256,24 +265,31 @@ module Types
     end
 
     def self.living_situation_picklist(as:)
-      enum_value_definitions = Types::HmisSchema::Enums::Hud::LivingSituation.all_enum_value_definitions
-      to_option = ->(group_code, group_label) {
-        proc do |id|
+      enum_value_definitions = case as
+      when :prior
+        Types::HmisSchema::Enums::Hud::PriorLivingSituation.all_enum_value_definitions
+      when :current
+        Types::HmisSchema::Enums::Hud::CurrentLivingSituation.all_enum_value_definitions
+      when :destination
+        Types::HmisSchema::Enums::Hud::Destination.all_enum_value_definitions
+      end
+
+      [
+        [HudUtility2024::SITUATION_HOMELESS_RANGE, :HOMELESS, 'Homeless Situations'],
+        [HudUtility2024::SITUATION_INSTITUTIONAL_RANGE, :INSTITUTIONAL, 'Institutional Situations'],
+        [HudUtility2024::SITUATION_TEMPORARY_RANGE, :TEMPORARY, 'Temporary Housing Situations'],
+        [HudUtility2024::SITUATION_PERMANENT_RANGE, :PERMANENT, 'Permanent Housing Situations'],
+        [HudUtility2024::SITUATION_OTHER_RANGE, :OTHER, 'Other'],
+      ].map do |range, group_code, group_label|
+        enum_value_definitions.select { |e| range.include? e.value }.map do |enum|
           {
-            code: enum_value_definitions.find { |v| v.value == id }.graphql_name,
-            label: ::HudUtility.living_situation(id),
+            code: enum.graphql_name,
+            label: ::HudUtility2024.living_situation(enum.value),
             group_code: group_code,
             group_label: group_label,
           }
         end
-      }
-
-      homeless = ::HudUtility.homeless_situations(as: as).map(&to_option.call('HOMELESS', 'Homeless'))
-      institutional = ::HudUtility.institutional_situations(as: as).map(&to_option.call('INSTITUTIONAL', 'Institutional'))
-      temporary = ::HudUtility.temporary_and_permanent_housing_situations(as: as).map(&to_option.call('TEMPORARY_PERMANENT_OTHER', 'Temporary or Permanent'))
-      missing_reasons = ::HudUtility.other_situations(as: as).map(&to_option.call('MISSING', 'Other'))
-
-      homeless + institutional + temporary + missing_reasons
+      end.flatten
     end
 
     def self.file_tag_picklist
@@ -318,10 +334,10 @@ module Types
       end
     end
 
-    def self.enrollments_for_client(client)
+    def self.enrollments_for_client(client, user:)
       raise 'Client required' unless client.present?
 
-      enrollments = client.enrollments.preload(:project, :exit)
+      enrollments = client.enrollments.viewable_by(user).preload(:project, :exit)
       enrollments.sort_by_option(:most_recent).map do |en|
         {
           code: en.id,

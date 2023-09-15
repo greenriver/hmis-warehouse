@@ -19,7 +19,7 @@ module SystemPathways::DocumentExports
       {
         report: report,
         filter: filter,
-        title: _('System Pathways'),
+        title: Translation.translate('System Pathways'),
         pdf: false,
       }
     end

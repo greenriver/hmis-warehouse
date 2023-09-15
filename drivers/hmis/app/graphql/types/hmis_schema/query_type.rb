@@ -35,7 +35,13 @@ module Types
     end
 
     def client_search(input:, **args)
-      search_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user)
+      # if the search should also sort by rank
+      sorted = args[:sort_order] == :best_match
+      search_scope = Hmis::Hud::Client.client_search(
+        input: input.to_params,
+        user: current_user,
+        sorted: sorted,
+      )
       resolve_clients(search_scope, **args)
     end
 
@@ -44,12 +50,9 @@ module Types
     end
 
     def client_omni_search(text_search:)
-      client_scope = Hmis::Hud::Client.searchable_to(current_user).
+      Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
-        includes(:enrollments).
-        order(qualified_column(e_t[:date_updated]))
-
-      resolve_clients(client_scope, no_sort: true)
+        sort_by_option(:recently_added)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do

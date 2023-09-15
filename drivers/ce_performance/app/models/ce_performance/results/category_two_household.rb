@@ -31,7 +31,7 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Households Who Were Not Literally Homeless')
+      Translation.translate('Number of Households Who Were Not Literally Homeless')
     end
 
     def description
@@ -47,7 +47,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "#{value.to_i} #{unit}"
+      "#{number_with_delimiter(value.to_i)} #{unit}"
     end
 
     def unit

@@ -8,6 +8,9 @@ module GrdaWarehouse
   class Place < GrdaWarehouseBase
     include NotifierConfig
 
+    belongs_to :shape_zip_code, class_name: 'GrdaWarehouse::Shape::ZipCode', primary_key: 'zcta5ce10', foreign_key: 'zipcode', optional: true
+    belongs_to :shape_state, class_name: 'GrdaWarehouse::Shape::State', primary_key: 'stusps', foreign_key: 'state', optional: true
+
     NominatimApiPaused = Class.new(StandardError)
 
     def self.lookup_lat_lon(query: nil, city: nil, state: nil, postalcode: nil, country: 'us')
@@ -26,7 +29,13 @@ module GrdaWarehouse
           nr = nominatim_lookup(query, city, state, postalcode, country)
           if nr.present?
             lat_lon = { lat: nr.coordinates.first, lon: nr.coordinates.last, bounds: nr.boundingbox }.with_indifferent_access
-            Place.create!(location: key, lat_lon: lat_lon) if nr.present?
+            Place.create!(
+              location: key,
+              lat_lon: lat_lon,
+              city: nr.town,
+              state: nr.state,
+              zipcode: nr.postal_code,
+            )
           end
         end
       end
@@ -54,6 +63,11 @@ module GrdaWarehouse
       # we've probably been banned, let the API cool off
       Rails.cache.write(['Nominatim', 'API PAUSE'], true, expires_in: 1.hours)
       raise NominatimApiPaused
+    rescue StandardError => e
+      # The API returns various errors which we don't want to prevent continuing with other attempts.
+      # Just send it along to sentry and take a quick break
+      Sentry.capture_exception(e)
+      sleep 1
     end
   end
 end

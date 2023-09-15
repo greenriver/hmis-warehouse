@@ -69,6 +69,29 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "07ab3a48e4c84f40fe8acb270d962ed39424807b21c01793b91e44b25acfaf9e",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/shape/installer.rb",
+      "line": 86,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{ENV[\"RELEVANT_COC_STATE\"]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::Installer",
+        "method": "handle_one_geography!"
+      },
+      "user_input": "conf.dir",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "File Access",
       "warning_code": 16,
       "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",
@@ -98,7 +121,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 380,
+      "line": 383,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -180,6 +203,29 @@
       "confidence": "Weak",
       "cwe_id": [
         22
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "13d40d39bffa94f44c6f95387fdabf76e416286b0719000122e9aef86aa19737",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/shape/zip_code.rb",
+      "line": 84,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"UPDATE\\n  shape_zip_codes AS z\\nSET\\n  county_name_lower = LOWER(namelsad)\\nFROM\\n  shape_counties c\\nWHERE\\n  z.county_name_lower IS NULL\\n  AND z.st_geoid = '#{state_code}'\\n  AND\\n    (\\n      ST_Area(ST_Intersection(z.geom, c.geom))\\n      /\\n      ST_Area(z.geom)\\n      >\\n      0.95\\n    )\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::ZipCode",
+        "method": "GrdaWarehouse::Shape::ZipCode.calculate_counties"
+      },
+      "user_input": "state_code",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -272,6 +318,29 @@
       "confidence": "Medium",
       "cwe_id": [
         470
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "168084cf13d9d66ade4c8a5f23110d35d8053a9d18ddfbbf51c5b5f4992fca40",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/client_search_util/name_search.rb",
+      "line": 63,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientSearchUtil::NameSearch",
+        "method": "filter_clients"
+      },
+      "user_input": "term_score_sql(variant, :term_weight => ((1.0 or 0.75)))",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -496,6 +565,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "28192557fdc87a2d22854cc0142abf5ccf912edf546e232c283e21d80b35f5a5",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/client_search_util/name_search.rb",
+      "line": 120,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "ClientSearchUtil::ClientSearchableName.where(\"#{csn_fn(:last_name)} ILIKE #{q_ln_pfx} AND #{csn_fn(:full_name)} ILIKE #{q_fn_pfx}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientSearchUtil::NameSearch",
+        "method": "prefix_search_term_scope"
+      },
+      "user_input": "csn_fn(:last_name)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "2bf0a30baca275e9fa8c2b29b1d73e2238386744deb142c7beed0d3c09e243c7",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -667,6 +759,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "3ae7e132235db79de3138be77514c13366cf6e7df673025b772c6c5483b11064",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/client_search_util/name_search.rb",
+      "line": 127,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "ClientSearchUtil::ClientSearchableName.where(\"#{search_class.connection.quote(term)} <% #{csn_fn(:full_name)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientSearchUtil::NameSearch",
+        "method": "search_term_scope"
+      },
+      "user_input": "csn_fn(:full_name)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "3c34148ef3e1480d75ca0f84d0903a2c26b9006b0a35bb5a2ea4ef7aaa7a2500",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -730,6 +845,60 @@
       "confidence": "Medium",
       "cwe_id": [
         77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "3f9acb4ebf7508068bdbecac4a688c383544f4da0ca3967f5a51ea80f5bcb125",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/comprehensive_health_assessments/_show.haml",
+      "line": 104,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "Translation.translate(\"CHA L_Q1S1A_SUBHEADER\")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::CareplansController",
+          "method": "show",
+          "line": 62,
+          "file": "app/controllers/health/careplans_controller.rb",
+          "rendered": {
+            "name": "health/careplans/show",
+            "file": "app/views/health/careplans/show.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "health/careplans/show",
+          "line": 1,
+          "file": "app/views/health/careplans/show.haml",
+          "rendered": {
+            "name": "health/careplans/_show",
+            "file": "app/views/health/careplans/_show.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "health/careplans/_show",
+          "line": 7,
+          "file": "app/views/health/careplans/_show.haml",
+          "rendered": {
+            "name": "health/comprehensive_health_assessments/_show",
+            "file": "app/views/health/comprehensive_health_assessments/_show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/comprehensive_health_assessments/_show"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -960,29 +1129,6 @@
         470
       ],
       "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "5fb07f23d96197864df77d4b7aa712e9cf74547e169e91a8f107307827019e80",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/grda_warehouse/shape/installer.rb",
-      "line": 49,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{ENV[\"RELEVANT_COC_STATE\"]}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Shape::Installer",
-        "method": "run!"
-      },
-      "user_input": "conf.dir",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": "Injection from internal sources"
     },
     {
       "warning_type": "Dynamic Render Path",
@@ -1248,6 +1394,39 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "7c1f3be4bc3c222b890000bc731faebbb80513033b3c9330f0c7b0628be39c5d",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_glossary_content.haml",
+      "line": 11,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "Redcarpet::Markdown.new(::TranslatedHtml).render(Translation.translate(\"Public Report Glossary\"))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "public_reports/warehouse_reports/state_level_homelessness/entering_exiting",
+          "line": 11,
+          "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/entering_exiting.haml",
+          "rendered": {
+            "name": "public_reports/warehouse_reports/state_level_homelessness/_glossary_content",
+            "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_glossary_content.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "public_reports/warehouse_reports/state_level_homelessness/_glossary_content"
+      },
+      "user_input": "Translation.translate(\"Public Report Glossary\")",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "7c23c32e38cb863eb92c15f8db6f7c142ce3245181ee3c751a89326541deb11c",
@@ -1290,6 +1469,50 @@
       "confidence": "Weak",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "7ce9556ff0c07a7f1884e3d229a5ad86fcf69b73de4c708bbaa135f5c774a148",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/admin/health/patient_referrals/_paginate.haml",
+      "line": 12,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "pagy_info(@pagy, :item_name => Translation.translate(\"patient\").pluralize(@pagy.count))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Admin::Health::AgencyPatientReferralsController",
+          "method": "reviewed",
+          "line": 80,
+          "file": "app/controllers/admin/health/agency_patient_referrals_controller.rb",
+          "rendered": {
+            "name": "admin/health/agency_patient_referrals/index",
+            "file": "app/views/admin/health/agency_patient_referrals/index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "admin/health/agency_patient_referrals/index",
+          "line": 7,
+          "file": "app/views/admin/health/agency_patient_referrals/index.haml",
+          "rendered": {
+            "name": "admin/health/patient_referrals/_paginate",
+            "file": "app/views/admin/health/patient_referrals/_paginate.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/health/patient_referrals/_paginate"
+      },
+      "user_input": "Translation.translate(\"patient\").pluralize(@pagy.count)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -1497,6 +1720,39 @@
       "confidence": "Weak",
       "cwe_id": [
         22
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "828e7cacc1cddd03e143f7ac9a7a47c0493371ca16be327d284ec5a12d64b102",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/common/_pagination_bottom.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "pagy_info(@pagy, :item_name => Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "access_controls/_table",
+          "line": 29,
+          "file": "app/views/access_controls/_table.haml",
+          "rendered": {
+            "name": "common/_pagination_bottom",
+            "file": "app/views/common/_pagination_bottom.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "common/_pagination_bottom"
+      },
+      "user_input": "Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -2089,6 +2345,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "af923f7adbadbb51b8aa204d9c1085fb31bcc92a74cc1d9f0eab00e6813c0db4",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/client_search_util/name_search.rb",
+      "line": 71,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"MAX(#{term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 1.0)}) AS search_score\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientSearchUtil::NameSearch",
+        "method": "filter_clients"
+      },
+      "user_input": "term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 1.0)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "b16f9b9fa5ec6ee98d24cc67ae42abf131bc179999e5d2a49491b67783f32dce",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -2156,6 +2435,29 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "b606981f484b210f6c91b917e6c6646588bbc30b29ada9e65ce6f7cd8e6967f1",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/client_search_util/name_search.rb",
+      "line": 80,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "scope.joins(\"JOIN (#{([ActiveSupport::Inflector.transliterate(original_term)] + expand_nicknames(original_term).map do\n ActiveSupport::Inflector.transliterate(variant)\n end).map do\n term_weight = if (variant == ActiveSupport::Inflector.transliterate(original_term)) then\n  1.0\nelse\n  0.75\nend\nscore_sql = term_score_sql(variant, :term_weight => ((1.0 or 0.75)))\nsearch_term_scope(variant).group(:client_id).select(:client_id, Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\"))\n end.compact.map do\n \"(#{query.to_sql})\"\n end.join(\" UNION \")}) names ON \\\"Client\\\".id = names.client_id\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientSearchUtil::NameSearch",
+        "method": "filter_clients"
+      },
+      "user_input": "([ActiveSupport::Inflector.transliterate(original_term)] + expand_nicknames(original_term).map do\n ActiveSupport::Inflector.transliterate(variant)\n end).map do\n term_weight = if (variant == ActiveSupport::Inflector.transliterate(original_term)) then\n  1.0\nelse\n  0.75\nend\nscore_sql = term_score_sql(variant, :term_weight => ((1.0 or 0.75)))\nsearch_term_scope(variant).group(:client_id).select(:client_id, Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\"))\n end.compact.map do\n \"(#{query.to_sql})\"\n end.join(\" UNION \")",
+      "confidence": "Weak",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "b86000207c4fe44ca5dd3bcc3d9a87789cfaab516d90a3c76a5b4a25d8e91e55",
@@ -2219,6 +2521,39 @@
       "confidence": "Weak",
       "cwe_id": [
         22
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "ba7ed6d18a2d707e0ae91bc46052cd48e1690d7525a04ef9fd808981dd4f170b",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/common/_pagination_top.haml",
+      "line": 2,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "pagy_info(@pagy, :item_name => Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "access_controls/_table",
+          "line": 1,
+          "file": "app/views/access_controls/_table.haml",
+          "rendered": {
+            "name": "common/_pagination_top",
+            "file": "app/views/common/_pagination_top.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "common/_pagination_top"
+      },
+      "user_input": "Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -2485,29 +2820,6 @@
       "note": ""
     },
     {
-      "warning_type": "Redirect",
-      "warning_code": 18,
-      "fingerprint": "cf9fa747c96c496625affc43ebc9ecdb01c696ca61f911e2de7da2f6188b251d",
-      "check_name": "Redirect",
-      "message": "Possible unprotected redirect",
-      "file": "app/controllers/admin/translation_keys_controller.rb",
-      "line": 64,
-      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(TranslationKey.find(params[:id].to_i))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Admin::TranslationKeysController",
-        "method": "update"
-      },
-      "user_input": "params[:id].to_i",
-      "confidence": "Weak",
-      "cwe_id": [
-        601
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "d0aeca6a54dc98ea4111145a33891543c430827b884255ef5de11c6c3f977b97",
@@ -2537,7 +2849,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 80,
+      "line": 78,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -3128,6 +3440,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-08-28 19:28:54 +0000",
+  "updated": "2023-09-12 23:20:51 +0000",
   "brakeman_version": "5.4.1"
 }

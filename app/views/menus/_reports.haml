@@ -4,8 +4,8 @@
       %li.o-menu__item
         - url = Rails.application.config.hud_reports.values.sort_by { |row| row[:title] }.first[:helper]
         = link_to public_send(url), class: 'o-menu__link' do
-          = _("HUD Reports")
+          = Translation.translate("HUD Reports")
     - if can_view_any_reports?
       %li.o-menu__item
         = link_to warehouse_reports_path, class: 'o-menu__link' do
-          = _("Reports")
+          = Translation.translate("Reports")

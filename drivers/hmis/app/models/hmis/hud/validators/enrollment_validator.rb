@@ -9,12 +9,13 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     :ExportID,
     :DateCreated,
     :DateUpdated,
+    :EnrollmentCoC,
     :ProjectID, # allowed to be null if wip record is present
     :LastPermanentZIP,
   ].freeze
 
   def configuration
-    Hmis::Hud::Enrollment.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Enrollment.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def self.one_hoh_full_message
@@ -30,22 +31,46 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
   end
 
   def self.already_enrolled_full_message
-    'Client is already enrolled in this project.'
+    'Client has another enrollment in this project that conflicts with this entry date.'
+  end
+
+  def self.find_conflict_severity(enrollment)
+    conflict_scope = Hmis::Hud::Enrollment
+      .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
+      .with_conflicting_dates(project: enrollment.project, range: enrollment.entry_date...enrollment.exit_date)
+
+    if enrollment.persisted?
+      # If the entry date is being changed on an EXISTING enrollment, and it overlaps with another one, it should be a warning
+      conflict_scope = conflict_scope.where.not(id: enrollment.id)
+      return :warning if conflict_scope.any?
+    else
+      min_conflict_date = conflict_scope.minimum(:entry_date)
+      if min_conflict_date
+        # If the entry date is being set on a NEW enrollment, and the entry date is on or after the entry date of any conflicting enrollments, it should be an error.
+        return :error if enrollment.entry_date >= min_conflict_date
+
+        # if the entry date is being set on a NEW enrollment, and the entry date is before the entry date of any conflicting enrollments, it should be a warning
+        return :warning if enrollment.entry_date < min_conflict_date
+      end
+    end
   end
 
   def self.validate_entry_date(enrollment, household_members: nil, options: {})
-    entry_date = enrollment.entry_date
+    entry_date = enrollment&.entry_date
     return [] unless entry_date.present?
 
     errors = HmisErrors::Errors.new
     dob = enrollment.client&.dob
-    exit_date = enrollment&.exit_date
+    exit_date = enrollment.exit_date
 
     errors.add :entry_date, :out_of_range, message: future_message, **options if entry_date.future?
     errors.add :entry_date, :out_of_range, message: over_twenty_years_ago_message, **options if entry_date < (Date.today - 20.years)
     errors.add :entry_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > entry_date
     errors.add :entry_date, :out_of_range, message: after_exit_message(exit_date), **options if exit_date.present? && exit_date < entry_date
     return errors.errors if errors.any?
+
+    conflict_severity = find_conflict_severity(enrollment)
+    errors.add(:entry_date, :out_of_range, severity: conflict_severity, full_message: already_enrolled_full_message) if conflict_severity
 
     unless enrollment.head_of_household?
       household_members ||= enrollment.household_members
@@ -78,11 +103,6 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
       errors.add :relationship_to_hoh, :invalid, full_message: first_member_hoh_full_message if !is_hoh && !has_hoh && household_members.empty?
       # Error: adding non-HoH member to hh that lacks HoH
       errors.add :relationship_to_hoh, :invalid, full_message: one_hoh_full_message if !is_hoh && !has_hoh && household_members.exists?
-
-      # Warning: client is already enrolled in this project
-      # NOTE: only warns if there are eixisting active enrollments, not WIP enrollments
-      already_enrolled = record.entry_date.present? && Hmis::Hud::Enrollment.where(**record.slice(:project_id, :personal_id, :data_source_id)).open_on_date(record.entry_date).exists?
-      errors.add :base, :information, severity: :warning, full_message: already_enrolled_full_message if already_enrolled
     end
 
     errors.errors

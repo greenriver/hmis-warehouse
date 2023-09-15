@@ -10,7 +10,9 @@ module Types
   class Forms::FormDefinition < Types::BaseObject
     description 'FormDefinition'
     field :id, ID, null: false
+    field :cache_key, ID, null: false
     field :role, Types::Forms::Enums::FormRole, null: false
+    field :title, String, null: false
     field :definition, Forms::FormDefinitionJson, null: false
 
     # Filtering is implemented within this resolver rather than a separate concern. This
@@ -19,6 +21,10 @@ module Types
     # class down the road
     def definition
       eval_items([object.definition])[0]
+    end
+
+    def cache_key
+      [object.id, project&.id, active_date].join('|')
     end
 
     protected
@@ -95,7 +101,7 @@ module Types
       when 'projectFunders'
         project_funders.map { |f| f.funder&.to_i }.compact_blank
       when 'projectFunderComponents'
-        project_funders.map { |f| HudUtility.funder_component(f.funder&.to_i) }.compact_blank
+        project_funders.map { |f| HudUtility2024.funder_component(f.funder&.to_i) }.compact_blank
       when 'projectOtherFunders'
         project_funders.map(&:other_funder).compact_blank
       else

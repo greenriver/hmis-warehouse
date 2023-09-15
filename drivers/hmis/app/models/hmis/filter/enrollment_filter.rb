@@ -9,6 +9,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
     scope.
       yield_self(&method(:with_statuses)).
       yield_self(&method(:with_open_on_date)).
+      yield_self(&method(:with_bed_night_on_date)).
       yield_self(&method(:with_project_types)).
       yield_self(&method(:with_search_term)).
       yield_self(&method(:clean_scope))
@@ -34,6 +35,10 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
 
   def with_open_on_date(scope)
     with_filter(scope, :open_on_date) { scope.open_on_date(input.open_on_date) }
+  end
+
+  def with_bed_night_on_date(scope)
+    with_filter(scope, :bed_night_on_date) { scope.bed_night_on_date(input.bed_night_on_date) }
   end
 
   def with_project_types(scope)

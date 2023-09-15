@@ -12,9 +12,8 @@ class OrganizationsController < ApplicationController
 
   def destroy
     name = @organization.OrganizationName
-    @organization.destroy_dependents!
-    @organization.destroy
-    flash[:notice] = "Organization: #{name} was successfully removed."
+    DeleteItemJob.perform_later(item_id: @organization.id, item_class: @organization.class.name)
+    flash[:notice] = "Organization: #{name} was successfully queued for removal.  Please check back in a few minutes."
     respond_with @organization, location: data_source_path(@organization.data_source)
   end
 

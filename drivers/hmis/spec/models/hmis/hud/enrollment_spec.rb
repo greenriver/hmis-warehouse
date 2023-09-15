@@ -18,6 +18,49 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
   include_context 'hmis base setup'
 
+  it 'detects date conflicts' do
+    [
+      # [ enter, exit, cmp enter, cmp exit, conflict expected ]
+      ['2000-01-01', '2000-01-01', '2000-01-01', nil, true, 'enter on exited entry date'],
+      ['2000-01-01', '2000-01-03', '2000-01-02', nil, true, 'enter between exited entry and exit'],
+      ['2000-01-02', '2000-01-03', '2000-01-01', nil, true, 'enter before existing entry'],
+      ['2000-01-01', nil,          '2000-01-02', nil, true, 'enter after another active'],
+      ['2000-01-01', '2000-01-02', '2000-01-02', nil, false, 'enter on exited exit date'],
+      ['2000-01-01', '2000-01-02', '2000-01-03', nil, false, 'enter after exited exit date'],
+
+      ['2000-01-01', '2000-01-01', '2000-01-01', '2001-01-01', true, 'exit and enter on same day'],
+      ['2001-01-02', nil,          '2001-01-01', '2001-01-03', true, 'exit after open entry'],
+      ['2001-01-02', '2001-01-02', '2001-01-01', '2001-01-02', false, 'exit on same-day exited entry date'],
+      ['2001-01-01', '2001-01-02', '2001-01-02', '2001-01-02', false, 'exit on exited entry date'],
+      ['2001-01-02', nil,          '2001-01-01', '2001-01-02', false, 'exit on active entry date'],
+      ['2001-01-03', '2001-01-04', '2001-01-01', '2001-01-02', false, 'exit before entry date'],
+      ['2001-01-01', '2001-01-02', '2001-01-03', '2001-01-04', false, 'exit after exit date'],
+    ].each do |row|
+      message = row.pop
+      expect_conflict = row.pop
+      entry_date, exit_date, range_start, range_end = row.map { |s| s ? Date.parse(s) : nil }
+
+      enrollment = create(:hmis_hud_enrollment, EntryDate: entry_date, data_source: ds1)
+      if exit_date
+        exit = create(
+          :hmis_hud_exit,
+          enrollment: enrollment,
+          data_source: ds1,
+          EnrollmentID: enrollment.enrollment_id,
+          PersonalID: enrollment.personal_id,
+        )
+        # override calculated date from factory
+        exit.update!(exit_date: exit_date)
+      end
+
+      conflict = enrollment
+        .client.enrollments
+        .with_conflicting_dates(project: enrollment.project, range: range_start..range_end)
+        .any?
+      expect(conflict).to eq(expect_conflict), "#{message} should #{expect_conflict ? 'conflict' : 'not conflict'}"
+    end
+  end
+
   describe 'in progress enrollments' do
     let!(:enrollment) { build(:hmis_hud_enrollment) }
     before(:each) do
@@ -45,7 +88,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       create(:hmis_disability, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_health_and_dv, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_current_living_situation, data_source: enrollment.data_source, enrollment: enrollment)
-      create(:hmis_enrollment_coc, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_hud_assessment, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_employment_education, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_youth_education_status, data_source: enrollment.data_source, enrollment: enrollment)
@@ -76,7 +118,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         :disabilities,
         :health_and_dvs,
         :current_living_situations,
-        :enrollment_cocs,
         :assessments,
         :employment_educations,
         :youth_education_statuses,
@@ -95,7 +136,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         :disabilities,
         :health_and_dvs,
         :current_living_situations,
-        :enrollment_cocs,
         :assessments,
         :employment_educations,
         :youth_education_statuses,

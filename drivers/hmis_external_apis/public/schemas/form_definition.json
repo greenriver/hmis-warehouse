@@ -27,7 +27,12 @@
       "additionalProperties": false,
       "required": ["code"],
       "properties": {
-        "code": { "type": "string" }
+        "code": { "type": "string" },
+        "label": { "type": "string" },
+        "secondary_label": { "type": "string" },
+        "group_code": { "type": "string" },
+        "group_label": { "type": "string" },
+        "initial_selected": { "type": "string" }
       }
     },
     "bounds": {
@@ -40,7 +45,8 @@
         "type": { "type": "string" },
         "question": { "type": "string" },
         "value_local_constant": { "type": "string" },
-        "offset": { "type": "integer" }
+        "offset": { "type": "integer" },
+        "severity": { "enum": ["error", "warning"] }
       }
     },
     "rule": {
