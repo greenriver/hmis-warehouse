@@ -42,53 +42,56 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       client
     end
 
-    # Examples all have a first name, so that we don't hit the "first or last required" err
-    LAST_REQUIRED = [
-      [:required, :last_name],
-    ].freeze
+    let(:last_required) do
+      [[:required, :last_name]]
+    end
 
-    ALL_MCI_FIELDS = [
-      *LAST_REQUIRED,
-      [:invalid, :name_data_quality],
-      [:required, :dob],
-      [:invalid, :dob_data_quality],
-    ].freeze
+    let(:all_fields_required) do
+      [
+        *last_required,
+        [:invalid, :name_data_quality],
+        [:required, :dob],
+        [:invalid, :dob_data_quality],
+      ]
+    end
 
-    ALL_MCI_FIELDS_AND_MCI = [
-      *ALL_MCI_FIELDS,
-      [:required, :mci_id],
-    ].freeze
+    let(:all_fields_and_mci_required) do
+      [
+        *all_fields_required,
+        [:required, :mci_id],
+      ]
+    end
 
     describe 'when submitting Client Form' do
       it 'should require all MCI fields (new client)' do
-        expect_validations(c2, expected_errors: ALL_MCI_FIELDS_AND_MCI, context: :client_form)
+        expect_validations(c2, expected_errors: all_fields_and_mci_required, context: :client_form)
       end
 
       it 'should require all MCI fields (persisted client with no enrollments)' do
-        expect_validations(c1, expected_errors: ALL_MCI_FIELDS_AND_MCI, context: :client_form)
+        expect_validations(c1, expected_errors: all_fields_and_mci_required, context: :client_form)
       end
 
       it 'should not require MCI fields (persisted client with only NBN enrollments)' do
         create(:hmis_hud_enrollment, data_source: ds1, project: nbn, client: c1)
-        expect_validations(c1, expected_errors: LAST_REQUIRED, context: :client_form)
+        expect_validations(c1, expected_errors: last_required, context: :client_form)
       end
 
       it 'should require MCI fields (persisted client with only NBN enrollments that has already been cleared)' do
         c1.create_mci_id = true
         create(:hmis_hud_enrollment, data_source: ds1, project: nbn, client: c1)
-        expect_validations(c2, expected_errors: ALL_MCI_FIELDS_AND_MCI, context: :client_form)
+        expect_validations(c2, expected_errors: all_fields_and_mci_required, context: :client_form)
       end
 
       it 'should require MCI fields (persisted client with NBN & RRH enrollments)' do
         create(:hmis_hud_enrollment, data_source: ds1, project: nbn, client: c1)
         create(:hmis_hud_enrollment, data_source: ds1, project: rrh, client: c1)
-        expect_validations(c2, expected_errors: ALL_MCI_FIELDS_AND_MCI, context: :client_form)
+        expect_validations(c2, expected_errors: all_fields_and_mci_required, context: :client_form)
       end
     end
 
     it 'should require first/last on new client enrollment form' do
-      expect_validations(c1, expected_errors: LAST_REQUIRED, context: :new_client_enrollment_form)
-      expect_validations(c2, expected_errors: LAST_REQUIRED, context: :new_client_enrollment_form)
+      expect_validations(c1, expected_errors: last_required, context: :new_client_enrollment_form)
+      expect_validations(c2, expected_errors: last_required, context: :new_client_enrollment_form)
     end
 
     it 'should accept primary name in names array as valid first/last' do
@@ -99,8 +102,8 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     it 'should require MCI fields on new client enrollment form if extra context is included' do
       # Note: doesn't validate MCI ID field. That happens on Enrollment because the client doesn't know which project
       # that it's being created in.
-      expect_validations(c1, expected_errors: ALL_MCI_FIELDS, context: [:new_client_enrollment_form, :enrollment_requiring_mci])
-      expect_validations(c2, expected_errors: ALL_MCI_FIELDS, context: [:new_client_enrollment_form, :enrollment_requiring_mci])
+      expect_validations(c1, expected_errors: all_fields_required, context: [:new_client_enrollment_form, :enrollment_requiring_mci])
+      expect_validations(c2, expected_errors: all_fields_required, context: [:new_client_enrollment_form, :enrollment_requiring_mci])
     end
   end
 end

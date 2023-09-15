@@ -26,30 +26,29 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
   describe 'AC Enrollment validation' do
     let!(:mci_cred) { create(:ac_hmis_mci_credential) }
+    let(:first_last_required) do
+      [
+        [:required, :first_name],
+        [:required, :last_name],
+      ]
+    end
 
-    FIRST_LAST = [
-      [:required, :first_name],
-      [:required, :last_name],
-    ].freeze
-
-    MCI_FIELD = [
-      [:required, :mci_id],
-    ].freeze
-
-    ALL_MCI_FIELDS = [
-      *FIRST_LAST,
-      [:invalid, :name_data_quality],
-      [:required, :dob],
-      [:invalid, :dob_data_quality],
-      *MCI_FIELD,
-    ].freeze
+    let(:all_fields_and_mci_required) do
+      [
+        *first_last_required,
+        [:invalid, :name_data_quality],
+        [:required, :dob],
+        [:invalid, :dob_data_quality],
+        [:required, :mci_id],
+      ]
+    end
 
     describe 'should validate when enrolling an EXISTING client' do
       let(:client) { create(:hmis_hud_client, data_source: ds1, first_name: nil, last_name: nil, dob: nil, name_data_quality: 8, dob_data_quality: 9) }
 
       it 'in RRH project (only validate presence of MCI, not individual name fields)' do
         en = build(:hmis_hud_enrollment, data_source: ds1, project: rrh, client: client)
-        expect_validations(en, expected_errors: MCI_FIELD, context: :enrollment_form)
+        expect_validations(en, expected_errors: [[:required, :mci_id]], context: :enrollment_form)
       end
 
       it 'in ES NBN project (no validations, MCI not required)' do
@@ -63,12 +62,12 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
       it 'in RRH project (all fields required, and clearance)' do
         en = build(:hmis_hud_enrollment, data_source: ds1, project: rrh, client: client)
-        expect_validations(en, expected_errors: ALL_MCI_FIELDS, context: :new_client_enrollment_form)
+        expect_validations(en, expected_errors: all_fields_and_mci_required, context: :new_client_enrollment_form)
       end
 
       it 'in ES NBN project (first/last required)' do
         en = build(:hmis_hud_enrollment, data_source: ds1, project: nbn, client: client)
-        expect_validations(en, expected_errors: FIRST_LAST, context: :new_client_enrollment_form)
+        expect_validations(en, expected_errors: first_last_required, context: :new_client_enrollment_form)
       end
     end
 
