@@ -24,9 +24,9 @@ module HudChronicDefinition
     # Must be homeless for all of the last 12 months
     #   OR
     # Must be homeless 12 of the last 36 with 4 episodes
-    def hud_chronic?(on_date: Date.current, scope: source_enrollments)
+    def hud_chronic?(on_date: Date.current, scope: source_enrollments, disability_join: :source_enrollment_disabilities, client_join: :destination_client)
       @hud_chronic_data = {}
-      return unless disabled?(on_date: on_date, client_id: id, scope: scope)
+      return unless disabled?(on_date: on_date, client_id: id, scope: scope, disability_join: disability_join, client_join: client_join)
 
       if months_12_homeless?(on_date: on_date, scope: scope)
         @hud_chronic_data[:trigger] = 'All 12 of the last 12 months homeless'
@@ -118,9 +118,12 @@ module HudChronicDefinition
       months_homeless >= 12
     end
 
-    def disabled?(on_date:, client_id: id, scope: source_enrollments)
+    def disabled?(on_date:, client_id: id, scope: source_enrollments, disability_join: :source_enrollment_disabilities, client_join: :destination_client)
       @disabled_clients ||= Rails.cache.fetch('chronically_disabled_clients', expires_in: 8.hours) do
-        GrdaWarehouse::Hud::Client.chronically_disabled(on_date, enrollment_scope: scope).pluck(:id)
+        d_ids = GrdaWarehouse::Hud::Client.chronically_disabled(on_date, join: disability_join).pluck(:id)
+        c_ids = scope.joins(client_join).pluck(c_t[:id])
+        # return the ids of clients who have a disabling condition and are also in the enrollment
+        d_ids & c_ids
       end
       @disabled_clients.include?(client_id)
     end
