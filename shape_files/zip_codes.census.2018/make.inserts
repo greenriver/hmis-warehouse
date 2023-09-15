@@ -6,19 +6,26 @@ require 'zip'
 
 FileUtils.chdir(Pathname.new(__FILE__).dirname)
 
-Dir.glob("*.zip").each do |zipfile_path|
+Dir.glob('*.zip').each do |zipfile_path|
   Zip::File.open(zipfile_path) do |zipfile|
     zipfile.each do |file|
-      zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
+      zipfile.extract(file, file.name.to_s) unless File.exist?(file.name)
     end
   end
 end
 
-system('shp2pgsql -s 4269:4326 -p -I tl_2018_us_zcta510.shp shape_zip_codes > zip.codes.structure.sql')
+# Reproject with another tool so that the inserts to postres don't involve a
+# transform
+# apk add gdal-tools
+# https://gdal.org/programs/ogr2ogr.html
+# system('ogr2ogr -t_srs EPSG:4326 tl_2018_us_zcta510.reprojected.4326.shp tl_2018_us_zcta510.shp")
 
-system(<<~EOS)
-  shp2pgsql -s 4269:4326 -c -I tl_2018_us_zcta510.shp shape_zip_codes \
+system('shp2pgsql -p -I tl_2018_us_zcta510.reprojected.4326.shp shape_zip_codes > zip.codes.structure.sql')
+# system('shp2pgsql -s 4269:4326 -p -I tl_2018_us_zcta510.shp shape_zip_codes > zip.codes.structure.sql')
+
+system(<<~HEREDOC)
+  shp2pgsql -s 4326 -c -I tl_2018_us_zcta510.reprojected.4326.shp shape_zip_codes \
     | sed -e 's/gid/id/' \
     | grep INSERT \
     > inserts.sql
-EOS
+HEREDOC
