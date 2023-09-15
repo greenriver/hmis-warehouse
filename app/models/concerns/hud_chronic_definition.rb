@@ -24,30 +24,32 @@ module HudChronicDefinition
     # Must be homeless for all of the last 12 months
     #   OR
     # Must be homeless 12 of the last 36 with 4 episodes
-    def hud_chronic?(on_date: Date.current, scope: source_enrollments, disability_join: :source_enrollment_disabilities, client_join: :destination_client)
+    def hud_chronic?(on_date: Date.current, scope: nil)
       @hud_chronic_data = {}
-      return unless disabled?(on_date: on_date, client_id: id, scope: scope, disability_join: disability_join, client_join: client_join)
+      return false unless disabled?(on_date: on_date, client_id: id, scope: scope)
 
       if months_12_homeless?(on_date: on_date, scope: scope)
         @hud_chronic_data[:trigger] = 'All 12 of the last 12 months homeless'
-        true
+        return true
       elsif times_4_homeless?(on_date: on_date, scope: scope)
         @hud_chronic_data[:trigger] = 'Four or more episodes of homelessness in the past three years and '
         if months_homeless_past_three_years_more_than_12?(on_date: on_date, scope: scope)
           @hud_chronic_data[:trigger] += '12+ months homeless'
-          true
+          return true
         elsif total_months_homeless_more_than_12?(on_date: on_date, scope: scope)
           @hud_chronic_data[:trigger] += '12+ month on the street or in ES or SH'
-          true
+          return true
         end
       end
+      false
     end
 
     # Has is been at least 12 months since client was
     # first homeless to on_date?
-    def months_12_homeless?(on_date:, scope: source_enrollments)
+    def months_12_homeless?(on_date:, scope:)
+      scope = source_enrollments if scope.nil?
       @hud_chronic_data ||= {}
-      date_to_street = scope.in_project_type(HudUtility2024.chronic_project_types).
+      date_to_street = scope.with_project_type(HudUtility2024.chronic_project_types).
         ongoing(on_date: on_date).
         order(entry_date: :desc).
         first&.DateToStreetESSH
@@ -60,9 +62,10 @@ module HudChronicDefinition
     end
 
     # Has the client been homeless 4 times within the past
-    # 3 years?
-    def times_4_homeless?(on_date:, scope: source_enrollments)
-      times_on_street = scope.in_project_type(HudUtility2024.chronic_project_types).
+    # 3 years? (3.917.4)
+    def times_4_homeless?(on_date:, scope:)
+      scope = source_enrollments if scope.nil?
+      times_on_street = scope.with_project_type(HudUtility2024.chronic_project_types).
         ongoing(on_date: on_date).
         order(entry_date: :desc).
         first&.TimesHomelessPastThreeYears
@@ -72,7 +75,7 @@ module HudChronicDefinition
     # Has the client been homeless for more than 12 months
     # in the past 3 years
     #
-    # MonthsHomelessPastThreeYears
+    # MonthsHomelessPastThreeYears (3.917.5)
     # ----------------------------
     # 8   Client doesn't know
     # 9   Client refused
@@ -91,8 +94,9 @@ module HudChronicDefinition
     # 112 12
     # 113 More than 12 months
 
-    def months_homeless_past_three_years_more_than_12?(on_date:, scope: source_enrollments)
-      months_on_street = scope.in_project_type(HudUtility2024.chronic_project_types).
+    def months_homeless_past_three_years_more_than_12?(on_date:, scope:)
+      scope = source_enrollments if scope.nil?
+      months_on_street = scope.with_project_type(HudUtility2024.chronic_project_types).
         ongoing(on_date: on_date).
         order(entry_date: :desc).
         first&.MonthsHomelessPastThreeYears
@@ -103,9 +107,10 @@ module HudChronicDefinition
       months_on_street > 111
     end
 
-    # Has the client been homeless more than 12 months
-    def total_months_homeless_more_than_12?(on_date:, scope: source_enrollments)
-      entry = scope.in_project_type(HudUtility2024.chronic_project_types).
+    # Has the client been homeless more than 12 months (3.917.5)
+    def total_months_homeless_more_than_12?(on_date:, scope:)
+      scope = source_enrollments if scope.nil?
+      entry = scope.with_project_type(HudUtility2024.chronic_project_types).
         ongoing(on_date: on_date).
         order(entry_date: :desc).first
       months_on_street = entry&.MonthsHomelessPastThreeYears
@@ -118,14 +123,20 @@ module HudChronicDefinition
       months_homeless >= 12
     end
 
-    def disabled?(on_date:, client_id: id, scope: source_enrollments, disability_join: :source_enrollment_disabilities, client_join: :destination_client)
+    # Scope must be a set of source enrollments.  If provided it is used to limit the source of the disability response
+    # NOTE: providing a scope will cause an extra SQL query
+    # client_id is always expected to be a destination client ID
+    def disabled?(on_date:, client_id: id, scope: nil)
       @disabled_clients ||= Rails.cache.fetch('chronically_disabled_clients', expires_in: 8.hours) do
-        d_ids = GrdaWarehouse::Hud::Client.chronically_disabled(on_date, join: disability_join).pluck(:id)
-        c_ids = scope.joins(client_join).pluck(c_t[:id])
-        # return the ids of clients who have a disabling condition and are also in the enrollment
-        d_ids & c_ids
+        GrdaWarehouse::Hud::Client.destination.chronically_disabled(on_date).pluck(:id).to_set
       end
-      @disabled_clients.include?(client_id)
+      disabled = @disabled_clients.include?(client_id)
+      return false unless disabled
+      return true if scope.nil?
+
+      # at this point, the destination client is considered to have a disabling condition,
+      # but we were given a scope, and need to confirm the source of the condition is within the scope
+      scope.where(id: GrdaWarehouse::Hud::Client.destination.chronically_disabled(on_date).select(e_t[:id])).exists?
     end
   end
 end
