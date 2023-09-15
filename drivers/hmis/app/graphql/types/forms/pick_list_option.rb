@@ -63,7 +63,7 @@ module Types
       when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
         open_hoh_enrollments_for_project(project)
       when 'ENROLLMENTS_FOR_CLIENT'
-        enrollments_for_client(client)
+        enrollments_for_client(client, user: user)
       end
     end
 
@@ -334,10 +334,10 @@ module Types
       end
     end
 
-    def self.enrollments_for_client(client)
+    def self.enrollments_for_client(client, user:)
       raise 'Client required' unless client.present?
 
-      enrollments = client.enrollments.preload(:project, :exit)
+      enrollments = client.enrollments.viewable_by(user).preload(:project, :exit)
       enrollments.sort_by_option(:most_recent).map do |en|
         {
           code: en.id,
