@@ -88,7 +88,21 @@ module HmisCsvTwentyTwentyFour::Exporter
             output_file: File.join(@file_path, file_name_for(export_class)),
           },
         )
-        GrdaWarehouse::Hud::Export.transaction(isolation: :repeatable_read) do
+
+        # You can't have an isolation level in a nested transaction (which is
+        # the case if this code is called from a transactional spec. This keeps
+        # the existing behavior but lets specs run as well
+        maybe_in_transaction = ->(&block) do
+          if GrdaWarehouse::Hud::Export.connection.open_transactions.blank?
+            GrdaWarehouse::Hud::Export.transaction(isolation: :repeatable_read) do
+              block.call
+            end
+          else
+            block.call
+          end
+        end
+
+        maybe_in_transaction.call do
           exportable_files.each do |destination_class, opts|
             opts[:export] = @export
             options[:export] = @export

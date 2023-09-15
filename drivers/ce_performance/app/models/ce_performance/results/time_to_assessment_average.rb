@@ -23,7 +23,7 @@ module CePerformance
     end
 
     def self.title
-      _('Average Length of time from Access to Assessment')
+      Translation.translate('Average Length of time from Access to Assessment')
     end
 
     def description

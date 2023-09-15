@@ -18,4 +18,4 @@
         = render 'clients/files/batch_download'
   = render 'clients/files/file_list', files: @consent_files, paginate: false, consent: true
 - else
-  = _('No releases on file')
+  = Translation.translate('No releases on file')

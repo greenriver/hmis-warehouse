@@ -689,7 +689,7 @@ module Filters
     end
 
     def all_project_scope
-      GrdaWarehouse::Hud::Project.viewable_by(user)
+      GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
     end
 
     def all_organizations_scope
@@ -713,8 +713,7 @@ module Filters
     end
 
     def all_project_group_scope
-      GrdaWarehouse::ProjectGroup.joins(:projects).
-        merge(all_project_scope)
+      GrdaWarehouse::ProjectGroup.all
     end
 
     # Select display options

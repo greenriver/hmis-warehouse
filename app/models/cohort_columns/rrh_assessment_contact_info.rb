@@ -8,7 +8,7 @@ module CohortColumns
   class RrhAssessmentContactInfo < ReadOnly
     attribute :column, String, lazy: true, default: :rrh_assessment_contact_info
     attribute :translation_key, String, lazy: true, default: 'RRH Income Maximization Contact'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def available_for_rules?
       false

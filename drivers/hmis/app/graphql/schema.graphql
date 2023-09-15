@@ -868,6 +868,11 @@ enum ClientSortOption {
   AGE_YOUNGEST_TO_OLDEST
 
   """
+  Most Relevant
+  """
+  BEST_MATCH
+
+  """
   First Name: A-Z
   """
   FIRST_NAME_A_TO_Z

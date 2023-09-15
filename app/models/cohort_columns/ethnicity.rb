@@ -8,7 +8,7 @@ module CohortColumns
   class Ethnicity < ReadOnly
     attribute :column, String, lazy: true, default: :ethnicity
     attribute :translation_key, String, lazy: true, default: 'Ethnicity'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def available_for_rules?
       false

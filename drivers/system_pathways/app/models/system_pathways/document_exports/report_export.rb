@@ -19,7 +19,7 @@ module SystemPathways::DocumentExports
       {
         report: report,
         filter: filter,
-        title: _('System Pathways'),
+        title: Translation.translate('System Pathways'),
         pdf: true,
       }
     end
@@ -39,7 +39,7 @@ module SystemPathways::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{_('System Pathways')} #{DateTime.current.to_s(:db)}",
+          file_name: "#{Translation.translate('System Pathways')} #{DateTime.current.to_s(:db)}",
           options: {
             print_background: true,
             display_header_footer: false,

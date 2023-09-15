@@ -250,7 +250,7 @@ module ApplicationHelper
   end
 
   def translated?(text)
-    _(text) != text
+    Translation.translate(text) != text
   end
 
   def options_for_available_tags(grouped_tags, _selected_name)

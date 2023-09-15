@@ -19,7 +19,7 @@ module PublicReports
     attr_accessor :map_max_rate, :map_max_count
 
     def title
-      _('State-Level Homelessness Report Generator')
+      Translation.translate('State-Level Homelessness Report Generator')
     end
 
     def yearly?
@@ -27,7 +27,7 @@ module PublicReports
     end
 
     def instance_title
-      _('State-Level Homelessness Report')
+      Translation.translate('State-Level Homelessness Report')
     end
 
     private def public_s3_directory
@@ -146,18 +146,18 @@ module PublicReports
 
     def populations
       {
-        youth: _('Youth and Young Adults'),
-        adults: _('Adult-Only Households'),
-        adults_with_children: _('Adults with Children'),
-        veterans: _('Veterans'),
+        youth: Translation.translate('Youth and Young Adults'),
+        adults: Translation.translate('Adult-Only Households'),
+        adults_with_children: Translation.translate('Adults with Children'),
+        veterans: Translation.translate('Veterans'),
       }
     end
 
     def household_types
       {
-        adults: _('Adult-Only Households'),
-        adults_with_children: _('Adults with Children'),
-        children: _('Child-Only Households'),
+        adults: Translation.translate('Adult-Only Households'),
+        adults_with_children: Translation.translate('Adults with Children'),
+        children: Translation.translate('Child-Only Households'),
       }
     end
 
@@ -487,7 +487,7 @@ module PublicReports
             # sum value after getting appropriate set of rows
             # add index on [accurate_on, identifier, type, measure]
             data: combined_data,
-            title: _('Racial Composition'),
+            title: Translation.translate('Racial Composition'),
             total: total_for(scope, nil),
             categories: ['Homeless Population', 'Overall Population'],
           }

@@ -18,9 +18,11 @@ module UserPermissions
         :can_see_raw_hmis_data,
         :can_receive_secure_files,
         :can_assign_or_view_users_to_clients,
-        :can_view_or_search_clients_or_window,
-        :can_view_enrollment_details_tab,
+        :can_view_or_search_clients,
+        :can_view_or_search_clients_or_window, # TODO: START_ACL remove after ACL migration is complete
+        :can_view_enrollment_details_tab, # TODO: START_ACL remove after ACL migration is complete
         :can_access_some_client_search,
+        :can_view_enrollment_details_tab,
         :window_file_access,
         :can_access_vspdat_list,
         :can_create_or_modify_vspdat,
@@ -45,7 +47,7 @@ module UserPermissions
         :can_access_some_cohorts,
         :can_edit_some_cohorts,
         :can_update_some_cohort_data,
-        :can_access_window_search,
+        :can_access_window_search, # TODO: START_ACL remove after ACL migration is complete
         :can_delete_projects_or_data_sources,
         :can_manage_some_ad_hoc_ds,
         :can_view_some_vprs,
@@ -74,20 +76,32 @@ module UserPermissions
       can_assign_users_to_clients? || can_view_client_user_assignments?
     end
 
+    def can_view_or_search_clients
+      can_access_some_version_of_clients? || can_access_some_client_search?
+    end
+
+    # TODO: START_ACL remove after ACL migration is complete
     def can_view_or_search_clients_or_window
       can_view_clients? || can_search_window?
     end
+    # END_ACL
 
     def can_view_enrollment_details_tab
       can_view_clients? && can_view_enrollment_details?
     end
 
+    # TODO: START_ACL remove after ACL migration is complete
     def can_access_window_search
       can_search_window? && ! (can_use_strict_search? || can_search_own_clients?)
     end
+    # END_ACL
 
     def can_access_some_client_search
-      can_search_window? || can_use_strict_search? || can_search_own_clients?
+      if using_acls?
+        can_search_own_clients? || can_search_clients_with_roi?
+      else
+        can_search_window? || can_use_strict_search? || can_search_own_clients?
+      end
     end
 
     def window_file_access
@@ -167,7 +181,11 @@ module UserPermissions
     end
 
     def can_access_some_version_of_clients
-      can_view_clients? || can_edit_clients?
+      if using_acls?
+        can_view_clients? || can_edit_clients? || can_view_client_enrollments_with_roi?
+      else
+        can_view_clients? || can_edit_clients?
+      end
     end
 
     def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicateName

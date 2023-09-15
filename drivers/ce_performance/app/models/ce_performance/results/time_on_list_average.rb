@@ -28,7 +28,7 @@ module CePerformance
     end
 
     def self.title
-      _('Average Length of Time on Prioritization List')
+      Translation.translate('Average Length of Time on Prioritization List')
     end
 
     def description

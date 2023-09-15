@@ -8,8 +8,8 @@
 
       .c-card__header--external
         %h3#section-a
-          = _('CHA A_TITLE')
-        %small= _('CHA A_SUBTITLE')
+          = Translation.translate('CHA A_TITLE')
+        %small= Translation.translate('CHA A_SUBTITLE')
       .well
         .row.mb-1.pr-8
           .col-md-8
@@ -21,7 +21,7 @@
             = cha_datepicker f, :a_q3, input_html: { value: value&.to_date || @client.DOB }
         = cha_radios     f, :a_q4
         .form-group
-          %label.control-label= _('CHA A_Q5')
+          %label.control-label= Translation.translate('CHA A_Q5')
           .row.mb-1.pr-2
             .col-md-8
               = cha_string f, :a_q5a
@@ -46,8 +46,8 @@
 
       .c-card__header--external
         %h3#section-b
-          = _('CHA B_TITLE')
-        %small= _('CHA B_SUBTITLE')
+          = Translation.translate('CHA B_TITLE')
+        %small= Translation.translate('CHA B_SUBTITLE')
       .well
         .row.mb-1.pr-2
           .col-md-8.col-lg-4
@@ -58,8 +58,8 @@
 
       .c-card__header--external
         %h3#section-c
-          = _('CHA C_TITLE')
-        %small= _('CHA C_SUBTITLE')
+          = Translation.translate('CHA C_TITLE')
+        %small= Translation.translate('CHA C_SUBTITLE')
       .well
         = cha_radios     f, :c_q1
         = cha_radios     f, :c_q2
@@ -67,8 +67,8 @@
 
       .c-card__header--external
         %h3#section-d
-          = _('CHA D_TITLE')
-        %small= _('CHA D_SUBTITLE')
+          = Translation.translate('CHA D_TITLE')
+        %small= Translation.translate('CHA D_SUBTITLE')
       .well
         = cha_radios     f, :d_q1
         = cha_radios     f, :d_q2
@@ -77,8 +77,8 @@
 
       .c-card__header--external
         %h3#section-e
-          = _('CHA E_TITLE')
-        %small= _('CHA E_SUBTITLE')
+          = Translation.translate('CHA E_TITLE')
+        %small= Translation.translate('CHA E_SUBTITLE')
       .well
         = cha_radios     f, :e_q1a
         = cha_radios     f, :e_q1b
@@ -96,8 +96,8 @@
 
       .c-card__header--external
         %h3#section-f
-          = _('CHA F_TITLE')
-        %small= _('CHA F_SUBTITLE')
+          = Translation.translate('CHA F_TITLE')
+        %small= Translation.translate('CHA F_SUBTITLE')
       .well
         = cha_radios     f, :f_q1a
         = cha_radios     f, :f_q1b
@@ -112,17 +112,17 @@
 
       .c-card__header--external
         %h3#section-g
-          = _('CHA G_TITLE')
-        %small= _('CHA G_SUBTITLE')
+          = Translation.translate('CHA G_TITLE')
+        %small= Translation.translate('CHA G_SUBTITLE')
       .well
         .row
           .col-sm-12.mb-1
-            %h4= _('CHA G_Q1_HEADER')
-            %p.cha__help-text= _('CHA G_Q1_SUBHEADER')
+            %h4= Translation.translate('CHA G_Q1_HEADER')
+            %p.cha__help-text= Translation.translate('CHA G_Q1_SUBHEADER')
         .row
           .col-sm-12.mb-1
             %p
-              %strong= _("CHA G_Q1A_HEADER")
+              %strong= Translation.translate("CHA G_Q1A_HEADER")
         .row
           .col-md-8
             = cha_select     f, :g_q1ap
@@ -130,7 +130,7 @@
         .row
           .col-sm-12
             %p
-              %strong= _("CHA G_Q1B_HEADER")
+              %strong= Translation.translate("CHA G_Q1B_HEADER")
         .row
           .col-md-8
             = cha_select     f, :g_q1bp
@@ -139,7 +139,7 @@
         .row
           .col-sm-12
             %p
-              %strong= _("CHA G_Q1C_HEADER")
+              %strong= Translation.translate("CHA G_Q1C_HEADER")
         .row
           .col-md-8
             = cha_select     f, :g_q1cp
@@ -148,7 +148,7 @@
         .row
           .col-sm-12
             %p
-              %strong= _("CHA G_Q1D_HEADER")
+              %strong= Translation.translate("CHA G_Q1D_HEADER")
         .row
           .col-md-8
             = cha_select     f, :g_q1dp
@@ -157,7 +157,7 @@
         .row
           .col-sm-12
             %p
-              %strong= _("CHA G_Q1E_HEADER")
+              %strong= Translation.translate("CHA G_Q1E_HEADER")
         .row
           .col-md-8
             = cha_select     f, :g_q1ep
@@ -166,7 +166,7 @@
         .row
           .col-sm-12
             %p
-              %strong= _("CHA G_Q1F_HEADER")
+              %strong= Translation.translate("CHA G_Q1F_HEADER")
         .row
           .col-md-8
             = cha_select     f, :g_q1fp
@@ -175,7 +175,7 @@
         .row
           .col-sm-12
             %p
-              %strong= _("CHA G_Q1G_HEADER")
+              %strong= Translation.translate("CHA G_Q1G_HEADER")
         .row
           .col-md-8
             = cha_select     f, :g_q1gp
@@ -184,7 +184,7 @@
         .row
           .col-sm-12
             %p
-              %strong= _("CHA G_Q1H_HEADER")
+              %strong= Translation.translate("CHA G_Q1H_HEADER")
         .row
           .col-md-8
             = cha_select     f, :g_q1hp
@@ -193,8 +193,8 @@
 
         .row
           .col-sm-12
-            %h4= _('CHA G_Q2_HEADER')
-            %p.cha__help-text= _('CHA G_Q2_SUBHEADER')
+            %h4= Translation.translate('CHA G_Q2_HEADER')
+            %p.cha__help-text= Translation.translate('CHA G_Q2_SUBHEADER')
 
         = cha_radios     f, :g_q2a
         = cha_radios     f, :g_q2b
@@ -212,15 +212,15 @@
 
       .c-card__header--external
         %h3#section-h
-          = _('CHA H_TITLE')
-        %small= _('CHA H_SUBTITLE')
+          = Translation.translate('CHA H_TITLE')
+        %small= Translation.translate('CHA H_SUBTITLE')
       .well
         = cha_radios     f, :h_q1
 
       .c-card__header--external
         %h3#section-i
-          = _('CHA I_TITLE')
-        %small= _('CHA I_SUBTITLE')
+          = Translation.translate('CHA I_TITLE')
+        %small= Translation.translate('CHA I_SUBTITLE')
       .well
         = cha_radios     f, :i_q1a
         = cha_radios     f, :i_q1b
@@ -239,7 +239,7 @@
         .row
           .col-sm-12
             %p
-              %strong= _('CHA I_Q2_HEADER')
+              %strong= Translation.translate('CHA I_Q2_HEADER')
         - ('a'..'z').each_with_index do |key, index|
           - diagnosis = "i_q2#{key}1".to_sym
           - disease   = "i_q2#{key}2".to_sym
@@ -269,12 +269,12 @@
 
       .c-card__header--external
         %h3#section-j
-          = _('CHA J_TITLE')
-        %small= _('CHA J_SUBTITLE')
+          = Translation.translate('CHA J_TITLE')
+        %small= Translation.translate('CHA J_SUBTITLE')
       .well
         = cha_radios     f, :j_q1
         = cha_radios     f, :j_q2
-        %h4= _('CHA J_Q3_HEADER')
+        %h4= Translation.translate('CHA J_Q3_HEADER')
         = cha_radios     f, :j_q3a
         = cha_radios     f, :j_q3b
         = cha_radios     f, :j_q3c
@@ -306,8 +306,8 @@
 
       .c-card__header--external
         %h3#section-k
-          = _('CHA K_TITLE')
-        %small= _('CHA K_SUBTITLE')
+          = Translation.translate('CHA K_TITLE')
+        %small= Translation.translate('CHA K_SUBTITLE')
       .well
         = cha_radios     f, :k_q1a
         = cha_radios     f, :k_q1b
@@ -316,8 +316,8 @@
 
       .c-card__header--external
         %h3#section-l
-          = _('CHA L_TITLE')
-        %small= _('CHA L_SUBTITLE')
+          = Translation.translate('CHA L_TITLE')
+        %small= Translation.translate('CHA L_SUBTITLE')
       .well
 
         - (1..50).each_with_index do |key, index|
@@ -366,8 +366,8 @@
 
       .c-card__header--external
         %h3#section-m
-          = _('CHA M_TITLE')
-        %small= _('CHA M_SUBTITLE')
+          = Translation.translate('CHA M_TITLE')
+        %small= Translation.translate('CHA M_SUBTITLE')
       .well
         = cha_radios f, :m_q1a
         = cha_radios f, :m_q1b
@@ -390,22 +390,22 @@
 
       .c-card__header--external
         %h3#section-n
-          = _('CHA N_TITLE')
-        %small= _('CHA N_SUBTITLE')
+          = Translation.translate('CHA N_TITLE')
+        %small= Translation.translate('CHA N_SUBTITLE')
       .well
         = cha_radios f, :n_q1
 
       .c-card__header--external
         %h3#section-o
-          = _('CHA O_TITLE')
-        %small= _('CHA O_SUBTITLE')
+          = Translation.translate('CHA O_TITLE')
+        %small= Translation.translate('CHA O_SUBTITLE')
       .well
         = cha_radios f, :o_q1
 
       .c-card__header--external
         %h3#section-p
-          = _('CHA P_TITLE')
-        %small= _('CHA P_SUBTITLE')
+          = Translation.translate('CHA P_TITLE')
+        %small= Translation.translate('CHA P_SUBTITLE')
       .well
         .row.mb-1.pr-2
           .col-md-8.col-lg-4
@@ -414,8 +414,8 @@
 
       .c-card__header--external
         %h3#section-q
-          = _('CHA Q_TITLE')
-        %small= _('CHA Q_SUBTITLE')
+          = Translation.translate('CHA Q_TITLE')
+        %small= Translation.translate('CHA Q_SUBTITLE')
       .well
         = cha_string     f, :q_q1, input_html: { disabled: true, value: @cha.user&.name }
         .row.mb-1.pr-2
@@ -424,8 +424,8 @@
 
       .c-card__header--external
         %h3#section-r
-          = _('CHA R_TITLE')
-        %small= _('CHA R_SUBTITLE')
+          = Translation.translate('CHA R_TITLE')
+        %small= Translation.translate('CHA R_SUBTITLE')
       .well
         = cha_radios f, :r_q1
         .row.mb-1.pr-2

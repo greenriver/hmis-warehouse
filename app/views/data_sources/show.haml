@@ -17,9 +17,9 @@
   .row.table-utilities
     .col-sm-12
       %h2
-        = _('Organizations')
+        = Translation.translate('Organizations')
         &amp;
-        = _('Projects')
+        = Translation.translate('Projects')
       .table-responsive
         - @organizations.each do |org|
           = render 'organization', org: org

@@ -33,7 +33,7 @@ module WarehouseReports
       GrdaWarehouse::Hud::Client.
         joins(:health_and_dvs, enrollments: :project).
         where(hdv_t[:InformationDate].gteq(@filter.start).and(hdv_t[:InformationDate].lteq(@filter.end).and(hdv_t[:CurrentlyFleeing].eq(1)))).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).
         distinct
     end
 
