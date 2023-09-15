@@ -44,6 +44,7 @@ module Types
     assessments_field
     events_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
+    custom_case_notes_field
     files_field
     ce_assessments_field
     income_benefits_field
@@ -52,7 +53,6 @@ module Types
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
-    custom_case_notes_field
     field :household_id, ID, null: false
     field :household_short_id, ID, null: false
     field :household, HmisSchema::Household, null: false
@@ -236,16 +236,16 @@ module Types
       resolve_ce_assessments(**args)
     end
 
+    def custom_case_notes(...)
+      resolve_custom_case_notes(...)
+    end
+
     def files(**args)
       resolve_files(**args)
     end
 
     def income_benefits(**args)
       resolve_income_benefits(**args)
-    end
-
-    def custom_case_notes(...)
-      resolve_custom_case_notes(...)
     end
 
     def disabilities(**args)

@@ -530,6 +530,7 @@ type Client {
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
+  customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
