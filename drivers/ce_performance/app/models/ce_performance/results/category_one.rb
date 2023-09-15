@@ -42,14 +42,14 @@ module CePerformance
       'Count of clients enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter, or who had a literally homeless Current Living Situation collected during the report range.'
     end
 
-    def nested_results
+    def sub_results
       [
         CePerformance::Results::CategoryOneHousehold,
       ]
     end
 
     def detail_link_text
-      "#{value.to_i} #{unit}"
+      "#{number_with_delimiter(value.to_i)} #{unit}"
     end
 
     def unit

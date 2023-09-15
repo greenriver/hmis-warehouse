@@ -53,7 +53,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "Average: #{value.to_i} days"
+      "Average: #{number_with_delimiter(value.to_i)} days"
     end
 
     def indicator(comparison)
