@@ -29,7 +29,9 @@ class Users::InvitationsController < Devise::InvitationsController
     end
 
     @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?
-    @user = User.invite!(invite_params.except(:legacy_role_ids), current_user)
+    @user = User.invite!(invite_params.except(:legacy_role_ids), current_user) do |u|
+      u.skip_invitation = invite_params[:skip_invitation]
+    end
     # Roles need to be added as a second pass
     @user.update(invite_params)
     @user&.set_viewables(viewable_params.to_h.map { |k, a| [k.to_sym, a] }.to_h) # TODO: START_ACL remove when ACL transition complete
@@ -88,6 +90,7 @@ class Users::InvitationsController < Devise::InvitationsController
       :notify_on_anomaly_identified,
       :expired_at,
       :copy_form_id,
+      :skip_invitation,
       access_control_ids: [],
       # TODO: START_ACL remove when ACL transition complete
       legacy_role_ids: [],

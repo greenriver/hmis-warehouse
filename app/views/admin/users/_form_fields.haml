@@ -32,6 +32,10 @@
       .row
         .col-sm-10
           = f.input :exclude_phone_from_directory
+      - if ENV['OKTA_DOMAIN'].present? && !@user.id
+        .row
+          .col-sm-10
+            = f.input :skip_invitation, as: :boolean, label: 'Skip email invitation'
       - if @user.two_factor_enabled?
         .row
           .col-sm-8
