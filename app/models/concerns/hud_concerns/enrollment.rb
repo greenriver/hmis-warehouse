@@ -22,6 +22,10 @@ module HudConcerns::Enrollment
         where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
+    scope :ongoing, ->(on_date: Date.current) do
+      open_during_range(on_date..on_date)
+    end
+
     scope :open_on_date, ->(date = Date.current) do
       open_during_range(date..date)
     end
