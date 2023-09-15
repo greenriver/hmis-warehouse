@@ -74,7 +74,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
     CE_ASSESSMENT: { class_name: 'Hmis::Hud::Assessment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CeAssessment' },
     CE_EVENT: { class_name: 'Hmis::Hud::Event', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Event' },
-    CASE_NOTE: { class_name: 'Hmis::Hud::CustomCaseNote', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CustomCaseNote' },
+    CUSTOM_CASE_NOTE: { class_name: 'Hmis::Hud::CustomCaseNote', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CustomCaseNote' },
     FILE: {
       class_name: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],

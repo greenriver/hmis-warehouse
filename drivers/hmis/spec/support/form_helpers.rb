@@ -300,5 +300,13 @@ module FormHelpers
         'resultDate' => '2023-08-16',
       },
     },
+    CUSTOM_CASE_NOTE: {
+      values: {
+        content: 'test',
+      },
+      hud_values: {
+        content: 'test',
+      },
+    },
   }.freeze
 end

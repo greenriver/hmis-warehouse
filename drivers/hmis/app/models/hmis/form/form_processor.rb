@@ -267,7 +267,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
       Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
-      CustomCaseNote: Hmis::Hud::Processors::CustomCaseNote,
+      CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
   end
 

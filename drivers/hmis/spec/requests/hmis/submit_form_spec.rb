@@ -33,6 +33,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:a1) { create :hmis_hud_assessment, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:evt1) { create :hmis_hud_event, data_source: ds1, client: c2, enrollment: e1, user: u1 }
+  let!(:custom_case_note) do
+    create(:hmis_hud_custom_case_note, data_source: ds1, client: c2, enrollment: e1, user: u1)
+  end
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
     hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
@@ -71,6 +74,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
             }
             ... on File {
+              id
+            }
+            ... on CustomCaseNote {
               id
             }
             ... on Enrollment {
@@ -163,6 +169,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               e1.id
             when :CE_ASSESSMENT
               a1.id
+            when :CUSTOM_CASE_NOTE
+              custom_case_note.id
             when :CE_EVENT
               evt1.id
             end

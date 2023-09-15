@@ -7,9 +7,9 @@ class AddHmisCaseNotes < ActiveRecord::Migration[6.1]
       t.references :data_source, null: false, index: false
       t.text :content, null: false
       t.string :UserID, index: true
-      t.date :DateCreated
-      t.date :DateUpdated
-      t.date :DateDeleted
+      t.datetime :DateCreated
+      t.datetime :DateUpdated
+      t.datetime :DateDeleted
       t.index [:data_source_id, :CustomCaseNoteID], unique: true, name: 'idxCustomCaseNoteOnID'
     end
   end

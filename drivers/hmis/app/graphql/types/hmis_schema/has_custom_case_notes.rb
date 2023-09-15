@@ -29,7 +29,7 @@ module Types
       private
 
       def scoped_custom_case_notes(scope)
-        scope.viewable_by(current_user).order(information_date: :desc)
+        scope.viewable_by(current_user).order(date_created: :desc).order(:id)
       end
     end
   end

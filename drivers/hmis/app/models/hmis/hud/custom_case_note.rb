@@ -14,4 +14,11 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   alias_to_underscore [:CustomCaseNoteID, :PersonalID, :EnrollmentID]
 
+  before_create do |record|
+    record.CustomCaseNoteID ||= Hmis::Hud::Base.generate_uuid
+  end
+
+  replace_scope :viewable_by, ->(user) do
+    joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
+  end
 end
