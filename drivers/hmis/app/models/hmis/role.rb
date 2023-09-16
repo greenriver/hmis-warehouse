@@ -93,10 +93,19 @@ class Hmis::Role < ::ApplicationRecord
           'Administration',
         ],
       },
-      can_delete_assigned_project_data: {
-        description: 'Grants access to delete project related data for projects the user can see',
+      # remove...
+      # can_delete_assigned_project_data: {
+      #   description: 'Grants access to delete project related data for projects the user can see',
+      #   administrative: false,
+      #   access: [:editable],
+      #   categories: [
+      #     'Projects',
+      #   ],
+      # },
+      can_view_project: {
+        description: 'Grants access to view the project page',
         administrative: false,
-        access: [:editable],
+        access: [:viewable],
         categories: [
           'Projects',
         ],

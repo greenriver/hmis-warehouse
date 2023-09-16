@@ -740,7 +740,8 @@ CREATE TABLE public.hmis_roles (
     can_manage_outgoing_referrals boolean DEFAULT false,
     can_manage_denied_referrals boolean DEFAULT false,
     can_enroll_clients boolean DEFAULT false,
-    can_view_open_enrollment_summary boolean DEFAULT false
+    can_view_open_enrollment_summary boolean DEFAULT false,
+    can_view_project boolean DEFAULT false
 );
 
 
@@ -3989,6 +3990,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230807193335'),
 ('20230910175113'),
 ('20230910175333'),
-('20230910180118');
+('20230910180118'),
+('20230916124819');
 
 
