@@ -24,13 +24,22 @@ RSpec.describe Hmis::Hud::Project, type: :model do
 
   let!(:user_with_p1_access) do
     hmis_user = create(:hmis_user, data_source: ds1)
-    create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_project])
+    create_access_control(hmis_user, p1, with_permission: :can_view_project)
+    hmis_user
+  end
+
+  let!(:user_with_p2_access) do
+    hmis_user = create(:hmis_user, data_source: ds1)
+    # p2 view access
+    create_access_control(hmis_user, p2, with_permission: :can_view_project)
+    # some other broad org access should still not let you see p1
+    create_access_control(hmis_user, o1, with_permission: :can_manage_incoming_referrals)
     hmis_user
   end
 
   let!(:user_with_limited_access) do
     hmis_user = create(:hmis_user, data_source: ds1)
-    create_access_control(hmis_user, p1, with_permission: [:can_manage_incoming_referrals])
+    create_access_control(hmis_user, o1, with_permission: :can_manage_incoming_referrals)
     hmis_user
   end
 
@@ -38,6 +47,9 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     it 'includes projects where I have can_view_project' do
       viewable_projects = Hmis::Hud::Project.viewable_by(user_with_p1_access)
       expect(viewable_projects).to contain_exactly(p1)
+
+      viewable_projects = Hmis::Hud::Project.viewable_by(user_with_p2_access)
+      expect(viewable_projects).to contain_exactly(p2)
     end
 
     it 'excludes projects where I dont have can_view_project, even if I have other permissions there' do
