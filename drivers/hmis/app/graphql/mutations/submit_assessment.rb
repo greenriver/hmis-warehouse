@@ -17,7 +17,7 @@ module Mutations
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 
-      assessment.lock_version = assessment_version  if assessment_version
+      assessment.lock_version = assessment_version if assessment_version
       enrollment = assessment.enrollment
 
       errors = HmisErrors::Errors.new

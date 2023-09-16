@@ -7,12 +7,14 @@
 module Mutations
   class DeleteAssessment < BaseMutation
     argument :id, ID, required: true
+    argument :assessment_version, Integer, required: false
 
     field :assessment_id, ID, null: true
 
-    def resolve(id:)
+    def resolve(id:, assessment_version:)
       record = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
+      record.lock_version = assessment_version
 
       if record.deletion_would_cause_conflicting_enrollments?
         errors = HmisErrors::Errors.new
