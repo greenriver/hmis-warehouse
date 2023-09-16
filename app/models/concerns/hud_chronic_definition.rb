@@ -26,6 +26,7 @@ module HudChronicDefinition
     # Must be homeless 12 of the last 36 with 4 episodes
     def hud_chronic?(on_date: Date.current, scope: nil)
       @hud_chronic_data = {}
+
       return unless disabled?(on_date: on_date, client_id: id, scope: scope)
 
       if months_12_homeless?(on_date: on_date, scope: scope)
@@ -50,7 +51,9 @@ module HudChronicDefinition
       @hud_chronic_data ||= {}
       date_to_street = scope.with_project_type(HudUtility2024.chronic_project_types).
         ongoing(on_date: on_date).
-        order(entry_date: :desc).
+        # Using the earliest DateToStreetESSH for any open enrollment in a homeless project
+        where.not(DateToStreetESSH: nil).
+        order(DateToStreetESSH: :asc).
         first&.DateToStreetESSH
       return false unless date_to_street
 
@@ -64,11 +67,11 @@ module HudChronicDefinition
     # 3 years? (3.917.4)
     def times_4_homeless?(on_date:, scope:)
       scope = source_enrollments if scope.nil?
-      times_on_street = scope.with_project_type(HudUtility2024.chronic_project_types).
+      scope.with_project_type(HudUtility2024.chronic_project_types).
         ongoing(on_date: on_date).
-        order(entry_date: :desc).
-        first&.TimesHomelessPastThreeYears
-      times_on_street == 4
+        # Look for any open enrollment where the client has been homeless 4 or more times
+        where(TimesHomelessPastThreeYears: 4).
+        exists?
     end
 
     # Has the client been homeless for more than 12 months
@@ -97,7 +100,9 @@ module HudChronicDefinition
       scope = source_enrollments if scope.nil?
       months_on_street = scope.with_project_type(HudUtility2024.chronic_project_types).
         ongoing(on_date: on_date).
-        order(entry_date: :desc).
+        # Only return records where the client answered the question
+        where.not(MonthsHomelessPastThreeYears: nil).
+        order(MonthsHomelessPastThreeYears: :desc).
         first&.MonthsHomelessPastThreeYears
       return false unless months_on_street
 
@@ -111,7 +116,9 @@ module HudChronicDefinition
       scope = source_enrollments if scope.nil?
       entry = scope.with_project_type(HudUtility2024.chronic_project_types).
         ongoing(on_date: on_date).
-        order(entry_date: :desc).first
+        # Only return records where the client answered the question
+        where.not(MonthsHomelessPastThreeYears: nil).
+        order(MonthsHomelessPastThreeYears: :desc).first
       months_on_street = entry&.MonthsHomelessPastThreeYears
       return false unless months_on_street
       return false unless months_on_street > 100

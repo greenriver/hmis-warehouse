@@ -2,17 +2,17 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::HudChronic, type: :model do
   # need destination and source client, source enrollment and source disability
-  let(:warehouse_ds) { create :destination_data_source }
-  let(:source_ds) { create :source_data_source }
-  let(:client) { create :grda_warehouse_hud_client, data_source_id: warehouse_ds.id }
-  let(:source_client) do
+  let!(:warehouse_ds) { create :destination_data_source }
+  let!(:source_ds) { create :source_data_source }
+  let!(:client) { create :grda_warehouse_hud_client, data_source_id: warehouse_ds.id }
+  let!(:source_client) do
     create(
       :grda_warehouse_hud_client,
       data_source_id: source_ds.id,
       PersonalID: client.PersonalID,
     )
   end
-  let(:warehouse_client) do
+  let!(:warehouse_client) do
     create(
       :warehouse_client,
       destination: client,
@@ -20,7 +20,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       data_source_id: source_client.data_source_id,
     )
   end
-  let(:project) do
+  let!(:project) do
     create(
       :grda_warehouse_hud_project,
       ProjectType: 1,
@@ -28,7 +28,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       data_source_id: source_ds.id,
     )
   end
-  let(:source_enrollment) do
+  let!(:source_enrollment) do
     create(
       :hud_enrollment,
       EnrollmentID: 'a',
@@ -39,7 +39,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       PersonalID: source_client.PersonalID,
     )
   end
-  let(:source_disability) do
+  let!(:source_disability) do
     create(
       :hud_disability,
       EnrollmentID: source_enrollment.EnrollmentID,
@@ -54,7 +54,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
 
   # The following should be associated with the client before each test
   # so that we only instantiate the correct one for the test
-  let(:not_chronic) do
+  let!(:not_chronic) do
     create(
       :grda_warehouse_hud_enrollment,
       EntryDate: Date.new(2014, 4, 1),
@@ -66,7 +66,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     )
   end
 
-  let(:enrollment_12_months_homeless) do
+  let!(:enrollment_12_months_homeless) do
     create(
       :grda_warehouse_hud_enrollment,
       EntryDate: Date.new(2014, 4, 1),
@@ -78,7 +78,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     )
   end
 
-  let(:enrollment_11_months_homeless) do
+  let!(:enrollment_11_months_homeless) do
     create(
       :grda_warehouse_hud_enrollment,
       EntryDate: Date.new(2014, 4, 1),
@@ -92,7 +92,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     )
   end
 
-  let(:enrollment_12_months_on_street) do
+  let!(:enrollment_12_months_on_street) do
     create(
       :grda_warehouse_hud_enrollment,
       EntryDate: Date.new(2014, 4, 1),
