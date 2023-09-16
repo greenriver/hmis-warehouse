@@ -22,7 +22,7 @@ module Types
       # lock to avoid race-conditions around checking for existing assessments
       # FIXME: locking around the form definition isn't ideal. Better to lock the enrollment
       # or assessment but that would require some refactoring
-      (form_definition).with_lock do
+      form_definition.with_lock do
         _find_or_create_assessment(form_definition)
       end
     end

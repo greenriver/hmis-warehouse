@@ -9,14 +9,24 @@ module Mutations
     description 'Submit a form to create/update HUD record(s)'
 
     argument :input, Types::HmisSchema::FormInput, required: true
+    argument :record_lock_version, Integer, required: false
 
     field :record, Types::HmisSchema::SubmitFormResult, null: true
 
-    def resolve(input:)
+    def resolve(input:, record_lock_version: nil)
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
 
+      # FIXME: locking around the form definition isn't right. Probably want to lock on record or record.owner
+      definition.with_lock do
+        _resolve(input: input, definition: definition, record_lock_version: record_lock_version)
+      end
+    end
+
+    protected
+
+    def _resolve(input:, definition:, record_lock_version:)
       # Determine record class
       klass = definition.record_class_name&.constantize
       raise HmisErrors::ApiError, 'Form Definition not configured' unless klass.present?
@@ -24,6 +34,7 @@ module Mutations
       # Find or create record
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
+        record.lock_version = record_lock_version if record_lock_version
         entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else
         entity_for_permissions, record = permission_base_and_record(klass, input, current_user.hmis_data_source_id)

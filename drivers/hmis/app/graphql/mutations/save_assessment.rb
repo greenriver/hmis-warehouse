@@ -9,16 +9,16 @@ module Mutations
     description 'Create/Save assessment as work-in-progress'
 
     argument :input, Types::HmisSchema::AssessmentInput, required: true
-    argument :assessment_version, Integer, required: false
+    argument :assessment_lock_version, Integer, required: false
 
     field :assessment, Types::HmisSchema::Assessment, null: true
 
-    def resolve(input:, assessment_version:)
+    def resolve(input:, assessment_lock_version: nil)
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 
       # Update values
-      assessment.lock_version = assessment_version if assessment_version
+      assessment.lock_version = assessment_lock_version if assessment_lock_version
       assessment.form_processor.assign_attributes(
         values: input.values,
         hud_values: input.hud_values,

@@ -1,7 +1,9 @@
 class AddHudOptimisticLocking < ActiveRecord::Migration[6.1]
   def change
     [
-      #:Project,
+      # TODO: We may want locking on additional tables in the future
+      # :Project,
+      # :CurrentLivingSituation,
       :Client,
       :Enrollment,
       :CustomAssessments,

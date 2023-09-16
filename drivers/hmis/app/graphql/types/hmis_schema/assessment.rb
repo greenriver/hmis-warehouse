@@ -18,7 +18,7 @@ module Types
 
     description 'Custom Assessment'
     field :id, ID, null: false
-    field :version, Integer, null: false
+    field :lock_version, Integer, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true
