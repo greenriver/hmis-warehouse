@@ -194,7 +194,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'permissions base tests' do
     # Grant a few viewing permission to the whole data source
     let!(:ds_access_control) do
-      create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_enrollment_details])
+      create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_project, :can_view_enrollment_details])
     end
 
     def expected_hash_from_role(role)
