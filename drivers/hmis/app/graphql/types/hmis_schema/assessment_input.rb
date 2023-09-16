@@ -16,8 +16,20 @@ module Types
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
     argument :validate_only, Boolean, 'Validate assessment but don\'t submit it', required: false
 
+    # FIXME: this method probably doesn't belong on the form input class
     def find_or_create_assessment
       form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
+      # lock to avoid race-conditions around checking for existing assessments
+      # FIXME: locking around the form definition isn't ideal. Better to lock the enrollment
+      # or assessment but that would require some refactoring
+      (form_definition).with_lock do
+        _find_or_create_assessment(form_definition)
+      end
+    end
+
+    protected
+
+    def _find_or_create_assessment(form_definition)
       raise HmisErrors::ApiError, 'FormDefinition not found' unless form_definition.present?
 
       # If updating existing assessment, find it

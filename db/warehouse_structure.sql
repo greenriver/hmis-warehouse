@@ -742,7 +742,8 @@ CREATE TABLE public."Client" (
     "DifferentIdentity" integer,
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
-    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED
+    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
+    lock_version integer
 );
 
 
@@ -949,7 +950,8 @@ CREATE TABLE public."CustomAssessments" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    wip boolean DEFAULT false NOT NULL
+    wip boolean DEFAULT false NOT NULL,
+    lock_version integer
 );
 
 
@@ -1722,7 +1724,8 @@ CREATE TABLE public."Enrollment" (
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
-    "VAMCStation" character varying
+    "VAMCStation" character varying,
+    lock_version integer
 );
 
 
@@ -6307,6 +6310,9 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
+    "order" integer DEFAULT 0 NOT NULL,
+    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
+    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -14748,28 +14754,7 @@ CREATE TABLE public.hmis_dqt_clients (
     ethnicity integer,
     reporting_age integer,
     ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false,
-    woman integer,
-    man integer,
-    culturally_specific integer,
-    different_identity integer,
-    non_binary integer,
-    hispanic_latinaeo integer,
-    mid_east_n_african integer,
-    spm_hispanic_latinaeo integer,
-    _all_persons__hispanic_latinaeo integer,
-    spm_with_children__hispanic_latinaeo integer,
-    spm_only_children__hispanic_latinaeo integer,
-    spm_without_children__hispanic_latinaeo integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__hispan integer,
-    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
-    spm_mid_east_n_african integer,
-    _all_persons__mid_east_n_african integer,
-    spm_with_children__mid_east_n_african integer,
-    spm_only_children__mid_east_n_african integer,
-    spm_without_children__mid_east_n_african integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
-    spm_without_children_and_fifty_five_plus__mid_east_n_african integer
+    ch_at_any_entry boolean DEFAULT false
 );
 
 
@@ -16141,24 +16126,7 @@ CREATE TABLE public.homeless_summary_report_clients (
     spm_adults_with_children_where_parenting_adult_18_to_24__b_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__a_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__n_n_h_ integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer,
-    spm_all_persons__mid_east_n_afric integer,
-    spm_without_children__mid_east_n_ integer,
-    spm_with_children__mid_east_n_afr integer,
-    spm_only_children__mid_east_n_afr integer,
-    spm_without_children_and_fifty_fi integer,
-    spm_adults_with_children_where_pa integer,
-    spm_all_persons__mid_east_n_african integer,
-    spm_all_persons__hispanic_latinaeo integer,
-    spm_without_children__mid_east_n_african integer,
-    spm_without_children__hispanic_latinaeo integer,
-    spm_with_children__mid_east_n_african integer,
-    spm_with_children__hispanic_latinaeo integer,
-    spm_only_children__mid_east_n_african integer,
-    spm_only_children__hispanic_latinaeo integer,
-    spm_without_children_and_fifty_five_plus__mid_east_n_african integer,
-    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer
+    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer
 );
 
 
@@ -18220,14 +18188,7 @@ CREATE TABLE public.ma_monthly_performance_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     first_name character varying,
-    last_name character varying,
-    woman boolean,
-    man boolean,
-    culturally_specific boolean,
-    different_identity boolean,
-    non_binary boolean,
-    hispanic_latinaeo boolean,
-    mid_east_n_african boolean
+    last_name character varying
 );
 
 
@@ -21694,14 +21655,7 @@ CREATE TABLE public.system_pathways_clients (
     report_id bigint,
     deleted_at timestamp without time zone,
     days_to_return integer,
-    ce_assessment boolean DEFAULT false NOT NULL,
-    woman boolean,
-    man boolean,
-    culturally_specific boolean,
-    different_identity boolean,
-    non_binary boolean,
-    hispanic_latinaeo boolean,
-    mid_east_n_african boolean
+    ce_assessment boolean DEFAULT false NOT NULL
 );
 
 
@@ -54467,10 +54421,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230804232249'),
 ('20230805224003'),
 ('20230815171824'),
-('20230817154337'),
 ('20230818044939'),
 ('20230820225855'),
-('20230822183752'),
 ('20230822200902'),
 ('20230824192127'),
 ('20230827232228'),
@@ -54486,6 +54438,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230901124955'),
 ('20230901143829'),
 ('20230901144153'),
-('20230902183854');
+('20230913042115');
 
 
