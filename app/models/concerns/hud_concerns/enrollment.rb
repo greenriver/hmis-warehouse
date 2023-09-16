@@ -22,6 +22,7 @@ module HudConcerns::Enrollment
         where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
+    # enrollments what were open on the date in question, including those that had an ExitDate on `on_date`
     scope :ongoing, ->(on_date: Date.current) do
       open_during_range(on_date..on_date)
     end
