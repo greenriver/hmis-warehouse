@@ -2,12 +2,13 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::HudChronic, type: :model do
   # need destination and source client, source enrollment and source disability
-  let!(:client) { create :grda_warehouse_hud_client }
-  let!(:ds) { create :data_source_fixed_id }
+  let!(:warehouse_ds) { create :destination_data_source }
+  let!(:source_ds) { create :source_data_source }
+  let!(:client) { create :grda_warehouse_hud_client, data_source_id: warehouse_ds.id }
   let!(:source_client) do
     create(
       :grda_warehouse_hud_client,
-      data_source: ds,
+      data_source_id: source_ds.id,
       PersonalID: client.PersonalID,
     )
   end
@@ -19,10 +20,19 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       data_source_id: source_client.data_source_id,
     )
   end
+  let!(:project) do
+    create(
+      :grda_warehouse_hud_project,
+      ProjectType: 1,
+      computed_project_type: 1,
+      data_source_id: source_ds.id,
+    )
+  end
   let!(:source_enrollment) do
     create(
       :hud_enrollment,
       EnrollmentID: 'a',
+      ProjectID: project.ProjectID,
       EntryDate: Date.new(2014, 4, 1),
       DisablingCondition: 1,
       data_source_id: source_client.data_source_id,
@@ -33,6 +43,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     create(
       :hud_disability,
       EnrollmentID: source_enrollment.EnrollmentID,
+      InformationDate: Date.new(2014, 4, 1),
       data_source_id: source_client.data_source_id,
       PersonalID: source_client.PersonalID,
       DisabilityType: 5,
@@ -41,16 +52,16 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     )
   end
 
-  # The following should be called to instantiate them in before each
+  # The following should be associated with the client before each test
   # so that we only instantiate the correct one for the test
   let(:not_chronic) do
     create(
       :grda_warehouse_hud_enrollment,
       EntryDate: Date.new(2014, 4, 1),
-      ProjectID: 1,
+      ProjectID: project.ProjectID,
       DateToStreetESSH: april_1_2016 - 6.months,
       DisablingCondition: 1,
-      PersonalID: source_client.PersonalID,
+      PersonalID: 'OTHER',
       data_source_id: source_client.data_source_id,
     )
   end
@@ -59,10 +70,10 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     create(
       :grda_warehouse_hud_enrollment,
       EntryDate: Date.new(2014, 4, 1),
-      ProjectID: 1,
+      ProjectID: project.ProjectID,
       DateToStreetESSH: april_1_2016 - 13.months,
       DisablingCondition: 1,
-      PersonalID: source_client.PersonalID,
+      PersonalID: 'OTHER',
       data_source_id: source_client.data_source_id,
     )
   end
@@ -71,12 +82,12 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     create(
       :grda_warehouse_hud_enrollment,
       EntryDate: Date.new(2014, 4, 1),
-      ProjectID: 1,
+      ProjectID: project.ProjectID,
       DateToStreetESSH: april_1_2016 - 10.months,
       DisablingCondition: 1,
       TimesHomelessPastThreeYears: 4,
       MonthsHomelessPastThreeYears: 112,
-      PersonalID: source_client.PersonalID,
+      PersonalID: 'OTHER',
       data_source_id: source_client.data_source_id,
     )
   end
@@ -85,36 +96,18 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     create(
       :grda_warehouse_hud_enrollment,
       EntryDate: Date.new(2014, 4, 1),
-      ProjectID: 1,
+      ProjectID: project.ProjectID,
       DateToStreetESSH: april_1_2016 - 10.months,
       DisablingCondition: 1,
       TimesHomelessPastThreeYears: 4,
       MonthsHomelessPastThreeYears: 111,
-      PersonalID: source_client.PersonalID,
+      PersonalID: 'OTHER',
       data_source_id: source_client.data_source_id,
-    )
-  end
-
-  let(:service_history) do
-    create(
-      :grda_warehouse_service_history,
-      first_date_in_program: april_1_2016 - 1.month,
-      client_id: client.id,
-      date: april_1_2016 - 1.month,
-      record_type: :entry,
-      computed_project_type: 1,
-      head_of_household_id: source_client.PersonalID,
-      data_source_id: source_client.data_source_id,
-      project_id: 1,
     )
   end
   let(:april_1_2016) { Date.new(2016, 4, 1) }
 
   context 'if homeless but not chronic' do
-    before(:each) do
-      Rails.cache.delete('chronically_disabled_clients')
-      service_history.update(enrollment_group_id: not_chronic.EnrollmentID)
-    end
     it 'is not hud chronic' do
       expect(client.hud_chronic?(on_date: april_1_2016)).to be_falsey
     end
@@ -124,7 +117,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     before(:each) do
       # force the chronic calculation, which sets the triggers
       Rails.cache.delete('chronically_disabled_clients')
-      service_history.update(enrollment_group_id: enrollment_12_months_homeless.EnrollmentID)
+      enrollment_12_months_homeless.update(PersonalID: source_client.PersonalID)
       @is_chronic = client.hud_chronic?(on_date: april_1_2016)
     end
 
@@ -140,7 +133,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     context 'and 12+ months homeless' do
       before(:each) do
         Rails.cache.delete('chronically_disabled_clients')
-        service_history.update(enrollment_group_id: enrollment_11_months_homeless.EnrollmentID)
+        enrollment_11_months_homeless.update(PersonalID: source_client.PersonalID)
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
 
@@ -156,7 +149,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       before(:each) do
         Rails.cache.delete('chronically_disabled_clients')
         # return an enrollment that has a date to street
-        service_history.update!(enrollment_group_id: enrollment_12_months_on_street.EnrollmentID)
+        enrollment_12_months_on_street.update(PersonalID: source_client.PersonalID)
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
 

@@ -26,7 +26,7 @@ module HudChronicDefinition
     # Must be homeless 12 of the last 36 with 4 episodes
     def hud_chronic?(on_date: Date.current, scope: nil)
       @hud_chronic_data = {}
-      return false unless disabled?(on_date: on_date, client_id: id, scope: scope)
+      return unless disabled?(on_date: on_date, client_id: id, scope: scope)
 
       if months_12_homeless?(on_date: on_date, scope: scope)
         @hud_chronic_data[:trigger] = 'All 12 of the last 12 months homeless'
@@ -41,7 +41,6 @@ module HudChronicDefinition
           return true
         end
       end
-      false
     end
 
     # Has is been at least 12 months since client was
