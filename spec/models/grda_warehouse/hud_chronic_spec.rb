@@ -2,17 +2,17 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::HudChronic, type: :model do
   # need destination and source client, source enrollment and source disability
-  let!(:warehouse_ds) { create :destination_data_source }
-  let!(:source_ds) { create :source_data_source }
-  let!(:client) { create :grda_warehouse_hud_client, data_source_id: warehouse_ds.id }
-  let!(:source_client) do
+  let(:warehouse_ds) { create :destination_data_source }
+  let(:source_ds) { create :source_data_source }
+  let(:client) { create :grda_warehouse_hud_client, data_source_id: warehouse_ds.id }
+  let(:source_client) do
     create(
       :grda_warehouse_hud_client,
       data_source_id: source_ds.id,
       PersonalID: client.PersonalID,
     )
   end
-  let!(:warehouse_client) do
+  let(:warehouse_client) do
     create(
       :warehouse_client,
       destination: client,
@@ -20,7 +20,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       data_source_id: source_client.data_source_id,
     )
   end
-  let!(:project) do
+  let(:project) do
     create(
       :grda_warehouse_hud_project,
       ProjectType: 1,
@@ -28,7 +28,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       data_source_id: source_ds.id,
     )
   end
-  let!(:source_enrollment) do
+  let(:source_enrollment) do
     create(
       :hud_enrollment,
       EnrollmentID: 'a',
@@ -39,7 +39,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       PersonalID: source_client.PersonalID,
     )
   end
-  let!(:source_disability) do
+  let(:source_disability) do
     create(
       :hud_disability,
       EnrollmentID: source_enrollment.EnrollmentID,
