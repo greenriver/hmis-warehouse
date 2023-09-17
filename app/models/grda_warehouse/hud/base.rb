@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class Base < GrdaWarehouseBase
     self.abstract_class = true
     self.lock_optimistically = false
+    self.ignored_columns += [:lock_version]
 
     scope :in_coc, ->(*) do
       current_scope

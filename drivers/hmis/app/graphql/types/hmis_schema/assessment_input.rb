@@ -19,9 +19,7 @@ module Types
     # FIXME: this method probably doesn't belong on the form input class
     def find_or_create_assessment
       form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
-      # lock to avoid race-conditions around checking for existing assessments
-      # FIXME: locking around the form definition isn't ideal. Better to lock the enrollment
-      # or assessment but that would require some refactoring
+      # FIXME: locking around the form definition isn't right. Probably want to lock enrollment or assessment
       form_definition.with_lock do
         _find_or_create_assessment(form_definition)
       end

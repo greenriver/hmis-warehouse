@@ -67,7 +67,7 @@ module Hmis
 
     # Return exception as an Apollo-formatted error response
     # Exposes a 500 to the client. Note for future refactor: there is an rescue mechanism built into
-    # ruby-graphql that might be provide be worth considering: https://graphql-ruby.org/errors/error_handling.html
+    # ruby-graphql: https://graphql-ruby.org/errors/error_handling.html
     def handle_graphql_exception(err)
       Rails.logger.error err.message
       Rails.logger.error err.backtrace.join("\n")
