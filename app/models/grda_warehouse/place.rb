@@ -26,7 +26,8 @@ module GrdaWarehouse
       place = @places[key] = Place.find_by(location: key) if place.blank? # Look in database
       if place.blank?
         place = @places[key] = begin
-          nr = nominatim_lookup(query, city, state, postalcode, country)
+          # we see a ton of missing zeros at the beginning of zipcodes, store what we have, but lookup the correct value
+          nr = nominatim_lookup(query, city, state, postalcode.rjust(5, '0'), country)
           if nr.present?
             lat_lon = { lat: nr.coordinates.first, lon: nr.coordinates.last, bounds: nr.boundingbox }.with_indifferent_access
             Place.create!(
