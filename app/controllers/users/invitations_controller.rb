@@ -30,7 +30,7 @@ class Users::InvitationsController < Devise::InvitationsController
 
     @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?
     @user = User.invite!(invite_params.except(:legacy_role_ids), current_user) do |u|
-      u.skip_invitation = invite_params[:skip_invitation]
+      u.skip_invitation = invite_params[:skip_invitation]&.to_i == 1
     end
     # Roles need to be added as a second pass
     @user.update(invite_params)
