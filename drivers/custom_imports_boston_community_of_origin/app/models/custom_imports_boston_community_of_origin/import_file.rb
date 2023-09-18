@@ -95,7 +95,7 @@ module CustomImportsBostonCommunityOfOrigin
           next unless row.client.present? && row.enrollment.present? && row.client.destination_client.present?
 
           lat, lon = location(row)
-          location_batch << row.build_client_location(
+          location_batch << ::ClientLocationHistory::Location.new(
             client_id: row.client.destination_client.id,
             located_on: contact_date(row),
             lat: lat,
