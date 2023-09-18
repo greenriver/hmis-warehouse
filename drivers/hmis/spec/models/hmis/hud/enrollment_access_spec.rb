@@ -57,7 +57,6 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     it 'includes enrollments that I can see (WIP and non-WIP), and excludes ones I cant see' do
-      # Client with enrollment at p1 + unenrolled
       viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user_with_p1_p2_access)
       expect(viewable_enrollments).to contain_exactly(e1, e2)
       # e3 not visible because user lacks :can_view_enrollment_details
