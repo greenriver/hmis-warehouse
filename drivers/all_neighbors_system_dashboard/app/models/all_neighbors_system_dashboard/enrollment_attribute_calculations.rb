@@ -161,7 +161,7 @@ module AllNeighborsSystemDashboard
         # Due to the possibility of finding enrollments with ids from other data sources, this may pull
         # more events than required, but, they will end up in unused groups.
         GrdaWarehouse::Hud::Event.
-          where(enrollment_id: household_enrollments.values.map { |she| she.enrollment.enrollment_id }).
+          where(enrollment_id: household_enrollments.values.flatten.map { |she| she.enrollment.enrollment_id }).
           where(event: SERVICE_CODE_ID.keys, event_date: filter.range).
           order(event_date: :asc).
           group_by { |event| [event.enrollment_id, event.data_source_id] }.
