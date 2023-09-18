@@ -59,8 +59,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ClientValidator
 
   attr_accessor :image_blob_id
-  attr_accessor :create_mci_id
-  attr_accessor :update_mci_attributes
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -77,25 +75,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  after_save do
-    if HmisExternalApis::AcHmis::Mci.enabled?
-      # Create a new MCI ID if specified by the ClientProcessor
-      if create_mci_id
-        self.create_mci_id = nil
-        HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
-      end
-
-      # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
-      # 'update_mci_attributes' attr is specified by the ClientProcessor
-      if update_mci_attributes
-        self.update_mci_attributes = nil
-        trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
-        relevant_fields_changed = trigger_columns.any? { |field| previous_changes&.[](field) }
-        HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id) if relevant_fields_changed
-      end
-    end
-  end
-
+  # Includes clients where..
+  #  1. The Client has enrollment(s) at any Project where the User has this specified Permissions(s)
+  #     OR,
+  #  2. The Client has NO enrollments AND the User has these Permission(s) at _any_ project
+  #
+  # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :with_access, ->(user, *permissions, **kwargs) do
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 

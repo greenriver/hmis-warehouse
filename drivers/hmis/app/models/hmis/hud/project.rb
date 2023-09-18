@@ -66,7 +66,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ProjectValidator
 
   # hide previous declaration of :viewable_by, we'll use this one
-  # Any projects the user has been assigned, limited to the data source the HMIS is connected to
+  # Includes any HMIS projects where the user has the can_view_projects permission
   replace_scope :viewable_by, ->(user) do
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
@@ -76,6 +76,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
+  # Includes any HMIS projects where the user has the specified permission(s)
+  # NOTE: Pass kwarg "mode: 'all'" if all permissions must be present. Default is 'any'.
+  #
+  # WARNING! This will include projects that the user does not have access to view (e.g. they lack can_view_projects)
   scope :with_access, ->(user, *permissions, **kwargs) do
     ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
     ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])

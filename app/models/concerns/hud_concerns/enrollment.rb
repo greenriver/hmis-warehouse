@@ -34,5 +34,13 @@ module HudConcerns::Enrollment
     scope :in_project, ->(project_ids) do
       joins(:project).where(p_t[:id].in(project_ids))
     end
+
+    def self.invalidate_processing!
+      update_all(processed_as: nil, processed_hash: nil)
+    end
+
+    def invalidate_processing!
+      update(processed_as: nil, processed_hash: nil)
+    end
   end
 end

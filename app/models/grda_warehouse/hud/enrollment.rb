@@ -236,10 +236,6 @@ module GrdaWarehouse::Hud
       }
     end
 
-    def self.invalidate_processing!
-      update_all(processed_as: nil, processed_hash: nil)
-    end
-
     def open_during_range?(range)
       self.EntryDate <= range.last && (exit&.ExitDate.blank? || exit.ExitDate > range.first)
     end
