@@ -15,7 +15,18 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
   alias_to_underscore [:CustomCaseNoteID, :PersonalID, :EnrollmentID]
 
   replace_scope :viewable_by, ->(user) do
-    joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
+    client_scope = Hmis::Hud::Client.viewable_by(user)
+    enrollment_scope = Hmis::Hud::Enrollment.viewable_by(user)
+
+    case_statement = Arel::Nodes::Case.new
+      .when(arel_table[:EnrollmentID].not_eq(nil))
+      .then(arel_table[:EnrollmentID].in(enrollment_scope.select(:enrollment_id).arel))
+      .else(arel_table[:PersonalID].in(client_scope.select(:personal_id).arel))
+
+    viewable_scope = Hmis::Hud::CustomCaseNote.left_outer_joins(:client)
+      .left_outer_joins(:enrollment)
+      .where(case_statement)
+    where(id: viewable_scope.select(:id))
   end
 
   def self.hud_key
