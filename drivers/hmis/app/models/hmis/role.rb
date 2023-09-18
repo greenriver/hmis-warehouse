@@ -93,10 +93,10 @@ class Hmis::Role < ::ApplicationRecord
           'Administration',
         ],
       },
-      can_delete_assigned_project_data: {
-        description: 'Grants access to delete project related data for projects the user can see',
+      can_view_project: {
+        description: 'Grants access to view the project page. This permission also limits enrollment access. For example, a user with "can view enrollment details" can only view enrollment details at projects that they can view.',
         administrative: false,
-        access: [:editable],
+        access: [:viewable],
         categories: [
           'Projects',
         ],

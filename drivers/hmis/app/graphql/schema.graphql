@@ -7460,7 +7460,6 @@ type QueryAccess {
   canAdministerHmis: Boolean!
   canAuditClients: Boolean!
   canDeleteAssessments: Boolean!
-  canDeleteAssignedProjectData: Boolean!
   canDeleteClients: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteOrganization: Boolean!
@@ -7484,6 +7483,7 @@ type QueryAccess {
   canViewFullSsn: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
+  canViewProject: Boolean!
   id: ID!
 }
 
