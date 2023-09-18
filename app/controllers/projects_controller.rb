@@ -49,7 +49,6 @@ class ProjectsController < ApplicationController
       :extrapolate_contacts,
       :hmis_participating_project_override,
       :operating_end_date_override,
-      :tracking_method_override,
       :target_population_override,
     )
   end

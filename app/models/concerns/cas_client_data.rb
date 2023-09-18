@@ -419,7 +419,7 @@ module CasClientData
     def enrolled_in_th(ongoing_enrollments)
       return false unless ongoing_enrollments
 
-      project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+      project_type_codes = HudUtility2024.residential_project_type_numbers_by_code[:th]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?
@@ -428,7 +428,7 @@ module CasClientData
     def enrolled_in_sh(ongoing_enrollments)
       return false unless ongoing_enrollments
 
-      project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:sh]
+      project_type_codes = HudUtility2024.residential_project_type_numbers_by_code[:sh]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?
@@ -437,7 +437,7 @@ module CasClientData
     def enrolled_in_so(ongoing_enrollments)
       return false unless ongoing_enrollments
 
-      project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]
+      project_type_codes = HudUtility2024.residential_project_type_numbers_by_code[:so]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?
@@ -446,7 +446,7 @@ module CasClientData
     def enrolled_in_es(ongoing_enrollments)
       return false unless ongoing_enrollments
 
-      project_type_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es]
+      project_type_codes = HudUtility2024.residential_project_type_numbers_by_code[:es]
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?

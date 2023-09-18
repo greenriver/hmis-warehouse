@@ -19,7 +19,7 @@
               %th Count
               %th Percentage
           %tbody
-            - ::HudUtility.times_homeless_options.each do |id, title|
+            - ::HudUtility2024.times_homeless_options.each do |id, title|
               %tr
                 %th= title
                 %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.times_on_street_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "prior_times_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
@@ -35,7 +35,7 @@
               %th Count
               %th Percentage
           %tbody
-            - ::HudUtility.month_categories.each do |id, title|
+            - ::HudUtility2024.month_categories.each do |id, title|
               %tr
                 %th= title
                 %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.months_on_street_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "prior_months_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
@@ -51,7 +51,7 @@
               %th Count
               %th Percentage
           %tbody
-            - ::HudUtility.living_situations.each do |id, title|
+            - ::HudUtility2024.living_situations.each do |id, title|
               %tr
                 %th= title
                 %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.prior_living_situations_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "prior_situation_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank

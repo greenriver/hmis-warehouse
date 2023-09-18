@@ -9,15 +9,15 @@ module ReportGenerators::SystemPerformance::Fy2018
     LOOKBACK_STOP_DATE = '2012-10-01'
 
     # PH = [3,9,10,13]
-    PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
+    PH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:ph).flatten(1)
     # TH = [2]
-    TH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:th).flatten(1)
+    TH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:th).flatten(1)
     # ES = [1]
-    ES = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es).flatten(1)
+    ES = HudUtility2024.residential_project_type_numbers_by_code.values_at(:es).flatten(1)
     # SH = [8]
-    SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
+    SH = HudUtility2024.residential_project_type_numbers_by_code.values_at(:sh).flatten(1)
     # SO = [4]
-    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
+    SO = HudUtility2024.residential_project_type_numbers_by_code.values_at(:so).flatten(1)
 
     def run!
       # Disable logging so we don't fill the disk

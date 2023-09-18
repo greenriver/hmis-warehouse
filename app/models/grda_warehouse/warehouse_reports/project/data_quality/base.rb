@@ -343,7 +343,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         dob: c_t[:DOB].to_sql,
         dob_data_quality: c_t[:DOBDataQuality].to_sql,
         veteran_status: c_t[:VeteranStatus].to_sql,
-        ethnicity: c_t[:Ethnicity].to_sql,
         gender: c_t[:Gender].to_sql,
         race_none: c_t[:RaceNone].to_sql,
         am_ind_ak_native: c_t[:AmIndAKNative].to_sql,

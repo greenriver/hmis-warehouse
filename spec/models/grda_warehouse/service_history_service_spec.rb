@@ -1,5 +1,6 @@
 require 'rails_helper'
 
+# DEPRECATED_FY2024 - this will not work until we've updated the source CSVs to the FY2024 format with the new importer
 RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   before(:all) do
     import_hmis_csv_fixture(
@@ -19,7 +20,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   end
 
   it 'homeless no longer includes PH with no move-in-date' do
-    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
+    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(project_id: '1-2')).first
     en.project.update(ProjectType: 13, computed_project_type: 13)
     en.update(processed_as: nil)
     en.rebuild_service_history!
@@ -32,7 +33,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   end
 
   it 'homeless no longer includes services for the entry exit enrollment if we make them PH with a prior move-in-date' do
-    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
+    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(project_id: '1-2')).first
     en.project.update(ProjectType: 13, computed_project_type: 13)
     en.update(MoveInDate: start_date, processed_as: nil)
     en.rebuild_service_history!
@@ -45,7 +46,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   end
 
   it 'homeless still includes TH with a future move-in-date' do
-    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
+    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(project_id: '1-2')).first
     en.project.update(ProjectType: 2, computed_project_type: 2)
     en.update(MoveInDate: end_date + 1.days, processed_as: nil)
     en.rebuild_service_history!
@@ -58,7 +59,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   end
 
   it 'homeless still includes TH with a past move-in-date' do
-    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
+    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(project_id: '1-2')).first
     en.project.update(ProjectType: 2, computed_project_type: 2)
     en.update(MoveInDate: start_date, processed_as: nil)
     en.rebuild_service_history!
@@ -71,7 +72,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   end
 
   it 'literally homeless does not include TH with a past move-in-date' do
-    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
+    en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(project_id: '1-2')).first
     en.project.update(ProjectType: 2, computed_project_type: 2)
     en.update(MoveInDate: start_date, processed_as: nil)
     en.rebuild_service_history!

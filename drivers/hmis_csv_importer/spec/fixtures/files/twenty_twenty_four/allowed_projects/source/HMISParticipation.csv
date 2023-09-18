@@ -1,0 +1,3 @@
+HMISParticipationID,ProjectID,HMISParticipationType,HMISParticipationStatusStartDate,HMISParticipationStatusEndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+GR-ALLOW,ALLOW,,,,2015-11-30 08:50:40,2015-11-30 08:50:40,user,,ALLOW-TEST
+GR-DENY,DENY,,,,2015-11-30 08:50:40,2015-11-30 08:50:40,user,,ALLOW-TEST

@@ -6,7 +6,7 @@ Exporting logic for HMIS CSV files in the 2024 HUD format.
 
 `HmisCsvTwentyTwentyFour::Exporter::Base.new(....).export!` will export a specified date range for specified projects
 
-### Importer Modules (Not Yet Implemented)
+### Importer Modules
 
 Importing and processing logic for HMIS CSV files in the 2024 HUD format.
 
@@ -15,19 +15,22 @@ This will:
 2. run necessary ETL to bring them into a structured, validated set of tables
 3. bring any changes into the warehouse proper
 
+There can only be one set of importer modules installed at a time. The correct modules are installed into the
+via the configuration `Rails.application.config.hmis_data_lake` in `hmis_csv_twenty_twenty_four_feature.rb`.
+
 #### HmisCsvTwentyTwentyFour::Loader
 
 The loader reads a source directory containing HMIS CSV files and inserts the data into a set of tables
 with the HMIS columns as strings.
 
-Class `Loader` is the entry point to this module.
+Class `HmisCsvImporter::Loader` is the entry point to this module.
 
 #### HmisCsvTwentyTwentyFour::Importer
 
 The importer processes the data from the loader to produce a structured, validated input, and incorporate
 any new or changed data into the warehouse.
 
-Class `Importer` is the entry point to this module.
+Class `HmisCsvImporter::Importer` is the entry point to this module.
 
 ##### Row Pre-Processing
 

@@ -24,7 +24,6 @@ module
       {}.merge(age_detail_hash).
         merge(gender_detail_hash).
         merge(disability_detail_hash).
-        merge(ethnicity_detail_hash).
         merge(race_detail_hash).
         merge(household_detail_hash).
         merge(dv_detail_hash).
@@ -76,18 +75,30 @@ module
       columns_for(key) - pii_columns
     end
 
+    private def gender_headers
+      headers = HudUtility2024.gender_field_name_label.dup
+      headers[:GenderNone] = 'Unknown Gender'
+      headers.values
+    end
+
+    private def gender_columns
+      HudUtility2024.gender_field_name_label.keys.map do |col|
+        c_t[col]
+      end
+    end
+
     def detail_column_display(header:, column:)
       case header
       when 'Project Type'
-        HudUtility.project_type(column)
+        HudUtility2024.project_type(column)
       when 'CoC'
-        HudUtility.coc_name(column)
-      when 'Female', 'Male', 'No Single Gender', 'Transgender', 'Questioning', 'Unknown Gender'
-        HudUtility.no_yes_reasons_for_missing_data(column)
+        HudUtility2024.coc_name(column)
+      when *gender_headers
+        HudUtility2024.no_yes_reasons_for_missing_data(column)
       when 'Relationship To HoH'
-        HudUtility.relationship_to_hoh(column)
+        HudUtility2024.relationship_to_hoh(column)
       when 'Destination'
-        HudUtility.destination(column)
+        HudUtility2024.destination(column)
       else
         column
       end
@@ -102,12 +113,7 @@ module
         'DOB',
         'Reporting Age',
         'Relationship To HoH',
-        'Female',
-        'Male',
-        'No Single Gender',
-        'Transgender',
-        'Questioning',
-        'Unknown Gender',
+        *gender_headers,
         'Entry Date',
         'Exit Date',
         'Destination',
@@ -139,12 +145,7 @@ module
         c_t[:DOB],
         age_calculation,
         e_t[:RelationshipToHoH],
-        c_t[:Female],
-        c_t[:Male],
-        c_t[:NoSingleGender],
-        c_t[:Transgender],
-        c_t[:Questioning],
-        c_t[:GenderNone],
+        *gender_columns,
         e_t[:EntryDate],
         she_t[:exit_date],
         she_t[:destination],

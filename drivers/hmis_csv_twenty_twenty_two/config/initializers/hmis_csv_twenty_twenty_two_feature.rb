@@ -15,4 +15,5 @@ RailsDrivers.loaded << :hmis_csv_twenty_twenty_two
 Rails.application.reloader.to_prepare do
   Filters::HmisExport.register_version('HMIS 2022', '2022', 'HmisCsvTwentyTwentyTwo::ExportJob')
 end
-Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentyTwo'
+
+# Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentyTwo'
