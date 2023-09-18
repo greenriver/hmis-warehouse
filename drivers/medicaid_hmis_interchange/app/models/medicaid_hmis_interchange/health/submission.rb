@@ -76,7 +76,7 @@ module MedicaidHmisInterchange::Health
           GrdaWarehouse::Hud::Client.where(id: medicaid_ids.keys). # X-DB join
             joins(service_history_enrollments: :enrollment).
             preload(service_history_enrollments: [:service_history_services, enrollment: :current_living_situations]).
-            merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)).
+            merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(HudUtility2024.homeless_project_types)).
             find_each do |client|
             medicaid_id = medicaid_ids[client.id].identifier
             next if seen_medicaid_ids.include?(medicaid_id)

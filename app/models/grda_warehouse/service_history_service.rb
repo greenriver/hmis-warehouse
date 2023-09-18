@@ -30,18 +30,18 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   end
 
   scope :permanent_housing, -> do
-    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
+    in_project_type(HudUtility2024.residential_project_type_numbers_by_code[:ph])
   end
 
   scope :transitional_housing, -> do
-    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])
+    in_project_type(HudUtility2024.residential_project_type_numbers_by_code[:th])
   end
 
   scope :homeless_sheltered, -> do
-    in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_SHELTERED_PROJECT_TYPES)
+    in_project_type(HudUtility2024.homeless_sheltered_project_types)
   end
   scope :homeless_unsheltered, -> do
-    in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
+    in_project_type(HudUtility2024.homeless_unsheltered_project_types)
   end
 
   scope :homeless_between, ->(start_date:, end_date:) do

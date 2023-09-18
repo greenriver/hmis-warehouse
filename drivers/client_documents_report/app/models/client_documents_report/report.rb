@@ -23,8 +23,7 @@ module ClientDocumentsReport
     end
 
     def self.default_project_type_codes
-      # TODO: moved for 2024 to HudUtility2024
-      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
+      HudUtility2024.performance_reporting.keys
     end
 
     # Find the most recent date from the documents of the appropriate type in the chosen group

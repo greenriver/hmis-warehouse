@@ -85,7 +85,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           veteran_status: client.VeteranStatus,
           disabling_condition: hud_enrollment.DisablingCondition,
           prior_living_situation: hud_enrollment.LivingSituation,
-          ethnicity: client.Ethnicity,
           enrollment_date_created: hud_enrollment.DateCreated,
           exit_date_created: hud_exit&.DateCreated,
 
@@ -296,7 +295,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       )
       report_enrollment.set_gender_completeness(gender_none: client.GenderNone, gender_multi: client.gender_multi)
       report_enrollment.set_veteran_completeness(veteran: client.VeteranStatus, entry_date: hud_enrollment.EntryDate)
-      report_enrollment.set_ethnicity_completeness(ethnicity: client.Ethnicity)
       report_enrollment.race = client.race_description
       report_enrollment.set_race_completeness(
         race_none: client.RaceNone,

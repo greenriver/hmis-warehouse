@@ -17,7 +17,7 @@ module PriorLivingSituation
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
       @comparison_pattern = filter.comparison_pattern
     end
 
@@ -106,7 +106,7 @@ module PriorLivingSituation
             :LengthOfStay,
             :CoCCode,
           ).each do |client_id, living_situation_id, length_of_stay, coc_code|
-            living_situation = HudUtility.situation_type(living_situation_id, include_homeless_breakout: true)
+            living_situation = HudUtility2024.situation_type(living_situation_id).gsub('Housing', '').strip
 
             data[:all] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
             data[:all][living_situation] << client_id
@@ -125,16 +125,16 @@ module PriorLivingSituation
 
             data[:by_coc][coc_code][:situations] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
 
-            # data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.product(HudUtility.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
+            # data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.product(HudUtility2024.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
             data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.map { |b| [b, {}] }.to_h
             living_situation_buckets.each do |b|
-              HudUtility.residence_prior_length_of_stays_brief.values.uniq.each do |l|
+              HudUtility2024.residence_prior_length_of_stays_brief.values.uniq.each do |l|
                 data[:by_coc][coc_code][:situations_length][b][l] ||= Set.new
               end
             end
 
             data[:by_coc][coc_code][:situations][living_situation] << client_id
-            data[:by_coc][coc_code][:situations_length][living_situation][HudUtility.residence_prior_length_of_stay_brief(length_of_stay) || ''] << client_id
+            data[:by_coc][coc_code][:situations_length][living_situation][HudUtility2024.residence_prior_length_of_stay_brief(length_of_stay) || ''] << client_id
           end
         data
       end
@@ -143,14 +143,15 @@ module PriorLivingSituation
 
       # columns:
       #   'location' ()
-      #   'length of stay' HudUtility.residence_prior_length_of_stay_brief
+      #   'length of stay' HudUtility2024.residence_prior_length_of_stay_brief
     end
 
     private def living_situation_buckets
       [
         'Homeless',
         'Institutional',
-        'Temporary or Permanent',
+        'Temporary',
+        'Permanent',
         'Other',
       ]
     end

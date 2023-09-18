@@ -11,7 +11,6 @@ module ClaimsReporting
     def hud_clients_scope
       scope = GrdaWarehouse::Hud::Client.all
       scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
       scope = filter_for_gender(scope)
       scope
     end
@@ -45,14 +44,6 @@ module ClaimsReporting
         end
       end
       scope
-    end
-
-    private def filter_for_ethnicity(scope)
-      return scope unless filter.ethnicities.present?
-
-      # puts "HmisFilters: applying ethnicities=#{filter.ethnicities}"
-
-      scope.where(c_t[:Ethnicity].in(filter.ethnicities))
     end
 
     private def filter_for_gender(scope)

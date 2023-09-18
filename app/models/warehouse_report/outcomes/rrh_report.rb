@@ -31,7 +31,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       project_id: "Warehouse #{Translation.translate('Stabilization Project')} ID",
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
-      ethnicity: Translation.translate('Ethnicity'),
       gender: Translation.translate('Gender'),
     }
   end
@@ -43,7 +42,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       search_end: Translation.translate('Search End'),
       housed_date: Translation.translate('Date Housed'),
       race: Translation.translate('Race'),
-      ethnicity: Translation.translate('Ethnicity'),
       gender: Translation.translate('Gender'),
     }
   end
@@ -59,7 +57,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       project_id: "Warehouse #{Translation.translate('Stabilization Project')} ID",
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
-      ethnicity: Translation.translate('Ethnicity'),
       gender: Translation.translate('Gender'),
     }
   end
@@ -71,7 +68,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       days_to_return: Translation.translate('Days to Return'),
       destination: Translation.translate('Destination'),
       race: Translation.translate('Race'),
-      ethnicity: Translation.translate('Ethnicity'),
       gender: Translation.translate('Gender'),
     }
   end
@@ -85,7 +81,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       project_id: "Warehouse #{Translation.translate('Stabilization Project')} ID",
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
-      ethnicity: Translation.translate('Ethnicity'),
       gender: Translation.translate('Gender'),
     }
   end
@@ -99,7 +94,6 @@ class WarehouseReport::Outcomes::RrhReport < WarehouseReport::Outcomes::Base
       project_id: "Warehouse #{Translation.translate('Stabilization Project')} ID",
       hmis_project_id: Translation.translate('HMIS Project ID'),
       race: Translation.translate('Race'),
-      ethnicity: Translation.translate('Ethnicity'),
       gender: Translation.translate('Gender'),
     }
   end

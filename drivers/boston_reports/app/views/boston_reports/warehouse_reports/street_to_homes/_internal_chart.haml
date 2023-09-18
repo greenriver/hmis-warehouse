@@ -2,13 +2,6 @@
   .d-flex
     %h2.mb-4= title
     .action-buttons.ml-auto.d-flex
-      .dropdown.internal-demographic-dropdown.mr-4
-        %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: :false }} Demographic
-        .dropdown-menu
-          - [:race, :ethnicity].each do |item|
-            - classes = []
-            - classes << 'active' if active_demographic == item || active_group == item
-            %a.dropdown-item{ href: '#', class: classes, data: { value: item} }= item.to_s.humanize
       .dropdown.mr-4.internal-group-dropdown
         %button.btn.btn-secondary.btn-sm.dropdown-toggle{ type: :button, data: { toggle: :dropdown}, aria: { expanded: :false }} Group
         .dropdown-menu

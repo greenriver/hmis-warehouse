@@ -6,6 +6,7 @@
 
 module CoreDemographicsReport
   class Core
+    include CoreDemographicsReport::ReportConcern # NOTE: this must come before age calculations
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
@@ -13,7 +14,6 @@ module CoreDemographicsReport
     include CoreDemographicsReport::AgeCalculations
     include CoreDemographicsReport::GenderCalculations
     include CoreDemographicsReport::RaceCalculations
-    include CoreDemographicsReport::EthnicityCalculations
     include CoreDemographicsReport::DisabilityCalculations
     include CoreDemographicsReport::RelationshipCalculations
     include CoreDemographicsReport::DvCalculations
@@ -22,14 +22,12 @@ module CoreDemographicsReport
     include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
 
-    include CoreDemographicsReport::ReportConcern
-
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
       @comparison_pattern = filter.comparison_pattern
     end
 
@@ -43,7 +41,6 @@ module CoreDemographicsReport
         'genders',
         'gender_ages',
         'races',
-        'ethnicities',
         'disabilities',
         'relationships',
         'dvs',
@@ -100,7 +97,6 @@ module CoreDemographicsReport
           rows = report.age_data_for_export(rows)
           rows = report.gender_data_for_export(rows)
           rows = report.race_data_for_export(rows)
-          rows = report.ethnicity_data_for_export(rows)
           rows = report.relationship_data_for_export(rows)
           rows = report.disability_data_for_export(rows)
           rows = report.dv_status_data_for_export(rows)

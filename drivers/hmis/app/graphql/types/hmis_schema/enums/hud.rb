@@ -122,6 +122,12 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.availabilities
   end
 
+  class CoCCodes < Types::BaseEnum
+    description '2.03.1'
+    graphql_name 'CoCCodes'
+    hud_enum HudUtility2024.coc_codes_options
+  end
+
   class GeographyType < Types::BaseEnum
     description '2.03.4'
     graphql_name 'GeographyType'

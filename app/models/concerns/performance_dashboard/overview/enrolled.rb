@@ -11,7 +11,6 @@ module PerformanceDashboard::Overview::Enrolled
   include PerformanceDashboard::Overview::Enrolled::Household
   include PerformanceDashboard::Overview::Enrolled::Veteran
   include PerformanceDashboard::Overview::Enrolled::Race
-  include PerformanceDashboard::Overview::Enrolled::Ethnicity
   include PerformanceDashboard::Overview::Enrolled::ProjectType
   include PerformanceDashboard::Overview::Enrolled::Coc
   include PerformanceDashboard::Overview::Enrolled::LotHomeless
@@ -38,8 +37,6 @@ module PerformanceDashboard::Overview::Enrolled
       enrolled_by_veteran_details(options)
     elsif options[:race]
       enrolled_by_race_details(options)
-    elsif options[:ethnicity]
-      enrolled_by_ethnicity_details(options)
     elsif options[:project_type]
       enrolled_by_project_type_details(options)
     elsif options[:coc]

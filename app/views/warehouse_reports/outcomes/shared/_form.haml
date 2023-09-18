@@ -29,11 +29,11 @@
         = f.input :hoh_only, as: :boolean, label: 'Heads-of-household only'
     .row
       .col-sm-3
-        = f.input :race, collection: Reporting::Housed.available_races.invert, as: :select_two, include_blank: 'All'
+        = f.input :races, collection: Reporting::Housed.available_races.invert, as: :select_two, include_blank: 'All', input_html: { multiple: true }
       .col-sm-3
-        = f.input :ethnicity, collection: Reporting::Housed.available_ethnicities.invert, as: :select_two, include_blank: 'All'
+        = f.input :genders, collection: Reporting::Housed.available_genders.invert, as: :select_two, include_blank: 'All', input_html: { multiple: true }
       .col-sm-3
-        = f.input :gender, collection: Reporting::Housed.available_genders.invert, as: :select_two, include_blank: 'All'
+        = f.input :age_ranges, collection: Reporting::Housed.available_age_ranges.invert, as: :select_two, include_blank: 'All', input_html: { multiple: true }
       .col-sm-3
         = f.input :veteran_status, collection: Reporting::Housed.available_veteran_stati.invert, as: :select_two, include_blank: 'All'
   - content_for :filter_actions do

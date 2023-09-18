@@ -12,7 +12,7 @@ module CePerformance
     belongs_to :report
 
     def self.available_event_ids
-      ::HudUtility.events.keys
+      ::HudUtility2024.events.keys
     end
 
     def nested_header
@@ -167,7 +167,7 @@ module CePerformance
             :comparison,
           ].each do |period|
             data[period] ||= {}
-            data[period][::HudUtility.event(event_id)] = self.class.find_by(report_id: report.id, period: period, event_type: event_id)&.value
+            data[period][::HudUtility2024.event(event_id)] = self.class.find_by(report_id: report.id, period: period, event_type: event_id)&.value
           end
         end
       end

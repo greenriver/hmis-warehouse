@@ -21,7 +21,7 @@ module HudApr::Generators::Caper::Fy2023
     end
 
     def self.default_project_type_codes
-      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys + [:prevention]
+      HudUtility2024.residential_project_type_numbers_by_code.keys + [:prevention]
     end
 
     def url
