@@ -404,14 +404,14 @@ module CePerformance
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,
+        CePerformance::Results::TimeToAssessmentAverage,
+        CePerformance::Results::TimeToAssessmentMedian,
+        CePerformance::Results::TimeOnListAverage,
+        CePerformance::Results::TimeOnListMedian,
         CePerformance::Results::EntryToReferralAverage,
         CePerformance::Results::EntryToReferralMedian,
         CePerformance::Results::ReferralToHousingAverage,
         CePerformance::Results::ReferralToHousingMedian,
-        CePerformance::Results::TimeOnListAverage,
-        CePerformance::Results::TimeOnListMedian,
-        CePerformance::Results::TimeToAssessmentAverage,
-        CePerformance::Results::TimeToAssessmentMedian,
         CePerformance::Results::EventType,
       ]
       if include_supplemental?

@@ -15,27 +15,33 @@
     %table.table.table-striped
       %thead
         %tr
-          %th Role
-          %th Collection
-          %th User Group
+          %th
+            .div.mb-1 User Group
+            %i.font-weight-light Who is receiving access?
+          %th
+            .div.mb-1 Role
+            %i.font-weight-light Which permissions are they receiving?
+          %th
+            .div.mb-1 Collection
+            %i.font-weight-light Which projects are the permissions are applied to?
           %th
       %tbody
         - @access_controls.each do |acl|
           %tr
-            %td= acl.role.name
-            %td= link_to acl.access_group.name, edit_hmis_admin_group_path(acl.access_group)
             %td
               - if acl.user_group.present?
                 = link_to acl.user_group.name, edit_hmis_admin_user_group_path(acl.user_group)
+            %td= link_to acl.role.name, hmis_admin_roles_path
+            %td= link_to acl.access_group.name, edit_hmis_admin_group_path(acl.access_group)
             %td
               .float-right
                 = link_to edit_hmis_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
                   %span.icon-pencil
-                  Edit Access Control
+                  Edit
 
                 = link_to hmis_admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control list for group '#{acl.access_group.name}' and role '#{acl.role.name}'?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
                   %span.icon-cross
                   Delete
   = render 'common/pagination_bottom', item_name: 'access control list'
 - else
-  .none-found No access control lists.
+  .none-found No access controls.

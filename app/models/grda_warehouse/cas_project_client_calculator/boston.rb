@@ -122,6 +122,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :disabling_condition?,
         :domestic_violence,
         :currently_fleeing,
+        :dv_date, # needed to show up in the UI
       ]
     end
     # memoize :pathways_questions
@@ -456,6 +457,13 @@ module GrdaWarehouse::CasProjectClientCalculator
         m.CurrentlyFleeing == 1 &&
         [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
       end.any?
+    end
+
+    private def dv_date(client)
+      client.source_health_and_dvs.select do |m|
+        m.CurrentlyFleeing == 1 &&
+        [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
+      end&.max_by(&:InformationDate)&.InformationDate
     end
 
     # Any open enrollments 4.11.2 DomesticViolenceVictim = 1

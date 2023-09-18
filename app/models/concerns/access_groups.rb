@@ -10,7 +10,7 @@ module AccessGroups
 
   def access_groups
     {
-      'Users' => AccessGroup.user.to_a,
+      'Users' => AccessGroup.user.merge(User.active).to_a,
       'Groups' => AccessGroup.general.to_a,
     }
   end

@@ -32,6 +32,10 @@ module GrdaWarehouse
       where(active_match: false)
     end
 
+    scope :match_open, -> do
+      where(active_match: true)
+    end
+
     scope :match_failed, -> do
       where.not(terminal_status: ['In Progress', 'Success', 'New'])
     end
