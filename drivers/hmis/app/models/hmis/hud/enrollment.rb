@@ -90,10 +90,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
   }.freeze
 
-  scope :with_access, ->(user, *permissions) do
+  # Enrollments at Projects where the user has the specified permission(s).
+  # WARNING UNSAFE! This does not check for can_view_project or can_view_enrollment_details.
+  # This scope should almost always be used in conjunction with viewable_by.
+  scope :with_access, ->(user, *permissions, **kwargs) do
     return none unless user.permissions?(*permissions)
 
-    project_ids = Hmis::Hud::Project.with_access(user, *permissions).pluck(:id, :ProjectID)
+    project_ids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 
@@ -101,8 +104,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   # hide previous declaration of :viewable_by, we'll use this one
-  # A user can see any enrollment associated with a project they can access
-  replace_scope :viewable_by, ->(user) { with_access(user, :can_view_enrollment_details) }
+  # A user can see any enrollment associated with a project they can view
+  replace_scope :viewable_by, ->(user) do
+    with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all')
+  end
 
   # Free-text search for Enrollment
   scope :matching_search_term, ->(search_term) do
