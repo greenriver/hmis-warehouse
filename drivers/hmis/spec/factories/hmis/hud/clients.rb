@@ -19,6 +19,13 @@ FactoryBot.define do
     FirstName { 'Bob' }
     LastName { 'Ross' }
     DOB { '1999-12-01' }
+    transient do
+      with_enrollment_at { nil }
+    end
+    after(:create) do |client, evaluator|
+      create(:hmis_hud_enrollment, client: client, data_source: client.data_source, project: evaluator.with_enrollment_at) if evaluator.with_enrollment_at.present?
+      client.reload
+    end
   end
 
   factory :hmis_hud_client_complete, parent: :hmis_hud_base_client do
