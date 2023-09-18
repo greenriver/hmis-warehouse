@@ -18,6 +18,12 @@ module ApplicationHelper
   end
   # END Permissions
 
+  # Backwards compatible translations for views so we don't have to
+  # update files in S3
+  def _(text)
+    Translation.translate(text)
+  end
+
   def yes_no(boolean, include_icon: true)
     case boolean
     when nil

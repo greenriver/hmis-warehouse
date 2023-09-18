@@ -80,6 +80,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       client_scope = client_scope.filter_for_race(filter.races)
       client_scope = client_scope.filter_for_ethnicity(filter.ethnicities)
       client_scope = client_scope.filter_for_gender(filter.genders)
+      client_scope = client_scope.filter_for_dv_status(filter)
 
       client_scope
     end
@@ -191,6 +192,20 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       project_ids = GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_codes).distinct.pluck(:id)
 
       current_scope.where(project_id: project_ids)
+    end
+
+    def self.filter_for_dv_status(filter)
+      return current_scope if filter.dv_status.blank?
+
+      client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, enrollment: :health_and_dvs).
+        merge(GrdaWarehouse::Hud::Project.where(id: filter.anded_effective_project_ids)).
+        merge(
+          GrdaWarehouse::Hud::HealthAndDv.where(
+            InformationDate: filter.range,
+            DomesticViolenceVictim: filter.dv_status, # FIXME: DEPRECATED_FY2024 - this needs to be updated for 2024 spec changes
+          ),
+        ).pluck(:client_id)
+      current_scope.where(client_id: client_ids)
     end
 
     def self.warehouse_vispdat_client_ids

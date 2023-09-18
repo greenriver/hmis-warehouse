@@ -54,7 +54,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "Average: #{value.to_i} #{unit}"
+      "Average: #{number_with_delimiter(value.to_i)} #{unit}"
     end
 
     def goal_direction

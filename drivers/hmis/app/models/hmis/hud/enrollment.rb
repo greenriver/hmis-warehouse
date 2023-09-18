@@ -356,7 +356,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   private def client_is_valid
     return unless client.present?
 
-    client.valid?(context: [:form_submission, :new_client_enrollment_form])
+    client.valid?([:form_submission, :new_client_enrollment_form])
     errors.merge!(client.errors)
   end
 

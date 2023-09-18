@@ -40,5 +40,5 @@
                     .ml-auto.mr-4= tagged(passed, status, icon: icon, label: label)
                 - else
                   .col-md-3
-                    .performance-measurement__result-number.font-weight-bold.mt-4= result.value.round
+                    .performance-measurement__result-number.font-weight-bold.mt-4= number_with_delimiter(result.value.round)
                     .text-capitalize= result.unit

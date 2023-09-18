@@ -26,21 +26,21 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     def build_records
       exit_lookup = owner_class
         .where(data_source: data_source)
-        .pluck(:exit_id, :id, :enrollment_id)
-        .to_h { |exit_id, pk, enrollment_id| [exit_id, [pk, enrollment_id]] }
+        .pluck(:enrollment_id, :id)
+        .to_h
       expected = 0
       actual = 0
       records = rows.flat_map do |row|
         expected += 1
-        exit_id = row_value(row, field: 'ExitID')
-        owner_id, enrollment_id = exit_lookup[exit_id]
+        enrollment_id = row_value(row, field: 'EnrollmentID')
+        # ignore exit id; it isn't stable on the remote side
+        # row_value(row, field: 'ExitID')
+        exit_pk = exit_lookup[enrollment_id]
 
-        unless owner_id
-          log_skipped_row(row, field: 'ExitID')
+        unless exit_pk
+          log_skipped_row(row, field: 'EnrollmentID')
           next # early return
         end
-
-        raise 'ExitID/EnrollmentID mismatch' if enrollment_id != row_value(row, field: 'EnrollmentID')
 
         actual += 1
         ret = [
@@ -63,7 +63,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             definition_key: voluntary_reason?(reason_for_exit) ? :reason_for_exit_voluntary : :reason_for_exit_involuntary,
           )
         end
-        ret.compact_blank.each { |r| r[:owner_id] = owner_id }
+        ret.compact_blank.each { |r| r[:owner_id] = exit_pk }
       end.compact
       log_processed_result(expected: expected, actual: actual)
       records
