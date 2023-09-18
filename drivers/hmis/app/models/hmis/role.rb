@@ -94,7 +94,7 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
       can_view_project: {
-        description: 'Grants access to view the project page',
+        description: 'Grants access to view the project page. This permission also limits enrollment access. For example, a user with "can view enrollment details" can only view enrollment details at projects that they can view.',
         administrative: false,
         access: [:viewable],
         categories: [
