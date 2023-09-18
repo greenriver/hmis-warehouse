@@ -75,6 +75,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  # Includes clients where..
+  #  1. The Client has enrollment(s) at any Project where the User has this specified Permissions(s)
+  #     OR,
+  #  2. The Client has NO enrollments AND the User has these Permission(s) at _any_ project
+  #
+  # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :with_access, ->(user, *permissions, **kwargs) do
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
