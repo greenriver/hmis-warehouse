@@ -25,7 +25,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model d
     subject.run!
     result = CSV.parse(output, headers: true)
     expect(result.length).to eq(1)
-    expect(result.first['FirstName']).to eq(client.first_name)
+    expect(result.first['PersonalID']).to eq(client.personal_id)
   end
 
   it 'includes most recently updated address' do
@@ -42,10 +42,5 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model d
     subject.run!
     expect(output).to include(mci.value)
     expect(output).to_not include(irrelevant.value)
-  end
-
-  it 'formats dates correctly' do
-    subject.run!
-    expect(output).to include(today.strftime('%Y-%m-%d'))
   end
 end

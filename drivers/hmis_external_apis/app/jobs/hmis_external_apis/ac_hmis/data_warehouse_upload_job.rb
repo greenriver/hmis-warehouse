@@ -44,7 +44,7 @@ module HmisExternalApis::AcHmis
         filename_format: '%Y-%m-%d-clients.zip',
         io_streams: [
           OpenStruct.new(
-            name: 'Client.csv',
+            name: 'ClientMciMapping.csv',
             io: export.output,
           ),
         ],
