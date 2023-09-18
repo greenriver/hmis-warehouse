@@ -16,6 +16,11 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
             model: GrdaWarehouse::Hud::Organization,
           },
         },
+        HudTwentyTwentyTwoToTwentyTwentyFour::CeParticipation::Db => {
+          project: {
+            model: GrdaWarehouse::Hud::Project,
+          },
+        },
         HudTwentyTwentyTwoToTwentyTwentyFour::Export::Db => {},
         HudTwentyTwentyTwoToTwentyTwentyFour::Client::Db => {},
         HudTwentyTwentyTwoToTwentyTwentyFour::CurrentLivingSituation::Db => {},
