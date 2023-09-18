@@ -40,7 +40,15 @@ module GrdaWarehouse::Hud
     scope :chronically_disabled, -> do
       # HIV/AIDS and developmental disabilities are always indefinite and impairing
       # Everything else needs IndefiniteAndImpairs: 1
-      disabled.where(arel_table[:DisabilityType].in([6, 8]).or(arel_table[:IndefiniteAndImpairs].eq(1)))
+      # Enrollment.DisablingCondition is an override for all specific disabilities
+      joins(:enrollment).
+        where(
+          e_t[:DisablingCondition].eq(1).
+          or(
+            arel_table[:DisabilityResponse].in(positive_responses).
+            and(arel_table[:DisabilityType].in([6, 8]).or(arel_table[:IndefiniteAndImpairs].eq(1))),
+          ),
+        )
     end
 
     scope :at_entry, -> do

@@ -912,7 +912,7 @@ module GrdaWarehouse::Hud
       where(
         id: joins(:source_enrollment_disabilities).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
-          merge(GrdaWarehouse::Hud::Disability.chronically_disabled).select(:id),
+          merge(GrdaWarehouse::Hud::Disability.chronically_disabled.where(information_date: ..end_date)).select(:id),
       ).or(
         where(id: where.not(disability_verified_on: nil).select(:id)),
       )
