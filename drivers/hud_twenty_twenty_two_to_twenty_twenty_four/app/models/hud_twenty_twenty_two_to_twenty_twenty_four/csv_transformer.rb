@@ -61,6 +61,12 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
       'CEParticipation.csv' => { # Create an empty placeholder file, but we aren't populating it..
         action: :create,
         model: GrdaWarehouse::Hud::CeParticipation,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::CeParticipation::Csv,
+        references: {
+          project: {
+            file: 'Project.csv',
+          },
+        },
       },
       # Client File
       'Client.csv' => {
