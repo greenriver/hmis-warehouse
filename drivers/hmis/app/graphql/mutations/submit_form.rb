@@ -117,10 +117,13 @@ module Mutations
     end
 
     private def perform_side_effects(record)
-      if record.is_a?(Hmis::Hud::Client)
-        if record.new_record?
+      # If a Client record was created or updated, queue up IdentifyDuplicates job. This creates the warehouse destination client.
+      client_record = record if record.is_a?(Hmis::Hud::Client)
+      client_record ||= record.client if record.is_a?(Hmis::Hud::Enrollment)
+      if client_record
+        if client_record.new_record?
           GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
-        else
+        elsif client_record.changed?
           GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing!
         end
       end

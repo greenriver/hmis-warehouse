@@ -61,6 +61,26 @@ module HmisExternalApis
             external_ids.detect { |id| id.namespace == HmisExternalApis::AcHmis::Mci::SYSTEM_ID }.present?
           end
 
+          # MCI after_save hook for attributes that get set by the ClientProcessor.
+          attr_accessor :create_mci_id
+          attr_accessor :update_mci_attributes
+          after_save do
+            return unless HmisExternalApis::AcHmis::Mci.enabled?
+
+            if create_mci_id
+              self.create_mci_id = nil
+              HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
+            end
+
+            # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
+            if update_mci_attributes
+              self.update_mci_attributes = nil
+              trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
+              relevant_fields_changed = trigger_columns.any? { |field| previous_changes&.[](field) }
+              HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id) if relevant_fields_changed
+            end
+          end
+
           private def requires_mci_clearance?
             return false unless HmisExternalApis::AcHmis::Mci.enabled?
             # If brand new Client record (NOT in context of an Enrollment), then MCI clearance is required
