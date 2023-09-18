@@ -14,6 +14,13 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
     Date.current
   end
 
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
+
   def reminders_for(_enrollment, topic:)
     project = p1
     Hmis::Reminders::ReminderGenerator
