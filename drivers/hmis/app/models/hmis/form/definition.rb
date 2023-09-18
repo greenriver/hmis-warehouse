@@ -40,7 +40,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :SERVICE,
     :CE_EVENT,
     :CE_ASSESSMENT,
-    :CUSTOM_CASE_NOTE,
+    :CASE_NOTE,
     # Would be nice if we could use instances to enable/disable the referral feature (instead of using permissions for it).
     # That would mean creating an Instance for this form for each non-Direct Entry program.
     # Maybe less cumbersome than dealing with data access groups, but we'd need that anyway to handle Direct Enrollment permission?
@@ -74,7 +74,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
     CE_ASSESSMENT: { class_name: 'Hmis::Hud::Assessment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CeAssessment' },
     CE_EVENT: { class_name: 'Hmis::Hud::Event', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Event' },
-    CUSTOM_CASE_NOTE: { class_name: 'Hmis::Hud::CustomCaseNote', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CustomCaseNote' },
+    CASE_NOTE: { class_name: 'Hmis::Hud::CustomCaseNote', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CustomCaseNote' },
     FILE: {
       class_name: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],

@@ -113,7 +113,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :CURRENT_LIVING_SITUATION,
       :CE_ASSESSMENT,
       :CE_EVENT,
-      :CUSTOM_CASE_NOTE,
+      :CASE_NOTE,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -169,7 +169,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               e1.id
             when :CE_ASSESSMENT
               a1.id
-            when :CUSTOM_CASE_NOTE
+            when :CASE_NOTE
               custom_case_note.id
             when :CE_EVENT
               evt1.id

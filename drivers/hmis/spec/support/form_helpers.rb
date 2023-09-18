@@ -300,7 +300,7 @@ module FormHelpers
         'resultDate' => '2023-08-16',
       },
     },
-    CUSTOM_CASE_NOTE: {
+    CASE_NOTE: {
       values: {
         content: 'test',
       },
