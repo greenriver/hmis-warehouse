@@ -172,7 +172,7 @@ module Hmis::Hud::Processors
       raise 'Client already has an MCI ID' if current_mci_ids.present?
 
       # If value indicates that a new MCI ID should be created, do that.
-      # Actual MCI ID creation happens in an after_save hook on Client.
+      # Actual MCI ID creation happens in an after_save hook on the HmisExternalApis ClientExtension
       if value == MCI_CREATE_MCI_ID_VALUE
         client.create_mci_id = true
         return
