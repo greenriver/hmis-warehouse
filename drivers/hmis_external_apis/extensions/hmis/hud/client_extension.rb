@@ -65,7 +65,7 @@ module HmisExternalApis
           attr_accessor :create_mci_id
           attr_accessor :update_mci_attributes
           after_save do
-            return unless HmisExternalApis::AcHmis::Mci.enabled?
+            next unless HmisExternalApis::AcHmis::Mci.enabled?
 
             if create_mci_id
               self.create_mci_id = nil
