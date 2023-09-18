@@ -1,12 +1,12 @@
 .row
   .col-sm-6
     .text-uppercase This Year
-    .performance-measurement__result-number.font-weight-bold= result.value.round
+    .performance-measurement__result-number.font-weight-bold= number_with_delimiter(result.value.round)
     .text-capitalize= result.unit
   .col-sm-6
     - if comparison.present?
       .text-uppercase Last Year
-      .performance-measurement__result-number.font-weight-bold= comparison.value.round
+      .performance-measurement__result-number.font-weight-bold= number_with_delimiter(comparison.value.round)
       .text-capitalize= comparison.unit
 
 - result.sub_results.each do |sub_result_class|
@@ -15,10 +15,10 @@
   .row.mt-4
     .col-sm-6
       .text-uppercase This Year
-      .performance-measurement__result-number.font-weight-bold= sub_result.value.round
+      .performance-measurement__result-number.font-weight-bold= number_with_delimiter(sub_result.value.round)
       .text-capitalize= sub_result.unit
     .col-sm-6
       - if sub_comparison.present?
         .text-uppercase Last Year
-        .performance-measurement__result-number.font-weight-bold= sub_comparison.value.round
+        .performance-measurement__result-number.font-weight-bold= number_with_delimiter(sub_comparison.value.round)
         .text-capitalize= sub_comparison.unit
