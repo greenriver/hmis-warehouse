@@ -92,5 +92,6 @@ module BostonHmis
     config.supplemental_enrollment_importers = {}
     config.help_links = []
     config.location_processors = []
+    config.queued_tasks = Set.new
   end
 end
