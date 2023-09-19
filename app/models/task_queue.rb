@@ -25,7 +25,7 @@ class TaskQueue < ApplicationRecord
   def self.queue_unprocessed!
     done = active.pluck(:task_key, :queued_at).to_h
     available_tasks.each_key do |task_key|
-      next if done[task_key].present?
+      next if done[task_key.to_s].present?
 
       t = TaskQueue.create(task_key: task_key)
       t.delay.run!
