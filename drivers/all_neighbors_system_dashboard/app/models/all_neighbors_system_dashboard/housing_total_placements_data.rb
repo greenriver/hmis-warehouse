@@ -29,22 +29,6 @@ module AllNeighborsSystemDashboard
       date_range.map { |date| [date.strftime('%Y-%-m-%-d'), rand(10..1500)] }
     end
 
-    def donut(options)
-      project_type = options[:project_type]
-      options[:types].map do |type|
-        value = options[:fake_data] && project_type != 'All' && type != project_type ? 0 : rand(10..1500)
-        {
-          name: type,
-          series: date_range.map do |date|
-            {
-              date: date,
-              values: [value],
-            }
-          end,
-        }
-      end
-    end
-
     def donut_data
       [
         data(
@@ -96,6 +80,7 @@ module AllNeighborsSystemDashboard
           bars: ['Unhoused Population 2023 *', 'Overall Population (Census 2020)'],
           types: demographic_race,
           colors: demographic_race_colors,
+          label_colors: demographic_race.map { |_| '#ffffff' },
         },
       )
     end

@@ -10,9 +10,13 @@ class AllNeighborsSystemDashboardDonut {
 
   init() {
     this.projectType = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
-    this.config = this.projectType.config || {}
+    this.homelessnessStatus = (this.data.homelessness_statuses || []).filter((d) => d.homelessness_status === this.state.homelessnessStatus)[0] || {}
+    
+    this.config = this.projectType.config || this.homelessnessStatus.config || {}
+    
+
     this.countLevel = (this.projectType.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
-    this.series = this.countLevel.series || []
+    this.series = this.countLevel.series || this.projectType.series || this.homelessnessStatus.series || []
   }
 
   test() {
@@ -23,9 +27,17 @@ class AllNeighborsSystemDashboardDonut {
     return this.series.map((d, i) => {
       return [this.config.keys[i]].concat(
         d.series.filter((n) => {
-          const date = Date.parse(n.date)
-          const [s, e] = this.state.dateRange
-          return date >= s && date <= e
+          if(this.state.dateRange) {
+            const date = Date.parse(n.date)
+            const [s, e] = this.state.dateRange
+            return date >= s && date <= e
+          }
+          if(this.state.year) {
+            const date = new Date(n.date)
+            const year = this.state.year
+            return date.getFullYear().toString() === year
+          }
+          return true
         })
         .map((s) => s.values[0])
       )
@@ -37,8 +49,8 @@ class AllNeighborsSystemDashboardDonut {
       data: {
         columns: this.getColumns(),
         type: 'donut',
-        colors: this.projectType.config.colors,
-        names: this.projectType.config.names,
+        colors: this.config.colors,
+        names: this.config.names,
       },
       bindto: this.selector
     }
@@ -48,7 +60,6 @@ class AllNeighborsSystemDashboardDonut {
   redraw(state) {
     this.state = state
     this.init()
-    console.log('redraw', this)
     this.chart.load({
       columns: this.getColumns(),
     })

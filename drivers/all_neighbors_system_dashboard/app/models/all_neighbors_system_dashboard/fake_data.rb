@@ -118,6 +118,39 @@ module AllNeighborsSystemDashboard
       household_type_colors
     end
 
+    def homeless_population_types
+      [
+        'Unsheltered',
+        'Emergency Shelter',
+        'Transitional Housing',
+        'Safe Haven',
+      ]
+    end
+
+    def homeless_population_type_colors
+      [
+        '#336770',
+        '#E3D8B3',
+        '#C7B266',
+        '#9E7C02',
+      ]
+    end
+
+    def homelessness_statuses
+      [
+        'All',
+        'Sheltered',
+        'Unsheltered',
+      ]
+    end
+
+    def homelessness_status_colors
+      [
+        '#B2803F',
+        '#1865AB',
+      ]
+    end
+
     def to_key(name)
       name.gsub(/[^a-zA-Z0-9 -]/, '').gsub(' ', '_')
     end
@@ -132,15 +165,44 @@ module AllNeighborsSystemDashboard
       date_range
     end
 
+    def year_range
+      years = []
+      current_date = @start_date.beginning_of_year
+      end_date = @end_date.beginning_of_year
+      while current_date <= end_date
+        years.push(current_date)
+        current_date += 1.year
+      end
+      years
+    end
+
+    def donut(options)
+      project_type = options[:project_type] || options[:homelessness_status]
+      options[:types].map do |type|
+        value = options[:fake_data] && project_type != 'All' && type != project_type ? 0 : rand(10..1500)
+        {
+          name: type,
+          series: date_range.map do |date|
+            {
+              date: date.strftime('%Y-%-m-%-d'),
+              values: [value],
+            }
+          end,
+        }
+      end
+    end
+
     def stack(options)
       project_type = options[:project_type]
+      homelessness_status = options[:homelessness_status]
       bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
+      bars[0] = "#{homelessness_status} #{bars[0]}" if homelessness_status.present?
       bars.map do |bar|
         {
           name: bar,
           series: date_range.map do |date|
             {
-              date: date,
+              date: date.strftime('%Y-%-m-%-d'),
               values: options[:types].map { |_| rand(0..150) },
             }
           end,

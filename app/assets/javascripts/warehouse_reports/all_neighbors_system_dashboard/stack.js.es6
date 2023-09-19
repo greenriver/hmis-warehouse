@@ -9,19 +9,16 @@ class AllNeighborsSystemDashboardStack {
 
   init() {
     this.project = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
-    
+    this.homelessnessStatus = (this.data.homelessness_statuses || []).filter((d) => d.homelessness_status === this.state.homelessnessStatus)[0] || {}
 
     this.countLevel = (this.project.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
     this.householdType = (this.project.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     
     this.demographic = (this.householdType.demographics || this.data.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
     
-    this.config = this.project.config || this.demographic.config || {}
-
-    console.log('demo', this.demographic)
-    console.log('config', this.config)
+    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.data.config || {}
     
-    this.series = this.demographic.series || this.countLevel.series || []
+    this.series = this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || []
   }
 
   test() {
@@ -40,6 +37,11 @@ class AllNeighborsSystemDashboardStack {
             const date = Date.parse(n.date)
             const [s, e] = this.state.dateRange
             return date >= s && date <= e
+          }
+          if(this.state.year) {
+            const date = new Date(n.date)
+            const year = this.state.year
+            return date.getFullYear().toString() === year
           }
           return true
         })
@@ -72,7 +74,7 @@ class AllNeighborsSystemDashboardStack {
         }
       },
       axis: {
-        rotated: true,
+        rotated: this.options.rotated,
         x: {
           type: "category",
           tick: {
@@ -80,12 +82,7 @@ class AllNeighborsSystemDashboardStack {
           }
         }
       },
-      padding: {
-        left: 200,
-        top: 20,
-        right: 20,
-        bottom: 20,
-      },
+      padding: this.options.padding,
       bar: {
         width: 50,
       },
@@ -97,12 +94,9 @@ class AllNeighborsSystemDashboardStack {
     const old_columns = [...this.config.keys]
     this.state = state
     this.init()
-    console.log('old_columns', old_columns)
-    console.log('unload', old_columns.filter((old) => this.config.keys.indexOf(old) === -1))
-    console.log(this)
+    
     const unload = old_columns.filter((old) => this.config.keys.indexOf(old) === -1)
-    
-    
+
     this.chart.load({
       columns: [
           this.getColumn('x'),
@@ -114,11 +108,9 @@ class AllNeighborsSystemDashboardStack {
     this.chart.internal.config.data_groups = [this.config.keys]
     this.chart.internal.config.data_labels_colors = this.config.label_colors
     this.chart.show()
-    console.log('chart', this.chart)
   }
 
   draw() {
-    console.log('initial config', this.getConfig())
     this.chart = bb.generate(this.getConfig())
   }
 }
