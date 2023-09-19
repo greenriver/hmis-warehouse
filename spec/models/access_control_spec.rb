@@ -8,6 +8,7 @@ RSpec.describe AccessControl, type: :model do
   let!(:editable_project) { create :grda_warehouse_hud_project, organization: organization, project_name: 'Editable Project' }
   let!(:view_project_role) { create :role, can_view_projects: true }
   let!(:edit_project_role) { create :role, can_edit_projects: true }
+  let!(:can_view_clients_role) { create :role, can_view_clients: true } # used to test cross access_control collection access
   let!(:view_user) { create :acl_user, first_name: 'View', last_name: 'User' }
   let!(:edit_user) { create :acl_user, first_name: 'Edit', last_name: 'User' }
   let!(:no_access_user) { create :acl_user, first_name: 'No Access', last_name: 'User' }
@@ -16,8 +17,10 @@ RSpec.describe AccessControl, type: :model do
   let!(:edit_project_user_group) { create :user_group }
   let!(:view_project_collection) { create :collection }
   let!(:edit_project_collection) { create :collection }
+  let!(:no_access_user_group) { create :user_group }
   let!(:view_project_access_control) { create :access_control, role: view_project_role, collection: view_project_collection, user_group: view_project_user_group }
   let!(:edit_project_access_control) { create :access_control, role: edit_project_role, collection: edit_project_collection, user_group: edit_project_user_group }
+  let!(:client_view_access_control) { create :access_control, role: can_view_clients_role, collection: view_project_collection, user_group: no_access_user_group }
 
   describe 'Checking access' do
     before do
@@ -27,6 +30,7 @@ RSpec.describe AccessControl, type: :model do
       view_project_user_group.add(view_one_edit_one_user)
       edit_project_user_group.add(edit_user)
       edit_project_user_group.add(view_one_edit_one_user)
+      no_access_user_group.add(no_access_user)
     end
     describe 'Viewing a project' do
       it 'view user can view the viewable project' do

@@ -66,12 +66,13 @@ module AllNeighborsSystemDashboard
         return_dates = return_dates_for_batch(filter, batch)
         batch.each do |enrollment|
           source_enrollment = enrollment.enrollment
+          hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household&.enrollment || source_enrollment
           ce_info = ce_infos[enrollment.id]
           enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
             household_id: enrollment.household_id,
             household_type: household_type(enrollment),
-            prior_living_situation_category: prior_living_situation_category(source_enrollment),
+            prior_living_situation_category: prior_living_situation_category(hoh_enrollment),
             enrollment_id: source_enrollment.enrollment_id,
             entry_date: enrollment.first_date_in_program,
             move_in_date: enrollment.move_in_date,
@@ -81,7 +82,7 @@ module AllNeighborsSystemDashboard
             destination: enrollment.destination,
             destination_text: HudUtility.destination(enrollment.destination),
             relationship: relationship(source_enrollment),
-            client_id: source_enrollment.personal_id,
+            personal_id: source_enrollment.personal_id,
             age: enrollment.age,
             gender: gender(enrollment),
             primary_race: primary_race(enrollment),
@@ -108,6 +109,8 @@ module AllNeighborsSystemDashboard
         events = []
         batch.each do |event|
           events << enrollment.events.build(
+            personal_id: event.personal_id,
+            source_enrollment_id: event.enrollment_id,
             event_id: event.event_id,
             event_date: event.event_date,
             event: HudUtility.event(event.event),
@@ -133,11 +136,7 @@ module AllNeighborsSystemDashboard
         preload(:enrollment, :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date)
-      filter.apply(scope, report_scope_source)
-    end
-
-    def report_scope_source
-      GrdaWarehouse::ServiceHistoryEnrollment.entry
+      scope.in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
     end
 
     def event_scope

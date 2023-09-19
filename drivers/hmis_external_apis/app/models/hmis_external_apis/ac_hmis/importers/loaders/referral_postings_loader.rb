@@ -24,6 +24,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       import_referral_posting_records
       delete_orphan_referral_posting_records
       import_referral_household_members_records
+      fixup_hoh_on_referrals
       assign_unit_occupancies
     end
 
@@ -96,6 +97,27 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       total = orphans.count
       log_info "Deleting #{total} referrals with no postings"
       orphans.find_each(&:destroy!)
+    end
+
+    def fixup_hoh_on_referrals
+      hoh_client_pks_by_household_id = Hmis::Hud::Enrollment.order(:id)
+        .hmis.heads_of_households
+        .joins(:client)
+        .pluck(Arel.sql('"Enrollment"."HouseholdID", "Client".id'))
+        .to_h
+
+      HmisExternalApis::AcHmis::Referral.preload(:postings, :household_members).find_each do |referral|
+        hoh_members = referral.household_members.filter(&:self_head_of_household?)
+        # we could check if the enrollment HoH matches. Could also check if there are multiple HoHs
+        next unless hoh_members.empty?
+
+        log_info "Referral #{referral.identifier} has no HoHs, assigning new HoH"
+        posting = referral.postings.first!
+        enrollment_hoh_client_id = hoh_client_pks_by_household_id[posting.household_id]
+        found_hoh = referral.household_members.detect { |hm| hm.client_id == enrollment_hoh_client_id }
+        found_hoh ||= referral.household_members.min_by(&:id)
+        found_hoh.update!(relationship_to_hoh: 'self_head_of_household')
+      end
     end
 
     def import_referral_household_members_records
@@ -273,6 +295,24 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       records
     end
 
+    def household_id_from_member_rows(referral_id, project_id)
+      # find household id for this posting:
+      # 1) find the head-of-household's MCI for this referral
+      hoh_member_row = household_member_rows_by_referral(referral_id).detect do |mr|
+        row_value(mr, field: 'RELATIONSHIP_TO_HOH_ID') == '1'
+      end
+
+      if hoh_member_row
+        referral_household_id(row_value(hoh_member_row, field: 'MCI_ID'), project_id)
+      else
+        # No HOH found, fallback to first member where can find a household id
+        household_ids = household_member_rows_by_referral(referral_id).map do |mr|
+          referral_household_id(row_value(mr, field: 'MCI_ID'), project_id)
+        end
+        household_ids.compact.first
+      end
+    end
+
     def build_posting_records
       accepted_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_status')
       accepted_pending_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
@@ -300,16 +340,6 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # There is one row per household member in the referral, but we only need to process one of them.
         next if seen.include?(referral_id)
 
-        # find household id for this posting:
-        # 1) find the head-of-household's MCI for this referral
-        hoh_member_row = household_member_rows_by_referral(referral_id).detect do |mr|
-          row_value(mr, field: 'RELATIONSHIP_TO_HOH_ID') == '1'
-        end
-        if hoh_member_row.nil?
-          log_info "#{row.context} Skipping Referral #{referral_id} - no HoH"
-          next
-        end
-
         status = posting_status(row)
         # 2) Find the household_id for the enrollment linked to this ReferralPosting row, if any.
         household_id = nil
@@ -322,11 +352,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           end
           household_id = household_id_by_enrollment_id[enrollment_id]
         elsif status == accepted_pending_status
-          # For Accepted Pending referrals, we should have created the WIP Enrollment(s) in an earlier step.
-          # find the HoH's MCI ID
-          hoh_mci_id = row_value(hoh_member_row, field: 'MCI_ID')
           # find the household_id for the project enrollment with that MCI
-          household_id = referral_household_id(hoh_mci_id, project_id)
+          household_id = household_id_from_member_rows(referral_id, project_id)
         end
 
         # Household MUST be present on Accepted and Accepted Pending postings
