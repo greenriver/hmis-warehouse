@@ -29,8 +29,6 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
   alias_to_underscore [:NameDataQuality, :CustomClientNameID, :PersonalID]
 
-  validate :first_or_last_exists
-
   scope :primary_names, -> { where(primary: true) }
 
   scope :active, ->(date = Date.current) do
@@ -40,16 +38,6 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   # hide previous declaration of :viewable_by, we'll use this one
   replace_scope :viewable_by, ->(user) do
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
-  end
-
-  def self.first_or_last_required_message
-    'Primary name must have a First or Last name'
-  end
-
-  private def first_or_last_exists
-    return unless primary?
-
-    errors.add(:first, :invalid, full_message: self.class.first_or_last_required_message) unless first.present? || last.present?
   end
 
   def primary?

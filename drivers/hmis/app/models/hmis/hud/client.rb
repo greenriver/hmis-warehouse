@@ -57,7 +57,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
   has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
 
-  validates_with Hmis::Hud::Validators::ClientValidator
+  validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
   after_save do
