@@ -593,8 +593,8 @@ module Reporting
         NonBinary: :nonbinary,
         Transgender: :transgender,
         Questioning: :questioning,
-        CulturallySpecific: :culturally_specific,
-        DifferentIdentity: :different_identity,
+        CulturallySpecific: :culturallyspecific,
+        DifferentIdentity: :differentidentity,
         GenderNone: :gendernone,
         VeteranStatus: :veteran_status,
       }.freeze
