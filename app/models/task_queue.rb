@@ -24,12 +24,12 @@ class TaskQueue < ApplicationRecord
   # The expectation is that if the task is in available_tasks, then it should be in the queue
   def self.queue_unprocessed!
     done = active.pluck(:task_key, :queued_at).to_h
-    available_tasks.each do |task_key, _|
+    available_tasks.each_key do |task_key|
       next if done[task_key].present?
 
       t = TaskQueue.create(task_key: task_key)
       t.delay.run!
-      t.update(queued_at: Time.current)
+      t.update(queued_at: Time.current, active: true)
     end
   end
 
