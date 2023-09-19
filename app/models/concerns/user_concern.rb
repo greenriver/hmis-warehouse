@@ -58,11 +58,6 @@ module UserConcern
     validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
     validates :agency_id, presence: true
 
-    # TODO: START_ACL remove when ACL transition complete
-    has_many :access_group_members, dependent: :destroy, inverse_of: :user
-    has_many :access_groups, through: :access_group_members
-    # END_ACL
-
     has_many :user_clients, class_name: 'GrdaWarehouse::UserClient'
     has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
 
