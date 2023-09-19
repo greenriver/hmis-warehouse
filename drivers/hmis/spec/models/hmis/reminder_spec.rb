@@ -14,13 +14,6 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
     Date.current
   end
 
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   def reminders_for(_enrollment, topic:)
     project = p1
     Hmis::Reminders::ReminderGenerator
@@ -108,7 +101,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
 
     describe 'with an intake assessment in progress' do
       before(:each) do
-        create(:hmis_wip_custom_assessment, data_collection_stage: 1, enrollment: enrollment, data_source: ds1)
+        create(:hmis_wip_custom_assessment, data_collection_stage: 1, enrollment: enrollment, client: enrollment.client, data_source: ds1)
       end
       it 'reminds about intake assessment' do
         expect(reminders_for(enrollment, topic: 'intake_incomplete').size).to eq(1)
@@ -117,7 +110,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
 
     describe 'with an intake assessment completed' do
       before(:each) do
-        create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: today, enrollment: enrollment, data_source: ds1)
+        create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: today, enrollment: enrollment, client: enrollment.client, data_source: ds1)
       end
       it 'does not remind about intake assessment' do
         expect(reminders_for(enrollment, topic: 'intake_incomplete').size).to eq(0)
@@ -130,7 +123,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
 
     describe 'with an exit assessment in progress' do
       before(:each) do
-        create(:hmis_wip_custom_assessment, data_collection_stage: 3, enrollment: enrollment, data_source: ds1)
+        create(:hmis_wip_custom_assessment, data_collection_stage: 3, enrollment: enrollment, client: enrollment.client, data_source: ds1)
       end
       it 'reminds about exit assessment' do
         expect(reminders_for(enrollment, topic: 'exit_incomplete').size).to eq(1)
@@ -145,14 +138,14 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
 
       describe 'due for current-living-situation information' do
         before(:each) do
-          create(:hmis_current_living_situation, data_source: ds1, enrollment: enrollment, information_date: today - 91.days)
+          create(:hmis_current_living_situation, data_source: ds1, enrollment: enrollment, client: enrollment.client, information_date: today - 91.days)
         end
         it 'reminds about current-living-situation information' do
           expect(reminders_for(enrollment, topic: 'current_living_situation').size).to eq(1)
         end
         describe 'with current-living-situation information completed' do
           before(:each) do
-            create(:hmis_current_living_situation, data_source: ds1, enrollment: enrollment, information_date: today)
+            create(:hmis_current_living_situation, data_source: ds1, enrollment: enrollment, client: enrollment.client, information_date: today)
           end
           it 'does not remind about current-living-situation information' do
             expect(reminders_for(enrollment, topic: 'current_living_situation').size).to eq(0)
