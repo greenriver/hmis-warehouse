@@ -83,6 +83,10 @@ module Filters
     attribute :secondary_project_ids, Array, default: []
     attribute :secondary_project_group_ids, Array, default: []
 
+    # NOTE: this is needed to support old reports with existing options hashes containing ethnicities
+    # we won't actually do anything with it
+    attribute :ethnicities, Array, default: []
+
     validates_presence_of :start, :end
 
     # Incorporate anything that might change the results
