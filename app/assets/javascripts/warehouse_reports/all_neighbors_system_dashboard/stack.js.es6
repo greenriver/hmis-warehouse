@@ -34,14 +34,16 @@ class AllNeighborsSystemDashboardStack {
       this.series.forEach((d) => {
         const total = d.series.filter((n) => {
           if(this.state.dateRange) {
-            const date = Date.parse(n.date)
+            const [year, month, day] = n.date.split('-')
+            const date = Date.parse(new Date(year, month, day))
             const [s, e] = this.state.dateRange
             return date >= s && date <= e
           }
           if(this.state.year) {
-            const date = new Date(n.date)
-            const year = this.state.year
-            return date.getFullYear().toString() === year
+            const [year, month, day] = n.date.split('-')
+            const date = new Date(year, month, day)
+            const stateYear = this.state.year
+            return date.getFullYear().toString() === stateYear
           }
           return true
         })
