@@ -8,6 +8,13 @@ FactoryBot.define do
   factory :hmis_access_control, class: 'Hmis::AccessControl' do
     role { association :hmis_role }
     access_group { association :hmis_access_group }
+    user_group { association :hmis_user_group }
+    transient do
+      with_users { nil }
+    end
+    after(:create) do |access_control, evaluator|
+      access_control.user_group.add(evaluator.with_users) if evaluator.with_users.present?
+    end
   end
 
   factory :hmis_user_access_control, class: 'Hmis::UserAccessControl' do

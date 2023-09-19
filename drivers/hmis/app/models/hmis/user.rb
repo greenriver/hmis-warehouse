@@ -115,13 +115,21 @@ class Hmis::User < ApplicationRecord
     check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
   end
 
-  def entities_with_permissions(model, *permissions, **kwargs)
-    model.where(
-      id: Hmis::GroupViewableEntity.where(
-        access_group_id: access_groups.with_permissions(*permissions, **kwargs).pluck(:id),
-        entity_type: model.sti_name,
-      ).select(:entity_id),
-    )
+  def entities_with_permissions(model, *permissions, mode: :any)
+    # Get all the roles that have this permission
+    roles_with_permission = Hmis::Role.with_permissions(*permissions, mode: mode).pluck(:id)
+
+    # Find the Access Controls that this user is assigned to that have any of the approved Roles,
+    # and pluck the Access Group (aka Collection). The user has access <permission>-level access for
+    # any entity in these access groups.
+    access_group_ids = access_controls.where(role_id: roles_with_permission).pluck(:access_group_id)
+
+    entity_ids = Hmis::GroupViewableEntity.where(
+      access_group_id: access_group_ids,
+      entity_type: model.sti_name,
+    ).select(:entity_id)
+
+    model.where(id: entity_ids)
   end
 
   private def viewable(model)
