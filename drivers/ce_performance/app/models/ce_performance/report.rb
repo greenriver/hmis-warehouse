@@ -114,11 +114,11 @@ module CePerformance
     end
 
     def title
-      _('Coordinated Entry Performance')
+      Translation.translate('Coordinated Entry Performance')
     end
 
     def description
-      _('A tool to track performance and utilization of Coordinated Entry resources.')
+      Translation.translate('A tool to track performance and utilization of Coordinated Entry resources.')
     end
 
     def multiple_project_types?
@@ -404,14 +404,14 @@ module CePerformance
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,
+        CePerformance::Results::TimeToAssessmentAverage,
+        CePerformance::Results::TimeToAssessmentMedian,
+        CePerformance::Results::TimeOnListAverage,
+        CePerformance::Results::TimeOnListMedian,
         CePerformance::Results::EntryToReferralAverage,
         CePerformance::Results::EntryToReferralMedian,
         CePerformance::Results::ReferralToHousingAverage,
         CePerformance::Results::ReferralToHousingMedian,
-        CePerformance::Results::TimeOnListAverage,
-        CePerformance::Results::TimeOnListMedian,
-        CePerformance::Results::TimeToAssessmentAverage,
-        CePerformance::Results::TimeToAssessmentMedian,
         CePerformance::Results::EventType,
       ]
       if include_supplemental?

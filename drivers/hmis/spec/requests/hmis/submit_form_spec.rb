@@ -522,6 +522,59 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(en.client.first_name).to eq('First')
     end
   end
+
+  describe 'SubmitForm for Create+Enroll' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :NEW_CLIENT_ENROLLMENT) }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **completed_form_values_for_role(:NEW_CLIENT_ENROLLMENT),
+        project_id: p2.id,
+        confirmed: true,
+      }
+    end
+
+    def merge_hud_values(input, *args)
+      input.merge(hud_values: input[:hud_values].merge(*args))
+    end
+
+    def submit_form(input)
+      response, result = post_graphql(input: { input: input }) { mutation }
+      expect(response.status).to eq(200), result&.inspect
+      record = result.dig('data', 'submitForm', 'record')
+      errors = result.dig('data', 'submitForm', 'errors')
+      [record, errors]
+    end
+
+    it 'creates client and enrollment' do
+      record, errors = submit_form(test_input)
+      expect(errors).to be_empty
+      expect(record).to be_present
+
+      enrollment = Hmis::Hud::Enrollment.find(record['id'])
+      expect(enrollment.client).to be_present
+      expect(enrollment.client.names.size).to eq(1)
+    end
+
+    it 'validates client (invalid field)' do
+      input = merge_hud_values(
+        test_input,
+        'Client.dobDataQuality' => 'INVALID',
+      )
+      _, errors = submit_form(input)
+      expect(errors).to contain_exactly(include({ 'attribute' => 'dobDataQuality', 'type' => 'invalid' }))
+    end
+
+    # FIXME(#186002677)
+    xit 'validates client (invalid DOB)' do
+      input = merge_hud_values(
+        test_input,
+        'Client.dob' => '2200-01-01', # future dob is not valid
+      )
+      _, errors = submit_form(input)
+      expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'invalid' }))
+    end
+  end
 end
 
 RSpec.configure do |c|

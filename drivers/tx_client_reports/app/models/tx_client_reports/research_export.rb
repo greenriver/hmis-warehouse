@@ -36,7 +36,7 @@ module TxClientReports
     end
 
     def title
-      _('Offline Research Export')
+      Translation.translate('Offline Research Export')
     end
 
     def self.url

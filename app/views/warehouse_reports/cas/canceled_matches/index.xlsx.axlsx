@@ -11,8 +11,8 @@ wb.add_worksheet(name: "CAS Canceled Matches") do |sheet|
     'Previous Step Completed On',
     'Program',
     'Sub-Program',
-    "#{_('Shelter Agency Contacts')}",
-    "#{_('HSA Contacts')}",
+    "#{Translation.translate('Shelter Agency Contacts')}",
+    "#{Translation.translate('HSA Contacts')}",
     'Link',
   ])
   @matches.each do |match|

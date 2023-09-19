@@ -13,8 +13,8 @@ class Hmis::AccessGroup < ApplicationRecord
   has_paper_trail
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :access_group
-  has_many :user_access_controls, through: :access_controls
-  has_many :users, through: :user_access_controls
+  has_many :user_group_members, through: :access_controls
+  has_many :users, through: :user_group_members
   has_many :roles, through: :access_controls
   has_many :access_groups, through: :access_controls
 
@@ -38,8 +38,17 @@ class Hmis::AccessGroup < ApplicationRecord
     joins(:roles).merge(Hmis::Role.with_editable_permissions)
   end
 
-  scope :with_permissions, ->(*perms, mode: 'any') do
-    joins(:roles).merge(mode == 'all' ? Hmis::Role.with_all_permissions(*perms) : Hmis::Role.with_any_permissions(*perms))
+  scope :with_permissions, ->(*perms, mode: :any) do
+    role_scope = case mode.to_sym
+    when :all
+      Hmis::Role.with_all_permissions(*perms)
+    when :any
+      Hmis::Role.with_any_permissions(*perms)
+    else
+      raise "Invalid permission mode: #{mode}"
+    end
+
+    joins(:roles).merge(role_scope)
   end
 
   scope :contains, ->(entity) do

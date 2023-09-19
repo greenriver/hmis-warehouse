@@ -5,7 +5,7 @@
 ###
 
 class Nickname < ApplicationRecord
-  belongs_to :nicknames, optional: true
+  belongs_to :nicknames, optional: true, class_name: '::Nickname', foreign_key: :nickname_id
   scope :for, -> (name) { where(nickname_id: where(name: name.downcase)) }
 
   def self.populate!

@@ -22,6 +22,12 @@
             %td Chronic at Entry
             %td= yes_no(@enrollment.chronically_homeless_at_start?)
           %tr
+            %td Most Recent Date Served
+            %td= @enrollment.max_date_served
+          %tr
+            %td Chronic at Most Recent Date Served
+            %td= yes_no(@enrollment.chronically_homeless_at_start?(date: @enrollment.max_date_served))
+          %tr
             %td Prior Living Situation
             %td= ::HudUtility.living_situation(@enrollment.LivingSituation) || '-'
           %tr

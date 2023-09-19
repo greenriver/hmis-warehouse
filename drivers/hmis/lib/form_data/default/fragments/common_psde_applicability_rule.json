@@ -75,7 +75,7 @@
         "_comment": "HUD: HOPWA – Collection required for all components",
         "variable": "projectFunderComponents",
         "operator": "INCLUDE",
-        "value": "HUD: HOWPA"
+        "value": "HUD: HOPWA"
       },
       {
         "operator": "ALL",

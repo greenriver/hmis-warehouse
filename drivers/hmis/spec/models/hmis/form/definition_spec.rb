@@ -71,7 +71,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   describe 'with funder and project type instances' do
-    let(:role) { :SERVICE }
+    let(:role) { :ENROLLMENT }
     it 'applies correct specificity (project > org > funder&ptype > funder > ptype)' do
       base_fd = Hmis::Form::Definition.find_definition_for_role(role) # created by hmis base setup
 

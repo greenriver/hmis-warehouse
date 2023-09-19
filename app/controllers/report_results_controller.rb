@@ -82,10 +82,10 @@ class ReportResultsController < ApplicationController
     @result.options = report_result_params['options'] if @report.has_options?
     if @result.save!
       run_report_engine = true
-      flash[:notice] = _('Report queued to start.')
+      flash[:notice] = Translation.translate('Report queued to start.')
       redirect_to action: :index
     else
-      flash[:error] = _('Report failed to queue.')
+      flash[:error] = Translation.translate('Report failed to queue.')
       redirect_to action: :index
       return
     end
@@ -106,7 +106,7 @@ class ReportResultsController < ApplicationController
       project_group_ids = @result.options.try(:[], 'project_group_ids')&.reject(&:blank?)&.map(&:to_i) || []
       project_ids += GrdaWarehouse::ProjectGroup.
         joins(:projects).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).
         where(id: project_group_ids).pluck(p_t[:id])
       options[:pit_date] = pit_date
       options[:chronic_date] = chronic_date
@@ -136,7 +136,7 @@ class ReportResultsController < ApplicationController
   def update
     if @result.update(report_result_params)
       redirect_to action: :index
-      flash[:notice] = _('Report successfully updated.')
+      flash[:notice] = Translation.translate('Report successfully updated.')
     else
       render :edit
     end
@@ -145,7 +145,7 @@ class ReportResultsController < ApplicationController
   # DELETE /report_results/1
   def destroy
     @result.destroy
-    flash[:notice] = _('Report successfully removed.')
+    flash[:notice] = Translation.translate('Report successfully removed.')
     redirect_to report_report_results_url
   end
 

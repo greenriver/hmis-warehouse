@@ -9,8 +9,8 @@ class Hmis::Role < ::ApplicationRecord
   # Warehouse roles do not have a paper trail, so neither do these
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
-  has_many :user_access_controls, through: :access_controls
-  has_many :users, through: :user_access_controls
+  has_many :user_group_members, through: :access_controls
+  has_many :users, through: :user_group_members
 
   # has_many :user_hmis_data_source_roles, class_name: '::Hmis::UserHmisDataSourceRole'
   # has_many :users, through: :user_hmis_data_source_roles, source: :user
@@ -93,10 +93,10 @@ class Hmis::Role < ::ApplicationRecord
           'Administration',
         ],
       },
-      can_delete_assigned_project_data: {
-        description: 'Grants access to delete project related data for projects the user can see',
+      can_view_project: {
+        description: 'Grants access to view the project page. This permission also limits enrollment access. For example, a user with "can view enrollment details" can only view enrollment details at projects that they can view.',
         administrative: false,
-        access: [:editable],
+        access: [:viewable],
         categories: [
           'Projects',
         ],

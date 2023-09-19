@@ -214,12 +214,6 @@ gem 'amazing_print'
 
 gem 'auto-session-timeout'
 
-# Translations
-gem 'gettext_i18n_rails'
-gem 'fast_gettext'
-gem 'gettext', '>=3.0.2'
-gem 'grosser-pomo'
-
 gem 'responders'
 
 gem 'rack-attack'
@@ -278,8 +272,9 @@ group :development do
   gem 'marginalia'
   gem 'overcommit', require: false
   gem 'rubocop', require: false
-  gem 'rubocop-rspec', require: false
-  gem 'rubocop-rails', require: false
+  # not used
+  # gem 'rubocop-rspec', require: false
+  # gem 'rubocop-rails', require: false
 
   # boot time/memory profiling
   gem 'derailed_benchmarks', require: false

@@ -62,8 +62,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
-  validates_associated :client, on: :form_submission
   validates_with Hmis::Hud::Validators::EnrollmentValidator
+  validate :client_is_valid, on: :new_client_enrollment_form
+
   alias_to_underscore [:EnrollmentCoC]
 
   SORT_OPTIONS = [
@@ -88,10 +89,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
   }.freeze
 
-  scope :with_access, ->(user, *permissions) do
+  # Enrollments at Projects where the user has the specified permission(s).
+  # WARNING UNSAFE! This does not check for can_view_project or can_view_enrollment_details.
+  # This scope should almost always be used in conjunction with viewable_by.
+  scope :with_access, ->(user, *permissions, **kwargs) do
     return none unless user.permissions?(*permissions)
 
-    project_ids = Hmis::Hud::Project.with_access(user, *permissions).pluck(:id, :ProjectID)
+    project_ids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 
@@ -99,15 +103,36 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   # hide previous declaration of :viewable_by, we'll use this one
-  # A user can see any enrollment associated with a project they can access
-  replace_scope :viewable_by, ->(user) { with_access(user, :can_view_enrollment_details) }
+  # A user can see any enrollment associated with a project they can view
+  replace_scope :viewable_by, ->(user) do
+    with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all')
+  end
 
+  # Free-text search for Enrollment
   scope :matching_search_term, ->(search_term) do
     search_term.strip!
-    # If there are Household ID matches, return those only
-    household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
-    household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.any?
-    return household_matches if household_matches&.any?
+
+    alpha_numeric = /[[[:alnum:]]-]+/.match(search_term).try(:[], 0) == search_term
+    numeric = /[\d-]+/.match(search_term).try(:[], 0) == search_term
+
+    # If numeric, check if it's an Enrollment primary key
+    if numeric
+      matching_enrollments = where(id: search_term)
+      return matching_enrollments if matching_enrollments.exists?
+    end
+
+    # If alphanumeric, check if it's an EnrollmentID
+    if alpha_numeric
+      matching_enrollments = where(enrollment_id: search_term)
+      return matching_enrollments if matching_enrollments.exists?
+    end
+
+    # If alphanumeric, check if it's a Household ID
+    if alpha_numeric
+      household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
+      household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.exists?
+      return household_matches if household_matches&.exists?
+    end
 
     # Search by client
     joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
@@ -317,11 +342,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def release_unit!(occupancy_end_date = Date.current, user:)
     occupancy = active_unit_occupancy
-    if occupancy.nil? || occupancy.occupancy_period.nil?
-      msg = "Attempted to release nonexistent unit occupancy for Enrollment##{id}"
-      Sentry.capture_message(msg)
-      return
-    end
+    # If enrollment isn't assigned to any unit, do nothing
+    return if occupancy.nil? || occupancy.occupancy_period.nil?
 
     transaction do
       occupancy.occupancy_period.update!(end_date: occupancy_end_date, user: user)
@@ -332,6 +354,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
+  end
+
+  # When submitting a new_client_enrollment form, we validate the client too, with the same validation contexts
+  private def client_is_valid
+    return unless client.present?
+
+    client.valid?([:form_submission, :new_client_enrollment_form])
+    errors.merge!(client.errors)
   end
 
   include RailsDrivers::Extensions

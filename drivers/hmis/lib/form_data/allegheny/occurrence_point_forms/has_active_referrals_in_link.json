@@ -1,0 +1,20 @@
+{
+  "item": [
+    {
+      "link_id": "has-active-referrals-in-link",
+      "type": "BOOLEAN",
+      "text": "Has Active Referrals in LINK",
+      "read_only": true,
+      "mapping": {
+        "record_type": "CLIENT",
+        "custom_field_key": "has_active_referrals_in_link"
+      },
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_boolean": false
+        }
+      ]
+    }
+  ]
+}

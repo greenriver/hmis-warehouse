@@ -46,7 +46,7 @@ module CePerformance
     end
 
     def self.title
-      _('Clients Screened for Prevention')
+      Translation.translate('Clients Screened for Prevention')
     end
 
     def description
@@ -78,7 +78,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "#{value.to_i} clients"
+      "#{number_with_delimiter(value.to_i)} clients"
     end
 
     def indicator(comparison)

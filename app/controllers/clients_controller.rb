@@ -15,7 +15,7 @@ class ClientsController < ApplicationController
   helper ClientHelper
 
   before_action :require_can_access_some_client_search!, only: [:simple]
-  before_action :require_can_view_clients!, only: [:show, :service_range, :rollup, :image, :assessment]
+  before_action :require_can_access_some_version_of_clients!, only: [:show, :service_range, :rollup, :image, :assessment]
   before_action :require_can_view_enrollment_details_tab!, only: [:enrollment_details]
   before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment, :health_assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
@@ -33,8 +33,8 @@ class ClientsController < ApplicationController
     clean_params[:SSN] = clean_params[:SSN]&.gsub(/\D/, '')
     existing_matches = look_for_existing_match(clean_params)
     @bypass_search = false
-    # If we only have one authoritative data source, we don't bother sending it, just use it
-    clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.authoritative.first.id if GrdaWarehouse::DataSource.authoritative.count == 1
+    # If we only have one available_for_new_clients data source, we don't bother sending it, just use it
+    clean_params[:data_source_id] ||= GrdaWarehouse::DataSource.available_for_new_clients.first.id if GrdaWarehouse::DataSource.available_for_new_clients.count == 1
     # Handle multi gender
     clean_params[:Gender]&.each do |k|
       next if k.blank?

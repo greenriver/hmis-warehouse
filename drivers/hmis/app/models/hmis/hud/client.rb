@@ -15,7 +15,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
-  self.ignored_columns = ['preferred_name']
+  self.ignored_columns += [:preferred_name]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -58,18 +58,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
-  CUSTOM_NAME_OPTIONS = {
-    association: :names,
-    klass: Hmis::Hud::CustomClientName,
-    field_map: {
-      FirstName: :first,
-      LastName: :last,
-    },
-  }.freeze
-
   attr_accessor :image_blob_id
-  attr_accessor :create_mci_id
-  attr_accessor :update_mci_attributes
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -86,25 +75,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  after_save do
-    if HmisExternalApis::AcHmis::Mci.enabled?
-      # Create a new MCI ID if specified by the ClientProcessor
-      if create_mci_id
-        self.create_mci_id = nil
-        HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
-      end
-
-      # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
-      # 'update_mci_attributes' attr is specified by the ClientProcessor
-      if update_mci_attributes
-        self.update_mci_attributes = nil
-        trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
-        relevant_fields_changed = trigger_columns.any? { |field| previous_changes&.[](field) }
-        HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id) if relevant_fields_changed
-      end
-    end
-  end
-
+  # Includes clients where..
+  #  1. The Client has enrollment(s) at any Project where the User has this specified Permissions(s)
+  #     OR,
+  #  2. The Client has NO enrollments AND the User has these Permission(s) at _any_ project
+  #
+  # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :with_access, ->(user, *permissions, **kwargs) do
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
@@ -128,11 +104,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :matching_search_term, ->(text_search) do
-    text_searcher(text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
-      left_outer_joins(:names).where(where).pluck(:id)
-    rescue RangeError
-      return none
-    end
+    text_searcher(text_search, sorted: true)
   end
 
   scope :older_than, ->(age, or_equal: false) do
@@ -199,6 +171,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [
+    :best_match,
     :last_name_a_to_z,
     :last_name_z_to_a,
     :first_name_a_to_z,
@@ -209,6 +182,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
+    best_match: 'Most Relevant',
     last_name_a_to_z: 'Last Name: A-Z',
     last_name_z_to_a: 'Last Name: Z-A',
     first_name_a_to_z: 'First Name: A-Z',
@@ -218,7 +192,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     recently_added: 'Recently Added',
   }.freeze
 
-  def self.client_search(input:, user: nil)
+  def self.client_search(input:, user: nil, sorted: false)
     # Apply ID searches directly, as they can only ever return a single client
     return searchable_to(user).where(id: input.id) if input.id.present?
     return searchable_to(user).where(PersonalID: input.personal_id) if input.personal_id
@@ -226,11 +200,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
-    if input.text_search.present?
-      scope = text_searcher(input.text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
-        scope.left_outer_joins(:names).where(where).pluck(:id)
-      end
-    end
+    # early return to preserve sort order, avoids client.where(id: scope.select(:id))
+    return scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
@@ -268,6 +239,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
+    when :best_match
+      current_scope # no order, use text search rank
     when :last_name_a_to_z
       order(arel_table[:last_name].asc.nulls_last)
     when :last_name_z_to_a

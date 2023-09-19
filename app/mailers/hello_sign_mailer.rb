@@ -33,7 +33,7 @@ class HelloSignMailer < HealthMailer
     mail(
       **shared_health_mailer_options,
       to: @email,
-      subject: _('BH CP Request for Care Plan Signature'),
+      subject: Translation.translate('BH CP Request for Care Plan Signature'),
     )
   end
 
@@ -54,7 +54,7 @@ class HelloSignMailer < HealthMailer
     mail(
       **shared_health_mailer_options,
       to: @email,
-      subject: _('BH CP Request for Care Plan Signature'),
+      subject: Translation.translate('BH CP Request for Care Plan Signature'),
     )
   end
 end

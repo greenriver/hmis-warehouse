@@ -33,7 +33,7 @@ module ClaimsReporting
 
     # API FOR ::WarehouseReports::GenericReportJob
     def title
-      _('CP Quality Measures')
+      Translation.translate('CP Quality Measures')
     end
 
     # API FOR ::WarehouseReports::GenericReportJob

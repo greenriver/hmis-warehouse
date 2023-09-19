@@ -98,7 +98,7 @@ module AllNeighborsSystemDashboard::WarehouseReports
     end
 
     private def filter_class
-      ::Filters::FilterBase
+      ::Filters::HudFilterBase
     end
   end
 end

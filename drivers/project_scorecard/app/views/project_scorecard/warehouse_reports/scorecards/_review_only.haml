@@ -1,5 +1,5 @@
 %h2 Review Only:
-%p= simple_format(_('Unscored measures that provide insight into community performance.  May be scored in future competitions.'))
+%p= simple_format(Translation.translate('Unscored measures that provide insight into community performance.  May be scored in future competitions.'))
 %table.table.table-bordered
   %thead
     %tr
@@ -13,7 +13,7 @@
     %tr
       %th Site Monitoring
       %th
-        = simple_format(_('HUD requires that projects meet threshold requirements throughout the life cycle of the project.'))
+        = simple_format(Translation.translate('HUD requires that projects meet threshold requirements throughout the life cycle of the project.'))
         %br
         TCHC Monitoring Reports
       %td.text-center{colspan: 2}= f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.field_input_options(:site_monitoring, current_user)
@@ -34,7 +34,7 @@
     %tr
       %th CES Rejected Referrals
       %th
-        = simple_format(_('TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most. Projects are allowed to reject up to 10% of  CES referrals for reasons stated in the CES Operation Manual.'))
+        = simple_format(Translation.translate('TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most. Projects are allowed to reject up to 10% of  CES referrals for reasons stated in the CES Operation Manual.'))
       %td.p-0
         %table.table.table-sm
           %tbody

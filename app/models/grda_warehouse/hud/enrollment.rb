@@ -150,6 +150,9 @@ module GrdaWarehouse::Hud
     end
 
     scope :visible_in_window_to, ->(user) do
+      # visible_to also includes logic to include visible_in_window
+      # Now that we are using ACLs the expectation is that you grant access
+      # to the data a user should be able to see
       visible_to(user)
     end
 
@@ -231,10 +234,6 @@ module GrdaWarehouse::Hud
         two_to_three_years: (731..1095),
         more_than_three_years: (1096..Float::INFINITY),
       }
-    end
-
-    def self.invalidate_processing!
-      update_all(processed_as: nil, processed_hash: nil)
     end
 
     def open_during_range?(range)
@@ -368,6 +367,18 @@ module GrdaWarehouse::Hud
     # @return [Symbol] :yes, :no, :dk_or_r, or :missing
     def chronically_homeless_at_start(date: self.EntryDate)
       GrdaWarehouse::ChEnrollment.chronically_homeless_at_start(self, date: date)
+    end
+
+    # Taken from Client.enrollments_for to be able to use it on the chronic page more easily
+    def max_date_served
+      @max_date_served ||= begin
+        services = service_history_enrollment.service_history_services
+        if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+          services.where(record_type: GrdaWarehouse::Hud::Client.service_types).maximum(:date)
+        else
+          services.service_excluding_extrapolated.maximum(:date)
+        end
+      end
     end
 
     # NOTE: this must be included at the end of the class so that scopes can override correctly

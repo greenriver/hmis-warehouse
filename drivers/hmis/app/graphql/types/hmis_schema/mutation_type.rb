@@ -12,7 +12,7 @@ module Types
     field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :delete_client_file, mutation: Mutations::DeleteClientFile
     field :update_relationship_to_ho_h, mutation: Mutations::UpdateRelationshipToHoH
-    field :update_custom_enrollment_value, mutation: Mutations::UpdateCustomEnrollmentValue
+
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :delete_organization, mutation: Mutations::DeleteOrganization
     field :delete_project, mutation: Mutations::DeleteProject

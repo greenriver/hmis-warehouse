@@ -165,10 +165,25 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
         when :update
           encoding = AutoEncodingCsv.detect_encoding(source_file)
           fix_bad_line_endings(source_file, encoding)
-          ::Kiba.run(transformer.up(source_file, destination_file, encoding, header_converter(model), references))
+          ::Kiba.run(
+            transformer.up(
+              source_file: source_file,
+              destination_file: destination_file,
+              encoding: encoding,
+              header_converter: header_converter(model),
+              references: references,
+              destination_headers: destination_headers(model),
+            ),
+          )
         when :create
           if transformer.present?
-            ::Kiba.run(transformer.create(destination_file, references))
+            ::Kiba.run(
+              transformer.create(
+                destination_file: destination_file,
+                references: references,
+                destination_headers: destination_headers(model),
+              ),
+            )
           else
             CSV.open(
               destination_file, 'w',
@@ -183,6 +198,10 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
     def self.header_converter(klass)
       normalized_klass_keys = klass.hmis_configuration(version: '2022').keys.map { |key| [key.to_s.downcase, key.to_s] }.to_h
       proc { |header| normalized_klass_keys[header.downcase] || header }
+    end
+
+    def self.destination_headers(target_class)
+      target_class.hmis_configuration(version: '2024').keys.map(&:to_s)
     end
   end
 end
