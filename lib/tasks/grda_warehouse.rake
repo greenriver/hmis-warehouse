@@ -298,6 +298,7 @@ namespace :grda_warehouse do
     GrdaWarehouse::CustomImports::Config.active.each do |config|
       config.delay.import!
     end
+    TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
   end
 

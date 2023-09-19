@@ -10,6 +10,6 @@ class Hmis::AccessControl < ApplicationRecord
 
   belongs_to :access_group, class_name: '::Hmis::AccessGroup'
   belongs_to :role, class_name: 'Hmis::Role'
-  belongs_to :user_group, class_name: '::Hmis::UserGroup', required: false
+  belongs_to :user_group, class_name: '::Hmis::UserGroup', required: false, inverse_of: :access_controls
   has_many :users, through: :user_group
 end

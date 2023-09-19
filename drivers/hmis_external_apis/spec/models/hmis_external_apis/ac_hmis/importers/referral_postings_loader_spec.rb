@@ -45,7 +45,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       'REFERRAL_ID' => referral_id,
       'REFERRAL_DATE' => '2022-12-01 14:00:00',
       'SERVICE_COORDINATOR' => 'test1',
-      'REFERRAL_NOTES' => 'test2',
+      'REFERRAL_NOTES' => 'base referral',
       'CHRONIC' => 'No',
       'SCORE' => '2',
       'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
@@ -62,7 +62,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       'REFERRAL_ID' => bogus_referral_id,
       'REFERRAL_DATE' => '2022-12-01 14:00:00',
       'SERVICE_COORDINATOR' => 'test1',
-      'REFERRAL_NOTES' => 'test2',
+      'REFERRAL_NOTES' => 'bogus referral',
       'CHRONIC' => 'No',
       'SCORE' => '2',
       'NEEDS_WHEELCHAIR_ACCESSIBLE_UNIT' => 'No',
@@ -147,6 +147,30 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
         .and change(Hmis::UnitOccupancy, :count).by(2)
 
       expect(Hmis::UnitOccupancy.distinct.pluck(:unit_id)).to eq([unit.id])
+    end
+  end
+
+  describe 'with no hoh' do
+    let(:household_member_rows) do
+      [
+        {
+          'REFERRAL_ID' => referral_id,
+          'MCI_ID' => mci_id.value,
+          'RELATIONSHIP_TO_HOH_ID' => '99', # non hoh
+        },
+      ]
+    end
+    let(:posting_rows) do
+      [base_posting_row.merge('STATUS' => 'Accepted Pending')]
+    end
+    it 'chooses a hoh' do
+      csv_files = {
+        'ReferralPostings.csv' => posting_rows,
+        'ReferralHouseholdMembers.csv' => household_member_rows,
+      }
+      expect do
+        run_cde_import(csv_files: csv_files, clobber: true)
+      end.to change(HmisExternalApis::AcHmis::ReferralHouseholdMember.where(relationship_to_hoh: 'self_head_of_household'), :count).by(1)
     end
   end
 end

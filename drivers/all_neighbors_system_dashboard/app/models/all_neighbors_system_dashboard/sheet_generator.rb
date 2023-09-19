@@ -26,7 +26,7 @@ module AllNeighborsSystemDashboard
               destination: 'ExitDestination_Int',
               destination_text: 'ExitDestination_Val',
               relationship: 'Relationship',
-              client_id: 'Client ID',
+              personal_id: 'Client ID',
               age: 'Age',
               gender: 'Gender',
               primary_race: 'Race',
@@ -49,7 +49,7 @@ module AllNeighborsSystemDashboard
           ],
           'CE Events' => [
             {
-              client_id: 'ClientID',
+              personal_id: 'ClientID',
               event_id: 'ServiceID',
               event_date: 'EventDate',
               event: 'Event',
@@ -61,7 +61,7 @@ module AllNeighborsSystemDashboard
               report_start: 'ReportStartDate',
               report_end: 'ReportEndDate',
               run_date: 'RunDate',
-              enrollment_id: 'EnrollID',
+              source_enrollment_id: 'EnrollID',
             },
             ce_event_data,
           ],
