@@ -35,9 +35,15 @@ class Hmis::File < GrdaWarehouse::File
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
   scope :viewable_by, ->(user) do
+    # NOTE: it's okay that confidential files are included in this scope even if the user
+    # doesn't have permission to read the file. Users can see the existence of confidential
+    # files but they can't read them. Reference:
+    # https://www.pivotaltracker.com/n/projects/2591838/stories/185293913
     client_scope = Hmis::Hud::Client
+      .viewable_by(user)
       .with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
     enrollment_scope = Hmis::Hud::Enrollment
+      .viewable_by(user)
       .with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
 
     case_statement = Arel::Nodes::Case.new
