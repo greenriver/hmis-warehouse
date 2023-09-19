@@ -25,9 +25,10 @@ class AllNeighborsSystemDashboardFilters {
         this.state[filter.name] = this.filters[filter.name].val()
       }
       if(filter.type === 'dateRange') {
+        const startDp = this.filters[filter.name].start.datepicker('getDate')
         this.state[filter.name] = [
-          Date.parse(this.filters[filter.name].start.val()),
-          Date.parse(this.filters[filter.name].end.val())
+          Date.parse(this.filters[filter.name].start.datepicker('getDate')),
+          Date.parse(this.filters[filter.name].end.datepicker('getDate'))
         ]
       }
     })

@@ -1,0 +1,20 @@
+- years = ((data[:config]||{})[:keys]||[]).map { |key| key.gsub(' Cohort', '')}
+- series = data[:series] || []
+- exited = (series.select { |s| s[:name] == 'exited'}.first || {})[:values] || []
+- returned = (series.select { |s| s[:name] == 'returned'}.first || {})[:values] || []
+- rate = (series.select { |s| s[:name] == 'rate'}.first||{})[:values] || []
+
+%table.table{id: id}
+  %thead
+    %tr
+      %th Cohort Year
+      %th Exited
+      %th Returned (Cumulative)
+      %th Rate of Return
+  %tbody
+    - years.each_with_index do |year, i|
+      %tr
+        %td= year
+        %td= exited[i]
+        %td= returned[i]
+        %td= rate[i]

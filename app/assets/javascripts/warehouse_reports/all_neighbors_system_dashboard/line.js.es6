@@ -20,7 +20,8 @@ class AllNeighborsSystemDashboardLine {
   getColumns(name) {
     let cols = [name]
     this.series.forEach((d) => {
-      const date = Date.parse(d[0])
+      const [year, month, day] = d[0].split('-')
+      const date = Date.parse(new Date(year, month, day))
       const [s, e] = this.state.dateRange
       if(date >= s && date <= e) {
         const [x, y] = d

@@ -5,11 +5,21 @@
 - chart_data = all_data.stacked_data
 
 %h2 Returns To Homelessness
-.border.p-4
-  .d-flex.justify-content-between
-    %h3 Returns to Homelessness
-    %small * after exiting to permanent destination
-  #all-neighbors__returns-to-homelessness__overlap_bar
+.border
+  .p-4.border-bottom
+    .d-flex.justify-content-between
+      %h3 Returns to Homelessness
+      %small * after exiting to permanent destination
+    #all-neighbors__returns-to-homelessness__overlap_bar
+  - table_id = table_id(tab[:id], 'returns_to_homelessness')
+  .p-4.border-top
+    = link_to "##{table_id}", data: {toggle: 'collapse'}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: 'd-flex justify-content-between align-items-center w-100' do
+      %span Table - Return to Homelessness by Cohort Year
+      %i.icon-angle-down
+  .collapse{id: table_id}
+    .border-top
+      = render 'returns_to_homelessness_table', data: all_data.bars, id: table_id
+
 .my-7
   .row.justify-content-between
     .col-xs-12.col-md-9
