@@ -51,6 +51,8 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
       34 => 435, # Rental by client, with ongoing housing subsidy
       20 => 435, # Rental by client, with ongoing housing subsidy
       3 => 435, # Rental by client, with ongoing housing subsidy
+
+      227 => 327, # FIX for previous bug in migrator
     }.freeze
 
     SUBSIDY_TYPES = {
