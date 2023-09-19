@@ -23,7 +23,8 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
       .then(arel_table[:EnrollmentID].in(enrollment_scope.select(:enrollment_id).arel))
       .else(arel_table[:PersonalID].in(client_scope.select(:personal_id).arel))
 
-    viewable_scope = Hmis::Hud::CustomCaseNote.left_outer_joins(:client)
+    viewable_scope = Hmis::Hud::CustomCaseNote
+      .left_outer_joins(:client)
       .left_outer_joins(:enrollment)
       .where(case_statement)
     where(id: viewable_scope.select(:id))

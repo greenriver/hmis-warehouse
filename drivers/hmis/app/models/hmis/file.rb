@@ -35,24 +35,11 @@ class Hmis::File < GrdaWarehouse::File
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
   scope :viewable_by, ->(user) do
-    client_scope = Hmis::Hud::Client
-      .with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
-    enrollment_scope = Hmis::Hud::Enrollment
-      .with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    view_scope = where(client_id: Hmis::Hud::Client.with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files))
+    # view_scope = view_scope.nonconfidential unless user.can_view_any_confidential_client_files?
+    edit_scope = user.can_manage_own_client_files? ? where(user_id: user.id) : none
 
-    case_statement = Arel::Nodes::Case.new
-      .when(arel_table[:EnrollmentID].not_eq(nil))
-      .then(arel_table[:EnrollmentID].in(enrollment_scope.select(:enrollment_id).arel))
-      .else(arel_table[:PersonalID].in(client_scope.select(:personal_id).arel))
-
-    viewable_scope = Hmis::File
-      .left_outer_joins(:client)
-      .left_outer_joins(:enrollment)
-      .where(case_statement)
-
-    viewable_scope = viewable_scope.or(Hmis::File.where(user_id: user.id)) if user.can_manage_own_client_files?
-
-    where(id: viewable_scope.select(:id))
+    view_scope.or(edit_scope)
   end
 
   def self.sort_by_option(option)
