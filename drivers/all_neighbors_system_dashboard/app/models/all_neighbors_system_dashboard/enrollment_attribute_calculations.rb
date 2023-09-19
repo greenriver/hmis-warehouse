@@ -104,11 +104,11 @@ module AllNeighborsSystemDashboard
       end
 
       def gender(enrollment)
-        HudUtility.gender(enrollment.client.gender_binary)
+        HudUtility2024.gender(enrollment.client.gender_binary)
       end
 
       def primary_race(enrollment)
-        HudUtility.race(enrollment.client.pit_race, multi_racial: true)
+        HudUtility2024.race(enrollment.client.pit_race, multi_racial: true)
       end
 
       def race_list(enrollment)

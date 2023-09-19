@@ -1,5 +1,10 @@
 module AllNeighborsSystemDashboard
-  class ReturnsToHomelessness < FakeData
+  class ReturnsToHomelessness < DashboardData
+    def initialize(...)
+      super
+      @enrollment_data ||= @report.enrollment_data
+    end
+
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
       {
@@ -20,45 +25,104 @@ module AllNeighborsSystemDashboard
               colors: keys.map.with_index { |key, i| [key, colors[i]] }.to_h,
               label_colors: keys.map { |key| [key, '#ffffff'] }.to_h,
             },
-            series: send(type, { bars: bars, types: keys }),
+            series: send(type, { bars: bars, demographic: demo, types: keys }),
           }
         end,
       }
     end
 
+    def years
+      (@start_date.year .. @end_date.year).to_a
+    end
+
     def stacked_data
-      [
+      years.map do |year|
+        cohort_name = "#{year} Cohort"
+
         data(
-          '2020 Cohort',
-          '2020_cohort',
+          cohort_name,
+          to_key(cohort_name),
           :stack,
           options: {},
-        ),
-        data(
-          '2021 Cohort',
-          '2021_cohort',
-          :stack,
-          options: {},
-        ),
-      ]
+        )
+      end
+    end
+
+    def stack(options)
+      project_type = options[:project_type]
+      demographic = options[:demographic]
+      bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
+      bars.map do |bar|
+        {
+          name: bar,
+          series: date_range.map do |date|
+            {
+              date: date,
+              values: options[:types].map { |label| stack_value(bar, demographic, label) },
+            }
+          end,
+        }
+      end
+    end
+
+    def stack_value(bar, demographic, label)
+      enrollments = case bar
+      when 'Exited*'
+        @enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' }
+      when 'Returned'
+        @enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' && enrollment.return_date.present? }
+      end
+      case demographic
+      when 'Race'
+        enrollments.select { |enrollment| to_key(enrollment.primary_race) == label }.count
+      when 'Age'
+        case label
+        when 'Under_18'
+          enrollments.select { |enrollment| enrollment.age < 18 }.count
+        when '18_to_24'
+          enrollments.select { |enrollment| enrollment.age.between?(18, 24) }.count
+        when '25_to_39'
+          enrollments.select { |enrollment| enrollment.age.between?(25, 39) }.count
+        when '40_to_49'
+          enrollments.select { |enrollment| enrollment.age.between?(40, 49) }.count
+        when '50_to_62'
+          enrollments.select { |enrollment| enrollment.age.between?(50, 62) }.count
+        when 'Over_63'
+          enrollments.select { |enrollment| enrollment.age >= 63 }.count
+        when 'Unknown'
+          enrollments.select(&:blank?).count
+        end
+      when 'Gender'
+        enrollments.select { |enrollment| to_key(enrollment.gender) == label }.count
+      when 'Household Type'
+        enrollments.select { |enrollment| to_key(enrollment.household_type) == label }.count
+      end
     end
 
     def bars
-      rate_of_return = ['15.1%', '26.7%']
+      cohort_keys = years.map { |year| "#{year} Cohort" }
+      exited_enrollments = @enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' }
+      exited_counts = exited_enrollments.group_by { |enrollment| enrollment.exit_date.year }.values.map(&:count)
+      returned_enrollments = exited_enrollments.select { |enrollment| enrollment.return_date.present? && enrollment.return_date <= enrollment.exit_date + 1.year }
+      returned_counts = returned_enrollments.group_by { |enrollment| enrollment.exit_date.year }.values.map(&:count)
+      rates_of_return = returned_counts.zip(exited_counts).map do |returns, exits|
+        rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)
+        "#{rate}%"
+      end
       {
         title: 'Returns to Homelessness',
         id: 'returns_to_homelessness',
         config: {
           colors: {
-            exited: ['#336770', '#884D01'],
+            exited: ['#336770', '#884D01'], # FIXME
             returned: ['#85A4A9', '#B48F5F'],
           },
-          keys: ['2020 Cohort', '2021 Cohort'],
+          keys: cohort_keys,
         },
         series: [
-          { name: 'exited', values: [821, 1141] },
-          { name: 'returned', values: [200, 275] },
-          { name: 'rate', values: rate_of_return, table_only: true },
+          { name: 'exited', values: exited_counts },
+          { name: 'returned', values: returned_counts },
+          { name: 'rate', values: rates_of_return, table_only: true },
         ],
       }
     end

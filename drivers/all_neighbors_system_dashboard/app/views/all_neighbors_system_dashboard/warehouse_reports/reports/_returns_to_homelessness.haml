@@ -1,6 +1,6 @@
-- start_date = (DateTime.current - 3.years).beginning_of_month
-- end_date = DateTime.current.beginning_of_month
-- all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(start_date, end_date)
+- r_start_date = @filter.start_date.beginning_of_month
+- r_end_date = @filter.end_date.beginning_of_month
+- all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(r_start_date, r_end_date, @report)
 
 - chart_data = all_data.stacked_data
 
