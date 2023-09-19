@@ -8,14 +8,14 @@ module PerformanceDashboard::Overview::Veteran
   extend ActiveSupport::Concern
 
   private def veteran_buckets
-    HudUtility.no_yes_reasons_for_missing_data_options.keys
+    HudUtility2024.no_yes_reasons_for_missing_data_options.keys
   end
 
   def veteran_bucket_titles
     veteran_buckets.map do |key|
       [
         key,
-        HudUtility.veteran_status(key),
+        HudUtility2024.veteran_status(key),
       ]
     end.to_h
   end

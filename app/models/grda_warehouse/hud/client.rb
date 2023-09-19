@@ -299,9 +299,9 @@ module GrdaWarehouse::Hud
       # clearer and composable but less efficient would be to use an exists subquery
 
       if chronic_types_only
-        project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        project_types = HudUtility2024.chronic_project_types
       else
-        project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+        project_types = HudUtility2024.homeless_project_types
       end
 
       inner_table = sh_t.
@@ -461,7 +461,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    # Race & Ethnicity scopes
+    # Race scopes
     # Return destination client where any source clients meet the requirement
     scope :race_am_ind_ak_native, -> do
       where(
@@ -507,6 +507,22 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :race_hispanic_latinaeo, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:HispanicLatinaeo].eq(1)).
+          select(:destination_id),
+      )
+    end
+
+    scope :race_mid_east_n_african, -> do
+      where(
+        id: GrdaWarehouse::WarehouseClient.joins(:source).
+          where(c_t[:MidEastNAfrican].eq(1)).
+          select(:destination_id),
+      )
+    end
+
     scope :race_none, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
@@ -545,6 +561,8 @@ module GrdaWarehouse::Hud
         c_t[:Asian],
         c_t[:BlackAfAmerican],
         c_t[:NativeHIPacific],
+        c_t[:HispanicLatinaeo],
+        c_t[:MidEastNAfrican],
         c_t[:White],
       ]
       # anyone with no unknowns and at least two yeses
@@ -563,70 +581,54 @@ module GrdaWarehouse::Hud
     # we really don't know the race
     scope :with_race_none, -> do
       not_race = [0, 99]
-      where(AmIndAKNative: not_race, Asian: not_race, BlackAfAmerican: not_race, NativeHIPacific: not_race, White: not_race)
-    end
-
-    scope :ethnicity_non_hispanic_non_latino, -> do
       where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(0)).
-          select(:destination_id),
+        AmIndAKNative: not_race,
+        Asian: not_race,
+        BlackAfAmerican: not_race,
+        NativeHIPacific: not_race,
+        White: not_race,
+        HispanicLatinaeo: not_race,
+        MidEastNAfrican: not_race,
       )
     end
 
-    scope :ethnicity_hispanic_latino, -> do
-      where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(1)).
-          select(:destination_id),
-      )
-    end
-
-    scope :ethnicity_unknown, -> do
-      where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(8)).
-          select(:destination_id),
-      )
-    end
-
-    scope :ethnicity_refused, -> do
-      where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(9)).
-          select(:destination_id),
-      )
-    end
-
-    scope :ethnicity_not_collected, -> do
-      where(
-        id: GrdaWarehouse::WarehouseClient.joins(:source).
-          where(c_t[:Ethnicity].eq(99)).
-          select(:destination_id),
-      )
+    scope :gender_woman, -> do
+      where(Woman: 1).where(arel_table[:NonBinary].not_eq(1).or(arel_table[:NonBinary].eq(nil)))
     end
 
     scope :gender_female, -> do
-      where(Female: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
+      gender_woman
+    end
+
+    scope :gender_man, -> do
+      where(Man: 1).where(arel_table[:NonBinary].not_eq(1).or(arel_table[:NonBinary].eq(nil)))
     end
 
     scope :gender_male, -> do
-      where(Male: 1).where(arel_table[:NoSingleGender].not_eq(1).or(arel_table[:NoSingleGender].eq(nil)))
+      gender_man
     end
 
     scope :gender_mtf, -> do
-      gender_transgender.where(Female: 1)
+      gender_transgender.where(Woman: 1)
     end
 
     scope :gender_ftm, -> do
-      gender_transgender.where(Male: 1)
+      gender_transgender.where(Man: 1)
     end
 
     scope :no_single_gender, -> do
-      where(NoSingleGender: 1)
+      gender_non_binary
+    end
+
+    scope :gender_non_binary, -> do
+      where(NonBinary: 1)
     end
 
     scope :questioning, -> do
+      where(Questioning: 1)
+    end
+
+    scope :gender_questioning, -> do
       where(Questioning: 1)
     end
 
@@ -636,6 +638,14 @@ module GrdaWarehouse::Hud
 
     scope :gender_unknown, -> do
       where(GenderNone: [8, 9, 99])
+    end
+
+    scope :gender_culturally_specific, -> do
+      where(CulturallySpecific: 1)
+    end
+
+    scope :gender_different_identity, -> do
+      where(DifferentIdentity: 1)
     end
 
     ####################
@@ -714,8 +724,6 @@ module GrdaWarehouse::Hud
       case attribute
       when :veteran_status
         'Veteran status will be yes if any source clients provided a yes response.  This can be overridden by setting the verified veteran status under CAS readiness.'
-      when :ethnicity
-        'Ethnicity reflects the most-recent response where the client answered the question.'
       when :race
         'Race reflects the most-recent response where the client answered the question.'
       when :gender
@@ -904,7 +912,7 @@ module GrdaWarehouse::Hud
       where(
         id: joins(:source_enrollment_disabilities).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
-          merge(GrdaWarehouse::Hud::Disability.chronically_disabled).select(:id),
+          merge(GrdaWarehouse::Hud::Disability.chronically_disabled.where(information_date: ..end_date)).select(:id),
       ).or(
         where(id: where.not(disability_verified_on: nil).select(:id)),
       )
@@ -922,7 +930,7 @@ module GrdaWarehouse::Hud
       # To allow preload(:source_exits) do the calculation in memory
       @deceased_on ||= source_exits.
         select do |m|
-          m.Destination == ::HudUtility.valid_destinations.invert['Deceased']
+          m.Destination == ::HudUtility2024.valid_destinations.invert['Deceased']
         end&.
         max_by(&:ExitDate)&.ExitDate
     end
@@ -930,7 +938,7 @@ module GrdaWarehouse::Hud
     def moved_in_with_ph?
       enrollments.
         open_on_date.
-        with_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+        with_project_type(HudUtility2024.residential_project_type_numbers_by_code[:ph]).
         where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lt(Date.current)).exists?
     end
 
@@ -1183,7 +1191,7 @@ module GrdaWarehouse::Hud
     # Use the Pathways answer if available, otherwise, HMIS
     def domestic_violence
       # To allow preload(:source_health_and_dvs) do the calculation in memory
-      dv_scope = source_health_and_dvs.select { |m| m.DomesticViolenceVictim == 1 }
+      dv_scope = source_health_and_dvs.select { |m| m.DomesticViolenceSurvivor == 1 }
       lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
       if lookback_days&.positive?
         any_dv_in_range = dv_scope.select do |m|
@@ -1681,7 +1689,7 @@ module GrdaWarehouse::Hud
     end
 
     def last_seen_in_type(type, include_confidential_names: false)
-      return nil unless type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys + [:homeless])
+      return nil unless type.in?(HudUtility2024.residential_project_type_numbers_by_code.keys + [:homeless])
 
       service_history_enrollments.ongoing.
         joins(:service_history_services, :project, :organization).
@@ -1862,7 +1870,7 @@ module GrdaWarehouse::Hud
     end
 
     def gender
-      gender_multi.map { |k| ::HudUtility.gender(k) }.join(', ')
+      gender_multi.map { |k| ::HudUtility2024.gender(k) }.join(', ')
     end
 
     # while the entire warehouse is updated to accept and use the new gender setup, this will provide
@@ -1874,12 +1882,14 @@ module GrdaWarehouse::Hud
     # Accepts a hash containing the gender columns and values
     # Returns a single value that roughly represents the client's gender
     def self.gender_binary(genders)
-      return 4 if genders[:NoSingleGender] == 1
+      return 4 if genders[:NonBinary] == 1
       return 5 if genders[:Transgender] == 1
       return 6 if genders[:Questioning] == 1
-      return 4 if genders[:Female] == 1 && genders[:Male] == 1
-      return 0 if genders[:Female] == 1
-      return 1 if genders[:Male] == 1
+      return 4 if [genders[:Woman], genders[:Man], genders[:CulturallySpecific], genders[:DifferentIdentity]].compact.sum > 1
+      return 2 if genders[:CulturallySpecific] == 1
+      return 3 if genders[:DifferentIdentity] == 1
+      return 0 if genders[:Woman] == 1
+      return 1 if genders[:Man] == 1
 
       genders[:GenderNone]
     end
@@ -1887,12 +1897,12 @@ module GrdaWarehouse::Hud
     def self.gender_binary_sql_case
       acase(
         [
-          [arel_table[:NoSingleGender].eq(1), 4],
+          [arel_table[:NonBinary].eq(1), 4],
           [arel_table[:Transgender].eq(1), 5],
           [arel_table[:Questioning].eq(1), 6],
-          [arel_table[:Male].eq(1).and(arel_table[:Female].eq(1)), 4],
-          [arel_table[:Female].eq(1), 0],
-          [arel_table[:Male].eq(1), 1],
+          [(arel_table[:Man] + arel_table[:Woman] + arel_table[:CulturallySpecific] + arel_table[:DifferentIdentity]).gt(1)],
+          [arel_table[:Woman].eq(1), 0],
+          [arel_table[:Man].eq(1), 1],
         ],
         elsewise: arel_table[:GenderNone],
       )
@@ -1950,16 +1960,12 @@ module GrdaWarehouse::Hud
     end
 
     def race_description(include_missing_reason: false)
-      description = race_fields.map { |f| ::HudUtility.race f }.join ', '
+      description = race_fields.map { |f| ::HudUtility2024.race f }.join ', '
       return description if description.present?
       return '' unless include_missing_reason
-      return '' unless self.RaceNone.in?(HudUtility.race_gender_none_options.keys)
+      return '' unless self.RaceNone.in?(HudUtility2024.race_gender_none_options.keys)
 
-      HudUtility.race_none(self.RaceNone)
-    end
-
-    def ethnicity_description
-      ::HudUtility.ethnicity(self.Ethnicity)
+      HudUtility2024.race_none(self.RaceNone)
     end
 
     def pit_race
@@ -1979,6 +1985,8 @@ module GrdaWarehouse::Hud
       @race_black_af_american ||= @limited_scope.where(id: self.class.race_black_af_american.select(:id)).distinct.pluck(:id).to_set
       @race_native_hi_other_pacific ||= @limited_scope.where(id: self.class.race_native_hi_other_pacific.select(:id)).distinct.pluck(:id).to_set
       @race_white ||= @limited_scope.where(id: self.class.race_white.select(:id)).distinct.pluck(:id).to_set
+      @race_hispanic_latinaeo ||= @limited_scope.where(id: self.class.race_hispanic_latinaeo.select(:id)).distinct.pluck(:id).to_set
+      @race_mid_east_n_african ||= @limited_scope.where(id: self.class.race_mid_east_n_african.select(:id)).distinct.pluck(:id).to_set
       @multiracial ||= begin
         multi = @race_am_ind_ak_native.to_a +
         @race_asian.to_a +
@@ -1996,6 +2004,8 @@ module GrdaWarehouse::Hud
 
       return 'NativeHIPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
+      return 'HispanicLatinaeo' if @race_hispanic_latinaeo.include?(destination_id)
+      return 'MidEastNAfrican' if @race_mid_east_n_african.include?(destination_id)
 
       if include_none_reason
         @doesnt_know ||= @limited_scope.where(id: self.class.race_doesnt_know.select(:id)).distinct.pluck(:id).to_set
@@ -2029,16 +2039,32 @@ module GrdaWarehouse::Hud
       self.White == 1
     end
 
+    def cas_race_hispanic_latinaeo
+      self.HispanicLatinaeo == 1
+    end
+
+    def cas_race_mid_east_n_african
+      self.MidEastNAfrican == 1
+    end
+
+    def cas_gender_woman
+      self.Woman == 1
+    end
+
     def cas_gender_female
-      self.Female == 1
+      cas_gender_woman
+    end
+
+    def cas_gender_man
+      self.Man == 1
     end
 
     def cas_gender_male
-      self.Male == 1
+      cas_gender_man
     end
 
     def cas_gender_no_single_gender
-      self.NoSingleGender == 1
+      self.NonBinary == 1
     end
 
     def cas_gender_transgender
@@ -2927,7 +2953,7 @@ module GrdaWarehouse::Hud
     end
 
     private def residential_dates enrollments:
-      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      @non_homeless_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
       @residential_dates ||= enrollments.select do |e|
         @non_homeless_types.include?(e.computed_project_type)
       end.map do |e|
@@ -2940,7 +2966,7 @@ module GrdaWarehouse::Hud
 
     private def homeless_dates enrollments:
       @homeless_dates ||= enrollments.select do |e|
-        e.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+        e.computed_project_type.in?(HudUtility2024.residential_project_type_ids)
       end.map do |e|
         # Use select to allow for preloading
         e.service_history_services.select do |s|
@@ -2957,7 +2983,7 @@ module GrdaWarehouse::Hud
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode? enrollments:, enrollment:
-      return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(enrollment.computed_project_type)
+      return false unless HudUtility2024.chronic_project_types.include?(enrollment.computed_project_type)
 
       entry_date = enrollment.first_date_in_program
       thirty_days_ago = entry_date - 30.days

@@ -12,15 +12,15 @@ begin
   bucket = ENV.fetch('ASSETS_BUCKET_NAME')
   prefix = ENV.fetch('ASSETS_PREFIX') || 'default'
 
-  resp = client.list_objects({
-    bucket: bucket,
-    prefix: prefix,
-  })
-  #resp = client.list_objects({ bucket: bucket, prefix: '', })
+  resp = client.list_objects(
+    {
+      bucket: bucket,
+      prefix: prefix,
+    },
+  )
+  # resp = client.list_objects({ bucket: bucket, prefix: '', })
 
-  if resp.is_truncated
-    puts "Result is truncated. Too many keys. Continuing with what we can get"
-  end
+  puts 'Result is truncated. Too many keys. Continuing with what we can get' if resp.is_truncated
 
   keys = resp.to_h[:contents]&.map { |r| r[:key] }
 
@@ -31,10 +31,10 @@ begin
 
   keys.each do |key|
     target = if prefix == ''
-               key.sub(/#{prefix}/, './')
-             else
-               key.sub(/#{prefix}/, '.')
-             end
+      key.sub(/#{prefix}/, './')
+    else
+      key.sub(/#{prefix}/, '.')
+    end
     puts "#{key} -> #{File.expand_path(target)}"
 
     if target.end_with?('/')
@@ -45,16 +45,18 @@ begin
       FileUtils.mkdir_p(target[0..i])
     end
 
-    if File.exist?(target) && ENV['UPDATE_ONLY']=='true'
+    if File.exist?(target) && ENV['UPDATE_ONLY'] == 'true'
       # puts "Skipping #{target} which already exists locally"
       next
     end
 
-    resp = client.get_object({
-      bucket: bucket,
-      key: key,
-      response_target: target,
-    })
+    resp = client.get_object(
+      {
+        bucket: bucket,
+        key: key,
+        response_target: target,
+      },
+    )
   end
 rescue Aws::S3::Errors::NoSuchBucket
   abort "[#{__FILE__}] Cannot find the bucket: #{bucket}"

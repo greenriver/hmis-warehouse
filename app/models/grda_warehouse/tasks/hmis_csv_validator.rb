@@ -26,7 +26,7 @@ module GrdaWarehouse::Tasks
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
         if File.exist?(file_path)
-          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true).each do |row|
+          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true, encoding: 'iso-8859-1:utf-8').each do |row|
             unique_keys << row[klass.hud_key.to_s.downcase]
             export_ids << row['exportid']
             self.export_id ||= row['exportid'] if filename == 'Export.csv'
@@ -39,6 +39,39 @@ module GrdaWarehouse::Tasks
 
         add_error(filename, klass.hud_key.to_s, "#{unique_keys.length - unique_keys.uniq.length} Duplicate unique keys found") if duplicate_keys?(unique_keys)
         add_error(filename, 'ExportID', 'Incorrect ExportIDs', export_ids.uniq) if incorrect_export_ids?(export_ids)
+      end
+    end
+
+    def write_errors_to_csv!(filename)
+      rows = []
+      errors.each do |file, file_errors|
+        file_errors.each do |field_name, field_errors|
+          field_errors.each do |err_name, details|
+            example = details[:example] if details[:example].is_a?(Hash)
+            example = example&.select { |k, _| k&.end_with?('id') } # Drop PII, only keep IDs
+            rows << [
+              file,
+              field_name,
+              err_name,
+              details[:count],
+              example&.to_json,
+            ]
+          end
+        end
+      end
+      rows.compact!
+
+      headers = [
+        'File',
+        'Column',
+        'Error Type',
+        'Count',
+        'Example',
+      ]
+      CSV.open(filename, 'wb+', write_headers: true, headers: headers) do |writer|
+        rows.each do |row|
+          writer << row
+        end
       end
     end
 
@@ -89,7 +122,7 @@ module GrdaWarehouse::Tasks
         end
         if structure[:check].present? && structure[:check] == :money
           validation_methods << {
-            error_message: 'Must be a humber with two decimal places',
+            error_message: 'Must be a number with two decimal places',
             check: :money_check,
           }
         end

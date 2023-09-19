@@ -1,0 +1,19 @@
+{
+  "item": [
+    {
+      "type": "GROUP",
+      "link_id": "custom-case-note-group",
+      "item": [
+        {
+          "type": "TEXT",
+          "required": true,
+          "link_id": "content",
+          "text": "Note",
+          "mapping": {
+            "field_name": "content"
+          }
+        }
+      ]
+    }
+  ]
+}

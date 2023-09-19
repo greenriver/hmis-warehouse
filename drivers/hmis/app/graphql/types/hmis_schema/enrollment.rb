@@ -12,6 +12,7 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCeAssessments
+    include Types::HmisSchema::HasCustomCaseNotes
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
@@ -44,6 +45,7 @@ module Types
     assessments_field
     events_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
+    custom_case_notes_field
     files_field
     ce_assessments_field
     income_benefits_field
@@ -233,6 +235,10 @@ module Types
 
     def ce_assessments(**args)
       resolve_ce_assessments(**args)
+    end
+
+    def custom_case_notes(...)
+      resolve_custom_case_notes(...)
     end
 
     def files(**args)

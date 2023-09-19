@@ -8,14 +8,14 @@ module PerformanceDashboard::Overview::Race
   extend ActiveSupport::Concern
 
   private def race_buckets
-    HudUtility.races.keys + ['Multiple', 'Unknown']
+    HudUtility2024.races.keys + ['Multiple', 'Unknown']
   end
 
   def race_title(key)
     return 'Multi-Race' if key == 'Multiple'
     return 'Unknown-Race' if key == 'Unknown'
 
-    HudUtility.race(key)
+    HudUtility2024.race(key)
   end
 
   def race_bucket_titles
@@ -27,13 +27,15 @@ module PerformanceDashboard::Overview::Race
     end.to_h
   end
 
-  def race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)
+  def race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, hispanic_latinaeo, mid_east_n_african, race_none)
     races = []
     races << 'AmIndAKNative' if am_ind_ak_native == 1
     races << 'Asian' if asian == 1
     races << 'BlackAfAmerican' if black_af_american == 1
     races << 'NativeHIPacific' if native_hi_other_pacific == 1
     races << 'White' if white == 1
+    races << 'HispanicLatinaeo' if hispanic_latinaeo == 1
+    races << 'MidEastNAfrican' if mid_east_n_african == 1
     races << 'RaceNone' if race_none == 1
     return 'Unknown' if races.empty?
     return races.first if races.count == 1

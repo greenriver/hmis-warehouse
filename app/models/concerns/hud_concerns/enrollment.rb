@@ -22,12 +22,25 @@ module HudConcerns::Enrollment
         where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
+    # enrollments what were open on the date in question, including those that had an ExitDate on `on_date`
+    scope :ongoing, ->(on_date: Date.current) do
+      open_during_range(on_date..on_date)
+    end
+
     scope :open_on_date, ->(date = Date.current) do
       open_during_range(date..date)
     end
 
     scope :in_project, ->(project_ids) do
       joins(:project).where(p_t[:id].in(project_ids))
+    end
+
+    def self.invalidate_processing!
+      update_all(processed_as: nil, processed_hash: nil)
+    end
+
+    def invalidate_processing!
+      update(processed_as: nil, processed_hash: nil)
     end
   end
 end

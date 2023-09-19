@@ -135,7 +135,7 @@ module
 
     # Homeless project types that overlap chosen project types
     private def homeless_project_type_codes
-      @homeless_project_type_codes ||= HudUtility.homeless_project_type_numbers & filter.project_type_ids
+      @homeless_project_type_codes ||= HudUtility2024.homeless_project_type_numbers & filter.project_type_ids
     end
 
     private def outcome_clients
@@ -159,11 +159,11 @@ module
               next if clients[:exit_counted].include?(client_id)
 
               clients[:exit_counted] << client_id
-              clients[:exit_homeless] << client_id if HudUtility.homeless_destinations.include?(destination)
-              clients[:exit_institutional] << client_id if HudUtility.institutional_destinations.include?(destination)
-              clients[:exit_temporary] << client_id if HudUtility.temporary_destinations.include?(destination)
-              clients[:exit_permanent] << client_id if HudUtility.permanent_destinations.include?(destination)
-              clients[:exit_other] << client_id if HudUtility.other_destinations.include?(destination)
+              clients[:exit_homeless] << client_id if HudUtility2024.homeless_destinations.include?(destination)
+              clients[:exit_institutional] << client_id if HudUtility2024.institutional_destinations.include?(destination)
+              clients[:exit_temporary] << client_id if HudUtility2024.temporary_destinations.include?(destination)
+              clients[:exit_permanent] << client_id if HudUtility2024.permanent_destinations.include?(destination)
+              clients[:exit_other] << client_id if HudUtility2024.other_destinations.include?(destination)
             end
 
           # Returns

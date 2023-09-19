@@ -78,7 +78,7 @@ module Health::Tracing
         last_name: last_name,
         alias: aliases,
         dob: dob&.strftime('%m/%d/%Y'),
-        gender: ::HudUtility.gender(gender),
+        gender: ::HudUtility2024.gender(gender),
         race: race&.reject(&:blank?)&.map { |r| ::HudUtility.race(r) }&.join(', '),
         ethnicity: ::HudUtility.ethnicity(ethnicity),
         preferred_language: preferred_language,

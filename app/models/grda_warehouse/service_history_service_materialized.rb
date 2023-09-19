@@ -19,12 +19,12 @@ class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
   def double_check_materialized_view(client_ids)
     setup_notifier('SHS Materialized View Sanity Checker')
     materialized_dates = GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
-      in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
+      in_project_type(HudUtility2024.homeless_project_types).
       where(client_id: client_ids).
       group(:client_id).
       maximum(:date)
     shs_dates = GrdaWarehouse::ServiceHistoryService.homeless.
-      in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
+      in_project_type(HudUtility2024.homeless_project_types).
       where(client_id: client_ids).
       group(:client_id).
       maximum(:date)

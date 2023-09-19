@@ -128,18 +128,23 @@ module Mutations
     end
 
     private def perform_side_effects(record)
-      if record.is_a?(Hmis::Hud::Client)
-        if record.new_record?
-          GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
-        else
-          GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing!
+      case record
+      when Hmis::Hud::Client, Hmis::Hud::Enrollment
+        # If a Client record was created or updated, queue up IdentifyDuplicates job. This creates the warehouse destination client.
+        client = record.is_a?(Hmis::Hud::Enrollment) ? record.client : record
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run! if client.new_record?
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing! if client.changed?
+      when Hmis::Hud::HmisService
+        # If a HUD Service was created, process service history enrollments
+        if record.new_record? && record.hud_service? && !record.enrollment.in_progress?
+          record.enrollment.invalidate_processing!
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
         end
+      when Hmis::Hud::Project
+        # If a project was closed, close related Funders and Inventory
+        project_closed = record.operating_end_date_was.nil? && record.operating_end_date.present?
+        record.close_related_funders_and_inventory! if project_closed
       end
-
-      return unless record.is_a? Hmis::Hud::Project
-      return unless record.operating_end_date_was.nil? && record.operating_end_date.present?
-
-      record.close_related_funders_and_inventory!
     end
 
     # For NEW RECORD CREATION ONLY, get the permission base that should be used to check permissions,
@@ -180,9 +185,7 @@ module Mutations
         [project, klass.new({ project_id: project&.id })]
       when 'Hmis::File'
         [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
-      when 'Hmis::Hud::Assessment'
-        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
-      when 'Hmis::Hud::Event'
+      when 'Hmis::Hud::Assessment', 'Hmis::Hud::CustomCaseNote', 'Hmis::Hud::Event'
         [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       else
         raise "No permission base specified for creating a new record of type #{klass.name}"

@@ -1,5 +1,5 @@
 - @jobs.each do |job|
-  - parameters = YAML.load(job.handler).job_data['arguments'].first
+  - parameters = YAML.load(job.handler, permitted_classes: [ActiveJob::QueueAdapters::DelayedJobAdapter::JobWrapper]).job_data['arguments'].first
   - parameters['range'].delete('_aj_hash_with_indifferent_access')
   - report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.new(parameters: parameters)
   %tr{class: 'jIncompleteReport'}
