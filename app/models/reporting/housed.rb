@@ -590,7 +590,7 @@ module Reporting
         DOB: :dob,
         Woman: :woman,
         Man: :man,
-        NonBinary: :non_binary,
+        NonBinary: :nonbinary,
         Transgender: :transgender,
         Questioning: :questioning,
         CulturallySpecific: :culturally_specific,

@@ -46,5 +46,6 @@ module Types
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting
+    field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
   end
 end

@@ -872,6 +872,43 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 
 
 --
+-- Name: CustomCaseNote; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomCaseNote" (
+    id bigint NOT NULL,
+    "CustomCaseNoteID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "EnrollmentID" character varying,
+    data_source_id bigint NOT NULL,
+    content text NOT NULL,
+    "UserID" character varying,
+    "DateCreated" timestamp without time zone,
+    "DateUpdated" timestamp without time zone,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomCaseNote_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomCaseNote_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomCaseNote_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomCaseNote_id_seq" OWNED BY public."CustomCaseNote".id;
+
+
+--
 -- Name: CustomClientAddress; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2830,7 +2867,7 @@ CREATE TABLE public.ansd_enrollments (
     destination integer,
     destination_text character varying,
     relationship character varying,
-    client_id character varying,
+    personal_id character varying,
     age integer,
     gender character varying,
     primary_race character varying,
@@ -2882,7 +2919,9 @@ CREATE TABLE public.ansd_events (
     result_date date,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    personal_id character varying,
+    source_enrollment_id character varying
 );
 
 
@@ -25637,6 +25676,13 @@ ALTER TABLE ONLY public."CustomAssessments" ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: CustomCaseNote id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomCaseNote" ALTER COLUMN id SET DEFAULT nextval('public."CustomCaseNote_id_seq"'::regclass);
+
+
+--
 -- Name: CustomClientAddress id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -29087,6 +29133,14 @@ ALTER TABLE ONLY public."CurrentLivingSituation"
 
 ALTER TABLE ONLY public."CustomAssessments"
     ADD CONSTRAINT "CustomAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomCaseNote CustomCaseNote_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomCaseNote"
+    ADD CONSTRAINT "CustomCaseNote_pkey" PRIMARY KEY (id);
 
 
 --
@@ -48179,6 +48233,13 @@ CREATE UNIQUE INDEX id_rsh_index ON public.recent_service_history USING btree (i
 
 
 --
+-- Name: idxCustomCaseNoteOnID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "idxCustomCaseNoteOnID" ON public."CustomCaseNote" USING btree (data_source_id, "CustomCaseNoteID");
+
+
+--
 -- Name: idx_any_stage; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48659,6 +48720,27 @@ CREATE INDEX "index_Client_on_pending_date_deleted" ON public."Client" USING btr
 --
 
 CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."CurrentLivingSituation" USING btree (pending_date_deleted);
+
+
+--
+-- Name: index_CustomCaseNote_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomCaseNote_on_EnrollmentID" ON public."CustomCaseNote" USING btree ("EnrollmentID");
+
+
+--
+-- Name: index_CustomCaseNote_on_PersonalID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomCaseNote_on_PersonalID" ON public."CustomCaseNote" USING btree ("PersonalID");
+
+
+--
+-- Name: index_CustomCaseNote_on_UserID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomCaseNote_on_UserID" ON public."CustomCaseNote" USING btree ("UserID");
 
 
 --
@@ -59431,6 +59513,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230901144153'),
 ('20230901203722'),
 ('20230902183854'),
-('20230905182026');
+('20230905182026'),
+('20230911204506'),
+('20230913184747'),
+('20230914004821');
 
 
