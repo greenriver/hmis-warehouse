@@ -163,13 +163,7 @@ module CasAccess::Filters
     end
 
     def gender_options_for_select
-      {
-        female: 'Female',
-        male: 'Male',
-        no_single_gender: 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
-        transgender: 'Transgender',
-        questioning: 'Questioning',
-      }.invert
+      HudUtility2024.gender_field_name_label.transform_keys { |k| k.to_s.underscore.to_sym }.except(:gender_none).invert.freeze
     end
 
     def age_range_options_for_select
@@ -187,20 +181,7 @@ module CasAccess::Filters
     end
 
     def race_options_for_select
-      {
-        am_ind_ak_native: 'American Indian, Alaska Native, or Indigenous',
-        asian: 'Asian or Asian American',
-        black_af_american: 'Black, African American, or African',
-        native_hi_pacific: 'Native Hawaiian or Pacific Islander',
-        white: 'White',
-      }.invert
-    end
-
-    def ethnicity_options_for_select
-      {
-        non_hispanic: 'Non-Hispanic/Non-Latin(a)(o)(x)',
-        hispanic: 'Hispanic/Latin(a)(o)(x)',
-      }.invert
+      HudUtility2024.races.transform_keys { |k| k.underscore.to_sym }.except(:race_none).invert.freeze
     end
 
     def disability_options_for_select

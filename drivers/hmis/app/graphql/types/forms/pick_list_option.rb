@@ -46,7 +46,7 @@ module Types
           # TODO: replace with call to HudUtility once project type groupings are moved there.
           # FIXME: internally our definition of "residential" includes 4 (SO) and 9 (OPH) which
           # are not valid for Residential project affiliations.
-          where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
+          where(project_type: HudUtility2024.residential_project_type_ids).
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
@@ -63,7 +63,7 @@ module Types
       when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
         open_hoh_enrollments_for_project(project)
       when 'ENROLLMENTS_FOR_CLIENT'
-        enrollments_for_client(client)
+        enrollments_for_client(client, user: user)
       end
     end
 
@@ -334,10 +334,10 @@ module Types
       end
     end
 
-    def self.enrollments_for_client(client)
+    def self.enrollments_for_client(client, user:)
       raise 'Client required' unless client.present?
 
-      enrollments = client.enrollments.preload(:project, :exit)
+      enrollments = client.enrollments.viewable_by(user).preload(:project, :exit)
       enrollments.sort_by_option(:most_recent).map do |en|
         {
           code: en.id,

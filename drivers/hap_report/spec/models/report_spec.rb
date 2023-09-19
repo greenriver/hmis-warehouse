@@ -47,27 +47,29 @@ RSpec.describe HapReport::Report, type: :model do
     end
   end
 
-  describe 'with just NBN projects' do
-    before(:all) do
-      import_hmis_csv_fixture(
-        'drivers/hap_report/spec/fixtures/files/fy2020/default',
-        version: 'AutoMigrate',
-        run_jobs: true,
-      )
-      @report = HapReport::Report.create!(
-        options: {
-          start: '2019-01-01'.to_date,
-          end: '2019-12-31'.to_date,
-          project_ids: GrdaWarehouse::Hud::Project.night_by_night.pluck(:id),
-        },
-      )
-      @report.run_and_save!
-    end
+  # DEPRECATED_FY2024 - re-enable after 2024 importer and migrator are in-place
+  # until then, night_by_night scope will return all ES 1 regardless of TrackingMethod
+  # describe 'with just NBN projects' do
+  #   before(:all) do
+  #     import_hmis_csv_fixture(
+  #       'drivers/hap_report/spec/fixtures/files/fy2020/default',
+  #       version: 'AutoMigrate',
+  #       run_jobs: true,
+  #     )
+  #     @report = HapReport::Report.create!(
+  #       options: {
+  #         start: '2019-01-01'.to_date,
+  #         end: '2019-12-31'.to_date,
+  #         project_ids: GrdaWarehouse::Hud::Project.night_by_night.pluck(:id),
+  #       },
+  #     )
+  #     @report.run_and_save!
+  #   end
 
-    it 'sees only one night' do
-      expect(value(:total_units_of_shelter_service, :emergency_shelter)).to eq(1)
-    end
-  end
+  #   it 'sees only one night' do
+  #     expect(value(:total_units_of_shelter_service, :emergency_shelter)).to eq(1)
+  #   end
+  # end
 
   def value(row, column)
     @report.cell("#{row}_#{column}").summary

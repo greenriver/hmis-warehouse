@@ -60,7 +60,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "Median: #{value.to_i} days"
+      "Median: #{number_with_delimiter(value.to_i)} days"
     end
 
     def indicator(comparison)

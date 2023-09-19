@@ -273,10 +273,6 @@ module ClaimsReporting
           data: race_rows,
           tooltip: 'Please note, patients may be counted in multiple race categories in addition to Multi-Racial as the data is pulled from all available HMIS data.',
         },
-        'Ethnicity' => {
-          data: ethnicity_rows,
-          tooltip: 'Please note, patients may be counted in multiple ethnicity categories as the data is pulled from all available HMIS data.',
-        },
         'Primary Language' => {
           data: primary_language_rows,
           tooltip: 'As collected on the Comprehensive Health Assessment.',
@@ -319,24 +315,6 @@ module ClaimsReporting
 
       ClaimsReporting::EngagementTrends.sdoh_categories['Race'].map do |race_scope, name|
         count = GrdaWarehouse::Hud::Client.where(id: client_ids).send(race_scope).count
-        [
-          name,
-          count_and_precent(count, total_member_count),
-        ]
-      end.to_h
-    end
-
-    def ethnicity_rows
-      empty_set = ClaimsReporting::EngagementTrends.sdoh_categories['Ethnicity'].map do |_, name|
-        [
-          name,
-          '0',
-        ]
-      end.to_h
-      return empty_set unless total_member_count.positive?
-
-      ClaimsReporting::EngagementTrends.sdoh_categories['Ethnicity'].map do |ethnicity_scope, name|
-        count = GrdaWarehouse::Hud::Client.where(id: client_ids).send(ethnicity_scope).count
         [
           name,
           count_and_precent(count, total_member_count),

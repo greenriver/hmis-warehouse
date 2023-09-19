@@ -10,6 +10,7 @@ module ClientDocumentsReport
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include ApplicationHelper
 
     attr_accessor :filter
 
@@ -22,8 +23,7 @@ module ClientDocumentsReport
     end
 
     def self.default_project_type_codes
-      # TODO: moved for 2024 to HudUtility2024
-      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
+      HudUtility2024.performance_reporting.keys
     end
 
     # Find the most recent date from the documents of the appropriate type in the chosen group
@@ -127,6 +127,65 @@ module ClientDocumentsReport
       client.client_files&.select { |cf| (cf.taggings.map(&:tag_id) & overall_document_tag_ids).present? }
     end
 
+    def additional_client_data_headers
+      @additional_client_data_headers ||= [].tap do |headers|
+        headers << 'Newest Entry Date'
+        if GrdaWarehouse::Config.cas_enabled?
+          headers << 'Active CAS Match'
+          headers << 'CAS Match Date'
+        end
+        headers << 'Newest Income from Any Source'
+        headers << 'Newest Total Monthly Income'
+        filter.chosen_secondary_cohorts.each do |cohort|
+          headers << cohort.name
+        end
+      end
+    end
+
+    def additional_client_data(client)
+      compute_additional_client_data[client.id]
+    end
+
+    private def compute_additional_client_data
+      @compute_additional_client_data ||= {}.tap do |client_data|
+        enrollments.preload(:client, enrollment: :income_benefits).find_each do |enrollment|
+          client_data[enrollment.client_id] ||= {}
+          # Make sure we get the most-recently started enrollment
+          client_data[enrollment.client_id]['Newest Entry Date'] = [client_data[enrollment.client_id]['Newest Entry Date'], enrollment.entry_date].compact.max
+          if GrdaWarehouse::Config.cas_enabled?
+            client_data[enrollment.client_id]['Active CAS Match'] = yn(active_cas_match_for?(enrollment.client))
+            client_data[enrollment.client_id]['CAS Match Date'] = cas_match_date(enrollment.client)
+          end
+          # For the most-recently started enrollment, get the most-recent Income Benefit record
+          if enrollment.entry_date == client_data[enrollment.client_id]['Newest Entry Date']
+            income_record = enrollment.enrollment&.income_benefits&.max_by(&:information_date)
+
+            client_data[enrollment.client_id]['Newest Income from Any Source'] = HudUtility2024.no_yes_reasons_for_missing_data(income_record&.income_from_any_source)
+            client_data[enrollment.client_id]['Newest Total Monthly Income'] = income_record&.total_monthly_income
+          end
+
+          filter.chosen_secondary_cohorts.each do |cohort|
+            client_data[enrollment.client_id][cohort.name] = yn(cohort_inclusion?(cohort, enrollment.client))
+          end
+        end
+      end
+    end
+
+    private def active_cas_match_for?(client)
+      return unless GrdaWarehouse::Config.cas_enabled?
+
+      actively_matched.key?(client.id)
+    end
+
+    private def cas_match_date(client)
+      actively_matched[client.id]&.to_date
+    end
+
+    private def actively_matched
+      @actively_matched ||= GrdaWarehouse::CasReport.match_open.
+        distinct.pluck(:client_id, :match_started_at).to_h
+    end
+
     private def overall_document_tag_ids
       @overall_document_tag_ids ||= (filter.required_files + filter.optional_files).uniq
     end
@@ -139,6 +198,18 @@ module ClientDocumentsReport
       @available_tags ||= GrdaWarehouse::AvailableFileTag.
         where(name: tags(:required).map(&:name) + tags(:optional).map(&:name)).
         pluck(:name, :group).to_h
+    end
+
+    private def cohort_inclusion?(cohort, client)
+      cohort_clients[cohort.id].include?(client.id)
+    end
+
+    private def cohort_clients
+      @cohort_clients ||= {}.tap do |cohorts|
+        filter.chosen_secondary_cohorts.each do |cohort|
+          cohorts[cohort.id] ||= cohort.cohort_clients.active.pluck(:client_id)
+        end
+      end
     end
 
     def include_comparison?
@@ -171,6 +242,7 @@ module ClientDocumentsReport
         build_general_control_section,
         build_coc_control_section,
         build_files_control_section,
+        build_cohort_inclusion_control_section,
       ]
     end
 

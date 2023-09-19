@@ -78,7 +78,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "#{value.to_i} clients"
+      "#{number_with_delimiter(value.to_i)} clients"
     end
 
     def indicator(comparison)

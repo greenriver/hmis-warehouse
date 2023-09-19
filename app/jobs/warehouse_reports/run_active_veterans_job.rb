@@ -26,7 +26,7 @@ module WarehouseReports
       scope = service_history_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports))
 
       project_types = range.project_type.select(&:present?).map(&:to_sym)
-      scope = scope.where(service_history_source.project_type_column => project_types.flat_map { |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] }) if project_types.any?
+      scope = scope.where(service_history_source.project_type_column => project_types.flat_map { |t| HudUtility2024.residential_project_type_numbers_by_code[t] }) if project_types.any?
 
       served_client_ids = scope.service_within_date_range(start_date: range.start, end_date: range.end).distinct.select(:client_id)
 
@@ -76,7 +76,7 @@ module WarehouseReports
     end
 
     def service_history_scope
-      project_types = project_source::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :th, :so, :sh).flatten.uniq.sort
+      project_types = HudUtility2024.residential_project_type_numbers_by_code.values_at(:es, :th, :so, :sh).flatten.uniq.sort
       service_history_source.where(service_history_source.project_type_column => project_types)
     end
 

@@ -35,20 +35,18 @@ module PerformanceDashboard::Overview::Detail
 
   def detail_column_display(header:, column:)
     case header
-    when 'Female', 'Male', 'No Single Gender', 'Transgender', 'Questioning', 'Unknown Gender'
-      HudUtility.no_yes_reasons_for_missing_data(column)
-    when 'Ethnicity'
-      HudUtility.ethnicity(column)
-    when HudUtility.race('AmIndAKNative'), HudUtility.race('Asian'), HudUtility.race('BlackAfAmerican'), HudUtility.race('NativeHIPacific'), HudUtility.race('White'), HudUtility.race('RaceNone')
-      HudUtility.no_yes_reasons_for_missing_data(column)
+    when 'Woman', 'Man', 'NonBinary', 'CulturallySpecific', 'DifferentIdentity', 'Transgender', 'Questioning', 'Unknown Gender'
+      HudUtility2024.no_yes_reasons_for_missing_data(column)
+    when HudUtility2024.race('AmIndAKNative'), HudUtility2024.race('Asian'), HudUtility2024.race('BlackAfAmerican'), HudUtility2024.race('NativeHIPacific'), HudUtility2024.race('White'), HudUtility2024.race('RaceNone'), HudUtility2024.race('HispanicLatinaeo'), HudUtility2024.race('MidEastNAfrican')
+      HudUtility2024.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
-      HudUtility.veteran_status(column)
+      HudUtility2024.veteran_status(column)
     when 'Individual Adult', 'Child Only'
       yn(column)
     when 'Project Type'
-      HudUtility.project_type(column)
+      HudUtility2024.project_type(column)
     when 'CoC'
-      HudUtility.coc_name(column)
+      HudUtility2024.coc_name(column)
     else
       column
     end
@@ -70,8 +68,6 @@ module PerformanceDashboard::Overview::Detail
         title += " #{veteran_bucket_titles[sub_key.to_i]}"
       elsif options[:race].present?
         title += " #{race_bucket_titles[sub_key.to_s]}"
-      elsif options[:ethnicity].present?
-        title += " #{ethnicity_bucket_titles[sub_key.to_i]}"
       elsif options[:project_type].present?
         title += " #{project_type_bucket_titles[sub_key.to_i]}"
       elsif options[:coc].present?
@@ -101,9 +97,11 @@ module PerformanceDashboard::Overview::Detail
     columns['Reporting Age'] = age_calculation if options[:age]
     columns['DOB'] = c_t[:DOB] if options[:age] && !exclude_pii
     if options[:gender]
-      columns['Female'] = c_t[:Female]
-      columns['Male'] = c_t[:Male]
-      columns['No Single Gender'] = c_t[:NoSingleGender]
+      columns['Woman'] = c_t[:Woman]
+      columns['Man'] = c_t[:Man]
+      columns['NonBinary'] = c_t[:NonBinary]
+      columns['CulturallySpecific'] = c_t[:CulturallySpecific]
+      columns['DifferentIdentity'] = c_t[:DifferentIdentity]
       columns['Transgender'] = c_t[:Transgender]
       columns['Questioning'] = c_t[:Questioning]
       columns['Unknown Gender'] = c_t[:GenderNone]
@@ -117,11 +115,10 @@ module PerformanceDashboard::Overview::Detail
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
     if options[:race]
-      HudUtility.races.each do |k, title|
+      HudUtility2024.races.each do |k, title|
         columns[title] = c_t[k.to_sym]
       end
     end
-    columns['Ethnicity'] = c_t[:Ethnicity] if options[:ethnicity]
     columns['Project Type'] = she_t[project_type_col] if options[:project_type]
     columns['Days Homeless Last Three Years'] = wcp_t[:days_homeless_last_three_years] if options[:lot_homeless]
     columns['CoC'] = ec_t[:CoCCode] if options[:coc]
