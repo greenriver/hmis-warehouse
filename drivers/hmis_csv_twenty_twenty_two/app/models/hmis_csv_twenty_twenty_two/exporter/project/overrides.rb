@@ -61,7 +61,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       return row if row.computed_project_type.blank?
       return row if row.ProjectType == row.computed_project_type
 
-      es_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es]
+      es_types = HudUtility2024.residential_project_type_numbers_by_code[:es]
       # changing to ES project type, set tracking method to 0
       row.TrackingMethod = if es_types.include?(row.computed_project_type) && ! es_types.include?(row.ProjectType)
         0

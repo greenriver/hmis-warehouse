@@ -7,9 +7,9 @@
 module HmisExternalApis::AcHmis
   class MciPayload
     def self.from_client(client, mci_id: nil)
-      raise(Error, 'First name is required') unless client.first_name.present?
-      raise(Error, 'Last name is required') unless client.last_name.present?
-      raise(Error, 'DOB is required') unless client.dob.present?
+      raise 'First name is required' unless client.first_name.present?
+      raise 'Last name is required' unless client.last_name.present?
+      raise 'DOB is required' unless client.dob.present?
 
       {
         'userID' => client.user&.user_email&.slice(0, 20),

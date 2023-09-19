@@ -32,7 +32,6 @@ module HmisCsvImporter
       'Disabilities.csv',
       'EmploymentEducation.csv',
       'Enrollment.csv',
-      'EnrollmentCoC.csv',
       'Exit.csv',
       'HealthAndDV.csv',
       'IncomeBenefits.csv',

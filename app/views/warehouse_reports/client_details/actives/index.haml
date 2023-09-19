@@ -8,7 +8,7 @@
 .d-flex
   .ml-auto.mb-2
     - if can_view_clients?
-      = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: warehouse_reports_client_details_actives_path({format: :xlsx}.merge(link_params)), excel_download_tooltip: 'Download includes the following additional fields: Length of Stay (to-date), Living Situation, Destination, Race, Ethnicity.'
+      = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: warehouse_reports_client_details_actives_path({format: :xlsx}.merge(link_params)), excel_download_tooltip: 'Download includes the following additional fields: Length of Stay (to-date), Living Situation, Destination, Race.'
 = render 'background_render', url: render_section_warehouse_reports_client_details_actives_path, fetch_params: { filter: @filter.for_params[:filters] } do
   .rollup
     .rollup-container.well

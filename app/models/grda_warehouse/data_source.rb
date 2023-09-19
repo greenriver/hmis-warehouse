@@ -150,6 +150,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(visible_in_window: true)
   end
 
+  scope :available_for_new_clients, -> do
+    authoritative.not_hmis
+  end
+
   # TODO: START_ACL remove after migration to ACLs
   scope :visible_in_window_for_cohorts_to, ->(user) do
     return none unless user&.can_view_clients?

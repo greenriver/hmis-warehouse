@@ -24,8 +24,7 @@ module AllNeighborsSystemDashboard
       end
 
       def default_project_type_codes
-        # TODO: Update for 2024 changes
-        GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
+        HudUtility2024.performance_reporting.keys
       end
 
       def project_type_ids
@@ -45,7 +44,7 @@ module AllNeighborsSystemDashboard
 
       def filter
         @filter ||= begin
-          f = ::Filters::FilterBase.new(
+          f = ::Filters::HudFilterBase.new(
             user_id: user_id,
             enforce_one_year_range: false,
           )

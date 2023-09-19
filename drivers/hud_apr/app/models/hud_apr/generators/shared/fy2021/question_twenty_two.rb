@@ -349,7 +349,7 @@ module HudApr::Generators::Shared::Fy2021
     end
 
     private def q22e_lengths
-      move_in_projects = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
       move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
         or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))
       {

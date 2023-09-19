@@ -22,7 +22,7 @@ module
     end
 
     def race_buckets
-      @race_buckets ||= ::HudUtility.races.merge('MultiRacial' => 'Multi-racial', 'Does Not Know' => 'Client doesn\'t know', 'Refused' => 'Client refused', 'Not Collected' => 'Data not collected').except('RaceNone')
+      @race_buckets ||= ::HudUtility2024.races.merge('MultiRacial' => 'Multi-racial', "Don't Know" => "Don't know", 'Prefers not to answer' => 'Prefers not to answer', 'Not Collected' => 'Data not collected').except('RaceNone')
     end
 
     def race_count(type)

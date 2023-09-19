@@ -5,12 +5,5 @@
   - if result_class.ce_apr_question.present?
     .spm-measure.font-weight-bold= "CE APR #{result_class.ce_apr_question}"
   %p= raw markdown.render(result.description)
-.col-sm-2
-  .text-uppercase This Year
-  .performance-measurement__result-number.font-weight-bold= result.value.round
-  .text-capitalize= result.unit
-.col-sm-2
-  - if comparison.present?
-    .text-uppercase Last Year
-    .performance-measurement__result-number.font-weight-bold= comparison.value.round
-    .text-capitalize= comparison.unit
+.col-sm-4
+  = render 'row_contents_comparisons', result: result, comparison: comparison, category_name: category_name

@@ -10,7 +10,6 @@ module SystemPathways
     include ArelHelper
     include Memery
     include SystemPathways::ChartBase
-    include SystemPathways::Equity::Ethnicity
     include SystemPathways::Equity::Race
     include SystemPathways::Equity::Veteran
     include SystemPathways::Equity::Chronic
@@ -19,7 +18,6 @@ module SystemPathways
 
     def known_categories
       [
-        ['Ethnicity', 'ethnicity'],
         ['Race', 'race'],
         ['Veteran Status', 'veteran_status'],
         ['Disabling Condition', 'disabling_condition'],
@@ -30,8 +28,6 @@ module SystemPathways
 
     def chart_data(chart)
       data = case chart.to_s
-      when 'ethnicity'
-        ethnicity_chart_data
       when 'race'
         race_chart_data
       when 'veteran_status'

@@ -9,7 +9,7 @@ module KnownCategories::VeteranStatus
 
   def veteran_status_calculations
     @veteran_status_calculations ||= {}.tap do |calcs|
-      HudUtility.no_yes_reasons_for_missing_data_options.each do |key, title|
+      HudUtility2024.no_yes_reasons_for_missing_data_options.each do |key, title|
         calcs["Veteran Status #{title}"] = ->(value) { value == key }
       end
     end

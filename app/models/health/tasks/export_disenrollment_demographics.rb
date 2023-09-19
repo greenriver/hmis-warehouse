@@ -17,6 +17,7 @@ module Health::Tasks
     end
 
     def run!
+      # NOTE: this is not being updated for the 2024 spec changes at this time.
       CSV.open(@filename, 'wb') do |csv|
         csv << ['Race']
         HudUtility.races(multi_racial: true).keys.each do |key|

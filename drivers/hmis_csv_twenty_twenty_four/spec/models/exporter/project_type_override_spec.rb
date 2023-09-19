@@ -68,7 +68,7 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
       expect(@project_ph.ProjectType).not_to eq @project_ph.computed_project_type
     end
     it 'project type override is a type of PH' do
-      expect(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).to include(@project_ph.computed_project_type)
+      expect(HudUtility2024.residential_project_type_numbers_by_code[:ph]).to include(@project_ph.computed_project_type)
     end
     it 'project type is overridden' do
       csv = CSV.read(csv_file_path(@project_class, exporter: @exporter_2), headers: true)
