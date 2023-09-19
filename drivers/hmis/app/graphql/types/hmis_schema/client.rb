@@ -17,6 +17,7 @@ module Types
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCustomCaseNotes
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasAuditHistory
     include Types::HmisSchema::HasGender
@@ -77,6 +78,7 @@ module Types
     current_living_situations_field
     assessments_field
     services_field
+    custom_case_notes_field
     files_field
     custom_data_elements_field
     audit_history_field(
@@ -172,6 +174,10 @@ module Types
 
     def services(**args)
       resolve_services(**args)
+    end
+
+    def custom_case_notes(...)
+      resolve_custom_case_notes(...)
     end
 
     def files(**args)

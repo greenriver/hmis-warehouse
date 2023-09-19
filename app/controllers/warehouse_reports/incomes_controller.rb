@@ -41,7 +41,6 @@ module WarehouseReports
       headers += [
         'Gender',
         'Race',
-        'Ethnicity',
       ]
       headers
     end
@@ -63,7 +62,6 @@ module WarehouseReports
         row + [
           record.client.gender,
           record.client.race_description,
-          HudUtility.ethnicity(record.client.Ethnicity),
         ]
       end
     end

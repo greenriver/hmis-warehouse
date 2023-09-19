@@ -17,7 +17,6 @@
         %th Gender
         %th Veteran Status
         %th Race
-        %th Ethnicity
     %tbody
       - clients.each do |client|
         %tr
@@ -26,6 +25,5 @@
           %td= client.LastName
           %td= client.DOB
           %td= client.gender
-          %td= HudUtility.no_yes_missing(client.VeteranStatus)
+          %td= HudUtility2024.no_yes_missing(client.VeteranStatus)
           %td= client.race_description
-          %td= HudUtility.ethnicity(client.Ethnicity)

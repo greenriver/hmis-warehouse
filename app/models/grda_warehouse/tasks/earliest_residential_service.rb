@@ -40,7 +40,7 @@ module GrdaWarehouse::Tasks
         new_first_entries = []
         if to_add.any?
           to_add.each do |client_id, date|
-            first_entry = service_history_source.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).where(client_id: client_id, first_date_in_program: date).first
+            first_entry = service_history_source.entry.in_project_type(HudUtility2024.residential_project_type_ids).where(client_id: client_id, first_date_in_program: date).first
             first_entry.record_type = 'first'
             first_entry.id = nil
             new_first_entries << first_entry.attributes.except('id')
@@ -62,7 +62,7 @@ module GrdaWarehouse::Tasks
     end
 
     def earliest_dates
-      @earliest_dates ||= service_history_source.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).group(:client_id).pluck(:client_id, Arel.sql('min(first_date_in_program)'))
+      @earliest_dates ||= service_history_source.entry.in_project_type(HudUtility2024.residential_project_type_ids).group(:client_id).pluck(:client_id, Arel.sql('min(first_date_in_program)'))
     end
 
     # limit to enrollments with service

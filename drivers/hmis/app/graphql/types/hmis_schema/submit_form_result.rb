@@ -22,6 +22,7 @@ module Types
       Types::HmisSchema::Enrollment,
       Types::HmisSchema::CurrentLivingSituation,
       Types::HmisSchema::CeAssessment,
+      Types::HmisSchema::CustomCaseNote,
       Types::HmisSchema::Event,
     )
 

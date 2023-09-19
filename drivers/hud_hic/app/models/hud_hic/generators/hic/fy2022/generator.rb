@@ -30,7 +30,7 @@ module  HudHic::Generators::Hic::Fy2022
     end
 
     def self.default_project_type_codes
-      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys
+      HudUtility2024.residential_project_type_numbers_by_code.keys
     end
 
     def url

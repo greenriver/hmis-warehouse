@@ -39,7 +39,7 @@ module Reporting
     end
 
     def error(job, exception)
-      result = ReportResult.find(YAML.load(job.handler).result_id.to_i) # rubocop:disable Security/YAMLLoad
+      result = ReportResult.find(YAML.load(job.handler, permitted_classes: [ActiveJob::QueueAdapters::DelayedJobAdapter::JobWrapper]).result_id.to_i)
       result.update(job_status: "Failed: #{exception.message}")
       super(job, exception)
     end

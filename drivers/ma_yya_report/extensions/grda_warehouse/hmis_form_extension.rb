@@ -12,7 +12,7 @@ module MaYyaReport
       def current_school_attendance
         # First look for the HUD questions
         hud_answer = answer_from_section(section_starts_with('First Page'), 'Current school enrollment')
-        return HudUtility.current_school_attended(hud_answer, true) if hud_answer.present?
+        return HudUtility2024.current_school_attended(hud_answer, true) if hud_answer.present?
 
         # If we didn't find one, try the older format
         legacy_answers = answer_from_section(section_starts_with('First Page'), 'Level of education')
@@ -26,7 +26,7 @@ module MaYyaReport
       def most_recent_educational_status
         # First look for the HUD questions
         hud_answer = answer_from_section(section_starts_with('First Page'), 'C3.A')
-        return HudUtility.most_recent_ed_status(hud_answer, true) if hud_answer.present?
+        return HudUtility2024.most_recent_ed_status(hud_answer, true) if hud_answer.present?
 
         # If we didn't find one, try the older format
         legacy_answers = answer_from_section(section_starts_with('First Page'), 'Level of education')
@@ -40,7 +40,7 @@ module MaYyaReport
       def current_educational_status
         # First look for the HUD questions
         hud_answer = answer_from_section(section_starts_with('First Page'), 'C3.B')
-        return HudUtility.most_recent_ed_status(hud_answer, true) if hud_answer.present?
+        return HudUtility2024.most_recent_ed_status(hud_answer, true) if hud_answer.present?
 
         # If we didn't find one, try the older format
         legacy_answers = answer_from_section(section_starts_with('First Page'), 'Level of education')
