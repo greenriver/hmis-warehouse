@@ -148,8 +148,6 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
             create(:hmis_current_living_situation, data_source: ds1, enrollment: enrollment, information_date: today)
           end
           it 'does not remind about current-living-situation information' do
-            puts "users: #{Hmis::User.count}"
-            puts "hud users: #{Hmis::Hud::User.count}"
             expect(reminders_for(enrollment, topic: 'current_living_situation').size).to eq(0)
           end
         end
