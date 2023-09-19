@@ -27,6 +27,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :bed_nights, -> { bed_nights }, **hmis_relation(:EnrollmentID, 'Service')
   # Custom services
   has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
+  has_many :custom_case_notes, **hmis_relation(:EnrollmentID, 'CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
   # All services (combined view of HUD and Custom services)
   has_many :hmis_services, **hmis_relation(:EnrollmentID, 'HmisService')
 
