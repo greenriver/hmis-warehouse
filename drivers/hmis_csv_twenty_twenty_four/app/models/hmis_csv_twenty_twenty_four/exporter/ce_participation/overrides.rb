@@ -32,7 +32,7 @@ module HmisCsvTwentyTwentyFour::Exporter
         row = replace_blank(row, hud_field: hud_field, default_value: 0)
       end
 
-      row.CEParticipationStatusStartDate ||= row.project.ProjectStartDate
+      row.CEParticipationStatusStartDate ||= row.project.OperatingStartDate
 
       row
     end

@@ -31,7 +31,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       end
 
       row = replace_blank(row, hud_field: :HMISParticipationType, default_value: missing_type)
-      row.HMISParticipationStatusStartDate ||= row.project.ProjectStartDate
+      row.HMISParticipationStatusStartDate ||= row.project.OperatingStartDate
 
       row
     end
