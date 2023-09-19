@@ -35,9 +35,7 @@
       console.log('Housing Placement -----------------')
       var totalData = #{total_data.to_json.html_safe}
       var donutData = #{donut_data.to_json.html_safe}
-      console.log('donutData', donutData)
       var stackedData = #{stacked_data.to_json.html_safe}
-      console.log('stackedData', stackedData)
 
       var charts = [
         {
@@ -49,7 +47,7 @@
           chart: AllNeighborsSystemDashboardStack,
           data: stackedData,
           selector: '#all-neighbors__housing-placements__stacked',
-          options: {normalize: true}
+          options: {normalize: true, rotated: true}
         }
       ].concat(donutData.map(function(d) {
         return {

@@ -1,1 +1,83 @@
+- start_date = (DateTime.current - 3.years).beginning_of_month
+- end_date = DateTime.current.beginning_of_month
+- all_data = AllNeighborsSystemDashboard::UnhousedPopulation.new(start_date, end_date)
+
 %h2 Unhoused Population
+
+#all-neighbors__unhoused_population__vertical-stack{style: 'height:400px;'}
+.border.my-7.p-4
+  .row.align-items-center.justify-content-between
+    .col-xs-12.col-md-4
+      = render 'select_filter', tab: tab, name: 'homelessness_status', label: 'Homelessness Status', options: all_data.homelessness_statuses
+    .col-xs-12.col-md-4
+      = render 'year_filter', tab: tab, name: 'year', label: 'Choose Time Period', label_hint: 'Selection affects charts below', date: end_date, start_date: start_date, end_date: end_date
+
+    
+%h3 Sheltered & Unsheltered
+      
+.row
+  - all_data.donut_data.each do |d|
+    .col-6.mb-7
+      %h5= d[:title]
+      %div{id: "all-neighbors__unhoused_population__#{d[:id]}", style: "height:320px;width:100%;"}
+
+%h3 Racial Composition
+#all-neighbors__unhoused_population__racial_comp
+  
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      console.log('Unhoused Population -----------------')
+      var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
+      var donutData = #{all_data.donut_data.to_json.html_safe}
+      var stackedData = #{all_data.stacked_data.to_json.html_safe}
+
+      var charts = [
+        {
+          chart: AllNeighborsSystemDashboardStack,
+          data: stackedData,
+          selector: '#all-neighbors__unhoused_population__racial_comp',
+          options: {normalize: true, rotated: true}
+        }
+      ].concat(donutData.map(function(d) {
+        return {
+          chart: AllNeighborsSystemDashboardDonut,
+          data: d,
+          selector: '#all-neighbors__unhoused_population__'+d.id
+        }
+      }))
+
+      var filterConfig = [
+        {
+          name: 'homelessnessStatus',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'homelessness_status')}'
+        },
+        {
+          name: 'year',
+          type: 'year',
+          selector: '##{filter_id(tab[:id], 'year')}'
+        },
+      ]
+
+      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts)
+      filters.test()
+
+      const verticalStackChart = new AllNeighborsSystemDashboardStack(
+          verticalStackData,
+          {},
+          '#all-neighbors__unhoused_population__vertical-stack',
+          {rotated: false, normalize: false}
+        )
+      verticalStackChart.draw()
+
+      // charts render weird if other tabs are hidden
+      // hide the other tabs after all the charts are done
+      $('.tab-pane').each(function(d) {
+        if(d > 0) {
+          $(this).removeClass('show')
+          $(this).removeClass('active')
+        }
+      })
+    })

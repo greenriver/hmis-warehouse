@@ -21,7 +21,7 @@ class AllNeighborsSystemDashboardFilters {
   initState(filters) {
     this.state = {}
     filters.forEach((filter) => {
-      if(filter.type === 'select') {
+      if(filter.type === 'select' || filter.type === 'year') {
         this.state[filter.name] = this.filters[filter.name].val()
       }
       if(filter.type === 'dateRange') {
@@ -36,7 +36,7 @@ class AllNeighborsSystemDashboardFilters {
   initFilters(filters) {
     this.filters = {}
     filters.forEach((filter) => {
-      if(filter.type === 'select') {
+      if(filter.type === 'select' || filter.type === 'year') {
         this.filters[filter.name] = $(filter.selector)
         this.filters[filter.name].on('change', (e) => {
           this.state[filter.name] = $(e.target).val()
