@@ -145,7 +145,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
         end
         describe 'with current-living-situation information completed' do
           before(:each) do
-            create(:hmis_current_living_situation, data_source: ds1, enrollment: enrollment, client: enrollment.client, information_date: today)
+            create(:hmis_current_living_situation, data_source: ds1, enrollment: enrollment, information_date: today, client: enrollment.client, user: enrollment.user)
           end
           it 'does not remind about current-living-situation information' do
             expect(reminders_for(enrollment, topic: 'current_living_situation').size).to eq(0)
