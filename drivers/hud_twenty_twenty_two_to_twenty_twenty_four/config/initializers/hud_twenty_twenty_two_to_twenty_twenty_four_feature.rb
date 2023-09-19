@@ -23,5 +23,5 @@ Rails.application.reloader.to_prepare do
     Importers::HmisAutoMigrate.add_migration(version, 'HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer')
   end
 
-  Rails.application.config.queued_tasks << 'driver:hud_twenty_twenty_two_to_twenty_twenty_four:migrate:up'
+  Rails.application.config.queued_tasks[:hud_twenty_twenty_two_to_twenty_twenty_four_up] = -> { HudTwentyTwentyTwoToTwentyTwentyFour::DbTransformer.up }
 end

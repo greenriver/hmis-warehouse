@@ -21,19 +21,15 @@ class TaskQueue < ApplicationRecord
     where(queued_at: nil)
   end
 
-  # NOTE: there is a completed_at timestamp, but this scope is simply that the queuing has happened
-  scope :completed, -> do
-    where.not(queued_at: nil)
-  end
-
   # The expectation is that if the task is in available_tasks, then it should be in the queue
   def self.queue_unprocessed!
-    done = active.pluck(:rake_task, :queued_at).to_h
-    available_tasks.each do |task|
-      next if done[task].present?
+    done = active.pluck(:task_key, :queued_at).to_h
+    available_tasks.each do |task_key, _|
+      next if done[task_key].present?
 
-      t = TaskQueue.create(rake_task: task)
-      t.queue!
+      t = TaskQueue.create(task_key: task_key)
+      t.delay.run!
+      t.update(queued_at: Time.current)
     end
   end
 
@@ -41,8 +37,17 @@ class TaskQueue < ApplicationRecord
     Rails.application.config.queued_tasks
   end
 
-  def queue!
-    Rake::Task[rake_task].delay.invoke
-    update(queued_at: Time.current)
+  def run!
+    to_run = self.class.available_tasks[task_key.to_sym]
+    if to_run.blank?
+      # Re-queue the task, it's possible we are just running on old code
+      update(queued_at: nil)
+      # But also notify that we had a potentially serious problem
+      raise "Unknown task key: #{task_key}"
+    end
+
+    update(started_at: Time.current)
+    to_run.call
+    update(completed_at: Time.current)
   end
 end
