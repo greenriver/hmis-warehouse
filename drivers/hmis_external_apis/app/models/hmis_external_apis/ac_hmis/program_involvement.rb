@@ -41,7 +41,8 @@ module HmisExternalApis::AcHmis
 
       unless program_ids.blank?
         self.projects = Hmis::Hud::Project.where(project_id: program_ids, data_source_id: data_source.id)
-        if projects.size != program_ids.size
+        # if only some programs were not found, they do not want an error response
+        if projects.empty?
           not_found_ids = program_ids - projects.pluck(:project_id)
           message << "programs not found: #{not_found_ids}"
         end

@@ -77,7 +77,7 @@ module SystemPathways::ChartBase
 
       available = report.class.available_project_types.map do |p_type|
         HudUtility2024.project_type_brief(p_type)
-      end + destination_lookup.keys + ph_projects.values
+      end + destination_lookup.keys + ph_projects.values + ['ES'] # combined ES
 
       available.detect { |m| m == node }
     end
