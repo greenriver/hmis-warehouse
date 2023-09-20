@@ -107,6 +107,10 @@ module HmisExternalApis::AcHmis
       identifier.present?
     end
 
+    def origin_household
+      from_link ? household : referral&.enrollment&.household
+    end
+
     attr_accessor :current_user
     before_update :track_status_changes
     def track_status_changes
