@@ -40,15 +40,16 @@ module Types
     hud_field :middle_name
     hud_field :last_name
     hud_field :name_suffix
-    hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality
+    hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality, default_value: 99
     hud_field :dob
     field :age, Int, null: true
-    hud_field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality
+    hud_field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality, default_value: 99
     hud_field :ssn
-    hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
+    hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality, default_value: 99
     gender_field
+    # ensure doesnt brake if theyre all nil
     field :race, [Types::HmisSchema::Enums::Race], null: false
-    hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData, default_value: 99
     hud_field :year_entered_service
     hud_field :year_separated
     hud_field :world_war_ii, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
@@ -214,6 +215,12 @@ module Types
 
     def dob
       object.dob if current_permission?(permission: :can_view_dob, entity: object)
+    end
+
+    def first_name
+      return 'Unknown' if object.first_name.blank? && object.last_name.blank?
+
+      object.first_name
     end
 
     def names

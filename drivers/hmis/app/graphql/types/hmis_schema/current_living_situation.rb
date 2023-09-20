@@ -18,8 +18,8 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
-    hud_field :information_date
-    hud_field :current_living_situation, HmisSchema::Enums::Hud::CurrentLivingSituation
+    field :information_date, GraphQL::Types::ISO8601Date, null: true
+    hud_field :current_living_situation, HmisSchema::Enums::Hud::CurrentLivingSituation, default_value: 99
     hud_field :verified_by
     hud_field :cls_subsidy_type, HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :leave_situation14_days, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
