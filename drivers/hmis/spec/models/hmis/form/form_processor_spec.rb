@@ -1099,6 +1099,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       [existing_record, new_record].each do |record|
         hud_values = complete_hud_values.merge('names' => [secondary_name.stringify_keys])
         process_record(record: record, hud_values: hud_values, user: hmis_user, save: false)
+        expect(record.valid?).to eq(true)
         expect(record.valid?(:client_form)).to eq(false)
       end
     end
@@ -1109,6 +1110,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       [existing_record, new_record].each do |record|
         hud_values = complete_hud_values.merge('names' => [primary_name.stringify_keys, primary_name.stringify_keys])
         process_record(record: record, hud_values: hud_values, user: hmis_user, save: false)
+        expect(record.valid?).to eq(true)
         expect(record.valid?(:client_form)).to eq(false)
       end
     end
