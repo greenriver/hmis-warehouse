@@ -49,11 +49,11 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(c1.names).to contain_exactly(*[n1, n2, n3].map { |n| have_attributes(id: n.id) })
       expect(c1.names.primary_names).to contain_exactly(have_attributes(id: n1.id))
       expect(c1.primary_name).to have_attributes(id: n1.id)
-      expect(c1.valid?).to be true
+      expect(c1.valid?(:client_form)).to be true
 
       n4 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Fourth', primary: true)
       c1.update(names: [n1, n2, n3, n4])
-      expect(c1.valid?).to be false
+      expect(c1.valid?(:client_form)).to be false
     end
 
     it 'should update name when primary name is updated' do
