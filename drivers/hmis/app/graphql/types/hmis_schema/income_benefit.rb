@@ -98,7 +98,7 @@ module Types
     hud_field :no_ryan_white_reason, HmisSchema::Enums::Hud::NoAssistanceReason
     hud_field :connection_with_soar, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
 
-    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true, default_value: Types::BaseEnum::INVALID_VALUE
+    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted

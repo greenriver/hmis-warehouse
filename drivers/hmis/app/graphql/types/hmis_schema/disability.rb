@@ -20,7 +20,7 @@ module Types
     field :disability_type, HmisSchema::Enums::Hud::DisabilityType, null: false, default_value: Types::BaseEnum::INVALID_VALUE
     hud_field :disability_response, HmisSchema::Enums::Hud::DisabilityResponse
     hud_field :indefinite_and_impairs
-    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true, default_value: Types::BaseEnum::INVALID_VALUE
+    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
     hud_field :t_cell_count_available, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     hud_field :t_cell_count, Integer, null: true
     hud_field :t_cell_source, HmisSchema::Enums::Hud::TCellSourceViralLoadSource, null: true

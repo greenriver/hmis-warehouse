@@ -13,8 +13,7 @@ module Types
     field :id, ID, 'Concatenated string of Disability record IDs', null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :user, HmisSchema::User, null: true
-    # fixme need to handle null.
-    field :information_date, GraphQL::Types::ISO8601Date, null: true
+    field :information_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false
     field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, 'Current disabling condition on the linked Enrollment. It may not match up with the disabilities specified in this group.', null: false
 

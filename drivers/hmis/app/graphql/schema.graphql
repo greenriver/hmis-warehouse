@@ -2232,7 +2232,7 @@ type DisabilitiesPaginated {
 type Disability {
   antiRetroviral: NoYesReasonsForMissingData
   client: Client!
-  dataCollectionStage: DataCollectionStage
+  dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -2273,7 +2273,7 @@ type DisabilityGroup {
   Concatenated string of Disability record IDs
   """
   id: ID!
-  informationDate: ISO8601Date
+  informationDate: ISO8601Date!
   mentalHealthDisorder: NoYesReasonsForMissingData
   mentalHealthDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
   physicalDisability: NoYesReasonsForMissingData
@@ -2439,7 +2439,7 @@ HUD Employment Education
 """
 type EmploymentEducation {
   client: Client!
-  dataCollectionStage: DataCollectionStage
+  dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -3815,7 +3815,7 @@ enum HOPWAMedAssistedLivingFac {
 type HealthAndDv {
   client: Client!
   currentlyFleeing: NoYesReasonsForMissingData
-  dataCollectionStage: DataCollectionStage
+  dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -4126,7 +4126,7 @@ type IncomeBenefit {
   cobra: NoYesMissing
   connectionWithSoar: NoYesReasonsForMissingData
   customDataElements: [CustomDataElement!]!
-  dataCollectionStage: DataCollectionStage
+  dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -10682,7 +10682,7 @@ type YouthEducationStatus {
   client: Client!
   currentEdStatus: CurrentEdStatus
   currentSchoolAttend: CurrentSchoolAttended
-  dataCollectionStage: DataCollectionStage
+  dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
