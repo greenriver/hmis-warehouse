@@ -30,9 +30,8 @@
               - else
                 %td= value
             %td
-              .enrollment__project_type{class: "client__service_type_#{row.project_type}"}
-                .service-type__program-type{data: {toggle: :tooltip, title: HudUtility2024.project_type(row.project_type)}}
-                  = HudUtility2024.project_type_brief row.project_type
+              .service-type__program-type{class: "project-type-#{row.project_type}", data: {toggle: :tooltip, title: HudUtility2024.project_type(row.project_type)}}
+                = HudUtility2024.project_type_brief row.project_type
   = render 'common/pagination_bottom', item_name: 'enrollment'
 - else
   .none-found No enrollments found

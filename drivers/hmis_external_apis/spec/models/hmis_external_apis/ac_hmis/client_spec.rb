@@ -27,20 +27,9 @@ RSpec.describe Hmis::Hud::Client, type: :model do
   describe 'AC client validation' do
     let!(:mci_cred) { create(:ac_hmis_mci_credential) }
     # persisted
-    let(:c1) do
-      client = create(:hmis_hud_client, data_source: ds1, dob: nil, dob_data_quality: 8)
-      name = create(:hmis_hud_custom_client_name, client: client, data_source: ds1, last: nil, name_data_quality: 8, primary: true)
-      client.names = [name]
-      client.save!
-      client
-    end
+    let(:c1) { create(:hmis_hud_client, data_source: ds1, dob: nil, dob_data_quality: 8, last_name: nil, name_data_quality: 8) }
     # unpersisted
-    let(:c2) do
-      client = build(:hmis_hud_client, data_source: ds1, dob: nil, dob_data_quality: 8)
-      name = build(:hmis_hud_custom_client_name, client: client, data_source: ds1, last: nil, name_data_quality: 8, primary: true)
-      client.names = [name]
-      client
-    end
+    let(:c2) { build(:hmis_hud_client, data_source: ds1, dob: nil, dob_data_quality: 8, last_name: nil, name_data_quality: 8) }
 
     let(:last_required) do
       [[:required, :last_name]]
@@ -92,11 +81,6 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     it 'should require first/last on new client enrollment form' do
       expect_validations(c1, expected_errors: last_required, context: :new_client_enrollment_form)
       expect_validations(c2, expected_errors: last_required, context: :new_client_enrollment_form)
-    end
-
-    it 'should accept primary name in names array as valid first/last' do
-      c2.names = [build(:hmis_hud_custom_client_name, data_source: ds1, client: c2, primary: true)]
-      expect_validations(c2, expected_errors: [], context: :new_client_enrollment_form)
     end
 
     it 'should require MCI fields on new client enrollment form if extra context is included' do

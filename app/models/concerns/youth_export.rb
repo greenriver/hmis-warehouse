@@ -42,7 +42,6 @@ module YouthExport
         first_name: :first_name,
         last_name: :last_name,
         client_race: :race_array,
-        client_ethnicity: :ethnicity_description,
         client_gender: :gender,
         client_lgbtq: :client_lgbtq,
       }

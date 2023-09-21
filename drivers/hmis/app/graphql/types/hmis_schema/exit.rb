@@ -21,7 +21,7 @@ module Types
     # 3.11
     hud_field :exit_date, null: false
     # 3.12
-    hud_field :destination, Types::HmisSchema::Enums::Hud::Destination, null: false
+    hud_field :destination, Types::HmisSchema::Enums::Hud::Destination, null: false, default_value: 99
     hud_field :destination_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :other_destination
     # W5

@@ -54,6 +54,7 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   end
 
   def active_on?(date = Date.current)
+    return false if start_date.nil?
     return false if start_date > date
 
     end_date.nil? || end_date >= date

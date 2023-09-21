@@ -527,7 +527,7 @@ module PublicReports
           data = {}
           census_data = {}
           # Add census info
-          ::HudUtility2024.races(multi_racial: true).each do |race_code, label|
+          ::HudUtility2024.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican').each do |race_code, label|
             census_data[label] = 0
             data[::HudUtility2024.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year

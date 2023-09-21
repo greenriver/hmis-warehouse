@@ -148,6 +148,8 @@ module
         c_t[:DOB],
         c_t[:Woman],
         c_t[:Man],
+        c_t[:CulturallySpecific],
+        c_t[:DifferentIdentity],
         c_t[:NonBinary],
         c_t[:Transgender],
         c_t[:Questioning],

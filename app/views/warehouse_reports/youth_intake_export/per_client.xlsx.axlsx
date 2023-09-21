@@ -28,7 +28,6 @@ wb.add_worksheet(name: 'Youth Intakes') do |sheet|
     :gender,
     :client_lgbtq,
     :race_array,
-    :ethnicity_description,
     :client_primary_language,
     :pregnant_or_parenting,
     :disabilities,

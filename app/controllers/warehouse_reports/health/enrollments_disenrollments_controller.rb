@@ -15,6 +15,18 @@ module WarehouseReports::Health
     def index
     end
 
+    def summary
+      respond_to do |format|
+        format.xlsx {}
+      end
+    end
+
+    def report
+      respond_to do |format|
+        format.xlsx {}
+      end
+    end
+
     def create
       file = params.dig(:report, :file)
       if file.present?
@@ -35,8 +47,8 @@ module WarehouseReports::Health
           aco_ids: @acos,
           enrollment_reasons: @enrollment_reasons.reasons,
         )
-        summary = render_to_string 'summary.xlsx'
-        report = render_to_string 'report.xlsx'
+        summary = render_to_string('summary', formats: [:xlsx])
+        report = render_to_string('report', formats: [:xlsx])
         stringio = Zip::OutputStream.write_buffer do |zio|
           zio.put_next_entry(@report.summary_file_name)
           zio.write(summary)

@@ -229,12 +229,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         section: link_id_section_hash[item.link_id],
       }
 
-      is_missing = value.nil? || (value.respond_to?(:empty?) && value.empty?) || value == 'DATA_NOT_COLLECTED'
+      is_missing = value.nil? || (value.respond_to?(:empty?) && value.empty?)
+      is_data_not_collected = value == 'DATA_NOT_COLLECTED'
       field_name = item.mapping&.field_name
       # Validate required status
       if item.required && is_missing
         errors.add field_name || :base, :required, **error_context
-      elsif item.warn_if_empty && is_missing
+      elsif item.warn_if_empty && (is_missing || is_data_not_collected)
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
