@@ -5,6 +5,7 @@
       {
         "type": "CHOICE",
         "link_id": "unit-selection-for-new-enrollment-in-family-shelters",
+        "_comment": "unit selection version that allows user to choose different units for different household members when enrolling. only supported for certain projects.",
         "required": true,
         "text": "Unit",
         "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
@@ -57,6 +58,7 @@
       {
         "type": "CHOICE",
         "link_id": "unit-selection-for-new-enrollment",
+        "_comment": "unit selection version that lets the user choose which unit the HoH goes into. rest of household members go to the same unit, without ability to change.",
         "required": true,
         "text": "Unit",
         "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
