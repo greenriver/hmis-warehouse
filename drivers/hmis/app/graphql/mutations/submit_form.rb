@@ -18,8 +18,7 @@ module Mutations
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
 
-      # FIXME: locking around the form definition isn't right. Probably want to lock on record or record.owner
-      definition.with_lock do
+      Hmis::Hud::Base.transaction do
         _resolve(input: input, definition: definition, record_lock_version: record_lock_version)
       end
     end

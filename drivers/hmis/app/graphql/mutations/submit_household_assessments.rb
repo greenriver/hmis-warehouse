@@ -8,7 +8,7 @@ module Mutations
   class SubmitHouseholdAssessments < BaseMutation
     description 'Submit multiple assessments in a household'
 
-    argument :assessment_ids, [ID], required: true
+    argument :submissions, [Types::HmisSchema::VersionedRecordInput], required: true
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
     argument :validate_only, Boolean, 'Validate assessments but don\'t submit them', required: false
     # TODO: this should accept a Form Definition ID, to ensure that forms are validated against the
@@ -16,10 +16,17 @@ module Mutations
 
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
-    def resolve(assessment_ids:, confirmed:, validate_only: false)
+    def resolve(submissions:, confirmed:, validate_only: false)
+      submissions_by_id = submissions.index_by(&:id)
       assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
-        where(id: assessment_ids).
-        preload(:enrollment, :form_processor)
+        where(id: submissions_by_id.keys).
+        preload(:enrollment, :form_processor).to_a
+
+      # setup optimistic locking
+      assessments.each do |assessment|
+        lock_version = submissions_by_id[assessment.id.to_s].lock_version
+        assessment.lock_version = lock_version if lock_version
+      end
 
       enrollments = assessments.map(&:enrollment)
 
@@ -29,7 +36,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Error: not all assessments found
-      errors.add :assessment, :not_found if assessments.count != assessment_ids.size
+      errors.add :assessment, :not_found if assessments.count != submissions.size
 
       # Error: assessments do not all belong to the same household
       household_ids = enrollments.map(&:household_id).uniq
