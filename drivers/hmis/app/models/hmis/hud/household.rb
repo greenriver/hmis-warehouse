@@ -106,6 +106,4 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   def self.apply_filters(input)
     Hmis::Filter::HouseholdFilter.new(input).filter_scope(self)
   end
-
-  include RailsDrivers::Extensions
 end
