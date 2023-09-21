@@ -216,12 +216,6 @@ module Types
       object.dob if current_permission?(permission: :can_view_dob, entity: object)
     end
 
-    def first_name
-      return 'Anonymous' if object.first_name.blank? && object.last_name.blank?
-
-      object.first_name
-    end
-
     def names
       names = load_ar_association(object, :names)
       if names.empty?
