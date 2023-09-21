@@ -1,7 +1,6 @@
 {
   "type": "GROUP",
   "link_id": "R1",
-  "text": "RHY Referral Source",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
     "operator": "ANY",
@@ -36,7 +35,7 @@
       "link_id": "R1.1",
       "required": false,
       "warn_if_empty": true,
-      "text": "RHY Referral Source",
+      "text": "Referral Source",
       "pick_list_reference": "ReferralSource",
       "mapping": {
         "record_type": "ENROLLMENT",
@@ -44,14 +43,28 @@
       }
     },
     {
-      "type": "INTEGER",
-      "link_id": "R1.A",
-      "required": false,
-      "text": "Number of times approached by Outreach prior to entering project",
-      "mapping": {
-        "record_type": "ENROLLMENT",
-        "field_name": "countOutreachReferralApproaches"
-      }
+      "type": "GROUP",
+      "link_id": "R1.1-dependents",
+      "item": [
+        {
+          "type": "INTEGER",
+          "link_id": "R1.A",
+          "required": false,
+          "text": "Number of times approached by outreach prior to entering project",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "countOutreachReferralApproaches"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R1.1",
+              "operator": "EQUAL",
+              "answer_code": "OUTREACH_PROJECT"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

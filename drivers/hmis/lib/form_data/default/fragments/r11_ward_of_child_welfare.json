@@ -1,7 +1,6 @@
 {
   "type": "GROUP",
   "link_id": "R11",
-  "text": "Formerly a Ward of Child Welfare/Foster Care Agency",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
     "operator": "ALL",
@@ -33,16 +32,8 @@
       }
     },
     {
-      "type": "CHOICE",
-      "link_id": "R11.A",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Number of Years",
-      "pick_list_reference": "RHYNumberofYears",
-      "mapping": {
-        "record_type": "ENROLLMENT",
-        "field_name": "childWelfareYears"
-      },
+      "type": "GROUP",
+      "link_id": "R11.1-dependents",
       "enable_behavior": "ALL",
       "enable_when": [
         {
@@ -50,24 +41,38 @@
           "operator": "EQUAL",
           "answer_code": "YES"
         }
-      ]
-    },
-    {
-      "type": "INTEGER",
-      "link_id": "R11.B",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Number of Months",
-      "mapping": {
-        "record_type": "ENROLLMENT",
-        "field_name": "childWelfareMonths"
-      },
-      "enable_behavior": "ALL",
-      "enable_when": [
+      ],
+      "item": [
         {
-          "question": "R11.1",
-          "operator": "EQUAL",
-          "answer_code": "YES"
+          "type": "CHOICE",
+          "link_id": "R11.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Number of Years",
+          "pick_list_reference": "RHYNumberofYears",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "childWelfareYears"
+          }
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "R11.B",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Number of Months",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "childWelfareMonths"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R11.A",
+              "operator": "EQUAL",
+              "answer_code": "LESS_THAN_ONE_YEAR"
+            }
+          ]
         }
       ]
     }
