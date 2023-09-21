@@ -35,6 +35,7 @@ module HmisExternalApis
               referral_result_id: posting.referral_result_before_type_cast,
               requested_by: current_user.email,
             )
+            posting.exit_origin_household(user: Hmis::Hud::User.from_user(current_user))
           end
 
           def close_referral!(current_user:)

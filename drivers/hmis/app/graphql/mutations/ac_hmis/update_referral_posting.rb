@@ -90,35 +90,12 @@ module Mutations
         HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(new_request)
       end
 
-      exit_origin_household(posting.referral) if posting_status_change
+      posting.exit_origin_household(user: hmis_user) if posting_status_change == ['denied_pending_status', 'denied_status']
 
       { record: posting }
     end
 
     protected
-
-    # If a household has been referred out from a project (e.g. the HMIS Coordinated Entry Project) and the referral has
-    # been accepted or denied, and there are no active referrals for the household, exit the household.
-    def exit_origin_household(posting)
-      return unless posting.denied_status? || posting.accepted_status?
-
-      household = posting.origin_household
-      return unless household
-
-      referrals = household.referrals.preload(:postings)
-      return if referrals.all?(&:postings_inactive?)
-
-      today = Date.current
-      exits = household.enrollments.open_excluding_wip..each do |enrollment|
-        enrollment.build_exit(
-          exit_date: today,
-          personal_id: enrollment.personal_id,
-          user: hud_user,
-          destination: 30, # no exit interview performed
-        )
-      end
-      Hmis::Hud::Exit.import!(exits)
-    end
 
     def with_logging_transaction(posting)
       logger = HmisExternalApis::OauthDeferredClientLogger.new

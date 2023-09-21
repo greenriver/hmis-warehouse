@@ -19,9 +19,7 @@ module HmisExternalApis::AcHmis
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
 
     def postings_inactive?
-      postings.all? do |posting|
-        posting.closed_status? || posting.denied_status?
-      end
+      postings.all?(&:inactive?)
     end
   end
 end
