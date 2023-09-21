@@ -6,7 +6,47 @@
     {name: 'Unhoused Population'}
   ].map{|tab| tab.merge({id: tab[:name].gsub(' ', '').underscore})}
 
+  start_date = (DateTime.current - 3.years).beginning_of_month
+  end_date = DateTime.current.beginning_of_month
+  all_data = AllNeighborsSystemDashboard::FakeData.new(start_date, end_date)
+
+:css
+  h1 {
+    color: rgba(0, 0, 0, 0.60);
+    font-family: "Open Sans";
+    font-weight: normal;
+  }
+  h2.all-neighbors__all__tab_name {
+    font-family: "Open Sans";
+    font-weight: normal;
+  }
+  .all-neighbors__all__filter_labels h3 {
+    font-family: "Open Sans";
+    font-weight: normal;
+  }
+
+  .all-neighbors__time_to_obtain_housing__card span {
+    font-size: 36px;
+    font-weight: bold;
+  }
+
+  .all-neighbors__time_to_obtain_housing__card h3 {
+    font-family: "Open Sans";
+    font-weight: normal;
+  }
+
+  #all-neighbors__housing_placements__stacked__chart .bb-axis-x {
+    font-family: "Open Sans";
+    font-size: 1.2rem;
+  }
+
 %h1 REAL Time Rehousing Initiative Community Dashboard
+.row
+  - all_data.header_data.each do |d|
+    .col-xs-12.col-md-4
+      .d-flex
+        %div= d[:value]
+        %h4= d[:name]
 .mb-7= render 'tabs', tabs: tabs
 .tab-content
   - tabs.each_with_index do |tab, i|

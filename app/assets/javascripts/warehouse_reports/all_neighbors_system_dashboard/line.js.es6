@@ -55,6 +55,11 @@ class AllNeighborsSystemDashboardLine {
           total: "Total Placements"
         },
       },
+      grid: {
+        y: {
+          show: true
+        }
+      },
       axis: {
         x: {
           type: "timeseries",

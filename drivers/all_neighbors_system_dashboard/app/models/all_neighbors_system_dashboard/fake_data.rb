@@ -5,6 +5,26 @@ module AllNeighborsSystemDashboard
       @end_date = end_date.beginning_of_month
     end
 
+    def header_data
+      [
+        {
+          icon: '',
+          value: 1987,
+          name: 'Individuals Housed To-Date',
+        },
+        {
+          icon: '',
+          value: 223,
+          name: 'Days to Obtain Housing',
+        },
+        {
+          icon: '',
+          value: '87%',
+          name: 'Did not return to homelessness after 12 months',
+        },
+      ]
+    end
+
     def project_types
       [
         'All',

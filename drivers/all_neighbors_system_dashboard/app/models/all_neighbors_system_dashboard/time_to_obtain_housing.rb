@@ -47,5 +47,13 @@ module AllNeighborsSystemDashboard
         },
       )
     end
+
+    def overall_data
+      {
+        ident_to_move_in: { name: 'Identification to Move-In', value: 223 },
+        ident_to_referral: { name: 'Identification to Referral', value: 127 },
+        referral_to_move_in: { name: 'Referral to Move-In', value: 96 },
+      }
+    end
   end
 end

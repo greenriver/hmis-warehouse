@@ -1,0 +1,15 @@
+.all-neighbors__all__filter_labels.mb-7
+  %h3
+    - if labels.include?('project_type')
+      %span{class: filter_label_id(tab[:id], 'project_type')}
+      %span= "Project Types | "
+    - if labels.include?('count_level')
+      %span{class: filter_label_id(tab[:id], 'count_level')}
+    - if labels.include?('household_type')
+      %span{class: filter_label_id(tab[:id], 'household_type')}
+      %span= "Household Types | "
+    - if labels.include?('demographics')
+      %span{class: filter_label_id(tab[:id], 'demographic')}
+  - if labels.include?('date_range')
+    %h3
+      %span{class: filter_label_id(tab[:id], 'date_range')}
