@@ -6,64 +6,52 @@
     "operator": "ANY",
     "parts": [
       {
+        "_comment": "HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components",
         "variable": "projectFunders",
         "operator": "INCLUDE",
-        "_comment": "YHDP",
         "value": 43
       },
       {
+        "_comment": "HHS: RHY – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      },
+      {
+        "_comment": "HUD: CoC – Permanent Supportive Housing",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 2
+      },
+      {
         "operator": "ALL",
-        "_comment": "RHY programs",
+        "_comment": "HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing",
         "parts": [
           {
-            "operator": "ANY",
-            "parts": [
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 22
-              },
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 23
-              },
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 24
-              },
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 26
-              }
-            ]
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 54
           },
           {
-            "operator": "ANY",
-            "parts": [
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 0
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 1
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 2
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 12
-              }
-            ]
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 55
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 3
           }
         ]
       }

@@ -10,6 +10,12 @@
       "fragment": "#r3_sexual_orientation"
     },
     {
+      "fragment": "#r11_ward_of_child_welfare"
+    },
+    {
+      "fragment": "#r12_ward_of_juvenile_justice"
+    },
+    {
       "fragment": "#r13_family_critical_issues"
     }
   ]

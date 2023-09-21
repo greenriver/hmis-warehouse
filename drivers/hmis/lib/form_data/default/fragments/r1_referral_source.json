@@ -2,6 +2,34 @@
   "type": "GROUP",
   "link_id": "R1",
   "text": "RHY Referral Source",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ANY",
+    "parts": [
+      {
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "_comment": "All YHDP",
+        "value": 43
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HHS: RHY"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 4
+          }
+        ]
+      }
+    ]
+  },
   "item": [
     {
       "type": "CHOICE",
@@ -13,56 +41,6 @@
       "mapping": {
         "record_type": "ENROLLMENT",
         "field_name": "referralSource"
-      },
-      "rule": {
-        "operator": "ALL",
-        "parts": [
-          {
-            "operator": "ANY",
-            "parts": [
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 22
-              },
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 23
-              },
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 24
-              },
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 26
-              }
-            ]
-          },
-          {
-            "operator": "ANY",
-            "parts": [
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 0
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 2
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 12
-              }
-            ]
-          }
-        ]
       }
     },
     {

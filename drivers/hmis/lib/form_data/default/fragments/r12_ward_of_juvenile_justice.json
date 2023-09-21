@@ -1,0 +1,73 @@
+{
+  "type": "GROUP",
+  "link_id": "R12",
+  "text": "Formerly a Ward of Juvenile Justice System",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+    "parts": [
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      },
+      {
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 4
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R12.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Formerly a Ward of Juvenile Justice System",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "formerWardJuvenileJustice"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R12.A",
+      "required": false,
+      "text": "Number of Years",
+      "pick_list_reference": "RHYNumberofYears",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "juvenileJusticeYears"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R12.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "R12.B",
+      "required": false,
+      "text": "Number of Months",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "juvenileJusticeMonths"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R12.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    }
+  ]
+}
