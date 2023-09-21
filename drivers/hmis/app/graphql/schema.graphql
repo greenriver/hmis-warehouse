@@ -8053,7 +8053,7 @@ enum ReferralSource {
   JUVENILE_JUSTICE
 
   """
-  (35) Law Enforcement/ Police
+  (35) Law Enforcement/Police
   """
   LAW_ENFORCEMENT_POLICE
 
@@ -8071,11 +8071,6 @@ enum ReferralSource {
   (7) Outreach Project
   """
   OUTREACH_PROJECT
-
-  """
-  (10) Outreach project: other
-  """
-  OUTREACH_PROJECT_OTHER
 
   """
   (18) Residential Project
