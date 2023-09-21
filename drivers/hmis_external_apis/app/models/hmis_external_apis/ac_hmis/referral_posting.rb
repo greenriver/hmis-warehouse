@@ -125,7 +125,6 @@ module HmisExternalApis::AcHmis
       end
     end
 
-
     # If a household has been referred out from a project (e.g. the HMIS Coordinated Entry Project) and the referral has
     # been accepted or denied, and there are no active referrals for the household, exit the household.
     def exit_origin_household(user:)
@@ -138,8 +137,8 @@ module HmisExternalApis::AcHmis
 
       today = Date.current
       origin_household = from_link? ? household : enrollment&.household
-      exits = origin_household.enrollments.open_excluding_wip.map do |enrollment|
-        enrollment.build_exit(
+      exits = origin_household.enrollments.open_excluding_wip.map do |other_enrollment|
+        other_enrollment.build_exit(
           exit_date: today,
           personal_id: enrollment.personal_id,
           user: user,
@@ -148,6 +147,5 @@ module HmisExternalApis::AcHmis
       end
       Hmis::Hud::Exit.import!(exits)
     end
-
   end
 end

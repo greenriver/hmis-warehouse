@@ -49,11 +49,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       statusNote: 'test',
       referralResult: 'UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED',
     }
-    expect {
+    expect do
       response, result = post_graphql(id: referral_posting.id, input: input) { mutation }
       expect(response.status).to eq 200
       errors = result.dig('data', 'updateReferralPosting', 'errors')
       expect(errors).to be_empty
-    }.to change(Hmis::Hud::Enrollment.where(id: e1.id).exited, :count).by(1)
+    end.to change(Hmis::Hud::Enrollment.where(id: e1.id).exited, :count).by(1)
   end
 end
