@@ -36,6 +36,7 @@
       "type": "CHOICE",
       "link_id": "R12.A",
       "required": false,
+      "warn_if_empty": true,
       "text": "Number of Years",
       "pick_list_reference": "RHYNumberofYears",
       "mapping": {
@@ -55,6 +56,7 @@
       "type": "INTEGER",
       "link_id": "R12.B",
       "required": false,
+      "warn_if_empty": true,
       "text": "Number of Months",
       "mapping": {
         "record_type": "ENROLLMENT",

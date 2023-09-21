@@ -1,0 +1,77 @@
+{
+  "type": "GROUP",
+  "link_id": "R2",
+  "text": "RHY-BCP Status",
+  "data_collected_about": "ALL_CLIENTS",
+  "rule": {
+    "_comment": "HHS: RHY – Collection required for BCP only",
+    "variable": "projectFunders",
+    "operator": "INCLUDE",
+    "value": 21
+  },
+  "item": [
+    {
+      "type": "DATE",
+      "link_id": "R2.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Date of Status Determination",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "dateOfBcpStatus"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R2.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Youth Eligible for RHY Services",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "eligibleForRhy"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R2.A",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Reason why services are not funded by BCP grant",
+      "pick_list_reference": "ReasonNoServices",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "reasonNoServices"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R2.2",
+          "operator": "EQUAL",
+          "answer_code": "NO"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R2.B",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Runaway Youth",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "runawayYouth"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R2.2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    }
+  ]
+}
