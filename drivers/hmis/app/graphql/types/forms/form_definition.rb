@@ -89,6 +89,8 @@ module Types
       case key
       when 'projectType'
         project&.project_type
+      when 'projectId'
+        project&.project_id
       else
         raise "unknown variable for eval_var #{key}"
       end
