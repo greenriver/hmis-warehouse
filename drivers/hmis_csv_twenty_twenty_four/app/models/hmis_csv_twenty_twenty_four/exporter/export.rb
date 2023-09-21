@@ -7,6 +7,8 @@
 module HmisCsvTwentyTwentyFour::Exporter
   class Export
     def self.export_scope(export:, hmis_class:, **_)
+      implementation_id = "#{ENV['CLIENT']} Open Path Warehouse"
+      implementation_id += " #{Rails.env.titleize}" unless Rails.env.production?
       [
         hmis_class.new(
           ExportID: export.export_id,
@@ -27,7 +29,7 @@ module HmisCsvTwentyTwentyFour::Exporter
           ExportPeriodType: export.period_type,
           ExportDirective: export.directive || 2,
           HashStatus: export.hash_status,
-          ImplementationID: "#{ENV['CLIENT']} Open Path Warehouse",
+          ImplementationID: implementation_id,
         ),
       ]
     end
