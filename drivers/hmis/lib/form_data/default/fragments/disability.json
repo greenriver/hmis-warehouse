@@ -235,6 +235,12 @@
             "variable": "projectFunders",
             "operator": "INCLUDE",
             "value": 27
+          },
+          {
+            "_comment": "YHDP",
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 43
           }
         ]
       },
@@ -528,6 +534,12 @@
                 "variable": "projectFunders",
                 "operator": "INCLUDE",
                 "value": 27
+              },
+              {
+                "_comment": "YHDP",
+                "variable": "projectFunders",
+                "operator": "INCLUDE",
+                "value": 43
               }
             ]
           },
