@@ -1,7 +1,9 @@
 {
   "type": "GROUP",
   "link_id": "R3",
+  "text": "Sexual Orientation",
   "data_collected_about": "HOH_AND_ADULTS",
+  "prefill": true,
   "rule": {
     "operator": "ANY",
     "parts": [
