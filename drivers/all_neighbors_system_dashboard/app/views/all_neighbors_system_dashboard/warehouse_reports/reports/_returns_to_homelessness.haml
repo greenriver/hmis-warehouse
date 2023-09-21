@@ -3,14 +3,16 @@
 - all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(start_date, end_date)
 
 - chart_data = all_data.stacked_data
+- stacked_ids = chart_data.map { |d| chart_id(tab[:id], "stacked_#{d[:id]}") }
 
-%h2 Returns To Homelessness
-.border
+%h2{class: css_namespace('all', 'tab_name')} Returns To Homelessness
+.border.my-7
   .p-4.border-bottom
     .d-flex.justify-content-between
       %h3 Returns to Homelessness
       %small * after exiting to permanent destination
-    #all-neighbors__returns-to-homelessness__overlap_bar
+    %div{id: chart_id(tab[:id], 'bar')}
+  
   - table_id = table_id(tab[:id], 'returns_to_homelessness')
   .p-4.border-top
     = link_to "##{table_id}", data: {toggle: 'collapse'}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: 'd-flex justify-content-between align-items-center w-100' do
@@ -33,7 +35,7 @@
     %h4= d[:title]
     - if i == 0
       %small * Exited to permanent destinations
-  %div{id: "all-neighbors__returns-to-homelessness__stacked_#{d[:id]}", style: 'height:200px;width:100%;'}
+  %div{id: chart_id(tab[:id], "stacked_#{d[:id]}"), style: 'height:200px;width:100%;'}
 
 - content_for :page_js do
   :javascript
@@ -41,21 +43,26 @@
       console.log('Returns To Homelessness -----------------')
       var data = #{chart_data.to_json.html_safe}
       var barData = #{all_data.bars.to_json.html_safe}
-
+      var stackedIds = #{stacked_ids.to_json.html_safe}
+      
       var bar = new AllNeighborsSystemDashboarBar(
         barData,
         {},
-        '#all-neighbors__returns-to-homelessness__overlap_bar',
+        '##{chart_id(tab[:id], 'bar')}',
         {}
       )
       bar.draw()
 
-      var charts = data.map(function(d) {
+      var charts = data.map(function(d, i) {
         return {
           chart: AllNeighborsSystemDashboardStack, 
           data: d,
-          selector: '#all-neighbors__returns-to-homelessness__stacked_'+d.id,
-          options: {normalize: true, rotated: true}
+          selector: '#'+stackedIds[i],
+          options: {
+            normalize: true, 
+            rotated: true,
+            showX: false,
+          }
         }
       })
 

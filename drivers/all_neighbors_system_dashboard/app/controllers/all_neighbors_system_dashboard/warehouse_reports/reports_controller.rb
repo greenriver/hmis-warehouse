@@ -69,20 +69,30 @@ module AllNeighborsSystemDashboard::WarehouseReports
     end
     helper_method :filter_params
 
+    def css_namespace(tab_id, name)
+      "all-neighbors__#{tab_id}__#{name}"
+    end
+    helper_method :css_namespace
+
     def filter_id(tab_id, name)
-      "all-neighbors__#{tab_id}__#{name}_filter"
+      "#{css_namespace(tab_id, name)}__filter"
     end
     helper_method :filter_id
 
     def chart_id(tab_id, name)
-      "all-neighbors__#{tab_id}__#{name}_chart"
+      "#{css_namespace(tab_id, name)}__chart"
     end
     helper_method :chart_id
 
     def table_id(tab_id, name)
-      "all-neighbors__#{tab_id}__#{name}_table"
+      "#{css_namespace(tab_id, name)}__table"
     end
     helper_method :table_id
+
+    def filter_label_id(tab_id, name)
+      "#{css_namespace(tab_id, name)}__filter_label"
+    end
+    helper_method :filter_label_id
 
     private def flash_interpolation_options
       { resource_name: @report.title }

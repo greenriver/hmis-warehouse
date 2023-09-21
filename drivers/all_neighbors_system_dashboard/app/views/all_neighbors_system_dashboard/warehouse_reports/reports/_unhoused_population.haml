@@ -1,28 +1,38 @@
 - start_date = (DateTime.current - 3.years).beginning_of_month
 - end_date = DateTime.current.beginning_of_month
 - all_data = AllNeighborsSystemDashboard::UnhousedPopulation.new(start_date, end_date)
+- donut_ids = all_data.donut_data.map{|d| chart_id(tab[:id], "donut_#{d[:id]}")}
 
-%h2 Unhoused Population
+%h2.mb-4{class: css_namespace('all', 'tab_name')} People Experiencing Homelessness
+.border.my-7.p-4
+  %h3.mb-4 Homeless Population Over Time
+  %div{id: chart_id(tab[:id], 'vertical_stack'), style: 'height:400px;'}
 
-#all-neighbors__unhoused_population__vertical-stack{style: 'height:400px;'}
 .border.my-7.p-4
   .row.align-items-center.justify-content-between
     .col-xs-12.col-md-4
       = render 'select_filter', tab: tab, name: 'homelessness_status', label: 'Homelessness Status', options: all_data.homelessness_statuses
     .col-xs-12.col-md-4
       = render 'year_filter', tab: tab, name: 'year', label: 'Choose Time Period', label_hint: 'Selection affects charts below', date: end_date, start_date: start_date, end_date: end_date
+  
+%h3 
+  Sheltered & Unsheltered
+  %br
+  %span{class: filter_label_id(tab[:id], 'year')}
 
-    
-%h3 Sheltered & Unsheltered
-      
 .row
   - all_data.donut_data.each do |d|
     .col-6.mb-7
       %h5= d[:title]
-      %div{id: "all-neighbors__unhoused_population__#{d[:id]}", style: "height:320px;width:100%;"}
+      %div{id: chart_id(tab[:id], "donut_#{d[:id]}"), style: "height:320px;width:100%;"}
+      
 
-%h3 Racial Composition
-#all-neighbors__unhoused_population__racial_comp
+%h3 
+  Racial Composition
+  %br
+  %span{class: filter_label_id(tab[:id], 'year')}
+
+%div{id: chart_id(tab[:id], 'racial_comp')}
   
 
 - content_for :page_js do
@@ -32,19 +42,24 @@
       var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
       var donutData = #{all_data.donut_data.to_json.html_safe}
       var stackedData = #{all_data.stacked_data.to_json.html_safe}
+      var donutIds = #{donut_ids.to_json.html_safe}
 
       var charts = [
         {
           chart: AllNeighborsSystemDashboardStack,
           data: stackedData,
-          selector: '#all-neighbors__unhoused_population__racial_comp',
-          options: {normalize: true, rotated: true}
+          selector: '##{chart_id(tab[:id], 'racial_comp')}',
+          options: {
+            normalize: true, 
+            rotated: true,
+            showX: false,
+          }
         }
-      ].concat(donutData.map(function(d) {
+      ].concat(donutData.map(function(d, i) {
         return {
           chart: AllNeighborsSystemDashboardDonut,
           data: d,
-          selector: '#all-neighbors__unhoused_population__'+d.id
+          selector: '#'+donutIds[i]
         }
       }))
 
@@ -61,13 +76,20 @@
         },
       ]
 
-      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts)
+      var labelConfig = [
+        {
+          name: 'year',
+          selector: '.#{filter_label_id(tab[:id], 'year')}'
+        },
+      ]
+
+      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
 
       const verticalStackChart = new AllNeighborsSystemDashboardStack(
           verticalStackData,
           {},
-          '#all-neighbors__unhoused_population__vertical-stack',
+          '##{chart_id(tab[:id], 'vertical_stack')}',
           {rotated: false, normalize: false}
         )
       verticalStackChart.draw()

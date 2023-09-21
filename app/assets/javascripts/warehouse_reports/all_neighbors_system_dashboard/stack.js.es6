@@ -80,8 +80,11 @@ class AllNeighborsSystemDashboardStack {
         x: {
           type: "category",
           tick: {
-            width: 200,
+            width: 300,
           }
+        },
+        y: {
+          show: this.options.showX,
         }
       },
       padding: this.options.padding,

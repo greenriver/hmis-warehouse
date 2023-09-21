@@ -4,8 +4,9 @@
 
 - chart_data = all_data.stacked_data
 
-%h2 Time To Obtain Housing
+%h2{class: css_namespace('all', 'tab_name')}= tab[:name]
 .border.my-7.p-4
+  %h4.mt-0 Select Universe
   .row.align-items-center
     .col-xs-12.col-md-8
       .d-flex
@@ -17,7 +18,23 @@
     .col-xs-12.col-md-4
       = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
 
-#all-neighbors__time-to-obtain__stacked{style: 'height:800px;'}
+= render 'filter_labels', tab: tab, labels: ['project_type', 'household_type', 'demographics', 'date_range']
+
+.row.align-items-stretch
+  .col-xs-12.col-md-3.mb-4
+    .h-100.d-flex.align-items-center
+      %div
+        %h2 Overall Time to Obtain Housing
+        %span{class: filter_label_id(tab[:id], 'date_range')}
+
+  - all_data.overall_data.each do |key, value|
+    .col-xs-12.col-md-3.mb-4
+      .card.h-100.text-center.px-4.py-3{class: css_namespace(tab[:id], 'card')}
+        %span= value[:value]
+        %h3= value[:name]
+  
+
+%div{id: chart_id(tab[:id], 'stacked'), style: 'height:800px;'}
 
 - content_for :page_js do
   :javascript
@@ -29,7 +46,7 @@
         {
           chart: AllNeighborsSystemDashboardStack, 
           data: data,
-          selector: '#all-neighbors__time-to-obtain__stacked',
+          selector: '##{chart_id(tab[:id], 'stacked')}',
           options: {
             normalize: false, 
             rotated: true,
@@ -38,7 +55,8 @@
               top: 20,
               right: 20,
               bottom: 20,
-            }
+            },
+            showX: true,
           }
         },
       ]
@@ -66,7 +84,26 @@
         }
       ]
 
-      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts)
+      var labelConfig = [
+        {
+          name: 'projectType',
+          selector: '.#{filter_label_id(tab[:id], 'project_type')}'
+        },
+        {
+          name: 'householdType',
+          selector: '.#{filter_label_id(tab[:id], 'household_type')}'
+        },
+        {
+          name: 'demographics',
+          selector: '.#{filter_label_id(tab[:id], 'demographic')}'
+        },
+        {
+          name: 'dateRange',
+          selector: '.#{filter_label_id(tab[:id], 'date_range')}'
+        },
+      ]
+
+      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
     })
 

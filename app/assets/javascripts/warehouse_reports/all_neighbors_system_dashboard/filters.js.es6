@@ -1,8 +1,10 @@
 class AllNeighborsSystemDashboardFilters {
   
-  constructor(filters, charts) {
+  constructor(filters, charts, filterLabels) {
     this.initFilters(filters)
     this.initState(filters)
+    this.filterLabels = filterLabels || []
+    this.updateLabels()
     this.initCharts(charts)
   }
 
@@ -86,7 +88,19 @@ class AllNeighborsSystemDashboardFilters {
     return $(node)
   }
 
+  updateLabels() {
+    this.filterLabels.forEach((label) => {
+      if(label.name === 'dateRange') {
+        const dateStrings = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'}))
+        $(label.selector).text(`${dateStrings[0]} - ${dateStrings[1]}`)
+      } else {
+        $(label.selector).text(this.state[label.name])
+      }
+    })
+  }
+
   redrawCharts() {
+    this.updateLabels()
     this.charts.forEach((chart) => {
       chart.redraw(this.state)
     })

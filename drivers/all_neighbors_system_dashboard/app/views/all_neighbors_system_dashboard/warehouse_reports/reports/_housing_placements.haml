@@ -3,10 +3,12 @@
 - all_data = AllNeighborsSystemDashboard::HousingTotalPlacementsData.new(start_date, end_date)
 - total_data = all_data.data('Total Placements', 'total_placements', :line)
 - donut_data = all_data.donut_data
+- donut_ids = donut_data.map { |d| chart_id(tab[:id], d[:id]) }
 - stacked_data = all_data.stacked_data
 
-%h2= tab[:name]
+%h2{class: css_namespace('all', 'tab_name')}= tab[:name]
 .border.my-7.p-4
+  %h4.mt-0 Select Universe
   .row.align-items-center
     .col-xs-12.col-md-8
       .d-flex
@@ -15,18 +17,28 @@
          
     .col-xs-12.col-md-4
       = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
-
-%h3 Total Placements
-.p-4.mb-7
-  #all-neighbors__housing-placements__total-placements
+= render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'date_range']
+.border.p-8.mb-7
+  %h3.mb-4 Total Placements
+  %div{id: chart_id(tab[:id], 'total_placements')}
+  
 .row
   - donut_data.each do |d|
     .col-6.mb-7
-      %h5= d[:title]
-      %div{id: "all-neighbors__housing-placements__#{d[:id]}"}
-
-%h3 Racial Composition
-#all-neighbors__housing-placements__stacked
+      .row
+        .col-6
+          %div{id: chart_id(tab[:id], d[:id])}
+        .col-6
+          %h3= d[:title]
+          %div
+            %span{class: filter_label_id(tab[:id], 'date_range')}
+      
+.mb-4
+  %h3 Racial Composition
+  %div
+    %span{class: filter_label_id(tab[:id], 'date_range')}
+.p-4
+  %div{id: chart_id(tab[:id], 'stacked')}
 
 
 - content_for :page_js do
@@ -35,25 +47,30 @@
       console.log('Housing Placement -----------------')
       var totalData = #{total_data.to_json.html_safe}
       var donutData = #{donut_data.to_json.html_safe}
+      var donutIds = #{donut_ids.to_json.html_safe}
       var stackedData = #{stacked_data.to_json.html_safe}
 
       var charts = [
         {
           chart: AllNeighborsSystemDashboardLine, 
           data: totalData,
-          selector: '#all-neighbors__housing-placements__total-placements'
+          selector: '##{chart_id(tab[:id], 'total_placements')}'
         },
         {
           chart: AllNeighborsSystemDashboardStack,
           data: stackedData,
-          selector: '#all-neighbors__housing-placements__stacked',
-          options: {normalize: true, rotated: true}
+          selector: '##{chart_id(tab[:id], 'stacked')}',
+          options: {
+            normalize: true, 
+            rotated: true,
+            showX: false,
+          }
         }
-      ].concat(donutData.map(function(d) {
+      ].concat(donutData.map(function(d, i) {
         return {
           chart: AllNeighborsSystemDashboardDonut,
           data: d,
-          selector: '#all-neighbors__housing-placements__'+d.id
+          selector: '#'+donutIds[i]
         }
       }))
 
@@ -75,7 +92,22 @@
         }
       ]
 
-      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts)
+      var labelConfig = [
+        {
+          name: 'projectType',
+          selector: '.#{filter_label_id(tab[:id], 'project_type')}'
+        },
+        {
+          name: 'countLevel',
+          selector: '.#{filter_label_id(tab[:id], 'count_level')}'
+        },
+        {
+          name: 'dateRange',
+          selector: '.#{filter_label_id(tab[:id], 'date_range')}'
+        },
+      ]
+
+      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
       
 
