@@ -2,14 +2,14 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "unit-assignment",
+      "link_id": "unit-assignment-editable",
+      "_comment": "Editable version to allow the user to change the current unit assignment. Only permitted for certain projects.",
       "text": "Unit Assignment",
       "mapping": {
         "record_type": "ENROLLMENT",
         "field_name": "currentUnit"
       },
       "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
-      "_comment": "FIXME: for exited enrollments, this just displays non-editable unit value, which should be DNC because units should not remain assigned after exit. It would be better if the most recent unit was displayed, or show full unit assignment history.",
       "disabled_display": "PROTECTED_WITH_VALUE",
       "enable_behavior": "ANY",
       "enable_when": [
@@ -18,7 +18,102 @@
           "operator": "EXISTS",
           "answer_boolean": false
         }
-      ]
+      ],
+      "rule": {
+        "operator": "ANY",
+        "_comment": "special projects that support multi-unit household",
+        "parts": [
+          {
+            "variable": "projectId",
+            "operator": "EQUAL",
+            "value": "506"
+          },
+          {
+            "variable": "projectId",
+            "operator": "EQUAL",
+            "value": "1223"
+          },
+          {
+            "variable": "projectId",
+            "operator": "EQUAL",
+            "value": "987"
+          },
+          {
+            "variable": "projectId",
+            "operator": "EQUAL",
+            "value": "628"
+          },
+          {
+            "variable": "projectId",
+            "operator": "EQUAL",
+            "value": "624"
+          },
+          {
+            "variable": "projectId",
+            "operator": "EQUAL",
+            "value": "752"
+          },
+          {
+            "variable": "projectId",
+            "operator": "EQUAL",
+            "value": "583"
+          }
+        ]
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "unit-assignment-readonly",
+      "_comment": "read-only version to just show the currently assigned unit. FIXME: for exited enrollments, this just displays non-editable unit value, which should be DNC because units should not remain assigned after exit. It would be better if the most recent unit was displayed, or show full unit assignment history.",
+      "text": "Unit Assignment",
+      "read_only": true,
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "currentUnit"
+      },
+      "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
+      "disabled_display": "PROTECTED_WITH_VALUE",
+      "rule": {
+        "operator": "ALL",
+        "_comment": "hide for special projects that support multi-unit household. those projects use the above item, so that they can edit unit assignment.",
+        "parts": [
+          {
+            "variable": "projectId",
+            "operator": "NOT_EQUAL",
+            "value": "506"
+          },
+          {
+            "variable": "projectId",
+            "operator": "NOT_EQUAL",
+            "value": "1223"
+          },
+          {
+            "variable": "projectId",
+            "operator": "NOT_EQUAL",
+            "value": "987"
+          },
+          {
+            "variable": "projectId",
+            "operator": "NOT_EQUAL",
+            "value": "628"
+          },
+          {
+            "variable": "projectId",
+            "operator": "NOT_EQUAL",
+            "value": "624"
+          },
+          {
+            "variable": "projectId",
+            "operator": "NOT_EQUAL",
+            "value": "752"
+          },
+          {
+            "variable": "projectId",
+            "operator": "NOT_EQUAL",
+            "value": "583"
+          }
+        ]
+      }
     }
   ]
 }
