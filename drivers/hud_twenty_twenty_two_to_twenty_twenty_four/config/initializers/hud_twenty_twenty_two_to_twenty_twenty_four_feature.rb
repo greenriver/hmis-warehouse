@@ -22,4 +22,12 @@ Rails.application.reloader.to_prepare do
   ].each do |version|
     Importers::HmisAutoMigrate.add_migration(version, 'HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer')
   end
+
+  Rails.application.config.queued_tasks[:hud_twenty_twenty_two_to_twenty_twenty_four_up] = -> do
+    # If we've already migrated the data there will be some records in HmisParticipation or CeParticipation.
+    # Since this process can't be cleanly run a second time, just exit if those already exist
+    return if GrdaWarehouse::Hud::HmisParticipation.exists? || GrdaWarehouse::Hud::CeParticipation.exists?
+
+    HudTwentyTwentyTwoToTwentyTwentyFour::DbTransformer.up
+  end
 end

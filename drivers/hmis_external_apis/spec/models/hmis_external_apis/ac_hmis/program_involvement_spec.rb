@@ -60,9 +60,16 @@ RSpec.describe HmisExternalApis::AcHmis::ProgramInvolvement, type: :model do
       expect(involvements.map { |i| i['program_id'] }).to contain_exactly(p1.project_id, p2.project_id)
     end
 
-    it 'fails if any projects not found' do
+    it 'succeeds if some projects not found' do
       bad_project_id = 12345
       involvement = HmisExternalApis::AcHmis::ProgramInvolvement.new(params.merge(program_ids: [p1.project_id, bad_project_id]))
+      involvement.validate_request!
+      expect(involvement).to be_ok
+    end
+
+    it 'fails if no projects found' do
+      bad_project_id = 12345
+      involvement = HmisExternalApis::AcHmis::ProgramInvolvement.new(params.merge(program_ids: [bad_project_id]))
       involvement.validate_request!
       expect(involvement).not_to be_ok
       status_message = JSON.parse(involvement.to_json)['status_message']

@@ -135,7 +135,6 @@ module Hmis::Hud::Processors
     end
 
     private def process_names(field, value)
-      client = @processor.send(factory_name)
       # Drop names that don't have any meaningful values
       values = Array.wrap(value).filter do |v|
         raise "Expected Hash, found #{v.class.name}" unless v.is_a?(Hash)
@@ -143,12 +142,25 @@ module Hmis::Hud::Processors
         v.slice('first', 'last', 'middle', 'primary').compact_blank.any?
       end
 
-      # Build attributes
+      primary = values.find { |v| v['primary'] == true }
+      # Build attributes for Client based on the Primary name. This already happens in the after_save hook on CustomClientName,
+      # but we need it here so that the correct values are present on the unpersisted record for validation.
+      client_attributes = if primary.present?
+        {
+          first_name: primary['first'],
+          last_name: primary['last'],
+          middle_name: primary['middle'],
+          name_suffix: primary['suffix'],
+          name_data_quality: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::NameDataQuality, primary['nameDataQuality']) || 99,
+        }
+      else
+        {}
+      end
+
+      # Build attributes for CustomClientName record(s)
       name_attributes = construct_nested_attributes(field, values, additional_attributes: related_record_attributes)
 
-      # Set NameDataQuality to 99, it will be overridden to match primary name in the after_save hook
-      name_attributes[:name_data_quality] = 99 unless client.name_data_quality.present?
-      name_attributes
+      name_attributes.merge(client_attributes)
     end
 
     # Custom handler for MCI field

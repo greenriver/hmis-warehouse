@@ -37,16 +37,3 @@
         %tr
           - HudUtility2024.races(multi_racial: true).keys.each do |race|
             %td= data.count { |row| row[:race] == race }
-  %h3 Ethnicity
-  .card.mb-6
-    %table.table.table-striped
-      %thead
-        %tr
-          - HudUtility2024.yes_no_missing_options.each_value do |option|
-            %th= option
-      %tbody
-        %tr
-          - HudUtility2024.yes_no_missing_options.each_key do |id|
-            %td= data.count { |row| row[:ethnicity] == id }
-
-- #TODO break each of these into their own table, add ethnicity and veteran status

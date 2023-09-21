@@ -21,6 +21,11 @@ class User < ApplicationRecord
   has_many :collections, through: :access_controls
   has_many :roles, through: :access_controls
 
+  # TODO: START_ACL remove when ACL transition complete
+  has_many :access_group_members, dependent: :destroy, inverse_of: :user
+  has_many :access_groups, through: :access_group_members
+  # END_ACL
+
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :legacy_roles, through: :user_roles # TODO: START_ACL remove after ACL migration is complete
   has_many :health_roles, -> { health }, through: :user_roles

@@ -97,4 +97,8 @@ Rails.application.configure do
   config.cache_store = :redis_cache_store, redis_config
 
   config.action_controller.perform_caching = true
+
+  routes.default_url_options ||= {}
+  routes.default_url_options[:script_name] = ''
+  routes.default_url_options[:host] = ENV['FQDN']
 end

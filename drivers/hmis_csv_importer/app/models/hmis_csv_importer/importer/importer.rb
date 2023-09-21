@@ -721,7 +721,7 @@ module HmisCsvImporter::Importer
     end
 
     def pause_import
-      Rails.logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log.id)}"
+      Rails.logger.info "pause_import #{hash_as_log_str({ importer_log_id: importer_log.id })}"
 
       @import_log&.update(importer_log: importer_log)
       importer_log.update(status: :paused)

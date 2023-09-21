@@ -13,19 +13,6 @@
     }
   },
   {
-    "link_id": "R3",
-    "rule": {
-      "operator": "ALL",
-      "parts": [
-        {
-          "variable": "projectFunders",
-          "operator": "INCLUDE",
-          "value": 43
-        }
-      ]
-    }
-  },
-  {
     "link_id": "R4.1",
     "rule": {
       "operator": "ALL",

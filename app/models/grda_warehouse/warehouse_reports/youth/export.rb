@@ -47,8 +47,8 @@ module GrdaWarehouse::WarehouseReports::Youth
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           batch.find_each do |client|
             row = [client.id]
-            row << [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-            row << [
+            row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row += [
               client.race_description,
               client.gender,
               HudUtility2024.veteran_status(client.VeteranStatus),

@@ -91,7 +91,7 @@ module PerformanceDashboard::ProjectType::Destination
       :other
     end
 
-    ids = destinations[sub_key]
+    ids = destinations.top[sub_key]
     details = exits_current_period.joins(:client, :enrollment).
       where(id: ids).
       order(last_date_in_program: :desc)

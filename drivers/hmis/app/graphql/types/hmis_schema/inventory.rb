@@ -14,11 +14,11 @@ module Types
     end
 
     hud_field :id, ID, null: false
-    hud_field :coc_code
-    hud_field :household_type, HmisSchema::Enums::Hud::HouseholdType
+    hud_field :coc_code, null: true
+    hud_field :household_type, HmisSchema::Enums::Hud::HouseholdType, null: true
     hud_field :availability, HmisSchema::Enums::Hud::Availability
-    hud_field :unit_inventory
-    hud_field :bed_inventory
+    hud_field :unit_inventory, default_value: 0
+    hud_field :bed_inventory, default_value: 0
     hud_field :ch_vet_bed_inventory
     hud_field :youth_vet_bed_inventory
     hud_field :vet_bed_inventory
@@ -27,7 +27,7 @@ module Types
     hud_field :ch_bed_inventory
     hud_field :other_bed_inventory
     hud_field :es_bed_type, HmisSchema::Enums::Hud::BedType
-    hud_field :inventory_start_date, null: false
+    hud_field :inventory_start_date, null: true
     hud_field :inventory_end_date
     hud_field :date_updated
     hud_field :date_created

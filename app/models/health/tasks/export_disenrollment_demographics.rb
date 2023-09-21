@@ -35,14 +35,6 @@ module Health::Tasks
         end
 
         csv << []
-        csv << ['Ethnicity']
-        HudUtility.ethnicities.values.each do |key|
-          disenrolled = demographics.values.select(&:reason).count { |client| client[:ethnicity] == key }
-          total = demographics.values.count { |client| client[:ethnicity] == key }
-          csv << [key, disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
-        end
-
-        csv << []
         csv << ['Language']
         demographics.values.map(&:language).uniq.each do |key|
           disenrolled = demographics.values.select(&:reason).count { |client| client[:language] == key }
@@ -90,10 +82,6 @@ module Health::Tasks
       HudUtility.gender(client.gender_binary)
     end
 
-    private def ethnicity(client)
-      client.ethnicity_description
-    end
-
     private def demographics
       @demographics ||= begin
         demographics = {}.tap do |h|
@@ -101,7 +89,6 @@ module Health::Tasks
             h[client.patient.medicaid_id] = OpenStruct.new(
               race: race(client),
               gender: gender(client),
-              ethnicity: ethnicity(client),
               language: 'BLANK',
               reason: nil,
             )

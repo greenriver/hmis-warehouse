@@ -33,27 +33,51 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
   let!(:e5) { create(:hmis_hud_enrollment, client: c1, project: p5, data_source: ds1) }
   let!(:e6) { create(:hmis_hud_enrollment, client: c1, project: p6, data_source: ds1) }
 
+  # Roles
+  let!(:project_viewer) { create(:hmis_role_with_no_permissions, name: 'project viewer', can_view_project: true) }
+  let!(:enrollment_viewer) { create(:hmis_role_with_no_permissions, name: 'enrollment viewer', can_view_project: true, can_view_enrollment_details: true) }
+  let!(:enrollment_viewer_without_project) { create(:hmis_role_with_no_permissions, name: 'only enrollment viewer', can_view_enrollment_details: true) }
+  let!(:client_viewer) { create(:hmis_role_with_no_permissions, name: 'client viewer', can_view_clients: true) }
+
+  # Collections
+  let!(:p1_collection) { create(:hmis_access_group, name: 'p1 collection', with_entities: p1) }
+  let!(:p2_collection) { create(:hmis_access_group, name: 'p2 collection', with_entities: p2) }
+  let!(:p3_collection) { create(:hmis_access_group, name: 'p3 collection', with_entities: p3) }
+  let!(:p4_collection) { create(:hmis_access_group, name: 'p4 collection', with_entities: p4) }
+  let!(:ds1_collection) { create(:hmis_access_group, name: 'ds1 collection', with_entities: ds1) }
+
   let!(:user_with_no_access) { create(:hmis_user, data_source: ds1) }
 
   let!(:user_with_p1_p2_access) do
-    hmis_user = create(:hmis_user, data_source: ds1)
+    user = create(:hmis_user, data_source: ds1)
     # p1: can see enrollments
-    create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details])
+    create(:hmis_access_control, role: enrollment_viewer, access_group: p1_collection, with_users: user)
     # p2: can see enrollments
-    create_access_control(hmis_user, p2, with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details])
+    create(:hmis_access_control, role: enrollment_viewer, access_group: p2_collection, with_users: user)
     # p3: can see project, but not enrollments
-    create_access_control(hmis_user, p3, with_permission: [:can_view_clients, :can_view_project])
+    create(:hmis_access_control, role: project_viewer, access_group: p3_collection, with_users: user)
     # p4: no project access
-    create_access_control(hmis_user, p4, with_permission: [:can_view_enrollment_details])
-    # p5: no project access, no enrollment access
-    create_access_control(hmis_user, p4, with_permission: [:can_view_clients])
-    hmis_user
+    create(:hmis_access_control, role: enrollment_viewer_without_project, access_group: p4_collection, with_users: user)
+    # data source: client visibility
+    create(:hmis_access_control, role: client_viewer, access_group: ds1_collection, with_users: user)
+    user
+  end
+
+  let!(:user_with_full_access) do
+    user = create(:hmis_user, data_source: ds1)
+    create(:hmis_access_control, role: enrollment_viewer, access_group: ds1_collection, with_users: user)
+    user
   end
 
   describe 'viewable_by scope' do
     it 'is empty if I have no access' do
       viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user_with_no_access)
       expect(viewable_enrollments).to be_empty
+    end
+
+    it 'includes all enrollments for user with full data source access' do
+      viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user_with_full_access)
+      expect(viewable_enrollments).to contain_exactly(e1, e2, e3, e4, e5, e6)
     end
 
     it 'includes enrollments that I can see (WIP and non-WIP), and excludes ones I cant see' do

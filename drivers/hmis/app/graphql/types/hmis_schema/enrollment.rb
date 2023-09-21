@@ -60,11 +60,11 @@ module Types
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
     # 3.15.1
-    hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
+    field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     # 3.16.1
     field :enrollment_coc, String, null: true
     # 3.08
-    hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true, default_value: 99
     # 3.13.1
     field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
     # 3.20.1
