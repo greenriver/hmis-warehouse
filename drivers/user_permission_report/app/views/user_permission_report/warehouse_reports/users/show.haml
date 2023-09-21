@@ -3,7 +3,7 @@
 .warehouse-reports__user-permission__profile
   .mb-4
     .warehouse-reports__user-permission__profile-access_controls
-      - @user.access_controls.preload(:role, :access_group, :user_group).each do |ac|
+      - @user.access_controls.preload(:role, :collection, :user_group).each do |ac|
         %h2 Access Control
         = render '/access_controls/control', access_control: ac
         %hr
