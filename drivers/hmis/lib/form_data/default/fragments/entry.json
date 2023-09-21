@@ -50,6 +50,9 @@
       "pick_list_reference": "COC"
     },
     {
+      "fragment": "#r1_referral_source"
+    },
+    {
       "fragment": "#c4_translation_assistance"
     }
   ]
