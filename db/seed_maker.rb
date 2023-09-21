@@ -295,11 +295,6 @@ class SeedMaker
     end
   end
 
-  def maintain_zip_code_shapes
-    GrdaWarehouse::Shape::ZipCode.calculate_states
-    GrdaWarehouse::Shape::ZipCode.calculate_counties
-  end
-
   # These tables are partitioned and need to have triggers and functions that
   # schema loading doesn't include.  This will ensure that they exist on each deploy
   def ensure_db_triggers_and_functions
@@ -366,10 +361,14 @@ class SeedMaker
   def load_hmis_data
     return unless ENV['ENABLE_HMIS_API'] == 'true'
 
-    # Load FormDefinitions from JSON files
     ::HmisUtil::JsonForms.new.tap do |builder|
+      # Load ALL the latest record definitions from JSON files.
+      # This also ensures that any system-level instances exist.
       builder.seed_record_form_definitions
+      # Load ALL the latest assessment definition froms JSON files.
       builder.seed_assessment_form_definitions
+      # In development, create the initial instances for occurrence-point collection.
+      builder.create_default_occurrence_point_instances! if Rails.env.development?
     end
   end
 
@@ -394,11 +393,10 @@ class SeedMaker
     maintain_health_seeds
     setup_hmis_admin_access
     load_hmis_data
-    # install_shapes() # run manually as needed
+    install_shapes
     maintain_lookups
     GrdaWarehouse::Help.setup_default_links
     maintain_system_groups
-    maintain_zip_code_shapes
     populate_internal_system_choices
     GrdaWarehouse::SystemColor.ensure_colors
   end

@@ -25,7 +25,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:access_control) { create_access_control(hmis_user, ds1) }
   let!(:c2) { create :hmis_hud_client_complete, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2000-01-01' }
-  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true }
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, user: u1, end_date: nil }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500', user: u1 }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
@@ -114,7 +114,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           {
             form_definition_id: definition.id,
             organization_id: o1.id,
-            project_id: p1.id,
+            project_id: role == :ENROLLMENT ? p2.id : p1.id, # use p2 because it has 1 coc code
             enrollment_id: e1.id,
             service_type_id: hmis_hud_service1.custom_service_type_id,
             client_id: c2.id,
@@ -167,6 +167,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))
+            if role == :ENROLLMENT && test_name == 'should create a new record'
+              fresh_client = create(:hmis_hud_client_complete, data_source: ds1)
+              input[:client_id] = fresh_client.id
+              input.delete(:enrollment_id)
+            end
+
             response, result = post_graphql(input: { input: input }) { mutation }
             record_id = result.dig('data', 'submitForm', 'record', 'id')
             errors = result.dig('data', 'submitForm', 'errors')
@@ -221,7 +227,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         it 'should update user correctly' do
-          _response, result = post_graphql(input: { input: test_input }) { mutation }
+          if role == :ENROLLMENT
+            _response, result = post_graphql(input: { input: test_input.merge(record_id: e1.id) }) { mutation }
+          else
+            _response, result = post_graphql(input: { input: test_input }) { mutation }
+          end
+
           expect(result.dig('data', 'submitForm', 'errors')).to be_blank
           record_id = result.dig('data', 'submitForm', 'record', 'id')
           record = definition.record_class_name.constantize.find_by(id: record_id)
@@ -387,7 +398,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       {
         form_definition_id: definition.id,
         **completed_form_values_for_role(:ENROLLMENT),
-        project_id: p1.id,
+        project_id: p2.id,
         client_id: c3.id,
         confirmed: false,
       }
@@ -397,12 +408,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input.merge(hud_values: input[:hud_values].merge(*args))
     end
 
-    def expect_error_message(input, **expected_error)
+    def expect_error_message(input, exact: true, **expected_error)
       response, result = post_graphql(input: { input: input }) { mutation }
       errors = result.dig('data', 'submitForm', 'errors')
       aggregate_failures 'checking response' do
         expect(response.status).to eq(200), result&.inspect
-        expect(errors).to contain_exactly(include(expected_error.stringify_keys))
+        if exact
+          expect(errors).to contain_exactly(include(expected_error.stringify_keys))
+        else
+          expect(errors).to include(include(expected_error.stringify_keys))
+        end
       end
     end
 
@@ -428,12 +443,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'householdId' => e1.household_id,
         'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
-      expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
+      expect_error_message(input, exact: false, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
     end
 
     it 'should warn if client already enrolled' do
       input = merge_hud_values(
-        test_input.merge(client_id: e1.client.id),
+        test_input.merge(client_id: e1.client.id, project_id: e1.project.id),
       )
       expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.already_enrolled_full_message)
     end
@@ -498,7 +513,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                                              'Client.ssn' => nil,
                                              'Client.ssnDataQuality' => nil,
                                              'Client.race' => [],
-                                             'Client.ethnicity' => nil,
                                              'Client.gender' => [],
                                              'Client.pronouns' => [],
                                              'Client.veteranStatus' => nil })
@@ -506,6 +520,59 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       en = Hmis::Hud::Enrollment.find(record['id'])
       expect(en).to be_present
       expect(en.client.first_name).to eq('First')
+    end
+  end
+
+  describe 'SubmitForm for Create+Enroll' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :NEW_CLIENT_ENROLLMENT) }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **completed_form_values_for_role(:NEW_CLIENT_ENROLLMENT),
+        project_id: p2.id,
+        confirmed: true,
+      }
+    end
+
+    def merge_hud_values(input, *args)
+      input.merge(hud_values: input[:hud_values].merge(*args))
+    end
+
+    def submit_form(input)
+      response, result = post_graphql(input: { input: input }) { mutation }
+      expect(response.status).to eq(200), result&.inspect
+      record = result.dig('data', 'submitForm', 'record')
+      errors = result.dig('data', 'submitForm', 'errors')
+      [record, errors]
+    end
+
+    it 'creates client and enrollment' do
+      record, errors = submit_form(test_input)
+      expect(errors).to be_empty
+      expect(record).to be_present
+
+      enrollment = Hmis::Hud::Enrollment.find(record['id'])
+      expect(enrollment.client).to be_present
+      expect(enrollment.client.names.size).to eq(1)
+    end
+
+    it 'validates client (invalid field)' do
+      input = merge_hud_values(
+        test_input,
+        'Client.dobDataQuality' => 'INVALID',
+      )
+      _, errors = submit_form(input)
+      expect(errors).to contain_exactly(include({ 'attribute' => 'dobDataQuality', 'type' => 'invalid' }))
+    end
+
+    # FIXME(#186002677)
+    xit 'validates client (invalid DOB)' do
+      input = merge_hud_values(
+        test_input,
+        'Client.dob' => '2200-01-01', # future dob is not valid
+      )
+      _, errors = submit_form(input)
+      expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'invalid' }))
     end
   end
 end

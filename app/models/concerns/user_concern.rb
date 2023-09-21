@@ -39,6 +39,10 @@ module UserConcern
 
     include OmniauthSupport
 
+    # Doorkeeper
+    has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
+    has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
+
     # Connect users to login attempts
     has_many :login_activities, as: :user
 
@@ -239,7 +243,7 @@ module UserConcern
     end
 
     def two_factor_label
-      _('Boston DND HMIS Warehouse')
+      Translation.translate('Boston DND HMIS Warehouse')
     end
 
     def two_factor_issuer

@@ -12,7 +12,7 @@ class Hmis::Hud::Validators::ProjectValidator < Hmis::Hud::Validators::BaseValid
   ].freeze
 
   def configuration
-    Hmis::Hud::Project.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Project.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def self.open_enrollments_message(num)

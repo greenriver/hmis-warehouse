@@ -117,6 +117,14 @@ module Filters
     end
 
     def schedule_job(report_url:)
+      schedule_or_execute_job(report_url: report_url, mode: :schedule)
+    end
+
+    def execute_job(report_url:)
+      schedule_or_execute_job(report_url: report_url, mode: :execute)
+    end
+
+    private def schedule_or_execute_job(report_url:, mode:)
       table = Rails.application.config.hmis_exporters || []
 
       job_class = if version.present?
@@ -127,7 +135,13 @@ module Filters
 
       raise "Unable to find an HMIS Exporter for #{job_class}. Available: #{self.class.options_for_version} " unless job_class
 
-      job_class.constantize.perform_later(options_for_job, report_url: report_url)
+      if mode == :schedule
+        job_class.constantize.perform_later(options_for_job, report_url: report_url)
+      elsif mode == :execute
+        job_class.constantize.perform_now(options_for_job, report_url: report_url)
+      else
+        raise "Invalid mode: #{mode}. Must be :schedule or :execute"
+      end
     end
 
     private def options_for_job

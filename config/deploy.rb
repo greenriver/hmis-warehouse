@@ -187,13 +187,6 @@ namespace :deploy do
       end
     end
   end
-  before :restart, :translations do
-    on roles(:db)  do
-      within release_path do
-        execute :rake, "gettext:sync_to_po_and_db RAILS_ENV=#{fetch(:rails_env)}"
-      end
-    end
-  end
 end
 
 before 'deploy:assets:precompile', :npm_install

@@ -29,13 +29,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       HmisExternalApis::AcHmis::MciClearanceResult.new(
         mci_id: 10,
         score: 80,
-        client: create(:hmis_hud_client, first_name: 'rita', female: 1),
+        client: create(:hmis_hud_client, first_name: 'rita', woman: 1),
         existing_client_id: 100,
       ),
       HmisExternalApis::AcHmis::MciClearanceResult.new(
         mci_id: 50,
         score: 90,
-        client: create(:hmis_hud_client, first_name: 'reet', female: 1, male: 1),
+        client: create(:hmis_hud_client, first_name: 'reet', woman: 1, man: 1),
         existing_client_id: nil,
       ),
       HmisExternalApis::AcHmis::MciClearanceResult.new(
@@ -55,8 +55,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ssn: '111223333',
       dob: 50.years.ago.strftime('%Y-%m-%d'),
       gender: [
-        Types::HmisSchema::Enums::Gender.key_for(0), # female
-        Types::HmisSchema::Enums::Gender.key_for(1), # male
+        Types::HmisSchema::Enums::Gender.key_for(0), # woman
+        Types::HmisSchema::Enums::Gender.key_for(1), # man
       ],
     }
   end
@@ -115,8 +115,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     num_clients = Hmis::Hud::Client.all.size
 
     expected_matches = [
-      a_hash_including('score' => 90, 'mciId' => '50', 'firstName' => 'reet', 'existingClientId' => nil, 'gender' => ['FEMALE', 'MALE']),
-      a_hash_including('score' => 80, 'mciId' => '10', 'firstName' => 'rita', 'existingClientId' => '100', 'gender' => ['FEMALE']),
+      a_hash_including('score' => 90, 'mciId' => '50', 'firstName' => 'reet', 'existingClientId' => nil, 'gender' => ['WOMAN', 'MAN']),
+      a_hash_including('score' => 80, 'mciId' => '10', 'firstName' => 'rita', 'existingClientId' => '100', 'gender' => ['WOMAN']),
     ]
 
     mutate(input: { input: input }) do |matches, errors|

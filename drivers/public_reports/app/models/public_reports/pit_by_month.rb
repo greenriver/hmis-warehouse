@@ -9,11 +9,11 @@ module PublicReports
     acts_as_paranoid
 
     def title
-      _('Point-in-Time by Month Report Generator')
+      Translation.translate('Point-in-Time by Month Report Generator')
     end
 
     def instance_title
-      _('Point-in-Time by Month Report')
+      Translation.translate('Point-in-Time by Month Report')
     end
 
     private def public_s3_directory

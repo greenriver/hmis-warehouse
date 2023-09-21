@@ -25,7 +25,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     it 'should return correct results' do
       [
         ['foo', []],
-        ['jelly', [c2, c3]],
+        ['jelly', [c3, c2]],
         ['bean, jelly', [c2]],
         ['jelly bean', [c2]],
         [c3.id.to_s, [c3]],

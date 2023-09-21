@@ -24,7 +24,7 @@ module CePerformance
     end
 
     def self.title
-      _('Average VI-SPDAT Score')
+      Translation.translate('Average VI-SPDAT Score')
     end
 
     def self.category

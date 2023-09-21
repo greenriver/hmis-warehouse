@@ -9,7 +9,9 @@
       "link_id": "2.02.6",
       "text": "Project Type",
       "pick_list_reference": "ProjectType",
-      "mapping": { "field_name": "projectType" }
+      "mapping": {
+        "field_name": "projectType"
+      }
     },
     {
       "type": "GROUP",
@@ -18,31 +20,61 @@
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "2.02.C",
-          "text": "Tracking Method",
-          "pick_list_reference": "TrackingMethod",
-          "mapping": { "field_name": "trackingMethod" },
+          "link_id": "2.02.A",
+          "text": "RRH Sub Type",
+          "pick_list_reference": "RRHSubType",
+          "mapping": {
+            "field_name": "rrhSubType"
+          },
           "enable_behavior": "ALL",
           "enable_when": [
             {
               "question": "2.02.6",
               "operator": "EQUAL",
-              "answer_code": "ES"
+              "answer_code": "RRH"
             }
           ]
         },
         {
-          "type": "BOOLEAN",
-          "required": false,
-          "link_id": "2.02.A",
-          "text": "Residential Affiliation?",
-          "mapping": { "field_name": "residentialAffiliation" },
-          "enable_behavior": "ALL",
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "2.02.B",
+          "text": "Affiliated with a residential project?",
+          "pick_list_reference": "NoYes",
+          "mapping": {
+            "field_name": "residentialAffiliation"
+          },
+          "enable_behavior": "ANY",
           "enable_when": [
             {
               "question": "2.02.6",
               "operator": "EQUAL",
-              "answer_code": "SERVICES_ONLY"
+              "answer_code": "SSO"
+            },
+            {
+              "question": "2.02.A",
+              "operator": "EQUAL",
+              "answer_code": "RRH_SERVICES_ONLY"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "warn_if_empty": true,
+          "repeats": true,
+          "link_id": "2.02.B.affiliations",
+          "text": "Affiliated Projects",
+          "pick_list_reference": "RESIDENTIAL_PROJECTS",
+          "mapping": {
+            "field_name": "residentialAffiliationProjectIds"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "2.02.B",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             }
           ]
         }
@@ -54,39 +86,83 @@
       "link_id": "2.02.D",
       "text": "Housing Type",
       "pick_list_reference": "HousingType",
-      "mapping": { "field_name": "housingType" }
-    },
-    {
-      "type": "CHOICE",
-      "required": false,
-      "link_id": "2.02.8",
-      "text": "Target Population",
-      "pick_list_reference": "TargetPopulation",
-      "mapping": { "field_name": "targetPopulation" }
-    },
-    {
-      "type": "CHOICE",
-      "required": false,
-      "link_id": "2.02.9",
-      "text": "HOPWA Assisted Living Facility",
-      "pick_list_reference": "HOPWAMedAssistedLivingFac",
-      "mapping": { "field_name": "HOPWAMedAssistedLivingFac" }
-    },
-    {
-      "type": "CHOICE",
-      "required": false,
-      "link_id": "2.02.5",
-      "text": "Continuum Project?",
-      "pick_list_reference": "NoYesMissing",
-      "mapping": { "field_name": "continuumProject" }
+      "mapping": {
+        "field_name": "housingType"
+      },
+      "enable_behavior": "ANY",
+      "_comment": "Dependent to Field 6 responses 0, 1, 2, 3, 8, 9, 10, 13 (If 13, Dependent A = 2)",
+      "enable_when": [
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "ES_NBN"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "ES_ENTRY_EXIT"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "TH"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "PH_PSH"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "PH_PH"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "PH_OPH"
+        },
+        {
+          "question": "2.02.6",
+          "operator": "EQUAL",
+          "answer_code": "SH"
+        },
+        {
+          "question": "2.02.A",
+          "operator": "EQUAL",
+          "answer_code": "RRH_SERVICES_ONLY"
+        }
+      ]
     },
     {
       "type": "CHOICE",
       "required": false,
       "link_id": "2.02.7",
-      "text": "HMIS Participating Project?",
-      "pick_list_reference": "NoYesMissing",
-      "mapping": { "field_name": "HMISParticipatingProject" }
+      "text": "Target Population",
+      "pick_list_reference": "TargetPopulation",
+      "mapping": {
+        "field_name": "targetPopulation"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "2.02.8",
+      "text": "HOPWA Assisted Living Facility",
+      "pick_list_reference": "HOPWAMedAssistedLivingFac",
+      "mapping": {
+        "field_name": "HOPWAMedAssistedLivingFac"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "required": true,
+      "link_id": "2.02.5",
+      "text": "Continuum Project",
+      "pick_list_reference": "NoYes",
+      "mapping": {
+        "field_name": "continuumProject"
+      }
     }
   ]
 }

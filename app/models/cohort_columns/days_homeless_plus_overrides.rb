@@ -8,7 +8,7 @@ module CohortColumns
   class DaysHomelessPlusOverrides < ReadOnly
     attribute :column, String, lazy: true, default: :days_homeless_plus_overrides
     attribute :translation_key, String, lazy: true, default: 'Days Homeless Plus Overrides*'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def cast_value(val)
       val.to_i

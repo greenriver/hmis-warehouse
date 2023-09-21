@@ -45,6 +45,20 @@ COMMENT ON EXTENSION hstore IS 'data type for storing sets of (key, value) pairs
 
 
 --
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -70,6 +84,20 @@ CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 --
 
 COMMENT ON EXTENSION postgis IS 'PostGIS geometry, geography, and raster spatial types and functions';
+
+
+--
+-- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
 
 
 --
@@ -114,6 +142,17 @@ CREATE TYPE public.record_type AS ENUM (
     'service',
     'extrapolated'
 );
+
+
+--
+-- Name: f_unaccent(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.f_unaccent(text) RETURNS text
+    LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
+    AS $_$
+SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
+$_$;
 
 
 --
@@ -520,6 +559,50 @@ ALTER SEQUENCE public."Assessment_id_seq" OWNED BY public."Assessment".id;
 
 
 --
+-- Name: CEParticipation; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CEParticipation" (
+    id bigint NOT NULL,
+    "CEParticipationID" character varying NOT NULL,
+    "ProjectID" character varying NOT NULL,
+    "AccessPoint" integer,
+    "PreventionAssessment" integer,
+    "CrisisAssessment" integer,
+    "HousingAssessment" integer,
+    "DirectServices" integer,
+    "ReceivesReferrals" integer,
+    "CEParticipationStatusStartDate" date,
+    "CEParticipationStatusEndDate" date,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone,
+    "UserID" character varying,
+    "ExportID" character varying,
+    data_source_id integer
+);
+
+
+--
+-- Name: CEParticipation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CEParticipation_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CEParticipation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CEParticipation_id_seq" OWNED BY public."CEParticipation".id;
+
+
+--
 -- Name: Client; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -657,7 +740,9 @@ CREATE TABLE public."Client" (
     "NonBinary" integer,
     "CulturallySpecific" integer,
     "DifferentIdentity" integer,
-    "DifferentIdentityText" character varying
+    "DifferentIdentityText" character varying,
+    search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
+    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED
 );
 
 
@@ -1034,7 +1119,9 @@ CREATE TABLE public."CustomClientName" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE(first, ''::character varying))::text || ' '::text) || (COALESCE(middle, ''::character varying))::text) || ' '::text) || (COALESCE(last, ''::character varying))::text))) STORED,
+    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent((last)::text)) STORED
 );
 
 
@@ -1073,8 +1160,7 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "UserID" character varying(32) NOT NULL,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    at_occurrence boolean DEFAULT false NOT NULL
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -1578,7 +1664,7 @@ CREATE TABLE public."Enrollment" (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation" integer,
+    "VAMCStation_deleted" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -1635,7 +1721,8 @@ CREATE TABLE public."Enrollment" (
     "RentalSubsidyType" integer,
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
-    "PreferredLanguageDifferent" character varying
+    "PreferredLanguageDifferent" character varying,
+    "VAMCStation" character varying
 );
 
 
@@ -1863,7 +1950,8 @@ CREATE TABLE public."Export" (
     "SourceType" integer,
     effective_export_end_date date,
     source_hash character varying,
-    "CSVVersion" character varying
+    "CSVVersion" character varying,
+    "ImplementationID" character varying
 );
 
 
@@ -1989,14 +2077,14 @@ CREATE TABLE public."HMISParticipation" (
     id bigint NOT NULL,
     "HMISParticipationID" character varying NOT NULL,
     "ProjectID" character varying NOT NULL,
-    "HMISParticipationType" integer NOT NULL,
-    "HMISParticipationStatusStartDate" date NOT NULL,
+    "HMISParticipationType" integer,
+    "HMISParticipationStatusStartDate" date,
     "HMISParticipationStatusEndDate" date,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    "UserID" character varying NOT NULL,
-    "ExportID" character varying NOT NULL,
+    "UserID" character varying,
+    "ExportID" character varying,
     data_source_id integer
 );
 
@@ -2163,7 +2251,9 @@ CREATE TABLE public."IncomeBenefits" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "RyanWhiteMedDent" integer,
-    "NoRyanWhiteReason" integer
+    "NoRyanWhiteReason" integer,
+    "VHAServices" integer,
+    "NoVHAReason" character varying
 );
 
 
@@ -3440,7 +3530,7 @@ CREATE VIEW public."bi_Enrollment" AS
     "Enrollment"."FemVet",
     "Enrollment"."HPScreeningScore",
     "Enrollment"."ThresholdScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -5747,6 +5837,30 @@ CREATE SEQUENCE public.client_notes_id_seq
 --
 
 ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
+
+
+--
+-- Name: client_searchable_names; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.client_searchable_names AS
+ SELECT "Client".id AS client_id,
+    "Client".search_name_full AS full_name,
+    "Client".search_name_last AS last_name,
+    'primary'::text AS name_type
+   FROM public."Client"
+  WHERE ("Client"."DateDeleted" IS NULL)
+UNION
+ SELECT "Client".id AS client_id,
+    "CustomClientName".search_name_full AS full_name,
+    "CustomClientName".search_name_last AS last_name,
+        CASE
+            WHEN "CustomClientName"."primary" THEN 'primary'::text
+            ELSE 'secondary'::text
+        END AS name_type
+   FROM (public."CustomClientName"
+     JOIN public."Client" ON (((("Client"."PersonalID")::text = ("CustomClientName"."PersonalID")::text) AND ("Client".data_source_id = "CustomClientName".data_source_id))))
+  WHERE ("CustomClientName"."DateDeleted" IS NULL);
 
 
 --
@@ -14634,7 +14748,28 @@ CREATE TABLE public.hmis_dqt_clients (
     ethnicity integer,
     reporting_age integer,
     ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false
+    ch_at_any_entry boolean DEFAULT false,
+    woman integer,
+    man integer,
+    culturally_specific integer,
+    different_identity integer,
+    non_binary integer,
+    hispanic_latinaeo integer,
+    mid_east_n_african integer,
+    spm_hispanic_latinaeo integer,
+    _all_persons__hispanic_latinaeo integer,
+    spm_with_children__hispanic_latinaeo integer,
+    spm_only_children__hispanic_latinaeo integer,
+    spm_without_children__hispanic_latinaeo integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__hispan integer,
+    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
+    spm_mid_east_n_african integer,
+    _all_persons__mid_east_n_african integer,
+    spm_with_children__mid_east_n_african integer,
+    spm_only_children__mid_east_n_african integer,
+    spm_without_children__mid_east_n_african integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer,
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer
 );
 
 
@@ -15147,6 +15282,39 @@ ALTER SEQUENCE public.hmis_external_referrals_id_seq OWNED BY public.hmis_extern
 
 
 --
+-- Name: hmis_external_unit_availability_syncs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_unit_availability_syncs (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    unit_type_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    local_version integer DEFAULT 0 NOT NULL,
+    synced_version integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: hmis_external_unit_availability_syncs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_unit_availability_syncs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_unit_availability_syncs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_unit_availability_syncs_id_seq OWNED BY public.hmis_external_unit_availability_syncs.id;
+
+
+--
 -- Name: hmis_form_definitions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15158,7 +15326,8 @@ CREATE TABLE public.hmis_form_definitions (
     status character varying NOT NULL,
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    title character varying NOT NULL
 );
 
 
@@ -15216,7 +15385,11 @@ CREATE TABLE public.hmis_form_instances (
     custom_service_type_id integer,
     custom_service_category_id integer,
     funder integer,
-    project_type integer
+    project_type integer,
+    other_funder character varying,
+    data_collected_about character varying,
+    system boolean DEFAULT false NOT NULL,
+    active boolean DEFAULT true NOT NULL
 );
 
 
@@ -15968,7 +16141,24 @@ CREATE TABLE public.homeless_summary_report_clients (
     spm_adults_with_children_where_parenting_adult_18_to_24__b_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__a_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__n_n_h_ integer,
-    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer
+    spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer,
+    spm_all_persons__mid_east_n_afric integer,
+    spm_without_children__mid_east_n_ integer,
+    spm_with_children__mid_east_n_afr integer,
+    spm_only_children__mid_east_n_afr integer,
+    spm_without_children_and_fifty_fi integer,
+    spm_adults_with_children_where_pa integer,
+    spm_all_persons__mid_east_n_african integer,
+    spm_all_persons__hispanic_latinaeo integer,
+    spm_without_children__mid_east_n_african integer,
+    spm_without_children__hispanic_latinaeo integer,
+    spm_with_children__mid_east_n_african integer,
+    spm_with_children__hispanic_latinaeo integer,
+    spm_only_children__mid_east_n_african integer,
+    spm_only_children__hispanic_latinaeo integer,
+    spm_without_children_and_fifty_five_plus__mid_east_n_african integer,
+    spm_without_children_and_fifty_five_plus__hispanic_latinaeo integer,
+    spm_adults_with_children_where_parenting_adult_18_to_24__mid_ea integer
 );
 
 
@@ -18030,7 +18220,14 @@ CREATE TABLE public.ma_monthly_performance_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    woman boolean,
+    man boolean,
+    culturally_specific boolean,
+    different_identity boolean,
+    non_binary boolean,
+    hispanic_latinaeo boolean,
+    mid_east_n_african boolean
 );
 
 
@@ -18410,7 +18607,10 @@ CREATE TABLE public.places (
     location character varying NOT NULL,
     lat_lon jsonb,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    city character varying,
+    state character varying,
+    zipcode character varying
 );
 
 
@@ -19895,7 +20095,7 @@ CREATE VIEW public.report_enrollments AS
     "Enrollment"."CoercedToContinueWork",
     "Enrollment"."LaborExploitPastThreeMonths",
     "Enrollment"."HPScreeningScore",
-    "Enrollment"."VAMCStation",
+    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
     "Enrollment"."DateCreated",
     "Enrollment"."DateUpdated",
     "Enrollment"."UserID",
@@ -21494,7 +21694,14 @@ CREATE TABLE public.system_pathways_clients (
     report_id bigint,
     deleted_at timestamp without time zone,
     days_to_return integer,
-    ce_assessment boolean DEFAULT false NOT NULL
+    ce_assessment boolean DEFAULT false NOT NULL,
+    woman boolean,
+    man boolean,
+    culturally_specific boolean,
+    different_identity boolean,
+    non_binary boolean,
+    hispanic_latinaeo boolean,
+    mid_east_n_african boolean
 );
 
 
@@ -22782,6 +22989,13 @@ ALTER TABLE ONLY public."AssessmentQuestions" ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public."AssessmentResults" ALTER COLUMN id SET DEFAULT nextval('public."AssessmentResults_id_seq"'::regclass);
+
+
+--
+-- Name: CEParticipation id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CEParticipation" ALTER COLUMN id SET DEFAULT nextval('public."CEParticipation_id_seq"'::regclass);
 
 
 --
@@ -24549,6 +24763,13 @@ ALTER TABLE ONLY public.hmis_external_referrals ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: hmis_external_unit_availability_syncs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_unit_availability_syncs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_form_definitions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25873,6 +26094,14 @@ ALTER TABLE ONLY public."AssessmentResults"
 
 ALTER TABLE ONLY public."Assessment"
     ADD CONSTRAINT "Assessment_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CEParticipation CEParticipation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CEParticipation"
+    ADD CONSTRAINT "CEParticipation_pkey" PRIMARY KEY (id);
 
 
 --
@@ -27905,6 +28134,14 @@ ALTER TABLE ONLY public.hmis_external_referral_requests
 
 ALTER TABLE ONLY public.hmis_external_referrals
     ADD CONSTRAINT hmis_external_referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_unit_availability_syncs hmis_external_unit_availability_syncs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT hmis_external_unit_availability_syncs_pkey PRIMARY KEY (id);
 
 
 --
@@ -42021,6 +42258,34 @@ CREATE INDEX idx_cibs_p_id_ds_id ON public.custom_imports_b_services_rows USING 
 
 
 --
+-- Name: idx_client_custom_names_full_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_custom_names_full_idx ON public."CustomClientName" USING gin (search_name_full public.gin_trgm_ops);
+
+
+--
+-- Name: idx_client_custom_names_last_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_custom_names_last_idx ON public."CustomClientName" USING gin (search_name_last public.gin_trgm_ops);
+
+
+--
+-- Name: idx_client_name_full_gin; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_name_full_gin ON public."Client" USING gin (search_name_full public.gin_trgm_ops);
+
+
+--
+-- Name: idx_client_name_last_gin; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_last public.gin_trgm_ops);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42312,6 +42577,20 @@ CREATE UNIQUE INDEX "index_Assessment_on_AssessmentID_and_data_source_id" ON pub
 --
 
 CREATE INDEX "index_Assessment_on_pending_date_deleted" ON public."Assessment" USING btree (pending_date_deleted);
+
+
+--
+-- Name: index_CEParticipation_on_CEParticipationID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CEParticipation_on_CEParticipationID" ON public."CEParticipation" USING btree ("CEParticipationID");
+
+
+--
+-- Name: index_CEParticipation_on_ProjectID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CEParticipation_on_ProjectID" ON public."CEParticipation" USING btree ("ProjectID");
 
 
 --
@@ -45577,6 +45856,20 @@ CREATE INDEX index_hmis_external_referrals_on_enrollment_id ON public.hmis_exter
 
 
 --
+-- Name: index_hmis_external_unit_availability_syncs_on_unit_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_unit_availability_syncs_on_unit_type_id ON public.hmis_external_unit_availability_syncs USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_external_unit_availability_syncs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_unit_availability_syncs_on_user_id ON public.hmis_external_unit_availability_syncs USING btree (user_id);
+
+
+--
 -- Name: index_hmis_form_instances_on_entity; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47541,6 +47834,13 @@ CREATE INDEX index_shape_states_on_geom ON public.shape_states USING gist (geom)
 --
 
 CREATE INDEX index_shape_states_on_simplified_geom ON public.shape_states USING gist (simplified_geom);
+
+
+--
+-- Name: index_shape_states_on_statefp; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shape_states_on_statefp ON public.shape_states USING btree (statefp);
 
 
 --
@@ -50526,6 +50826,13 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
+-- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
+
+
+--
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51125,6 +51432,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referral_requests_identifier ON public.hm
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_external_referrals USING btree (identifier);
+
+
+--
+-- Name: uidx_hmis_external_unit_availability_syncs; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
 
 
 --
@@ -52276,6 +52590,22 @@ CREATE STATISTICS public.stats_shs_2050_homeless ON homeless, literally_homeless
 
 
 --
+-- Name: client_searchable_names attempt_client_searchable_names_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_client_searchable_names_del AS
+    ON DELETE TO public.client_searchable_names DO INSTEAD NOTHING;
+
+
+--
+-- Name: client_searchable_names attempt_client_searchable_names_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_client_searchable_names_up AS
+    ON UPDATE TO public.client_searchable_names DO INSTEAD NOTHING;
+
+
+--
 -- Name: hmis_client_projects attempt_hmis_client_projects_del; Type: RULE; Schema: public; Owner: -
 --
 
@@ -52723,6 +53053,14 @@ ALTER TABLE ONLY public.service_history_services_2038
 
 
 --
+-- Name: hmis_external_unit_availability_syncs fk_rails_80312f3d27; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT fk_rails_80312f3d27 FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
 -- Name: Affiliation fk_rails_81babe0602; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -52760,6 +53098,14 @@ ALTER TABLE ONLY public.project_pass_fails_projects
 
 ALTER TABLE ONLY public.project_pass_fails_clients
     ADD CONSTRAINT fk_rails_8455b3472c FOREIGN KEY (project_pass_fail_id) REFERENCES public.project_pass_fails(id) ON DELETE CASCADE;
+
+
+--
+-- Name: hmis_external_unit_availability_syncs fk_rails_8463fd3c5a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
+    ADD CONSTRAINT fk_rails_8463fd3c5a FOREIGN KEY (project_id) REFERENCES public."Project"(id);
 
 
 --
@@ -54119,6 +54465,27 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230803173117'),
 ('20230804124734'),
 ('20230804232249'),
-('20230805224003');
+('20230805224003'),
+('20230815171824'),
+('20230817154337'),
+('20230818044939'),
+('20230820225855'),
+('20230822183752'),
+('20230822200902'),
+('20230824192127'),
+('20230827232228'),
+('20230828180700'),
+('20230828180743'),
+('20230828180842'),
+('20230829171917'),
+('20230830121811'),
+('20230831162622'),
+('20230831211739'),
+('20230901123748'),
+('20230901124730'),
+('20230901124955'),
+('20230901143829'),
+('20230901144153'),
+('20230902183854');
 
 

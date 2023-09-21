@@ -48,7 +48,7 @@ module CePerformance
     end
 
     def self.title
-      _('Average Length of Time from Housing Referral to Housing Start')
+      Translation.translate('Average Length of Time from Housing Referral to Housing Start')
     end
 
     def self.category

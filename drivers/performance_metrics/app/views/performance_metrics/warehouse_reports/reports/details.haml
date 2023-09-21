@@ -2,7 +2,7 @@
 = content_for :modal_title, title
 = content_for :crumbs do
   = link_to performance_metrics_warehouse_reports_report_path(@report) do
-    &laquo; #{_('Performance Metrics Report')}
+    &laquo; #{Translation.translate('Performance Metrics Report')}
 .d-flex
   %p.mr-auto
     - if @comparison

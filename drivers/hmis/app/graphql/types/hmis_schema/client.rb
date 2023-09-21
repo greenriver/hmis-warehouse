@@ -23,7 +23,12 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
-      Hmis::Hud::Client.hmis_configuration(version: '2022')
+      Hmis::Hud::Client.hmis_configuration(version: '2024')
+    end
+
+    available_filter_options do
+      arg :project, [ID]
+      arg :organization, [ID]
     end
 
     description 'HUD Client'
@@ -42,7 +47,6 @@ module Types
     hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
     gender_field
     field :race, [Types::HmisSchema::Enums::Race], null: false
-    hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :year_entered_service
     hud_field :year_separated
@@ -57,12 +61,14 @@ module Types
     hud_field :military_branch, Types::HmisSchema::Enums::Hud::MilitaryBranch
     hud_field :discharge_status, Types::HmisSchema::Enums::Hud::DischargeStatus
     field :pronouns, [String], null: false
+    field :different_identity_text, String, null: true
+    field :additional_race_ethnicity, String, null: true
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    enrollments_field filter_args: { omit: [:search_term], type_name: 'EnrollmentsForClient' }
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
     income_benefits_field
     disabilities_field
     health_and_dvs_field
@@ -177,7 +183,7 @@ module Types
     end
 
     def race
-      selected_races = ::HudUtility.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
+      selected_races = ::HudUtility2024.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
       selected_races << object.RaceNone if object.RaceNone && selected_races.empty?
       selected_races
     end

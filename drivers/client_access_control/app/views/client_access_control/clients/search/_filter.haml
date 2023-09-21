@@ -49,7 +49,7 @@
         .checkbox
           %label{for: :data_sharing}
             %input#data_sharing.boolean.optional{name: :data_sharing, type: :checkbox, value: 1, checked: @data_sharing}
-            = _('Fully signed data sharing agreement')
+            = Translation.translate('Fully signed data sharing agreement')
 
       .o-filtration__option.row
         .col-sm-8

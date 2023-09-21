@@ -177,6 +177,30 @@ module Concerns::HudLists2024
       _translate project_types, id, reverse
     end
 
+    # 2.02.6.brief
+    def project_type_briefs
+      {
+        0 => 'ES - Entry/Exit',
+        1 => 'ES - NBN',
+        2 => 'TH',
+        3 => 'PH - PSH',
+        4 => 'SO',
+        6 => 'SSO',
+        8 => 'SH',
+        9 => 'PH - PH',
+        7 => 'Other',
+        10 => 'PH - OPH',
+        11 => 'Day Shelter',
+        12 => 'HP',
+        13 => 'PH - RRH',
+        14 => 'CE',
+      }.freeze
+    end
+
+    def project_type_brief(id, reverse = false)
+      _translate project_type_briefs, id, reverse
+    end
+
     # 2.02.7
     def target_populations
       {
@@ -356,19 +380,6 @@ module Concerns::HudLists2024
       _translate hmis_participation_types, id, reverse
     end
 
-    # 2.7.B
-    def youth_age_groups
-      {
-        1 => 'Only under age 18',
-        2 => 'Only ages 18 to 24',
-        3 => 'Only youth under age 24 (both of the above)',
-      }.freeze
-    end
-
-    def youth_age_group(id, reverse = false)
-      _translate youth_age_groups, id, reverse
-    end
-
     # 3.01.5
     def name_data_quality_options
       {
@@ -412,21 +423,6 @@ module Concerns::HudLists2024
 
     def dob_data_quality(id, reverse = false)
       _translate dob_data_quality_options, id, reverse
-    end
-
-    # 3.05.1
-    def ethnicities
-      {
-        0 => 'Non-Hispanic/Non-Latin(a)(o)(x)',
-        1 => 'Hispanic/Latin(a)(o)(x)',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def ethnicity(id, reverse = false)
-      _translate ethnicities, id, reverse
     end
 
     # 3.12
@@ -509,11 +505,13 @@ module Concerns::HudLists2024
     # 3.6.1
     def genders
       {
-        0 => 'Female',
-        1 => 'Male',
-        4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
+        0 => 'Woman (Girl, if child)',
+        1 => 'Man (Boy, if child)',
+        2 => 'Culturally Specific Identity (e.g., Two-Spirit)',
+        4 => 'Non-Binary',
         5 => 'Transgender',
         6 => 'Questioning',
+        3 => 'Different Identity',
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
         99 => 'Data not collected',
@@ -635,25 +633,6 @@ module Concerns::HudLists2024
       _translate reason_not_insureds, id, reverse
     end
 
-    # 4.1.1
-    def housing_statuses
-      {
-        1 => 'Category 1 - Homeless',
-        2 => 'Category 2 - At imminent risk of losing housing',
-        3 => 'At-risk of homelessness',
-        4 => 'Stably housed',
-        5 => 'Category 3 - Homeless only under other federal statutes',
-        6 => 'Category 4 - Fleeing domestic violence',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def housing_status(id, reverse = false)
-      _translate housing_statuses, id, reverse
-    end
-
     # 4.10.2
     def disability_responses
       {
@@ -725,36 +704,12 @@ module Concerns::HudLists2024
     # 4.14
     def bed_night_options
       {
-        200 => 'BedNight',
+        200 => 'Bed Night',
       }.freeze
     end
 
     def bed_night(id, reverse = false)
       _translate bed_night_options, id, reverse
-    end
-
-    # 4.18.1
-    def housing_assessment_dispositions
-      {
-        1 => 'Referred to emergency shelter/safe haven',
-        2 => 'Referred to transitional housing',
-        3 => 'Referred to rapid re-housing',
-        4 => 'Referred to permanent supportive housing',
-        5 => 'Referred to homelessness prevention',
-        6 => 'Referred to street outreach',
-        7 => 'Referred to other continuum project type',
-        8 => 'Referred to a homelessness diversion program',
-        9 => 'Unable to refer/accept within continuum; ineligible for continuum projects',
-        10 => 'Unable to refer/accept within continuum; continuum services unavailable',
-        11 => 'Referred to other community project (non-continuum)',
-        12 => 'Applicant declined referral/acceptance',
-        13 => 'Applicant terminated assessment prior to completion',
-        14 => 'Other/specify',
-      }.freeze
-    end
-
-    def housing_assessment_disposition(id, reverse = false)
-      _translate housing_assessment_dispositions, id, reverse
     end
 
     # 4.19.3
@@ -833,184 +788,6 @@ module Concerns::HudLists2024
 
     def referral_result(id, reverse = false)
       _translate referral_results, id, reverse
-    end
-
-    # 4.21.6
-    def service_provideds
-      {
-        0 => 'None',
-        1 => 'Financial Assistance',
-        2 => 'Other Assistance',
-        3 => 'Both Financial & Other Assistance',
-      }.freeze
-    end
-
-    def service_provided(id, reverse = false)
-      _translate service_provideds, id, reverse
-    end
-
-    # 4.21.A
-    def prevention_outcomes
-      {
-        1 => 'Referral to a HP project opening',
-        2 => 'No HP referral – no availability, placed on priority/waiting list',
-        3 => 'No HP referral - determined ineligible',
-        4 => 'Referral to emergency assistance/flex fund/furniture assistance',
-        5 => 'Client declined HP referral',
-        6 => 'Don’t know outcome or outcome pending',
-      }.freeze
-    end
-
-    def prevention_outcome(id, reverse = false)
-      _translate prevention_outcomes, id, reverse
-    end
-
-    # 4.21.E
-    def shelter_outcomes
-      {
-        1 => 'Referral to Diversion project opening',
-        2 => 'Client declined Diversion referral',
-        3 => 'Referral to Emergency Shelter bed opening',
-        4 => 'Client declined shelter referral - street outreach connection made',
-        5 => 'Client declined shelter referral - no connections/referrals',
-        6 => 'Placed on prioritization list',
-        7 => 'No connections/referrals provided',
-        8 => 'Don’t know yet or outcome pending',
-      }.freeze
-    end
-
-    def shelter_outcome(id, reverse = false)
-      _translate shelter_outcomes, id, reverse
-    end
-
-    # 4.21.I
-    def housing_outcomes
-      {
-        1 => 'Referral to Diversion project opening',
-        2 => 'Referral to Transitional Housing bed/unit opening',
-        3 => 'Referral to Joint TH-RRH project/unit opening',
-        4 => 'Referral to RRH project/unit opening',
-        5 => 'Referral to PSH project/unit opening',
-        6 => 'Referral to Other PH project/unit opening',
-        7 => 'Referral to a Housing Stability Voucher',
-        8 => 'Client declined Diversion referral',
-        9 => 'Placed on prioritization list',
-        10 => 'No availability - Provided other housing information',
-        11 => 'Ineligible – Provided other housing information',
-        12 => 'Client declined housing referral',
-        13 => 'Don’t know yet or outcome pending',
-      }.freeze
-    end
-
-    def housing_outcome(id, reverse = false)
-      _translate housing_outcomes, id, reverse
-    end
-
-    # 4.21.M
-    def service_outcomes
-      {
-        1 => 'Maintained housing they had at CE entry',
-        2 => 'Secured other permanent housing',
-        3 => 'Referred back to CE for shelter assessment',
-        4 => 'Referred back to CE for housing assessment',
-        5 => "Don't know yet or outcome pending",
-      }.freeze
-    end
-
-    def service_outcome(id, reverse = false)
-      _translate service_outcomes, id, reverse
-    end
-
-    # 4.33.A
-    def incarcerated_parent_statuses
-      {
-        1 => 'One parent / legal guardian is incarcerated',
-        2 => 'Both parents / legal guardians are incarcerated',
-        3 => 'The only parent / legal guardian is incarcerated',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def incarcerated_parent_status(id, reverse = false)
-      _translate incarcerated_parent_statuses, id, reverse
-    end
-
-    # 4.36.1
-    def exit_actions
-      {
-        0 => 'No',
-        1 => 'Yes',
-        9 => 'Client prefers not to answer',
-      }.freeze
-    end
-
-    def exit_action(id, reverse = false)
-      _translate exit_actions, id, reverse
-    end
-
-    # 4.37.A
-    def early_exit_reasons
-      {
-        1 => 'Left for other opportunities - independent living',
-        2 => 'Left for other opportunities - education',
-        3 => 'Left for other opportunities - military',
-        4 => 'Left for other opportunities - other',
-        5 => 'Needs could not be met by project',
-      }.freeze
-    end
-
-    def early_exit_reason(id, reverse = false)
-      _translate early_exit_reasons, id, reverse
-    end
-
-    # 4.49.1
-    def crisis_services_uses
-      {
-        0 => '0',
-        1 => '1-2',
-        2 => '3-5',
-        3 => '6-10',
-        4 => '11-20',
-        5 => 'More than 20',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def crisis_services_use(id, reverse = false)
-      _translate crisis_services_uses, id, reverse
-    end
-
-    # 4.9.D
-    def path_how_confirmeds
-      {
-        1 => 'Unconfirmed; presumptive or self-report',
-        2 => 'Confirmed through assessment and clinical evaluation',
-        3 => 'Confirmed by prior evaluation or clinical records',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def path_how_confirmed(id, reverse = false)
-      _translate path_how_confirmeds, id, reverse
-    end
-
-    # 4.9.E
-    def pathsmi_informations
-      {
-        0 => 'No',
-        1 => 'Unconfirmed; presumptive or self-report',
-        2 => 'Confirmed through assessment and clinical evaluation',
-        3 => 'Confirmed by prior evaluation or clinical records',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def pathsmi_information(id, reverse = false)
-      _translate pathsmi_informations, id, reverse
     end
 
     # 5.03.1
@@ -1096,6 +873,347 @@ module Concerns::HudLists2024
 
     def current_ed_status(id, reverse = false)
       _translate current_ed_statuses, id, reverse
+    end
+
+    # C4.A
+    def preferred_languages
+      {
+        100 => 'Acholi',
+        101 => 'Afar',
+        102 => 'Afrikaans',
+        103 => 'Ahtna',
+        104 => 'Akan',
+        105 => 'Akateko',
+        106 => 'Akuzipigestun / St. Lawrence Island Yupik (aka Siberian Yupik)',
+        107 => 'Albanian',
+        108 => 'Algonquian',
+        109 => 'Alutiiq',
+        110 => 'American Sign Language',
+        111 => 'Amharic',
+        112 => 'Anuak',
+        113 => 'Apache',
+        114 => 'Arabic',
+        115 => 'Armenian',
+        116 => 'Assyrian',
+        117 => 'Atnakenaege’ / Ahtna',
+        118 => 'Aymara',
+        119 => 'Azerbaijani',
+        120 => 'Bahasa',
+        121 => 'Bahdini',
+        122 => 'Bajuni',
+        123 => 'Bambara',
+        124 => 'Bantu',
+        125 => 'Barese',
+        126 => 'Basque',
+        127 => 'Bassa',
+        128 => 'Belorussian',
+        129 => 'Bemba',
+        130 => 'Benaadir',
+        131 => 'Bengali',
+        132 => 'Berber',
+        133 => 'Black American Sign Language',
+        134 => 'Bosnian',
+        135 => 'Bravanese',
+        136 => 'Bulgarian',
+        137 => 'Burmese',
+        138 => 'Cambodian',
+        139 => 'Cantonese',
+        140 => 'Cape Verdean Creole',
+        141 => 'Catalan',
+        142 => 'Cebuano',
+        143 => 'Central Alaskan Yup’ik / Yugtun',
+        144 => 'Chaldean',
+        145 => 'Chamorro',
+        146 => 'Chaochow',
+        147 => 'Cherokee',
+        148 => 'Chinese',
+        149 => 'Chipewyan',
+        150 => 'Choctaw',
+        151 => 'Chuukese',
+        152 => 'Cree',
+        153 => 'Croatian',
+        154 => 'Czech',
+        155 => 'Dakota',
+        156 => 'Danish',
+        157 => 'Dari',
+        158 => 'Deg Xinag',
+        159 => "Dena'inaq' / Dena'ina",
+        160 => "Denaakk'e / Koyukon",
+        161 => 'Dewoin',
+        162 => "Dinak'i / Upper Kuskokwim",
+        163 => "Dinjii Zhuh K'yaa / Gwich'in",
+        164 => 'Dinka',
+        165 => 'Doogh Qinaq / Holikachuk',
+        166 => 'Duala',
+        167 => 'Dutch',
+        168 => 'Dzongkha',
+        169 => 'Edo',
+        170 => 'Ekegusli',
+        171 => 'English',
+        172 => 'Estonian',
+        173 => 'Ewe',
+        174 => 'Eyak',
+        175 => 'Farsi',
+        176 => 'Fijian',
+        177 => 'Filipino',
+        178 => 'Finnish',
+        179 => 'Flemish',
+        180 => 'French',
+        181 => 'French Cajun',
+        182 => 'French Canadian',
+        183 => 'French Creole',
+        184 => 'French Haitian',
+        185 => 'Fukienese',
+        186 => 'Fulani',
+        187 => 'Fuzhou',
+        188 => 'Ga',
+        189 => 'Gaddang',
+        190 => 'Gaelic',
+        191 => 'Garre',
+        192 => 'Gen',
+        193 => 'Georgian',
+        194 => 'German',
+        195 => 'Gheg',
+        196 => 'Gokana',
+        197 => 'Greek',
+        198 => 'Gujarati',
+        199 => 'Gulay',
+        200 => 'Gullah',
+        201 => 'Gurani',
+        202 => "Gwich'in",
+        203 => 'Haida',
+        204 => 'Haitian',
+        205 => 'Haitian Creole',
+        206 => 'Hakka',
+        207 => 'Häl golan / Hän',
+        208 => 'Hassaniyya',
+        209 => 'Hausa',
+        210 => "Hawai'i Sign Language",
+        211 => 'Hawaiian',
+        212 => 'Hebrew',
+        213 => 'Hiligaynon',
+        214 => 'Hindi',
+        215 => 'Hindko',
+        216 => 'Hmong',
+        217 => 'Hokkien',
+        218 => 'Holikachuk',
+        219 => 'Hopi',
+        220 => 'Huanese',
+        221 => 'Hungarian',
+        222 => 'Ibanag',
+        223 => 'Icelandic',
+        224 => 'Igbo',
+        225 => 'Ilocano',
+        226 => 'Indonesian',
+        227 => 'Inuktitut',
+        228 => 'Inupiatun / Inupiaq',
+        229 => 'Italian',
+        230 => 'Jakartanese',
+        231 => 'Jamaican Patois',
+        232 => 'Japanese',
+        233 => 'Jarai',
+        234 => 'Javanese',
+        235 => 'Jingpho',
+        236 => 'Jinyu',
+        237 => 'Juba Arabic',
+        238 => 'Jula',
+        239 => 'Kaba',
+        240 => 'Kamba',
+        241 => 'Kam Muang',
+        242 => 'Kanjobal',
+        243 => 'Kannada',
+        244 => 'Karen',
+        245 => 'Kashmiri',
+        246 => 'Kayah',
+        247 => 'Kazakh',
+        248 => 'Keresan',
+        249 => 'Keresan Sign Language',
+        250 => 'Kham',
+        251 => 'Khana',
+        252 => 'Khmer',
+        253 => "K'iche'",
+        254 => 'Kikuyu',
+        255 => 'Kimiiru',
+        256 => 'Kinyarwanda',
+        257 => 'Kiowa',
+        258 => 'Koho',
+        259 => 'Korean',
+        260 => 'Koyukon',
+        261 => 'Krahn',
+        262 => 'Krio',
+        263 => 'Kunama',
+        264 => 'Kurmanji',
+        265 => 'Kyrgyz',
+        266 => 'Lakota',
+        267 => 'Laotian',
+        268 => 'Latvian',
+        269 => 'Liberian Pidgin English',
+        270 => 'Lingala',
+        271 => 'Lingít / Tlingit',
+        272 => 'Lithuanian',
+        273 => 'Lombard',
+        274 => 'Luba-Kasai',
+        275 => 'Luganda',
+        276 => 'Luo',
+        277 => 'Maay',
+        278 => 'Macedonian',
+        279 => 'Malay',
+        280 => 'Malayalam',
+        281 => 'Maltese',
+        282 => 'Mam',
+        283 => 'Mandarin',
+        284 => 'Mandinka',
+        285 => 'Maninka',
+        286 => 'Manobo',
+        287 => 'Marathi',
+        288 => 'Marka',
+        289 => 'Marshallese',
+        290 => 'Masalit',
+        291 => 'Mbay',
+        292 => 'Mien',
+        293 => 'Mirpuri',
+        294 => 'Mixteco',
+        295 => 'Mizo',
+        296 => 'Mnong',
+        297 => 'Mongolian',
+        298 => 'Montenegrin',
+        299 => 'Moroccan Arabic',
+        300 => 'Mortlockese',
+        301 => 'Muscogee',
+        302 => 'Napoletano',
+        303 => 'Navajo',
+        304 => 'Navajo Family Sign',
+        305 => 'Ndebele',
+        306 => 'Neapolitan',
+        307 => 'Nee’aandeg’ / Tanacross',
+        308 => 'Nepali',
+        309 => 'Ngambay',
+        310 => 'Nigerian Pidgin',
+        311 => 'Northern Sotho',
+        312 => 'Norwegian',
+        313 => 'Nuer',
+        314 => 'Nupe',
+        315 => 'Nyanja',
+        316 => 'Nyoro',
+        317 => "O'odham",
+        318 => 'Ojibwe',
+        319 => 'Oromo',
+        320 => 'Pampangan',
+        321 => 'Papiamento',
+        322 => 'Pashto',
+        323 => 'Pennsylvania Dutch',
+        324 => 'Persian',
+        325 => 'Plains Sign Language',
+        326 => 'Plateau Sign Language',
+        327 => 'Plautdietsch',
+        328 => 'Pohnpeian',
+        329 => 'Polish',
+        330 => 'Portuguese',
+        331 => 'Portuguese Brazilian',
+        332 => 'Portuguese Cape Verdean',
+        333 => 'Portuguese Creole',
+        334 => 'Puerto Rican Sign Language',
+        335 => 'Pugliese',
+        336 => 'Pulaar',
+        337 => 'Punjabi',
+        338 => 'Putian',
+        339 => 'Quechua',
+        340 => 'Quichua',
+        341 => 'Rade',
+        342 => 'Rakhine',
+        343 => 'Rohingya',
+        344 => 'Romanian',
+        345 => 'Kirundi',
+        346 => 'Russian',
+        347 => 'Samoan',
+        348 => 'Samoan Sign Language',
+        349 => 'Sango',
+        350 => 'Seraiki',
+        351 => 'Serbian',
+        352 => 'Shanghainese',
+        353 => 'Shona',
+        354 => 'Sichuan Yi',
+        355 => 'Sicilian',
+        356 => 'Sindhi',
+        357 => 'Sinhalese',
+        358 => 'Sioux',
+        359 => 'Slovak',
+        360 => 'Slovenian',
+        361 => 'Sm’algyax / (Coast) Tsimshian',
+        362 => 'Soga',
+        363 => 'Somali',
+        364 => 'Soninke',
+        365 => 'Sorani',
+        366 => 'Sothern Sotho',
+        367 => 'Spanish',
+        368 => 'Spanish Creole',
+        369 => 'Sudanese Arabic',
+        370 => 'Sugpiaq / Alutiiq',
+        371 => 'Sunda',
+        372 => 'Susu',
+        373 => 'Swahili',
+        374 => 'Swati',
+        375 => 'Swedish',
+        376 => 'Sylhetti',
+        377 => 'Tagalog',
+        378 => 'Taiwanese',
+        379 => 'Tajik',
+        380 => 'Tamil',
+        381 => 'Tanacross',
+        382 => 'Tanana',
+        383 => 'Telugu',
+        384 => 'Thai',
+        385 => 'Tibetan',
+        386 => 'Tigre',
+        387 => 'Tigrigna',
+        388 => 'Tlingit',
+        389 => 'Toishanese',
+        390 => 'Tongan',
+        391 => 'Tooro',
+        392 => 'Trique',
+        393 => 'Tsimshian',
+        394 => 'Tsonga',
+        395 => 'Tswana',
+        396 => 'Turkish',
+        397 => 'Turkmen',
+        398 => 'Twi',
+        399 => 'Tzotzil',
+        400 => 'Ukrainian',
+        401 => 'Unangam Tunuu / Aleutian Aleut',
+        402 => 'Upper Kuskokwim',
+        403 => 'Urdu',
+        404 => 'Uyghur',
+        405 => 'Uzbek',
+        406 => 'Venda',
+        407 => 'Vietnamese',
+        408 => 'Visayan',
+        409 => 'Welsh',
+        410 => 'Wodaabe',
+        411 => 'Wolof',
+        412 => 'Wuzhou',
+        413 => 'Xaat Kíl / Haida',
+        414 => 'Xhosa',
+        415 => 'Xiang',
+        416 => 'Yemeni Arabic',
+        417 => 'Yiddish',
+        418 => 'Yoruba',
+        419 => 'Yunnanese',
+        420 => 'Yupik',
+        421 => 'Zapoteco',
+        422 => 'Zarma',
+        423 => 'Zo',
+        424 => 'Zulu',
+        425 => 'Zuni',
+        426 => 'Zyphe',
+        21 => 'Different preferred language',
+        8 => "Client doesn't know",
+        9 => 'Client prefers not to answer',
+        99 => 'Data not collected',
+      }.freeze
+    end
+
+    def preferred_language(id, reverse = false)
+      _translate preferred_languages, id, reverse
     end
 
     # P1.2
@@ -1260,6 +1378,21 @@ module Concerns::HudLists2024
 
     def project_completion_status(id, reverse = false)
       _translate project_completion_statuses, id, reverse
+    end
+
+    # R17.A
+    def early_exit_reasons
+      {
+        1 => 'Left for other opportunities - independent living',
+        2 => 'Left for other opportunities - education',
+        3 => 'Left for other opportunities - military',
+        4 => 'Left for other opportunities - other',
+        5 => 'Needs could not be met by project',
+      }.freeze
+    end
+
+    def early_exit_reason(id, reverse = false)
+      _translate early_exit_reasons, id, reverse
     end
 
     # R17.A
@@ -2035,7 +2168,7 @@ module Concerns::HudLists2024
         0 => 'No',
         1 => 'Yes',
         8 => "Don't Know",
-        9 => 'Refused',
+        9 => 'Prefers not to answer',
         99 => 'Data not collected',
       }.freeze
     end
@@ -2045,19 +2178,21 @@ module Concerns::HudLists2024
     end
 
     # race
-    def races
+    def race_field_name_to_description
       {
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous',
         'Asian' => 'Asian or Asian American',
         'BlackAfAmerican' => 'Black, African American, or African',
         'NativeHIPacific' => 'Native Hawaiian or Pacific Islander',
         'White' => 'White',
-        'RaceNone' => "Doesn't Know, refused, or not collected",
+        'HispanicLatinaeo' => 'Hispanic/Latina/e/o',
+        'MidEastNAfrican' => 'Middle Eastern or North African',
+        'RaceNone' => "Doesn't know, prefers not to answer, or not collected",
       }.freeze
     end
 
     def race(id, reverse = false)
-      _translate races, id, reverse
+      _translate race_field_name_to_description, id, reverse
     end
   end
 end

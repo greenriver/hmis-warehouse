@@ -60,11 +60,11 @@ module Mutations
       form_validations = form_processor.collect_form_validations
       errors.push(*form_validations)
 
-      # Run processor to create/update record(s)
+      # Run processor to assign attributes to the record(s)
       form_processor.run!(owner: record, user: current_user)
 
-      # Validate record
-      is_valid = record.valid?(:form_submission)
+      # Validate record. Pass 2 contexts: 1 for general form submission, 1 for this specific role.
+      is_valid = record.valid?([:form_submission, "#{definition.role.to_s.downcase}_form".to_sym])
 
       # Collect validations and warnings from AR Validator classes
       record_validations = form_processor.collect_record_validations(user: current_user)
