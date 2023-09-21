@@ -15,6 +15,8 @@ module HmisCsvTwentyTwentyFour::Exporter
           SourceName: Translation.translate('Boston DND Warehouse'),
           SourceContactFirst: export&.user&.first_name || 'Automated',
           SourceContactLast: export&.user&.last_name || 'Export',
+          SourceContactPhone: nil,
+          SourceContactExtension: nil,
           SourceContactEmail: export&.user&.email,
           ExportDate: Date.current,
           ExportStartDate: export.start_date,
@@ -25,6 +27,7 @@ module HmisCsvTwentyTwentyFour::Exporter
           ExportPeriodType: export.period_type,
           ExportDirective: export.directive || 2,
           HashStatus: export.hash_status,
+          ImplementationID: "#{ENV['CLIENT']} Open Path Warehouse",
         ),
       ]
     end
