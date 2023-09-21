@@ -16,7 +16,7 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :user, HmisSchema::User, null: true
-    hud_field :information_date
+    field :information_date, GraphQL::Types::ISO8601Date, null: true
     hud_field :domestic_violence_survivor, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :when_occurred, HmisSchema::Enums::Hud::WhenDVOccurred
     hud_field :currently_fleeing, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
@@ -25,7 +25,7 @@ module Types
     hud_field :mental_health_status, HmisSchema::Enums::Hud::HealthStatus
     hud_field :pregnancy_status, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :due_date
-    hud_field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false
+    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted

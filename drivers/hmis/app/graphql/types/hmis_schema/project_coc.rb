@@ -13,7 +13,7 @@ module Types
     end
 
     hud_field :id, ID, null: false
-    hud_field :coc_code
+    hud_field :coc_code, null: true
     hud_field :geocode
     hud_field :address1
     hud_field :address2

@@ -51,7 +51,7 @@ module Types
     hmis_participations_field
     ce_participations_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
-    hud_field :operating_start_date
+    hud_field :operating_start_date, null: true
     hud_field :operating_end_date
     hud_field :description, String, null: true
     hud_field :contact_information, String, null: true

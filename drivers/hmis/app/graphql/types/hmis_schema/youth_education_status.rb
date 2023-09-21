@@ -17,11 +17,11 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
-    hud_field :information_date
+    field :information_date, GraphQL::Types::ISO8601Date, null: true
     hud_field :current_school_attend, HmisSchema::Enums::Hud::CurrentSchoolAttended
     hud_field :most_recent_ed_status, HmisSchema::Enums::Hud::MostRecentEdStatus
     hud_field :current_ed_status, HmisSchema::Enums::Hud::CurrentEdStatus
-    hud_field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage
+    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
