@@ -129,18 +129,29 @@ module HmisExternalApis::AcHmis
     # been accepted or denied, and there are no active referrals for the household, exit the household.
     def exit_origin_household(user:)
       if from_link?
-        return unless household&.external_referral_postings&.all?(&:inactive?)
+        # continue if there are no active postings (other than this one)
+        return unless household && household.external_referral_postings
+          .where.not(id: id)
+          .all?(&:inactive?)
       else
-        enrollment = referral&.enrollment
-        return unless enrollment && enrollment.external_referrals.preload(:postings).all?(&:postings_inactive?)
+        # for non-link referrals, we find the origin household through the enrollment
+        referral_household = referral&.enrollment&.household
+        return unless referral_household
+
+        referral_postings = referral_household
+          .enrollments
+          .preload(:external_referrals)
+          .flat_map { |e| e.external_referrals.flat_map(&:postings) }
+          .filter { |p| p.id != id } # filter out self
+        return unless referral_postings.all?(&:inactive?)
       end
 
       today = Date.current
-      origin_household = from_link? ? household : enrollment&.household
+      origin_household = from_link? ? household : referral.enrollment.household
       exits = origin_household.enrollments.open_excluding_wip.map do |other_enrollment|
         other_enrollment.build_exit(
           exit_date: today,
-          personal_id: enrollment.personal_id,
+          personal_id: other_enrollment.personal_id,
           user: user,
           destination: 30, # no exit interview performed
         )
