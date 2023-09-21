@@ -8,7 +8,8 @@ class AddHudOptimisticLocking < ActiveRecord::Migration[6.1]
       :Enrollment,
       :CustomAssessments,
     ].each do |table|
-      add_column table, :lock_version, :integer
+      # rails 6.1 doesn't handle null lock_version reliably
+      add_column table, :lock_version, :integer, null: false, default: 0
     end
   end
 end
