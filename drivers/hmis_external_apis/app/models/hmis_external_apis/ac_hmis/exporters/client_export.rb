@@ -21,12 +21,17 @@ module HmisExternalApis::AcHmis::Exporters
 
       Rails.logger.error "There are #{total} clients to export. That doesn't look right" if total < 10
 
+      seen = Set.new
       clients.find_each.with_index do |client, i|
         Rails.logger.info "Processed #{i} of #{total}" if (i % 1000).zero?
 
-        client_values = client_columns.map do |col|
-          client.send(col)
-        end
+        warehouse_id = client.warehouse_id
+        next unless warehouse_id.present?
+        next if seen.include?(warehouse_id)
+
+        seen << warehouse_id
+
+        client_values = [warehouse_id]
 
         # If the client has multiple MCI IDs, it doesn't matter which one we send
         external_id_values = [client.ac_hmis_mci_ids&.first&.value]
@@ -78,10 +83,12 @@ module HmisExternalApis::AcHmis::Exporters
     end
 
     def clients
-      Hmis::Hud::Client
-        .where(data_source: data_source)
-        .preload(:addresses)
-        .preload(:ac_hmis_mci_ids)
+      Hmis::Hud::Client.
+        where(data_source: data_source).
+        joins(:warehouse_client_source).
+        preload(:warehouse_client_source).
+        preload(:addresses).
+        preload(:ac_hmis_mci_ids)
     end
 
     def data_source
