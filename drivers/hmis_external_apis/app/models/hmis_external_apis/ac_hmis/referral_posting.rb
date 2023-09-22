@@ -107,6 +107,10 @@ module HmisExternalApis::AcHmis
       identifier.present?
     end
 
+    def inactive?
+      closed_status? || denied_status?
+    end
+
     attr_accessor :current_user
     before_update :track_status_changes
     def track_status_changes
@@ -119,6 +123,36 @@ module HmisExternalApis::AcHmis
         self.status_updated_at = Time.current unless status_updated_at_changed?
         self.status_updated_by_id = user.id unless status_updated_by_id_changed?
       end
+    end
+
+    # If a household has been referred out from a project (e.g. the HMIS Coordinated Entry Project) and the referral has
+    # been accepted or denied, and there are no active referrals for the household, exit the household.
+    def exit_origin_household(user:)
+      # don't auto-exit if referral is from link
+      return if from_link?
+
+      # for find the origin household through the enrollment
+      referral_household = referral&.enrollment&.household
+      return unless referral_household
+
+      referral_postings = referral_household
+        .enrollments
+        .preload(:external_referrals)
+        .flat_map { |e| e.external_referrals.flat_map(&:postings) }
+        .filter { |p| p.id != id } # filter out self
+      return unless referral_postings.all?(&:inactive?)
+
+      today = Date.current
+      origin_household = from_link? ? household : referral.enrollment.household
+      exits = origin_household.enrollments.open_excluding_wip.map do |other_enrollment|
+        other_enrollment.build_exit(
+          exit_date: today,
+          personal_id: other_enrollment.personal_id,
+          user: user,
+          destination: 30, # no exit interview performed
+        )
+      end
+      Hmis::Hud::Exit.import!(exits)
     end
   end
 end

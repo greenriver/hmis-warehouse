@@ -73,6 +73,10 @@ module Mutations
 
         raise ActiveRecord::Rollback if errors.any?
 
+        # note, cannot mark postings as accepted in this mutation, only denied. Otherwise we'd need to handle that here
+        # too
+        posting.exit_origin_household(user: hmis_user) if posting_status_change == ['denied_pending_status', 'denied_status']
+
         # send to link if:
         # * the referral came from link
         # * status has changed (status will be unchanged if user just updated note)
@@ -89,6 +93,7 @@ module Mutations
         new_request = posting.referral_request.dup
         HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(new_request)
       end
+
       { record: posting }
     end
 
