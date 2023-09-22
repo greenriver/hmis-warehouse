@@ -30,7 +30,8 @@
     "puppeteer": "13.4.1",
     "select2": "4.0.13",
     "stimulus": "2.0.0",
-    "topojson-client": "^3.1.0"
+    "topojson-client": "^3.1.0",
+    "yarn-deduplicate": "^6.0.2"
   },
   "devDependencies": {
     "eslint": "^8.44.0",
@@ -43,7 +44,8 @@
     "lint": "eslint app/assets/javascripts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --minify --outdir=app/assets/builds --public-path=assets --target=es2015",
-    "dev": "node dev-js-build.js"
+    "dev": "node dev-js-build.js",
+    "dedup": "yarn-deduplicate -s fewer yarn.lock"
   },
   "repository": {
     "type": "git",
