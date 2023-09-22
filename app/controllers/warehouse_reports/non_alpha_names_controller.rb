@@ -17,7 +17,9 @@ module WarehouseReports
         format.html do
           @pagy, @clients = pagy(@clients)
         end
-        format.xlsx {}
+        format.xlsx do
+          headers['Content-Disposition'] = 'attachment; filename=Non-Alpha-Names.xlsx'
+        end
       end
     end
 

@@ -7,8 +7,10 @@
 module WarehouseReports
   class MissingValuesController < ApplicationController
     include WarehouseReportAuthorization
+    POSSIBLE_CLIENT_COLUMNS = GrdaWarehouse::Hud::Client.hmis_configuration(version: '2024').keys.map(&:to_s).freeze
+    POSSIBLE_ENROLLMENT_COLUMNS = GrdaWarehouse::Hud::Enrollment.hmis_configuration(version: '2024').keys.map(&:to_s).freeze
     POTENTIAL_COLUMNS = (
-      GrdaWarehouse::Hud::Client.column_names + GrdaWarehouse::Hud::Enrollment.column_names
+      POSSIBLE_CLIENT_COLUMNS + POSSIBLE_ENROLLMENT_COLUMNS
     ).reject { |n| n =~ /^date|(?<![a-z])(?:id|date)$/i }.sort.freeze
 
     DEFAULT_COLUMNS = [
@@ -25,7 +27,7 @@ module WarehouseReports
 
     COLUMN_TO_AREL = POTENTIAL_COLUMNS.map do |c|
       t = [GrdaWarehouse::Hud::Client, GrdaWarehouse::Hud::Enrollment].detect do |table|
-        table.column_names.include? c
+        table.hmis_configuration(version: '2024').keys.map(&:to_s).include? c
       end
       [c, t.arel_table[c.to_sym]]
     end.to_h.with_indifferent_access.freeze
@@ -80,11 +82,11 @@ module WarehouseReports
       end
 
       def client_column?(column)
-        GrdaWarehouse::Hud::Client.column_names.include?(column.to_s)
+        POSSIBLE_CLIENT_COLUMNS.include?(column.to_s)
       end
 
       def enrollment_column?(column)
-        GrdaWarehouse::Hud::Enrollment.column_names.include?(column.to_s)
+        POSSIBLE_ENROLLMENT_COLUMNS.include?(column.to_s)
       end
 
       def client_columns
@@ -196,11 +198,11 @@ module WarehouseReports
       end
 
       def possible_client_columns
-        possible_columns.select { |c| client_column? c }
+        POSSIBLE_CLIENT_COLUMNS
       end
 
       def possible_enrollment_columns
-        possible_columns.select { |c| enrollment_column? c }
+        POSSIBLE_ENROLLMENT_COLUMNS
       end
 
       def default_columns
