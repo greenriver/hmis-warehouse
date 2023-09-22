@@ -24,9 +24,8 @@ module HmisExternalApis::ShHmis::Importers
         Loaders::ClientZipcodesLoader,
         Loaders::CurrentLivingSituationNoteLoader,
         Loaders::FlexFundsLoader,
-        # case notes
-        # rhy
-        # education status
+        Loaders::YouthEducationStatusLoader,
+        Loaders::CaseNotesLoader,
       ]
 
       # disable paper trail to improve importer performance

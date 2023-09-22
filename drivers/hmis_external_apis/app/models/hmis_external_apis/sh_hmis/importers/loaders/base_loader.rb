@@ -12,7 +12,7 @@ module HmisExternalApis::ShHmis::Importers::Loaders
       new(...).perform
     end
 
-    def initialize(reader:, tracker: nil, clobber:, log_file: ENV['AC_HMIS_IMPORT_LOG_FILE'])
+    def initialize(reader:, tracker: nil, clobber:, log_file: ENV['SH_HMIS_IMPORT_LOG_FILE'])
       @reader = reader
       @clobber = clobber
       @tracker = tracker
