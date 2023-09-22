@@ -20,10 +20,10 @@ module HmisExternalApis::ShHmis::Importers::Loaders
     def build_records
       zip_header = 'Zip Code'
       participant_header = 'Participant Enterprise Identifier'
-      client_lookup = owner_class
-        .where(data_source: data_source)
-        .pluck(:personal_id, :id)
-        .to_h
+      client_lookup = owner_class.
+        where(data_source: data_source).
+        pluck(:personal_id, :id).
+        to_h
 
       expected = 0
       records = rows.map do |row|

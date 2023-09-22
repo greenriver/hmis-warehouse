@@ -22,9 +22,8 @@ module HmisExternalApis::ShHmis::Importers::Loaders
 
     def build_records
       enrollment_id_header = 'Unique Enrollment Identifier'
-      enrollment_id_to_personal_id = Hmis::Hud::Enrollment.where(data_source: data_source)
-        .pluck(:enrollment_id, :personal_id)
-        .to_h
+      enrollment_id_to_personal_id = Hmis::Hud::Enrollment.where(data_source: data_source).
+        pluck(:enrollment_id, :personal_id).to_h
 
       expected = 0
       records = rows.map do |row|
@@ -49,6 +48,7 @@ module HmisExternalApis::ShHmis::Importers::Loaders
           DateCreated: parse_date(date_taken),
           DateUpdated: parse_date(date_taken),
           content: note_content,
+          UserID: user_id_from_staff_id(row),
         }
         default_attrs.merge(attrs)
       end.compact

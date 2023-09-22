@@ -85,6 +85,19 @@ module HmisExternalApis::ShHmis::Importers::Loaders
       @data_source ||= HmisExternalApis::AcHmis.data_source
     end
 
+    def hud_user_ids
+      @hud_user_ids ||= Hmis::Hud::User.where(data_source: data_source).pluck(:user_id).to_set
+    end
+
+    def user_id_from_staff_id(row)
+      staff_id = row_value(row, field: 'Staff ID', required: false)
+      return system_user_id unless staff_id.present?
+
+      return staff_id if hud_user_ids.include?(staff_id)
+
+      system_user_id
+    end
+
     def default_attrs
       {
         data_source_id: data_source.id,

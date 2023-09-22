@@ -6,7 +6,6 @@
 
 # reload!; reader = HmisExternalApis::ShHmis::Importers::Loaders::CsvReader.new('drivers/hmis_external_apis/spec/fixtures/hmis_external_apis/sh_hmis/importers'); HmisExternalApis::ShHmis::Importers::Loaders::CurrentLivingSituationNoteLoader.new(clobber: false, reader: reader).perform
 module HmisExternalApis::ShHmis::Importers::Loaders
-  # TODO: do we want to load this as notes, or attach them to CLS records?
   class CurrentLivingSituationNoteLoader < CustomDataElementBaseLoader
     def filename
       'OutreachAndServicesContacts.csv'
@@ -20,9 +19,9 @@ module HmisExternalApis::ShHmis::Importers::Loaders
 
     def build_records
       cls_id_header = 'Response Unique Identifier'
-      cls_lookup = owner_class.where(data_source: data_source)
-        .pluck(:CurrentLivingSitID, :id)
-        .to_h
+      cls_lookup = owner_class.where(data_source: data_source).
+        pluck(:CurrentLivingSitID, :id).
+        to_h
 
       expected = 0
       records = rows.map do |row|

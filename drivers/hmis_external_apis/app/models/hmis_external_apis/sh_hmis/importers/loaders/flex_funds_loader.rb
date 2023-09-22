@@ -36,9 +36,8 @@ module HmisExternalApis::ShHmis::Importers::Loaders
 
       id_header = 'Response Unique Identifier'
       enrollment_id_header = 'Unique Enrollment Identifier'
-      enrollment_id_to_personal_id = Hmis::Hud::Enrollment.where(data_source: data_source)
-        .pluck(:enrollment_id, :personal_id)
-        .to_h
+      enrollment_id_to_personal_id = Hmis::Hud::Enrollment.where(data_source: data_source).
+        pluck(:enrollment_id, :personal_id).to_h
 
       expected = 0
       rows.each do |row|
@@ -49,7 +48,7 @@ module HmisExternalApis::ShHmis::Importers::Loaders
           next
         end
 
-        date_provided = row_value(row, field: 'Date Taken')
+        date_provided = parse_date(row_value(row, field: 'Date Taken'))
         personal_id = enrollment_id_to_personal_id[enrollment_id] if enrollment_id
         unless personal_id
           log_skipped_row(row, field: enrollment_id_header)
@@ -62,11 +61,11 @@ module HmisExternalApis::ShHmis::Importers::Loaders
           EnrollmentID: enrollment_id,
           PersonalID: personal_id,
           CustomServiceID: service_id,
-          DateProvided: parse_date(date_provided),
-          DateCreated: parse_date(date_provided),
-          DateUpdated: parse_date(date_provided),
+          DateProvided: date_provided.to_date,
+          DateCreated: date_provided,
+          DateUpdated: date_provided,
           data_source_id: data_source.id,
-          user_id: system_user_id,
+          user_id: user_id_from_staff_id(row),
           custom_service_type_id: custom_service_type.id,
           service_name: custom_service_type.name,
         )
