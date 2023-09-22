@@ -20,6 +20,10 @@ module GrdaWarehouse
       def self.simplification_distance_in_degrees
         0.005
       end
+
+      def self.all_we_need?
+        count >= 50
+      end
     end
   end
 end

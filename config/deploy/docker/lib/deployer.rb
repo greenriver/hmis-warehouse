@@ -50,21 +50,24 @@ class Deployer
 
   attr_accessor :cluster
 
-  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:)
-    self.cluster           = _cluster_name
-    self.target_group_name = target_group_name
-    self.assume_ci_build   = assume_ci_build
-    self.secrets_arn       = secrets_arn
-    self.execution_role    = execution_role
-    self.task_role         = task_role
-    self.dj_options        = dj_options || []
-    self.fqdn              = fqdn
-    self.push_allowed      = true
-    self.web_options       = web_options
-    self.registry_id       = registry_id
-    self.repo_name         = repo_name
-    self.variant           = 'web'
-    self.version           = `git rev-parse --short=9 HEAD`.chomp
+  attr_accessor :service_registry_arns
+
+  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:, service_registry_arns:) # rubocop:disable Metrics/ParameterLists
+    self.service_registry_arns    = service_registry_arns
+    self.cluster                  = _cluster_name
+    self.target_group_name        = target_group_name
+    self.assume_ci_build          = assume_ci_build
+    self.secrets_arn              = secrets_arn
+    self.execution_role           = execution_role
+    self.task_role                = task_role
+    self.dj_options               = dj_options || []
+    self.fqdn                     = fqdn
+    self.push_allowed             = true
+    self.web_options              = web_options
+    self.registry_id              = registry_id
+    self.repo_name                = repo_name
+    self.variant                  = 'web'
+    self.version                  = `git rev-parse --short=9 HEAD`.chomp
 
     Dir.chdir(_root)
   end
@@ -107,6 +110,14 @@ class Deployer
     roll_out.bootstrap_databases!
   end
 
+  def self.check_that_you_pushed_to_remote!
+    branch = `git rev-parse --abbrev-ref HEAD`.chomp
+    remote = `git ls-remote origin | grep refs/heads/#{branch}$`.chomp
+    our_commit = `git rev-parse #{branch}`.chomp
+
+    raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)
+  end
+
   private
 
   def _initial_steps
@@ -131,6 +142,7 @@ class Deployer
         task_role: task_role,
         web_options: web_options,
         capacity_providers: _capacity_providers,
+        service_registry_arns: service_registry_arns,
       )
   end
 
@@ -146,11 +158,7 @@ class Deployer
   end
 
   def _check_that_you_pushed_to_remote!
-    branch = `git rev-parse --abbrev-ref HEAD`.chomp
-    remote = `git ls-remote origin | grep refs/heads/#{branch}$`.chomp
-    our_commit = `git rev-parse #{branch}`.chomp
-
-    raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)
+    self.class.check_that_you_pushed_to_remote!
   end
 
   def _check_compiled_assets!

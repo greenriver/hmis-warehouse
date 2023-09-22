@@ -47,7 +47,7 @@ module Health
 
     def edit
       if @cha_locked
-        flash.notice = _('A claim was submitted for this CHA; it is no longer editable.')
+        flash.notice = Translation.translate('A claim was submitted for this CHA; it is no longer editable.')
         redirect_to(polymorphic_path(cha_path_generator, id: @cha.id))
         return
       end
@@ -66,6 +66,7 @@ module Health
     end
 
     def destroy
+      @patient.ca_assessments.find_by(instrument: @cha)&.destroy
       @cha.destroy
       respond_with @cha, location: polymorphic_path(careplans_path_generator)
     end

@@ -12,7 +12,7 @@ module Types
     description 'HUD or Custom Service rendered'
 
     def self.configuration
-      Hmis::Hud::Service.hmis_configuration(version: '2022')
+      Hmis::Hud::Service.hmis_configuration(version: '2024')
     end
 
     available_filter_options do
@@ -20,13 +20,14 @@ module Types
       arg :service_type, [ID]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :project, [ID]
+      arg :date_provided, GraphQL::Types::ISO8601Date
     end
 
     field :id, ID, null: false
     field :enrollment, Types::HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :service_type, HmisSchema::ServiceType, null: false
-    field :date_provided, GraphQL::Types::ISO8601Date, null: false
+    field :date_provided, GraphQL::Types::ISO8601Date, null: true
     field :fa_amount, Float, null: true
     field :fa_start_date, GraphQL::Types::ISO8601Date, null: true
     field :fa_end_date, GraphQL::Types::ISO8601Date, null: true

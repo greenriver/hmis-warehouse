@@ -10,7 +10,7 @@ module
   included do
     def gender_detail_hash
       {}.tap do |hashes|
-        HudUtility.genders.each do |key, title|
+        genders.each do |key, title|
           hashes["gender_#{key}"] = {
             title: "Gender - #{title}",
             headers: client_headers,
@@ -22,11 +22,11 @@ module
     end
 
     def gender_count(type)
-      gender_breakdowns[type]&.count&.presence || 0
+      mask_small_population(gender_breakdowns[gender_column_to_numeric(type)]&.count&.presence || 0)
     end
 
     def gender_percentage(type)
-      total_count = client_genders_and_ages.count
+      total_count = mask_small_population(client_genders_and_ages.count)
       return 0 if total_count.zero?
 
       of_type = gender_count(type)
@@ -37,12 +37,12 @@ module
 
     def gender_age_count(gender:, age_range:)
       age_range.to_a.map do |age|
-        gender_age_breakdowns[[gender, age]]&.count&.presence || 0
+        mask_small_population(gender_age_breakdowns[[gender_column_to_numeric(gender), age]]&.count&.presence || 0)
       end.sum
     end
 
     def gender_age_percentage(gender:, age_range:)
-      total_count = client_genders_and_ages.count
+      total_count = mask_small_population(client_genders_and_ages.count)
       return 0 if total_count.zero?
 
       of_type = gender_age_count(gender: gender, age_range: age_range)
@@ -55,7 +55,7 @@ module
       rows['_Gender Break'] ||= []
       rows['*Gender Breakdowns'] ||= []
       rows['*Gender Breakdowns'] += ['Gender', nil, 'Count', 'Percentage', nil]
-      HudUtility.genders.each do |id, title|
+      genders.each do |id, title|
         rows["_Gender Breakdowns_data_#{title}"] ||= []
         rows["_Gender Breakdowns_data_#{title}"] += [
           title,
@@ -68,7 +68,7 @@ module
       rows['_Gender/Age Breakdowns Break'] ||= []
       rows['*Gender/Age Breakdowns'] ||= []
       rows['*Gender/Age Breakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
-      HudUtility.genders.each do |gender, gender_title|
+      genders.each do |gender, gender_title|
         age_categories.each do |age_range, age_title|
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] ||= []
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] += [
@@ -95,39 +95,38 @@ module
     def client_ids_in_gender_age(gender, age)
       ids = Set.new
       age.to_a.each do |age_old|
-        client_ids = gender_age_breakdowns[[gender, age_old]]&.map(&:first)
+        client_ids = gender_age_breakdowns[[gender_column_to_numeric(gender), age_old]]&.map(&:first)
         ids += client_ids if client_ids
       end
       ids
     end
 
+    # Grouped by numeric gender
     private def gender_breakdowns
       @gender_breakdowns ||= client_genders_and_ages.group_by do |_, row|
         row[:gender]
       end
     end
 
-    def client_ids_in_gender(gender)
-      gender_breakdowns[gender]&.map(&:first)
+    private def gender_column_to_numeric(column)
+      HudUtility2024.gender_id_to_field_name.detect { |_, l| l == column }.first
     end
 
-    private def client_genders_and_ages
+    def client_ids_in_gender(column)
+      gender_breakdowns[gender_column_to_numeric(column)]&.map(&:first)
+    end
+
+    def client_genders_and_ages
       @client_genders_and_ages ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
           report_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
-            pluck(:client_id, age_calculation, c_t[:Female], c_t[:Male], c_t[:NoSingleGender], c_t[:Transgender], c_t[:Questioning], c_t[:GenderNone], :first_date_in_program).
-            each do |client_id, age, female, male, no_single_gender, transgender, questioning, gender_none, _|
-              genders = {
-                Male: male,
-                Female: female,
-                NoSingleGender: no_single_gender,
-                Transgender: transgender,
-                Questioning: questioning,
-                GenderNone: gender_none,
-              }
+            pluck(:client_id, age_calculation, :first_date_in_program, *genders.keys.map { |col| c_t[col] }).
+            each do |row|
+              client_id, age, _, *gender_values = row
+              client = genders.keys.zip(gender_values).to_h
               clients[client_id] ||= {
-                gender: GrdaWarehouse::Hud::Client.gender_binary(genders).presence || 99,
+                gender: GrdaWarehouse::Hud::Client.gender_binary(client).presence || 99,
                 age: age,
               }
             end

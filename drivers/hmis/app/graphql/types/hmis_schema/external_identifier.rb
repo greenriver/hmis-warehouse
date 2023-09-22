@@ -16,5 +16,9 @@ module Types
     field :type, HmisSchema::Enums::ExternalIdentifierType, null: false
 
     # Object is a hash with keys matching the field names
+
+    def id
+      [object[:type], object[:identifier]].join(':')
+    end
   end
 end

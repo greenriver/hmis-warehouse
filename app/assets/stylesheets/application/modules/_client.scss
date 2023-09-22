@@ -44,98 +44,443 @@
 {
   font-size: 0.8rem;
 }
+#client__calendar-datepicker__dropdown .datepicker-inline {
+  width: auto;
+}
+
 .client__calendar-date
 {
-  font-weight: bold;
-  background-color: $gray-015;
-  padding: 0.2em;
+  // padding: 0.2em;
+}
+
+.client__calendar-date__previous-month {
+  color: rgba(0, 0, 0, 0.30);
 }
 .client__month_of_service-table
 {
   width: 100%;
 }
-.client__month_of_service-table td
+.client__month_of_service-table td,
+.client__month_of_service-table th
 {
   vertical-align: top;
-  border-left: 1px solid $body-bg;
-  border-right: 1px solid $body-bg;
+  // border-left: 1px solid $body-bg;
+  // border-right: 1px solid $body-bg;
+  padding: 0px;
+
 }
 
+.client__month_of_service-table th {
+  background-color: transparent;
+}
 
+.client__month_of_service-table td {
+  height: 170px;
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.client__calendar-card {
+  border-radius: 4px;
+  border: 1px solid #DCDCDC;
+  background: #FFF;
+  height: 100%;
+}
+
+.client__calendar-card__filters {
+
+}
+
+.client__calendar-card__contact-key {
+
+}
+
+.client__calendar-card__contact-key__key {
+  width: 30px;
+}
+
+.client__calendar-header {
+  a:not(.btn) {
+    color: rgba(0, 0, 0, 0.5)
+  }
+}
+
+.client__calendar-project-tooltip {
+  width: 300px;
+  background-color: red;
+  position: absolute;
+}
+
+.client__calendar-week {
+  position: relative;
+  padding-top: 38px;
+  padding-bottom: 8px;
+  min-height: 170px;
+}
+
+.client__calendar-day-labels {
+  display: flex;
+}
+
+.client__calendar-day-label {
+  padding: 0px 4px;
+  font-weight: bold;
+}
+
+.client__calendar-day {
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  z-index: 0;
+  font-weight: bold;
+}
+
+$client-calendar-border-radius: 6px;
+$client-calendar-project-height: 50px;
+
+.client__calendar-project-container {
+  display: block;
+  position: relative;
+  // height: $client-calendar-project-height;
+  margin-bottom: 8px;
+}
+
+.client__calendar-project {
+  display: block;
+  position: relative;
+  z-index: 1;
+
+  height: $client-calendar-project-height;
+  &.client__calendar-project__no-events {
+    height: $client-calendar-project-height/2;
+  }
+  &.client__calendar-project__has-start {
+    border-top-left-radius: $client-calendar-border-radius;
+    border-bottom-left-radius: $client-calendar-border-radius;
+  }
+  &.client__calendar-project__has-end {
+    border-top-right-radius: $client-calendar-border-radius;
+    border-bottom-right-radius: $client-calendar-border-radius;
+  }
+}
+
+.client__calendar-tooltip-trigger {
+  display: block;
+  position: absolute;
+  background-color: transparent;
+  z-index: 3;
+}
+
+.client_access_control_history.show {
+  .popover .arrow {
+    display: none;
+  }
+  .popover {
+    white-space: normal;
+  }
+  .popover-body {
+    padding: 0px;
+  }
+
+}
+
+.client__calendar-tooltip__table {
+  width: 300px;
+  margin-bottom: 0px;
+  thead tr th {
+    border-bottom: none;
+    border-top: none;
+  }
+  th span {
+    font-weight: normal;
+  }
+  tbody tr td:first-child {
+    border-right: 1px solid #DDDDDD;
+  }
+}
+
+td.client__calendar-tooltip__table__icon {
+  font-weight: bold;
+}
+
+td.client__calendar-tooltip__table__mro {
+  font-weight: bold;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.client__calendar-project__extrapolation {
+  height: $client-calendar-project-height;
+  position: absolute;
+  top:0;
+  bottom: 0px;
+  right: 0px;
+  height: 4px;
+  margin-top: 13px;
+  background-color: #6A1B9A;
+  z-index: 2;
+  i {
+    position: absolute;
+    right: -5px;
+    color: #6A1B9A;
+    top: -5px;
+  }
+}
+
+span.client__calendar-day-event__extrapolation {
+  position: relative;
+  padding-left: 8px;
+  &:after {
+    content: ' ';
+    display: block;
+    height: 4px;
+    background-color: #6A1B9A;
+    position: absolute;
+    left: 1px;
+    width: 50%;
+    top: 50%;
+    margin-top: -1px;
+  }
+  i {
+    color: #6A1B9A;
+  }
+}
+
+.client__calendar-tooltip__table span.client__calendar-day-event__extrapolation:after {
+  margin-top: -2px;
+}
+
+.client__calendar-project__name {
+  font-weight: bold;
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  margin-top: -10px;
+}
+
+.client__calendar-project__start {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  bottom: 0px;
+  width: 12px;
+  background-color: #880E4F;
+  border-top-left-radius: $client-calendar-border-radius;;
+  border-bottom-left-radius: $client-calendar-border-radius;;
+}
+
+.client__calendar-project__end {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  width: 12px;
+  background-color: #880E4F;
+  border-top-right-radius: $client-calendar-border-radius;;
+  border-bottom-right-radius: $client-calendar-border-radius;;
+}
+
+.client__calendar-project__label {
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  z-index: 2;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  strong {
+    padding-right: 4px;
+  }
+  &.client__calendar-project__label-has-start {
+    padding-left: 24px;
+  }
+  &.client__calendar-project__label-has-end {
+    padding-right: 24px;
+  }
+}
+
+.client__calendar-project__day-events {
+  position: absolute;
+  top: 0px;
+  z-index: 2;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  &.client__calendar-project__day-events-has-start {
+    padding-left: 24px;
+  }
+}
+
+.client__calendar-day-event {
+  display: inline-block;
+  margin-right: 8px;
+  line-height: 1;
+  flex: 0 0 auto;
+  span {
+    display: inline-block;
+  }
+}
+
+span.client__calendar-day-event__bed_nights {
+  i {
+    color: #388E3C;
+    font-size: 16px;
+  }
+}
+
+span.client__calendar-day-event__current_situations {
+  background-color: #F57C00;
+  border-radius: 5px;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  padding-top: 2px;
+  i {
+    color: white;
+    font-size: 14px;
+  }
+}
+
+span.client__calendar-day-event__move_in_dates {
+  background-color: #E91E63;
+  border-radius: 5px;
+  text-align: center;
+  width: 20px;
+  height: 20px;
+  padding-top: 2px;
+  i {
+    color: white;
+    font-size: 14px;
+  }
+}
+
+span.client__calendar-day-event__service_dates {
+  i{
+    color: #9F2500;
+    font-size: 18px;
+  }
+}
+
+span.client__calendar-day-event__ce_events {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #546E7A;
+  i{display: none}
+}
+
+span.client__calendar-day-event__custom_events {
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 14px solid #2962FF;
+  i{display: none}
+}
+
+.client__service_type_0 {
+
+  /* border-bottom: 1px solid #0074D9; */
+  &.service-type__program-type,
+  .service-type__program-type {
+    background-color: #96a1fa;
+  }
+}
 .client__service_type_1 {
   /* border-bottom: 1px solid #0074D9; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #80C3FF;
   }
 }
 .client__service_type_2 {
   /* border-bottom: 1px solid #3c84b7; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #8EE698;
   }
 }
 .client__service_type_3 {
   /* border-bottom: 1px solid #299b9b; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #4ACFCF;
   }
 }
 .client__service_type_4 {
   /* border-bottom: 1px solid #3D9970; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #7FCCAB;
   }
 }
 .client__service_type_6 {
   /* border-bottom: 1px solid #8e7a30; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFE380;
   }
 }
 .client__service_type_7 {
   /* border-bottom: 1px solid #d36e15; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #DEDEDE;
   }
 }
 .client__service_type_8 {
   /* border-bottom: 1px solid #FF4136; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #FF9994;
   }
 }
 .client__service_type_9 {
   /* border-bottom: 1px solid #85144b; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #EF9AC1;
   }
 }
 .client__service_type_10 {
   /* border-bottom: 1px solid #ce0ea3; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFA680;
   }
 }
 .client__service_type_11 {
   /* border-bottom: 1px solid #B10DC9; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #FFDBF7;
   }
 }
 .client__service_type_12 {
   /* border-bottom: 1px solid #21992f; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #B2CDE1;
   }
 }
 .client__service_type_13 {
   /* border-bottom: 1px solid #00b750; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #9EFFC5;
   }
 }
 .client__service_type_14 {
   /* border-bottom: 1px solid #001f3f; */
+  &.service-type__program-type,
   .service-type__program-type {
     background-color: #C7E4FF;
   }

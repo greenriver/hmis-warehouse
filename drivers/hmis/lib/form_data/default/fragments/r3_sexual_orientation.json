@@ -1,0 +1,101 @@
+{
+  "type": "GROUP",
+  "link_id": "R3",
+  "text": "Sexual Orientation",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "prefill": true,
+  "rule": {
+    "operator": "ANY",
+    "parts": [
+      {
+        "_comment": "HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 43
+      },
+      {
+        "_comment": "HHS: RHY – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      },
+      {
+        "_comment": "HUD: CoC – Permanent Supportive Housing",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 2
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 54
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 55
+          },
+          {
+            "variable": "projectType",
+            "operator": "EQUAL",
+            "value": 3
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R3.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Sexual Orientation",
+      "pick_list_reference": "SexualOrientation",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "sexualOrientation"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R31.conditionals",
+      "item": [
+        {
+          "type": "STRING",
+          "link_id": "R3.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "If other, please describe",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "sexualOrientationOther"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R3.1",
+              "operator": "EQUAL",
+              "answer_code": "OTHER"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

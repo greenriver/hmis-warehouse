@@ -22,7 +22,7 @@
     "esbuild": "^0.17.19",
     "glob-expand": "^0.2.1",
     "inputmask": "3.3.8",
-    "leaflet": "1.7.1",
+    "leaflet": "1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "minimist": ">=1.2.6",
     "moment": "^2.29.4",
@@ -33,7 +33,7 @@
     "topojson-client": "^3.1.0"
   },
   "devDependencies": {
-    "eslint": "^8.1.0",
+    "eslint": "^8.44.0",
     "prettier": "~2.0.2"
   },
   "resolutions": {

@@ -1,0 +1,26 @@
+.pt-8.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title
+          Signatures
+    %tbody
+      %tr 
+        %td
+          .pt-6
+            .d-flex.align-items-end
+              %strong.pr-1 Patient Signature:  
+              .pctc-print__signature-line 
+            .pt-4.pb-4
+              %strong or
+            .pb-4.d-flex.align-items-center
+              - if @careplan.verbal_approval?
+                %i.icon-checkbox-checked
+              - else
+                %i.icon-checkbox-unchecked
+              .pl-4 Patient unable to sign – verbal approval received
+      %tr
+        %td{style: 'border-bottom:none;'}
+          .d-flex.pt-6.pb-6.align-items-end
+            %strong.pr-1 CP Staff Member Signature: 
+            .pctc-print__signature-line 

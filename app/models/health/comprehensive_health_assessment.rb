@@ -9,6 +9,8 @@
 # Control: PHI attributes documented
 module Health
   class ComprehensiveHealthAssessment < HealthBase
+    include Rails.application.routes.url_helpers
+
     acts_as_paranoid
     phi_patient :patient_id
     phi_attr :user_id, Phi::SmallPopulation, 'ID of user'
@@ -19,6 +21,10 @@ module Health
     phi_attr :health_file_id, Phi::OtherIdentifier, 'ID of health file'
     phi_attr :answers, Phi::FreeText
 
+    def edit_path
+      client_health_cha_path(patient.client_id, id)
+    end
+
     # Generates translation keys of the form "CHA A_Q5_A6"
     def self.answers_for section: nil, question: nil, number: 0
       return [] unless section.present? &&
@@ -28,7 +34,7 @@ module Health
       (1..number).map do |n|
         question_key = "#{section}_Q#{question}"
         answer_key = "#{section}_Q#{question}_A#{n}"
-        value = _("CHA #{answer_key}")
+        value = Translation.translate("CHA #{answer_key}")
         text = value.gsub(/^\d+\./, '').strip # Some values already have numbers
         # text = "#{text} / #{question_key}"
 
@@ -893,10 +899,12 @@ module Health
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
+    scope :reviewed_within, ->(range) { where(reviewed_at: range) }
     scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil) }
     # hide previous declaration of :complete, we'll use this one
     replace_scope :complete, -> { where.not(completed_at: nil) }
     scope :completed, -> { complete }
+    scope :completed_within, ->(range) { where(completed_at: range.begin&.beginning_of_day .. range.end&.end_of_day) }
 
     scope :active, -> do
       reviewed.where(arel_table[:completed_at].gteq(1.years.ago))
@@ -990,16 +998,16 @@ module Health
       hash = answers.dup
       QUESTION_ANSWER_OPTIONS.keys.each do |section_question|
         section_code  = section_question.to_s.upcase.split('_').first
-        section       = _("CHA #{section_code}_TITLE")
-        section_subtitle = _("CHA #{section_code}_SUBTITLE")
-        question = _("CHA #{section_question.upcase}")
+        section       = Translation.translate("CHA #{section_code}_TITLE")
+        section_subtitle = Translation.translate("CHA #{section_code}_SUBTITLE")
+        question = Translation.translate("CHA #{section_question.upcase}")
         question_header = ''
-        question_header = _("CHA #{section_question.upcase}_HEADER") unless "CHA #{section_question.upcase}_HEADER" == _("CHA #{section_question.upcase}_HEADER")
+        question_header = Translation.translate("CHA #{section_question.upcase}_HEADER") unless "CHA #{section_question.upcase}_HEADER" == Translation.translate("CHA #{section_question.upcase}_HEADER")
         question_sub_header = ''
-        question_sub_header = _("CHA #{section_question.upcase}_SUBHEADER") unless "CHA #{section_question.upcase}_SUBHEADER" == _("CHA #{section_question.upcase}_SUBHEADER")
+        question_sub_header = Translation.translate("CHA #{section_question.upcase}_SUBHEADER") unless "CHA #{section_question.upcase}_SUBHEADER" == Translation.translate("CHA #{section_question.upcase}_SUBHEADER")
         if (matches = section_question.match(/(g_q1.)p$/))
           if (code = matches.try(:[], 1)&.upcase)
-            question_header = _("CHA #{code}_HEADER")
+            question_header = Translation.translate("CHA #{code}_HEADER")
           end
         end
         hash[section_code] ||= {}
@@ -1284,7 +1292,7 @@ module Health
     def detect_answer(answer_key, value_key)
       return nil unless answer(answer_key)
 
-      answer(answer_key).include?(_(value_key)) ? 1 : 0
+      answer(answer_key).include?(Translation.translate(value_key)) ? 1 : 0
     end
 
     def format_age(birth_date, reference_date)

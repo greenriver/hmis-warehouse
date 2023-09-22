@@ -1,0 +1,70 @@
+{
+  "type": "GROUP",
+  "link_id": "R1",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ANY",
+    "parts": [
+      {
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "_comment": "All YHDP",
+        "value": 43
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HHS: RHY"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 4
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R1.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Referral Source",
+      "pick_list_reference": "ReferralSource",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "referralSource"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R1.1-dependents",
+      "item": [
+        {
+          "type": "INTEGER",
+          "link_id": "R1.A",
+          "required": false,
+          "text": "Number of times approached by outreach prior to entering project",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "countOutreachReferralApproaches"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R1.1",
+              "operator": "EQUAL",
+              "answer_code": "OUTREACH_PROJECT"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

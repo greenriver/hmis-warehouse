@@ -34,11 +34,11 @@ module WarehouseReports
       scope = filter_for_cocs(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      @enrollments = filter_for_ethnicity(scope)
+      @enrollments = scope
       # go back for the re-entries for those we actually have permission to see
       @re_entries = reporting_class.re_entry.where(enrollment_id: @enrollments.pluck(:id)).index_by(&:enrollment_id)
 
+      @filter.errors.add(:project_type_codes, message: 'are required') if @filter.project_type_codes.blank?
       respond_to do |format|
         format.html do
         end
@@ -71,8 +71,7 @@ module WarehouseReports
         'Days Since Previous Exit',
         'Previous Project Type',
         'Previous Destination',
-        'Ethnicity',
-      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility.race(m).gsub('None', 'Race None') }
+      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility2024.race(m).gsub('None', 'Race None') }
       headers
     end
 
@@ -85,16 +84,15 @@ module WarehouseReports
         row = [client.id]
         row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
         row += [
-          HudUtility.no_yes_reasons_for_missing_data(client.VeteranStatus),
+          HudUtility2024.no_yes_reasons_for_missing_data(client.VeteranStatus),
           enrollment.first_date_in_program,
-          HudUtility.project_type(enrollment.computed_project_type),
+          HudUtility2024.project_type(enrollment.computed_project_type),
           project.name(current_user),
           project.organization_name(current_user),
           re_entry.days_since_last_exit,
-          HudUtility.project_type(re_entry.prior_exit_project_type),
-          HudUtility.destination(re_entry.prior_exit_destination_id),
-          ::HudUtility.ethnicity(client.Ethnicity),
-        ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HudUtility.no_yes_reasons_for_missing_data(m&.to_i) }
+          HudUtility2024.project_type(re_entry.prior_exit_project_type),
+          HudUtility2024.destination(re_entry.prior_exit_destination_id),
+        ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HudUtility2024.no_yes_reasons_for_missing_data(m&.to_i) }
         rows << row
       end
       rows

@@ -8,28 +8,33 @@ require 'faker'
 
 class SeedMaker
   def setup_fake_user
-    unless User.find_by(email: 'noreply@example.com').present?
-      # Add roles
-      admin = Role.where(name: 'Admin').first_or_create
-      admin.update(can_edit_users: true, can_edit_roles: true)
-      dnd_staff = Role.where(name: 'CoC Staff').first_or_create
+    return if User.find_by(email: 'noreply@example.com').present?
 
-      # Add a user.  This should not be added in production
-      unless Rails.env =~ /production|staging/
-        agency = Agency.where(name: 'Sample Agency').first_or_create
-        initial_password = Faker::Internet.password(min_length: 16)
-        user = User.new
-        user.email = 'noreply@example.com'
-        user.first_name = "Sample"
-        user.last_name = 'Admin'
-        user.password = user.password_confirmation = initial_password
-        user.confirmed_at = Time.now
-        user.roles = [admin, dnd_staff]
-        user.agency_id = agency.id
-        user.save!
-        puts "Created initial admin email: #{user.email}  password: #{user.password}"
-      end
-    end
+    # Add roles
+    admin = Role.where(name: 'Admin').first_or_create
+    admin.update(can_edit_users: true, can_edit_roles: true)
+    dnd_staff = Role.where(name: 'CoC Staff').first_or_create
+
+    # Add a user.  This should not be added in production
+    return if Rails.env =~ /production|staging/
+
+    agency = Agency.where(name: 'Sample Agency').first_or_create
+    initial_password = Faker::Internet.password(min_length: 16)
+    user = User.new
+    user.email = 'noreply@example.com'
+    user.first_name = 'Sample'
+    user.last_name = 'Admin'
+    user.password = user.password_confirmation = initial_password
+    user.confirmed_at = Time.now
+    user.permission_context = 'acls'
+    user.agency_id = agency.id
+    user.save!
+    user_group = UserGroup.where(name: 'Fake Admins').first_or_create
+    user_group.add(user)
+    all_ds_entity_collection = Collection.system_collections(:data_sources)
+    AccessControl.create(role: admin, collection: all_ds_entity_collection, user_group: user_group)
+    AccessControl.create(role: dnd_staff, collection: all_ds_entity_collection, user_group: user_group)
+    puts "Created initial admin email: #{user.email}  password: #{user.password}"
   end
 
   def health_disenrollment_reasons
@@ -232,67 +237,52 @@ class SeedMaker
   end
 
   def maintain_lookups
-    HudUtility.cocs.each do |code, name|
+    HudUtility2024.cocs.each do |code, name|
       coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
       coc.update(official_name: name)
     end
     GrdaWarehouse::Lookups::YesNoEtc.transaction do
       GrdaWarehouse::Lookups::YesNoEtc.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::YesNoEtc.import(columns, HudUtility.no_yes_reasons_for_missing_data_options.to_a)
+      GrdaWarehouse::Lookups::YesNoEtc.import(columns, HudUtility2024.no_yes_reasons_for_missing_data_options.to_a)
     end
     GrdaWarehouse::Lookups::LivingSituation.transaction do
       GrdaWarehouse::Lookups::LivingSituation.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::LivingSituation.import(columns, HudUtility.living_situations.to_a)
+      GrdaWarehouse::Lookups::LivingSituation.import(columns, HudUtility2024.living_situations.to_a)
     end
     GrdaWarehouse::Lookups::ProjectType.transaction do
       GrdaWarehouse::Lookups::ProjectType.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::ProjectType.import(columns, HudUtility.project_types.to_a)
-    end
-    GrdaWarehouse::Lookups::Ethnicity.transaction do
-      GrdaWarehouse::Lookups::Ethnicity.delete_all
-      columns = [:value, :text]
-      GrdaWarehouse::Lookups::Ethnicity.import(columns, HudUtility.no_yes_reasons_for_missing_data_options.to_a)
+      GrdaWarehouse::Lookups::ProjectType.import(columns, HudUtility2024.project_types.to_a)
     end
     GrdaWarehouse::Lookups::FundingSource.transaction do
       GrdaWarehouse::Lookups::FundingSource.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::FundingSource.import(columns, HudUtility.funding_sources.to_a)
+      GrdaWarehouse::Lookups::FundingSource.import(columns, HudUtility2024.funding_sources.to_a)
     end
     GrdaWarehouse::Lookups::Gender.transaction do
       GrdaWarehouse::Lookups::Gender.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::Gender.import(columns, HudUtility.genders.to_a)
-    end
-    GrdaWarehouse::Lookups::TrackingMethod.transaction do
-      GrdaWarehouse::Lookups::TrackingMethod.delete_all
-      columns = [:value, :text]
-      GrdaWarehouse::Lookups::TrackingMethod.import(columns, HudUtility.tracking_methods.to_a)
+      GrdaWarehouse::Lookups::Gender.import(columns, HudUtility2024.genders.to_a)
     end
     GrdaWarehouse::Lookups::Relationship.transaction do
       GrdaWarehouse::Lookups::Relationship.delete_all
       columns = [:value, :text]
-      GrdaWarehouse::Lookups::Relationship.import(columns, HudUtility.relationships_to_hoh.to_a)
+      GrdaWarehouse::Lookups::Relationship.import(columns, HudUtility2024.relationships_to_hoh.to_a)
     end
   end
 
   def install_shapes
-    if GrdaWarehouse::Shape::Installer.any_needed?
-      begin
-        Rake::Task['grda_warehouse:get_shapes'].invoke
-      rescue Exception => e
-        Rails.logger.tagged('shapes') do
-          Rails.logger.fatal "Could not run shape importer: #{e.message}"
-        end
+    return unless GrdaWarehouse::Shape::Installer.any_needed?
+
+    begin
+      Rake::Task['grda_warehouse:get_shapes'].invoke
+    rescue Exception => e
+      Rails.logger.tagged('shapes') do
+        Rails.logger.fatal "Could not run shape importer: #{e.message}"
       end
     end
-  end
-
-  def maintain_zip_code_shapes
-    GrdaWarehouse::Shape::ZipCode.calculate_states
-    GrdaWarehouse::Shape::ZipCode.calculate_counties
   end
 
   # These tables are partitioned and need to have triggers and functions that
@@ -321,7 +311,7 @@ class SeedMaker
       can_manage_health_agency: true,
     )
     u = User.not_system.first
-    u.roles << health_admin
+    u.health_roles << health_admin
     Health::AgencyUserSaver.new(user_id: u.id, agency_ids: Health::Agency.pluck(:id)).save
   end
 
@@ -361,25 +351,20 @@ class SeedMaker
   def load_hmis_data
     return unless ENV['ENABLE_HMIS_API'] == 'true'
 
-    # Load FormDefinitions from JSON files
-    HmisUtil::JsonForms.seed_record_form_definitions
-    HmisUtil::JsonForms.seed_assessment_form_definitions
-
-    datasources = GrdaWarehouse::DataSource.hmis
-    return unless datasources.present?
-
-    # Create 1 CustomServiceCategory per HUD RecordType, and
-    # 1 CustomServiceType per HUD TypeProvided
-    datasources.each do |hmis_ds|
-      HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id)
+    ::HmisUtil::JsonForms.new.tap do |builder|
+      # Load ALL the latest record definitions from JSON files.
+      # This also ensures that any system-level instances exist.
+      builder.seed_record_form_definitions
+      # Load ALL the latest assessment definition froms JSON files.
+      builder.seed_assessment_form_definitions
+      # In development, create the initial instances for occurrence-point collection.
+      builder.create_default_occurrence_point_instances! if Rails.env.development?
     end
-
-    # Create FormInstances specifying which Services are available per Project Type / Funder
-    HmisUtil::ServiceTypes.seed_hud_service_form_instances
   end
 
   def populate_internal_system_choices
     return unless ENV['ENABLE_HMIS_API'] == 'true'
+
     HmisExternalApis::InternalSystem::NAMES.each do |name|
       sys = HmisExternalApis::InternalSystem.where(name: name).first_or_initialize
       if sys.new_record?
@@ -398,15 +383,11 @@ class SeedMaker
     maintain_health_seeds
     setup_hmis_admin_access
     load_hmis_data
-    # install_shapes() # run manually as needed
+    install_shapes
     maintain_lookups
     GrdaWarehouse::Help.setup_default_links
     maintain_system_groups
-    maintain_zip_code_shapes
     populate_internal_system_choices
-
-    # for the most recent 50 reports, re-calculate results (which will move the cache to the DB)
-    # Remove this if release-59 has been merged to production
-    # HmisDataQualityTool::Report.ordered.limit(50).find_each(&:results)
+    GrdaWarehouse::SystemColor.ensure_colors
   end
 end

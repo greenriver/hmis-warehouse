@@ -1,0 +1,62 @@
+{
+  "type": "GROUP",
+  "link_id": "R10",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ANY",
+    "parts": [
+      {
+        "_comment": "HHS: RHY – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R10.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Pregnancy Status",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "HEALTH_AND_DV",
+        "field_name": "pregnancyStatus"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R10.1-conditionals",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R10.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "DATE",
+          "link_id": "R10.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Due Date",
+          "mapping": {
+            "record_type": "HEALTH_AND_DV",
+            "field_name": "dueDate"
+          },
+          "bounds": [
+            {
+              "id": "min-due-date",
+              "type": "MIN",
+              "value_local_constant": "$today"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

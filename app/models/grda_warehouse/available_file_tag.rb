@@ -8,6 +8,8 @@ module GrdaWarehouse
   class AvailableFileTag < GrdaWarehouseBase
     include DefaultFileTypes
 
+    belongs_to :tag, class_name: 'ActsAsTaggableOn::Tag', primary_key: :name, foreign_key: :name, optional: true
+
     scope :ordered, -> do
       order(group: :asc, weight: :asc, name: :asc)
     end
@@ -85,17 +87,17 @@ module GrdaWarehouse
     # Taken from here:https://github.com/carrierwaveuploader/carrierwave-i18n/blob/master/rails/locales/en.yml
     # These don't get translated appropriately unless they are here
     # def translations
-    #   _("failed to be processed")
-    #   _("is not of an allowed file type")
-    #   _("could not be downloaded")
-    #   _("You are not allowed to upload %{extension} files, allowed types: %{allowed_types}")
-    #   _("You are not allowed to upload %{extension} files, prohibited types: %{prohibited_types}")
-    #   _("You are not allowed to upload %{content_type} files")
-    #   _("You are not allowed to upload %{content_type} files")
-    #   _("Failed to manipulate with rmagick, maybe it is not an image?")
-    #   _("Failed to manipulate with MiniMagick, maybe it is not an image? Original Error: %{e}")
-    #   _("File size should be greater than %{min_size}")
-    #   _("File size should be less than %{max_size}")
+    #   Translation.translate("failed to be processed")
+    #   Translation.translate("is not of an allowed file type")
+    #   Translation.translate("could not be downloaded")
+    #   Translation.translate("You are not allowed to upload %{extension} files, allowed types: %{allowed_types}")
+    #   Translation.translate("You are not allowed to upload %{extension} files, prohibited types: %{prohibited_types}")
+    #   Translation.translate("You are not allowed to upload %{content_type} files")
+    #   Translation.translate("You are not allowed to upload %{content_type} files")
+    #   Translation.translate("Failed to manipulate with rmagick, maybe it is not an image?")
+    #   Translation.translate("Failed to manipulate with MiniMagick, maybe it is not an image? Original Error: %{e}")
+    #   Translation.translate("File size should be greater than %{min_size}")
+    #   Translation.translate("File size should be less than %{max_size}")
     # end
   end
 end

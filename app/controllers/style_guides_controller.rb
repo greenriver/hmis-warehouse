@@ -130,6 +130,9 @@ class StyleGuidesController < ApplicationController
     @per_page_js = ['js_example']
   end
 
+  def system_colors
+  end
+
   private def guide_routes
     @guide_routes ||= {
       add_goal: 'Add Goal',
@@ -149,6 +152,7 @@ class StyleGuidesController < ApplicationController
       public_reports: 'Reports (Public)',
       tags: 'Tags',
       js_example: 'JS Example',
+      system_colors: 'System Colors',
     }
   end
   helper_method :guide_routes

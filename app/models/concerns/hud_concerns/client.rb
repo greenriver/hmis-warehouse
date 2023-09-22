@@ -8,7 +8,8 @@ module HudConcerns::Client
   extend ActiveSupport::Concern
   included do
     def self.race_fields
-      ::HudUtility.races.keys
+      # TODO: update when we start updating HUD reports
+      ::HudUtility2024.races.keys
     end
 
     # those race fields which are marked as pertinent to the client
@@ -18,7 +19,7 @@ module HudConcerns::Client
 
     # those gender fields which are marked as pertinent to the client
     def gender_fields
-      ::HudUtility.gender_fields.select { |f| send(f).to_i == 1 }
+      ::HudUtility2024.gender_fields.select { |f| send(f).to_i == 1 }
     end
 
     def adult?(on_date = Date.current)
@@ -36,11 +37,9 @@ module HudConcerns::Client
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
     def gender_multi
       @gender_multi ||= [].tap do |gm|
-        gm << 0 if self.Female == 1
-        gm << 1 if self.Male == 1
-        gm << 4 if self.NoSingleGender == 1
-        gm << 5 if self.Transgender == 1
-        gm << 6 if self.Questioning == 1
+        HudUtility2024.gender_field_name_to_id.except(:GenderNone).each do |k, v|
+          gm << v if self[k] == 1
+        end
         # Per the data standards, only look to GenderNone if we don't have a more specific response
         gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
       end
@@ -65,5 +64,7 @@ module HudConcerns::Client
         where(arel_table[:DOB].lteq(start_date - start_age.years))
       end
     end
+
+    scope :adults, -> { age_group(start_age: 18) }
   end
 end

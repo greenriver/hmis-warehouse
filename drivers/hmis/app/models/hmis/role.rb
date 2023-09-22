@@ -9,11 +9,7 @@ class Hmis::Role < ::ApplicationRecord
   # Warehouse roles do not have a paper trail, so neither do these
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
-  has_many :user_access_controls, through: :access_controls
-  has_many :users, through: :user_access_controls
-
-  # has_many :user_hmis_data_source_roles, class_name: '::Hmis::UserHmisDataSourceRole'
-  # has_many :users, through: :user_hmis_data_source_roles, source: :user
+  has_many :users, through: :access_controls
 
   scope :with_all_permissions, ->(*perms) do
     where(**perms.map { |p| [p, true] }.to_h)
@@ -23,6 +19,17 @@ class Hmis::Role < ::ApplicationRecord
     rt = Hmis::Role.arel_table
     where_clause = perms.map { |perm| rt[perm.to_sym].eq(true) }.reduce(:or)
     where(where_clause)
+  end
+
+  scope :with_permissions, ->(*perms, mode: :any) do
+    case mode.to_sym
+    when :any
+      with_any_permissions(*perms)
+    when :all
+      with_all_permissions(*perms)
+    else
+      raise "Invalid permission mode: #{mode}"
+    end
   end
 
   scope :with_editable_permissions, -> do
@@ -38,6 +45,14 @@ class Hmis::Role < ::ApplicationRecord
       return true if description[:administrative] && self[permission]
     end
     false
+  end
+
+  # @param permission [Symbol]
+  # @return [Boolean]
+  def grants?(permission)
+    raise "unknown permission #{permission.inspect}" unless self.class.permissions_with_descriptions.key?(permission)
+
+    send(permission) || false
   end
 
   def self.description_for(permission:)
@@ -85,10 +100,10 @@ class Hmis::Role < ::ApplicationRecord
           'Administration',
         ],
       },
-      can_delete_assigned_project_data: {
-        description: 'Grants access to delete project related data for projects the user can see',
+      can_view_project: {
+        description: 'Grants access to view the project page. This permission also limits enrollment access. For example, a user with "can view enrollment details" can only view enrollment details at projects that they can view.',
         administrative: false,
-        access: [:editable],
+        access: [:viewable],
         categories: [
           'Projects',
         ],
@@ -207,6 +222,14 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_enrollment_details: {
         description: 'Grants access to view enrollments',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_view_open_enrollment_summary: {
+        description: 'Grants access to view minimal information (entry date, project name, move-in date) for all open enrollments for a given client, regardless of whether the user can see those other projects.',
         administrative: false,
         access: [:viewable],
         categories: [

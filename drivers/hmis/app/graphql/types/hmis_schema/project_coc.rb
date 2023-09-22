@@ -9,12 +9,11 @@
 module Types
   class HmisSchema::ProjectCoc < Types::BaseObject
     def self.configuration
-      Hmis::Hud::ProjectCoc.hmis_configuration(version: '2022')
+      Hmis::Hud::ProjectCoc.hmis_configuration(version: '2024')
     end
 
     hud_field :id, ID, null: false
-    hud_field :project, Types::HmisSchema::Project, null: false
-    hud_field :coc_code
+    hud_field :coc_code, null: true
     hud_field :geocode
     hud_field :address1
     hud_field :address2
@@ -26,5 +25,9 @@ module Types
     hud_field :date_created
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
+
+    def user
+      load_ar_association(object, :user)
+    end
   end
 end

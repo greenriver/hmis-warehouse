@@ -22,15 +22,15 @@ module
     end
 
     def race_buckets
-      @race_buckets ||= ::HudUtility.races.merge('MultiRacial' => 'Multi-racial', 'Does Not Know' => 'Client doesn\'t know', 'Refused' => 'Client refused', 'Not Collected' => 'Data not collected').except('RaceNone')
+      @race_buckets ||= ::HudUtility2024.races.merge('MultiRacial' => 'Multi-racial', "Don't Know" => "Don't know", 'Prefers not to answer' => 'Prefers not to answer', 'Not Collected' => 'Data not collected').except('RaceNone')
     end
 
     def race_count(type)
-      race_breakdowns[type]&.count&.presence || 0
+      mask_small_population(race_breakdowns[type]&.count&.presence || 0)
     end
 
     def race_percentage(type)
-      total_count = client_races.count
+      total_count = mask_small_population(client_races.count)
       return 0 if total_count.zero?
 
       of_type = race_count(type)

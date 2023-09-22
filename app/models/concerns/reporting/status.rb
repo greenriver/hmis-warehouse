@@ -26,13 +26,11 @@ module Reporting::Status
     end
 
     def running_for
-      # distance_of_time_in_words(started_at, Time.current)
-      ''
+      distance_of_time_in_words(started_at, Time.current)
     end
 
     def run_time
-      # distance_of_time_in_words(started_at, completed_at)
-      ''
+      distance_of_time_in_words(started_at, completed_at)
     end
 
     def failed?

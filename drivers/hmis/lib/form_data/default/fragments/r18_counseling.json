@@ -1,0 +1,97 @@
+{
+  "type": "GROUP",
+  "link_id": "R18",
+  "text": "Counseling",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+    "parts": [
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      },
+      {
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 4
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R18.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Counseling received by client",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "counselingReceived"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R18.1.conditionals",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "R18.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "R18.A",
+          "required": false,
+          "warn_if_empty": true,
+          "repeats": true,
+          "text": "Type(s) of counseling received",
+          "pick_list_reference": "CounselingMethod",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "counselingMethods"
+          }
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "R18.B",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Number of sessions received by exit",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "sessionCountAtExit"
+          }
+        }
+      ]
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "R18.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Total number of sessions planned in youth's treatment or service plan",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "sessionsInPlan"
+      }
+    },
+    {
+      "link_id": "R18.3",
+      "type": "CHOICE",
+      "pick_list_reference": "NoYesMissing",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "A plan is in place to start or continue counseling after exit",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "postExitCounselingPlan"
+      }
+    }
+  ]
+}

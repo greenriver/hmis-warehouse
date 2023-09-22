@@ -1,0 +1,90 @@
+{
+  "type": "GROUP",
+  "link_id": "R19",
+  "text": "Safe and Appropriate Exit",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach and Homelessness Prevention",
+    "parts": [
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      },
+      {
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 4
+      },
+      {
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 12
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R19.1",
+      "required": false,
+      "component": "RADIO_BUTTONS",
+      "warn_if_empty": true,
+      "text": "Exit destination safe - as determined by the client",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "destinationSafeClient"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R19.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Exit destination safe - as determined by the project/caseworker",
+      "pick_list_reference": "WorkerResponse",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "destinationSafeWorker"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R19.3",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Client has permanent positive adult connections outside of project",
+      "pick_list_reference": "WorkerResponse",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "posAdultConnections"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R19.4",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Client has permanent positive peer connections outside of project",
+      "pick_list_reference": "WorkerResponse",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "posPeerConnections"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "R19.5",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Client has permanent positive community connections outside of project",
+      "pick_list_reference": "WorkerResponse",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "posCommunityConnections"
+      }
+    }
+  ]
+}

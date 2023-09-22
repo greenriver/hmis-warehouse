@@ -46,12 +46,9 @@ module Export::Scopes
 
         # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
         if @coc_codes.present?
-          e_scope = e_scope.left_outer_joins(:enrollment_coc_at_entry).
-            merge(
-              GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: Array(@coc_codes)).
-              or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
-              or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),
-            )
+          e_scope = e_scope.where(EnrollmentCoC: @coc_codes).
+            or(e_scope.where(EnrollmentCoC: nil)).
+            or(e_scope.where.not(EnrollmentCoC: HudUtility2024.cocs.keys))
         end
         e_scope.distinct.preload(:project, :client)
       end

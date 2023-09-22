@@ -22,7 +22,8 @@ jobs:
       matrix:
         test_group:
           - drivers/{a,b,c,d,e,f,g}*
-          - drivers/{h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
+          - drivers/{h,i}*
+          - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
           - spec
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
@@ -54,8 +55,13 @@ jobs:
         ports:
           - 6379:6379
 
-      sftp:
-        image: justinhimself/sftp
+      hmis-warehouse-sftp:
+        image: ghcr.io/greenriver/openpath-sftp:1.0
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        ports:
+          - '2222:22'
 
       minio:
         image: ghcr.io/greenriver/openpath-minio:1.0
@@ -170,8 +176,8 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}/${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_4_2023 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/merged/source/
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_4_2023 }}
+          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
@@ -181,8 +187,19 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_4_2023 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_4_2023 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/results/
+          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          flags: --recursive
+
+      - name: 'Fetch 2022 -> 2024 source files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_4_2023 }}
+          destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
@@ -194,7 +211,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: local_secret_key
           GROVER_NO_SANDBOX: true
           CHROMIUM_PATH: /usr/bin/chromium-browser
-          MAX_FAILURES: 20
+          MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "${{ matrix.test_group }}/**/*_spec.rb"

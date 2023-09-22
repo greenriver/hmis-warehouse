@@ -1,6 +1,6 @@
 - content_for :title, t('.title')
 %h1= content_for :title
-= render partial: 'menus/admin_tabs'
+= render 'menus/admin_tabs'
 = render 'login_chart'
 .o-page
   .o-page__header
@@ -33,7 +33,8 @@
               = sort_link(titles[k], k, directions)
               %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
           %th Roles
-          %th Groups
+          -# TODO: START_ACL cleanup after ACL transition
+          %th Collections/Groups
           %th Status
           %th Actions
       %tbody
@@ -52,16 +53,30 @@
                   %em
                     = link_to 'Agency not assigned!', edit_admin_user_path(id: user), class: 'text-danger'
             %td
-              - user.roles.each do |r|
-                .mb-1= r.name
+              -# TODO: START_ACL cleanup after ACL transition
+              - if user.using_acls?
+                - names = user.roles.map(&:name).uniq
+                - names.each do |name|
+                  .mb-1= name
+              - else
+                - names = user.legacy_roles.map(&:name).uniq
+                - names.each do |name|
+                  .mb-1= name
             %td
-              - user.access_groups.general.each do |g|
-                .mb-1= g.name
+              -# TODO: START_ACL cleanup after ACL transition
+              - names = user.access_groups.general.order(name: :asc).distinct.map(&:name)
+              - names.uniq.sort.each do |name|
+                .mb-1= name
             %td
               - providers = user.oauth_identities.map(&:provider_name).sort.uniq
               - if providers.any?
                 %div= "Sign-in provided by #{providers.to_sentence}"
               = render 'user_invitation_status', user: user
+              -# TODO: START_ACL remove after ACL transition
+              - if user.using_acls?
+                .mt-2
+                  = checkmark(true)
+                  ACLs Enabled
             %td
               - if user.invitation_status != :active || user.access_locked?
                 .mb-6

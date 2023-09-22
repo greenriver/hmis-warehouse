@@ -7,10 +7,14 @@
 module Types
   class BasePaginated < BaseObject
     def self.build(node_class)
-      Class.new(self) do
-        graphql_name("#{node_class.graphql_name.pluralize}Paginated")
+      dynamic_name = "#{node_class.graphql_name.pluralize}Paginated"
+
+      klass = Class.new(self) do
+        graphql_name(dynamic_name)
         field :nodes, [node_class], null: false
       end
+      Object.const_set(dynamic_name, klass) unless Object.const_defined?(dynamic_name)
+      klass
     end
 
     field :has_more_before, Boolean, null: false

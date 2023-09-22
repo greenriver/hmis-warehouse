@@ -8,19 +8,32 @@
       "type": "CHOICE",
       "required": false,
       "link_id": "race",
-      "text": "Race",
+      "text": "Race and Ethnicity",
       "repeats": true,
-      "field_name": "race",
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "race"
+      },
       "pick_list_reference": "Race"
     },
     {
-      "type": "CHOICE",
+      "type": "STRING",
       "required": false,
-      "link_id": "ethnicity",
-      "text": "Ethnicity",
-      "repeats": false,
-      "field_name": "ethnicity",
-      "pick_list_reference": "Ethnicity"
+      "warn_if_empty": false,
+      "link_id": "race-other",
+      "text": "Additional Race and Ethnicity Detail",
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "additionalRaceEthnicity"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "race",
+          "operator": "ENABLED",
+          "answer_boolean": true
+        }
+      ]
     },
     {
       "type": "CHOICE",
@@ -28,8 +41,36 @@
       "link_id": "gender",
       "text": "Gender",
       "repeats": true,
-      "field_name": "gender",
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "gender"
+      },
       "pick_list_reference": "Gender"
+    },
+    {
+      "type": "GROUP",
+      "link_id": "gender-conditionals",
+      "item": [
+        {
+          "type": "TEXT",
+          "required": false,
+          "warn_if_empty": false,
+          "link_id": "gender-other",
+          "text": "If different identity, please specify",
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "differentIdentityText"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "gender",
+              "operator": "INCLUDES",
+              "answer_code": "DIFFERENT_IDENTITY"
+            }
+          ]
+        }
+      ]
     },
     {
       "type": "OPEN_CHOICE",
@@ -37,7 +78,10 @@
       "link_id": "pronouns",
       "text": "Pronouns",
       "repeats": true,
-      "field_name": "pronouns",
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "pronouns"
+      },
       "pick_list_options": [
         {
           "code": "she/her"
@@ -56,8 +100,26 @@
       "repeats": false,
       "link_id": "veteran-status",
       "text": "Veteran Status",
-      "field_name": "veteranStatus",
-      "pick_list_reference": "NoYesReasonsForMissingData"
+      "mapping": {
+        "record_type": "CLIENT",
+        "field_name": "veteranStatus"
+      },
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "_comment": "18yo cutoff date >= DOB. Aka client is adult.",
+          "local_constant": "$age18Dob",
+          "operator": "GREATER_THAN_EQUAL",
+          "compare_question": "dob"
+        },
+        {
+          "_comment": "DOB is unknown",
+          "question": "dob",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ]
     }
   ]
 }

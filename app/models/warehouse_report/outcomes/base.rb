@@ -7,7 +7,7 @@
 class WarehouseReport::Outcomes::Base
   include ArelHelper
 
-  attr_accessor :organization_ids, :data_source_ids, :project_ids, :coc_codes, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status, :filter
+  attr_accessor :organization_ids, :data_source_ids, :project_ids, :coc_codes, :start_date, :end_date, :subpopulation, :household_type, :races, :genders, :age_ranges, :veteran_status, :filter
 
   def initialize(filter)
     @filter = filter
@@ -19,9 +19,9 @@ class WarehouseReport::Outcomes::Base
     @end_date = @filter.end
     @subpopulation = self.class.subpopulation(@filter.sub_population)
     @household_type = Reporting::Housed.household_type(@filter.household_type)
-    @race = Reporting::Housed.race(@filter.races.first)
-    @ethnicity = Reporting::Housed.ethnicity(@filter.ethnicities.first)
-    @gender = Reporting::Housed.gender(@filter.genders.first)
+    @races = @filter.races.presence || :current_scope
+    @genders = @filter.genders.presence || :current_scope
+    @age_ranges = @filter.age_ranges.presence || :current_scope
     @veteran_status = Reporting::Housed.veteran_status(@filter.veteran_statuses.first)
   end
 
@@ -281,7 +281,6 @@ class WarehouseReport::Outcomes::Base
         :project_id,
         :hmis_project_id,
         :race,
-        :ethnicity,
         :gender,
       ]
       housed_scope.
@@ -298,8 +297,8 @@ class WarehouseReport::Outcomes::Base
         destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(row[:client_id])
         destinations[destination][:client_ids] << row[:client_id]
         destinations[destination][:detailed_destinations] ||= {}
-        destinations[destination][:detailed_destinations][HudUtility.destination(row[:destination])] ||= 0
-        destinations[destination][:detailed_destinations][HudUtility.destination(row[:destination])] += 1
+        destinations[destination][:detailed_destinations][HudUtility2024.destination(row[:destination])] ||= 0
+        destinations[destination][:detailed_destinations][HudUtility2024.destination(row[:destination])] += 1
 
         # Support for later
         destinations[destination][:support] ||= []
@@ -314,9 +313,9 @@ class WarehouseReport::Outcomes::Base
   end
 
   def destination_bucket(dest_id)
-    return 'exited to other institution' if HudUtility.institutional_destinations.include?(dest_id)
-    return 'successful exit to PH' if HudUtility.permanent_destinations.include?(dest_id)
-    return 'exited to temporary destination' if HudUtility.temporary_destinations.include?(dest_id)
+    return 'exited to other institution' if HudUtility2024.institutional_destinations.include?(dest_id)
+    return 'successful exit to PH' if HudUtility2024.permanent_destinations.include?(dest_id)
+    return 'exited to temporary destination' if HudUtility2024.temporary_destinations.include?(dest_id)
 
     'other or unknown outcome'
   end
@@ -345,7 +344,7 @@ class WarehouseReport::Outcomes::Base
         distinct.
         pluck(:client_id)
       returner_demographics = Reporting::Return.where(client_id: returner_ids).distinct.
-        pluck(:client_id, :race, :ethnicity, :gender).
+        pluck(:client_id, :race, :gender).
         index_by(&:first) # NOTE: order of pluck is used later for positional access
       returns = {}
       returner_ids.each do |id|
@@ -362,9 +361,8 @@ class WarehouseReport::Outcomes::Base
           bucket: bucket(days_to_return),
           client_id: id,
           race: returner_demographics[id][1],
-          ethnicity: returner_demographics[id][2]&.to_i,
-          gender: returner_demographics[id][3],
-          destination: HudUtility.destination(destination),
+          gender: returner_demographics[id][2],
+          destination: HudUtility2024.destination(destination),
         }
       end
       returns
@@ -554,7 +552,6 @@ class WarehouseReport::Outcomes::Base
       :project_id,
       :hmis_project_id,
       :race,
-      :ethnicity,
       :gender,
     ]
 
@@ -631,7 +628,6 @@ class WarehouseReport::Outcomes::Base
       :project_id,
       :hmis_project_id,
       :race,
-      :ethnicity,
       :gender,
     ]
 
@@ -672,7 +668,7 @@ class WarehouseReport::Outcomes::Base
 
         clients[project_name].each do |row|
           # Only count clients who exited in this month to a permanent destination
-          next unless HudUtility.permanent_destinations.include?(row[:destination])
+          next unless HudUtility2024.permanent_destinations.include?(row[:destination])
           next unless (beginning_of_month..end_of_month).include?(row[:housing_exit])
 
           month_data[month_year]['All']['data'] << row
@@ -710,7 +706,6 @@ class WarehouseReport::Outcomes::Base
       :hmis_project_id,
       :client_id,
       :race,
-      :ethnicity,
       :gender,
     ]
 
@@ -1002,7 +997,6 @@ class WarehouseReport::Outcomes::Base
           row[:days_to_return],
           row[:destination],
           row[:race],
-          row[:ethnicity],
           row[:gender],
         ]
       end
@@ -1021,7 +1015,6 @@ class WarehouseReport::Outcomes::Base
           row[:days_to_return],
           row[:destination],
           row[:race],
-          row[:ethnicity],
           row[:gender],
         ]
       end
@@ -1042,7 +1035,6 @@ class WarehouseReport::Outcomes::Base
           row[:search_end],
           row[:housed_date],
           row[:race],
-          row[:ethnicity],
           row[:gender],
         ]
       end
@@ -1067,7 +1059,6 @@ class WarehouseReport::Outcomes::Base
           row[:project_id],
           row[:hmis_project_id],
           row[:race],
-          row[:ethnicity],
           row[:gender],
         ]
       end
@@ -1084,13 +1075,12 @@ class WarehouseReport::Outcomes::Base
         [
           row[:client_id],
           row[:residential_project],
-          HudUtility.destination(row[:destination]),
+          HudUtility2024.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
           row[:project_id],
           row[:hmis_project_id],
           row[:race],
-          row[:ethnicity],
           row[:gender],
         ]
       end
@@ -1101,13 +1091,12 @@ class WarehouseReport::Outcomes::Base
         [
           row[:client_id],
           row[:residential_project],
-          HudUtility.destination(row[:destination]),
+          HudUtility2024.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
           row[:project_id],
           row[:hmis_project_id],
           row[:race],
-          row[:ethnicity],
           row[:gender],
         ]
       end
@@ -1129,7 +1118,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   def project_source
-    GrdaWarehouse::Hud::Project.viewable_by(@filter.user)
+    GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports)
   end
 
   def client_source
@@ -1162,16 +1151,67 @@ class WarehouseReport::Outcomes::Base
       send(@subpopulation).
       send(@household_type)
 
-    scope = scope.where(race: @race&.to_s) unless @race == :current_scope
-    scope = scope.where(ethnicity: @ethnicity&.to_s&.to_i) unless @ethnicity == :current_scope
-    if @gender != :current_scope
-      gender_column = HudUtility.gender_id_to_field_name[@gender]
-      scope = scope.where(gender_column.downcase => 1)
+    # NOTE: race is a single column in the reporting database table
+    scope = scope.where(race: @races) if @races.present? && @races != :current_scope
+    if @genders.present? && @genders != :current_scope
+      gender = @genders.first
+      column = HudUtility2024.gender_id_to_field_name[gender].downcase
+      a_t = scope.arel_table
+      value = 1
+      value = gender if column == :gendernone
+      gender_query = a_t[column].eq(value)
+
+      @genders.drop(1).each do |gender_number|
+        column = HudUtility2024.gender_id_to_field_name[gender_number].downcase
+        value = 1
+        value = gender_number if column == :gendernone
+        gender_query = gender_query.or(a_t[column].eq(value))
+      end
+      scope = scope.where(gender_query)
+    end
+
+    if @age_ranges.present? && @age_ranges != :current_scope
+      # Or'ing ages is very slow, instead we'll build up an acceptable
+      # array of ages
+      ages = []
+      ages += Filters::FilterBase.age_range(:zero_to_four).to_a if @age_ranges.include?(:zero_to_four)
+      ages += Filters::FilterBase.age_range(:five_to_ten).to_a if @age_ranges.include?(:five_to_ten)
+      ages += Filters::FilterBase.age_range(:eleven_to_fourteen).to_a if @age_ranges.include?(:eleven_to_fourteen)
+      ages += Filters::FilterBase.age_range(:fifteen_to_seventeen).to_a if @age_ranges.include?(:fifteen_to_seventeen)
+      ages += Filters::FilterBase.age_range(:under_eighteen).to_a if @age_ranges.include?(:under_eighteen)
+      ages += Filters::FilterBase.age_range(:eighteen_to_twenty_four).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
+      ages += Filters::FilterBase.age_range(:twenty_five_to_twenty_nine).to_a if @age_ranges.include?(:twenty_five_to_twenty_nine)
+      ages += Filters::FilterBase.age_range(:thirty_to_thirty_four).to_a if @age_ranges.include?(:thirty_to_thirty_four)
+      ages += Filters::FilterBase.age_range(:thirty_five_to_thirty_nine).to_a if @age_ranges.include?(:thirty_five_to_thirty_nine)
+      ages += Filters::FilterBase.age_range(:thirty_to_thirty_nine).to_a if @age_ranges.include?(:thirty_to_thirty_nine)
+      ages += Filters::FilterBase.age_range(:forty_to_forty_four).to_a if @age_ranges.include?(:forty_to_forty_four)
+      ages += Filters::FilterBase.age_range(:forty_five_to_forty_nine).to_a if @age_ranges.include?(:forty_five_to_forty_nine)
+      ages += Filters::FilterBase.age_range(:forty_to_forty_nine).to_a if @age_ranges.include?(:forty_to_forty_nine)
+      ages += Filters::FilterBase.age_range(:fifty_to_fifty_four).to_a if @age_ranges.include?(:fifty_to_fifty_four)
+      ages += Filters::FilterBase.age_range(:fifty_five_to_fifty_nine).to_a if @age_ranges.include?(:fifty_five_to_fifty_nine)
+      ages += Filters::FilterBase.age_range(:sixty_to_sixty_one).to_a if @age_ranges.include?(:sixty_to_sixty_one)
+      ages += Filters::FilterBase.age_range(:sixty_two_to_sixty_four).to_a if @age_ranges.include?(:sixty_two_to_sixty_four)
+      ages += Filters::FilterBase.age_range(:over_sixty_one).to_a if @age_ranges.include?(:over_sixty_one)
+      ages += Filters::FilterBase.age_range(:over_sixty_four).to_a if @age_ranges.include?(:over_sixty_four)
+
+      scope = scope.where(age_on_date(@start_date).in(ages))
     end
     scope = scope.where(veteran_status: @veteran_status&.to_s&.to_i) unless @veteran_status == :current_scope
     scope = scope.heads_of_households if @filter.hoh_only
 
     scope
+  end
+
+  private def age_on_date(start_date)
+    a_t = Reporting::Housed.arel_table
+    cast(
+      datepart(
+        Reporting::Housed,
+        'YEAR',
+        nf('AGE', [nf('GREATEST', [a_t[:search_start], start_date]), a_t[:dob]]),
+      ),
+      'integer',
+    )
   end
 
   def all_projects
@@ -1188,7 +1228,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   private def any_options_chosen?
-    @project_ids.any? || @coc_codes.present? || ! [@race, @ethnicity, @gender, @veteran_status, @household_type, @subpopulation, @filter.only_hoh].all?(:current_scope)
+    @project_ids.any? || @coc_codes.present? || ! [@races, @genders, @age_ranges, @veteran_status, @household_type, @subpopulation, @filter.only_hoh].all?(:current_scope)
   end
 
   def ho_t
@@ -1244,11 +1284,9 @@ class WarehouseReport::Outcomes::Base
       row.each do |header, value|
         case header
         when 'Race'
-          row[header] = HudUtility.race(value)
-        when 'Ethnicity'
-          row[header] = HudUtility.ethnicity(value)
+          row[header] = HudUtility2024.race(value)
         when 'Gender'
-          row[header] = HudUtility.gender(value)
+          row[header] = HudUtility2024.gender(value)
         else
           value
         end

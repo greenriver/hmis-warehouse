@@ -4,6 +4,24 @@
       "fragment": "#destination"
     },
     {
+      "fragment": "#w5_housing_assessment_at_exit"
+    },
+    {
+      "fragment": "#rhy_exit"
+    },
+    {
+      "fragment": "#r7_r8_r9_health"
+    },
+    {
+      "fragment": "#r15_r16_exploitation"
+    },
+    {
+      "fragment": "#c3_youth_education_status"
+    },
+    {
+      "fragment": "#r4_r5_r6_employment_education"
+    },
+    {
       "fragment": "#income_and_sources"
     },
     {

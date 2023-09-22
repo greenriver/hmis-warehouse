@@ -34,7 +34,7 @@ module
               {
                 project_name: project.name(@filter.user),
                 organization_name: project.organization_name(@filter.user),
-                project_type: HudUtility.project_type_brief(project.computed_project_type),
+                project_type: HudUtility2024.project_type_brief(project.computed_project_type),
               },
             ]
           end.to_h
@@ -42,7 +42,7 @@ module
     end
 
     def enrollment_count(type)
-      project_enrollments[type]&.count&.presence || 0
+      mask_small_population(project_enrollments[type]&.count&.presence || 0)
     end
 
     def enrollment_percentage(type)

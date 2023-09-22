@@ -35,7 +35,13 @@ module Types
     end
 
     def client_search(input:, **args)
-      search_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user)
+      # if the search should also sort by rank
+      sorted = args[:sort_order] == :best_match
+      search_scope = Hmis::Hud::Client.client_search(
+        input: input.to_params,
+        user: current_user,
+        sorted: sorted,
+      )
       resolve_clients(search_scope, **args)
     end
 
@@ -44,12 +50,9 @@ module Types
     end
 
     def client_omni_search(text_search:)
-      client_scope = Hmis::Hud::Client.searchable_to(current_user).
+      Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
-        includes(:enrollments).
-        order(qualified_column(e_t[:date_updated]))
-
-      resolve_clients(client_scope, no_sort: true)
+        sort_by_option(:recently_added)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
@@ -74,6 +77,24 @@ module Types
 
     def household(id:)
       Hmis::Hud::Household.viewable_by(current_user).find_by(household_id: id, data_source_id: current_user.hmis_data_source_id)
+    end
+
+    field :household_assessments, [Types::HmisSchema::Assessment], 'Get group of assessments that are performed together', null: true do
+      argument :household_id, ID, required: true
+      argument :assessment_role, Types::Forms::Enums::AssessmentRole, required: true
+      argument :assessment_id, ID, required: false
+    end
+
+    def household_assessments(household_id:, assessment_role:, assessment_id: nil)
+      enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
+      raise HmisErrors::ApiError, 'Access denied' unless enrollments.present?
+
+      Hmis::Hud::CustomAssessment.group_household_assessments(
+        household_enrollments: enrollments,
+        assessment_role: assessment_role,
+        assessment_id: assessment_id,
+        threshold: 3.months,
+      )
     end
 
     field :organization, Types::HmisSchema::Organization, 'Organization lookup', null: true do
@@ -156,7 +177,9 @@ module Types
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
       project = Hmis::Hud::Enrollment.find_by(id: enrollment_id)&.project if enrollment_id.present?
 
-      Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      record.filter_context = { project: project }
+      record
     end
 
     field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
@@ -175,17 +198,20 @@ module Types
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
-      argument :relation_id, ID, required: false
+      argument :project_id, ID, required: false
+      argument :enrollment_id, ID, required: false
+      argument :client_id, ID, required: false
+      argument :household_id, ID, required: false
     end
-    def pick_list(pick_list_type:, relation_id: nil)
-      Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, relation_id: relation_id)
+    def pick_list(pick_list_type:, **args)
+      Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, **args)
     end
 
     field :current_user, Application::User, null: true
 
     access_field do
       Hmis::Role.permissions_with_descriptions.keys.each do |perm|
-        can perm, field_name: perm, method_name: perm, root: true
+        root_can perm
       end
     end
 
@@ -208,6 +234,26 @@ module Types
       postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
 
       scoped_referral_postings(postings, **args)
+    end
+
+    # AC HMIS Queries
+
+    field :esg_funding_report, [Types::AcHmis::EsgFundingService], null: false do
+      argument :client_ids, [ID], required: true
+    end
+
+    def esg_funding_report(client_ids:)
+      cst = Hmis::Hud::CustomServiceType.where(name: 'ESG Funding Assistance').first!
+      raise HmisErrors::ApiError, 'ESG Funding Assistance service not configured' unless cst.present?
+
+      clients = Hmis::Hud::Client.adults.viewable_by(current_user).where(id: client_ids)
+
+      # NOTE: Purposefully does not call `viewable_by`, as the report must include the full service history
+      Hmis::Hud::CustomService.
+        joins(:client).
+        merge(clients).
+        where(custom_service_type: cst, data_source_id: current_user.hmis_data_source_id).
+        preload(:project, :client, :organization)
     end
   end
 end

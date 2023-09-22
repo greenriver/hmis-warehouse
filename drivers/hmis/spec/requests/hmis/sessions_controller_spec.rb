@@ -27,6 +27,10 @@ RSpec.describe Hmis::SessionsController, type: :request do
     it 'user failed_attempts should not increment' do
       expect(user.reload.failed_attempts).to eq 0
     end
+
+    it 'updates session id' do
+      expect(user.reload.hmis_unique_session_id).to be_present
+    end
   end
 
   describe 'Successful logout' do

@@ -1,0 +1,82 @@
+{
+  "type": "GROUP",
+  "link_id": "R20",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+    "parts": [
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      },
+      {
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 4
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R20.2",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Aftercare was provided",
+      "pick_list_reference": "AftercareProvided",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "aftercareProvided"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R20.2.conditionals",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "R20.2",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        }
+      ],
+      "item": [
+        {
+          "type": "DATE",
+          "link_id": "R20.1",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Aftercare Information Date",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "aftercareDate"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "R20.1.methods",
+          "required": false,
+          "warn_if_empty": true,
+          "repeats": true,
+          "text": "Identify the primary way(s) it was provided",
+          "readonly_text": "Primary way(s) it was provided",
+          "pick_list_reference": "AftercareMethod",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "aftercareMethods"
+          },
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "R20.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

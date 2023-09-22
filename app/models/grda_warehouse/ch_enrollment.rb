@@ -199,31 +199,31 @@ module GrdaWarehouse
     # Line 3 (2.02.6)
     def self.project_type(enrollment)
       ptype = enrollment.project.computed_project_type
-      result = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(ptype) ? :continue : :skip
-      { result: result, display_value: "#{ptype} (#{::HudUtility.project_type_brief(ptype)})", line: 3 }
+      result = HudUtility2024.chronic_project_types.include?(ptype) ? :continue : :skip
+      { result: result, display_value: "#{ptype} (#{::HudUtility2024.project_type_brief(ptype)})", line: 3 }
     end
 
     # Line 9  (3.917.1)
     def self.prior_living_sitation_homeless(enrollment)
       value = enrollment.LivingSituation
-      result = HudUtility.homeless_situations(as: :prior).include?(value) ? :continue : :skip
-      display_value = value ? "#{value} (#{::HudUtility.living_situation(value)})" : ''
+      result = HudUtility2024.homeless_situations(as: :prior).include?(value) ? :continue : :skip
+      display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 9 }
     end
 
     # Line 14 (3.917.1)
     def self.prior_living_sitation_institutional(enrollment)
       value = enrollment.LivingSituation
-      result = HudUtility.institutional_situations(as: :prior).include?(value) ? :continue : :skip
-      display_value = value ? "#{value} (#{::HudUtility.living_situation(value)})" : ''
+      result = HudUtility2024.institutional_situations(as: :prior).include?(value) ? :continue : :skip
+      display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 14 }
     end
 
     # Line 21 (3.917.1)
     def self.prior_living_sitation_other(enrollment)
       value = enrollment.LivingSituation
-      is_other = (HudUtility.temporary_and_permanent_housing_situations(as: :prior) + HudUtility.other_situations(as: :prior)).include?(value)
-      display_value = value ? "#{value} (#{::HudUtility.living_situation(value)})" : ''
+      is_other = (HudUtility2024.temporary_situations(as: :prior) + HudUtility2024.permanent_situations(as: :prior) + HudUtility2024.other_situations(as: :prior)).include?(value)
+      display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
       { result: is_other ? :continue : :skip, display_value: display_value, line: 21 }
     end
 
@@ -231,13 +231,13 @@ module GrdaWarehouse
     def self.approximate_start_date(enrollment, date: enrollment.EntryDate)
       ch_start_date = [enrollment.DateToStreetESSH, enrollment.EntryDate].compact.min
       project = enrollment.project
-      days = if date != enrollment.EntryDate && (project.so? || project.es? && project.bed_night_tracking?)
+      days = if date != enrollment.EntryDate && (project.so? || project.es_nbn?)
         dates_in_enrollment_between(enrollment, enrollment.EntryDate, date).count + (enrollment.EntryDate - ch_start_date).to_i
       else
         (date - ch_start_date).to_i
       end
       result = days >= 365 ? :yes : :continue
-      { result: result, display_value: "#{days} days  (#{ch_start_date.strftime('%m/%d/%Y')} - #{date.strftime('%m/%d/%Y')})" }
+      { result: result, display_value: "#{days} days  (#{ch_start_date&.strftime('%m/%d/%Y')} - #{date&.strftime('%m/%d/%Y')})" }
     end
 
     # Lines 5, 11, 18, and 25 (3.917.4)
@@ -267,7 +267,7 @@ module GrdaWarehouse
       # the months served. (This is only used for Chronic-at-PIT calculation, not Chronic-at-Entry).
       if date != enrollment.EntryDate && enrollment.MonthsHomelessPastThreeYears.present? && enrollment.MonthsHomelessPastThreeYears > 100
         project = enrollment.project
-        months_in_enrollment = if project.so? || project.es? && project.bed_night_tracking?
+        months_in_enrollment = if project.so? || project.es_nbn?
           dates_in_enrollment_between(enrollment, enrollment.EntryDate, date).map do |d|
             [d.month, d.year]
           end.uniq.count
@@ -326,7 +326,7 @@ module GrdaWarehouse
       },
       3 => {
         title: 'Project Type',
-        descriptions: ['If 1, 4 or 8, CONTINUE processing on line 4.'],
+        descriptions: ['If 0, 1, 4 or 8, CONTINUE processing on line 4.'],
       },
       4 => {
         title: 'Days since approximate start date',
@@ -342,7 +342,7 @@ module GrdaWarehouse
       },
       9 => {
         title: 'Prior Living Situation (3.917B Homeless Situation)',
-        descriptions: ['If 16, 1, 18, CONTINUE processing on line 10.'],
+        descriptions: ['If 100..199, CONTINUE processing on line 10.'],
       },
       10 => {
         title: 'Days since approximate start date',
@@ -358,7 +358,7 @@ module GrdaWarehouse
       },
       14 => {
         title: 'Prior Living Situation (3.917B Institutional Situation)',
-        descriptions: ['If 15, 6, 7, 25, 4, 5, CONTINUE processing on line 15.'],
+        descriptions: ['If 200..299, CONTINUE processing on line 15.'],
       },
       15 => {
         title: 'Did you stay longer than 90 days?',
@@ -381,8 +381,8 @@ module GrdaWarehouse
         descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1, 2, or 3 times, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
       },
       21 => {
-        title: 'Prior Living Situation (3.917B Temporary, Permanent, and other Situations:)',
-        descriptions: ['If 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99, CONTINUE processing on line 22.'],
+        title: 'Prior Living Situation (3.917B Temporary, Permanent, and Other Situations:)',
+        descriptions: ['If  0..99 or in 300..499, CONTINUE processing on line 22.'],
       },
       22 => {
         title: 'Did you stay less than 7 nights?',

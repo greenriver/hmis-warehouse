@@ -15,11 +15,11 @@ module PublicReports
     MIN_THRESHOLD = 11
 
     def title
-      _('Homeless Populations Report Generator')
+      Translation.translate('Homeless Populations Report Generator')
     end
 
     def instance_title
-      _('Homeless Population Report')
+      Translation.translate('Homeless Population Report')
     end
 
     private def public_s3_directory
@@ -125,11 +125,11 @@ module PublicReports
 
     def populations
       {
-        overall: _('People Experiencing Homelessness'),
-        housed: _('People Housed'),
-        individuals: _('Individuals'),
-        adults_with_children: _('People in Families'),
-        veterans: _('Veterans'),
+        overall: Translation.translate('People Experiencing Homelessness'),
+        housed: Translation.translate('People Housed'),
+        individuals: Translation.translate('Individuals'),
+        adults_with_children: Translation.translate('People in Families'),
+        veterans: Translation.translate('Veterans'),
       }
     end
 
@@ -189,7 +189,6 @@ module PublicReports
         time_homeless: time_homeless(population),
         time_housed: time_housed(population),
         race_chart: race_chart(population),
-        ethnicity_chart: ethnicity_chart(population),
         household_chart: household_chart(population),
         average_household_size: average_household_size(population),
       }
@@ -342,7 +341,7 @@ module PublicReports
                 ['Rapid-Rehousing', rrh],
                 ['Permanent Housing', psh],
               ],
-              title: _('Type of Housing'),
+              title: Translation.translate('Type of Housing'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           when :homeless
@@ -355,7 +354,7 @@ module PublicReports
                 ['Sheltered', sheltered],
                 ['Unsheltered', unsheltered],
               ],
-              title: _('Where People are Staying'),
+              title: Translation.translate('Where People are Staying'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           else
@@ -371,7 +370,7 @@ module PublicReports
                 ['Homeless', homeless],
                 ['Housed', housed],
               ],
-              title: _('Homeless or Housed'),
+              title: Translation.translate('Homeless or Housed'),
               total: total_for(with_service_in_quarter(report_scope, date, population), population),
             }
           end
@@ -419,11 +418,11 @@ module PublicReports
             group(GrdaWarehouse::Hud::Client.gender_binary_sql_case).
             count.
             map do |gender_id, count|
-              # Force any count to be at least the minimum allowe
+              # Force any count to be at least the minimum allowed
               # Force any unknown genders to Unknown
-              gender_id = nil unless gender_id.in?([0, 1, 2, 5, 6])
+              gender_id = nil unless gender_id.in?([0, 1, 2, 3, 4, 5, 6])
               [
-                ::HudUtility.gender(gender_id) || 'Unknown',
+                ::HudUtility2024.gender(gender_id) || 'Unknown',
                 count,
               ]
             end.to_h
@@ -447,7 +446,7 @@ module PublicReports
 
           charts[date.iso8601] = {
             data: genders.to_a,
-            title: _('Gender'),
+            title: Translation.translate('Gender'),
             total: total,
           }
         end
@@ -486,7 +485,7 @@ module PublicReports
 
           charts[date.iso8601] = {
             data: ages.to_a,
-            title: _('Age'),
+            title: Translation.translate('Age'),
             total: total,
           }
         end
@@ -520,53 +519,6 @@ module PublicReports
       }.freeze
     end
 
-    private def ethnicity_chart(population)
-      {}.tap do |charts|
-        quarter_dates.each do |date|
-          data = with_service_in_quarter(report_scope, date, population).
-            joins(:client).
-            group(c_t[:Ethnicity]).
-            count.
-            map do |e_id, count|
-              # Force any unknown ethnicties to Unknown
-              e_id = nil unless e_id.in?([0, 1])
-              [
-                ::HudUtility.ethnicity(e_id) || 'Unknown',
-                count,
-              ]
-            end.to_h
-          data['Unknown'] ||= 0
-          counts = data.values
-          # Set the total string for the middle before we do cleanup
-          # Special case for families because we're actually showing ethnicity for all clients, not HoH
-          word = if population == :adults_with_children
-            word_for(nil)
-          else
-            word_for(population)
-          end
-          total = with_service_in_quarter(report_scope, date, population).select(:client_id).distinct.count
-          total = if total < 100
-            "less than #{pluralize(100, word)}"
-          else
-            pluralize(number_with_delimiter(total), word)
-          end
-
-          counts = enforce_min_threshold(counts, 'donut')
-
-          ethnicities = {}
-          data.each.with_index do |(k, _), i|
-            ethnicities[k] = counts[i]
-          end
-
-          charts[date.iso8601] = {
-            data: ethnicities.to_a,
-            title: _('Ethnicity'),
-            total: total,
-          }
-        end
-      end
-    end
-
     private def race_chart(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -575,9 +527,9 @@ module PublicReports
           data = {}
           census_data = {}
           # Add census info
-          ::HudUtility.races(multi_racial: true).each do |race_code, label|
+          ::HudUtility2024.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican').each do |race_code, label|
             census_data[label] = 0
-            data[::HudUtility.race(race_code, multi_racial: true)] ||= Set.new
+            data[::HudUtility2024.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
             census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop&.positive?
@@ -590,7 +542,7 @@ module PublicReports
             find_each do |enrollment|
               client = enrollment.client
               race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
-              data[::HudUtility.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
+              data[::HudUtility2024.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum
@@ -617,7 +569,7 @@ module PublicReports
             # sum value after getting appropriate set of rows
             # add index on [accurate_on, identifier, type, measure]
             data: combined_data,
-            title: _('Racial Composition'),
+            title: Translation.translate('Racial Composition'),
             total: total_for(with_service_in_quarter(report_scope, date, population), population),
             categories: ['Homeless Population', 'Overall Population'],
           }
@@ -708,7 +660,7 @@ module PublicReports
           end
           charts[date.iso8601] = {
             data: household_compositions.to_a,
-            title: _('Household Composition'),
+            title: Translation.translate('Household Composition'),
             total: total,
           }
         end
@@ -799,7 +751,7 @@ module PublicReports
 
           charts[date.iso8601] = {
             data: (clients.to_f / hohs).round(1),
-            title: _('Average Household Size'),
+            title: Translation.translate('Average Household Size'),
             total: total_for(with_service_in_quarter(report_scope, date, population), population),
           }
         end
@@ -842,7 +794,7 @@ module PublicReports
           end
           charts[date.iso8601] = {
             data: times.to_a,
-            title: _('Time Homeless'),
+            title: Translation.translate('Time Homeless'),
             total: total,
           }
         end
@@ -900,7 +852,7 @@ module PublicReports
           end
           charts[date.iso8601] = {
             data: times.to_a,
-            title: _('Time in Project'),
+            title: Translation.translate('Time in Project'),
             total: total,
           }
         end

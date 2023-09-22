@@ -17,7 +17,9 @@ class Hmis::Unit < Hmis::HmisBase
   belongs_to :user, class_name: 'User'
 
   # All historical and current occupancies of this unit
-  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
+  has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit, dependent: :destroy
+  has_many :active_unit_occupancies, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :unit
+  has_many :current_occupants, through: :active_unit_occupancies, class_name: 'Hmis::Hud::Enrollment', source: :enrollment
 
   alias_attribute :date_updated, :updated_at
   alias_attribute :date_created, :created_at
@@ -36,8 +38,9 @@ class Hmis::Unit < Hmis::HmisBase
 
   scope :active, ->(date = Date.current) do
     active_unit_ids = joins(:active_ranges).merge(Hmis::ActiveRange.active_on(date)).pluck(:id)
+    units_without_active_range = left_outer_joins(:active_ranges).where(ar_t[:id].eq(nil)).pluck(:id)
 
-    where(id: active_unit_ids)
+    where(id: active_unit_ids + units_without_active_range)
   end
 
   # Filter scope
@@ -70,7 +73,6 @@ class Hmis::Unit < Hmis::HmisBase
     enrollment_ids = unit_occupancies.active_on(date).pluck(:enrollment_id)
     Hmis::Hud::Enrollment.where(id: enrollment_ids)
   end
-  alias occupants occupants_on
 
   def start_date
     Hmis::ActiveRange.most_recent_for_entity(self)&.start_date
@@ -80,7 +82,19 @@ class Hmis::Unit < Hmis::HmisBase
     Hmis::ActiveRange.most_recent_for_entity(self)&.end_date
   end
 
+  # Class method so can use with data loader
+  def self.display_name(id:, name: nil, unit_type: nil)
+    return name if name.present?
+    return "#{unit_type.description} (ID: #{id})" if unit_type.present?
+
+    "Unit #{id}"
+  end
+
+  def display_name
+    self.class.display_name(id: id, name: name, unit_type: unit_type)
+  end
+
   def to_pick_list_option
-    { code: id, label: name, secondary_label: unit_type&.description }
+    { code: id, label: display_name }
   end
 end

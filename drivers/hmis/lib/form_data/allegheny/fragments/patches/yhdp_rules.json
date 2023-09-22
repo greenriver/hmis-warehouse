@@ -1,0 +1,119 @@
+[
+  {
+    "link_id": "c3-youth-education-status",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R4.1",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R10",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R13",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R15",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R16",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R17",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R19",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R20",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  }
+]

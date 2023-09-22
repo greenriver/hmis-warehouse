@@ -8,6 +8,8 @@ class Hmis::BaseController < ApplicationController
   include Hmis::Concerns::JsonErrors
   respond_to :json
   before_action :set_csrf_cookie
+  before_action :set_app_user_header
+  before_action :set_git_revision_header
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
@@ -43,5 +45,13 @@ class Hmis::BaseController < ApplicationController
   # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored
   def user_for_paper_trail
     current_hmis_user&.id
+  end
+
+  def set_app_user_header
+    response.headers['X-app-user-id'] = current_hmis_user&.id
+  end
+
+  def set_git_revision_header
+    response.headers['X-git-revision'] = Git.revision
   end
 end

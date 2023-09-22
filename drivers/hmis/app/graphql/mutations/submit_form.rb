@@ -24,24 +24,32 @@ module Mutations
       # Find or create record
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
+        entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else
-        record = klass.new(
-          **related_id_attributes(klass.name, input),
-          data_source_id: current_user.hmis_data_source_id, # Not all records actually have this, but we need it to check permissions for some of them
-        )
+        entity_for_permissions, record = permission_base_and_record(klass, input, current_user.hmis_data_source_id)
       end
+
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
 
       # Check permission
-      allowed = true
-      allowed = current_user.permissions_for?(record, *Array(definition.record_editing_permission)) if definition.record_editing_permission.present?
-      allowed = definition.allowed_proc.call(record, current_user) if definition.allowed_proc.present?
+      allowed = nil
+      perms_to_check = definition.record_editing_permissions
+      if definition.allowed_proc.present?
+        allowed = definition.allowed_proc.call(entity_for_permissions, current_user)
+      elsif perms_to_check.any? && entity_for_permissions.present?
+        allowed = current_user.permissions_for?(entity_for_permissions, *perms_to_check)
+      elsif perms_to_check.any?
+        # if there was no entity specified, perms are checked globally
+        allowed = current_user.permissions?(*perms_to_check)
+      else
+        # allow if no permission check defined
+        allowed = true
+      end
       raise HmisErrors::ApiError, 'Access Denied' unless allowed
 
-      # Build CustomForm
-      # It wont be persisted, but it handles validation and initializes a form processor to process values
-      custom_form = Hmis::Form::CustomForm.new(
-        owner: record,
+      # Build FormProcessor
+      # It wont be persisted, but it handles validation and updating the relevant record(s)
+      form_processor = Hmis::Form::FormProcessor.new(
         definition: definition,
         values: input.values,
         hud_values: input.hud_values,
@@ -49,18 +57,17 @@ module Mutations
 
       # Validate based on FormDefinition
       errors = HmisErrors::Errors.new
-      form_validations = custom_form.collect_form_validations
+      form_validations = form_processor.collect_form_validations
       errors.push(*form_validations)
 
-      # Run processor to create/update record(s)
-      custom_form.form_processor.run!(owner: record, user: current_user)
+      # Run processor to assign attributes to the record(s)
+      form_processor.run!(owner: record, user: current_user)
 
-      # Run both validations
-      is_valid = record.valid?
-      is_valid = custom_form.valid? && is_valid
+      # Validate record. Pass 2 contexts: 1 for general form submission, 1 for this specific role.
+      is_valid = record.valid?([:form_submission, "#{definition.role.to_s.downcase}_form".to_sym])
 
       # Collect validations and warnings from AR Validator classes
-      record_validations = custom_form.collect_record_validations(user: current_user)
+      record_validations = form_processor.collect_record_validations(user: current_user)
       errors.push(*record_validations)
 
       errors.drop_warnings! if input.confirmed
@@ -71,11 +78,19 @@ module Mutations
         # Perform any side effects
         perform_side_effects(record)
 
-        if record.is_a? Hmis::Hud::HmisService
+        case record
+        when Hmis::Hud::HmisService
           record.owner.save! # Save the actual service record
           record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
-        elsif record.is_a? HmisExternalApis::AcHmis::ReferralRequest
+        when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
+        when Hmis::Hud::Enrollment
+          record.client.save! if record.client.changed? # Enrollment form may create or update client
+          if record.new_record? || record.in_progress?
+            record.save_in_progress
+          else
+            record.save!
+          end
         else
           record.save!
           record.touch
@@ -88,9 +103,6 @@ module Mutations
           record.enrollment&.save!
         end
       else
-        # These are potentially unfixable errors. Maybe should be server error instead.
-        # For now, return them all because they are useful in development.
-        errors.add_ar_errors(custom_form.errors&.errors)
         errors.add_ar_errors(record.errors&.errors)
         record = nil
       end
@@ -105,49 +117,67 @@ module Mutations
     end
 
     private def perform_side_effects(record)
-      if record.is_a?(Hmis::Hud::Client)
-        if record.new_record?
-          GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
-        else
-          GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing!
+      case record
+      when Hmis::Hud::Client, Hmis::Hud::Enrollment
+        # If a Client record was created or updated, queue up IdentifyDuplicates job. This creates the warehouse destination client.
+        client = record.is_a?(Hmis::Hud::Enrollment) ? record.client : record
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run! if client.new_record?
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing! if client.changed?
+      when Hmis::Hud::HmisService
+        # If a HUD Service was created, process service history enrollments
+        if record.new_record? && record.hud_service? && !record.enrollment.in_progress?
+          record.enrollment.invalidate_processing!
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
         end
+      when Hmis::Hud::Project
+        # If a project was closed, close related Funders and Inventory
+        project_closed = record.operating_end_date_was.nil? && record.operating_end_date.present?
+        record.close_related_funders_and_inventory! if project_closed
       end
-
-      return unless record.is_a? Hmis::Hud::Project
-      return unless record.operating_end_date_was.nil? && record.operating_end_date.present?
-
-      record.close_related_funders_and_inventory!
     end
 
-    private def related_id_attributes(class_name, input)
-      case class_name
+    # For NEW RECORD CREATION ONLY, get the permission base that should be used to check permissions,
+    # as well the initial record, initialized with any related record attributes.
+    private def permission_base_and_record(klass, input, data_source_id)
+      project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id) if input.project_id.present?
+      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id) if input.client_id.present?
+      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id) if input.enrollment_id.present?
+      organization = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: input.organization_id) if input.organization_id.present?
+      custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id) if input.service_type_id.present?
+
+      ds = { data_source_id: data_source_id }
+      case klass.name
+      when 'Hmis::Hud::Client'
+        # 'nil' because there is no permission base for client creation; the permission is checked globally.
+        [nil, klass.new(ds)]
+      when 'Hmis::Hud::Organization'
+        # 'nil' because there is no permission base for organization creation; the permission is checked globally.
+        [nil, klass.new(ds)]
       when 'Hmis::Hud::Project'
-        {
-          organization_id: Hmis::Hud::Organization.viewable_by(current_user).find_by(id: input.organization_id)&.OrganizationID,
-        }
+        [organization, klass.new({ organization_id: organization&.organization_id, **ds })]
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory'
-        {
-          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.ProjectID,
-        }
-      when 'HmisExternalApis::AcHmis::ReferralRequest'
-        {
-          project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.id,
-        }
+        [project, klass.new({ project_id: project&.project_id, **ds })]
+      when 'Hmis::Hud::Enrollment'
+        [project, klass.new({ project_id: project&.project_id, personal_id: client&.personal_id, **ds })]
+      when 'Hmis::Hud::CurrentLivingSituation'
+        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       when 'Hmis::Hud::HmisService'
-        enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)
-        custom_service_type = Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id)
-        {
-          enrollment_id: enrollment&.EnrollmentID,
-          personal_id: enrollment&.PersonalID,
-          custom_service_type_id: custom_service_type&.id,
-        }
+        [
+          enrollment, klass.new({
+                                  enrollment_id: enrollment&.EnrollmentID,
+                                  personal_id: enrollment&.PersonalID,
+                                  custom_service_type_id: custom_service_type&.id,
+                                  **ds,
+                                })
+        ]
+      when 'HmisExternalApis::AcHmis::ReferralRequest'
+        [project, klass.new({ project_id: project&.id })]
       when 'Hmis::File'
-        {
-          client_id: Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id)&.id,
-          enrollment_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.id,
-        }
+        [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
+      when 'Hmis::Hud::Assessment', 'Hmis::Hud::CustomCaseNote', 'Hmis::Hud::Event'
+        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       else
-        {}
+        raise "No permission base specified for creating a new record of type #{klass.name}"
       end
     end
   end

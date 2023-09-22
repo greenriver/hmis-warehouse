@@ -48,7 +48,7 @@ module CePerformance
     end
 
     def self.title
-      _('Average Length of Time from CE Project Entry to Housing Referral')
+      Translation.translate('Average Length of Time from CE Project Entry to Housing Referral')
     end
 
     def self.category
@@ -82,7 +82,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "Average: #{value.to_i} #{unit}"
+      "Average: #{number_with_delimiter(value.to_i)} #{unit}"
     end
 
     def unit

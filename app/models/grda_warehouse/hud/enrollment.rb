@@ -146,10 +146,13 @@ module GrdaWarehouse::Hud
       joins(:project).merge(Project.hud_non_residential)
     end
     scope :with_project_type, ->(project_types) do
-      joins(:project).merge(Project.with_project_type(project_types))
+      joins(:project).merge(::GrdaWarehouse::Hud::Project.with_project_type(project_types))
     end
 
     scope :visible_in_window_to, ->(user) do
+      # visible_to also includes logic to include visible_in_window
+      # Now that we are using ACLs the expectation is that you grant access
+      # to the data a user should be able to see
       visible_to(user)
     end
 
@@ -233,10 +236,6 @@ module GrdaWarehouse::Hud
       }
     end
 
-    def self.invalidate_processing!
-      update_all(processed_as: nil, processed_hash: nil)
-    end
-
     def open_during_range?(range)
       self.EntryDate <= range.last && (exit&.ExitDate.blank? || exit.ExitDate > range.first)
     end
@@ -263,32 +262,11 @@ module GrdaWarehouse::Hud
       end
     end
 
-    NominatimApiPaused = Class.new(StandardError)
-
     def address_lat_lon
       return unless address.present?
 
-      begin
-        result = Rails.cache.fetch(['Nominatim', address.to_s], expires_in: 6.weeks) do
-          raise(NominatimApiPaused, 'Nominatim Paused') if Rails.cache.read(['Nominatim', 'API PAUSE'])
-
-          sleep(0.75)
-          begin
-            Nominatim.search(address).country_codes('us').first
-          rescue Faraday::ConnectionFailed
-            # we've probably been banned, let the API cool off
-            Rails.cache.write(['Nominatim', 'API PAUSE'], true, expires_in: 1.hours)
-            raise(NominatimApiPaused, 'Nominatim Paused')
-          end
-        end
-        return { address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
-      rescue NominatimApiPaused
-        # Ignore errors if we are paused
-      rescue StandardError
-        setup_notifier('NominatimWarning')
-        @notifier.ping("Error contacting the OSM Nominatim API. Looking address for enrollment id: #{id}") if @send_notifications
-      end
-      return nil
+      lat, lon, bound = ::GrdaWarehouse::Place.lookup_lat_lon(query: address)
+      return { address: address, lat: lat, lon: lon, boundingbox: bound } if bound.present?
     end
 
     # Removed 8/14/2019
@@ -337,12 +315,12 @@ module GrdaWarehouse::Hud
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode?
-      return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.ProjectType)
+      return false unless HudUtility2024.chronic_project_types.include?(project.ProjectType)
 
       thirty_days_ago = self.EntryDate - 30.days
       ninety_days_ago = self.EntryDate - 90.days
 
-      non_homeless_residential = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      non_homeless_residential = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
       currently_housed = client.destination_client.service_history_enrollments.
         joins(:service_history_services).
         merge(
@@ -370,7 +348,7 @@ module GrdaWarehouse::Hud
             date: thirty_days_ago...self.EntryDate,
           ),
         ).
-        where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
+        where(project_type: HudUtility2024.chronic_project_types).
         where.not(enrollment_group_id: self.EnrollmentID).
         exists?
       return true if ! currently_housed && housed_for_week_in_past_90_days && ! other_homeless
@@ -389,6 +367,18 @@ module GrdaWarehouse::Hud
     # @return [Symbol] :yes, :no, :dk_or_r, or :missing
     def chronically_homeless_at_start(date: self.EntryDate)
       GrdaWarehouse::ChEnrollment.chronically_homeless_at_start(self, date: date)
+    end
+
+    # Taken from Client.enrollments_for to be able to use it on the chronic page more easily
+    def max_date_served
+      @max_date_served ||= begin
+        services = service_history_enrollment.service_history_services
+        if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+          services.where(record_type: GrdaWarehouse::Hud::Client.service_types).maximum(:date)
+        else
+          services.service_excluding_extrapolated.maximum(:date)
+        end
+      end
     end
 
     # NOTE: this must be included at the end of the class so that scopes can override correctly

@@ -1,0 +1,115 @@
+{
+  "type": "GROUP",
+  "link_id": "family-critical-issues",
+  "text": "Family Critical Issues",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+    "parts": [
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      },
+      {
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 4
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "GROUP",
+      "component": "INPUT_GROUP",
+      "link_id": "R13",
+      "item": [
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R13.9",
+          "required": false,
+          "warn_if_empty": false,
+          "text": "Unemployment - Family member",
+          "_comment": "Issues associated with the inability to of an adult member in the youth’s family to find and secure steady employment.",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "unemploymentFam"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R13.11",
+          "required": false,
+          "warn_if_empty": false,
+          "text": "Mental Health Disorder - Family member",
+          "_comment": "Issues related to a family member’s mental health status.",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "mentalHealthDisorderFam"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R13.15",
+          "required": false,
+          "warn_if_empty": false,
+          "text": "Physical Disability - Family member",
+          "_comment": "Issues related to a family member’s physical disability or impairment.",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "physicalDisabilityFam"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R13.21",
+          "required": false,
+          "warn_if_empty": false,
+          "text": "Alcohol or Substance Use Disorder - Family member",
+          "_comment": "Any misuse of alcohol, or legal or illegal drugs within the household.",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "alcoholDrugUseDisorderFam"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R13.22",
+          "required": false,
+          "warn_if_empty": false,
+          "text": "Insufficient Income to Support Youth - Family member",
+          "_comment": "Issues related to insufficient incomes of the parents/legal guardians to support the basic needs of the youth (e.g., food, clothing, and shelter).",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "insufficientIncome"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "R13.24",
+          "required": false,
+          "warn_if_empty": false,
+          "text": "Incarcerated Parent of Youth",
+          "_comment": "Issues related to the incarceration of a parent or legal guardian.",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "incarceratedParent"
+          }
+        }
+      ]
+    }
+  ]
+}

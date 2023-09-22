@@ -19,11 +19,13 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   def with_statuses(scope)
     with_filter(scope, :status) do
       if input.status.present?
-        ids = []
+        return scope.active if input.status == ['ACTIVE'] || input.status.sort == ['ACTIVE', 'INCOMPLETE'].sort
+        return scope if input.status.sort == ['ACTIVE', 'INCOMPLETE', 'EXITED'].sort
 
-        ids += scope.merge(Hmis::Hud::Enrollment.active).pluck(:id) if input.status.include?('ACTIVE')
-        ids += scope.merge(Hmis::Hud::Enrollment.incomplete).pluck(:id) if input.status.include?('INCOMPLETE')
-        ids += scope.merge(Hmis::Hud::Enrollment.exited).pluck(:id) if input.status.include?('EXITED')
+        ids = []
+        ids += scope.active.pluck(:id) if input.status.include?('ACTIVE')
+        ids += scope.in_progress.pluck(:id) if input.status.include?('INCOMPLETE')
+        ids += scope.exited.pluck(:id) if input.status.include?('EXITED')
 
         return scope.where(id: ids)
       end
@@ -33,11 +35,11 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   end
 
   def with_open_on_date(scope)
-    with_filter(scope, :open_on_date) { scope.merge(Hmis::Hud::Enrollment.open_on_date(input.open_on_date)) }
+    with_filter(scope, :open_on_date) { scope.open_on_date(input.open_on_date) }
   end
 
   def with_project_types(scope)
-    with_filter(scope, :project_type) { scope.merge(Hmis::Hud::Enrollment.with_project_type(input.project_type)) }
+    with_filter(scope, :project_type) { scope.with_project_type(input.project_type) }
   end
 
   def with_search_term(scope)

@@ -12,19 +12,24 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasYouthEducationStatuses
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCustomCaseNotes
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasAuditHistory
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
-      Hmis::Hud::Client.hmis_configuration(version: '2022')
+      Hmis::Hud::Client.hmis_configuration(version: '2024')
+    end
+
+    available_filter_options do
+      arg :project, [ID]
+      arg :organization, [ID]
     end
 
     description 'HUD Client'
@@ -35,32 +40,45 @@ module Types
     hud_field :middle_name
     hud_field :last_name
     hud_field :name_suffix
-    hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality
+    field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality, null: false, default_value: 99
     hud_field :dob
     field :age, Int, null: true
-    hud_field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality
+    field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality, null: false, default_value: 99
     hud_field :ssn
-    hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
+    field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality, null: false, default_value: 99
     gender_field
     field :race, [Types::HmisSchema::Enums::Race], null: false
-    hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
-    hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: false, default_value: 99
+    hud_field :year_entered_service
+    hud_field :year_separated
+    hud_field :world_war_ii, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :korean_war, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :vietnam_war, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :desert_storm, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :afghanistan_oef, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :iraq_oif, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :iraq_ond, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :other_theater, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    hud_field :military_branch, Types::HmisSchema::Enums::Hud::MilitaryBranch
+    hud_field :discharge_status, Types::HmisSchema::Enums::Hud::DischargeStatus
     field :pronouns, [String], null: false
+    field :different_identity_text, String, null: true
+    field :additional_race_ethnicity, String, null: true
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    enrollments_field filter_args: { omit: [:search_term], type_name: 'EnrollmentsForClient' }
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
     income_benefits_field
     disabilities_field
-    disability_groups_field
     health_and_dvs_field
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
     assessments_field
     services_field
+    custom_case_notes_field
     files_field
     custom_data_elements_field
     audit_history_field(
@@ -122,16 +140,12 @@ module Types
     end
 
     def external_ids
-      object.external_identifiers.
-        map do |vals|
-          {
-            id: [vals[:type], vals[:id]].join(':'),
-            identifier: vals[:id],
-            url: vals[:url],
-            label: vals[:label],
-            type: vals[:type],
-          }
-        end
+      collection = Hmis::Hud::ClientExternalIdentifierCollection.new(
+        client: object,
+        ac_hmis_mci_ids: load_ar_association(object, :ac_hmis_mci_ids),
+        warehouse_client_source: load_ar_association(object, :warehouse_client_source),
+      )
+      collection.hmis_identifiers + collection.mci_identifiers
     end
 
     def enrollments(**args)
@@ -155,11 +169,15 @@ module Types
     end
 
     def assessments(**args)
-      resolve_assessments_including_wip(**args)
+      resolve_assessments(**args)
     end
 
     def services(**args)
       resolve_services(**args)
+    end
+
+    def custom_case_notes(...)
+      resolve_custom_case_notes(...)
     end
 
     def files(**args)
@@ -171,15 +189,15 @@ module Types
     end
 
     def race
-      selected_races = ::HudUtility.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
+      selected_races = ::HudUtility2024.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
       selected_races << object.RaceNone if object.RaceNone && selected_races.empty?
       selected_races
     end
 
     def image
-      return nil unless object.image&.download
-
-      object.image
+      files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
+      file = files.first&.client_file
+      file&.download ? file : nil
     end
 
     def user
@@ -187,16 +205,20 @@ module Types
     end
 
     def ssn
-      return object.ssn if current_user.can_view_full_ssn_for?(object)
-      return object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1') if current_user.can_view_partial_ssn_for?(object)
+      if current_permission?(permission: :can_view_full_ssn, entity: object)
+        object.ssn
+      elsif current_permission?(permission: :can_view_partial_ssn, entity: object)
+        object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1')
+      end
     end
 
     def dob
-      object.safe_dob(current_user)
+      object.dob if current_permission?(permission: :can_view_dob, entity: object)
     end
 
     def names
-      if object.names.empty?
+      names = load_ar_association(object, :names)
+      if names.empty?
         # If client has no CustomClientNames, construct one based on the HUD Client name fields
         return [
           object.names.new(
@@ -211,15 +233,23 @@ module Types
         ]
       end
 
-      object.names
+      names
+    end
+
+    def contact_points
+      load_ar_association(object, :contact_points)
     end
 
     def phone_numbers
-      object.contact_points.where(system: :phone)
+      load_ar_association(object, :contact_points).filter { |r| r.system == 'phone' }
     end
 
     def email_addresses
-      object.contact_points.where(system: :email)
+      load_ar_association(object, :contact_points).filter { |r| r.system == 'email' }
+    end
+
+    def addresses
+      load_ar_association(object, :addresses)
     end
 
     def resolve_audit_history

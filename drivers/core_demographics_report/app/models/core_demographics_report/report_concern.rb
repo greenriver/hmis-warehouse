@@ -7,6 +7,8 @@
 module
   CoreDemographicsReport::ReportConcern
   extend ActiveSupport::Concern
+
+  include ApplicationHelper
   included do
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
@@ -27,33 +29,7 @@ module
 
     # @return filtered scope
     def report_scope(all_project_types: false, include_date_range: true)
-      # Report range
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope) if include_date_range
-      scope = filter_for_cocs(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_household_type(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      scope = filter_for_veteran_status(scope)
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_disabilities(scope)
-      scope = filter_for_indefinite_disabilities(scope)
-      scope = filter_for_dv_status(scope)
-      scope = filter_for_chronic_at_entry(scope)
-      scope = filter_for_times_homeless(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
-      scope = filter_for_cohorts(scope)
-      scope
+      filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types, include_date_range: include_date_range)
     end
 
     def report_scope_source
@@ -64,36 +40,52 @@ module
       boolean ? 'Yes' : 'No'
     end
 
+    def mask_small_population(value)
+      return value unless @filter.mask_small_populations
+
+      bracket_small_population(value)
+    end
+
     def total_client_count
       @total_client_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        distinct_client_ids.count
+        mask_small_population(distinct_client_ids.count)
       end
     end
 
     def hoh_count
       @hoh_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        hoh_scope.select(:client_id).distinct.count
+        mask_small_population(hoh_scope.select(:client_id).distinct.count)
       end
     end
 
     def household_count
       @household_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.select(:household_id).distinct.count
+        mask_small_population(report_scope.select(:household_id).distinct.count)
       end
     end
 
     def project_count
       @project_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.select(p_t[:id]).distinct.count
+        mask_small_population(report_scope.select(p_t[:id]).distinct.count)
       end
     end
 
     def can_see_client_details?(user)
-      user.can_access_some_version_of_clients?
+      user.can_access_some_version_of_clients? && ! filter.mask_small_populations
     end
 
     def self.clear_report_cache
       Rails.cache.delete_matched("#{[name]}*")
+    end
+
+    def self.genders
+      g = HudUtility2024.gender_field_name_label.dup
+      g[:GenderNone] = 'Unknown Gender'
+      g
+    end
+
+    def genders
+      @genders ||= self.class.genders
     end
 
     private def hoh_scope
@@ -116,27 +108,9 @@ module
       age_calculation.in((0..17).to_a)
     end
 
-    private def male_clause
-      c_t[:Male].eq(1)
-    end
+    private def gender_clause(gender_col)
+      return c_t[gender_col].eq(1) unless gender_col == :GenderNone
 
-    private def female_clause
-      c_t[:Female].eq(1)
-    end
-
-    private def trans_clause
-      c_t[:Transgender].eq(1)
-    end
-
-    private def questioning_clause
-      c_t[:Questioning].eq(1)
-    end
-
-    private def no_single_gender_clause
-      c_t[:NoSingleGender].eq(1)
-    end
-
-    private def unknown_gender_clause
       c_t[:GenderNone].in([8, 9, 99])
     end
 

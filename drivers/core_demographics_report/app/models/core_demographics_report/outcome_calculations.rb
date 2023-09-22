@@ -27,10 +27,10 @@ module
         values = outcome_clients[type.to_sym].map(&:last)
         return 0 unless values.count.positive?
 
-        (values.sum.to_f / values.count).round
+        return (values.sum.to_f / values.count).round
       end
 
-      outcome_clients[type]&.count&.presence || 0
+      mask_small_population(outcome_clients[type]&.count&.presence || 0)
     end
 
     def outcome_percentage(type)
@@ -79,16 +79,16 @@ module
         'Exits to Other Situations' => :exit_other,
         # These return calculations are kinda wonky
         # NOTE: no homeless enrollment in year prior to the report range, but had one between 2 years and 1 year
-        'Returns to Homelessness after 1-2 years' => :returns_1_2_years,
+        'Returns to Selected Universe <br /><em>1-2 years after exiting homelessness</em>' => :returns_1_2_years,
         # NOTE: no homeless enrollment in 30 days prior to the report range, but had one in the prior year
-        'Returns to Homelessness after < 1 year' => :returns_1_years,
+        'Returns to Selected Universe <br /><em>< 1 year after exiting homelessness</em>' => :returns_1_years,
       }
     end
 
     private def client_ids_with_homeless_activity_1_months
       @client_ids_with_homeless_activity_1_months ||= begin
-        # NOTE: this is limited to the report universe, except for the date range
-        scope = report_scope(include_date_range: false).
+        # NOTE: this is limited to the report universe, except for the date range and project types so we can look for returns in homeless projects
+        scope = report_scope(include_date_range: false, all_project_types: true).
           open_between(start_date: filter.start_date - 1.months, end_date: filter.start_date - 1.days).
           with_service_between(start_date: filter.start_date - 1.months, end_date: filter.start_date - 1.days).
           in_project_type(homeless_project_type_codes)
@@ -99,8 +99,8 @@ module
 
     private def client_ids_with_homeless_activity_1_12_months
       @client_ids_with_homeless_activity_1_12_months ||= begin
-        # NOTE: this is limited to the report universe, except for the date range
-        scope = report_scope(include_date_range: false).
+        # NOTE: this is limited to the report universe, except for the date range and project types so we can look for returns in homeless projects
+        scope = report_scope(include_date_range: false, all_project_types: true).
           open_between(start_date: filter.start_date - 12.months, end_date: filter.start_date - 1.months).
           with_service_between(start_date: filter.start_date - 12.months, end_date: filter.start_date - 1.months).
           in_project_type(homeless_project_type_codes)
@@ -111,8 +111,8 @@ module
 
     private def client_ids_with_homeless_activity_0_12_months
       @client_ids_with_homeless_activity_0_12_months ||= begin
-        # NOTE: this is limited to the report universe, except for the date range
-        scope = report_scope(include_date_range: false).
+        # NOTE: this is limited to the report universe, except for the date range and project types so we can look for returns in homeless projects
+        scope = report_scope(include_date_range: false, all_project_types: true).
           open_between(start_date: filter.start_date - 12.months, end_date: filter.start_date - 1.days).
           with_service_between(start_date: filter.start_date - 12.months, end_date: filter.start_date - 1.days).
           in_project_type(homeless_project_type_codes)
@@ -123,8 +123,8 @@ module
 
     private def client_ids_with_homeless_activity_12_24_months
       @client_ids_with_homeless_activity_12_24_months ||= begin
-        # NOTE: this is limited to the report universe, except for the date range
-        scope = report_scope(include_date_range: false).
+        # NOTE: this is limited to the report universe, except for the date range and project types so we can look for returns in homeless projects
+        scope = report_scope(include_date_range: false, all_project_types: true).
           open_between(start_date: filter.start_date - 24.months, end_date: filter.start_date - 12.months).
           with_service_between(start_date: filter.start_date - 24.months, end_date: filter.start_date - 12.months).
           in_project_type(homeless_project_type_codes)
@@ -135,7 +135,7 @@ module
 
     # Homeless project types that overlap chosen project types
     private def homeless_project_type_codes
-      @homeless_project_type_codes ||= HudUtility.homeless_project_type_numbers & filter.project_type_ids
+      @homeless_project_type_codes ||= HudUtility2024.homeless_project_type_numbers & filter.project_type_ids
     end
 
     private def outcome_clients
@@ -159,11 +159,11 @@ module
               next if clients[:exit_counted].include?(client_id)
 
               clients[:exit_counted] << client_id
-              clients[:exit_homeless] << client_id if HudUtility.homeless_destinations.include?(destination)
-              clients[:exit_institutional] << client_id if HudUtility.institutional_destinations.include?(destination)
-              clients[:exit_temporary] << client_id if HudUtility.temporary_destinations.include?(destination)
-              clients[:exit_permanent] << client_id if HudUtility.permanent_destinations.include?(destination)
-              clients[:exit_other] << client_id if HudUtility.other_destinations.include?(destination)
+              clients[:exit_homeless] << client_id if HudUtility2024.homeless_destinations.include?(destination)
+              clients[:exit_institutional] << client_id if HudUtility2024.institutional_destinations.include?(destination)
+              clients[:exit_temporary] << client_id if HudUtility2024.temporary_destinations.include?(destination)
+              clients[:exit_permanent] << client_id if HudUtility2024.permanent_destinations.include?(destination)
+              clients[:exit_other] << client_id if HudUtility2024.other_destinations.include?(destination)
             end
 
           # Returns
@@ -177,7 +177,7 @@ module
             each do |client_id, _|
               next if clients[:return_counted].include?(client_id)
 
-              if client_ids_with_homeless_activity_1_12_months.include?(client_id) && ! client_ids_with_homeless_activity_0_12_months.include?(client_id)
+              if client_ids_with_homeless_activity_1_12_months.include?(client_id) && ! client_ids_with_homeless_activity_1_months.include?(client_id)
                 # Client is in the current report range, but had no homeless service within the month prior, but had homeless service in the year prior
                 clients[:returns_1_years] << client_id
 

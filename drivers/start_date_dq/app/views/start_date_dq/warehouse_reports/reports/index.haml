@@ -8,9 +8,7 @@
 - elsif @pagy.count.positive?
   .d-flex
     .ml-auto.mb-4
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
-        %i.icon-file-excel.icon-lg
-        Download
+      = render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
   .d-flex
   = render 'common/pagination_top', item_name: 'enrollment'
   .table-responsive
@@ -32,9 +30,8 @@
               - else
                 %td= value
             %td
-              .enrollment__project_type{class: "client__service_type_#{row.project_type}"}
-                .service-type__program-type{data: {toggle: :tooltip, title: HudUtility.project_type(row.project_type)}}
-                  = HudUtility.project_type_brief row.project_type
+              .service-type__program-type{class: "project-type-#{row.project_type}", data: {toggle: :tooltip, title: HudUtility2024.project_type(row.project_type)}}
+                = HudUtility2024.project_type_brief row.project_type
   = render 'common/pagination_bottom', item_name: 'enrollment'
 - else
   .none-found No enrollments found

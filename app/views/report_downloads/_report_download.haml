@@ -1,7 +1,8 @@
 :ruby
   excel_download_tooltip ||= ''
   filter_params = {}
-  (params['filters'] || params['filter'] || {}).to_h.each_pair do |key, value|
+
+  (params['filters'] || params['filter'] || {}).each_pair do |key, value|
     if value.is_a?(Array)
       value = value.map(&:presence).compact.presence
     end
@@ -14,6 +15,7 @@
     'filter' => filter_params,
   }
   report_params['id'] = params['id'] if params['id'].present?
+  report_params['client_id'] = params['client_id'] if params['client_id']
 
   if defined?(breakdown) && breakdown.present?
     report_params['breakdown'] = breakdown

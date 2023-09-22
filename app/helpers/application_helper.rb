@@ -18,6 +18,12 @@ module ApplicationHelper
   end
   # END Permissions
 
+  # Backwards compatible translations for views so we don't have to
+  # update files in S3
+  def _(text)
+    Translation.translate(text)
+  end
+
   def yes_no(boolean, include_icon: true)
     case boolean
     when nil
@@ -194,15 +200,11 @@ module ApplicationHelper
     [].tap do |result|
       result << ENV.fetch('CLIENT')
       result << params[:controller]
+      result << params[:controller].split('/').join('_')
       result << params[:action]
       result << 'not-signed-in' if current_user.blank?
       result << (@layout__width == 'lg' ? 'l-content-width-lg' : 'l-content-width-md')
     end
-  end
-
-  # because this comes up a fair bit...
-  def hud_1_8(id)
-    lighten_no HudUtility.list('1.8', id)
   end
 
   # make no less visually salient
@@ -249,7 +251,7 @@ module ApplicationHelper
   end
 
   def translated?(text)
-    _(text) != text
+    Translation.translate(text) != text
   end
 
   def options_for_available_tags(grouped_tags, _selected_name)
@@ -416,5 +418,44 @@ module ApplicationHelper
     return '#000000' if (255 * 3 / 2) < rgb.sum
 
     '#ffffff'
+  end
+
+  # Override pagy_info to add delimiters to large numbers
+  def pagy_info(pagy, pagy_id: nil, item_name: nil, i18n_key: nil)
+    p_id = %( id="#{pagy_id}") if pagy_id
+    p_count = pagy.count
+    key = if p_count.zero?
+      'pagy.info.no_items'
+    elsif pagy.pages == 1
+      'pagy.info.single_page'
+    else
+      'pagy.info.multiple_pages'
+    end
+
+    %(<span#{p_id} class="pagy-info">#{
+      pagy_t(key, item_name: item_name || pagy_t(i18n_key || pagy.vars[:i18n_key], count: number_with_delimiter(p_count)), count: number_with_delimiter(p_count), from: pagy.from, to: pagy.to)
+    }</span>)
+  end
+
+  def small_population_brackets
+    {
+      0 => 0..0,
+      25 => 1..25,
+      50 => 26..50,
+      100 => 51..100,
+      round: 101..,
+    }.freeze
+  end
+
+  def bracket_small_population(value, mask: true)
+    return value unless mask
+
+    bracket = small_population_brackets.detect { |_k, range| range.cover?(value) }
+    case bracket.first
+    when :round
+      (value / 10.0).ceil * 10 # Round up to the nearest 10
+    else
+      bracket.first
+    end
   end
 end

@@ -25,26 +25,17 @@ module Mutations
 
       # Create Units
       common = { user_id: hmis_user.user_id, created_at: Time.now, updated_at: Time.now }
-      unit_args = (1..input.count).map do |i|
-        {
+      units = (1..input.count).map do
+        Hmis::Unit.new(
           project_id: project.id,
-          name: [input.prefix, i].compact.join(' '),
           unit_type_id: unit_type&.id,
           **common,
-        }
+        )
       end
 
-      units = []
       Hmis::Unit.transaction do
-        unit_args.each do |args|
-          unit = Hmis::Unit.create!(**args)
-          unit.active_ranges << Hmis::ActiveRange.create!(
-            entity: unit,
-            start_date: Date.current,
-            user: current_user,
-          )
-          units << unit
-        end
+        units.each(&:save!)
+        unit_type.track_availability(project_id: project.id, user_id: current_user.id)
       end
 
       {

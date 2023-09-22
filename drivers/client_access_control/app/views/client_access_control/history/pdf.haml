@@ -1,6 +1,6 @@
 .history__pdf
   = inline_stylesheet_link_tag 'print'
-  - title = "#{_('HMIS Data Warehouse')} Homeless History for Residential Programs"
+  - title = "#{Translation.translate('HMIS Data Warehouse')} Homeless History for Residential Programs"
   - content_for :title, title
   - if ENV['PRINT_LOGO'].present?
     .history__logo
@@ -31,7 +31,7 @@
       - if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
         - if @client.service_scanning_bed_nights_or_outreach?
           .history__counts-for-service_scanning
-            %strong Total number of bed nights and outreach contacts recorded during the #{_('HMIS Blackout')}.
+            %strong Total number of bed nights and outreach contacts recorded during the #{Translation.translate('HMIS Blackout')}.
             %ul
               %li Bed nights: #{pluralize(@client.unique_service_scanning_bed_nights.count, 'days')}
               %li Outreach: #{pluralize(@client.unique_service_scanning_outreach(include_extrapolated: true).count, 'days')}
@@ -39,7 +39,7 @@
   .history__dates
     - if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
       - if @client.service_scanning_bed_nights_or_outreach?
-        %h3 #{_('HMIS Blackout')} Bed Nights and Outreach
+        %h3 #{Translation.translate('HMIS Blackout')} Bed Nights and Outreach
         %table.history__dates-table
           %thead
             %tr
@@ -71,7 +71,7 @@
               %tr
                 %td= en[:organization_name]
                 %td= en[:project_name]
-                %td= HudUtility.project_type en[:project_type]
+                %td= HudUtility2024.project_type en[:project_type]
                 %td= date
                 %td= date if en[:record_type] == 'entry'
                 %td= date if en[:record_type] == 'exit'

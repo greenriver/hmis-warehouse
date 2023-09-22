@@ -1,0 +1,26 @@
+.o-page__main-content
+  .d-flex
+    .mb-6
+      %small
+        Entered by
+        = @assessment.user&.name || @assessment.external_name
+    - if @blank_thrive_url.present?
+      .mb-6.ml-auto
+        = link_to @blank_thrive_url, class: 'btn btn-secondary' do
+          %i.icon-download2
+          Blank THRIVE Screener Form
+
+.well.mt-4
+  - @assessment.question_labels.each do |key, (label, collection)|
+    = f.input key, as: :select_two, collection: collection, label: label
+
+%h2 Resources you want help with:
+.well
+  - @assessment.help_labels.each do |key, label|
+    = f.input key, as: :pretty_boolean, label: label
+
+.well
+  = f.input :decline_to_answer, as: :pretty_boolean, label: 'I do not want to answer these questions.'
+
+.well
+  = f.input :completed_on, as: :date_picker

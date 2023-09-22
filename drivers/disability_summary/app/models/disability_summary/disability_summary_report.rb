@@ -16,7 +16,7 @@ module DisabilitySummary
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
       @comparison_pattern = filter.comparison_pattern
     end
 
@@ -86,34 +86,7 @@ module DisabilitySummary
 
     # @return filtered scope
     def report_scope(all_project_types: false)
-      # Report range
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_household_type(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      scope = filter_for_veteran_status(scope)
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_disabilities(scope)
-      scope = filter_for_indefinite_disabilities(scope)
-      scope = filter_for_dv_status(scope)
-      scope = filter_for_chronic_at_entry(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
-      scope = filter_for_cohorts(scope)
-      scope = filter_for_prior_living_situation(scope)
-      scope = filter_for_times_homeless(scope)
-      filter_for_destination(scope)
+      filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
     end
 
     def report_scope_source
@@ -155,9 +128,8 @@ module DisabilitySummary
           dob: c_t[:DOB],
           reporting_age: age_calculation,
           entry_date: she_t[:first_date_in_program],
-          ethnicity: c_t[:Ethnicity],
         }
-        HudUtility.gender_fields.each do |field|
+        HudUtility2024.gender_fields.each do |field|
           columns[field] = c_t[field]
         end
         # race_cache_client = GrdaWarehouse::Hud::Client.new
@@ -171,7 +143,7 @@ module DisabilitySummary
             coc_code = row[:coc_code]
             disability_response = row[:disability_response]
             indefinite = row[:indefinite]
-            disability = HudUtility.disability_type(row[:disability_type])
+            disability = HudUtility2024.disability_type(row[:disability_type])
             # race = nil #race_cache_client.race_string(destination_id: client_id, scope_limit: GrdaWarehouse::Hud::Client.joins(:service_history_enrollments).merge(report_scope))
 
             # only count the first response for a client in each type per coc
@@ -186,9 +158,9 @@ module DisabilitySummary
 
             indefinite ||= 99
             response = if row[:disability_type] == 10
-              HudUtility.disability_response disability_response
+              HudUtility2024.disability_response disability_response
             else
-              HudUtility.no_yes_reasons_for_missing_data disability_response
+              HudUtility2024.no_yes_reasons_for_missing_data disability_response
             end
 
             client_data = {
@@ -201,10 +173,9 @@ module DisabilitySummary
               veteran_status: row[:veteran_status],
               dob: row[:dob],
               reporting_age: row[:reporting_age],
-              ethnicity: row[:ethnicity],
               id: client_id,
             }
-            HudUtility.gender_fields.each do |field|
+            HudUtility2024.gender_fields.each do |field|
               client_data[field] = row[field]
             end
 
@@ -221,10 +192,10 @@ module DisabilitySummary
             data[:by_coc][coc_code] ||= {}
             # data[:by_coc][coc_code][:clients] ||= {}
             # data[:by_coc][coc_code][:clients][disability] ||= {}
-            # data[:by_coc][coc_code][:clients][disability][HudUtility.no_yes_reasons_for_missing_data(indefinite)] ||= Set.new
-            # data[:by_coc][coc_code][:clients][disability][HudUtility.no_yes_reasons_for_missing_data(indefinite)] << client_id
+            # data[:by_coc][coc_code][:clients][disability][HudUtility2024.no_yes_reasons_for_missing_data(indefinite)] ||= Set.new
+            # data[:by_coc][coc_code][:clients][disability][HudUtility2024.no_yes_reasons_for_missing_data(indefinite)] << client_id
             data[:by_coc][coc_code][:disabilities] ||= disability_options(indefinite_options)
-            data[:by_coc][coc_code][:disabilities][disability][HudUtility.no_yes_reasons_for_missing_data(indefinite)] << client_id
+            data[:by_coc][coc_code][:disabilities][disability][HudUtility2024.no_yes_reasons_for_missing_data(indefinite)] << client_id
 
             data[:by_coc][coc_code][:disabilities_summary] ||= disability_options(Set)
             data[:by_coc][coc_code][:disabilities_summary][disability] << client_id
@@ -240,16 +211,16 @@ module DisabilitySummary
       indefinite = params.dig(:indefinite)
 
       return unless disability.present?
-      return unless disability.in?(HudUtility.disability_types.values)
-      return if coc.present? && ! coc.in?(HudUtility.cocs.keys)
-      return if indefinite.present? && ! indefinite.in?(HudUtility.no_yes_reasons_for_missing_data_options.values)
+      return unless disability.in?(HudUtility2024.disability_types.values)
+      return if coc.present? && ! coc.in?(HudUtility2024.cocs.keys)
+      return if indefinite.present? && ! indefinite.in?(HudUtility2024.no_yes_reasons_for_missing_data_options.values)
 
       ids = if detail == 'universe'
         data_for_disabilities[:all][:clients][disability]
       elsif indefinite.blank?
         data_for_disabilities[:by_coc][coc][:disabilities][disability].values.map(&:to_a).flatten.to_set
       else
-        data_for_disabilities[:by_coc][coc][:disabilities][disability][HudUtility.no_yes_reasons_for_missing_data(indefinite)]
+        data_for_disabilities[:by_coc][coc][:disabilities][disability][HudUtility2024.no_yes_reasons_for_missing_data(indefinite)]
       end
 
       clients = data_for_disabilities[:clients].select do |client_id, _|
@@ -269,9 +240,9 @@ module DisabilitySummary
       disability = params.dig(:disability)
       indefinite = params.dig(:indefinite)
       return unless disability.present?
-      return unless disability.in?(HudUtility.disability_types.values)
-      return if coc.present? && ! coc.in?(HudUtility.cocs.keys)
-      return if indefinite.present? && ! indefinite.in?(HudUtility.no_yes_reasons_for_missing_data_options.values)
+      return unless disability.in?(HudUtility2024.disability_types.values)
+      return if coc.present? && ! coc.in?(HudUtility2024.cocs.keys)
+      return if indefinite.present? && ! indefinite.in?(HudUtility2024.no_yes_reasons_for_missing_data_options.values)
 
       title = disability
       title += " (Indefinite and Impairing: #{indefinite})" if indefinite
@@ -283,7 +254,7 @@ module DisabilitySummary
     end
 
     private def disability_options(hash_or_set)
-      HudUtility.disability_types.values.map do |v|
+      HudUtility2024.disability_types.values.map do |v|
         value = if hash_or_set.is_a?(Class)
           hash_or_set.new
         else
@@ -297,7 +268,7 @@ module DisabilitySummary
     end
 
     private def indefinite_options
-      HudUtility.no_yes_reasons_for_missing_data_options.values.map { |k| [k, Set.new] }.to_h
+      HudUtility2024.no_yes_reasons_for_missing_data_options.values.map { |k| [k, Set.new] }.to_h
     end
 
     def self.data_for_export(reports)
@@ -315,7 +286,6 @@ module DisabilitySummary
           # rows = report.age_data_for_export(rows)
           # rows = report.gender_data_for_export(rows)
           # rows = report.race_data_for_export(rows)
-          # rows = report.ethnicity_data_for_export(rows)
           # rows = report.relationship_data_for_export(rows)
           # rows = report.disability_data_for_export(rows)
           # rows = report.dv_status_data_for_export(rows)

@@ -53,7 +53,7 @@ module ManualHmisData
     end
 
     private def project_coc_scope
-      project_coc_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all))
+      project_coc_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_projects))
     end
 
     private def project_coc_source
@@ -105,7 +105,7 @@ module ManualHmisData
       {
         GeographyType: {
           type: :select_two,
-          collection: HudUtility.geography_types.invert,
+          collection: HudUtility2024.geography_types.invert,
         },
       }
     end

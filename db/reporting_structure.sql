@@ -385,7 +385,12 @@ CREATE TABLE public.warehouse_houseds (
     nosinglegender integer,
     transgender integer,
     questioning integer,
-    gendernone integer
+    gendernone integer,
+    woman integer,
+    man integer,
+    nonbinary integer,
+    culturallyspecific integer,
+    differentidentity integer
 );
 
 
@@ -715,7 +720,12 @@ CREATE TABLE public.warehouse_returns (
     nosinglegender integer,
     transgender integer,
     questioning integer,
-    gendernone integer
+    gendernone integer,
+    woman integer,
+    man integer,
+    nonbinary integer,
+    culturallyspecific integer,
+    differentidentity integer
 );
 
 
@@ -2895,6 +2905,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200724150305'),
 ('20210405180920'),
 ('20210916150948'),
-('20210920002734');
+('20210920002734'),
+('20230824172741'),
+('20230902232754');
 
 

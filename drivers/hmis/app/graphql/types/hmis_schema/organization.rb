@@ -12,13 +12,13 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
-      Hmis::Hud::Organization.hmis_configuration(version: '2022')
+      Hmis::Hud::Organization.hmis_configuration(version: '2024')
     end
 
     hud_field :id, ID, null: false
     field :hud_id, ID, null: false
     hud_field :organization_name
-    projects_field :projects
+    projects_field :projects, filter_args: { omit: [:organization], type_name: 'ProjectsForEnrollment' }
     hud_field :victim_service_provider, HmisSchema::Enums::Hud::NoYesMissing
     field :description, String, null: true
     field :contact_information, String, null: true

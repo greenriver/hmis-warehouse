@@ -10,6 +10,6 @@ module Types
   class Forms::Enums::AssessmentRole < Types::BaseEnum
     graphql_name 'AssessmentRole'
 
-    with_enum_map Hmis::Form::Definition.assessment_type_enum_map
+    with_enum_map Hmis::Form::Definition.assessment_type_enum_map, prefix_description_with_key: false
   end
 end

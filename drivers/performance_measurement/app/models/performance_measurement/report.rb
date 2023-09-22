@@ -51,7 +51,7 @@ module PerformanceMeasurement
     end
 
     def self.default_project_type_codes
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+      HudUtility2024.spm_project_type_codes
     end
 
     def run_and_save!
@@ -124,7 +124,7 @@ module PerformanceMeasurement
     def self.known_params
       return ::Filters::HudFilterBase.new.known_params if PerformanceMeasurement::Goal.include_project_options?
 
-      [:end, :coc_code]
+      [:end, :coc_code, :comparison_pattern]
     end
 
     # The filter user is dependent on the configuration
@@ -175,7 +175,7 @@ module PerformanceMeasurement
     end
 
     def title
-      _('CoC Performance Measurement Dashboard')
+      Translation.translate('CoC Performance Measurement Dashboard')
     end
 
     def multiple_project_types?
@@ -183,7 +183,7 @@ module PerformanceMeasurement
     end
 
     def default_project_types
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+      HudUtility2024.spm_project_type_codes
     end
 
     def report_path_array

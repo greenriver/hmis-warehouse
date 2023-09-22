@@ -1,0 +1,71 @@
+- title = Translation.translate('Client Documents Report')
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
+      = render 'utility'
+    .top-nav-prs1
+      %h1.mb-5= title
+      - if @initialized
+        .d-flex.flex-wrap
+          .hero-prs1
+            .d-flex.align-items-center
+              .h1.hero-value-prs1.mr-3= number_with_delimiter @report.total_client_count
+              .hero-label-prs1.h5-prs1 Unique Clients
+    - if @initialized
+      .main-inner-prs1
+        .text-right.mb-4
+          = render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
+        - if @report.total_client_count.positive?
+          = render 'common/pagination_top', item_name: 'client'
+          .card
+            %table.table.table-striped.mb-0
+              %thead
+                %tr
+                  %th Client
+                  %th Required Documents
+                  %th Optional Documents
+                  %th All documents
+                  -# -# The following only show in the download for now
+                  -# - @report.groups_for_type(:required).each do |group, tags|
+                  -#   %th #{group} (#{pluralize(tags.count, 'tags')})
+                  -#   - tags.each do |tag|
+                  -#     %th= tag
+                  -# - @report.groups_for_type(:optional).each do |group, tags|
+                  -#   %th #{group} (#{pluralize(tags.count, 'tags')})
+                  -#   - tags.each do |tag|
+                  -#     %th= tag
+                  -# - @report.additional_client_data_headers.each do |h|
+                  -#   %th= h
+              %tbody
+                - @clients.each do |client|
+                  %tr
+                    %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+                    %td= @report.required_documents(client).count
+                    %td= @report.optional_documents(client).count
+                    %td= @report.overall_documents(client).count
+                    -# -# The following only show in the download for now
+                    -# - types = [:required, :optional]
+                    -# - types.each do |type|
+                    -#   - @report.groups_for_type(type).each do |group, tags|
+                    -#     %td= @report.date_for_group(group, client, type: type)
+                    -#     - tags.each do |tag|
+                    -#       %td= @report.date_for_tag(tag, client, type: type)
+                    -# - client_details = @report.additional_client_data(client)
+                    -# - @report.additional_client_data_headers.each do |h|
+                    -#   %td= client_details[h]
+          = render 'common/pagination_bottom', item_name: 'client'
+        - else
+          .well.none-found
+            No clients match the chosen universe.
+    - else
+      .well.none-found
+        You must choose at least one required file type.
+        - total_url = polymorphic_path(@report.filter_path_array, *link_params.except(:action))
+        = link_to 'Select Universe.', total_url, data: { loads_in_pjax_modal: true }

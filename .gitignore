@@ -95,6 +95,8 @@ bower.json
 
 # Ignore themes
 app/assets/stylesheets/theme/styles
+app/assets/stylesheets/application/_custom/theme/*
+!app/assets/stylesheets/application/_custom/theme/.keep
 app/assets/images/theme/logo
 app/assets/images/theme/icons
 app/views/root/_homepage_content.haml
@@ -150,5 +152,14 @@ db/cas_structure.sql
 drivers/datalab_testkit/spec/fixtures/inputs/merged/source/*
 drivers/datalab_testkit/spec/fixtures/results/*
 
+# Assets for JS bundling
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+/drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/*
+
+# Superset storage
+docker/superset/op/superset.db
+docker/superset/op/__pycache__/*
+docker/superset/op/__pycache__/**
+docker/superset/op/.did.db.init

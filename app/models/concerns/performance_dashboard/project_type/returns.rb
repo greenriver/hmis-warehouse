@@ -18,7 +18,7 @@ module PerformanceDashboard::ProjectType::Returns
           order(last_date_in_program: :asc).
           pluck(:client_id, she_t[:id], she_t[:destination], :last_date_in_program).
           each do |c_id, en_id, destination, last_date_in_program|
-            next unless HudUtility.permanent_destinations.include?(destination)
+            next unless HudUtility2024.permanent_destinations.include?(destination)
 
             exits[c_id] = {
               exit_id: en_id,
@@ -38,7 +38,7 @@ module PerformanceDashboard::ProjectType::Returns
     @homeless_re_entries ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       {}.tap do |entries|
         p_exits = permanent_exits
-        entries_current_period.where(first_date_in_program: (@start_date..Date.current)).
+        entries_current_period(all_project_types: true).where(first_date_in_program: (@start_date..Date.current)).
           hud_homeless.
           where(client_id: p_exits.keys). # limit to those with an exit
           order(first_date_in_program: :asc).

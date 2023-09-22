@@ -14,7 +14,7 @@ module HmisCsvTwentyTwentyTwo::Importer
 
     has_one :destination_record, **hud_assoc(:ProjectID, 'Project')
 
-    GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k, v|
+    HudUtility2024.residential_project_type_numbers_by_code.each do |k, v|
       scope k, -> { where(ProjectType: v) }
       define_method "#{k}?" do
         v.include? self[ProjectType]
@@ -22,11 +22,11 @@ module HmisCsvTwentyTwentyTwo::Importer
     end
 
     scope :residential, -> do
-      where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+      where(ProjectType: HudUtility2024.residential_project_type_ids)
     end
 
     scope :night_by_night, -> do
-      where(TrackingMethod: 3)
+      where(ProjectType: HudUtility2024.project_type_number_from_code(:es_nbn))
     end
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
@@ -104,7 +104,7 @@ module HmisCsvTwentyTwentyTwo::Importer
         HOPWAMedAssistedLivingFac: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility.h_o_p_w_a_med_assisted_living_facs.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.hopwa_med_assisted_living_facs.keys.map(&:to_s).freeze },
           },
         ],
       }

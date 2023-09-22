@@ -13,28 +13,12 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
     :RecordType,
   ].freeze
 
-  TYPE_PROVIDED_MAP = {
-    141 => ::HudLists.path_services_map,
-    142 => ::HudLists.rhy_services_map,
-    143 => ::HudLists.hopwa_services_map,
-    144 => ::HudLists.ssvf_services_map,
-    151 => ::HudLists.hopwa_financial_assistance_map,
-    152 => ::HudLists.ssvf_financial_assistance_map,
-    161 => ::HudLists.path_referral_map,
-    162 => ::HudLists.rhy_referral_map,
-    200 => ::HudLists.bed_night_map,
-    210 => ::HudLists.voucher_tracking_map,
-    300 => ::HudLists.moving_on_assistance_map,
-  }.freeze
+  TYPE_PROVIDED_MAP = ::HudUtility2024.service_types_provided_map.map { |k, v| [k, v[:list]] }.to_h.freeze
 
-  SUB_TYPE_PROVIDED_MAP = {
-    3 => ::HudLists.ssvf_sub_type3_map,
-    4 => ::HudLists.ssvf_sub_type4_map,
-    5 => ::HudLists.ssvf_sub_type5_map,
-  }.freeze
+  SUB_TYPE_PROVIDED_MAP = ::HudUtility2024.service_sub_types_provided_map.map { |k, v| [k, v[:list]] }.to_h.freeze
 
   def configuration
-    Hmis::Hud::Service.hmis_configuration(version: '2022').except(*IGNORED)
+    Hmis::Hud::Service.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
   def validate(record)
@@ -51,7 +35,7 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
     record.errors.add type_provided_field, :required unless record_type.present? && type_provided.present?
     return unless record_type.present? && type_provided.present?
 
-    unless ::HudUtility.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record_type == k }
+    unless HudUtility2024.record_types.any? { |k, _v| record_type == k }
       record.errors.add type_provided_field, :invalid, full_message: "Service type category '#{record_type}' is not a valid category"
       return
     end

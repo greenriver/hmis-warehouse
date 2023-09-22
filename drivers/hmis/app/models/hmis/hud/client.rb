@@ -15,13 +15,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
-  self.ignored_columns = ['preferred_name']
+  self.ignored_columns += [:preferred_name]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client
-  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client
+  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client, dependent: :destroy
+  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy
+  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client, dependent: :destroy
+  has_many :custom_case_notes, **hmis_relation(:PersonalID, 'CustomCaseNote'), inverse_of: :client, dependent: :destroy
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
 
   # Enrollments for this Client, including WIP Enrollments
@@ -30,6 +31,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :projects, through: :enrollments
   # WIP records representing enrollments for this Client
   has_many :wip, class_name: 'Hmis::Wip', through: :enrollments
+
+  has_many :custom_assessments, through: :enrollments
 
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
   has_many :income_benefits, through: :enrollments
@@ -42,7 +45,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
+  has_many :client_projects
+  has_many :projects_including_wip, through: :client_projects, source: :project
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
@@ -52,19 +57,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
   has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
 
-  validates_with Hmis::Hud::Validators::ClientValidator
-
-  CUSTOM_NAME_OPTIONS = {
-    association: :names,
-    klass: Hmis::Hud::CustomClientName,
-    field_map: {
-      FirstName: :first,
-      LastName: :last,
-    },
-  }.freeze
+  validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
-  attr_accessor :create_mci_id
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -79,14 +74,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       file.client_file.attach(current_image_blob)
       file.save!
     end
-
-    # Post-save action to create a new MCI ID if specified by the ClientProcessor
-    if create_mci_id && HmisExternalApis::AcHmis::Mci.enabled?
-      self.create_mci_id = nil
-      HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
-    end
   end
 
+  # Includes clients where..
+  #  1. The Client has enrollment(s) at any Project where the User has this specified Permissions(s)
+  #     OR,
+  #  2. The Client has NO enrollments AND the User has these Permission(s) at _any_ project
+  #
+  # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :with_access, ->(user, *permissions, **kwargs) do
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
@@ -110,11 +105,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :matching_search_term, ->(text_search) do
-    text_searcher(text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
-      left_outer_joins(:names).where(where).pluck(:id)
-    rescue RangeError
-      return none
-    end
+    text_searcher(text_search, sorted: true)
+  end
+
+  scope :older_than, ->(age, or_equal: false) do
+    target_dob = Date.today - (age + 1).years
+    target_dob = Date.today - age.years if or_equal == true
+
+    where(c_t[:dob].lt(target_dob))
   end
 
   # Clients that have no Enrollments (WIP or otherwise)
@@ -123,22 +121,36 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
   end
 
-  # All CustomAssessments for this Client, including WIP Assessments and assessments at WIP Enrollments
-  def custom_assessments_including_wip
-    enrollment_ids = enrollments.pluck(:id, :enrollment_id)
-    wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
-
-    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+  scope :with_open_enrollment_in_project, ->(project_ids) do
+    joins(:projects_including_wip).where(p_t[:id].in(Array.wrap(project_ids)))
   end
 
-  # All Projects that this Client has Enrollments at, including WIP Enrollments
-  def projects_including_wip
-    wip_enrollment_projects = Hmis::Wip.enrollments.where(client: self).pluck(:project_id).compact
-    non_wip_enrollment_projects = projects.pluck(:id)
+  scope :with_open_enrollment_in_organization, ->(organization_ids) do
+    tuples = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
+    ds_ids = tuples.map(&:first).compact.map(&:to_i).uniq
+    hud_org_ids = tuples.map(&:second)
+    raise 'orgs are in multiple data sources' if ds_ids.size > 1
 
-    Hmis::Hud::Project.where(id: wip_enrollment_projects + non_wip_enrollment_projects)
+    joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
+
+  # DEPRECATED_FY2024 - delete when warehouse moves to 2024. These override methods in HudConcerns::Client.
+  def race_fields
+    HudUtility2024.races.keys.select { |f| send(f).to_i == 1 }
+  end
+
+  def gender_fields
+    HudUtility2024.gender_fields.select { |f| send(f).to_i == 1 }
+  end
+
+  def gender_multi
+    @gender_multi ||= [].tap do |gm|
+      HudUtility2024.gender_id_to_field_name.each { |id, field| gm << id if send(field) == 1 }
+      # Per the data standards, only look to GenderNone if we don't have a more specific response
+      gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
+    end
+  end
+  # DEPRECATED_FY2024 - delete when warehouse moves to 2024
 
   def enrolled?
     enrollments.any?
@@ -159,90 +171,29 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     warehouse_client_source&.destination_id
   end
 
-  def warehouse_url
-    "https://#{ENV['FQDN']}/clients/#{id}/from_source"
-  end
-
-  private def clientview_url(mci_id_value)
-    link_base = HmisExternalApis::AcHmis::Clientview.link_base
-    return unless link_base&.present? && mci_id_value&.present?
-
-    "#{link_base}/ClientInformation/Profile/#{mci_id_value}?aid=2"
-  end
-
-  def external_identifiers
-    external_identifiers = [
-      {
-        type: :client_id,
-        id: id,
-        label: 'HMIS ID',
-      },
-      {
-        type: :personal_id,
-        id: personal_id,
-        label: 'Personal ID',
-      },
-      {
-        type: :warehouse_id,
-        id: warehouse_id,
-        url: warehouse_url,
-        label: 'Warehouse ID',
-      },
-    ]
-
-    if HmisExternalApis::AcHmis::Mci.enabled?
-      if ac_hmis_mci_ids.present?
-        ac_hmis_mci_ids.to_a.each do |mci_id|
-          external_identifiers << {
-            type: :mci_id,
-            id: mci_id.value,
-            url: clientview_url(mci_id.value),
-            label: 'MCI ID',
-          }
-        end
-      else
-        external_identifiers << {
-          type: :mci_id,
-          id: nil,
-          url: nil,
-          label: 'MCI ID',
-        }
-      end
-    end
-
-    external_identifiers
-  end
-
   SORT_OPTIONS = [
+    :best_match,
     :last_name_a_to_z,
     :last_name_z_to_a,
     :first_name_a_to_z,
     :first_name_z_to_a,
     :age_youngest_to_oldest,
     :age_oldest_to_youngest,
+    :recently_added,
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
+    best_match: 'Most Relevant',
     last_name_a_to_z: 'Last Name: A-Z',
     last_name_z_to_a: 'Last Name: Z-A',
     first_name_a_to_z: 'First Name: A-Z',
     first_name_z_to_a: 'First Name: Z-A',
     age_youngest_to_oldest: 'Age: Youngest to Oldest',
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
+    recently_added: 'Recently Added',
   }.freeze
 
-  # Unused
-  def fake_client_image_data
-    gender = if self[:Male].in?([1]) then 'male' else 'female' end
-    age_group = if age.blank? || age > 18 then 'adults' else 'children' end
-    image_directory = File.join('public', 'fake_photos', age_group, gender)
-    available = Dir[File.join(image_directory, '*.jpg')]
-    image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-    Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
-    image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
-  end
-
-  def self.client_search(input:, user: nil)
+  def self.client_search(input:, user: nil, sorted: false)
     # Apply ID searches directly, as they can only ever return a single client
     return searchable_to(user).where(id: input.id) if input.id.present?
     return searchable_to(user).where(PersonalID: input.personal_id) if input.personal_id
@@ -250,11 +201,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
-    if input.text_search.present?
-      scope = text_searcher(input.text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
-        scope.left_outer_joins(:names).where(where).pluck(:id)
-      end
-    end
+    # early return to preserve sort order, avoids client.where(id: scope.select(:id))
+    return scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
@@ -292,6 +240,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
+    when :best_match
+      current_scope # no order, use text search rank
     when :last_name_a_to_z
       order(arel_table[:last_name].asc.nulls_last)
     when :last_name_z_to_a
@@ -311,11 +261,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  def self.apply_filters(input)
+    Hmis::Filter::ClientFilter.new(input).filter_scope(self)
+  end
+
   # fix these so they use DATA_NOT_COLLECTED And the other standard names
-  use_enum(:gender_enum_map, ::HudUtility.genders) do |hash|
+  use_enum(:gender_enum_map, ::HudUtility2024.genders) do |hash|
     hash.map do |value, desc|
       {
-        key: [8, 9, 99].include?(value) ? desc : ::HudUtility.gender_id_to_field_name[value],
+        key: [8, 9, 99].include?(value) ? desc : ::HudUtility2024.gender_id_to_field_name[value],
         value: value,
         desc: desc,
         null: [8, 9, 99].include?(value),
@@ -323,7 +277,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  use_enum(:race_enum_map, ::HudUtility.races.except('RaceNone'), include_base_null: true) do |hash|
+  use_enum(:race_enum_map, ::HudUtility2024.races.except('RaceNone'), include_base_null: true) do |hash|
     hash.map do |value, desc|
       {
         key: value,
@@ -335,16 +289,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
-  end
-
-  def safe_dob(user)
-    return nil unless user.present?
-
-    dob if user.can_view_dob_for?(self)
-  end
-
-  def image
-    @image ||= client_files&.client_photos&.newest_first&.first&.client_file
   end
 
   def delete_image

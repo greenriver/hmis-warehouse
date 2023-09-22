@@ -10,14 +10,17 @@ module HmisDataQualityTool::WarehouseReports
     include AjaxModalRails::Controller
     include ArelHelper
     include BaseFilters
+    include HistoryFilter
 
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
     before_action :set_report, only: [:show, :by_client, :destroy, :details, :items]
     before_action :set_pdf_export, only: [:show]
     before_action :set_excel_export, only: [:show]
+    before_action :set_excel_by_client_export, only: [:by_client]
 
     def index
-      @pagy, @reports = pagy(report_scope.diet.ordered)
+      reports = apply_view_filters(report_scope)
+      @pagy, @reports = pagy(reports.diet.ordered)
       @report = report_class.new(user_id: current_user.id)
       @filter.default_project_type_codes = @report.default_project_type_codes
       previous_report = report_scope.where(user_id: current_user.id).last
@@ -31,7 +34,7 @@ module HmisDataQualityTool::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          filename = "#{@report.title&.tr(' ', '-')}-By-Category-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -41,6 +44,13 @@ module HmisDataQualityTool::WarehouseReports
       @clients = @report.clients.order(:last_name, :first_name)
       @pivot_details = @report.pivot_details
       @pagy, @clients = pagy(@clients)
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{@report.title&.tr(' ', '-')}-By-Client-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def create
@@ -124,6 +134,10 @@ module HmisDataQualityTool::WarehouseReports
       @excel_export = HmisDataQualityTool::DocumentExports::ReportExcelExport.new
     end
 
+    private def set_excel_by_client_export
+      @excel_export = HmisDataQualityTool::DocumentExports::ReportByClientExcelExport.new
+    end
+
     # Since this report uses the hud version of report instance, and it isn't STI
     # we need to limit to those with a report name matching this one
     private def report_scope
@@ -159,6 +173,11 @@ module HmisDataQualityTool::WarehouseReports
     private def filter_class
       ::Filters::HudFilterBase
     end
+
+    private def path_for_clear_view_filter
+      hmis_data_quality_tool_warehouse_reports_reports_path
+    end
+    helper_method :path_for_clear_view_filter
 
     private def flash_interpolation_options
       { resource_name: @report.title }

@@ -5,6 +5,12 @@
 ###
 
 BostonHmis::Application.routes.draw do
+  get 'hmis/system_status/operational', to: 'system_status#operational'
+  get 'hmis/system_status/cache_status', to: 'system_status#cache_status'
+  get 'hmis/system_status/details', to: 'system_status#details'
+  get 'hmis/system_status/ping', to: 'system_status#ping'
+  get 'hmis/system_status/exception', to: 'system_status#exception'
+
   # Routes for the HMIS API
   if ENV['ENABLE_HMIS_API'] == 'true'
     namespace :hmis, defaults: { format: :json } do
@@ -13,9 +19,8 @@ BostonHmis::Application.routes.draw do
                          controllers: { sessions: 'hmis/sessions' },
                          path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
 
-      resources :user, only: [:none] do
-        get :index, on: :collection
-      end
+      resource :user, only: [:show]
+      resource :session_keepalive, only: [:create]
 
       devise_scope :hmis_user do
         match 'logout' => 'sessions#destroy', via: :get if Rails.env.development?
@@ -39,9 +44,11 @@ BostonHmis::Application.routes.draw do
     namespace :hmis_admin do
       resources :roles
       resources :groups
-      resources :access_controls do
-        resources :users, only: [:create, :destroy], controller: 'access_controls/users'
+      resources :user_groups do
+        resources :users, only: [:create, :destroy], controller: 'user_groups/users'
       end
+      resources :access_controls
+      resources :users, only: [:index, :edit, :update]
     end
   end
 end

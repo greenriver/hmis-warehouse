@@ -53,7 +53,7 @@ module ManualHmisData
     end
 
     private def funder_scope
-      funder_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all))
+      funder_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_projects))
     end
 
     private def funder_source
@@ -105,7 +105,7 @@ module ManualHmisData
       {
         Funder: {
           type: :select_two,
-          collection: HudUtility.funding_sources.invert,
+          collection: HudUtility2024.funding_sources.invert,
         },
         StartDate: {
           type: :date_picker,

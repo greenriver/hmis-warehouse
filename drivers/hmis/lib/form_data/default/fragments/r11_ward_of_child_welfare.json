@@ -1,0 +1,80 @@
+{
+  "type": "GROUP",
+  "link_id": "R11",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "rule": {
+    "operator": "ALL",
+    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+    "parts": [
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
+      },
+      {
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 4
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "R11.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Formerly a Ward of Child Welfare/Foster Care Agency",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "formerWardChildWelfare"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "R11.1-dependents",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "R11.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "R11.A",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Number of Years",
+          "pick_list_reference": "RHYNumberofYears",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "childWelfareYears"
+          }
+        },
+        {
+          "type": "INTEGER",
+          "link_id": "R11.B",
+          "required": false,
+          "warn_if_empty": true,
+          "text": "Number of Months",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "childWelfareMonths"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "R11.A",
+              "operator": "EQUAL",
+              "answer_code": "LESS_THAN_ONE_YEAR"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -15,7 +15,6 @@ module AnalysisTool
     include ::KnownCategories::HouseholdType
     include ::KnownCategories::Race
     include ::KnownCategories::VeteranStatus
-    include ::KnownCategories::Ethnicity
     include ::KnownCategories::Lot
     include ::KnownCategories::LotThreeYears
 
@@ -145,7 +144,7 @@ module AnalysisTool
 
     protected def build_control_sections
       [
-        build_general_control_section(include_comparison_period: false),
+        build_general_control_section(options: { include_comparison_period: false }),
         build_coc_control_section,
         add_demographic_disabilities_control_section,
         build_enrollment_control_section,
@@ -171,34 +170,7 @@ module AnalysisTool
 
     # @return filtered scope
     def report_scope(all_project_types: false)
-      # Report range
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_household_type(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      scope = filter_for_veteran_status(scope)
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_disabilities(scope)
-      scope = filter_for_indefinite_disabilities(scope)
-      scope = filter_for_dv_status(scope)
-      scope = filter_for_chronic_at_entry(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
-      scope = filter_for_cohorts(scope)
-      scope = filter_for_prior_living_situation(scope)
-      scope = filter_for_times_homeless(scope)
-      filter_for_destination(scope)
+      filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
     end
 
     def report_scope_source
@@ -220,7 +192,6 @@ module AnalysisTool
         household: { title: 'Household Type', method: :household_type_calculations, calculation_column: standard_household_type_calculation },
         veteran: { title: 'Veteran Status', method: :veteran_status_calculations, calculation_column: standard_veteran_status_calculation },
         race: { title: 'Race', method: :race_calculations, calculation_column: standard_race_calculation },
-        ethnicity: { title: 'Ethnicity', method: :ethnicity_calculations, calculation_column: standard_ethnicity_calculation },
         lot_homeless_three_years: { title: 'LOT Homeless (last 3 years)', method: :lot_three_years_calculations, calculation_column: standard_lot_three_years_calculation },
         lot_homeless: { title: 'LOT Homeless (all time)', method: :lot_calculations, calculation_column: standard_lot_calculation },
       }

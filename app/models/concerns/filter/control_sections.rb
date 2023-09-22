@@ -21,50 +21,82 @@ module
       ]
     end
 
-    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false)
+    protected def build_general_control_section(options: {}, labels: {}, hints: {})
+      defaults = {
+        include_reporting_period: true,
+        include_comparison_period: true,
+        include_inactivity_days: false,
+        include_mask_small_populations: false,
+        include_require_service_during_range: true,
+      }
+      selected = defaults.merge(options)
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
           id: 'project_types',
           required: true,
-          label: 'Population by Project Type',
+          label: labels[:project_types] || 'Population by Project Type',
           short_label: 'Project Type',
           value: describe_project_type_control_section,
         )
         section.add_control(
           id: 'coordinated_assessment_living_situation_homeless',
-          label: 'Including CE homeless at entry?',
+          label: labels[:coordinated_assessment_living_situation_homeless] || 'Including CE homeless at entry?',
           value: @filter.coordinated_assessment_living_situation_homeless ? 'Yes' : nil,
-          hint: "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HudUtility.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
+          hint: hints[:coordinated_assessment_living_situation_homeless] || "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HudUtility2024.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
         )
         section.add_control(
           id: 'ce_cls_as_homeless',
-          label: 'Including CE Current Living Situation Homeless',
+          label: labels[:ce_cls_as_homeless] || 'Including CE Current Living Situation Homeless',
           value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
-          hint: "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HudUtility.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
+          hint: hints[:ce_cls_as_homeless] || "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HudUtility2024.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
         )
-        if include_inactivity_days
+        if selected[:include_inactivity_days]
           section.add_control(
             id: 'inactivity_days',
-            label: 'Homeless History Lookback',
+            label: labels[:inactivity_days] || 'Homeless History Lookback',
             value: @filter.inactivity_days,
-            hint: 'Time away before a client is considered newly homeless',
+            hint: hints[:inactivity_days] || 'Time away before a client is considered newly homeless',
+          )
+        end
+        if selected[:include_require_service_during_range]
+          section.add_control(
+            id: 'require_service_during_range',
+            label: labels[:require_service_during_range] || 'Require Service?',
+            value: @filter.require_service_during_range,
+            hint: hints[:require_service_during_range] || 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
           )
         end
         section.add_control(
-          id: 'require_service_during_range',
-          label: 'Require Service?',
-          value: @filter.require_service_during_range,
-          hint: 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
+          id: 'active_roi',
+          label: labels[:active_roi] || 'Require Active Release of Information?',
+          value: @filter.active_roi,
+          hint: hints[:active_roi] || 'If checked, a client must have an active ROI to be included in the universe.',
         )
-        section.add_control(
-          id: 'reporting_period',
-          required: true,
-          value: @filter.date_range_words,
-        )
-        if include_comparison_period
+        if selected[:include_reporting_period]
           section.add_control(
-            id: 'comparison_period',
-            value: nil,
+            id: 'reporting_period',
+            required: true,
+            value: @filter.date_range_words,
+          )
+          if selected[:include_comparison_period]
+            section.add_control(
+              id: 'comparison_period',
+              value: nil,
+            )
+          end
+        else
+          section.add_control(
+            id: 'on',
+            label: 'Report Date',
+            required: true,
+            value: @filter.on,
+          )
+        end
+        if selected[:include_mask_small_populations]
+          section.add_control(
+            id: 'mask_small_populations',
+            label: labels[:mask_small_populations] || 'Mask Small Populations?',
+            value: @filter.mask_small_populations ? 'Yes' : nil,
           )
         end
       end
@@ -73,7 +105,7 @@ module
     protected def describe_project_type_control_section
       if @filter.chosen_project_types_only_homeless?
         'Only Homeless'
-      elsif filter.project_type_codes.sort == GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.keys.map(&:to_s).sort
+      elsif filter.project_type_codes.sort == HudUtility2024.project_type_group_titles.keys.map(&:to_s).sort
         'All'
       else
         @filter.chosen_project_types
@@ -174,11 +206,6 @@ module
           short_label: 'Race',
         )
         section.add_control(
-          id: 'ethnicities',
-          value: @filter.chosen_ethnicities,
-          short_label: 'Ethnicity',
-        )
-        section.add_control(
           id: 'age_ranges',
           value: @filter.chosen_age_ranges,
           short_label: 'Age',
@@ -240,6 +267,29 @@ module
         hint: 'Chronically Homeless at Entry as defined in the HUD HMIS Glossary.',
       )
       section
+    end
+
+    protected def build_files_control_section
+      ::Filters::UiControlSection.new(id: 'files').tap do |section|
+        section.add_control(
+          id: 'required_files',
+          value: @filter.chosen_required_files,
+        )
+        section.add_control(
+          id: 'optional_files',
+          value: @filter.chosen_optional_files,
+        )
+      end
+    end
+
+    protected def build_cohort_inclusion_control_section
+      ::Filters::UiControlSection.new(id: 'secondary_cohorts', title: 'Cohort Inclusion').tap do |section|
+        section.add_control(
+          id: 'secondary_cohorts',
+          value: @filter.secondary_cohorts,
+          label: 'Cohort Inclusion',
+        )
+      end
     end
   end
 end

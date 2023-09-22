@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  use_doorkeeper
+  get 'oauth/user-data', to: 'oauth#user'
+
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
@@ -251,12 +254,7 @@ Rails.application.routes.draw do
         get :running
       end
     end
-    resources :initiatives, except: [:edit, :update, :new] do
-      get '(/:token)', controller: 'initiatives', action: :show, on: :member
-      collection do
-        get :running
-      end
-    end
+
     resources :disabilities, only: [:index, :create, :show, :destroy] do
       collection do
         get :summary
@@ -648,6 +646,7 @@ Rails.application.routes.draw do
   resources :source_data, only: [:index, :show]
 
   resources :weather, only: [:index]
+  resources :access_controls, only: [:show]
 
   resources :notifications, only: [:show] do
     resources :projects, only: [:show] do
@@ -762,14 +761,26 @@ Rails.application.routes.draw do
       post :confirm
     end
 
+    resources :collections
+
+    # TODO: START_ACL cleanup after ACL migration
+    # resources :roles
     resources :roles do
       resources :users, only: [:create, :destroy], controller: 'roles/users'
     end
     resources :groups do
-      resources :users, only: [:create, :destroy], controller: 'groups/users'
+       resources :users, only: [:create, :destroy], controller: 'groups/users'
+    end
+    # END_ACL
+    resources :access_controls do
+       post :assign, on: :collection
+     end
+    resources :user_groups do
+      resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end
     resources :agencies
-    resources :glacier, only: [:index]
+    resource :theme, only: [:edit, :update]
+    resource :color, only: [:edit, :update]
     namespace :dashboard do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
@@ -877,6 +888,7 @@ Rails.application.routes.draw do
       get :stimulus_select
       get :tags
       get :js_example
+      get :system_colors
     end
   end
 

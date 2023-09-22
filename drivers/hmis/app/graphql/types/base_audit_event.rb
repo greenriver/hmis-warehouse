@@ -7,8 +7,9 @@
 module Types
   class BaseAuditEvent < BaseObject
     def self.build(node_class, field_permissions: nil, transform_changes: nil)
-      Class.new(self) do
-        graphql_name("#{node_class.graphql_name}AuditEvent")
+      dynamic_name = "#{node_class.graphql_name}AuditEvent"
+      klass = Class.new(self) do
+        graphql_name(dynamic_name)
 
         define_method(:schema_type) do
           node_class
@@ -26,6 +27,8 @@ module Types
           authorized
         end
       end
+      Object.const_set(dynamic_name, klass) unless Object.const_defined?(dynamic_name)
+      klass
     end
 
     field :id, ID, null: false
@@ -41,6 +44,10 @@ module Types
     end
 
     def user
+      # 'unauthenticated' matches user_for_paper_trail in ApplicationController.
+      # This happens when a Job updates records, which we should display as System changes.
+      return User.system_user if object.whodunnit == 'unauthenticated'
+
       Hmis::User.find_by(id: object.whodunnit)
     end
 

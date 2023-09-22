@@ -10,7 +10,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Household
   include PerformanceDashboard::Overview::Veteran
   include PerformanceDashboard::Overview::Race
-  include PerformanceDashboard::Overview::Ethnicity
   include PerformanceDashboard::Overview::Detail
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting
@@ -42,7 +41,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   def self.available_chart_types
     chart_types = [
       'by_age',
-      'by_ethnicity',
       'by_gender',
       'by_household',
       'by_race',
@@ -57,9 +55,9 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
 
   protected def build_control_sections
     [
-      build_general_control_section(include_inactivity_days: true),
+      build_general_control_section(options: { include_inactivity_days: true }),
       build_coc_control_section,
-      build_demographics_control_section,
+      add_demographic_disabilities_control_section,
     ]
   end
 
@@ -70,7 +68,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       household: 'By Household Type',
       veteran: 'By Veteran Status',
       race: 'By Race',
-      ethnicity: 'By Ethnicity',
       project_type: 'By Project Type',
       lot_homeless: 'By LOT Homeless',
     }

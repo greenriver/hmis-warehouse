@@ -5,7 +5,20 @@
 ###
 
 module HmisExternalApis::AcHmis::Importers
+  class CsvTransformer2022to2024 < HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer
+    def self.destination_headers(target_class)
+      case [target_class]
+      when [GrdaWarehouse::Hud::Project]
+        super(target_class) + ['Walkin']
+      else
+        super(target_class)
+      end
+    end
+  end
+
   class ProjectsImporter
+    JOB_LOCK_NAME = 'hmis_project_importer'.freeze
+
     include NotifierConfig
 
     AbortImportException = Class.new(StandardError)
@@ -22,14 +35,58 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def run!
+      timeout_seconds = 60
+      success = false
+      Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: timeout_seconds) do
+        # transform data files to HUD 2024
+        case infer_hud_version_from_project_cols
+        when '2022'
+          Dir.mktmpdir do |hud_dir|
+            CsvTransformer2022to2024.up(dir, hud_dir)
+            _run(hud_dir)
+          end
+        when '2024'
+          Sentry.capture_message("#{self.class.name} skipping 2024 transformation. Check if the 2024 transform can be removed.")
+          _run(dir)
+        else
+          raise 'could not infer hud version'
+        end
+        success = true
+      end
+      raise "Could not acquire lock within #{timeout_seconds} seconds" unless success
+
+      success
+    end
+
+    protected
+
+    def run_in_dir(new_dir)
+      original_dir = dir
+      ret = nil
+      Dir.chdir(dir) do
+        self.dir = new_dir
+        ret = yield
+      end
+      self.dir = original_dir
+      ret
+    end
+
+    def _run(hud_dir)
       start
       sanity_check
       ProjectsImportAttempt.transaction do
-        upsert_funders
-        upsert_orgs
-        upsert_projects
-        upsert_walkins
-        upsert_inventory
+        run_in_dir(hud_dir) do
+          upsert_funders
+          upsert_orgs
+          upsert_projects
+          upsert_walkins
+          upsert_inventory
+        end
+        run_in_dir(dir) do
+          upsert_project_unit_type_mappings
+        end
+        Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
+        cleanup_project_dates
       end
       analyze
       finish
@@ -102,9 +159,10 @@ module HmisExternalApis::AcHmis::Importers
     def upsert_projects
       file = 'Project.csv'
 
+      hud_columns = GrdaWarehouse::Hud::Project.hmis_configuration(version: '2024').keys.map(&:to_s)
       check_columns(
         file: file,
-        expected_columns: ['ProjectID', 'OrganizationID', 'ProjectName', 'ProjectCommonName', 'OperatingStartDate', 'OperatingEndDate', 'ContinuumProject', 'ProjectType', 'HousingType', 'ResidentialAffiliation', 'TrackingMethod', 'HMISParticipatingProject', 'TargetPopulation', 'HOPWAMedAssistedLivingFac', 'PITCount', 'Walkin', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        expected_columns: hud_columns + ['Walkin'],
         critical_columns: ['ProjectID'],
       )
 
@@ -124,6 +182,8 @@ module HmisExternalApis::AcHmis::Importers
       project_ids.length != walkin.length and raise(AbortImportException, 'Project upsert should have been the same length as the parsed csv')
 
       project_ids.zip(walkin).each do |(project_id, bool_str)|
+        next unless bool_str.present?
+
         cde = Hmis::Hud::CustomDataElement
           .where(
             owner_type: 'Hmis::Hud::Project',
@@ -137,8 +197,8 @@ module HmisExternalApis::AcHmis::Importers
           user: sys_user,
           value_boolean:
             case bool_str
-            when 'Y' then true
-            when 'N' then false
+            when '1' then true
+            when '0' then false
             end,
         )
       end
@@ -158,6 +218,70 @@ module HmisExternalApis::AcHmis::Importers
         conflict_target: ['"InventoryID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Inventory,
       )
+    end
+
+    def upsert_project_unit_type_mappings
+      file = 'ProjectUnitTypes.csv'
+
+      columns = ['ProgramID', 'UnitTypeID', 'UnitCapacity', 'IsActive']
+      check_columns(file: file, expected_columns: columns, critical_columns: columns)
+
+      projects_ids_by_hud = Hmis::Hud::Project
+        .where(data_source: data_source)
+        .pluck(:ProjectID, :id)
+        .to_h
+      unit_type_ids_by_mper = Hmis::UnitType
+        .joins(:mper_id)
+        .pluck(HmisExternalApis::ExternalId.arel_table[:value], :id)
+        .to_h
+
+      csv = records_from_csv(file)
+      records = csv.each.map do |row|
+        active = case row.fetch('IsActive')
+        when 'Y'
+          true
+        when 'N'
+          false
+        else
+          raise 'unknown value for IsActive'
+        end
+
+        db_project_id = projects_ids_by_hud.fetch(row['ProgramID'], nil)
+        if db_project_id.nil?
+          Rails.logger.info "Skipping unrecognized ProgramID: #{row['ProgramID']}"
+          next
+        end
+
+        db_unit_type_id = unit_type_ids_by_mper.fetch(row['UnitTypeID'], nil)
+        raise "UnitTypeMapping error: UnitTypeID not found: #{row['UnitTypeID']}" unless db_unit_type_id.present?
+
+        {
+          project_id: db_project_id,
+          unit_type_id: db_unit_type_id,
+          unit_capacity: row.fetch('UnitCapacity'),
+          active: active,
+        }
+      end.compact
+
+      Hmis::ProjectUnitTypeMapping.import!(
+        records,
+        validate: false,
+        batch_size: 1_000,
+        on_duplicate_key_update: {
+          conflict_target: [:project_id, :unit_type_id],
+          columns: [:unit_capacity, :active],
+        },
+      )
+    end
+
+    # Replace "9999" end date with nil
+    def cleanup_project_dates
+      ids_to_update = Hmis::Hud::Project.where(data_source: data_source).
+        open_on_date.
+        filter { |p| p.operating_end_date&.year == 9999 }.
+        map(&:id)
+
+      Hmis::Hud::Project.where(id: ids_to_update).update_all(operating_end_date: nil)
     end
 
     def analyze
@@ -190,7 +314,7 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def records_from_csv(file, row_limit: nil)
-      io = File.open(file, 'r')
+      io = File.open(File.join(dir, file), 'r')
 
       # Checking for BOM
       if io.read(3).bytes == [239, 187, 191]
@@ -286,6 +410,17 @@ module HmisExternalApis::AcHmis::Importers
 
     def sys_user
       @sys_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
+    end
+
+    def infer_hud_version_from_project_cols
+      headers = run_in_dir(dir) do
+        records_from_csv('Project.csv', row_limit: 1).first.to_h.keys.to_set
+      end
+      if headers.include?('RRHSubType')
+        '2024'
+      elsif headers.include?('ResidentialAffiliation') || headers.include?('TrackingMethod')
+        '2022'
+      end
     end
   end
 end

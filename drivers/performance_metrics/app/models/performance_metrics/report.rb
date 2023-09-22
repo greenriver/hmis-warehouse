@@ -318,7 +318,7 @@ module PerformanceMetrics
     end
 
     def title
-      _('Performance Metrics')
+      Translation.translate('Performance Metrics')
     end
 
     def multiple_project_types?
@@ -350,14 +350,14 @@ module PerformanceMetrics
     private def available_support
       {
         clients_served: {
-          title: _('Clients Served'),
+          title: Translation.translate('Clients Served'),
           clients_served: {
             scope: :served,
             title: '',
           },
         },
         returns: {
-          title: _('Returns to Homelessness'),
+          title: Translation.translate('Returns to Homelessness'),
           in_outflow: {
             scope: :did_not_return_in_two_years,
             title: 'Did Not Return Within 2 Years',
@@ -368,14 +368,14 @@ module PerformanceMetrics
           },
         },
         entering_housing: {
-          title: _('Clients moving into permanent housing'),
+          title: Translation.translate('Clients moving into permanent housing'),
           entering_housing: {
             scope: :entering_housing,
             title: '',
           },
         },
         income: {
-          title: _('Percentage of clients with increased income'),
+          title: Translation.translate('Percentage of clients with increased income'),
           with_increased_earned_income: {
             scope: :with_increased_earned_income,
             title: 'Employment Income',
@@ -386,7 +386,7 @@ module PerformanceMetrics
           },
         },
         average_stay_length: {
-          title: _('Average length of stay'),
+          title: Translation.translate('Average length of stay'),
           with_es_stay: {
             scope: :with_es_stay,
             title: 'Emergency Shelter',
@@ -401,7 +401,7 @@ module PerformanceMetrics
           },
         },
         inflow_outflow: {
-          title: _('Inflow / Outflow'),
+          title: Translation.translate('Inflow / Outflow'),
           in_inflow: {
             scope: :in_inflow,
             title: 'Inflow',
@@ -462,28 +462,7 @@ module PerformanceMetrics
 
     # @return filtered scope
     def report_scope
-      # Report range
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_household_type(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      scope = filter_for_veteran_status(scope)
-      scope = filter_for_project_type(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
-      scope = filter_for_cohorts(scope)
-      scope
+      filter.apply(report_scope_source, report_scope_source)
     end
 
     def enrollment_scope

@@ -16,6 +16,7 @@ module HmisStructure::Base
 
     def imported_item_type(importer_log_id)
       # NOTE: add additional years here as the spec changes, always the newest first for performance
+      return '2024' if RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty_four) && imported_items_2024.where(importer_log_id: importer_log_id).exists?
       return '2022' if RailsDrivers.loaded.include?(:hmis_csv_importer) && imported_items_2022.where(importer_log_id: importer_log_id).exists?
 
       '2020'
@@ -28,7 +29,7 @@ module HmisStructure::Base
     end
 
     def hud_csv_version
-      @hud_csv_version ||= '2022'
+      @hud_csv_version ||= '2024'
     end
 
     # default name for a CSV file
@@ -160,7 +161,7 @@ module HmisStructure::Base
     end
 
     def keys_for_migrations(version: hud_csv_version)
-      hmis_configuration(version: version).keys.map(&:to_s) + ['id']
+      hmis_configuration(version: version).keys.map(&:to_s) + ['id', 'data_source_id']
     end
 
     HMIS_STRUCTURE_KEYS = [:type, :limit, :null].freeze

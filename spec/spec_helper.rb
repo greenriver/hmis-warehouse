@@ -32,6 +32,8 @@ RSpec.configure do |config|
     # ...rather than:
     #     # => "be bigger than 2"
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
+    # longer strings so error messages are not excessively truncated
+    expectations.max_formatted_output_length = 1000
   end
 
   # rspec-mocks config goes here. You can use an alternate test double
@@ -103,6 +105,9 @@ RSpec.configure do |config|
   config.include ActiveSupport::Testing::TimeHelpers
 end
 
+# allows and not_change
+RSpec::Matchers.define_negated_matcher :not_change, :change
+
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
     with.test_framework :rspec
@@ -121,6 +126,8 @@ RSpec.configure do |config|
   Dir[Rails.root.join('drivers/*/lib')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/app')].each { |x| config.project_source_dirs << x }
 
+  config.include RSpec::Benchmark::Matchers
+
   config.before(:each) do
     # stub requests to pwned api
     stub_request(:get, /https:\/\/api\.pwnedpasswords\.com\/.*/).
@@ -131,6 +138,15 @@ RSpec.configure do |config|
       ).
       to_return(status: 200, body: '', headers: {})
   end
+end
+
+DBQueryMatchers.configure do |config|
+  config.schemaless = true # ignore schema queries
+  config.ignore_cached = true # ignore cached queries
+end
+
+RSpec::Benchmark.configure do |config|
+  config.samples = 5
 end
 
 # allow real requests, needed for minio

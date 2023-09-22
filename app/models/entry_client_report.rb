@@ -55,7 +55,7 @@ class EntryClientReport
 
   def service_history_source
     GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).
-      merge(GrdaWarehouse::Hud::Project.viewable_by(@user))
+      merge(GrdaWarehouse::Hud::Project.viewable_by(@user, permission: :can_view_assigned_reports))
   end
 
   def homeless_service_history_source
@@ -69,7 +69,6 @@ class EntryClientReport
     scope = filter_for_cocs(scope)
     scope = filter_for_gender(scope)
     scope = filter_for_race(scope)
-    scope = filter_for_ethnicity(scope)
     scope
   end
 

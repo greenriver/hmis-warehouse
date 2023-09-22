@@ -22,9 +22,7 @@ require 'deprecation_helper'
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros
-# Lazy way if we get many of these Dir[Rails.root.join('spec/support/**/*.rb')].sort.each { |f| require f }
-require Rails.root.join('spec/support/hmis_csv_fixtures')
-require Rails.root.join('spec/support/refresh_materialized_views')
+Dir[Rails.root.join('spec/support/**/*.rb')].sort.each { |f| require f }
 
 # Checks for pending migration and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove this line.
@@ -66,6 +64,7 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
+  config.include AccessControlSetup
 
   require_relative 'support/s3_utils'
   config.include S3Utils
@@ -83,9 +82,14 @@ RSpec.configure do |config|
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     AccessGroup.maintain_system_groups
 
+    # disable papertrail for test performance
+    PaperTrail.enabled = false
+
     if ENV['ENABLE_HMIS_API'] == 'true'
-      HmisUtil::JsonForms.seed_record_form_definitions
-      HmisUtil::JsonForms.seed_assessment_form_definitions
+      ::HmisUtil::JsonForms.new.tap do |builder|
+        builder.seed_record_form_definitions
+        builder.seed_assessment_form_definitions
+      end
     end
   end
 end
@@ -100,6 +104,10 @@ RSpec.configure do |config|
   Dir[Rails.root.join('drivers/*/spec')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/lib')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/app')].each { |x| config.project_source_dirs << x }
+end
+
+VCR.configure do |config|
+  config.ignore_hosts('127.0.0.1', 'localhost', 'minio', 's3.dev.test')
 end
 
 def cleanup_test_environment

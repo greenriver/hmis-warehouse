@@ -8,15 +8,17 @@
 
 module Types
   class HmisSchema::IncomeBenefit < Types::BaseObject
+    include Types::HmisSchema::HasCustomDataElements
+
     def self.configuration
-      Hmis::Hud::IncomeBenefit.hmis_configuration(version: '2022')
+      Hmis::Hud::IncomeBenefit.hmis_configuration(version: '2024')
     end
 
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :user, HmisSchema::User, null: true
-    hud_field :information_date
+    field :information_date, GraphQL::Types::ISO8601Date, null: true
 
     # Income
     hud_field :income_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
@@ -75,8 +77,8 @@ module Types
     hud_field :no_medicare_reason, HmisSchema::Enums::Hud::ReasonNotInsured
     hud_field :schip, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :no_schip_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :va_medical_services, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_va_med_reason, HmisSchema::Enums::Hud::ReasonNotInsured
+    hud_field :vha_services, HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :no_vha_reason, HmisSchema::Enums::Hud::ReasonNotInsured
     hud_field :employer_provided, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :no_employer_provided_reason, HmisSchema::Enums::Hud::ReasonNotInsured
     hud_field :cobra, HmisSchema::Enums::Hud::NoYesMissing
@@ -90,20 +92,18 @@ module Types
     hud_field :other_insurance, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :other_insurance_identify
 
-    hud_field :hivaids_assistance, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :no_hivaids_assistance_reason, HmisSchema::Enums::Hud::NoAssistanceReason
     hud_field :adap, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :no_adap_reason, HmisSchema::Enums::Hud::NoAssistanceReason
     hud_field :ryan_white_med_dent, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :no_ryan_white_reason, HmisSchema::Enums::Hud::NoAssistanceReason
     hud_field :connection_with_soar, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
 
-    hud_field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false
+    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
 
-    # TODO ADD: source assessment
+    custom_data_elements_field
 
     def enrollment
       load_ar_association(object, :enrollment)

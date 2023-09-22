@@ -20,7 +20,7 @@
               %th Count
               %th Percentage
           %tbody
-            - HudUtility.disability_types.each do |id, title|
+            - HudUtility2024.disability_types.each do |id, title|
               %tr
                 %th= title
                 %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.disability_count(id)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "disability_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
@@ -34,9 +34,9 @@
           %tbody
             %tr
               %th At Least One Disability
-              %td= number_with_delimiter(report.yes_disability_count)
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.yes_disability_count), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "yes_disability", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= number_to_percentage(report.yes_disability_percentage, precision: 2)
             %tr
               %th No Disability
-              %td= number_with_delimiter(report.no_disability_count)
+              %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.no_disability_count), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "no_disability", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= number_to_percentage(report.no_disability_percentage, precision: 2)

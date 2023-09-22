@@ -25,12 +25,14 @@ class Hmis::AppSettingsController < Hmis::BaseController
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
       logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
       warehouseUrl: "https://#{hostname}",
-      warehouseName: _('Boston DND Warehouse'),
-      appName: _('Open Path HMIS'),
+      warehouseName: Translation.translate('Boston DND Warehouse'),
+      appName: Translation.translate('Open Path HMIS'),
       resetPasswordUrl: "https://#{hostname}/users/password/new",
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
       casUrl: GrdaWarehouse::Config.get(:cas_url),
+      revision: Git.revision,
+      branch: Git.branch,
       theme: themes.first&.hmis_value,
       globalFeatureFlags: {
         # Whether to show MCI ID in client search results

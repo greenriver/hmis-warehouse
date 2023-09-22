@@ -19,7 +19,7 @@ module PublicReports
     attr_accessor :map_max_rate, :map_max_count
 
     def title
-      _('State-Level Homelessness Report Generator')
+      Translation.translate('State-Level Homelessness Report Generator')
     end
 
     def yearly?
@@ -27,7 +27,7 @@ module PublicReports
     end
 
     def instance_title
-      _('State-Level Homelessness Report')
+      Translation.translate('State-Level Homelessness Report')
     end
 
     private def public_s3_directory
@@ -146,18 +146,18 @@ module PublicReports
 
     def populations
       {
-        youth: _('Youth and Young Adults'),
-        adults: _('Adult-Only Households'),
-        adults_with_children: _('Adults with Children'),
-        veterans: _('Veterans'),
+        youth: Translation.translate('Youth and Young Adults'),
+        adults: Translation.translate('Adult-Only Households'),
+        adults_with_children: Translation.translate('Adults with Children'),
+        veterans: Translation.translate('Veterans'),
       }
     end
 
     def household_types
       {
-        adults: _('Adult-Only Households'),
-        adults_with_children: _('Adults with Children'),
-        children: _('Child-Only Households'),
+        adults: Translation.translate('Adult-Only Households'),
+        adults_with_children: Translation.translate('Adults with Children'),
+        children: Translation.translate('Child-Only Households'),
       }
     end
 
@@ -238,13 +238,13 @@ module PublicReports
     private def end_iteration(date)
       return date.end_of_quarter unless yearly?
 
-      return date.end_of_year
+      return [date.end_of_year, filter_object.end_date].min
     end
 
     private def summary
       date = pit_counts.map(&:first).last
       start_date = date.beginning_of_year
-      end_date = date.end_of_year
+      end_date = [date.end_of_year, filter_object.end_date].min
       scope = homeless_scope.entry.
         with_service_between(
           start_date: start_date,
@@ -325,7 +325,7 @@ module PublicReports
     private def pit_counts
       pit_count_dates.map do |date|
         start_date = date.beginning_of_year
-        end_date = date.end_of_year
+        end_date = [date.end_of_year, filter_object.end_date].min
         count = homeless_scope.entry.
           with_service_between(
             start_date: start_date,
@@ -344,7 +344,7 @@ module PublicReports
     private def inflow_out_flow_counts
       pit_count_dates.map do |date|
         start_date = date.beginning_of_year
-        end_date = date.end_of_year
+        end_date = [date.end_of_year, filter_object.end_date].min
         in_count = homeless_scope.first_date.
           started_between(start_date: start_date, end_date: end_date).
           select(:client_id).
@@ -352,7 +352,7 @@ module PublicReports
           count
         out_count = homeless_scope.entry.
           exit_within_date_range(start_date: start_date, end_date: end_date).
-          where(destination: ::HudUtility.permanent_destinations).
+          where(destination: ::HudUtility2024.permanent_destinations).
           select(:client_id).
           distinct.
           count
@@ -406,9 +406,10 @@ module PublicReports
           start_date = beginning_iteration(date)
           end_date = end_iteration(date)
 
-          adult = adult_only_household_ids(start_date, end_date).count
-          both = adult_and_child_household_ids(start_date, end_date).count
-          child = child_only_household_ids(start_date, end_date).count
+          # Only count unique HoHs
+          adult = adult_only_household_ids(start_date, end_date).values.uniq.count
+          both = adult_and_child_household_ids(start_date, end_date).values.uniq.count
+          child = child_only_household_ids(start_date, end_date).values.uniq.count
           total = adult + both + child
           (adult, both, child) = enforce_min_threshold([adult, both, child], 'household_type')
           word = 'Household'
@@ -433,7 +434,8 @@ module PublicReports
       {}.tap do |charts|
         client_cache = GrdaWarehouse::Hud::Client.new
         # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
-        races = ::HudUtility.races(multi_racial: true)
+        # NOTE: HispanicLatinaeo and MidEastNAfrican are not included in the census data, so we're ignoring them
+        races = ::HudUtility2024.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
         iteration_dates.each do |date|
           start_date = beginning_iteration(date)
           end_date = end_iteration(date)
@@ -486,7 +488,7 @@ module PublicReports
             # sum value after getting appropriate set of rows
             # add index on [accurate_on, identifier, type, measure]
             data: combined_data,
-            title: _('Racial Composition'),
+            title: Translation.translate('Racial Composition'),
             total: total_for(scope, nil),
             categories: ['Homeless Population', 'Overall Population'],
           }
@@ -737,7 +739,7 @@ module PublicReports
             service_scope: shs_scope,
           ).
             joins(:client)
-          adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date))
+          adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date).keys)
 
           homeless_chart_breakdowns(
             section_title: 'Persons in Households Without Children',
@@ -774,7 +776,7 @@ module PublicReports
             service_scope: shs_scope,
           ).
             joins(:client)
-          adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date))
+          adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date).keys)
 
           homeless_chart_breakdowns(
             section_title: 'Persons in households with at least one child and one adult',
@@ -808,7 +810,7 @@ module PublicReports
             service_scope: shs_scope,
           ).
             joins(:client)
-          child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date))
+          child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date).keys)
           homeless_chart_breakdowns(
             section_title: 'Persons in Child-Only Households',
             charts: charts,
@@ -821,12 +823,14 @@ module PublicReports
     end
 
     private def gender_breakdowns
+      # NOTE: only minorly updating this for now.  Since these are published publicly, we'll wait until we
+      # have better direction on the scope of what's desired
       setup = {
-        'Female' => GrdaWarehouse::Hud::Client.gender_female,
-        'Male' => GrdaWarehouse::Hud::Client.gender_male,
+        'Woman' => GrdaWarehouse::Hud::Client.gender_woman,
+        'Man' => GrdaWarehouse::Hud::Client.gender_man,
         'Transgender' => GrdaWarehouse::Hud::Client.gender_transgender,
-        'No Single Gender' => GrdaWarehouse::Hud::Client.no_single_gender.or(GrdaWarehouse::Hud::Client.questioning),
-        'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown,
+        'Non-Binary' => GrdaWarehouse::Hud::Client.gender_non_binary,
+        'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown.or(GrdaWarehouse::Hud::Client.questioning),
       }
       {}.tap do |charts|
         iteration_dates.each do |date|
@@ -854,11 +858,16 @@ module PublicReports
     end
 
     private def race_breakdowns
+      # TODO: DEPRECATED_FY2024 need to revisit this since race and ethnicity have been combined.
+      # We need to figure out how we'll represent that given the census data has a different shape.
       setup = {
         'American Indian or Alaska Native' => GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative']),
         'Asian' => GrdaWarehouse::Hud::Client.with_races(['Asian']),
         'Black or African American' => GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican']),
         'Native Hawaiian or Pacific Islander' => GrdaWarehouse::Hud::Client.with_races(['NativeHIPacific']),
+        # NOTE: these two are not included in the census data, so we're ignoring them
+        # 'Hispanic/Latina/e/o' => GrdaWarehouse::Hud::Client.with_races(['HispanicLatinaeo']),
+        # 'Middle Eastern or North African' => GrdaWarehouse::Hud::Client.with_races(['MidEastNAfrican']),
         'White' => GrdaWarehouse::Hud::Client.with_races(['White']),
         'Other or Unknown' => GrdaWarehouse::Hud::Client.with_race_none,
       }
@@ -898,13 +907,14 @@ module PublicReports
         joins(:service_history_services).
         merge(shs_scope).
         order(shs_t[:date].asc).
-        pluck(cl(she_t[:household_id], she_t[:enrollment_group_id]), shs_t[:age], shs_t[:client_id]).
-        each do |hh_id, age, client_id|
+        pluck(cl(she_t[:household_id], she_t[:enrollment_group_id]), shs_t[:age], shs_t[:client_id], she_t[:head_of_household]).
+        each do |hh_id, age, client_id, hoh|
           next if age.blank? || age.negative?
 
           key = [hh_id, client_id]
-          households[hh_id] ||= []
-          households[hh_id] << age unless counted_ids.include?(key)
+          households[hh_id] ||= { ages: [], hoh_client_id: nil }
+          households[hh_id][:ages] << age unless counted_ids.include?(key)
+          households[hh_id][:hoh_client_id] = client_id if hoh
           counted_ids << key
         end
       households
@@ -912,33 +922,33 @@ module PublicReports
     memoize :households
 
     private def adult_and_child_household_ids(start_date, end_date)
-      adult_and_child_households = Set.new
+      adult_and_child_households = {}
       households(start_date, end_date).each do |hh_id, household|
-        child_present = household.any? { |age| age < 18 }
-        adult_present = household.any? { |age| age >= 18 }
-        adult_and_child_households << hh_id if child_present && adult_present
+        child_present = household[:ages].any? { |age| age < 18 }
+        adult_present = household[:ages].any? { |age| age >= 18 }
+        adult_and_child_households[hh_id] = household[:hoh_client_id] if child_present && adult_present
       end
       adult_and_child_households
     end
     memoize :adult_and_child_household_ids
 
     private def child_only_household_ids(start_date, end_date)
-      child_only_households = Set.new
+      child_only_households = {}
       households(start_date, end_date).each do |hh_id, household|
-        child_present = household.any? { |age| age < 18 }
-        adult_present = household.any? { |age| age >= 18 }
-        child_only_households << hh_id if child_present && ! adult_present
+        child_present = household[:ages].any? { |age| age < 18 }
+        adult_present = household[:ages].any? { |age| age >= 18 }
+        child_only_households[hh_id] = household[:hoh_client_id] if child_present && ! adult_present
       end
       child_only_households
     end
     memoize :child_only_household_ids
 
     private def adult_only_household_ids(start_date, end_date)
-      adult_only_household_ids = Set.new
+      adult_only_household_ids = {}
       households(start_date, end_date).each do |hh_id, household|
-        child_present = household.any? { |age| age < 18 }
+        child_present = household[:ages].any? { |age| age < 18 }
         # Include clients of unknown age
-        adult_only_household_ids << hh_id unless child_present
+        adult_only_household_ids[hh_id] = household[:hoh_client_id] unless child_present
       end
       adult_only_household_ids
     end

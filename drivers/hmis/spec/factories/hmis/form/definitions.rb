@@ -10,6 +10,7 @@ FactoryBot.define do
     sequence(:identifier, 100)
     role { 'UPDATE' }
     status { 'active' }
+    title { 'Form' }
     definition do
       {
         'item': [
@@ -24,7 +25,7 @@ FactoryBot.define do
                 'warn_if_empty': false,
                 'text': 'Information Date',
                 'assessment_date': true,
-                'field_name': 'informationDate',
+                'mapping': { 'field_name': 'informationDate' },
               },
               {
                 'type': 'NUMBER',
@@ -32,7 +33,7 @@ FactoryBot.define do
                 'required': true,
                 'warn_if_empty': false,
                 'brief_text': 'The Required Field',
-                'field_name': 'fieldOne',
+                'mapping': { 'field_name': 'fieldOne' },
               },
               {
                 'type': 'CHOICE',
@@ -40,12 +41,48 @@ FactoryBot.define do
                 'required': false,
                 'warn_if_empty': true,
                 'text': 'Choice field',
-                'field_name': 'fieldTwo',
+                'mapping': { 'field_name': 'fieldTwo' },
               },
             ],
           },
         ],
-      }.to_json
+      }
+    end
+  end
+
+  factory :hmis_intake_assessment_definition, parent: :hmis_form_definition do
+    role { :INTAKE }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'DATE',
+            'link_id': 'date',
+            'required': true,
+            'warn_if_empty': false,
+            'assessment_date': true,
+            'mapping': { 'field_name': 'entryDate' },
+          },
+        ],
+      }
+    end
+  end
+
+  factory :hmis_exit_assessment_definition, parent: :hmis_form_definition do
+    role { :EXIT }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'DATE',
+            'link_id': 'date',
+            'required': true,
+            'warn_if_empty': false,
+            'assessment_date': true,
+            'mapping': { 'field_name': 'exitDate' },
+          },
+        ],
+      }
     end
   end
 end

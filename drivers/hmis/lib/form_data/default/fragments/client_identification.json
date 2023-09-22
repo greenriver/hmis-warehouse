@@ -16,45 +16,58 @@
       ]
     },
     {
-      "type": "DATE",
-      "required": false,
-      "link_id": "dob",
-      "text": "Date of Birth",
-      "field_name": "dob",
-      "enable_when": [
-        {
-          "question": "see-dob",
-          "operator": "EQUAL",
-          "answer_boolean": true
-        }
-      ],
-      "bounds": [
-        {
-          "id": "max-dob",
-          "type": "MAX",
-          "question": "today"
-        }
-      ]
-    },
-    {
       "type": "GROUP",
-      "component": "INFO_GROUP",
-      "link_id": "dob-group",
+      "link_id": "dob-horizontal-group",
+      "component": "HORIZONTAL_GROUP",
       "item": [
         {
-          "type": "CHOICE",
+          "type": "DATE",
           "required": false,
-          "link_id": "dob-dq",
-          "text": "DOB Data Quality",
-          "field_name": "dobDataQuality",
-          "pick_list_reference": "DOBDataQuality"
-        }
-      ],
-      "enable_when": [
+          "link_id": "dob",
+          "text": "Date of Birth",
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "dob"
+          },
+          "enable_when": [
+            {
+              "question": "see-dob",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
+          ],
+          "bounds": [
+            {
+              "id": "max-dob",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            }
+          ]
+        },
         {
-          "question": "see-dob",
-          "operator": "EQUAL",
-          "answer_boolean": true
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "dob-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "dob-dq",
+              "text": "DOB Data Quality",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "dobDataQuality"
+              },
+              "pick_list_reference": "DOBDataQuality"
+            }
+          ],
+          "enable_when": [
+            {
+              "question": "see-dob",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
+          ]
         }
       ]
     },
@@ -70,39 +83,52 @@
       ]
     },
     {
-      "type": "STRING",
-      "required": false,
-      "link_id": "ssn",
-      "text": "Social Security Number",
-      "field_name": "ssn",
-      "component": "SSN",
-      "enable_when": [
-        {
-          "question": "see-ssn",
-          "operator": "EQUAL",
-          "answer_boolean": true
-        }
-      ]
-    },
-    {
       "type": "GROUP",
-      "component": "INFO_GROUP",
-      "link_id": "ssn-group",
+      "link_id": "ssn-horizontal-group",
+      "component": "HORIZONTAL_GROUP",
       "item": [
         {
-          "type": "CHOICE",
+          "type": "STRING",
           "required": false,
-          "link_id": "ssn-dq",
-          "text": "SSN Data Quality",
-          "field_name": "ssnDataQuality",
-          "pick_list_reference": "SSNDataQuality"
-        }
-      ],
-      "enable_when": [
+          "link_id": "ssn",
+          "text": "Social Security Number",
+          "mapping": {
+            "record_type": "CLIENT",
+            "field_name": "ssn"
+          },
+          "component": "SSN",
+          "enable_when": [
+            {
+              "question": "see-ssn",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
+          ]
+        },
         {
-          "question": "see-ssn",
-          "operator": "EQUAL",
-          "answer_boolean": true
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "ssn-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "ssn-dq",
+              "text": "SSN Data Quality",
+              "mapping": {
+                "record_type": "CLIENT",
+                "field_name": "ssnDataQuality"
+              },
+              "pick_list_reference": "SSNDataQuality"
+            }
+          ],
+          "enable_when": [
+            {
+              "question": "see-ssn",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
+          ]
         }
       ]
     }

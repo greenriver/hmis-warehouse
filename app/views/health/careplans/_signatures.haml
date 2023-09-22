@@ -1,12 +1,17 @@
 .pctp__signature.mb-4
-  - if careplan.patient_signed_on
+  - if careplan.signature_complete?
     .signature-words
       = checkmark(true)
       Patient Signature
     .signature-date
       (#{careplan.patient_signed_on&.to_date})
   - elsif careplan.id == @careplan.id
-    = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
+    - link_params = Array.wrap(careplan.signature_path)
+    - if link_params.length > 1 # If there are more than one param, there is a hash of additional link params
+      - link_params.last.merge!(class: 'btn btn-sm btn-secondary')
+    - else
+      - link_params << {class: 'btn btn-sm btn-secondary'}
+    = link_to *link_params do
       Enter Patient Signature
 .pctp__signature
   - if careplan.careplan_sent_on.present?
@@ -17,7 +22,7 @@
       (#{careplan.careplan_sent_on&.to_date})
   - elsif (careplan.cp1? && careplan.needs_rereview?) || (careplan.cp2? && careplan.patient_signed_on)
     - if current_user.can_approve_careplan? || current_user.can_approve_cha?
-      = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
+      = link_to careplan.edit_path do
         Review Care Plan
 - if careplan.cp1? && careplan.needs_rereview?
   .pctp__expiration.mt-2

@@ -10,14 +10,23 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   include ::HmisStructure::Exit
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::ExitValidator
+
+  def aftercare_methods
+    HudUtility2024.aftercare_method_fields.select { |k| send(k) == 1 }.values
+  end
+
+  def counseling_methods
+    HudUtility2024.counseling_method_fields.select { |k| send(k) == 1 }.values
+  end
 end

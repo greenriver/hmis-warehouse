@@ -78,7 +78,41 @@ module IncomeBenefitsReport
     end
 
     def describe_filter_as_html
-      filter.describe_filter_as_html(filter.all_known_keys.reject { |k| k.in?([:on, :lsa_scope]) })
+      filter.describe_filter_as_html(known_filter_keys)
+    end
+
+    private def known_filter_keys
+      [
+        :start,
+        :comparison_pattern,
+        :household_type,
+        :hoh_only,
+        :sub_population,
+        :chronic_status,
+        :first_time_homeless,
+        :involves_ce,
+        :coordinated_assessment_living_situation_homeless,
+        :require_service_during_range,
+        :active_roi,
+        :coc_codes,
+        :project_types,
+        :project_type_codes,
+        :project_type_numbers,
+        :veteran_statuses,
+        :age_ranges,
+        :genders,
+        :races,
+        :data_source_ids,
+        :organization_ids,
+        :project_ids,
+        :funder_ids,
+        :project_group_ids,
+        :cohort_ids,
+        :disabilities,
+        :indefinite_disabilities,
+        :dv_status,
+        :times_homeless_in_last_three_years,
+      ]
     end
 
     def to_comparison
@@ -102,7 +136,7 @@ module IncomeBenefitsReport
     end
 
     private def set_project_types
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @project_types = filter.project_type_ids || HudUtility2024.homeless_project_types
     end
 
     def comparison_pattern
@@ -137,7 +171,7 @@ module IncomeBenefitsReport
     end
 
     def title
-      _('Income, Non-Cash Benefits, Health Insurance Report')
+      Translation.translate('Income, Non-Cash Benefits, Health Insurance Report')
     end
 
     def section_ready?(section)
@@ -183,32 +217,7 @@ module IncomeBenefitsReport
 
     # @return filtered scope
     def report_scope(all_project_types: false)
-      # Report range
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_sub_population(scope)
-      scope = filter_for_household_type(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      scope = filter_for_veteran_status(scope)
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_disabilities(scope)
-      scope = filter_for_indefinite_disabilities(scope)
-      scope = filter_for_dv_status(scope)
-      scope = filter_for_chronic_at_entry(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
-      scope = filter_for_cohorts(scope)
-      scope = filter_for_times_homeless(scope)
+      scope = filter.apply(report_scope_source, report_scope_source, all_project_types: all_project_types)
 
       # Limit to most recently started enrollment per client
       scope.only_most_recent_by_client(scope: scope)

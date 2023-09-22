@@ -54,13 +54,15 @@ module SystemPathways::Equity::Chronic
         node_names.each do |label|
           count = chronic_at_entry_counts[label][k] || 0
 
-          bg_color = config["breakdown_4_color_#{i}"]
+          color = config.color_for('chronic', i)
+          bg_color = color.background_color
           data['colors'][chronic_at_entry] = bg_color
-          data['labels']['colors'][chronic_at_entry] = config.foreground_color(bg_color)
+          data['labels']['colors'][chronic_at_entry] = color.calculated_foreground_color(bg_color)
           row << count
         end
         data['columns'] << row
       end
+      data['columns'] = remove_all_zero_rows(data['columns'])
     end
   end
 end

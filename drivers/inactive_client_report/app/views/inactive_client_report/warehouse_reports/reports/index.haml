@@ -1,0 +1,69 @@
+- title = @report.class.name
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
+      = render 'utility'
+    .top-nav-prs1
+      %h1.mb-5= title
+      .d-flex.flex-wrap
+        .hero-prs1
+          .d-flex.align-items-center
+            .h1.hero-value-prs1.mr-3= number_with_delimiter @report.total_client_count
+            .hero-label-prs1.h5-prs1 Unique Clients
+    .main-inner-prs1
+      .d-flex
+        .mr-4
+          .alert.alert-info
+            %i.icon-info.mr-4
+            Please note, while the clients included in the report are limited to those with enrollments in the chosen universe, some activitie are included that may be outside the chosen universe.
+        .ml-auto.mb-4
+          = render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
+      - if @report.total_client_count.positive?
+        = render 'common/pagination_top', item_name: 'client'
+        .card
+          %table.table.table-striped.mb-0
+            %thead
+              %tr
+                - age_label = if can_view_full_dob? then 'DOB' else 'Age' end
+                %th Client
+                %th= age_label
+                %th Last Seen
+                %th Ongoing Enrollments
+                %th Days Homeless in the Last 3 Years
+                %th Days Since Most-Recent Contact
+                %th Most-Recent Entry Date
+                %th Most-Recent Current Living Situation
+                %th Most-Recent Bed Night
+                %th Most-Recent CE Assessment
+            %tbody
+              - @clients.each do |client|
+                - projects = client.last_intentional_contacts( current_user, include_confidential_names: false, include_dates: true).select(&:present?)
+                %tr
+                  %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+                  %td= dob_or_age(client.dob)
+                  %td
+                    - projects.each do |p|
+                      = p
+                      %br
+                  %td
+                    - client.service_history_entry_ongoing.map { |en| en&.project&.name(current_user, include_project_type: true) }.compact.each do |p|
+                      = p
+                      %br
+                  %td= number_with_delimiter client.processed_service_history&.days_homeless_last_three_years
+                  %td= number_with_delimiter @report.days_since_most_recent_contact(client)
+                  %td= @report.max_entry_date(client)
+                  %td= @report.most_recent_cls(client)
+                  %td= @report.most_recent_bed_night(client)
+                  %td= @report.most_recent_ce_assessment(client)
+
+        = render 'common/pagination_bottom', item_name: 'client'
+      - else
+        .well.none-found
+          No clients match the chosen universe.

@@ -76,11 +76,21 @@ module Hmis
         { backtrace: err.backtrace.to_s },
       )
 
+      dev_or_test = Rails.env.test? || Rails.env.development?
+
+      display_message = if dev_or_test
+        err.message
+      elsif err.is_a?(HmisErrors::ApiError)
+        err.display_message
+      else
+        HmisErrors::ApiError::INTERNAL_ERROR_DISPLAY_MESSAGE
+      end
+
       render status: 500, json: {
         errors: [
           {
-            message: Rails.env.development? ? err.message : 'An internal server error occurred.',
-            backtrace: Rails.env.development? ? err.backtrace : nil,
+            message: display_message,
+            backtrace: dev_or_test ? err.backtrace : nil,
           },
         ],
         data: {},

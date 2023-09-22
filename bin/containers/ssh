@@ -20,7 +20,7 @@ class ContainerList
       # TODO: improve to allow connecting to stopped containers as well
       remote_cmd = "bash -l -c \"docker container ls --format='#{ip}|{{print .ID}}|{{print .Names}}|{{print .RunningFor}}|{{println .Image}}'\""
 
-      full_cmd = "ssh ec2-user@#{ip} #{Shellwords.escape remote_cmd}"
+      full_cmd = "ssh -o StrictHostKeyChecking=no ec2-user@#{ip} #{Shellwords.escape remote_cmd}"
 
       # Pull out results from remote system
       lines = `#{full_cmd}`.split(/\n/).reject { |l| l.match?(/^\s*$/) }
@@ -35,7 +35,7 @@ class ContainerList
         # puts format(template, ip, container_id, task)
 
         # Tell user the command to use to connect
-        connection_cmd = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
+        connection_cmd = "ssh -o StrictHostKeyChecking=no -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
         # Disabling for now in favor of trailing container name
         # puts format(template, '', '', connection_cmd)
         puts connection_cmd
@@ -60,7 +60,7 @@ class ContainerList
       ip = instance.public_ip_address
       remote_cmd = "bash -l -c \"docker container ls --format='#{ip}|{{print .ID}}|{{print .Names}}|{{print .RunningFor}}|{{println .Image}}'\""
 
-      full_cmd = "ssh ec2-user@#{ip} #{Shellwords.escape remote_cmd}"
+      full_cmd = "ssh -o StrictHostKeyChecking=no ec2-user@#{ip} #{Shellwords.escape remote_cmd}"
 
       # Pull out results from remote system
       lines = `#{full_cmd}`.split(/\n/).reject { |l| l.match?(/^\s*$/) }

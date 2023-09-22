@@ -139,6 +139,7 @@ module BostonProjectScorecard
         :barrier_id_process,
         :plan_to_address_barriers,
         :required_match_percent_met,
+        :no_concern,
       ].freeze
     end
 
@@ -157,7 +158,7 @@ module BostonProjectScorecard
     end
 
     def title
-      _('MA-500 Boston Continuum of Care FY2022 Renewal Project Scoring Tool')
+      Translation.translate('MA-500 Boston Continuum of Care FY2022 Renewal Project Scoring Tool')
     end
 
     def url

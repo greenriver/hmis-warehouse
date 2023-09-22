@@ -30,9 +30,9 @@ module
 
     def no_recent_homelessness_count(type)
       if type.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
-        no_recent_homelessness_clients[type]&.map(&:last)&.uniq&.count&.presence || 0
+        mask_small_population(no_recent_homelessness_clients[type]&.map(&:last)&.uniq&.count&.presence || 0)
       else
-        no_recent_homelessness_clients[type]&.count&.presence || 0
+        mask_small_population(no_recent_homelessness_clients[type]&.count&.presence || 0)
       end
     end
 
@@ -83,7 +83,7 @@ module
     # inactivity period (default is 24 months).
     private def client_ids_with_prior_homelessness
       @client_ids_with_prior_homelessness ||= begin
-        project_types = HudUtility.homeless_project_type_numbers & filter.project_type_numbers
+        project_types = HudUtility2024.homeless_project_type_numbers & filter.project_type_numbers
         # Use month duration to handle leap years
         inactivity_duration = filter.inactivity_days > 90 ? filter.inactivity_days.days.in_months.round.months : filter.inactivity_days.days
         # NOTE: this is limited to the report universe, except for the date range

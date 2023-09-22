@@ -9,7 +9,7 @@
 # u = Hmis::User.first; u.hmis_data_source_id = 3
 # g = Hmis::AccessGroup.create(name: 'test')
 # ac = u.access_controls.create(role: r, access_group: g)
-# u.user_access_controls.create(user: u, access_control: ac)
+# u.user_group_members.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
 class Hmis::User < ApplicationRecord
@@ -17,8 +17,9 @@ class Hmis::User < ApplicationRecord
   include HasRecentItems
   self.table_name = :users
 
-  has_many :user_access_controls, class_name: '::Hmis::UserAccessControl', dependent: :destroy, inverse_of: :user
-  has_many :access_controls, through: :user_access_controls
+  has_many :user_group_members, dependent: :destroy, inverse_of: :user
+  has_many :user_groups, through: :user_group_members
+  has_many :access_controls, through: :user_groups
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
 
@@ -26,9 +27,15 @@ class Hmis::User < ApplicationRecord
   has_recent :projects, Hmis::Hud::Project
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
 
-  def skip_session_limitable?
-    true
+  # The session_limitable extension uses user.hmis_unique_session_id to restrict the current session.
+  # Override reader/writer for unique_session_id to track sessions in the hmis separately from the
+  # warehouse. This allows a user to be logged into the HMIS and the warehouse simultaneously
+  def update_unique_session_id!(unique_session_id)
+    raise Devise::Models::Compatibility::NotPersistedError, 'cannot update a new record' unless persisted?
+
+    update_column(:hmis_unique_session_id, unique_session_id)
   end
+  alias_attribute(:unique_session_id, :hmis_unique_session_id)
 
   # load a hash of global permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
@@ -61,20 +68,12 @@ class Hmis::User < ApplicationRecord
       # Just return false if we don't have this permission at all for anything
       return false unless send("#{permission}?")
 
-      # Return true if we should use global permissions for the entity, since we just did the global permission check
-      return true if use_global_permissions_for_entity?(entity)
+      loader, subject = entity_access_loader_factory(entity) do |record, association|
+        record.send(association)
+      end
+      raise "missing loader for #{entity.class.name}##{entity.id}" unless loader
 
-      base_entities = permissions_base_for_entity(entity)
-
-      # Raise if there's no permissions base for the entity we're checking permissions on
-      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" if base_entities.nil?
-
-      # No permissions on this entity if there's nothing that would grant it permissions
-      return false unless base_entities.present?
-
-      access_group_ids = Hmis::GroupViewableEntity.includes_entities(base_entities).pluck(:access_group_id)
-      role_ids = roles.where(permission => true).pluck(:id)
-      access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
+      loader.fetch_one(subject, permission)
     end
 
     # Provide a scope for each permission to get any user who qualifies
@@ -89,32 +88,9 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  # A permissions base is an entity or entities that grant permissions on the given entity. This can be the entity
-  # itself in the case of projects, or can be another entity in the case of files, which are granted permissions through
-  # their client or their enrollment. A result of nil indicates that there is no permissions base for the given entity.
-  # If there is a permissions base, the result will be zero or more entities to use as a permissions base. If the result
-  # is no entities, it means that the entity has a permissions base, but no entities that act as that base are present.
-  # For example, if a client is granted permissions through enrollments but has no enrollments, it would return no
-  # entities.
-  private def permissions_base_for_entity(entity)
-    return unless entity.present?
-
-    return entity.projects_including_wip if entity.is_a? Hmis::Hud::Client
-    return entity if entity.is_a? Hmis::Hud::Organization
-    return entity if entity.is_a? Hmis::Hud::Project
-
-    return permissions_base_for_entity(entity.enrollment || entity.client) if entity.is_a? Hmis::File
-
-    return entity.project if entity.respond_to? :project
-
-    nil
-  end
-
-  private def use_global_permissions_for_entity?(entity)
-    return true if entity.is_a?(Hmis::Hud::Client) && !entity.enrolled?
-    return true if entity.is_a?(Hmis::File) && !entity.enrollment && !entity.client.enrolled?
-
-    return false
+  def entity_access_loader_factory(...)
+    @entity_access_loader_factory ||= Hmis::EntityAccessLoaderFactory.new(self)
+    @entity_access_loader_factory.perform(...)
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)
@@ -139,17 +115,26 @@ class Hmis::User < ApplicationRecord
     check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
   end
 
-  def entities_with_permissions(model, *permissions, **kwargs)
-    model.where(
-      id: Hmis::GroupViewableEntity.where(
-        access_group_id: access_groups.with_permissions(*permissions, **kwargs).pluck(:id),
-        entity_type: model.sti_name,
-      ).select(:entity_id),
-    )
+  def entities_with_permissions(model, *permissions, mode: :any)
+    # Get all the roles that have this permission
+    roles_with_permission = Hmis::Role.with_permissions(*permissions, mode: mode).pluck(:id)
+
+    # Find the Access Controls that this user is assigned to that have any of the approved Roles,
+    # and pluck the Access Group (aka Collection). The user has access <permission>-level access for
+    # any entity in these access groups.
+    access_group_ids = access_controls.where(role_id: roles_with_permission).pluck(:access_group_id)
+
+    entity_ids = Hmis::GroupViewableEntity.where(
+      access_group_id: access_group_ids,
+      entity_type: model.sti_name,
+    ).select(:entity_id)
+
+    model.where(id: entity_ids)
   end
 
   private def viewable(model)
-    entities_with_permissions(model, *Hmis::Role.permissions_for_access(:viewable), mode: 'any')
+    # An entity is only considered "viewable" if the user has can_view_project permission for it.
+    entities_with_permissions(model, :can_view_project)
   end
 
   def viewable_data_sources
@@ -207,5 +192,15 @@ class Hmis::User < ApplicationRecord
 
   def editable_project_ids
     @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
+  end
+
+  def current_user_api_values
+    {
+      id: id.to_s,
+      name: name,
+      email: email,
+      phone: phone,
+      sessionDuration: Devise.timeout_in.in_seconds,
+    }
   end
 end

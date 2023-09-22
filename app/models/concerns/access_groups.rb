@@ -4,12 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# TODO: START_ACL remove when ACL transition complete
 module AccessGroups
   extend ActiveSupport::Concern
 
   def access_groups
     {
-      'Users' => AccessGroup.user.to_a,
+      'Users' => AccessGroup.user.merge(User.active).to_a,
       'Groups' => AccessGroup.general.to_a,
     }
   end

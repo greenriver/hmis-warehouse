@@ -20,7 +20,7 @@ module
     end
 
     def unsheltered_count(type)
-      unsheltered_clients[type]&.count&.presence || 0
+      mask_small_population(unsheltered_clients[type]&.count&.presence || 0)
     end
 
     def unsheltered_percentage(type)
@@ -55,7 +55,7 @@ module
       @unsheltered_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
           report_scope.distinct.
-            in_project_type(HudUtility.project_type_number('Street Outreach')).
+            in_project_type(HudUtility2024.project_type_number('Street Outreach')).
             # checks SHS which equates to CLS
             with_service_between(start_date: filter.start_date, end_date: filter.end_date).
             order(first_date_in_program: :desc).

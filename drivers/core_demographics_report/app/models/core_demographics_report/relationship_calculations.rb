@@ -10,7 +10,7 @@ module
   included do
     def relationship_detail_hash
       {}.tap do |hashes|
-        ::HudUtility.relationships_to_hoh.each do |key, title|
+        ::HudUtility2024.relationships_to_hoh.each do |key, title|
           hashes["relationship_#{key}"] = {
             title: "Relationship #{title}",
             headers: client_headers,
@@ -22,11 +22,11 @@ module
     end
 
     def relationship_count(type)
-      relationship_breakdowns[type]&.count&.presence || 0
+      mask_small_population(relationship_breakdowns[type]&.count&.presence || 0)
     end
 
     def relationship_percentage(type)
-      total_count = client_relationships.count
+      total_count = mask_small_population(client_relationships.count)
       return 0 if total_count.zero?
 
       of_type = relationship_count(type)
@@ -39,7 +39,7 @@ module
       rows['_Relationship to Head of Household Break'] ||= []
       rows['*Relationship to Head of Household'] ||= []
       rows['*Relationship to Head of Household'] += ['Relationship', nil, 'Count', 'Percentage', nil]
-      ::HudUtility.relationships_to_hoh.each do |id, title|
+      ::HudUtility2024.relationships_to_hoh.each do |id, title|
         rows["_Relationship_data_#{title}"] ||= []
         rows["_Relationship_data_#{title}"] += [
           title,

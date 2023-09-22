@@ -25,7 +25,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     it 'should return correct results' do
       [
         ['foo', []],
-        ['jelly', [c2, c3]],
+        ['jelly', [c3, c2]],
         ['bean, jelly', [c2]],
         ['jelly bean', [c2]],
         [c3.id.to_s, [c3]],
@@ -49,11 +49,11 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(c1.names).to contain_exactly(*[n1, n2, n3].map { |n| have_attributes(id: n.id) })
       expect(c1.names.primary_names).to contain_exactly(have_attributes(id: n1.id))
       expect(c1.primary_name).to have_attributes(id: n1.id)
-      expect(c1.valid?).to be true
+      expect(c1.valid?(:client_form)).to be true
 
       n4 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Fourth', primary: true)
       c1.update(names: [n1, n2, n3, n4])
-      expect(c1.valid?).to be false
+      expect(c1.valid?(:client_form)).to be false
     end
 
     it 'should update name when primary name is updated' do
@@ -85,33 +85,28 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     end
 
     it 'preserves shared data' do
-      client.destroy
-      client.reload
-
-      [
-        :data_source,
-        :user,
-      ].each do |assoc|
-        expect(client.send(assoc)).to be_present, "expected #{assoc} to be present"
+      expect do
+        client.destroy!
+        client.reload
       end
+        .to not_change(client, :data_source)
+        .and not_change(client, :user)
     end
 
     it 'destroys dependent data' do
-      client.reload
-      [
-        :enrollments,
-      ].each do |assoc|
-        expect(client.send(assoc)).to be_present, "expected #{assoc} to be present"
-      end
+      referral = create(:hmis_external_api_ac_hmis_referral)
+      referral.household_members.create!(
+        relationship_to_hoh: 'self_head_of_household',
+        client: client,
+      )
 
-      client.destroy
-      client.reload
-
-      [
-        :enrollments,
-      ].each do |assoc|
-        expect(client.send(assoc)).not_to be_present, "expected #{assoc} not to be present"
+      expect do
+        client.destroy!
+        client.reload
       end
+        .to change(client, :enrollments).to([])
+        .and change(client, :external_referral_household_members).to([])
+        .and change(HmisExternalApis::AcHmis::Referral, :count).to(0)
     end
   end
 end

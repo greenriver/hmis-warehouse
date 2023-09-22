@@ -119,10 +119,6 @@ module
           title: 'Race',
           transformation: ->(v) { v },
         },
-        ethnicity: {
-          title: 'Ethnicity',
-          transformation: ->(v) { "#{HudUtility.ethnicity(v)} (#{v})" },
-        },
         entry_date: {
           title: 'Entry Date',
           transformation: ->(v) { v },
@@ -177,7 +173,7 @@ module
           :DataCollectionStage,
           {
             title: 'Data Collection Stage',
-            transformation: ->(v) { ::HudUtility.data_collection_stage(v) },
+            transformation: ->(v) { ::HudUtility2024.data_collection_stage(v) },
           },
         ],
       ]

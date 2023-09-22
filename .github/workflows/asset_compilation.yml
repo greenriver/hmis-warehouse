@@ -21,7 +21,7 @@ jobs:
           - gha_staging_load_2
           - gha_staging_load_3
           - gha_staging_load_4
-          - gha_staging_load_5
+          # client removed - gha_staging_load_5
           - gha_staging_load_6
           - gha_staging_load_7
           - gha_staging_load_8
@@ -35,9 +35,10 @@ jobs:
           - gha_staging_load_16
           - gha_staging_load_17
           - gha_staging_load_18
+          - gha_staging_load_19
           - gha_production_load_1
           - gha_production_load_2
-          - gha_production_load_3
+          # client removed - gha_production_load_3
           - gha_production_load_4
           # client removed - gha_production_load_5
           - gha_production_load_6
@@ -96,9 +97,7 @@ jobs:
           chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
           lftp postgresql tmux postgis geos geos-dev \
           shared-mime-info \
-          python3 py3-pip
-
-        pip3 install awscli
+          python3 aws-cli
 
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass

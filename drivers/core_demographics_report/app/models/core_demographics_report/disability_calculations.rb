@@ -9,8 +9,8 @@ module
   extend ActiveSupport::Concern
   included do
     def disability_detail_hash
-      {}.tap do |hashes|
-        HudUtility.disability_types.each do |key, title|
+      hash = {}.tap do |hashes|
+        HudUtility2024.disability_types.each do |key, title|
           hashes["disability_#{key}"] = {
             title: "Disability #{title}",
             headers: client_headers,
@@ -19,10 +19,26 @@ module
           }
         end
       end
+      hash.merge!(
+        'yes_disability' =>
+          {
+            title: 'At Least One Disability',
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_disabilities.keys).distinct },
+          },
+        'no_disability' =>
+          {
+            title: 'No Disability',
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client, :enrollment).where(client_id: distinct_client_ids.pluck(:client_id).uniq - client_disabilities.keys).distinct },
+          },
+      )
     end
 
     def disability_count(type)
-      disability_breakdowns[type]&.count&.presence || 0
+      mask_small_population(disability_breakdowns[type]&.count&.presence || 0)
     end
 
     def disability_percentage(type)
@@ -67,7 +83,7 @@ module
       rows['_Disability Break'] ||= []
       rows['*Indefinite and Impairing Disabilities'] ||= []
       rows['*Indefinite and Impairing Disabilities'] += ['Disability', nil, 'Count', 'Percentage', nil]
-      ::HudUtility.disability_types.each do |id, title|
+      ::HudUtility2024.disability_types.each do |id, title|
         rows["_Disabilities_data_#{title}"] ||= []
         rows["_Disabilities_data_#{title}"] += [
           title,
@@ -95,7 +111,7 @@ module
 
     private def client_disabilities_count
       @client_disabilities_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        client_disabilities.count
+        mask_small_population(client_disabilities.count)
       end
     end
 
@@ -105,7 +121,7 @@ module
 
     private def disability_breakdowns
       @disability_breakdowns ||= {}.tap do |disabilities|
-        ::HudUtility.disability_types.keys.each do |d|
+        ::HudUtility2024.disability_types.keys.each do |d|
           disabilities[d] ||= Set.new
           client_disabilities.each do |id, ds|
             disabilities[d] << id if ds.include?(d)
@@ -126,12 +142,15 @@ module
     end
 
     private def disabled_client_disability_types
-      GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: distinct_client_ids.pluck(:client_id)).
+      ids = distinct_client_ids.pluck(:client_id)
+      return [] unless ids.any?
+
+      GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: ids).
         joins(:source_enrollment_disabilities).
         merge(
           GrdaWarehouse::Hud::Disability.
           where(
-            DisabilityType: ::HudUtility.disability_types.keys,
+            DisabilityType: ::HudUtility2024.disability_types.keys,
             DisabilityResponse: [1, 2, 3],
             IndefiniteAndImpairs: 1,
           ),

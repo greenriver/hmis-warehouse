@@ -20,26 +20,27 @@ module HmisDataQualityTool
         destination_client_id: { title: 'Warehouse Client ID' },
         first_name: { title: 'First Name' },
         last_name: { title: 'Last Name' },
-        name_data_quality: { title: 'Name Data Quality', translator: ->(v) { "#{HudUtility.name_data_quality(v)} (#{v})" } },
+        name_data_quality: { title: 'Name Data Quality', translator: ->(v) { "#{HudUtility2024.name_data_quality(v)} (#{v})" } },
         personal_id: { title: 'HMIS Personal ID' },
         dob: { title: 'DOB' },
-        dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { "#{HudUtility.dob_data_quality(v)} (#{v})" } },
-        male: { title: 'Male', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
-        female: { title: 'Female', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
-        no_single_gender: { title: 'No Single Gender', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
-        transgender: { title: 'Transgender', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
-        questioning: { title: 'Questioning', translator: ->(v) { "#{HudUtility.no_yes_missing(v)} (#{v})" } },
-        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudUtility.gender_none(v)} (#{v})" } },
-        am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { "#{HudUtility.no_yes_missing(v&.to_i)} (#{v})" } },
-        asian: { title: 'Asian or Asian American', translator: ->(v) { "#{HudUtility.no_yes_missing(v&.to_i)} (#{v})" } },
-        black_af_american: { title: 'Black, African American, or African', translator: ->(v) { "#{HudUtility.no_yes_missing(v&.to_i)} (#{v})" } },
-        native_hi_pacific: { title: 'Native Hawaiian or Pacific Islander', translator: ->(v) { "#{HudUtility.no_yes_missing(v&.to_i)} (#{v})" } },
-        white: { title: 'White', translator: ->(v) { "#{HudUtility.no_yes_missing(v&.to_i)} (#{v})" } },
-        race_none: { title: 'Race None', translator: ->(v) { "#{HudUtility.race_none(v)} (#{v})" } },
-        ethnicity: { title: 'Ethnicity', translator: ->(v) { "#{HudUtility.ethnicity(v)} (#{v})" } },
-        veteran_status: { title: 'Veteran Status', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { "#{HudUtility2024.dob_data_quality(v)} (#{v})" } },
+        man: { title: 'Man', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
+        woman: { title: 'Woman', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
+        culturally_specific: { title: 'Culturally Specific', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
+        different_identity: { title: 'DifferentIdentity', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
+        non_binary: { title: 'Non-Binary', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
+        transgender: { title: 'Transgender', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
+        questioning: { title: 'Questioning', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v)} (#{v})" } },
+        gender_none: { title: 'Gender None', translator: ->(v) { "#{HudUtility2024.gender_none(v)} (#{v})" } },
+        am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v&.to_i)} (#{v})" } },
+        asian: { title: 'Asian or Asian American', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v&.to_i)} (#{v})" } },
+        black_af_american: { title: 'Black, African American, or African', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v&.to_i)} (#{v})" } },
+        native_hi_pacific: { title: 'Native Hawaiian or Pacific Islander', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v&.to_i)} (#{v})" } },
+        white: { title: 'White', translator: ->(v) { "#{HudUtility2024.no_yes_missing(v&.to_i)} (#{v})" } },
+        race_none: { title: 'Race None', translator: ->(v) { "#{HudUtility2024.race_none(v)} (#{v})" } },
+        veteran_status: { title: 'Veteran Status', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         ssn: { title: 'SSN', translator: ->(v) { masked_ssn(v) } },
-        ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HudUtility.ssn_data_quality(v)} (#{v})" } },
+        ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HudUtility2024.ssn_data_quality(v)} (#{v})" } },
         overlapping_entry_exit: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH' },
         overlapping_nbn: { title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH' },
         overlapping_pre_move_in: { title: 'Overlapping Homeless Service After Move-in in PH' },
@@ -166,9 +167,11 @@ module HmisDataQualityTool
       report_item.reporting_age = source_client.age_on(report.filter.end)
       report_item.personal_id = source_client.PersonalID
       report_item.data_source_id = source_client.data_source_id
-      report_item.male = source_client.Male
-      report_item.female = source_client.Female
-      report_item.no_single_gender = source_client.NoSingleGender
+      report_item.man = source_client.Man
+      report_item.woman = source_client.Woman
+      report_item.culturally_specific = source_client.CulturallySpecific
+      report_item.different_identity = source_client.DifferentIdentity
+      report_item.non_binary = source_client.NoSingleGender
       report_item.transgender = source_client.Transgender
       report_item.questioning = source_client.Questioning
       report_item.gender_none = source_client.GenderNone
@@ -178,7 +181,6 @@ module HmisDataQualityTool
       report_item.native_hi_pacific = source_client.NativeHIPacific
       report_item.white = source_client.White
       report_item.race_none = source_client.RaceNone
-      report_item.ethnicity = source_client.Ethnicity
       report_item.veteran_status = source_client.VeteranStatus
       report_item.ssn = source_client.SSN
       report_item.ssn_data_quality = source_client.SSNDataQuality
@@ -201,7 +203,7 @@ module HmisDataQualityTool
     # check for overlapping ES entry exit, TH, SH
     def self.overlapping_entry_exit(enrollments:, report:)
       involved_enrollments = enrollments.select do |en|
-        (en.project&.es? && ! en.project&.bed_night_tracking?) || en.project&.sh? || en.project&.th?
+        en.project&.es_entry_exit? || en.project&.sh? || en.project&.th?
       end
 
       return 0 if involved_enrollments.blank? || involved_enrollments.count == 1
@@ -222,7 +224,7 @@ module HmisDataQualityTool
 
     def self.overlapping_nbn(enrollments:, report:)
       nbn_enrollments = enrollments.select do |en|
-        en.project&.es? && en.project&.bed_night_tracking?
+        en.project&.es_nbn?
       end
       return 0 if nbn_enrollments.blank?
 
@@ -305,7 +307,7 @@ module HmisDataQualityTool
       overlaps
     end
 
-    def self.sections(_) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    def self.sections(_)
       {
         gender_issues: {
           title: 'Gender',
@@ -317,9 +319,11 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
-            :male,
-            :female,
-            :no_single_gender,
+            :man,
+            :woman,
+            :culturally_specific,
+            :different_identity,
+            :non_binary,
             :transgender,
             :questioning,
             :gender_none,
@@ -328,13 +332,15 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # any fall outside accepted options
             values = [
-              item.male,
-              item.female,
-              item.no_single_gender,
+              item.man,
+              item.woman,
+              item.culturally_specific,
+              item.different_identity,
+              item.non_binary,
               item.transgender,
               item.questioning,
             ]
-            return true if (values - HudUtility.yes_no_missing_options.keys).any?
+            return true if (values - HudUtility2024.yes_no_missing_options.keys).any?
 
             # any are yes and GenderNone is present and not 99
             return true if values.include?(1) && item.gender_none.present? && item.gender_none != 99
@@ -373,7 +379,7 @@ module HmisDataQualityTool
               item.native_hi_pacific,
               item.white,
             ]
-            return true if (values - HudUtility.yes_no_missing_options.keys).any?
+            return true if (values - HudUtility2024.yes_no_missing_options.keys).any?
 
             # any are yes and RaceNone is present and isn't "not collected"
             return true if values.include?(1) && item.race_none.present? && item.race_none != 99
@@ -461,25 +467,6 @@ module HmisDataQualityTool
             return true if [item.first_name, item.last_name].any?(nil) && item.name_data_quality == 1
             # Name is present but DQ indicates it shouldn't be
             return true if [item.first_name, item.last_name].all?(&:present?) && ! item.name_data_quality.in?([1, 2])
-
-            false
-          },
-        },
-        ethnicity_issues: {
-          title: 'Ethnicity',
-          description: 'Ethnicity is "Data not collected" (99) or blank',
-          required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :personal_id,
-            :first_name,
-            :last_name,
-            :reporting_age,
-            :ethnicity,
-          ],
-          denominator: ->(_item) { true },
-          limiter: ->(item) {
-            return true if item.ethnicity == 99 || item.ethnicity.blank?
 
             false
           },

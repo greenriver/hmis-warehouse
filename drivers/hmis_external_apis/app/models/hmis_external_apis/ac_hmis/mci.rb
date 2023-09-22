@@ -25,7 +25,11 @@
 module HmisExternalApis::AcHmis
   class Mci
     SYSTEM_ID = 'ac_hmis_mci'.freeze
-    Error = StandardError.new
+    PROJECT_TYPES_NOT_REQUIRING_CLEARANCE = [1, 4].freeze # SO, ES NBN
+    MCI_REQUIRED_MSG = 'MCI clearance is required'.freeze
+    MCI_REQUIRED_FOR_ENROLLMENT_MSG = 'MCI clearance is required before this client can be enrolled'.freeze
+
+    Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to MCI')
 
     # Perform "clearance" to find potential matches for a client in MCI
     #

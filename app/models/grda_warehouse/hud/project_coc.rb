@@ -68,14 +68,38 @@ module GrdaWarehouse::Hud
       )
     end
 
-    scope :viewable_by, ->(user) do
-      if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
-        current_scope
-      elsif user.coc_codes.none?
-        none
+    # NOTE this isn't used for access on the on the project edit pages, so default
+    # to the reporting permission
+    # TODO: START_ACL cleanup after migration to ACLs
+    scope :viewable_by, ->(user, permission: :can_view_assigned_reports) do
+      return none unless user.present?
+
+      if user.using_acls?
+        return none unless user.send("#{permission}?")
+
+        # if we have an access control with the All Data Sources system group
+        # and the requested permission, return current scope
+        # Otherwise, just return the project CoCs for the CoC Codes assigned
+        all_data_sources = Collection.system_collection(:data_sources)
+        if user.roles.merge(Role.where(permission => true)).merge(AccessControl.where(collection_id: all_data_sources.id)).exists?
+          current_scope
+        else
+          group_ids = user.collections_for_permission(permission)
+          return none if group_ids.empty?
+
+          coc_codes = Collection.where(id: group_ids).pluck(:coc_codes).flatten
+          GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes)
+        end
       else
-        in_coc(coc_code: user.coc_codes)
+        if GrdaWarehouse::DataSource.can_see_all_data_sources?(user) # rubocop:disable Style/IfInsideElse
+          current_scope
+        elsif user.coc_codes.none?
+          none
+        else
+          in_coc(coc_code: user.coc_codes)
+        end
       end
+      # END_ACL
     end
 
     scope :overridden, -> do
@@ -134,7 +158,11 @@ module GrdaWarehouse::Hud
     end
 
     def self.coc_code_coalesce
-      cl(pc_t[:hud_coc_code], pc_t[:CoCCode])
+      conditions = [
+        [pc_t[:hud_coc_code].eq(''), nil],
+        [pc_t[:hud_coc_code].not_eq(''), pc_t[:hud_coc_code]],
+      ]
+      cl(acase(conditions), pc_t[:CoCCode])
     end
 
     def for_export

@@ -10,11 +10,3 @@
     %dd
       - @filter.chosen_races.each do |race|
         .race= race
-  %dt Ethnicities
-  - if @filter.chosen_ethnicities.blank?
-    %dd.text-muted
-      All
-  - else
-    %dd
-      - @filter.chosen_ethnicities.each do |ethnicity|
-        .ethnicity= ethnicity

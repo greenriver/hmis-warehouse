@@ -3,22 +3,34 @@
   "link_id": "destination",
   "text": "Exit Details",
   "data_collected_about": "ALL_CLIENTS",
-  "record_type": "EXIT",
   "item": [
     {
       "type": "DATE",
       "link_id": "exit-date",
       "text": "Exit Date",
-      "field_name": "exitDate",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "exitDate"
+      },
       "required": true,
       "assessment_date": true,
       "initial": [
         {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$exitDate"
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$today"
+        }
+      ],
+      "bounds": [
+        {
+          "id": "min-exit",
+          "type": "MIN",
+          "_comment": "exit date cannot be before entry date",
+          "value_local_constant": "$entryDate"
         },
         {
-          "initial_behavior": "IF_EMPTY",
+          "id": "max-exit",
+          "type": "MAX",
+          "_comment": "exit date cannot be in the future",
           "value_local_constant": "$today"
         }
       ]
@@ -28,22 +40,52 @@
       "link_id": "3.12",
       "text": "Exit Destination",
       "pick_list_reference": "DESTINATION",
-      "field_name": "destination",
-      "required": false,
-      "warn_if_empty": true
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "destination"
+      },
+      "required": true
     },
     {
-      "type": "STRING",
-      "link_id": "3.12.A ",
-      "text": "Other destination",
-      "field_name": "otherDestination",
-      "enable_behavior": "ALL",
-      "required": true,
-      "enable_when": [
+      "type": "GROUP",
+      "link_id": "3.12.conditional",
+      "item": [
         {
-          "question": "3.12",
-          "operator": "EQUAL",
-          "answer_code": "OTHER"
+          "type": "CHOICE",
+          "link_id": "3.12.A",
+          "required": true,
+          "text": "Rental subsidy type",
+          "pick_list_reference": "RentalSubsidyType",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "destinationSubsidyType"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.12",
+              "operator": "EQUAL",
+              "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "link_id": "3.12.B",
+          "required": true,
+          "text": "Other destination",
+          "mapping": {
+            "record_type": "EXIT",
+            "field_name": "otherDestination"
+          },
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.12",
+              "operator": "EQUAL",
+              "answer_code": "OTHER"
+            }
+          ]
         }
       ]
     }

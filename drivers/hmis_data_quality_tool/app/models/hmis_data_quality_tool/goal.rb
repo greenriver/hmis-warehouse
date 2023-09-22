@@ -61,7 +61,7 @@ module HmisDataQualityTool
     end
 
     def available_cocs
-      ::HudUtility.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
+      ::HudUtility2024.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
         [
           "#{name} (#{code})",
           code,
@@ -70,7 +70,7 @@ module HmisDataQualityTool
     end
 
     def coc_name
-      name = ::HudUtility.coc_name(coc_code)
+      name = ::HudUtility2024.coc_name(coc_code)
       return "#{name} (#{coc_code})" unless name == coc_code
 
       coc_code

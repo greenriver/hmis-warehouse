@@ -159,6 +159,40 @@ ALTER SEQUENCE public.agency_users_id_seq OWNED BY public.agency_users.id;
 
 
 --
+-- Name: any_careplans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.any_careplans (
+    id bigint NOT NULL,
+    patient_id bigint,
+    instrument_type character varying,
+    instrument_id bigint,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: any_careplans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.any_careplans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: any_careplans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.any_careplans_id_seq OWNED BY public.any_careplans.id;
+
+
+--
 -- Name: appointments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -246,6 +280,40 @@ CREATE SEQUENCE public.backup_plans_id_seq
 --
 
 ALTER SEQUENCE public.backup_plans_id_seq OWNED BY public.backup_plans.id;
+
+
+--
+-- Name: ca_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ca_assessments (
+    id bigint NOT NULL,
+    patient_id bigint,
+    instrument_type character varying,
+    instrument_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ca_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ca_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ca_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ca_assessments_id_seq OWNED BY public.ca_assessments.id;
 
 
 --
@@ -2721,6 +2789,55 @@ ALTER SEQUENCE public.epic_team_members_id_seq OWNED BY public.epic_team_members
 
 
 --
+-- Name: epic_thrives; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.epic_thrives (
+    id bigint NOT NULL,
+    patient_id character varying,
+    id_in_source character varying,
+    thrive_updated_at timestamp without time zone,
+    housing_status character varying,
+    food_insecurity character varying,
+    food_worries character varying,
+    trouble_drug_cost character varying,
+    trouble_medical_transportation character varying,
+    trouble_utility_cost character varying,
+    trouble_caring_for_family character varying,
+    trouble_with_adl character varying,
+    unemployed character varying,
+    interested_in_education character varying,
+    assistance character varying,
+    data_source_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    reporter character varying,
+    positive_food_security_count integer,
+    positive_housing_questions_count integer,
+    staff character varying
+);
+
+
+--
+-- Name: epic_thrives_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.epic_thrives_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: epic_thrives_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.epic_thrives_id_seq OWNED BY public.epic_thrives.id;
+
+
+--
 -- Name: equipment; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2757,6 +2874,314 @@ CREATE SEQUENCE public.equipment_id_seq
 --
 
 ALTER SEQUENCE public.equipment_id_seq OWNED BY public.equipment.id;
+
+
+--
+-- Name: hca_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hca_assessments (
+    id bigint NOT NULL,
+    patient_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    completed_on date,
+    reviewed_by_id bigint,
+    reviewed_on date,
+    name character varying,
+    pronouns character varying,
+    pronouns_other character varying,
+    dob date,
+    update_reason character varying,
+    update_reason_other character varying,
+    phone character varying,
+    email character varying,
+    contact character varying,
+    contact_other character varying,
+    message_ok character varying,
+    internet_access character varying,
+    race jsonb,
+    ethnicity character varying,
+    language character varying,
+    disabled character varying,
+    orientation character varying,
+    orientation_other character varying,
+    sex_at_birth character varying,
+    sex_at_birth_other character varying,
+    gender character varying,
+    gender_other character varying,
+    funders jsonb,
+    pcp_provider character varying,
+    pcp_address character varying,
+    pcp_phone character varying,
+    pcp_notes character varying,
+    hh_provider character varying,
+    hh_address character varying,
+    hh_phone character varying,
+    hh_notes character varying,
+    psych_provider character varying,
+    psych_address character varying,
+    psych_phone character varying,
+    psych_notes character varying,
+    therapist_provider character varying,
+    therapist_address character varying,
+    therapist_phone character varying,
+    therapist_notes character varying,
+    case_manager_provider character varying,
+    case_manager_address character varying,
+    case_manager_phone character varying,
+    case_manager_notes character varying,
+    specialist_provider character varying,
+    specialist_address character varying,
+    specialist_phone character varying,
+    specialist_notes character varying,
+    guardian_provider character varying,
+    guardian_address character varying,
+    guardian_phone character varying,
+    guardian_notes character varying,
+    rep_payee_provider character varying,
+    rep_payee_address character varying,
+    rep_payee_phone character varying,
+    rep_payee_notes character varying,
+    social_support_provider character varying,
+    social_support_address character varying,
+    social_support_phone character varying,
+    social_support_notes character varying,
+    cbfs_provider character varying,
+    cbfs_address character varying,
+    cbfs_phone character varying,
+    cbfs_notes character varying,
+    housing_provider character varying,
+    housing_address character varying,
+    housing_phone character varying,
+    housing_notes character varying,
+    day_provider character varying,
+    day_address character varying,
+    day_phone character varying,
+    day_notes character varying,
+    job_provider character varying,
+    job_address character varying,
+    job_phone character varying,
+    job_notes character varying,
+    peer_support_provider character varying,
+    peer_support_address character varying,
+    peer_support_phone character varying,
+    peer_support_notes character varying,
+    dta_provider character varying,
+    dta_address character varying,
+    dta_phone character varying,
+    dta_notes character varying,
+    va_provider character varying,
+    va_address character varying,
+    va_phone character varying,
+    va_notes character varying,
+    probation_provider character varying,
+    probation_address character varying,
+    probation_phone character varying,
+    probation_notes character varying,
+    other_provider_provider character varying,
+    other_provider_address character varying,
+    other_provider_phone character varying,
+    other_provider_notes character varying,
+    hip_fracture_status character varying,
+    hip_fracture_notes character varying,
+    other_fracture_status character varying,
+    other_fracture_notes character varying,
+    chronic_pain_status character varying,
+    chronic_pain_notes character varying,
+    alzheimers_status character varying,
+    alzheimers_notes character varying,
+    dementia_status character varying,
+    dementia_notes character varying,
+    stroke_status character varying,
+    stroke_notes character varying,
+    parkinsons_status character varying,
+    parkinsons_notes character varying,
+    hypertension_status character varying,
+    hypertension_notes character varying,
+    cad_status character varying,
+    cad_notes character varying,
+    chf_status character varying,
+    chf_notes character varying,
+    copd_status character varying,
+    copd_notes character varying,
+    asthma_status character varying,
+    asthma_notes character varying,
+    apnea_status character varying,
+    apnea_notes character varying,
+    anxiety_status character varying,
+    anxiety_notes character varying,
+    bipolar_status character varying,
+    bipolar_notes character varying,
+    depression_status character varying,
+    depression_notes character varying,
+    schizophrenia_status character varying,
+    schizophrenia_notes character varying,
+    cancer_status character varying,
+    cancer_notes character varying,
+    diabetes_status character varying,
+    diabetes_notes character varying,
+    arthritis_status character varying,
+    arthritis_notes character varying,
+    ckd_status character varying,
+    ckd_notes character varying,
+    liver_status character varying,
+    liver_notes character varying,
+    transplant_status character varying,
+    transplant_notes character varying,
+    weight_status character varying,
+    weight_notes character varying,
+    other_condition_status character varying,
+    other_condition_notes character varying,
+    general_health_condition character varying,
+    general_health_pain character varying,
+    general_health_comments character varying,
+    medication_adherence character varying,
+    medication_adherence_notes character varying,
+    can_communicate_about jsonb,
+    can_communicate_notes character varying,
+    assessed_needs jsonb,
+    assessed_needs_notes character varying,
+    strengths character varying,
+    weaknesses character varying,
+    interests character varying,
+    choices character varying,
+    personal_goals character varying,
+    cultural_considerations character varying,
+    substance_use character varying,
+    cigarette_use character varying,
+    smokeless_use character varying,
+    alcohol_use character varying,
+    alcohol_drinks character varying,
+    alcohol_driving character varying,
+    sud_treatment_efficacy character varying,
+    sud_treatment_sources jsonb,
+    sud_treatment_sources_other character varying,
+    preferred_mode character varying,
+    communicate_in_english character varying,
+    accessibility_equipment jsonb,
+    accessibility_equipment_notes character varying,
+    accessibility_equipment_start date,
+    accessibility_equipment_end date,
+    has_supports character varying,
+    supports jsonb,
+    supports_other jsonb,
+    social_supports character varying,
+    physical_abuse_frequency integer,
+    verbal_abuse integer,
+    threat_frequency integer,
+    scream_or_curse_frequency integer,
+    abuse_risk_notes character varying,
+    advanced_directive character varying,
+    directive_type character varying,
+    directive_type_other character varying,
+    develop_directive character varying,
+    employment_status character varying,
+    employment_status_other character varying,
+    has_legal_involvement character varying,
+    legal_involvements jsonb,
+    legal_involvements_other character varying,
+    education_level character varying,
+    education_level_other character varying,
+    grade_level integer,
+    financial_supports jsonb,
+    financial_supports_other character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    care_goals character varying,
+    address character varying,
+    legal_comments character varying
+);
+
+
+--
+-- Name: hca_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hca_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hca_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hca_assessments_id_seq OWNED BY public.hca_assessments.id;
+
+
+--
+-- Name: hca_medications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hca_medications (
+    id bigint NOT NULL,
+    assessment_id bigint,
+    medication character varying,
+    dosage character varying,
+    side_effects character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hca_medications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hca_medications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hca_medications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hca_medications_id_seq OWNED BY public.hca_medications.id;
+
+
+--
+-- Name: hca_sud_treatments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hca_sud_treatments (
+    id bigint NOT NULL,
+    assessment_id bigint,
+    service_type character varying,
+    service_dates character varying,
+    reason character varying,
+    provider_name character varying,
+    inpatient character varying,
+    completed character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hca_sud_treatments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hca_sud_treatments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hca_sud_treatments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hca_sud_treatments_id_seq OWNED BY public.hca_sud_treatments.id;
 
 
 --
@@ -3136,6 +3561,43 @@ ALTER SEQUENCE public.health_goals_id_seq OWNED BY public.health_goals.id;
 
 
 --
+-- Name: health_qa_factory_factories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.health_qa_factory_factories (
+    id bigint NOT NULL,
+    patient_id bigint,
+    careplan_id bigint,
+    hrsn_screening_qa_id bigint,
+    ca_development_qa_id bigint,
+    ca_completed_qa_id bigint,
+    careplan_development_qa_id bigint,
+    careplan_completed_qa_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: health_qa_factory_factories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.health_qa_factory_factories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: health_qa_factory_factories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.health_qa_factory_factories_id_seq OWNED BY public.health_qa_factory_factories.id;
+
+
+--
 -- Name: hl7_value_set_codes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3171,6 +3633,40 @@ CREATE SEQUENCE public.hl7_value_set_codes_id_seq
 --
 
 ALTER SEQUENCE public.hl7_value_set_codes_id_seq OWNED BY public.hl7_value_set_codes.id;
+
+
+--
+-- Name: hrsn_screenings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hrsn_screenings (
+    id bigint NOT NULL,
+    patient_id bigint,
+    instrument_type character varying,
+    instrument_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hrsn_screenings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hrsn_screenings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hrsn_screenings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hrsn_screenings_id_seq OWNED BY public.hrsn_screenings.id;
 
 
 --
@@ -3864,6 +4360,205 @@ CREATE SEQUENCE public.patients_id_seq
 --
 
 ALTER SEQUENCE public.patients_id_seq OWNED BY public.patients.id;
+
+
+--
+-- Name: pctp_care_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_care_goals (
+    id bigint NOT NULL,
+    careplan_id bigint,
+    domain character varying,
+    goal character varying,
+    status character varying,
+    estimated_completion_date date,
+    start_date date,
+    end_date date,
+    barriers character varying,
+    followup character varying,
+    comments character varying,
+    source character varying,
+    priority character varying,
+    plan character varying,
+    responsible_party character varying,
+    times character varying,
+    "interval" character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: pctp_care_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_care_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_care_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_care_goals_id_seq OWNED BY public.pctp_care_goals.id;
+
+
+--
+-- Name: pctp_careplans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_careplans (
+    id bigint NOT NULL,
+    patient_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name character varying,
+    dob date,
+    phone character varying,
+    email character varying,
+    mmis character varying,
+    aco character varying,
+    cc_name character varying,
+    cc_phone character varying,
+    cc_email character varying,
+    ccm_name character varying,
+    ccm_phone character varying,
+    ccm_email character varying,
+    pcp_name character varying,
+    pcp_phone character varying,
+    pcp_email character varying,
+    rn_name character varying,
+    rn_phone character varying,
+    rn_email character varying,
+    other_members_name character varying,
+    other_members_phone character varying,
+    other_members_email character varying,
+    overview character varying,
+    scribe character varying,
+    update_reason character varying,
+    update_reason_other character varying,
+    sex_at_birth character varying,
+    sex_at_birth_other character varying,
+    gender character varying,
+    gender_other character varying,
+    orientation character varying,
+    orientation_other character varying,
+    race jsonb,
+    ethnicity character varying,
+    language character varying,
+    contact character varying,
+    contact_other character varying,
+    strengths character varying,
+    weaknesses character varying,
+    interests character varying,
+    choices character varying,
+    care_goals character varying,
+    personal_goals character varying,
+    cultural_considerations character varying,
+    accessibility_needs character varying,
+    accommodation_types jsonb,
+    accessibility_equipment jsonb,
+    accessibility_equipment_notes character varying,
+    accessibility_equipment_start date,
+    accessibility_equipment_end date,
+    goals character varying,
+    service_summary character varying,
+    contingency_plan character varying,
+    crisis_plan character varying,
+    additional_concerns character varying,
+    patient_signed_on date,
+    verbal_approval boolean,
+    verbal_approval_followup boolean,
+    reviewed_by_ccm_id bigint,
+    reviewed_by_ccm_on date,
+    offered_services_choice_care_planning boolean,
+    offered_provider_choice_care_planning boolean,
+    received_recommendations boolean,
+    offered_services_choice_treatment_planning boolean,
+    right_to_approve_pctp boolean,
+    right_to_appeal boolean,
+    right_to_change_cc boolean,
+    right_to_change_bhcp boolean,
+    right_to_complain boolean,
+    right_to_ombudsman boolean,
+    reviewed_by_rn_id bigint,
+    reviewed_by_rn_on date,
+    provided_to_patient boolean,
+    sent_to_pcp_on date,
+    sent_to_pcp_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    initial_date date,
+    guardian_name character varying,
+    guardian_phone character varying,
+    guardian_email character varying,
+    social_support_name character varying,
+    social_support_phone character varying,
+    social_support_email character varying,
+    name_sent_to character varying
+);
+
+
+--
+-- Name: pctp_careplans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_careplans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_careplans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_careplans_id_seq OWNED BY public.pctp_careplans.id;
+
+
+--
+-- Name: pctp_needs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pctp_needs (
+    id bigint NOT NULL,
+    careplan_id bigint,
+    domain character varying,
+    need_or_condition character varying,
+    start_date date,
+    end_date date,
+    status character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: pctp_needs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.pctp_needs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: pctp_needs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.pctp_needs_id_seq OWNED BY public.pctp_needs.id;
 
 
 --
@@ -4606,6 +5301,64 @@ ALTER SEQUENCE public.teams_id_seq OWNED BY public.teams.id;
 
 
 --
+-- Name: thrive_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.thrive_assessments (
+    id bigint NOT NULL,
+    patient_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    decline_to_answer boolean,
+    housing_status integer,
+    food_insecurity integer,
+    food_worries integer,
+    trouble_drug_cost boolean,
+    trouble_medical_transportation boolean,
+    trouble_utility_cost boolean,
+    trouble_caring_for_family boolean,
+    unemployed boolean,
+    interested_in_education boolean,
+    help_with_housing boolean,
+    help_with_food boolean,
+    help_with_drug_cost boolean,
+    help_with_medical_transportation boolean,
+    help_with_utilities boolean,
+    help_with_childcare boolean,
+    help_with_eldercare boolean,
+    help_with_job_search boolean,
+    help_with_education boolean,
+    completed_on date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    epic_source_id character varying,
+    reporter integer,
+    trouble_with_adl boolean,
+    help_with_adl boolean,
+    external_name character varying
+);
+
+
+--
+-- Name: thrive_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.thrive_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: thrive_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.thrive_assessments_id_seq OWNED BY public.thrive_assessments.id;
+
+
+--
 -- Name: tracing_cases; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5114,6 +5867,13 @@ ALTER TABLE ONLY public.agency_users ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: any_careplans id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.any_careplans ALTER COLUMN id SET DEFAULT nextval('public.any_careplans_id_seq'::regclass);
+
+
+--
 -- Name: appointments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5125,6 +5885,13 @@ ALTER TABLE ONLY public.appointments ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.backup_plans ALTER COLUMN id SET DEFAULT nextval('public.backup_plans_id_seq'::regclass);
+
+
+--
+-- Name: ca_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ca_assessments ALTER COLUMN id SET DEFAULT nextval('public.ca_assessments_id_seq'::regclass);
 
 
 --
@@ -5471,10 +6238,38 @@ ALTER TABLE ONLY public.epic_team_members ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: epic_thrives id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.epic_thrives ALTER COLUMN id SET DEFAULT nextval('public.epic_thrives_id_seq'::regclass);
+
+
+--
 -- Name: equipment id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.equipment ALTER COLUMN id SET DEFAULT nextval('public.equipment_id_seq'::regclass);
+
+
+--
+-- Name: hca_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hca_assessments ALTER COLUMN id SET DEFAULT nextval('public.hca_assessments_id_seq'::regclass);
+
+
+--
+-- Name: hca_medications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hca_medications ALTER COLUMN id SET DEFAULT nextval('public.hca_medications_id_seq'::regclass);
+
+
+--
+-- Name: hca_sud_treatments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hca_sud_treatments ALTER COLUMN id SET DEFAULT nextval('public.hca_sud_treatments_id_seq'::regclass);
 
 
 --
@@ -5506,10 +6301,24 @@ ALTER TABLE ONLY public.health_goals ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: health_qa_factory_factories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.health_qa_factory_factories ALTER COLUMN id SET DEFAULT nextval('public.health_qa_factory_factories_id_seq'::regclass);
+
+
+--
 -- Name: hl7_value_set_codes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hl7_value_set_codes ALTER COLUMN id SET DEFAULT nextval('public.hl7_value_set_codes_id_seq'::regclass);
+
+
+--
+-- Name: hrsn_screenings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hrsn_screenings ALTER COLUMN id SET DEFAULT nextval('public.hrsn_screenings_id_seq'::regclass);
 
 
 --
@@ -5625,6 +6434,27 @@ ALTER TABLE ONLY public.patients ALTER COLUMN id SET DEFAULT nextval('public.pat
 
 
 --
+-- Name: pctp_care_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_care_goals ALTER COLUMN id SET DEFAULT nextval('public.pctp_care_goals_id_seq'::regclass);
+
+
+--
+-- Name: pctp_careplans id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_careplans ALTER COLUMN id SET DEFAULT nextval('public.pctp_careplans_id_seq'::regclass);
+
+
+--
+-- Name: pctp_needs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_needs ALTER COLUMN id SET DEFAULT nextval('public.pctp_needs_id_seq'::regclass);
+
+
+--
 -- Name: premium_payments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5737,6 +6567,13 @@ ALTER TABLE ONLY public.teams ALTER COLUMN id SET DEFAULT nextval('public.teams_
 
 
 --
+-- Name: thrive_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thrive_assessments ALTER COLUMN id SET DEFAULT nextval('public.thrive_assessments_id_seq'::regclass);
+
+
+--
 -- Name: tracing_cases id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5846,6 +6683,14 @@ ALTER TABLE ONLY public.agency_users
 
 
 --
+-- Name: any_careplans any_careplans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.any_careplans
+    ADD CONSTRAINT any_careplans_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: appointments appointments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5867,6 +6712,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.backup_plans
     ADD CONSTRAINT backup_plans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ca_assessments ca_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ca_assessments
+    ADD CONSTRAINT ca_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -6262,11 +7115,43 @@ ALTER TABLE ONLY public.epic_team_members
 
 
 --
+-- Name: epic_thrives epic_thrives_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.epic_thrives
+    ADD CONSTRAINT epic_thrives_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: equipment equipment_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.equipment
     ADD CONSTRAINT equipment_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hca_assessments hca_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hca_assessments
+    ADD CONSTRAINT hca_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hca_medications hca_medications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hca_medications
+    ADD CONSTRAINT hca_medications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hca_sud_treatments hca_sud_treatments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hca_sud_treatments
+    ADD CONSTRAINT hca_sud_treatments_pkey PRIMARY KEY (id);
 
 
 --
@@ -6302,11 +7187,27 @@ ALTER TABLE ONLY public.health_goals
 
 
 --
+-- Name: health_qa_factory_factories health_qa_factory_factories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.health_qa_factory_factories
+    ADD CONSTRAINT health_qa_factory_factories_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hl7_value_set_codes hl7_value_set_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hl7_value_set_codes
     ADD CONSTRAINT hl7_value_set_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hrsn_screenings hrsn_screenings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hrsn_screenings
+    ADD CONSTRAINT hrsn_screenings_pkey PRIMARY KEY (id);
 
 
 --
@@ -6435,6 +7336,30 @@ ALTER TABLE ONLY public.patient_referrals
 
 ALTER TABLE ONLY public.patients
     ADD CONSTRAINT patients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_care_goals pctp_care_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_care_goals
+    ADD CONSTRAINT pctp_care_goals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_careplans pctp_careplans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_careplans
+    ADD CONSTRAINT pctp_careplans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pctp_needs pctp_needs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pctp_needs
+    ADD CONSTRAINT pctp_needs_pkey PRIMARY KEY (id);
 
 
 --
@@ -6571,6 +7496,14 @@ ALTER TABLE ONLY public.team_members
 
 ALTER TABLE ONLY public.teams
     ADD CONSTRAINT teams_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: thrive_assessments thrive_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.thrive_assessments
+    ADD CONSTRAINT thrive_assessments_pkey PRIMARY KEY (id);
 
 
 --
@@ -6711,10 +7644,52 @@ CREATE INDEX idx_crmc_member_service_start_date ON public.claims_reporting_medic
 
 
 --
+-- Name: index_any_careplans_on_instrument; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_any_careplans_on_instrument ON public.any_careplans USING btree (instrument_type, instrument_id);
+
+
+--
+-- Name: index_any_careplans_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_any_careplans_on_patient_id ON public.any_careplans USING btree (patient_id);
+
+
+--
+-- Name: index_appointments_on_appointment_time; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appointments_on_appointment_time ON public.appointments USING btree (appointment_time);
+
+
+--
+-- Name: index_appointments_on_department; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_appointments_on_department ON public.appointments USING btree (department);
+
+
+--
 -- Name: index_backup_plans_on_patient_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_backup_plans_on_patient_id ON public.backup_plans USING btree (patient_id);
+
+
+--
+-- Name: index_ca_assessments_on_instrument; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ca_assessments_on_instrument ON public.ca_assessments USING btree (instrument_type, instrument_id);
+
+
+--
+-- Name: index_ca_assessments_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ca_assessments_on_patient_id ON public.ca_assessments USING btree (patient_id);
 
 
 --
@@ -7089,6 +8064,48 @@ CREATE INDEX index_epic_patients_on_deleted_at ON public.epic_patients USING btr
 
 
 --
+-- Name: index_epic_patients_on_id_in_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_epic_patients_on_id_in_source ON public.epic_patients USING btree (id_in_source);
+
+
+--
+-- Name: index_epic_patients_on_medicaid_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_epic_patients_on_medicaid_id ON public.epic_patients USING btree (medicaid_id);
+
+
+--
+-- Name: index_hca_assessments_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hca_assessments_on_patient_id ON public.hca_assessments USING btree (patient_id);
+
+
+--
+-- Name: index_hca_assessments_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hca_assessments_on_user_id ON public.hca_assessments USING btree (user_id);
+
+
+--
+-- Name: index_hca_medications_on_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hca_medications_on_assessment_id ON public.hca_medications USING btree (assessment_id);
+
+
+--
+-- Name: index_hca_sud_treatments_on_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hca_sud_treatments_on_assessment_id ON public.hca_sud_treatments USING btree (assessment_id);
+
+
+--
 -- Name: index_health_files_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7191,6 +8208,69 @@ CREATE INDEX index_health_goals_on_patient_id ON public.health_goals USING btree
 --
 
 CREATE INDEX index_health_goals_on_user_id ON public.health_goals USING btree (user_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_ca_completed_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_ca_completed_qa_id ON public.health_qa_factory_factories USING btree (ca_completed_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_ca_development_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_ca_development_qa_id ON public.health_qa_factory_factories USING btree (ca_development_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_completed_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_completed_qa_id ON public.health_qa_factory_factories USING btree (careplan_completed_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_development_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_development_qa_id ON public.health_qa_factory_factories USING btree (careplan_development_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_careplan_id ON public.health_qa_factory_factories USING btree (careplan_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_hrsn_screening_qa_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_hrsn_screening_qa_id ON public.health_qa_factory_factories USING btree (hrsn_screening_qa_id);
+
+
+--
+-- Name: index_health_qa_factory_factories_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_qa_factory_factories_on_patient_id ON public.health_qa_factory_factories USING btree (patient_id);
+
+
+--
+-- Name: index_hrsn_screenings_on_instrument; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hrsn_screenings_on_instrument ON public.hrsn_screenings USING btree (instrument_type, instrument_id);
+
+
+--
+-- Name: index_hrsn_screenings_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hrsn_screenings_on_patient_id ON public.hrsn_screenings USING btree (patient_id);
 
 
 --
@@ -7369,6 +8449,34 @@ CREATE INDEX index_patients_on_nurse_care_manager_id ON public.patients USING bt
 
 
 --
+-- Name: index_pctp_care_goals_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_care_goals_on_careplan_id ON public.pctp_care_goals USING btree (careplan_id);
+
+
+--
+-- Name: index_pctp_careplans_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_careplans_on_patient_id ON public.pctp_careplans USING btree (patient_id);
+
+
+--
+-- Name: index_pctp_careplans_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_careplans_on_user_id ON public.pctp_careplans USING btree (user_id);
+
+
+--
+-- Name: index_pctp_needs_on_careplan_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pctp_needs_on_careplan_id ON public.pctp_needs USING btree (careplan_id);
+
+
+--
 -- Name: index_premium_payments_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7534,6 +8642,20 @@ CREATE INDEX index_team_members_on_type ON public.team_members USING btree (type
 --
 
 CREATE INDEX index_teams_on_careplan_id ON public.teams USING btree (careplan_id);
+
+
+--
+-- Name: index_thrive_assessments_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_thrive_assessments_on_patient_id ON public.thrive_assessments USING btree (patient_id);
+
+
+--
+-- Name: index_thrive_assessments_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_thrive_assessments_on_user_id ON public.thrive_assessments USING btree (user_id);
 
 
 --
@@ -8073,6 +9195,30 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230508135940'),
 ('20230512151350'),
 ('20230516171211'),
-('20230516171223');
+('20230516171223'),
+('20230525153410'),
+('20230526201807'),
+('20230530192424'),
+('20230601151608'),
+('20230606204139'),
+('20230606204254'),
+('20230607183613'),
+('20230607195153'),
+('20230608152551'),
+('20230609132021'),
+('20230609153005'),
+('20230612180417'),
+('20230612200614'),
+('20230613185511'),
+('20230613201311'),
+('20230614191047'),
+('20230614194646'),
+('20230706134746'),
+('20230707132626'),
+('20230712155403'),
+('20230726171015'),
+('20230807201621'),
+('20230814153918'),
+('20230816173812');
 
 

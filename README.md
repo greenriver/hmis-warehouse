@@ -1,9 +1,10 @@
 # Boston HMIS Warehouse [![Actions Status](https://github.com/greenriver/hmis-warehouse/workflows/Audit%20and%20Test/badge.svg)](https://github.com/greenriver/hmis-warehouse/actions)
 
 ## Introduction
+
 The HMIS Warehouse project was initiated by the City of Boston's Department of Neighborhood Development to gather data from across various HMIS installations, produce aggregated reports, and supply de-duplicated client information to the [Boston CAS](https://github.com/greenriver/boston-cas) system for Coordinated Access to housing.
 
-The Warehouse is capable if ingesting standard HUD HMIS CSV files as well as data via the Social Solutions ETO API.
+The Warehouse is capable of ingesting standard HUD HMIS CSV files as well as data via the Social Solutions ETO API.
 
 ```a
 Copyright © 2017 Green River Data Analysis, LLC
