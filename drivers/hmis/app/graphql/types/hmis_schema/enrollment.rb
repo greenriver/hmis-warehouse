@@ -36,6 +36,7 @@ module Types
 
     description 'HUD Enrollment'
     field :id, ID, null: false
+    field :lock_version, Integer, null: false
     field :project, Types::HmisSchema::Project, null: false
     hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true

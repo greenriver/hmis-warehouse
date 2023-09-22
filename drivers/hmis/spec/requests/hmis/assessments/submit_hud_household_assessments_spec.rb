@@ -84,7 +84,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'fails if (WIP) HoH is not included' do
       validate_setup
       input = {
-        assessment_ids: [assessment2.id, assessment3.id],
+        submissions: [assessment2, assessment3].map { |a| { id: a.id, lockVersion: a.lock_version } },
         confirmed: true,
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
@@ -95,7 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'succeeds if (WIP) HoH is included' do
       validate_setup
       input = {
-        assessment_ids: [assessment1.id, assessment2.id, assessment3.id],
+        submissions: [assessment1, assessment2, assessment3].map { |a| { id: a.id, lockVersion: a.lock_version } },
         confirmed: true,
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
@@ -115,7 +115,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'fails if HoH is present and not all members are present' do
       validate_setup
       input = {
-        assessment_ids: [assessment1.id, assessment2.id],
+        submissions: [assessment1, assessment2].map { |a| { id: a.id, lockVersion: a.lock_version } },
         confirmed: true,
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
@@ -126,7 +126,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'succeeds if all members are present' do
       validate_setup
       input = {
-        assessment_ids: [assessment1.id, assessment2.id, assessment3.id],
+        submissions: [assessment1, assessment2, assessment3].map { |a| { id: a.id, lockVersion: a.lock_version } },
         confirmed: true,
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
@@ -139,7 +139,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'succeeds if HoH is not present' do
       validate_setup
       input = {
-        assessment_ids: [assessment2.id, assessment3.id],
+        submissions: [assessment2, assessment3].map { |a| { id: a.id, lockVersion: a.lock_version } },
         confirmed: true,
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
