@@ -13,19 +13,19 @@ module Mutations
 
     field :record, Types::HmisSchema::SubmitFormResult, null: true
 
-    def resolve(input:, record_lock_version: nil)
-      # Look up form definition
-      definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
-      raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
-
+    def resolve(...)
       Hmis::Hud::Base.transaction do
-        _resolve(input: input, definition: definition, record_lock_version: record_lock_version)
+        _resolve(...)
       end
     end
 
     protected
 
-    def _resolve(input:, definition:, record_lock_version:)
+    def _resolve(input:, record_lock_version: nil)
+      # Look up form definition
+      definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
+      raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
+
       # Determine record class
       klass = definition.record_class_name&.constantize
       raise HmisErrors::ApiError, 'Form Definition not configured' unless klass.present?
