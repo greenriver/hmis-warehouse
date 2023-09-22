@@ -68,6 +68,7 @@ module ClientAccessControl
     private def enrollments(month:, year:, client:, week:, user:)
       @enrollments ||= client.service_history_entries.
         joins(:enrollment).
+        preload(:project).
         merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)).
         open_between(
           start_date: date_range_for(month: month, year: year).first,
