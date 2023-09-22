@@ -7175,7 +7175,9 @@ CREATE TABLE public.enrollment_extras (
     lgbtq_household_members boolean,
     client_lgbtq boolean,
     dv_survivor boolean,
-    prevention_tool_score integer
+    prevention_tool_score integer,
+    shelter_priority character varying,
+    permanent_housing_priority_group character varying
 );
 
 
@@ -59516,6 +59518,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230905182026'),
 ('20230911204506'),
 ('20230913184747'),
-('20230914004821');
+('20230914004821'),
+('20230922124446');
 
 

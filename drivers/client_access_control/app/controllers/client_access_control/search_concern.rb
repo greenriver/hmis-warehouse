@@ -66,7 +66,7 @@ module ClientAccessControl::SearchConcern
       age_group = params[:age_group]
       if age_group.present?
         group = GrdaWarehouse::Hud::Client.ahar_age_groups[age_group.to_sym]
-        @clients = @clients.age_group(group.slice(:start_age, :end_age))
+        @clients = @clients.age_group(**group.slice(:start_age, :end_age))
       end
 
       if params[:data_sharing].present? && params[:data_sharing] == '1'
