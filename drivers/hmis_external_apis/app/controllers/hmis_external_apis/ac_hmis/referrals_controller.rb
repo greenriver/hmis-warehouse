@@ -55,7 +55,7 @@ module HmisExternalApis::AcHmis
         [key, value]
       end
 
-      res_hash.to_h.compact_blank
+      res_hash.to_h.filter { |_, v| v.to_s.present? }
     end
   end
 end

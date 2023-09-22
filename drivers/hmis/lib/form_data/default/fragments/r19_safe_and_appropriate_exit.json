@@ -5,46 +5,22 @@
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
     "operator": "ALL",
+    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach and Homelessness Prevention",
     "parts": [
       {
-        "operator": "ANY",
-        "parts": [
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 22
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 23
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 24
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 26
-          }
-        ]
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
       },
       {
-        "operator": "ANY",
-        "parts": [
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 0
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 2
-          }
-        ]
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 4
+      },
+      {
+        "variable": "projectType",
+        "operator": "NOT_EQUAL",
+        "value": 12
       }
     ]
   },

@@ -127,8 +127,8 @@ Style/MixinUsage:
   Enabled: false
 
 Layout/DotPosition:
-  Enabled: false
-  # EnforcedStyle: trailing
+  # Enabled: false
+  EnforcedStyle: trailing
 
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented

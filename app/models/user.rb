@@ -158,45 +158,36 @@ class User < ApplicationRecord
 
   # list any cohort this user has some level of access to
   def cohorts
-    # START_ACL cleanup after ACL migration is complete
-    if using_acls?
-      GrdaWarehouse::Cohort.where(id: collections.flat_map(&:cohort_ids))
-    else
-      GrdaWarehouse::Cohort.where(id: access_groups.flat_map(&:cohort_ids))
-    end
-    # END_ACL
+    GrdaWarehouse::Cohort.where(id: ids_for_relations(:cohort_ids))
   end
 
   # list any project groups the user has some level of access to
   def project_groups
-    # START_ACL cleanup after ACL migration is complete
-    if using_acls?
-      GrdaWarehouse::ProjectGroup.where(id: collections.flat_map(&:project_group_ids))
-    else
-      GrdaWarehouse::ProjectGroup.where(id: access_groups.flat_map(&:project_group_ids))
-    end
-    # END_ACL
+    GrdaWarehouse::ProjectGroup.where(id: ids_for_relations(:project_group_ids))
   end
 
   # list any data sources the user has some level of access to
   def data_sources
-    # START_ACL cleanup after ACL migration is complete
-    if using_acls?
-      GrdaWarehouse::DataSource.where(id: collections.flat_map(&:data_source_ids))
-    else
-      GrdaWarehouse::DataSource.where(id: access_groups.flat_map(&:data_source_ids))
-    end
-    # END_ACL
+    GrdaWarehouse::DataSource.where(id: ids_for_relations(:data_source_ids))
   end
 
   # list any reports the user has some level of access to
   def reports
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(id: ids_for_relations(:report_ids))
+  end
+
+  # memoize some id lookups to prevent N+1s
+  private def ids_for_relations(relation)
+    @ids_for_relations ||= {}
+    return @ids_for_relations[relation] if @ids_for_relations[relation].present?
+
     # START_ACL cleanup after ACL migration is complete
-    if using_acls?
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(id: collections.flat_map(&:report_ids))
+    @ids_for_relations[relation] = if using_acls?
+      collections.flat_map(&relation)
     else
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(id: access_groups.flat_map(&:report_ids))
+      access_groups.flat_map(&relation)
     end
     # END_ACL
+    @ids_for_relations[relation]
   end
 end

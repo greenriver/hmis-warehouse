@@ -1,13 +1,15 @@
 {
   "type": "GROUP",
   "link_id": "rhy-entry",
-  "text": "RHY Entry Questions",
+  "text": "Family",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": true,
-  "_comment": "TODO: add R11, R12",
   "item": [
     {
-      "fragment": "#r3_sexual_orientation"
+      "fragment": "#r11_ward_of_child_welfare"
+    },
+    {
+      "fragment": "#r12_ward_of_juvenile_justice"
     },
     {
       "fragment": "#r13_family_critical_issues"
