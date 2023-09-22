@@ -5,6 +5,7 @@ module HmisExternalApis::ShHmis::Importers
     attr_accessor :dir
 
     def initialize(s3_file_substr: nil, dir: 'var/migration/data')
+      # GrdaWarehouse::RemoteCredentials::S3.create!(username: 'unknown', encrypted_password: '', bucket: <bucket name>, path: <prefix>, slug: 'hmis_migration_files', active: true)
       self.creds = GrdaWarehouse::RemoteCredentials::S3.active.find_by(slug: 'hmis_migration_files')
       self.s3_file_substr = s3_file_substr
       self.dir = dir
