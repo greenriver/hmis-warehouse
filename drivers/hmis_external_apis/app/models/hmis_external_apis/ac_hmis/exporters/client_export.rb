@@ -31,6 +31,7 @@ module HmisExternalApis::AcHmis::Exporters
 
         seen << warehouse_id
 
+        # Upload the Warehouse ID as the PersonalID, since that's what it is in the HMIS Export
         client_values = [warehouse_id]
 
         # If the client has multiple MCI IDs, it doesn't matter which one we send
