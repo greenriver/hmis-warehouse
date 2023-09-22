@@ -48,7 +48,7 @@ module Delayed
         end
 
         def self.queue_status
-          where(failed_at: nil).group(:queue).count.transform_keys { |k| k&.hunanize }
+          where(failed_at: nil).group(:queue).count.transform_keys { |k| k&.humanize }
         end
       end
     end
