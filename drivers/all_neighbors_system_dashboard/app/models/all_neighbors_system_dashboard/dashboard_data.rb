@@ -1,9 +1,14 @@
 module AllNeighborsSystemDashboard
   class DashboardData
-    def initialize(start_date, end_date, report)
-      @start_date = start_date.beginning_of_month
-      @end_date = end_date.beginning_of_month
+    def initialize(report)
       @report = report
+      @filter = @report.filter
+      @start_date = @filter.start_date.beginning_of_month
+      @end_date = @filter.end_date.beginning_of_month
+    end
+
+    def years
+      (@start_date.year .. @end_date.year).to_a
     end
 
     def project_types
@@ -75,13 +80,16 @@ module AllNeighborsSystemDashboard
       ]
     end
 
-    def demographic_gender
+    def unknown_genders
       [
-        'Female',
-        'Male',
-        'Transgender',
-        'Unknown',
+        "Client doesn't know",
+        'Client prefers not to answer',
+        'Data not collected',
       ]
+    end
+
+    def demographic_gender
+      HudUtility2024.genders.values - unknown_genders + ['Unknown']
     end
 
     def demographic_gender_colors
@@ -104,6 +112,39 @@ module AllNeighborsSystemDashboard
       household_type_colors
     end
 
+    def homeless_population_types
+      [
+        'Unsheltered',
+        'Emergency Shelter',
+        'Transitional Housing',
+        'Safe Haven',
+      ]
+    end
+
+    def homeless_population_type_colors
+      [
+        '#336770',
+        '#E3D8B3',
+        '#C7B266',
+        '#9E7C02',
+      ]
+    end
+
+    def homelessness_statuses
+      [
+        'All',
+        'Sheltered',
+        'Unsheltered',
+      ]
+    end
+
+    def homelessness_status_colors
+      [
+        '#B2803F',
+        '#1865AB',
+      ]
+    end
+
     def to_key(name)
       name.gsub(/[^a-zA-Z0-9 -]/, '').gsub(' ', '_')
     end
@@ -116,6 +157,10 @@ module AllNeighborsSystemDashboard
         current_date += 1.month
       end
       date_range
+    end
+
+    def ranges_overlap?(range_a, range_b)
+      range_b.begin <= range_a.end && range_a.begin <= range_b.end
     end
   end
 end

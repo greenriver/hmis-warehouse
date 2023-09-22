@@ -3,6 +3,7 @@ module AllNeighborsSystemDashboard
     def initialize(...)
       super
       @enrollment_data ||= @report.enrollment_data
+      @enrollments_in_range ||= {}
     end
 
     def data(title, id, type, options: {})
@@ -31,10 +32,6 @@ module AllNeighborsSystemDashboard
       }
     end
 
-    def years
-      (@start_date.year .. @end_date.year).to_a
-    end
-
     def stacked_data
       years.map do |year|
         cohort_name = "#{year} Cohort"
@@ -57,43 +54,49 @@ module AllNeighborsSystemDashboard
           name: bar,
           series: date_range.map do |date|
             {
-              date: date,
-              values: options[:types].map { |label| stack_value(bar, demographic, label) },
+              date: date.strftime('%Y-%-m-%-d'),
+              values: options[:types].map { |label| stack_value(date, bar, demographic, label) },
             }
           end,
         }
       end
     end
 
-    def stack_value(bar, demographic, label)
+    def stack_value(date, bar, demographic, label)
+      year_range = date.beginning_of_year .. date.end_of_year
+      enrollments_in_range = @enrollments_in_range[year_range] ||= @enrollment_data.select { |enrollment| enrollment.exit_date.present? && date.in?(year_range) }
       enrollments = case bar
       when 'Exited*'
-        @enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' }
+        enrollments_in_range.select { |enrollment| enrollment.exit_type == 'Permanent' }
       when 'Returned'
-        @enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' && enrollment.return_date.present? }
+        enrollments_in_range.select { |enrollment| enrollment.exit_type == 'Permanent' && enrollment.return_date.present? }
       end
       case demographic
       when 'Race'
-        enrollments.select { |enrollment| to_key(enrollment.primary_race) == label }.count
+        enrollments.select { |enrollment| enrollment.primary_race.present? && to_key(enrollment.primary_race) == label }.count
       when 'Age'
         case label
         when 'Under_18'
-          enrollments.select { |enrollment| enrollment.age < 18 }.count
+          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age < 18 }.count
         when '18_to_24'
-          enrollments.select { |enrollment| enrollment.age.between?(18, 24) }.count
+          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(18, 24) }.count
         when '25_to_39'
-          enrollments.select { |enrollment| enrollment.age.between?(25, 39) }.count
+          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(25, 39) }.count
         when '40_to_49'
-          enrollments.select { |enrollment| enrollment.age.between?(40, 49) }.count
+          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(40, 49) }.count
         when '50_to_62'
-          enrollments.select { |enrollment| enrollment.age.between?(50, 62) }.count
+          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(50, 62) }.count
         when 'Over_63'
-          enrollments.select { |enrollment| enrollment.age >= 63 }.count
+          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age >= 63 }.count
         when 'Unknown'
-          enrollments.select(&:blank?).count
+          enrollments.select { |enrollment| enrollment.age.blank? }.count
         end
       when 'Gender'
-        enrollments.select { |enrollment| to_key(enrollment.gender) == label }.count
+        if label == 'Unknown'
+          enrollments.select { |enrollment| enrollment.gender.blank? || enrollment.gender.in?(unknown_genders) }.count
+        else
+          enrollments.select { |enrollment| enrollment.gender.present? && to_key(enrollment.gender) == label }.count
+        end
       when 'Household Type'
         enrollments.select { |enrollment| to_key(enrollment.household_type) == label }.count
       end
@@ -102,10 +105,15 @@ module AllNeighborsSystemDashboard
     def bars
       cohort_keys = years.map { |year| "#{year} Cohort" }
       exited_enrollments = @enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' }
-      exited_counts = exited_enrollments.group_by { |enrollment| enrollment.exit_date.year }.values.map(&:count)
+      exited_counts = exited_enrollments.group_by { |enrollment| enrollment.exit_date.year }.transform_values!(&:count)
       returned_enrollments = exited_enrollments.select { |enrollment| enrollment.return_date.present? && enrollment.return_date <= enrollment.exit_date + 1.year }
-      returned_counts = returned_enrollments.group_by { |enrollment| enrollment.exit_date.year }.values.map(&:count)
-      rates_of_return = returned_counts.zip(exited_counts).map do |returns, exits|
+      returned_counts = returned_enrollments.group_by { |enrollment| enrollment.exit_date.year }.transform_values!(&:count)
+      # Make sure there are no missing years
+      years.each do |key|
+        exited_counts[key] ||= 0
+        returned_counts[key] ||= 0
+      end
+      rates_of_return = returned_counts.values.zip(exited_counts.values).map do |returns, exits|
         rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)
         "#{rate}%"
       end
@@ -120,8 +128,8 @@ module AllNeighborsSystemDashboard
           keys: cohort_keys,
         },
         series: [
-          { name: 'exited', values: exited_counts },
-          { name: 'returned', values: returned_counts },
+          { name: 'exited', values: exited_counts.values },
+          { name: 'returned', values: returned_counts.values },
           { name: 'rate', values: rates_of_return, table_only: true },
         ],
       }

@@ -13,7 +13,11 @@
           - @reports.each do |report|
             %tr
               %td
-                = link_to_if(report.completed?, report.status, all_neighbors_system_dashboard_warehouse_reports_report_path(report, format: :xlsx))
+                = report.status
+                - if report.completed?
+                  %br
+                  = link_to 'View', all_neighbors_system_dashboard_warehouse_reports_report_path(report), class: 'btn btn-sm btn-secondary'
+                  = link_to 'XLSX', all_neighbors_system_dashboard_warehouse_reports_report_path(report, format: :xlsx), class: 'btn btn-sm btn-secondary'
               %th.report-parameters= report.describe_filter_as_html(report.known_params)
               %td.text-nowrap
                 = report.created_at
