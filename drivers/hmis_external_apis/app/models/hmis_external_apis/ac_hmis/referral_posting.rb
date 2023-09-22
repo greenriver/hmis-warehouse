@@ -93,6 +93,27 @@ module HmisExternalApis::AcHmis
     ACTIVE_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
     scope :active, -> { where(status: ACTIVE_STATUSES) }
 
+    SORT_OPTIONS = [:relevent_status, :oldest_to_newest].freeze
+    def self.sort_by_option(option)
+      raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+      case option
+      when :relevent_status
+        order(
+          arel_table[:status].eq('assigned_status').desc,
+          arel_table[:status].eq('accepted_pending_status').desc,
+          arel_table[:status].eq('denied_pending_status').desc,
+          arel_table[:status].eq('accepted_status').desc,
+          arel_table[:status].eq('denied_status').desc,
+          created_at: :desc,
+        )
+      when :oldest_to_newest
+        order(created_at: :asc)
+      else
+        scope
+      end
+    end
+
     private def validate_status_change
       return unless status_changed? && status.present? && status_was.present?
 
@@ -135,11 +156,11 @@ module HmisExternalApis::AcHmis
       referral_household = referral&.enrollment&.household
       return unless referral_household
 
-      referral_postings = referral_household
-        .enrollments
-        .preload(:external_referrals)
-        .flat_map { |e| e.external_referrals.flat_map(&:postings) }
-        .filter { |p| p.id != id } # filter out self
+      referral_postings = referral_household.
+        enrollments.
+        preload(:external_referrals).
+        flat_map { |e| e.external_referrals.flat_map(&:postings) }.
+        filter { |p| p.id != id } # filter out self
       return unless referral_postings.all?(&:inactive?)
 
       today = Date.current

@@ -163,24 +163,33 @@ module Types
     end
 
     def referral_requests(**args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+
       scoped_referral_requests(object.external_referral_requests, **args)
     end
 
+    # TODO(#186102846) support user-specified sorting/filtering
     def incoming_referral_postings(**args)
-      scoped_referral_postings(object.external_referral_postings.active, **args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+
+      # Only show Active postings on the incoming referral table
+      scoped_referral_postings(object.external_referral_postings.active, sort_order: :oldest_to_newest, **args)
     end
 
     def arel
       Hmis::ArelHelper.instance
     end
 
+    # TODO(#186102846) support user-specified sorting/filtering
     def outgoing_referral_postings(**args)
       raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
-      scope = HmisExternalApis::AcHmis::ReferralPosting.active
-        .joins(referral: :enrollment)
-        .where(arel.e_t[:ProjectID].eq(object.ProjectID))
-      scoped_referral_postings(scope, **args)
+      # Show all postings on the outgoing referral table
+      scope = HmisExternalApis::AcHmis::ReferralPosting.
+        joins(referral: :enrollment).
+        where(arel.e_t[:ProjectID].eq(object.ProjectID))
+
+      scoped_referral_postings(scope, sort_order: :relevent_status, **args)
     end
   end
 end
