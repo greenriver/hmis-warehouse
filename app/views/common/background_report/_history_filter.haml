@@ -14,12 +14,12 @@
           %label Date Range
           .o-filtration__option-row
             .input-group.date{ data: { provide: :datepicker }}
-              %input.form-control{ name: :start, type: :text, value: @view_filter[:start] }
+              %input.form-control{ name: :history_filter_start, type: :text, value: @view_filter[:history_filter_start] }
               .input-group-append
                 %button.icon-calendar.btn.btn-secondary{ type: 'button' }
             .o-filtration__separator to
             .input-group.date{ data: {provide: :datepicker }}
-              %input.form-control{ name: :end, type: :text, value: @view_filter[:end] }
+              %input.form-control{ name: :history_filter_end, type: :text, value: @view_filter[:history_filter_end] }
               %span.input-group-append
                 %button.icon-calendar.btn.btn-secondary{ type: 'button' }
 
@@ -27,8 +27,8 @@
         .col-sm-12
           .o-filtration__option-row
             - if can_view_all_reports?
-              - creator_options = options_from_collection_for_select(view_filter_available_users, :first, :last, @view_filter[:creator])
-              = render 'inputs/select', field_name: :creator, label: 'Creator', options: creator_options
+              - creator_options = options_from_collection_for_select(view_filter_available_users, :first, :last, @view_filter[:history_filter_creator])
+              = render 'inputs/select', field_name: :history_filter_creator, label: 'Creator', options: creator_options
 
       .o-filtration__actions.form__actions
         = link_to path_for_clear_view_filter, class:'btn btn-secondary' do

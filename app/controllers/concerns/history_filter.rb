@@ -16,35 +16,35 @@ module HistoryFilter
 
     private def view_filter_params
       params.permit(
-        :creator,
-        :start,
-        :end,
+        :history_filter_creator,
+        :history_filter_start,
+        :history_filter_end,
       )
     end
 
     private def set_view_filter
       defaults = {
-        creator: 'all',
-        start: (Date.current - 6.months).to_s,
-        end: Date.current.to_s,
+        history_filter_creator: 'all',
+        history_filter_start: (Date.current - 6.months).to_s,
+        history_filter_end: Date.current.to_s,
       }
       @view_filter = {}
-      @view_filter[:creator] = view_filter_params[:creator] || defaults[:creator]
-      @view_filter[:start] = view_filter_params[:start] || defaults[:start]
-      @view_filter[:end] = view_filter_params[:end] || defaults[:end]
+      @view_filter[:history_filter_creator] = view_filter_params[:history_filter_creator] || defaults[:history_filter_creator]
+      @view_filter[:history_filter_start] = view_filter_params[:history_filter_start] || defaults[:history_filter_start]
+      @view_filter[:history_filter_end] = view_filter_params[:history_filter_end] || defaults[:history_filter_end]
       @active_filter = @view_filter != defaults
     end
 
     def apply_view_filters(reports)
       if can_view_all_reports?
         # Only apply a user filter if you have chosen one if you can see all reports
-        reports = reports.where(user_id: @view_filter[:creator]) if @view_filter.try(:[], :creator).present? && @view_filter[:creator] != 'all'
+        reports = reports.where(user_id: @view_filter[:history_filter_creator]) if @view_filter.try(:[], :history_filter_creator).present? && @view_filter[:history_filter_creator] != 'all'
       else
         reports = reports.where(user_id: current_user.id)
       end
       return reports unless @view_filter.present?
 
-      filter_range = Time.zone.parse(@view_filter[:start]) .. (Time.zone.parse(@view_filter[:end]) + 1.days)
+      filter_range = Time.zone.parse(@view_filter[:history_filter_start]) .. (Time.zone.parse(@view_filter[:history_filter_end]) + 1.days)
       reports.where(created_at: filter_range)
     end
 
