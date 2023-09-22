@@ -1,4 +1,4 @@
-- @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter, show_filter: show_filter)
+- @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @report.filter)
 - @pdf = true
 
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"

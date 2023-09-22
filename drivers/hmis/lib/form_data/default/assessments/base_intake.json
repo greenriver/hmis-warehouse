@@ -10,11 +10,14 @@
       "fragment": "#prior_living_situation_b"
     },
     {
-      "fragment": "#rhy_enrollment_entry",
-      "_comment": "captures R11-13 RHY-specific entry questions"
+      "fragment": "#r7_r8_r9_health"
     },
     {
-      "fragment": "#r3_sexual_orientation"
+      "fragment": "#r3_sexual_orientation",
+      "text": "Sexual Orientation"
+    },
+    {
+      "fragment": "#r11_r12_r14_family"
     },
     {
       "fragment": "#v6_vamc_station_number",
@@ -40,6 +43,9 @@
     },
     {
       "fragment": "#health_and_dv"
+    },
+    {
+      "fragment": "#r2_bcp_status"
     }
   ]
 }

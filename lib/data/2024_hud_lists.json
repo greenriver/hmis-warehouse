@@ -3708,10 +3708,6 @@
         "description": "Client prefers not to answer"
       },
       {
-        "key": 10,
-        "description": "Outreach project: other"
-      },
-      {
         "key": 11,
         "description": "Temporary Shelter"
       },
@@ -3733,7 +3729,7 @@
       },
       {
         "key": 35,
-        "description": "Law Enforcement/ Police"
+        "description": "Law Enforcement/Police"
       },
       {
         "key": 37,

@@ -168,25 +168,10 @@
         "value": "HHS: PATH"
       },
       {
-        "operator": "ANY",
-        "_comment": "HHS: RHY – Collection only required for MGH, TLP, and Demo",
-        "parts": [
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 23
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 24
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 26
-          }
-        ]
+        "_comment": "All RHY. This should really be limited such that income is required for MGH, TLP, and Demo, and non-cash benefits is not present for street outreach",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
       },
       {
         "operator": "ALL",
@@ -231,6 +216,12 @@
         "variable": "projectFunders",
         "operator": "INCLUDE",
         "value": 27
+      },
+      {
+        "_comment": "YHDP",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 43
       }
     ]
   }

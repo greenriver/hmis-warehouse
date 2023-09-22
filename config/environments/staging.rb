@@ -47,8 +47,8 @@ Rails.application.configure do
   # config.action_cable.mount_path = nil
   # config.action_cable.url = 'wss://example.com/cable'
   config.action_cable.allowed_request_origins = [
-    "https://#{ENV.fetch('FQDN') { 'nowhere.openpath.host' } }",
-    "wss://#{ENV.fetch('FQDN') { 'nowhere.openpath.host' } }"
+    "https://#{ENV.fetch('FQDN') { 'nowhere.openpath.host' }}",
+    "wss://#{ENV.fetch('FQDN') { 'nowhere.openpath.host' }}",
   ]
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
@@ -79,7 +79,7 @@ Rails.application.configure do
 
   config.sandbox_email_mode = true
   config.action_mailer.delivery_method = deliver_method
-  config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'https'}
+  config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'https' }
   if deliver_method == :smtp
     config.action_mailer.smtp_settings = {
       address: ENV['SMTP_SERVER'],
@@ -93,7 +93,7 @@ Rails.application.configure do
 
   cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
   cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-  redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace})
+  redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace })
   config.cache_store = :redis_cache_store, redis_config
 
   config.action_controller.perform_caching = true

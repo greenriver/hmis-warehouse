@@ -8,9 +8,9 @@
     "operator": "ANY",
     "parts": [
       {
+        "_comment": "HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components",
         "variable": "projectFunders",
         "operator": "INCLUDE",
-        "_comment": "HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components",
         "value": 43
       },
       {
@@ -20,14 +20,14 @@
         "value": "HHS: RHY"
       },
       {
+        "_comment": "HUD: CoC – Permanent Supportive Housing",
         "variable": "projectFunders",
         "operator": "INCLUDE",
-        "_comment": "HUD: CoC – Permanent Supportive Housing",
         "value": 2
       },
       {
-        "_comment": "HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing",
         "operator": "ALL",
+        "_comment": "HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing",
         "parts": [
           {
             "variable": "projectFunders",
@@ -42,8 +42,8 @@
         ]
       },
       {
-        "_comment": "HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing",
         "operator": "ALL",
+        "_comment": "HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing",
         "parts": [
           {
             "variable": "projectFunders",

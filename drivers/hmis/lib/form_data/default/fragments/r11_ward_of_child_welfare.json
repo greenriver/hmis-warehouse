@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "R20",
+  "link_id": "R11",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
     "operator": "ALL",
@@ -21,58 +21,56 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R20.2",
+      "link_id": "R11.1",
       "required": false,
       "warn_if_empty": true,
-      "text": "Aftercare was provided",
-      "pick_list_reference": "AftercareProvided",
+      "text": "Formerly a Ward of Child Welfare/Foster Care Agency",
+      "pick_list_reference": "NoYesReasonsForMissingData",
       "mapping": {
-        "record_type": "EXIT",
-        "field_name": "aftercareProvided"
+        "record_type": "ENROLLMENT",
+        "field_name": "formerWardChildWelfare"
       }
     },
     {
       "type": "GROUP",
-      "link_id": "R20.2.conditionals",
-      "enable_behavior": "ANY",
+      "link_id": "R11.1-dependents",
+      "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "R20.2",
-          "operator": "EXISTS",
-          "answer_boolean": true
+          "question": "R11.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
         }
       ],
       "item": [
         {
-          "type": "DATE",
-          "link_id": "R20.1",
+          "type": "CHOICE",
+          "link_id": "R11.A",
           "required": false,
           "warn_if_empty": true,
-          "text": "Aftercare Information Date",
+          "text": "Number of Years",
+          "pick_list_reference": "RHYNumberofYears",
           "mapping": {
-            "record_type": "EXIT",
-            "field_name": "aftercareDate"
+            "record_type": "ENROLLMENT",
+            "field_name": "childWelfareYears"
           }
         },
         {
-          "type": "CHOICE",
-          "link_id": "R20.1.methods",
+          "type": "INTEGER",
+          "link_id": "R11.B",
           "required": false,
           "warn_if_empty": true,
-          "repeats": true,
-          "text": "Identify the primary way(s) it was provided",
-          "readonly_text": "Primary way(s) it was provided",
-          "pick_list_reference": "AftercareMethod",
+          "text": "Number of Months",
           "mapping": {
-            "record_type": "EXIT",
-            "field_name": "aftercareMethods"
+            "record_type": "ENROLLMENT",
+            "field_name": "childWelfareMonths"
           },
-          "enable_behavior": "ANY",
+          "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "R20.2",
+              "question": "R11.A",
               "operator": "EQUAL",
-              "answer_code": "YES"
+              "answer_code": "LESS_THAN_ONE_YEAR"
             }
           ]
         }

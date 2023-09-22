@@ -12,37 +12,6 @@
         "variable": "projectFunders",
         "operator": "INCLUDE",
         "value": 43
-      },
-      {
-        "operator": "ANY",
-        "_comment": "TH, PSH, SSO, Other, RRH",
-        "parts": [
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 2
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 3
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 6
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 7
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 13
-          }
-        ]
       }
     ]
   },
