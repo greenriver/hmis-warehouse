@@ -66,6 +66,7 @@ untracked
 .vscode
 docker-compose.dev.yml
 yarn-error.log
+/dev/minio/*
 
 # docker deployment
 docker/deploy/REVISION
@@ -151,6 +152,10 @@ db/cas_structure.sql
 drivers/datalab_testkit/spec/fixtures/inputs/merged/source/*
 drivers/datalab_testkit/spec/fixtures/results/*
 /drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/*
+
+# Assets for JS bundling
+ /app/assets/builds/*
+ !/app/assets/builds/.keep
 
 # Superset storage
 docker/superset/op/superset.db
