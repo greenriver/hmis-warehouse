@@ -43,8 +43,6 @@
   "scripts": {
     "lint": "eslint app/assets/javascripts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild app/javascript/*.* --bundle --sourcemap --minify --outdir=app/assets/builds --public-path=assets --target=es2015",
-    "dev": "node dev-js-build.js",
     "dedup": "yarn-deduplicate -s fewer yarn.lock"
   },
   "repository": {
