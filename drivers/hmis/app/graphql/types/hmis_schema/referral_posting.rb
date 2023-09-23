@@ -22,6 +22,7 @@ module Types
     # Fields that come from ReferralHouseholdMembers
     field :hoh_name, String, null: false
     field :hoh_mci_id, ID, null: true
+    field :hoh_client, HmisSchema::Client, null: false
     field :household_size, Integer, null: false
     field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
@@ -57,8 +58,12 @@ module Types
       household_members.detect(&:self_head_of_household?)
     end
 
+    def hoh_client
+      hoh_member&.client
+    end
+
     def hoh_name
-      hoh_member&.client&.brief_name
+      hoh_client&.brief_name
     end
 
     def hoh_mci_id
@@ -122,6 +127,7 @@ module Types
     def referral
       object.referral
     end
+
 
     protected
 

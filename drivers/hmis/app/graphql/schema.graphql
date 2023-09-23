@@ -549,6 +549,7 @@ type Client {
   firstName: String
   gender: [Gender!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
+  hudChronic: Boolean!
   id: ID!
   image: ClientImage
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
@@ -7518,6 +7519,7 @@ type QueryAccess {
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewHudChronicStatus: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
   canViewProject: Boolean!
@@ -7815,6 +7817,7 @@ type ReferralPosting {
   chronic: Boolean
   denialNote: String
   denialReason: ReferralPostingDenialReasonType
+  hohClient: Client!
   hohEnrollment: Enrollment
   hohMciId: ID
   hohName: String!

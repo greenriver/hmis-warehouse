@@ -9,6 +9,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Client
+  include ::HudChronicDefinition
   include ClientSearch
 
   attr_accessor :gender, :race

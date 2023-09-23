@@ -54,7 +54,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.access_controls (
     id bigint NOT NULL,
-    collection_id bigint,
+    access_group_id bigint,
     role_id bigint,
     user_group_id bigint,
     deleted_at timestamp without time zone,
@@ -449,42 +449,6 @@ ALTER SEQUENCE public.clients_unduplicated_id_seq OWNED BY public.clients_undupl
 
 
 --
--- Name: collections; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.collections (
-    id bigint NOT NULL,
-    name character varying,
-    user_id bigint,
-    coc_codes jsonb DEFAULT '{}'::jsonb,
-    system jsonb DEFAULT '[]'::jsonb,
-    must_exist boolean DEFAULT false NOT NULL,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: collections_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.collections_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: collections_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.collections_id_seq OWNED BY public.collections.id;
-
-
---
 -- Name: consent_limits; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -741,7 +705,8 @@ CREATE TABLE public.hmis_roles (
     can_manage_denied_referrals boolean DEFAULT false,
     can_enroll_clients boolean DEFAULT false,
     can_view_open_enrollment_summary boolean DEFAULT false,
-    can_view_project boolean DEFAULT false
+    can_view_project boolean DEFAULT false,
+    can_view_hud_chronic_status boolean DEFAULT false
 );
 
 
@@ -1568,12 +1533,12 @@ CREATE TABLE public.roles (
     can_view_cohort_client_changes_report boolean DEFAULT false,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
-    can_see_confidential_files boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
-    can_edit_collections boolean DEFAULT false
+    can_edit_collections boolean DEFAULT false,
+    can_see_confidential_files boolean DEFAULT false
 );
 
 
@@ -2325,13 +2290,6 @@ ALTER TABLE ONLY public.clients_unduplicated ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- Name: collections id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.collections ALTER COLUMN id SET DEFAULT nextval('public.collections_id_seq'::regclass);
-
-
---
 -- Name: consent_limits id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2721,14 +2679,6 @@ ALTER TABLE ONLY public.clients_unduplicated
 
 
 --
--- Name: collections collections_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.collections
-    ADD CONSTRAINT collections_pkey PRIMARY KEY (id);
-
-
---
 -- Name: consent_limits consent_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3095,10 +3045,10 @@ CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USI
 
 
 --
--- Name: index_access_controls_on_collection_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_controls_on_collection_id ON public.access_controls USING btree (collection_id);
+CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls USING btree (access_group_id);
 
 
 --
@@ -3225,13 +3175,6 @@ CREATE INDEX index_agencies_consent_limits_on_agency_id ON public.agencies_conse
 --
 
 CREATE INDEX index_agencies_consent_limits_on_consent_limit_id ON public.agencies_consent_limits USING btree (consent_limit_id);
-
-
---
--- Name: index_collections_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_collections_on_user_id ON public.collections USING btree (user_id);
 
 
 --
@@ -4008,6 +3951,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322195141'),
 ('20230322204908'),
 ('20230328150855'),
+('20230329102609'),
+('20230329112926'),
+('20230329112954'),
 ('20230330161305'),
 ('20230412142430'),
 ('20230418170053'),
@@ -4022,6 +3968,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230511152438'),
 ('20230512175436'),
 ('20230513203001'),
+('20230514123118'),
 ('20230516131951'),
 ('20230522111726'),
 ('20230525153134'),
@@ -4042,6 +3989,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230910175333'),
 ('20230910180118'),
 ('20230916124819'),
-('20230918231940');
+('20230918231940'),
+('20230923000619');
 
 
