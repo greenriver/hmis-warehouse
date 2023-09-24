@@ -35,11 +35,30 @@ class Hmis::File < GrdaWarehouse::File
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
   scope :viewable_by, ->(user) do
-    view_scope = where(client_id: Hmis::Hud::Client.with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files))
-    # view_scope = view_scope.nonconfidential unless user.can_view_any_confidential_client_files?
-    edit_scope = user.can_manage_own_client_files? ? where(user_id: user.id) : none
+    # NOTE: it's okay that confidential files are included in this scope even if the user
+    # doesn't have permission to read the file. Users can see the existence of confidential
+    # files but they can't read them. Reference:
+    # https://www.pivotaltracker.com/n/projects/2591838/stories/185293913
+    client_scope = Hmis::Hud::Client
+      .viewable_by(user)
+      .with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    enrollment_scope = Hmis::Hud::Enrollment
+      .viewable_by(user)
+      .with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
 
-    view_scope.or(edit_scope)
+    case_statement = Arel::Nodes::Case.new
+      .when(arel_table[:enrollment_id].not_eq(nil))
+      .then(arel_table[:enrollment_id].in(enrollment_scope.select(:id).arel))
+      .else(arel_table[:client_id].in(client_scope.select(:id).arel))
+
+    viewable_scope = Hmis::File
+      .left_outer_joins(:client)
+      .left_outer_joins(:enrollment)
+      .where(case_statement)
+
+    viewable_scope = viewable_scope.or(Hmis::File.where(user_id: user.id)) if user.can_manage_own_client_files?
+
+    where(id: viewable_scope.select(:id))
   end
 
   def self.sort_by_option(option)
