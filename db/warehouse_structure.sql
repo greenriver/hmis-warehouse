@@ -744,7 +744,8 @@ CREATE TABLE public."Client" (
     "DifferentIdentity" integer,
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
-    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED
+    search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -951,7 +952,8 @@ CREATE TABLE public."CustomAssessments" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    wip boolean DEFAULT false NOT NULL
+    wip boolean DEFAULT false NOT NULL,
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -1761,7 +1763,8 @@ CREATE TABLE public."Enrollment" (
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
-    "VAMCStation" character varying
+    "VAMCStation" character varying,
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -60488,6 +60491,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230902183854'),
 ('20230905182026'),
 ('20230911204506'),
+('20230913042115'),
 ('20230913184747'),
 ('20230914004821'),
 ('20230922124446');

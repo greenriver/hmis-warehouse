@@ -140,6 +140,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
+          enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
@@ -191,6 +192,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
+          enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
@@ -211,6 +213,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
+          enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }

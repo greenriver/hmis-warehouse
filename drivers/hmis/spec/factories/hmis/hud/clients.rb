@@ -45,4 +45,10 @@ FactoryBot.define do
       HudUtility2024.gender_fields.excluding(:GenderNone).each { |f| client.send("#{f}=", 0) }
     end
   end
+
+  factory :hmis_hud_client_with_warehouse_client, parent: :hmis_hud_base_client do
+    after(:create) do |client|
+      create(:warehouse_client, data_source: client.data_source, source: client.as_warehouse)
+    end
+  end
 end

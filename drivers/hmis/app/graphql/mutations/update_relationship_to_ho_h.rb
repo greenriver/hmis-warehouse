@@ -7,6 +7,7 @@
 module Mutations
   class UpdateRelationshipToHoH < BaseMutation
     argument :enrollment_id, ID, required: true
+    argument :enrollment_lock_version, Integer, required: false
     argument :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, required: true
     argument :confirmed, Boolean, 'Whether user has confirmed the action', required: false
 
@@ -34,8 +35,9 @@ module Mutations
       end
     end
 
-    def resolve(enrollment_id:, relationship_to_ho_h:, confirmed: false)
+    def resolve(enrollment_id:, enrollment_lock_version: nil, relationship_to_ho_h:, confirmed: false)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
+      enrollment.lock_version = enrollment_lock_version if enrollment_lock_version
 
       errors = HmisErrors::Errors.new
       errors.add :enrollment, :not_found unless enrollment.present?

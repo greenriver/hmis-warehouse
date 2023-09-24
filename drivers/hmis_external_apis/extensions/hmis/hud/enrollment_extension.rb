@@ -12,6 +12,7 @@ module HmisExternalApis
 
         included do
           has_many :external_referrals, class_name: 'HmisExternalApis::AcHmis::Referral', dependent: :destroy
+          # link referral postings refer this enrollment to another project
           has_many :source_postings, **hmis_relation(:HouseholdID), class_name: 'HmisExternalApis::AcHmis::ReferralPosting', inverse_of: :enrollments
 
           validate :validate_client_mci, on: [:new_client_enrollment_form, :enrollment_form], if: :new_record?
@@ -26,15 +27,18 @@ module HmisExternalApis
 
             posting.status = 20 # accepted
             posting.referral_result = 1 # successful result
-            posting.save!
-            return unless posting.identifier.present? # HMIS Admin-assigned posting
-
-            HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
-              posting_id: posting.identifier,
-              posting_status_id: posting.status_before_type_cast,
-              referral_result_id: posting.referral_result_before_type_cast,
-              requested_by: current_user.email,
-            )
+            posting.transaction do
+              posting.save!
+              posting.exit_origin_household(user: ::Hmis::Hud::User.from_user(current_user))
+              if posting.from_link?
+                HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
+                  posting_id: posting.identifier,
+                  posting_status_id: posting.status_before_type_cast,
+                  referral_result_id: posting.referral_result_before_type_cast,
+                  requested_by: current_user.email,
+                )
+              end
+            end
           end
 
           def close_referral!(current_user:)
