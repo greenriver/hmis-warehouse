@@ -7,7 +7,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R4.1",
+      "link_id": "R4",
       "required": false,
       "warn_if_empty": true,
       "text": "Last Grade Completed",
@@ -73,7 +73,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R5.1",
+      "link_id": "R5",
       "required": false,
       "warn_if_empty": true,
       "text": "School Status",

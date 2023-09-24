@@ -10,9 +10,6 @@
       "fragment": "#rhy_exit"
     },
     {
-      "fragment": "#r7_r8_r9_health"
-    },
-    {
       "fragment": "#r15_r16_exploitation"
     },
     {
@@ -32,6 +29,9 @@
     },
     {
       "fragment": "#disability"
+    },
+    {
+      "fragment": "#r7_r8_r9_health"
     }
   ]
 }

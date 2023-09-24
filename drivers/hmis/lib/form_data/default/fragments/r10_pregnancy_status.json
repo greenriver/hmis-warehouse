@@ -10,6 +10,12 @@
         "variable": "projectFunderComponents",
         "operator": "INCLUDE",
         "value": "HHS: RHY"
+      },
+      {
+        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 43
       }
     ]
   },

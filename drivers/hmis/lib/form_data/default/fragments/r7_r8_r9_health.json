@@ -5,99 +5,13 @@
   "data_collected_about": "HOH_AND_ADULTS",
   "item": [
     {
-      "type": "CHOICE",
-      "link_id": "R7",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "General Health Status",
-      "pick_list_reference": "HealthStatus",
-      "mapping": {
-        "record_type": "HEALTH_AND_DV",
-        "field_name": "generalHealthStatus"
-      },
-      "rule": {
-        "operator": "ANY",
-        "parts": [
-          {
-            "_comment": "HUD: HUD-VASH – Collection required for HUD/VASH-Continuum",
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HUD: HUD-VASH"
-          },
-          {
-            "operator": "ALL",
-            "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-            "parts": [
-              {
-                "variable": "projectFunderComponents",
-                "operator": "INCLUDE",
-                "value": "HHS: RHY"
-              },
-              {
-                "variable": "projectType",
-                "operator": "NOT_EQUAL",
-                "value": 4
-              }
-            ]
-          }
-        ]
-      }
+      "fragment": "#r7_general_health"
     },
     {
-      "type": "CHOICE",
-      "link_id": "R8",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Dental Health Status",
-      "pick_list_reference": "HealthStatus",
-      "mapping": {
-        "record_type": "HEALTH_AND_DV",
-        "field_name": "dentalHealthStatus"
-      },
-      "rule": {
-        "operator": "ALL",
-        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HHS: RHY"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          }
-        ]
-      }
+      "fragment": "#r8_dental_health"
     },
     {
-      "type": "CHOICE",
-      "link_id": "R9",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Mental Health Status",
-      "pick_list_reference": "HealthStatus",
-      "mapping": {
-        "record_type": "HEALTH_AND_DV",
-        "field_name": "mentalHealthStatus"
-      },
-      "rule": {
-        "operator": "ALL",
-        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HHS: RHY"
-          },
-          {
-            "variable": "projectType",
-            "operator": "NOT_EQUAL",
-            "value": 4
-          }
-        ]
-      }
+      "fragment": "#r9_mental_health"
     }
   ]
 }

@@ -4,22 +4,33 @@
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
     "operator": "ANY",
-    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach and BCP-Prevention",
     "parts": [
       {
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 23
+        "operator": "ALL",
+        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach and BCP-Prevention",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 26
+          }
+        ]
       },
       {
+        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
         "variable": "projectFunders",
         "operator": "INCLUDE",
-        "value": 24
-      },
-      {
-        "variable": "projectFunders",
-        "operator": "INCLUDE",
-        "value": 26
+        "value": 43
       }
     ]
   },

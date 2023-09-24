@@ -6,6 +6,15 @@
   "prefill": true,
   "item": [
     {
+      "fragment": "#r7_general_health"
+    },
+    {
+      "fragment": "#r8_dental_health"
+    },
+    {
+      "fragment": "#r9_mental_health"
+    },
+    {
       "fragment": "#r10_pregnancy_status"
     },
     {
