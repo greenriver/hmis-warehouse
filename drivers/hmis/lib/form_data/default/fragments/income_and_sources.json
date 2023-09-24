@@ -120,9 +120,9 @@
       },
       {
         "_comment": "HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management",
-        "variable": "projectFunders",
+        "variable": "projectFunderComponents",
         "operator": "INCLUDE",
-        "value": 20
+        "value": "HUD: HUD-VASH"
       },
       {
         "operator": "ALL",

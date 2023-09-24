@@ -17,10 +17,6 @@
       "fragment": "#r11_r12_r14_family"
     },
     {
-      "fragment": "#v6_vamc_station_number",
-      "text": "Veteran Info"
-    },
-    {
       "fragment": "#c3_youth_education_status"
     },
     {
@@ -36,13 +32,25 @@
       "fragment": "#health_insurance"
     },
     {
+      "fragment": "#w3_hopwa_insurance"
+    },
+    {
       "fragment": "#disability"
     },
     {
-      "fragment": "#health_and_dv"
+      "fragment": "#health_and_dv_intake"
     },
     {
       "fragment": "#r2_bcp_status"
+    },
+    {
+      "fragment": "#v6_vamc_station_number"
+    },
+    {
+      "fragment": "#v4_percent_of_ami"
+    },
+    {
+      "fragment": "#v7_hp_targeting_criteria"
     }
   ]
 }

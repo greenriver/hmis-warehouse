@@ -1,0 +1,420 @@
+{
+  "type": "GROUP",
+  "link_id": "V7",
+  "data_collected_about": "HOH",
+  "text": "HP Targeting Criteria",
+  "rule": {
+    "operator": "ALL",
+    "parts": [
+      {
+        "operator": "ALL",
+        "_comment": "VA: SSVF – Collection required for Homelessness Prevention",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: SSVF"
+          },
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 12
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "V7.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Is Homelessness Prevention Targeting Screener required?",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "targetScreenReqd"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.A",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Housing loss expected within...",
+      "pick_list_reference": "TimeToHousingLoss",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "timeToHousingLoss"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.B",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Current household income",
+      "pick_list_reference": "AnnualPercentAMI",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "annualPercentAmi"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.C",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Past experience of Homelessness (street/shelter/transitional housing) (any adult)",
+      "pick_list_reference": "LiteralHomelessHistory",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "literalHomelessHistory"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.D",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Head of Household is not  a current leaseholder/renter of unit",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "clientLeaseholder"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.E",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Head of Household has never been a leaseholder/renter of unit",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "hohLeaseholder"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.F",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Currently at risk of losing a tenant-based housing subsidy or housing in a subsidized building or unit (household)",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "subsidyAtRisk"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.G",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Rental Evictions within the past 7 years (any adult)",
+      "pick_list_reference": "EvictionHistory",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "evictionHistory"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.H",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Criminal record for arson, drug dealing or manufacture, or felony offense against persons or property (any adult)",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "criminalRecord"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.I",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Incarcerated as adult (any adult in household)",
+      "pick_list_reference": "IncarceratedAdult",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "incarceratedAdult"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.J",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Discharged from jail or prison within last six months after incarceration of 90 days or more (adults)",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "prisonDischarge"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.K",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Registered sex offender (any household members)",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "sexOffender"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.L",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Head of Household with disabling condition (physical health, mental health, substance use) that directly affects ability to secure/maintain housing",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "disabledHoh"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.M",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Currently pregnant (any household member)",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "currentPregnant"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.N",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Single parent/guardian household with minor child(ren)",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "singleParent"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.O",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Household includes one or more young children (age six or under), or a child who requires significant care",
+      "pick_list_reference": "DependentUnder6",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "dependentUnder6"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.P",
+      "required": false,
+      "text": "Household size of 5 or more requiring at least 3 bedrooms (due to age/gender mix)",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "hh5Plus"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "V7.Q",
+      "required": false,
+      "text": "Household includes one or more members of an overrepresented population in the homlessness system when compared to the general population",
+      "pick_list_reference": "NoYesMissing",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "cocPrioritized"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "V7.R",
+      "required": false,
+      "text": "HP applicant total points",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "hpScreeningScore"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "V7.S",
+      "required": false,
+      "text": "Grantee targeting threshold score",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "thresholdScore"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "V7.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    }
+  ]
+}
