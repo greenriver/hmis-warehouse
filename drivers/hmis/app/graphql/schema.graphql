@@ -7822,6 +7822,10 @@ type ReferralPosting {
   chronic: Boolean
   denialNote: String
   denialReason: ReferralPostingDenialReasonType
+
+  """
+  Enrollment for the HoH at the receiving Project (if the referral was accepted)
+  """
   hohEnrollment: Enrollment
   hohMciId: ID
   hohName: String!
@@ -7831,6 +7835,10 @@ type ReferralPosting {
   needsWheelchairAccessibleUnit: Boolean
   organization: Organization
   postingIdentifier: ID
+
+  """
+  Project that household is being referred to
+  """
   project: Project
   referralDate: ISO8601DateTime!
   referralIdentifier: ID
@@ -7838,6 +7846,10 @@ type ReferralPosting {
   referralRequest: ReferralRequest
   referralResult: ReferralResult
   referredBy: String!
+
+  """
+  Name of project or external source that the referral originated from
+  """
   referredFrom: String!
   resourceCoordinatorNotes: String
   score: Int
