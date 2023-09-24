@@ -70,7 +70,7 @@ module Types
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    field :hud_chronic, Boolean, null: false
+    field :hud_chronic, Boolean, null: true
     enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
     income_benefits_field
     disabilities_field
@@ -257,7 +257,7 @@ module Types
     def hud_chronic
       return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
 
-      # FIXME: client.hud_chronic causes n+1 queries
+      # client.hud_chronic causes n+1 queries
       enrollments = object.enrollments.hmis
       !!object.hud_chronic?(scope: enrollments)
     end

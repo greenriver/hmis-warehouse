@@ -58,16 +58,16 @@ module Types
       household_members.detect(&:self_head_of_household?)
     end
 
-    def hoh_client
-      hoh_member&.client
-    end
-
     def hoh_name
-      hoh_client&.brief_name
+      hoh_member&.client&.brief_name
     end
 
     def hoh_mci_id
       hoh_member&.mci_id
+    end
+
+    def hoh_client
+      hoh_enrollment&.client
     end
 
     def hoh_enrollment
@@ -127,7 +127,6 @@ module Types
     def referral
       object.referral
     end
-
 
     protected
 

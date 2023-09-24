@@ -550,7 +550,7 @@ type Client {
   firstName: String
   gender: [Gender!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
-  hudChronic: Boolean!
+  hudChronic: Boolean
   id: ID!
   image: ClientImage
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
