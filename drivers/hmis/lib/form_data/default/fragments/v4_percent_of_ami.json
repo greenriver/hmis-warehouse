@@ -4,7 +4,7 @@
   "data_collected_about": "HOH",
   "text": "Percent of AMI (SSVF Eligibility)",
   "rule": {
-    "operator": "ALL",
+    "operator": "ANY",
     "parts": [
       {
         "operator": "ALL",

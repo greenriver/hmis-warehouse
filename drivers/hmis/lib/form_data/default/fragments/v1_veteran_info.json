@@ -4,7 +4,7 @@
   "text": "Military Service Information",
   "data_collected_about": "ALL_CLIENTS",
   "rule": {
-    "operator": "ALL",
+    "operator": "ANY",
     "parts": [
       {
         "variable": "projectFunderComponents",
@@ -78,7 +78,6 @@
     {
       "type": "GROUP",
       "link_id": "theater-of-operations-group",
-      "component": "INPUT_GROUP",
       "text": "Theater of Operations",
       "item": [
         {

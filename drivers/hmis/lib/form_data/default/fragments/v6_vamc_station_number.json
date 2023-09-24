@@ -5,7 +5,7 @@
   "data_collected_about": "HOH",
   "prefill": true,
   "rule": {
-    "operator": "ALL",
+    "operator": "ANY",
     "parts": [
       {
         "variable": "projectFunderComponents",

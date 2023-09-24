@@ -34,7 +34,7 @@ module Types
     def eval_items(items)
       # Comment in to disable rule filtering, to help with
       # testing all available form items
-      return items if Rails.env.development?
+      # return items if Rails.env.development?
 
       items.filter do |item|
         if eval_rule(item['rule'])
@@ -57,6 +57,12 @@ module Types
     def eval_rule(rule)
       # if there's no rule, default to true
       return true if rule.nil?
+
+      # If there's no project, default to true.
+      # This let's us have rules on the Client form, for example V1 Veteran Info,
+      # that can be hidden when creating a Client in the context of a non-Veteran program,
+      # but should always be shown when creating/editing a Client outside of a project context.
+      return true if project.nil?
 
       operator = rule.fetch('operator')
       case operator
