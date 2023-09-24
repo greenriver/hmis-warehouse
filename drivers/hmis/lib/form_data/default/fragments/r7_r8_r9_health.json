@@ -20,9 +20,9 @@
         "parts": [
           {
             "_comment": "HUD: HUD-VASH – Collection required for HUD/VASH-Continuum",
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 20
+            "value": "HUD: HUD-VASH"
           },
           {
             "operator": "ALL",

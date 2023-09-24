@@ -23,7 +23,7 @@
         {
           "variable": "projectFunderComponents",
           "operator": "INCLUDE",
-          "value": "VA: Grant Per Diem"
+          "value": "VA: GPD"
         },
         {
           "variable": "projectOtherFunders",
@@ -132,7 +132,7 @@
         {
           "variable": "projectFunderComponents",
           "operator": "INCLUDE",
-          "value": "VA: Grant Per Diem"
+          "value": "VA: GPD"
         },
         {
           "variable": "projectOtherFunders",

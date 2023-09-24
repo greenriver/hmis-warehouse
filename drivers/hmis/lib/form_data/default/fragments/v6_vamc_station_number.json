@@ -11,29 +11,29 @@
         "operator": "ANY",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 20
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 27
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 30
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 33
+            "value": "HUD: HUD-VASH"
           },
           {
             "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": "VA: Grant Per Diem"
+            "value": "VA: CRS Contract Residential Services"
+          },
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: Community Contract Safe Haven"
+          },
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: SSVF"
+          },
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: GPD"
           }
         ]
       },

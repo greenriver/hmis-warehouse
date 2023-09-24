@@ -21,9 +21,9 @@
         "parts": [
           {
             "_comment": "HUD: HUD-VASH – – Collection required for HUD/VASH- Continuum",
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 20
+            "value": "HUD: HUD-VASH"
           },
           {
             "operator": "ALL",
@@ -46,9 +46,9 @@
             "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
             "parts": [
               {
-                "variable": "projectFunders",
+                "variable": "projectFunderComponents",
                 "operator": "INCLUDE",
-                "value": 33
+                "value": "VA: SSVF"
               },
               {
                 "operator": "ANY",
@@ -107,9 +107,9 @@
         "parts": [
           {
             "_comment": "HUD: HUD-VASH – – Collection required for HUD/VASH- Continuum",
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 20
+            "value": "HUD: HUD-VASH"
           },
           {
             "operator": "ALL",
@@ -132,9 +132,9 @@
             "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
             "parts": [
               {
-                "variable": "projectFunders",
+                "variable": "projectFunderComponents",
                 "operator": "INCLUDE",
-                "value": 33
+                "value": "VA: SSVF"
               },
               {
                 "operator": "ANY",
@@ -158,7 +158,7 @@
             "_comment": "VA: GPD – collection required for all components",
             "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": "VA: Grant Per Diem"
+            "value": "VA: GPD"
           }
         ]
       },
