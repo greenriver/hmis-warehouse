@@ -2632,7 +2632,7 @@ type Enrollment {
   householdId: ID!
   householdShortId: ID!
   householdSize: Int!
-  hpScreeningScore: NoYesMissing
+  hpScreeningScore: Int
   id: ID!
   inProgress: Boolean!
   incarceratedAdult: IncarceratedAdult
@@ -2674,7 +2674,7 @@ type Enrollment {
   status: EnrollmentStatus!
   subsidyAtRisk: NoYesMissing
   targetScreenReqd: NoYesMissing
-  thresholdScore: NoYesMissing
+  thresholdScore: Int
   timeToHousingLoss: TimeToHousingLoss
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   translationNeeded: NoYesReasonsForMissingData

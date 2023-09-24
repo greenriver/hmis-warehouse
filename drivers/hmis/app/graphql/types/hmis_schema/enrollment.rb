@@ -131,8 +131,8 @@ module Types
     field :dependent_under6, HmisSchema::Enums::Hud::DependentUnder6, null: true
     field :hh5_plus, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :hp_screening_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :threshold_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :hp_screening_score, Integer, null: true
+    field :threshold_score, Integer, null: true
     # C4
     field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true
