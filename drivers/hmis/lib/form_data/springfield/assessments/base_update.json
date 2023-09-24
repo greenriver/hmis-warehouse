@@ -1,0 +1,31 @@
+{
+  "item": [
+    {
+      "fragment": "#information_date"
+    },
+    {
+      "fragment": "#client_location"
+    },
+    {
+      "fragment": "#c3_youth_education_status"
+    },
+    {
+      "fragment": "#income_and_sources"
+    },
+    {
+      "fragment": "#non_cash_benefits"
+    },
+    {
+      "fragment": "#health_insurance"
+    },
+    {
+      "fragment": "#w3_hopwa_insurance"
+    },
+    {
+      "fragment": "#disability"
+    },
+    {
+      "fragment": "#health_and_dv_update"
+    }
+  ]
+}
