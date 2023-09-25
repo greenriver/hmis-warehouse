@@ -31,9 +31,8 @@ class ProjectsController < ApplicationController
 
   def destroy
     name = @project.ProjectName
-    @project.destroy_dependents!
-    @project.destroy
-    flash[:notice] = "Project: #{name} was successfully removed."
+    DeleteItemJob.perform_later(item_id: @project.id, item_class: @project.class.name)
+    flash[:notice] = "Project: #{name} was successfully queued for removal.  Please check back in a few minutes."
     respond_with @project, location: data_source_path(@project.data_source)
   end
 

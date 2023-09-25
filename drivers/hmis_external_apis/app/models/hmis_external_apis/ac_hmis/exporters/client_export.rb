@@ -44,7 +44,7 @@ module HmisExternalApis::AcHmis::Exporters
     private
 
     def client_columns
-      ['PersonalID', 'FirstName', 'MiddleName', 'LastName', 'NameSuffix', 'NameDataQuality', 'SSN', 'SSNDataQuality', 'DOB', 'DOBDataQuality', 'AmIndAKNative', 'Asian', 'BlackAfAmerican', 'HispanicLatinaeo', 'MidEastNAfrican', 'NativeHIPacific', 'White', 'RaceNone', 'Woman', 'Man', 'NonBinary', 'CulturallySpecific', 'Transgender', 'Questioning', 'DifferentIdentity', 'GenderNone', 'VeteranStatus', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID']
+      ['PersonalID']
     end
 
     def external_id_columns

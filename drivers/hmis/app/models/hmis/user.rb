@@ -125,7 +125,8 @@ class Hmis::User < ApplicationRecord
   end
 
   private def viewable(model)
-    entities_with_permissions(model, *Hmis::Role.permissions_for_access(:viewable), mode: 'any')
+    # An entity is only considered "viewable" if the user has can_view_project permission for it.
+    entities_with_permissions(model, :can_view_project)
   end
 
   def viewable_data_sources

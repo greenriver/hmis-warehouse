@@ -183,8 +183,8 @@ module CePerformance
     end
 
     def clients_title(sub_population_title: nil, vispdat_range: nil, vispdat_type: nil, event_type: nil)
-      return "VI-SPDAT Range: #{vispdat_range}" if vispdat_range.present?
-      return "VI-SPDAT Type: #{vispdat_type}" if vispdat_type.present?
+      return "Housing Needs Assessment Range: #{vispdat_range}" if vispdat_range.present?
+      return "Housing Needs Assessment Type: #{vispdat_type}" if vispdat_type.present?
       return "Event Type: #{::HudUtility.event(event_type)}" if event_type.present?
 
       return sub_population_title
@@ -404,14 +404,14 @@ module CePerformance
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,
+        CePerformance::Results::TimeToAssessmentAverage,
+        CePerformance::Results::TimeToAssessmentMedian,
+        CePerformance::Results::TimeOnListAverage,
+        CePerformance::Results::TimeOnListMedian,
         CePerformance::Results::EntryToReferralAverage,
         CePerformance::Results::EntryToReferralMedian,
         CePerformance::Results::ReferralToHousingAverage,
         CePerformance::Results::ReferralToHousingMedian,
-        CePerformance::Results::TimeOnListAverage,
-        CePerformance::Results::TimeOnListMedian,
-        CePerformance::Results::TimeToAssessmentAverage,
-        CePerformance::Results::TimeToAssessmentMedian,
         CePerformance::Results::EventType,
       ]
       if include_supplemental?
@@ -513,14 +513,14 @@ module CePerformance
           },
         )
         if include_supplemental?
-          headers ['vispdat_type'] = 'VI-SPDAT Type'
-          headers ['vispdat_range'] = 'VI-SPDAT Range'
-          headers ['assessment_score'] = 'VI-SPDAT Score'
-          headers ['prioritization_tool_type'] = 'Prioritization Tool Type'
-          headers ['prioritization_tool_score'] = 'Prioritization Tool Score'
-          headers ['community'] = 'Community'
-          headers ['client_lgbtq'] = 'Client Identifies as LGBTQ'
-          headers ['lgbtq_household_members'] = 'Household Identifies as LGBTQ'
+          headers['vispdat_type'] = 'Housing Needs Assessment Type'
+          headers['vispdat_range'] = 'Housing Needs Assessment Range'
+          headers['assessment_score'] = 'Housing Needs Assessment Score'
+          headers['prioritization_tool_type'] = 'Prioritization Tool Type'
+          headers['prioritization_tool_score'] = 'Prioritization Tool Score'
+          headers['community'] = 'Community'
+          headers['client_lgbtq'] = 'Client Identifies as LGBTQ'
+          headers['lgbtq_household_members'] = 'Household Identifies as LGBTQ'
           headers['dv_survivor'] = 'Survivor of Domestic Violence'
         end
       end.freeze

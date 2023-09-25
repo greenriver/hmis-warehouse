@@ -38,8 +38,17 @@ class Hmis::AccessGroup < ApplicationRecord
     joins(:roles).merge(Hmis::Role.with_editable_permissions)
   end
 
-  scope :with_permissions, ->(*perms, mode: 'any') do
-    joins(:roles).merge(mode == 'all' ? Hmis::Role.with_all_permissions(*perms) : Hmis::Role.with_any_permissions(*perms))
+  scope :with_permissions, ->(*perms, mode: :any) do
+    role_scope = case mode.to_sym
+    when :all
+      Hmis::Role.with_all_permissions(*perms)
+    when :any
+      Hmis::Role.with_any_permissions(*perms)
+    else
+      raise "Invalid permission mode: #{mode}"
+    end
+
+    joins(:roles).merge(role_scope)
   end
 
   scope :contains, ->(entity) do

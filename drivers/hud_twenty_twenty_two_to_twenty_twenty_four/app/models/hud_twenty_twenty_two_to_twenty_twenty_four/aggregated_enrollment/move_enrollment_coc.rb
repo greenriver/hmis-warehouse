@@ -19,12 +19,12 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment
         reference(:enrollment_coc) do |row|
           next unless row['DataCollectionStage'].to_i == 1
 
-          key = row['HouseholdID'].presence || "en_#{row['EnrollmentID']}" 
+          key = row['HouseholdID'].presence || "en_#{row['EnrollmentID']}"
           key += "_ds_#{row['data_source_id']}"
           h[key] ||= row['CoCCode'] if HudUtility2024.valid_coc?(row['CoCCode'])
         end
       end
-      key = enrollment_row['HouseholdID'].presence || "en_#{enrollment_row['EnrollmentID']}" 
+      key = enrollment_row['HouseholdID'].presence || "en_#{enrollment_row['EnrollmentID']}"
       key += "_ds_#{row['data_source_id']}"
       @entry_enrollment_coc[key]
     end

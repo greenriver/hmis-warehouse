@@ -46,6 +46,7 @@ module Filters
     attribute :data_source_ids, Array, default: []
     attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
+    attribute :secondary_cohort_ids, Array, default: []
     attribute :cohort_column, String, default: nil
     attribute :cohort_column_housed_date, String, default: nil
     attribute :cohort_column_matched_date, String, default: nil
@@ -138,6 +139,7 @@ module Filters
       self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map(&:to_i).presence || destination_ids
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map(&:to_sym).presence || length_of_times
       self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map(&:to_i).presence || cohort_ids
+      self.secondary_cohort_ids = filters.dig(:secondary_cohort_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_cohort_ids
       self.cohort_column = filters.dig(:cohort_column)&.presence || cohort_column
       self.cohort_column_voucher_type = filters.dig(:cohort_column_voucher_type)&.presence || cohort_column_voucher_type
       self.cohort_column_housed_date = filters.dig(:cohort_column_housed_date)&.presence || cohort_column_housed_date
@@ -202,6 +204,7 @@ module Filters
           ethnicities: ethnicities,
           project_group_ids: project_group_ids,
           cohort_ids: cohort_ids,
+          secondary_cohort_ids: secondary_cohort_ids,
           cohort_column: cohort_column,
           cohort_column_voucher_type: cohort_column_voucher_type,
           cohort_column_housed_date: cohort_column_housed_date,
@@ -297,6 +300,7 @@ module Filters
         funder_ids: [],
         project_group_ids: [],
         cohort_ids: [],
+        secondary_cohort_ids: [],
         disability_summary_ids: [],
         destination_ids: [],
         disabilities: [],
@@ -623,6 +627,10 @@ module Filters
 
     def cohort_ids
       @cohort_ids.reject(&:blank?)
+    end
+
+    def secondary_cohort_ids
+      @secondary_cohort_ids.reject(&:blank?)
     end
 
     def effective_project_ids_from_projects
@@ -1082,6 +1090,8 @@ module Filters
         'LSA Scope'
       when :cohort_ids
         'Cohorts'
+      when :secondary_cohort_ids
+        'Cohort Inclusion'
       when :cohort_column
         'Cohort Column for Initiative Cohorts'
       when :cohort_column_voucher_type
@@ -1167,6 +1177,8 @@ module Filters
         chosen_lsa_scope
       when :cohort_ids
         cohorts
+      when :secondary_cohort_ids
+        secondary_cohorts
       when :cohort_column
         cohort_column
       when :cohort_column_voucher_type
@@ -1407,6 +1419,14 @@ module Filters
 
     def cohorts
       cohorts_for_select(user: user).select { |_, id| cohort_ids.include?(id.to_i) }&.map(&:first)
+    end
+
+    def secondary_cohorts
+      cohorts_for_select(user: user).select { |_, id| secondary_cohort_ids.include?(id.to_i) }&.map(&:first)
+    end
+
+    def chosen_secondary_cohorts
+      GrdaWarehouse::Cohort.viewable_by(user).where(id: secondary_cohort_ids).distinct.order(name: :asc)
     end
 
     def available_household_types

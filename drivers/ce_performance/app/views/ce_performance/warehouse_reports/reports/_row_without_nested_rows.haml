@@ -19,4 +19,9 @@
   - else
     .col-sm-2.ml-auto.d-flex
       .text-small.ml-auto
-        = link_to result.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: result_class, category_name: category_name, target: :_blank), class: 'j-click-row-source'
+        .w-100.mb-8
+          = link_to result.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: result_class, category_name: category_name, target: :_blank), class: 'j-click-row-source'
+        - result.sub_results.each do |sub_result_class|
+          - sub_result = @report.results_for_display[category_name][:reporting][sub_result_class]
+          .w-100.mb-12
+            = link_to sub_result.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: sub_result_class, category_name: category_name, target: :_blank), class: 'j-click-row-source'
