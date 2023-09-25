@@ -28,7 +28,7 @@ module Types
 
     def self.resolve_type(object, _context)
       config = Hmis::Form::Definition::FORM_ROLE_CONFIG.find do |_, value|
-        value[:class_name] == object.class.name
+        value[:class_name].to_s == object.class.name
       end&.last
       raise "#{object.class.name} is not a valid response type" unless config.present?
 
