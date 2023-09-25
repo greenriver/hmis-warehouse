@@ -20,31 +20,29 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # CAUTION: enrollment.project accessor is overridden below
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
-  has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
+  has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
   # HUD services
-  has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
-  has_many :bed_nights, -> { bed_nights }, **hmis_relation(:EnrollmentID, 'Service')
+  has_many :services, **hmis_enrollment_relation('Service'), inverse_of: :enrollment, dependent: :destroy
+  has_many :bed_nights, -> { bed_nights }, **hmis_enrollment_relation('Service')
   # Custom services
-  has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
-  has_many :custom_case_notes, **hmis_relation(:EnrollmentID, 'CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_services, **hmis_enrollment_relation('CustomService'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
   # All services (combined view of HUD and Custom services)
-  has_many :hmis_services, **hmis_relation(:EnrollmentID, 'HmisService')
+  has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
 
-  has_many :events, **hmis_relation(:EnrollmentID, 'Event'), dependent: :destroy
-  has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit'), dependent: :destroy
-  has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability'), dependent: :destroy
-  has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv'), dependent: :destroy
-  has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
-  # TODO: remove
-  has_many :enrollment_cocs, **hmis_relation(:EnrollmentID, 'EnrollmentCoc'), dependent: :destroy
-  has_many :employment_educations, **hmis_relation(:EnrollmentID, 'EmploymentEducation'), dependent: :destroy
-  has_many :youth_education_statuses, **hmis_relation(:EnrollmentID, 'YouthEducationStatus'), dependent: :destroy
+  has_many :events, **hmis_enrollment_relation('Event'), inverse_of: :enrollment, dependent: :destroy
+  has_many :income_benefits, **hmis_enrollment_relation('IncomeBenefit'), inverse_of: :enrollment, dependent: :destroy
+  has_many :disabilities, **hmis_enrollment_relation('Disability'), inverse_of: :enrollment, dependent: :destroy
+  has_many :health_and_dvs, **hmis_enrollment_relation('HealthAndDv'), inverse_of: :enrollment, dependent: :destroy
+  has_many :current_living_situations, **hmis_enrollment_relation('CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
+  has_many :employment_educations, **hmis_enrollment_relation('EmploymentEducation'), inverse_of: :enrollment, dependent: :destroy
+  has_many :youth_education_statuses, **hmis_enrollment_relation('YouthEducationStatus'), inverse_of: :enrollment, dependent: :destroy
 
   # CE Assessments
-  has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
+  has_many :assessments, **hmis_enrollment_relation('Assessment'), inverse_of: :enrollment, dependent: :destroy
   # Custom Assessments
-  has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
+  has_many :custom_assessments, **hmis_enrollment_relation('CustomAssessment'), inverse_of: :enrollment, dependent: :destroy
 
   # Files
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
