@@ -59,38 +59,71 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
 
   ENROLLMENT_CONFIG = {
-    class_name: 'Hmis::Hud::Enrollment',
+    owner_class: Hmis::Hud::Enrollment,
     permission: :can_edit_enrollments,
-    resolve_as: 'Types::HmisSchema::Enrollment',
   }.freeze
 
   FORM_ROLE_CONFIG = {
-    SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
-    PROJECT: { class_name: 'Hmis::Hud::Project', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Project' },
-    ORGANIZATION: { class_name: 'Hmis::Hud::Organization', permission: :can_edit_organization, resolve_as: 'Types::HmisSchema::Organization' },
-    CLIENT: { class_name: 'Hmis::Hud::Client', permission: :can_edit_clients, resolve_as: 'Types::HmisSchema::Client' },
-    FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
-    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
-    PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
-    CE_ASSESSMENT: { class_name: 'Hmis::Hud::Assessment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CeAssessment' },
-    CE_EVENT: { class_name: 'Hmis::Hud::Event', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Event' },
-    CASE_NOTE: { class_name: 'Hmis::Hud::CustomCaseNote', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CustomCaseNote' },
+    SERVICE: {
+      owner_class: Hmis::Hud::HmisService,
+      permission: :can_edit_enrollments,
+    },
+    PROJECT: {
+      owner_class: Hmis::Hud::Project,
+      permission: :can_edit_project_details,
+    },
+    ORGANIZATION: {
+      owner_class: Hmis::Hud::Organization,
+      permission: :can_edit_organization,
+    },
+    CLIENT: {
+      owner_class: Hmis::Hud::Client,
+      permission: :can_edit_clients,
+    },
+    FUNDER: {
+      owner_class: Hmis::Hud::Funder,
+      permission: :can_edit_project_details,
+    },
+    INVENTORY: {
+      owner_class: Hmis::Hud::Inventory,
+      permission: :can_edit_project_details,
+    },
+    PROJECT_COC: {
+      owner_class: Hmis::Hud::ProjectCoc,
+      permission: :can_edit_project_details,
+    },
+    CE_ASSESSMENT: {
+      owner_class: Hmis::Hud::Assessment,
+      permission: :can_edit_enrollments,
+    },
+    CE_EVENT: {
+      owner_class: Hmis::Hud::Event,
+      permission: :can_edit_enrollments,
+    },
+    CASE_NOTE: {
+      owner_class: Hmis::Hud::CustomCaseNote,
+      permission: :can_edit_enrollments,
+    },
     FILE: {
-      class_name: 'Hmis::File',
+      owner_class: Hmis::File,
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
-      resolve_as: 'Types::HmisSchema::File',
     },
     REFERRAL_REQUEST: {
-      class_name: 'HmisExternalApis::AcHmis::ReferralRequest',
+      owner_class: HmisExternalApis::AcHmis::ReferralRequest,
       permission: :can_manage_incoming_referrals,
-      resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
-    CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
+    CURRENT_LIVING_SITUATION: {
+      owner_class: Hmis::Hud::CurrentLivingSituation,
+      permission: :can_edit_enrollments,
+    },
     OCCURRENCE_POINT: ENROLLMENT_CONFIG,
     ENROLLMENT: ENROLLMENT_CONFIG,
     # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
-    NEW_CLIENT_ENROLLMENT: { **ENROLLMENT_CONFIG, permission: [:can_edit_clients, :can_edit_enrollments] },
+    NEW_CLIENT_ENROLLMENT: {
+      **ENROLLMENT_CONFIG,
+      permission: [:can_edit_clients, :can_edit_enrollments],
+    },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
@@ -172,8 +205,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.validate_schema(json)
-    schema_path = Rails.root
-      .join('drivers/hmis_external_apis/public/schemas/form_definition.json')
+    schema_path = Rails.root.
+      join('drivers/hmis_external_apis/public/schemas/form_definition.json')
     HmisExternalApis::JsonValidator.perform(json, schema_path)
   end
 
@@ -189,10 +222,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     role.to_sym == :EXIT
   end
 
-  def record_class_name
+  def owner_class
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
-    FORM_ROLE_CONFIG[role.to_sym][:class_name]
+    FORM_ROLE_CONFIG[role.to_sym][:owner_class]
   end
 
   def record_editing_permissions
