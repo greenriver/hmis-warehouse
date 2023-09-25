@@ -116,56 +116,38 @@ module AllNeighborsSystemDashboard
       end
 
       def ce_infos_for_batch(filter, batch)
-        household_enrollments = household_enrollments(filter, batch)
-        ce_events = ce_events(filter, household_enrollments)
+        # Find the active enrollments in the CE Project set for the HoH of the enrollments in the batch
+        ce_project_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.
+          entry.
+          where(project_id: GrdaWarehouse::Hud::Project.where(id: filter.secondary_project_ids).pluck(:project_id)).
+          open_between(start_date: filter.start_date, end_date: filter.end_date).
+          where(id: batch.joins(:service_history_enrollment_for_head_of_household).select(:id))
+
+        enrollments_by_hoh = ce_project_enrollments.
+          preload(:client).
+          group_by { |enrollment| [enrollment.client.personal_id, enrollment.data_source_id] }
+
+        # Find the events for HoHs associated with the CE project enrollments above.
+        # Due to the possibility of finding enrollments with the same id from other data sources, this may pull
+        # more events than required, but they will end up in unused groups.
+        ce_events = GrdaWarehouse::Hud::Event.
+          where(enrollment_id: ce_project_enrollments.pluck(:enrollment_group_id), event: SERVICE_CODE_ID.keys, event_date: filter.range).
+          order(event_date: :asc).
+          group_by { |event| [event.personal_id, event.data_source_id] }
 
         {}.tap do |h|
-          batch.each do |housing_enrollment|
-            # Find the earliest most recent active enrollment for the household in the CE Project set with an entry on or before
-            # the the entry into housing, and if there is an exit, it is after the report start
-            ce_enrollment = household_enrollments[[housing_enrollment.household_id, housing_enrollment.data_source_id]]&.
+          batch.find_each do |housing_enrollment|
+            ce_enrollment = enrollments_by_hoh[[housing_enrollment.head_of_household_id, housing_enrollment.data_source_id]]&.
               select { |enrollment| enrollment.entry_date <= housing_enrollment.entry_date }&.
               first
             next unless ce_enrollment.present?
 
             h[housing_enrollment.id] = OpenStruct.new(
               entry_date: ce_enrollment&.entry_date,
-              ce_event: ce_events[[ce_enrollment.enrollment.enrollment_id, ce_enrollment.enrollment.data_source_id]],
+              ce_event: ce_events[[ce_enrollment.client.personal_id, ce_enrollment.enrollment.data_source_id]],
             )
           end
         end
-      end
-
-      private def household_enrollments(filter, enrollment_batch)
-        # Collect household members enrollments, because household ids might not be unique between data sources,
-        # we need to process this per data source. Pulls all enrollments for the household, not just the ones in
-        # the batch since a household may span batches.
-        batches_by_data_source = enrollment_batch.group_by(&:data_source_id)
-        {}.tap do |h|
-          batches_by_data_source.each do |data_source_id, batch|
-            h.merge!(
-              GrdaWarehouse::ServiceHistoryEnrollment.
-              preload(:enrollment).
-              entry.
-              where(project_id: filter.secondary_project_ids).
-              where(household_id: batch.map(&:household_id), data_source_id: data_source_id).
-              open_between(start_date: filter.start_date, end_date: filter.end_date).
-              order(she_t[:entry_date].desc).
-              group_by { |enrollment| [enrollment.household_id, enrollment.data_source_id] },
-            )
-          end
-        end
-      end
-
-      private def ce_events(filter, household_enrollments)
-        # Due to the possibility of finding enrollments with ids from other data sources, this may pull
-        # more events than required, but, they will end up in unused groups.
-        GrdaWarehouse::Hud::Event.
-          where(enrollment_id: household_enrollments.values.flatten.map { |she| she.enrollment.enrollment_id }).
-          where(event: SERVICE_CODE_ID.keys, event_date: filter.range).
-          order(event_date: :asc).
-          group_by { |event| [event.enrollment_id, event.data_source_id] }.
-          transform_values(&:last)
       end
 
       def return_dates_for_batch(filter, batch)
@@ -174,8 +156,8 @@ module AllNeighborsSystemDashboard
           select do |enrollment|
           enrollment.exit_date.present? &&
             enrollment.destination.in?([26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34]) # From SPM M2
-        end.sort_by(&:entry_date).reverse. # Order, so the earliest entry is last
-          index_by(&:client_id) # Index by selects the last item
+        end.sort_by(&:exit_date).
+          index_by(&:client_id) # Index by selects the last item, should be chronologically the last exit
 
         # Find the any enrollments entered by the clients in the reporting range, pulls all enrollments, not just
         # the ones in the batch.
@@ -187,19 +169,19 @@ module AllNeighborsSystemDashboard
         # Select the enrollments for the client that are candidates for return
         re_enrollments = enrollments_by_client.map do |client_id, enrollments|
           exit_date = exited_enrollments[client_id].exit_date
-          transformed = enrollments.select do |enrollment|
+          re_enrollment = enrollments.sort_by(&:entry_date).detect do |enrollment|
             candidate_for_return?(exit_date, enrollment)
           end
-          [client_id, transformed] if transformed.present? # Only include clients with candidates
+          [client_id, re_enrollment] if re_enrollment.present? # Only include clients with candidates
         end.compact.to_h
 
         # Build a hash of exited enrollments to the earliest date of the clients return to homelessness
         {}.tap do |h|
           exited_enrollments.values.each do |housing_enrollment|
-            candidates = re_enrollments[housing_enrollment.client_id]
-            next unless candidates.present?
+            candidate = re_enrollments[housing_enrollment.client_id]
+            next unless candidate.present?
 
-            h[housing_enrollment.id] = candidates.map(&:entry_date).max
+            h[housing_enrollment.id] = candidate.entry_date
           end
         end
       end
