@@ -77,7 +77,7 @@ module AllNeighborsSystemDashboard
         'racial_composition',
         :stack,
         options: {
-          bars: ['Unhoused\nPopulation 2023 *', 'Overall Population\n(Census 2020)'],
+          bars: ['Unhoused Population 2023 *', 'Overall Population (Census 2020)'],
           types: demographic_race,
           colors: demographic_race_colors,
           label_colors: demographic_race.map { |_| '#ffffff' },

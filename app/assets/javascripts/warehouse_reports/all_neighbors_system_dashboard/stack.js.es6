@@ -56,7 +56,7 @@ class AllNeighborsSystemDashboardStack {
   }
 
   getConfig() {
-    return {
+    const config = {
       data: {
         x: "x",
         columns: [
@@ -75,13 +75,19 @@ class AllNeighborsSystemDashboardStack {
           normalize: this.options.normalize,
         }
       },
+      grid: this.options.grid || {},
       axis: {
         rotated: this.options.rotated,
         x: {
           type: "category",
           tick: {
-            width: 300,
-          }
+            width: (this.options.padding || {}).left,
+            text: {
+              position: this.options.textPosition ? 
+                this.options.textPosition : 
+                (this.options.rotated ? {x: 0, y: 3} : {x: 0, y:0})
+            },
+          },
         },
         y: {
           show: this.options.showX,
@@ -91,8 +97,46 @@ class AllNeighborsSystemDashboardStack {
       bar: {
         width: 50,
       },
-      bindto: this.selector
+      bindto: this.selector,
+      legend: {show: false},
     }
+    if(this.options.legend) {
+      const legendData = this.options.legend
+      if(legendData.type === 'simple') {
+        config.legend = {
+          contents: {
+            bindto: legendData.selector,
+            template: (title, color) => {
+              const swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+              return `<div class="d-flex pr-4">${swatch}<div class="chart-legend-item-label-prs1">${this.config.names[title]}</div></div>`;
+            },
+          },
+        }
+      } else {
+        config.legend = {
+          contents: {
+            bindto: legendData.selector,
+            template: (title, color) => {
+              const swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+              return `<div class="col-xs-12 col-md-3 mb-4 d-flex">${swatch}<div class="chart-legend-item-label-prs1">${this.config.names[title]}</div></div>`;
+            },
+          },
+        }
+      }
+      
+    }
+    return config
+  }
+
+  normalizeDataLabels() {
+    // is there a better way to do this with billboard config?
+    this.chart.data().forEach((d) => {
+      d.values.forEach((v) => {
+        const text = $(`${this.selector} .bb-texts-${d.id.replaceAll('_', '-')} .bb-text-${v.x}`)
+        text.text(d3.format(".0%")(v.ratio))
+      })
+
+    })
   }
 
   redraw(state) {
@@ -113,9 +157,20 @@ class AllNeighborsSystemDashboardStack {
     this.chart.internal.config.data_groups = [this.config.keys]
     this.chart.internal.config.data_labels_colors = this.config.label_colors
     this.chart.show()
+    if(this.options.normalize) {
+      this.normalizeDataLabels()
+    }
   }
 
   draw() {
-    this.chart = bb.generate(this.getConfig())
+    const config = this.getConfig()
+    this.chart = bb.generate(config)
+    if(this.options.normalize) {
+      this.normalizeDataLabels()
+    }
+    if(this.options.padding && this.options.padding.left) {
+      $(`${this.selector} .bb-axis-x .tick line`).attr('x2', this.options.padding.left*-1) 
+    }
+    
   }
 }

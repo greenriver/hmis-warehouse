@@ -20,7 +20,7 @@
 
 = render 'filter_labels', tab: tab, labels: ['project_type', 'household_type', 'demographics', 'date_range']
 
-.row.align-items-stretch
+.row.align-items-stretch.mb-7
   .col-xs-12.col-md-3.mb-4
     .h-100.d-flex.align-items-center
       %div
@@ -33,7 +33,17 @@
         %span= value[:value]
         %h3= value[:name]
   
-
+%h3 
+  Household Average Days form Idendification to Housing by 
+  %span{class: filter_label_id(tab[:id], 'demographic')} Race
+.border.p-4
+  .d-flex.justify-content-between.align-items-center
+    %small Mouse over chart below for more details
+    .d-flex{id: "#{chart_id(tab[:id], "stacked")}_legend"}
+.d-flex.mt-5
+  .pr-8{style: 'flex: 0 0 auto;width: 300px;text-align:right;'}
+    %strong{class: filter_label_id(tab[:id], 'demographic')}
+  %strong Average Days From ID to Housing
 %div{id: chart_id(tab[:id], 'stacked'), style: 'height:800px;'}
 
 - content_for :page_js do
@@ -41,22 +51,29 @@
     $(document).ready(function() {
       console.log('Time To Obtain Housing -----------------')
       var data = #{chart_data.to_json.html_safe}
-
+      var chartId = '##{chart_id(tab[:id], 'stacked')}'
       var charts = [
         {
           chart: AllNeighborsSystemDashboardStack, 
           data: data,
-          selector: '##{chart_id(tab[:id], 'stacked')}',
+          selector: chartId,
           options: {
+            legend: {selector: chartId+'_legend', type: 'simple'},
             normalize: false, 
             rotated: true,
             padding: {
-              left: 200,
+              left: 300,
               top: 20,
               right: 20,
               bottom: 20,
             },
+            textPosition: {x: -40, y: 3},
             showX: true,
+            grid: {
+              x: {
+                show: true,
+              }
+            }
           }
         },
       ]
