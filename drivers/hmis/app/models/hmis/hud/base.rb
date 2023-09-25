@@ -36,6 +36,29 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     h
   end
 
+  def self.hmis_enrollment_relation(model_name = nil)
+    model_name = if model_name.present?
+      "Hmis::Hud::#{model_name}"
+    else
+      'Hmis::Hud::Enrollment'
+    end
+    h = {
+      primary_key: [
+        :EnrollmentID,
+        :PersonalID,
+        :data_source_id,
+      ],
+      foreign_key: [
+        :EnrollmentID,
+        :PersonalID,
+        :data_source_id,
+      ],
+      class_name: model_name,
+      autosave: false,
+    }
+    h
+  end
+
   def self.alias_to_underscore(cols)
     Array.wrap(cols).each do |col|
       alias_attribute col.to_s.underscore.to_sym, col

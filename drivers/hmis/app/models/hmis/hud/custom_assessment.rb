@@ -22,7 +22,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :enrollment, **hmis_enrollment_relation
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -200,10 +200,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   def deletion_would_cause_conflicting_enrollments?
     return false if in_progress?
 
-    exit? && enrollment.client.enrollments
-      .where(data_source: enrollment.data_source, project_id: enrollment.project_id)
-      .where.not(id: enrollment.id)
-      .where(e_t[:entry_date].gteq(enrollment.entry_date))
-      .any?
+    exit? && enrollment.client.enrollments.
+      where(data_source: enrollment.data_source, project_id: enrollment.project_id).
+      where.not(id: enrollment.id).
+      where(e_t[:entry_date].gteq(enrollment.entry_date)).
+      any?
   end
 end
