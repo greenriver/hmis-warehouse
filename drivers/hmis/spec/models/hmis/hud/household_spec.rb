@@ -37,7 +37,7 @@ RSpec.describe Hmis::Hud::Household, type: :model do
     end
 
     it 'should handle open on correctly' do
-      e3 = create(:hmis_hud_enrollment, project: p1, user: u1, data_source: ds1, household_id: '789', entry_date: Date.today - 1.week)
+      e3 = create(:hmis_hud_enrollment, project: p1, user: u1, data_source: ds1, household_id: '789', entry_date: Date.today - 1.week, client: c2)
       create(:hmis_hud_exit, data_source: ds1, enrollment: e3, client: c2, exit_date: Date.yesterday)
 
       expect(Hmis::Hud::Household.open_on_date(Date.today)).to contain_exactly(e1.household, e2.household)
