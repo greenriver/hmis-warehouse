@@ -27,7 +27,7 @@ module Mutations
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
 
       # Determine record class
-      klass = definition.record_class_name&.constantize
+      klass = definition.owner_class
       raise HmisErrors::ApiError, 'Form Definition not configured' unless klass.present?
 
       # Find or create record
