@@ -33,7 +33,7 @@ module HmisExternalApis::ShHmis::Importers
       FileUtils.mkdir_p(dir)
       zipfile = "#{dir}/data.zip"
       s3.fetch(file_name: file_name, prefix: creds.s3_prefix, target_path: zipfile)
-      system("unzip #{zipfile} -d #{dir}")
+      extract_zip(zipfile, dir)
     end
 
     def run_migration!(clobber: false, upload_log: true)
@@ -45,6 +45,18 @@ module HmisExternalApis::ShHmis::Importers
 
       # Upload log file to S3
       s3.put(file_name: log_file, prefix: creds.s3_prefix) if upload_log
+    end
+
+    def extract_zip(file, destination)
+      FileUtils.mkdir_p(destination)
+
+      Zip::File.open(file) do |zip_file|
+        zip_file.each do |f|
+          fpath = File.join(destination, f.name)
+          FileUtils.mkdir_p(File.dirname(fpath))
+          zip_file.extract(f, fpath) unless File.exist?(fpath)
+        end
+      end
     end
   end
 end
