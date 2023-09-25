@@ -152,9 +152,13 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
   describe 'grouping related assessments' do
     include_context 'hmis base setup'
-    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, relationship_to_ho_h: 1 }
-    let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id, relationship_to_ho_h: 8 }
-    let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id, relationship_to_ho_h: 8 }
+    let!(:c1) { create :hmis_hud_client, data_source: ds1 }
+    let!(:c2) { create :hmis_hud_client, data_source: ds1 }
+    let!(:c3) { create :hmis_hud_client, data_source: ds1 }
+
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1 }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: e1.household_id, relationship_to_ho_h: 8 }
+    let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, household_id: e1.household_id, relationship_to_ho_h: 8 }
 
     it 'groups intake assessments, including WIP assessments' do
       a1 = create(:hmis_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e1)
