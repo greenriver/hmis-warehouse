@@ -195,6 +195,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               expect(record).to be_present
               expect(Hmis::Form::FormProcessor.count).to eq(0)
 
+              # Check that enrollment.processed_as: nil and enrollment.processed_hash: nil, but weren't nil before save
+              # this should be true if exit, CLS, Service, or Enrollment changed/added/deleted
+
+              # check that delayed jobs are queued for when above happens or client is changed
+
               # Expect that all of the fields that were submitted exist on the record
               expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys
               expected_present_keys.map(&:to_s).map(&:underscore).each do |method|

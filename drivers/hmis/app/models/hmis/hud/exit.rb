@@ -22,11 +22,24 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ExitValidator
 
+  after_commit :warehouse_trigger_processing
+
   def aftercare_methods
     HudUtility2024.aftercare_method_fields.select { |k| send(k) == 1 }.values
   end
 
   def counseling_methods
     HudUtility2024.counseling_method_fields.select { |k| send(k) == 1 }.values
+  end
+
+  private def warehouse_trigger_processing
+    return unless warehouse_columns_changed?
+
+    enrollment.invalidate_processing!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['ExitDate', 'DateDeleted']).any?
   end
 end

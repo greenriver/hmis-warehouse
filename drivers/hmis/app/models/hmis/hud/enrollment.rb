@@ -187,25 +187,28 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     scope = with_project([project.id])
     exit_date = range.end # maybe nil if endless range
     if exit_date
-      scope.left_outer_joins(:exit)
-        .where(
-          e_t[:entry_date].eq(entry_date)
-          .or(
-            e_t[:entry_date].lt(exit_date) # enrollments started before exit date
-            .and(
+      scope.left_outer_joins(:exit).
+        where(
+          e_t[:entry_date].eq(entry_date).
+          or(
+            e_t[:entry_date].lt(exit_date). # enrollments started before exit date
+            and(
               ex_t[:exit_date].gt(entry_date).or(ex_t[:exit_date].eq(nil)),
             ), # enrollments with an exit date after the entry date
           ),
         )
     else
-      scope.left_outer_joins(:exit)
-        .where(
-          ex_t[:exit_date].eq(nil) # we already have an open enrollment
-          .or(ex_t[:exit_date].gt(entry_date))
-          .or(e_t[:entry_date].gteq(entry_date)),
+      scope.left_outer_joins(:exit).
+        where(
+          ex_t[:exit_date].eq(nil). # we already have an open enrollment
+          or(ex_t[:exit_date].gt(entry_date)).
+          or(e_t[:entry_date].gteq(entry_date)),
         )
     end
   end
+
+  after_create :warehouse_trigger_processing
+  after_update :warehouse_trigger_processing
 
   def project
     super || Hmis::Hud::Project.find_by(id: wip.project_id)
@@ -363,6 +366,17 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
     client.valid?([:form_submission, :new_client_enrollment_form])
     errors.merge!(client.errors)
+  end
+
+  private def warehouse_trigger_processing
+    return unless warehouse_columns_changed?
+
+    invalidate_processing!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['EntryDate', 'ProjectID', 'DateDeleted']).any?
   end
 
   include RailsDrivers::Extensions

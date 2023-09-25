@@ -18,4 +18,19 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   alias_to_underscore [:CLSSubsidyType]
+
+  after_commit :warehouse_trigger_processing
+
+  private def warehouse_trigger_processing
+    return unless warehouse_columns_changed?
+
+    # NOTE: we only really need to do this for SO at the moment, but this is future-proofing against
+    # pre-processing CLS in other enrollments
+    enrollment.invalidate_processing!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['InformationDate', 'DateDeleted']).any?
+  end
 end
