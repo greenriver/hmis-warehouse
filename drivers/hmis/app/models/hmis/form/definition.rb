@@ -105,12 +105,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: :can_edit_enrollments,
     },
     FILE: {
-      owner_class: 'Hmis::File',
+      owner_class: Hmis::File,
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
     },
     REFERRAL_REQUEST: {
-      owner_class: 'HmisExternalApis::AcHmis::ReferralRequest',
+      owner_class: HmisExternalApis::AcHmis::ReferralRequest,
       permission: :can_manage_incoming_referrals,
     },
     CURRENT_LIVING_SITUATION: {

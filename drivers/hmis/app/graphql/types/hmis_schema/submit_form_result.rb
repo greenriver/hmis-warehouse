@@ -40,17 +40,17 @@ module Types
         Types::HmisSchema::Funder
       when Hmis::Hud::Inventory
         Types::HmisSchema::Inventory
-      when Hmis::Hud::Service
+      when Hmis::Hud::HmisService
         Types::HmisSchema::Service
       when Hmis::File
         Types::HmisSchema::File
-      when HmisExternalApis::ReferralRequest
+      when HmisExternalApis::AcHmis::ReferralRequest
         Types::HmisSchema::ReferralRequest
       when Hmis::Hud::Enrollment
         Types::HmisSchema::Enrollment
       when Hmis::Hud::CurrentLivingSituation
         Types::HmisSchema::CurrentLivingSituation
-      when Hmis::Hud::CeAssessment
+      when Hmis::Hud::Assessment
         Types::HmisSchema::CeAssessment
       when Hmis::Hud::CustomCaseNote
         Types::HmisSchema::CustomCaseNote
