@@ -191,7 +191,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               expect(errors).to be_empty
               expect(record_id).to be_present
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
-              record = definition.record_class_name.find_by(id: record_id)
+              record = definition.owner_class.find_by(id: record_id)
               expect(record).to be_present
               expect(Hmis::Form::FormProcessor.count).to eq(0)
 
@@ -244,7 +244,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           expect(result.dig('data', 'submitForm', 'errors')).to be_blank
           record_id = result.dig('data', 'submitForm', 'record', 'id')
-          record = definition.record_class_name.find_by(id: record_id)
+          record = definition.owner_class.find_by(id: record_id)
 
           if role == :FILE
             expect(record.user).to eq(hmis_user)
@@ -258,7 +258,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           _response, result = post_graphql(input: { input: next_input }) { mutation }
           record_id = result.dig('data', 'submitForm', 'record', 'id')
-          record = definition.record_class_name.find_by(id: record_id)
+          record = definition.owner_class.find_by(id: record_id)
 
           if role == :FILE
             expect(record.user_id).to eq(999)

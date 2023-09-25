@@ -27,12 +27,38 @@ module Types
     )
 
     def self.resolve_type(object, _context)
-      config = Hmis::Form::Definition::FORM_ROLE_CONFIG.find do |_, value|
-        value[:class_name].to_s == object.class.name
-      end&.last
-      raise "#{object.class.name} is not a valid response type" unless config.present?
-
-      config[:resolve_as].constantize
+      case object
+      when Hmis::Hud::Client
+        Types::HmisSchema::Client
+      when Hmis::Hud::Project
+        Types::HmisSchema::Project
+      when Hmis::Hud::Organization
+        Types::HmisSchema::Organization
+      when Hmis::Hud::ProjectCoc
+        Types::HmisSchema::ProjectCoc
+      when Hmis::Hud::Funder
+        Types::HmisSchema::Funder
+      when Hmis::Hud::Inventory
+        Types::HmisSchema::Inventory
+      when Hmis::Hud::Service
+        Types::HmisSchema::Service
+      when Hmis::File
+        Types::HmisSchema::File
+      when HmisExternalApis::ReferralRequest
+        Types::HmisSchema::ReferralRequest
+      when Hmis::Hud::Enrollment
+        Types::HmisSchema::Enrollment
+      when Hmis::Hud::CurrentLivingSituation
+        Types::HmisSchema::CurrentLivingSituation
+      when Hmis::Hud::CeAssessment
+        Types::HmisSchema::CeAssessment
+      when Hmis::Hud::CustomCaseNote
+        Types::HmisSchema::CustomCaseNote
+      when Hmis::Hud::Event
+        Types::HmisSchema::Event
+      else
+        raise "Invalid type: #{object.class.name}"
+      end
     end
   end
 end
