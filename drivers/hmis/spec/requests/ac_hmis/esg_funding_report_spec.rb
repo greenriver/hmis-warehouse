@@ -27,7 +27,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     e.save_in_progress
     e
   end
-  let(:c2) { create :hmis_hud_client, dob: Date.today - 1.year, data_source: ds1, user: u1 }
+  let!(:c2) { create :hmis_hud_client, dob: Date.today - 1.year, data_source: ds1, user: u1 }
+  let!(:c2_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c2, relationship_to_ho_h: 2, household_id: e1.household_id }
 
   let!(:csc) { create(:hmis_custom_service_category, name: 'ESG Funding Assistance', data_source: ds1, user: u1) }
   let!(:cst) { create(:hmis_custom_service_type, name: 'ESG Funding Assistance', custom_service_category: csc, data_source: ds1, user: u1) }
@@ -35,7 +36,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:cs1) { create(:hmis_custom_service, client: c1, enrollment: e1, custom_service_type: cst, data_source: ds1, user: u1) }
   let!(:cs2) { create(:hmis_custom_service, client: c1, enrollment: e2, custom_service_type: cst, data_source: ds1, user: u1) }
   let!(:cs3) { create(:hmis_custom_service, client: c1, enrollment: e1, custom_service_type: cst2, data_source: ds1, user: u1) }
-  let!(:cs4) { create(:hmis_custom_service, client: c2, enrollment: e1, custom_service_type: cst, data_source: ds1, user: u1) }
+  let!(:cs4) { create(:hmis_custom_service, client: c2, enrollment: c2_e1, custom_service_type: cst, data_source: ds1, user: u1) }
   let!(:cs5) { create(:hmis_custom_service, client: c1, enrollment: e3, custom_service_type: cst, data_source: ds1, user: u1) }
 
   let!(:access_control) { create_access_control(hmis_user, p1) }

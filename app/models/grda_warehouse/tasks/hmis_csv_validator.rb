@@ -6,19 +6,32 @@
 
 require 'csv'
 require 'memery'
+# validator = GrdaWarehouse::Tasks::HmisCsvValidator.new(path)
+# validator.run!
+# validator.write_errors_to_csv!("validator_output.csv")
 module GrdaWarehouse::Tasks
   class HmisCsvValidator
     include Memery
-    attr_accessor :errors, :project_ids, :enrollment_ids, :export_id, :path
-    def initialize(path)
+    attr_accessor :errors, :project_ids, :enrollment_ids, :export_id, :path, :version
+    def initialize(path, version: '2024')
       @path = path
+      @version = version
     end
 
     def run!
       return unless path.present? && File.directory?(path)
 
-      Rails.logger.debug "Processing HMIS data from #{path}"
-      HmisCsvTwentyTwentyTwo.importable_files_map.each do |filename, klass_name|
+      Rails.logger.debug "Processing HMIS data from #{path} as #{@version}"
+      klass = case @version
+      when '2022'
+        HmisCsvTwentyTwentyTwo
+      when '2024'
+        HmisCsvTwentyTwentyFour
+      else
+        raise 'invalid version'
+      end
+
+      klass.importable_files_map.each do |filename, klass_name|
         Rails.logger.debug "Checking #{filename}"
         file_path = File.join(path, filename)
         downcase_converter = ->(header) { header.downcase }
@@ -101,7 +114,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def validations(klass)
-      klass.hmis_configuration(version: '2022').map do |column, structure|
+      klass.hmis_configuration(version: @version).map do |column, structure|
         validation_methods = []
         validation_methods << case structure[:type]
         when :integer
