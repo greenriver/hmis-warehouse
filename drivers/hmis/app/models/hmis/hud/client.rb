@@ -60,6 +60,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
+  before_save :invalidate_warehouse_data
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -299,6 +300,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Mirrors `clientBriefName` in frontend
   def brief_name
     [first_name, last_name].compact.join(' ')
+  end
+
+  private def invalidate_warehouse_data
+    # binding.pry
+    # return unless
+
+    # GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
+    # GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing!
   end
 
   include RailsDrivers::Extensions
