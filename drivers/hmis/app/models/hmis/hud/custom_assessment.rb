@@ -163,7 +163,9 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !household_enrollments.pluck(:enrollment_id).include?(source_assessment.enrollment_id)
 
     household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).
-      where(enrollment_id: household_enrollments.pluck(:enrollment_id))
+      where(enrollment_id: household_enrollments.pluck(:enrollment_id), data_source_id: household_enrollments.pluck(:data_source_id))
+
+    threshold_in_days = threshold.to_i / 86400 # to_i always returns seconds
 
     case assessment_role.to_sym
     when :INTAKE, :EXIT
@@ -176,9 +178,9 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       household_assessments.group_by(&:personal_id).
         map do |_, assmts|
           nearest_assmt = assmts.min_by { |a| (source_date - a.assessment_date).abs }
-          distance = (source_date - nearest_assmt.assessment_date).abs
+          distance_in_days = (source_date - nearest_assmt.assessment_date).to_i.abs
 
-          nearest_assmt if distance <= threshold
+          nearest_assmt if distance_in_days <= threshold_in_days
         end.compact
     else
       raise HmisErrors::ApiError, "Unable to group #{assessment_role} assessments"
