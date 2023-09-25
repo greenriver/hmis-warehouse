@@ -20,5 +20,40 @@ module Hmis::Hud::Concerns::Shared
     def as_warehouse
       "GrdaWarehouse::Hud::#{self.class.name.demodulize}".constantize.find(id)
     end
+
+    def self.hud_class_names
+      [
+        'Export',
+        'Organization',
+        'Project',
+        'Client',
+        'Disability',
+        'EmploymentEducation',
+        'Enrollment',
+        'HmisParticipation',
+        'CeParticipation',
+        'Exit',
+        'Funder',
+        'HealthAndDv',
+        'IncomeBenefit',
+        'Inventory',
+        'ProjectCoc',
+        'Affiliation',
+        'Service',
+        'CurrentLivingSituation',
+        'Assessment',
+        'AssessmentQuestion',
+        'AssessmentResult',
+        'Event',
+        'User',
+        'YouthEducationStatus',
+      ].freeze
+    end
+
+    def self.hmis_classes
+      hud_class_names.map do |name|
+        "Hmis::Hud::#{name}".constantize
+      end
+    end
   end
 end
