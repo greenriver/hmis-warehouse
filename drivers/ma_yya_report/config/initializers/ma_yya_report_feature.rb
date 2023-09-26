@@ -12,4 +12,4 @@
 # use with caution!
 RailsDrivers.loaded << :ma_yya_report
 
-Rails.application.config.synthetic_youth_education_status_types << 'MaYyaReport::Synthetic::YouthEducationStatus'
+# Rails.application.config.synthetic_youth_education_status_types << 'MaYyaReport::Synthetic::YouthEducationStatus'
