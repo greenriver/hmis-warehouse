@@ -8,6 +8,7 @@ module Hmis
   module Tasks
     class CheckConstraints
       include NotifierConfig
+      include ::Hmis::Concerns::HmisArelHelper
 
       def self.check_hud_constraints
         results = {}
@@ -16,7 +17,7 @@ module Hmis
           # Client will always fail because of source/destination setup
           next if klass.name == 'Hmis::Hud::Client'
 
-          dupes = klass.group(klass.hud_key, :data_source_id).having("count(\"#{klass.hud_key}\") > 1").count
+          dupes = klass.group(klass.hud_key, :data_source_id).having(nf('COUNT', [klass.hud_key]).gt(1)).count
           # test_results[klass.name] = dupes.count
           next unless dupes.present?
 

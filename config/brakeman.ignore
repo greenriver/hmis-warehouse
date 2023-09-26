@@ -2672,29 +2672,6 @@
       "note": ""
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "c683005ae13eea318d5339eba368410cae8af18ef3b3174d0e93e4ed6ec90c29",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hmis/app/models/hmis/tasks/check_constraints.rb",
-      "line": 19,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "klass.group(klass.hud_key, :data_source_id).having(\"count(\\\"#{klass.hud_key}\\\") > 1\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Hmis::Tasks::CheckConstraints",
-        "method": "Hmis::Tasks::CheckConstraints.check_hud_constraints"
-      },
-      "user_input": "klass.hud_key",
-      "confidence": "Weak",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "c6d2416929705fe07d75e0cba96b643e0d9361ef1329ece172ff0fcd797deb31",
@@ -3417,6 +3394,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-09-26 01:10:32 +0000",
+  "updated": "2023-09-26 01:20:28 +0000",
   "brakeman_version": "5.4.1"
 }
