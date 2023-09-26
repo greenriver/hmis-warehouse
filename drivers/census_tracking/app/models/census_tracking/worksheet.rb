@@ -254,6 +254,10 @@ module CensusTracking
       rows
     end
 
+    private def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment
+    end
+
     private def service_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         joins(:service_history_services, :client).

@@ -6,16 +6,15 @@
 
 module HmisExternalApis::ShHmis::Importers::Loaders
   class BaseLoader
-    attr_reader :reader, :clobber, :tracker, :table_names, :log_file
+    attr_reader :reader, :clobber, :table_names, :log_file
 
     def self.perform(...)
       new(...).perform
     end
 
-    def initialize(reader:, tracker: nil, clobber:, log_file: ENV['SH_HMIS_IMPORT_LOG_FILE'])
+    def initialize(reader:, clobber:, log_file: ENV['SH_HMIS_IMPORT_LOG_FILE'])
       @reader = reader
       @clobber = clobber
-      @tracker = tracker
       @log_file = log_file
       @table_names = []
     end
@@ -59,6 +58,7 @@ module HmisExternalApis::ShHmis::Importers::Loaders
       value = row[field]
       value = value&.strip&.presence
       value = value&.gsub(/{|}|-/, '') if field == 'Unique Enrollment Identifier'
+      value = value&.gsub(/-/, '') if field == 'Participant Enterprise Identifier'
       # puts "#{field} #{value}"
       raise "field '#{field}' is missing from row: #{row.to_h.inspect} caller: #{caller.inspect}" if required && !value
 
