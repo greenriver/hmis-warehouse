@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::HealthAndDv < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     def self.configuration
       Hmis::Hud::HealthAndDv.hmis_configuration(version: '2024')
     end
@@ -15,7 +17,6 @@ module Types
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
-    field :user, HmisSchema::User, null: true
     field :information_date, GraphQL::Types::ISO8601Date, null: true
     hud_field :domestic_violence_survivor, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :when_occurred, HmisSchema::Enums::Hud::WhenDVOccurred
@@ -26,9 +27,6 @@ module Types
     hud_field :pregnancy_status, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :due_date
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
 
     def enrollment
       load_ar_association(object, :enrollment)
@@ -36,10 +34,6 @@ module Types
 
     def client
       load_ar_association(object, :client)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
   end
 end

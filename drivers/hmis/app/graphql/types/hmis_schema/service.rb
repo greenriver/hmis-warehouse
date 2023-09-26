@@ -8,7 +8,9 @@
 
 module Types
   class HmisSchema::Service < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasCustomDataElements
+
     description 'HUD or Custom Service rendered'
 
     def self.configuration
@@ -39,16 +41,6 @@ module Types
     hud_field :moving_on_other_type
     hud_field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided
     hud_field :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome
-
-    # Metadata
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    hud_field :user, HmisSchema::User, null: true
-
-    def user
-      load_ar_association(object, :user)
-    end
 
     def type_provided
       [object.record_type, object.type_provided].join(':')

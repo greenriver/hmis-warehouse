@@ -21,6 +21,7 @@ module Types
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
@@ -139,10 +140,6 @@ module Types
     field :preferred_language_different, String, null: true
 
     field :in_progress, Boolean, null: false
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     field :intake_assessment, HmisSchema::Assessment, null: true
     field :exit_assessment, HmisSchema::Assessment, null: true
     access_field do
@@ -259,10 +256,6 @@ module Types
 
     def health_and_dvs(**args)
       resolve_health_and_dvs(**args)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
 
     def current_unit
