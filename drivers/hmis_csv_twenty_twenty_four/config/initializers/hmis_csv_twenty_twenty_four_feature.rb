@@ -18,3 +18,7 @@ end
 
 # Reminder: Disable any old versions when moving to 2026
 Rails.application.config.hmis_data_lake = 'HmisCsvTwentyTwentyFour'
+
+Rails.application.config.queued_tasks[:hmis_twenty_twenty_four_upgrade_recurring_exports] = -> do
+  HmisCsvTwentyTwentyFour::Tasks::UpgradeRecurringExports.upgrade!
+end

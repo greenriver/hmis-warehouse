@@ -74,7 +74,6 @@ module HmisExternalApis::ShHmis::Importers::Loaders
             PersonalID: personal_id,
             InformationDate: information_date.to_date,
             DataCollectionStage: data_collection_stage,
-            DateProvided: information_date,
             DateCreated: information_date,
             DateUpdated: information_date,
             UserID: user_id_from_staff_id(row),

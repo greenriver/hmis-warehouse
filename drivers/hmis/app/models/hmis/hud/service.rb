@@ -29,4 +29,19 @@ class Hmis::Hud::Service < Hmis::Hud::Base
                           on: [:form_submission, :bed_nights_mutation]
 
   scope :bed_nights, -> { where(RecordType: 200) }
+
+  after_commit :warehouse_trigger_processing
+
+  private def warehouse_trigger_processing
+    return unless warehouse_columns_changed?
+
+    # NOTE: we only really need to do this for bed-nights at the moment, but this is future-proofing against
+    # pre-processing all services
+    enrollment.invalidate_processing!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['DateProvided', 'RecordType', 'TypeProvided', 'DateDeleted']).any?
+  end
 end

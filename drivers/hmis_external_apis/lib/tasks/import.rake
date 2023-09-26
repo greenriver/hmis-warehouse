@@ -14,7 +14,7 @@ namespace :import do
   # ./bin/rake driver:hmis_external_apis:import:ac_warehouse_changes
   desc 'Fetch changes to MCI Unique IDs from AC Data Warehouse'
   task :ac_warehouse_changes, [] => [:environment] do
-    HmisExternalApis::AcHmis::WarehouseChangesJob.perform_now
+    HmisExternalApis::AcHmis::WarehouseChangesJob.perform_now(actor_id: User.system_user.id)
   end
 
   # Usage: rails driver:hmis_external_apis:import:ac_custom_data_elements[/tmp/dir,true]
