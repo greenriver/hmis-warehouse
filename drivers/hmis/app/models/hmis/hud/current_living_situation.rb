@@ -27,7 +27,7 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
     # NOTE: we only really need to do this for SO at the moment, but this is future-proofing against
     # pre-processing CLS in other enrollments
     enrollment.invalidate_processing!
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
   end
 
   private def warehouse_columns_changed?

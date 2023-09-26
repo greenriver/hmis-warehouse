@@ -307,12 +307,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   private def warehouse_match_existing_clients
     return unless warehouse_columns_changed?
 
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing!
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
   end
 
   # Run when we add a new client to the system
   private def warehouse_identify_duplicate_clients
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
   end
 
   private def warehouse_columns_changed?

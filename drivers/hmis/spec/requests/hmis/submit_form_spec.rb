@@ -182,6 +182,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               input.delete(:enrollment_id)
             end
 
+            e1.update(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
+
             response, result = post_graphql(input: { input: input }) { mutation }
             record_id = result.dig('data', 'submitForm', 'record', 'id')
             errors = result.dig('data', 'submitForm', 'errors')
@@ -197,8 +199,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
               # Check that enrollment.processed_as: nil and enrollment.processed_hash: nil, but weren't nil before save
               # this should be true if exit, CLS, Service, or Enrollment changed/added/deleted
+              expect(e1.reload.processed_as).to be_nil if role.in?([:ENROLLMENT, :SERVICE, :CURRENT_LIVING_SITUATION])
 
               # check that delayed jobs are queued for when above happens or client is changed
+              expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment').count).to be_positive if role.in?([:ENROLLMENT, :SERVICE, :CURRENT_LIVING_SITUATION])
+              expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').count).to be_positive if role.in?([:CLIENT])
 
               # Expect that all of the fields that were submitted exist on the record
               expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys

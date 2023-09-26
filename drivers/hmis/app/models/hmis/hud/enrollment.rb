@@ -370,7 +370,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return unless warehouse_columns_changed?
 
     invalidate_processing!
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
   end
 
   private def warehouse_columns_changed?
