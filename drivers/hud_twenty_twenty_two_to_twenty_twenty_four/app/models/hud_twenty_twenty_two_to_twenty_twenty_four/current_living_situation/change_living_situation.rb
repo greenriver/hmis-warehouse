@@ -10,6 +10,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::CurrentLivingSituation
 
     def process(row)
       situation = row['CurrentLivingSituation'].to_i
+      row['LivingSituation2022'] = situation
       new_situation = LIVING_SITUATIONS[situation]
       return row unless new_situation.present?
 
