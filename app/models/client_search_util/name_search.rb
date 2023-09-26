@@ -75,9 +75,14 @@ module ClientSearchUtil
       # union of matches and scores for all term variants
       name_scope_sql = name_queries.compact.map do |query|
         "(#{query.to_sql})"
-      end.join(' UNION ')
+      end.join(' UNION ALL ')
 
-      scope.joins("JOIN (#{name_scope_sql}) names ON \"Client\".id = names.client_id")
+      scope.joins(<<~SQL
+        JOIN (
+          SELECT client_id, MAX(search_score) as search_score FROM (#{name_scope_sql}) names GROUP BY 1
+        ) names ON "Client".id = names.client_id
+        SQL
+      )
     end
 
     def term_score_sql(term, term_weight:)
