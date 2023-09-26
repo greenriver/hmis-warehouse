@@ -205,6 +205,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
+  after_create :warehouse_trigger_processing
+  after_update :warehouse_trigger_processing
+
   def project
     super || Hmis::Hud::Project.find_by(id: wip.project_id)
   end
@@ -361,6 +364,17 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
     client.valid?([:form_submission, :new_client_enrollment_form])
     errors.merge!(client.errors)
+  end
+
+  private def warehouse_trigger_processing
+    return unless warehouse_columns_changed?
+
+    invalidate_processing!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['EntryDate', 'ProjectID', 'DateDeleted']).any?
   end
 
   include RailsDrivers::Extensions
