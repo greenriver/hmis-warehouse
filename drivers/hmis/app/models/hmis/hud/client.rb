@@ -60,6 +60,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
+  after_create :warehouse_identify_duplicate_clients
+  after_update :warehouse_match_existing_clients
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -299,6 +301,22 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Mirrors `clientBriefName` in frontend
   def brief_name
     [first_name, last_name].compact.join(' ')
+  end
+
+  # Run if we changed name/DOB/SSN
+  private def warehouse_match_existing_clients
+    return unless warehouse_columns_changed?
+
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
+  end
+
+  # Run when we add a new client to the system
+  private def warehouse_identify_duplicate_clients
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
   end
 
   include RailsDrivers::Extensions
