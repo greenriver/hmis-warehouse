@@ -13,7 +13,59 @@
     }
   },
   {
-    "link_id": "R4.1",
+    "link_id": "R1",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R4",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R7",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R8",
+    "rule": {
+      "operator": "ALL",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R9",
     "rule": {
       "operator": "ALL",
       "parts": [

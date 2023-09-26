@@ -58,6 +58,12 @@ module Types
       # if there's no rule, default to true
       return true if rule.nil?
 
+      # If there's no project, default to true.
+      # This let's us have rules on the Client form, for example V1 Veteran Info,
+      # that can be hidden when creating a Client in the context of a non-Veteran program,
+      # but should always be shown when creating/editing a Client outside of a project context.
+      return true if project.nil?
+
       operator = rule.fetch('operator')
       case operator
       when 'EQUAL'

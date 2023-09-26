@@ -51,15 +51,88 @@
     },
     "rule": {
       "type": "object",
-      "additionalProperties": false,
       "required": ["operator"],
-      "properties": {
-        "_comment": { "type": "string" },
-        "operator": { "enum": ["ANY", "ALL", "EQUAL", "INCLUDE", "NOT_EQUAL", "NOT_INCLUDE"] },
-        "variable": { "enum": ["projectId", "projectType", "projectFunders", "projectOtherFunders", "projectFunderComponents"] },
-        "value": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
-        "parts": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
-      }
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "_comment": { "type": "string" },
+            "operator": { "enum": ["ANY", "ALL"] },
+            "parts": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "_comment": { "type": "string" },
+            "variable": { "enum": ["projectId"] },
+            "operator": { "enum": ["EQUAL", "NOT_EQUAL"] },
+            "value": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "_comment": { "type": "string" },
+            "variable": { "enum": ["projectType"] },
+            "operator": { "enum": ["EQUAL", "NOT_EQUAL"] },
+            "value": {
+              "type": "integer",
+              "enum": [
+                0, 1, 2, 3, 4, 6, 8, 9, 7, 10, 11, 12, 13, 14
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "_comment": { "type": "string" },
+            "variable": { "enum": ["projectFunderComponents"] },
+            "operator": { "enum": ["INCLUDE", "NOT_INCLUDE"] },
+            "value": {"type": "string", "enum": [
+              "HHS: PATH",
+              "HHS: RHY",
+              "HUD: CoC",
+              "HUD: ESG",
+              "HUD: ESG RUSH",
+              "HUD: HOPWA",
+              "HUD: HUD-VASH",
+              "HUD: PFS",
+              "HUD: Rural Special NOFO",
+              "HUD: Unsheltered Special NOFO",
+              "VA: CRS Contract Residential Services",
+              "VA: Community Contract Safe Haven",
+              "VA: GPD",
+              "VA: SSVF"
+            ] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "_comment": { "type": "string" },
+            "variable": { "enum": ["projectOtherFunders"] },
+            "operator": { "enum": ["INCLUDE", "NOT_INCLUDE"] },
+            "value": {"type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "_comment": { "type": "string" },
+            "variable": { "enum": ["projectFunders"] },
+            "operator": { "enum": ["INCLUDE", "NOT_INCLUDE"] },
+            "value": {"type": "integer", "enum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55] }
+          }
+        }
+      ]
     },
     "initial": {
       "type": "object",

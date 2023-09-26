@@ -1,17 +1,11 @@
 {
   "type": "GROUP",
-  "link_id": "V6",
-  "text": "VAMC Station Number",
+  "link_id": "V4",
   "data_collected_about": "HOH",
-  "prefill": true,
+  "text": "Percent of AMI (SSVF Eligibility)",
   "rule": {
     "operator": "ANY",
     "parts": [
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HUD: HUD-VASH"
-      },
       {
         "operator": "ALL",
         "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
@@ -37,35 +31,20 @@
             ]
           }
         ]
-      },
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "VA: GPD"
-      },
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "VA: Community Contract Safe Haven"
-      },
-      {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "VA: CRS Contract Residential Services"
       }
     ]
   },
   "item": [
     {
-      "link_id": "V6.1",
       "type": "CHOICE",
+      "link_id": "V4.1",
       "required": false,
       "warn_if_empty": true,
-      "text": "VAMC Station Number",
-      "pick_list_reference": "VamcStationNumber",
+      "text": "Household Income as a Percentage of AMI",
+      "pick_list_reference": "PercentAMI",
       "mapping": {
         "record_type": "ENROLLMENT",
-        "field_name": "vamcStation"
+        "field_name": "percentAmi"
       }
     }
   ]

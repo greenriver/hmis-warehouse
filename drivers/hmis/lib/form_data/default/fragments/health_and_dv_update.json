@@ -6,9 +6,11 @@
   "prefill": true,
   "item": [
     {
+      "_comment": "Collected at project Entry/Update",
       "fragment": "#r10_pregnancy_status"
     },
     {
+      "_comment": "Collected at project Entry/Update",
       "fragment": "#4_11_dv"
     }
   ]

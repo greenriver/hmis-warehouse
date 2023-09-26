@@ -523,26 +523,33 @@ module HudUtility2024
     keyed
   end
 
-  private def funder_description_to_component(description)
-    return unless description.include?(' - ')
-
-    description.split(' - ')[0]
+  def path_funders
+    [21]
   end
+
+  # "Funder components" that are referenced by the 2024 HUD Data Dictionary.
+  # These are used by assessment Form Definition to specify funder applicability rules.
   def funder_components
-    funding_sources.
-      transform_values { |d| funder_description_to_component(d) }.
-      compact.
-      each_with_object({}) { |(k, v), h| (h[v] ||= []) << k }
+    {
+      'HUD: CoC' => [1, 2, 3, 4, 5, 6, 7, 43, 44, 49], # Includes YHDP
+      'HUD: ESG' => [8, 9, 10, 11, 47], # Excludes ESG RUSH
+      'HUD: ESG RUSH' => [53], # Even though it has the same "HUD ESG" prefix, HUD Data Dictionary treats it as a separate component
+      'HUD: HOPWA' => [13, 14, 15, 16, 17, 18, 19, 48],
+      'HHS: PATH' => path_funders,
+      'HHS: RHY' => [22, 23, 24, 25, 26],
+      'VA: GPD' => [37, 38, 39, 40, 41, 42, 45],
+      'VA: SSVF' => [33],
+      'VA: Community Contract Safe Haven' => [30],
+      'VA: CRS Contract Residential Services' => [27],
+      'HUD: Unsheltered Special NOFO' => [54],
+      'HUD: Rural Special NOFO' => [55],
+      'HUD: HUD-VASH' => [20],
+      'HUD: PFS' => [35], # Pay for Success
+    }
   end
 
   def funder_component(funder)
-    funding_sources.
-      transform_values { |d| funder_description_to_component(d) }.
-      compact[funder]
-  end
-
-  def path_funders
-    [21]
+    funder_components.find { |_, funders| funders.include?(funder) }&.first
   end
 
   # field name => ID from Data Dictionary

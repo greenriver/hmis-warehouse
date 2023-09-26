@@ -30,9 +30,9 @@
         "_comment": "HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 54
+            "value": "HUD: Unsheltered Special NOFO"
           },
           {
             "variable": "projectType",
@@ -46,9 +46,9 @@
         "_comment": "HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 55
+            "value": "HUD: Rural Special NOFO"
           },
           {
             "variable": "projectType",
