@@ -19,13 +19,20 @@
     .col-xs-12.col-md-4
       = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
 = render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'date_range']
+
 .border.p-8.mb-7
   %h3.mb-4 Total Placements
   %div{id: chart_id(tab[:id], 'total_placements'), style: 'height:400px;'}
+  .mt-5.d-flex.justify-content-center
+    %div{id: "#{chart_id(tab[:id], 'total_placements')}_legend"}
+    %div
+      (
+      %span{class: filter_label_id(tab[:id], 'date_range')}
+      )
   
 = render 'donuts', tab: tab, donut_data: donut_data, filter_label: 'date_range'
  
-= render 'stacked_charts', data: [stacked_data], group: 'Racial Composition', filter_label: 'date_range', filter: false, filter_data: [], show_chart_titles: false, hint: false, height: '300px', tab: tab, legend_padding: '200px'
+= render 'stacked_charts', data: [stacked_data], group: 'Racial Composition', filter_label: 'date_range', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px'
 
 
 
@@ -44,7 +51,10 @@
         {
           chart: AllNeighborsSystemDashboardLine, 
           data: totalData,
-          selector: '##{chart_id(tab[:id], 'total_placements')}'
+          selector: '##{chart_id(tab[:id], 'total_placements')}',
+          options: {
+            legend: {selector: '##{chart_id(tab[:id], 'total_placements')}_legend'}
+          }
         },
         {
           chart: AllNeighborsSystemDashboardStack,
@@ -52,15 +62,6 @@
           selector: stackedId,
           options: {
             legend: {selector: stackedId+'_legend'},
-            normalize: true, 
-            rotated: true,
-            showX: false,
-            padding: {
-              left: 200,
-              top: 0,
-              right: 20,
-              bottom: 0,
-            },
           }
         }
       ].concat(donutData.map(function(d, i) {

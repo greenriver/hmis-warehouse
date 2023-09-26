@@ -7,7 +7,8 @@
 %h2.mb-4{class: css_namespace('all', 'tab_name')} People Experiencing Homelessness
 .border.my-7.p-4
   %h3.mb-4 Homeless Population Over Time
-  %div{id: chart_id(tab[:id], 'vertical_stack'), style: 'height:400px;'}
+  %div{id: chart_id(tab[:id], 'vertical_stack')}
+  .d-flex.justify-content-center{id: "#{chart_id(tab[:id], 'vertical_stack')}_legend"}
 
 .border.my-7.p-4
   .row.align-items-center.justify-content-between
@@ -23,7 +24,7 @@
 
 = render 'donuts', tab: tab, donut_data: all_data.donut_data, filter_label: 'year'      
 
-= render 'stacked_charts', data: [all_data.stacked_data], group: 'Racial Composition', filter_label: 'year', filter: false, filter_data: [], show_chart_titles: false, hint: false, height: '300px', tab: tab, legend_padding: '200px'
+= render 'stacked_charts', data: [all_data.stacked_data], group: 'Racial Composition', filter_label: 'year', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px'
   
 
 - content_for :page_js do
@@ -31,6 +32,7 @@
     $(document).ready(function() {
       console.log('Unhoused Population -----------------')
       var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
+      var verticalStackId = '##{chart_id(tab[:id], 'vertical_stack')}'
       var donutData = #{all_data.donut_data.to_json.html_safe}
       var stackedData = #{all_data.stacked_data.to_json.html_safe}
       var stackedId = '##{chart_id(tab[:id], "stacked_#{all_data.stacked_data[:id]}")}'
@@ -44,15 +46,6 @@
           selector: stackedId,
           options: {
             legend: {selector: stackedId+'_legend'},
-            normalize: true, 
-            rotated: true,
-            showX: false,
-            padding: {
-              left: 200,
-              top: 20,
-              right: 20,
-              bottom: 20,
-            },
           }
         }
       ].concat(donutData.map(function(d, i) {
@@ -92,11 +85,15 @@
       var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
 
-      const verticalStackChart = new AllNeighborsSystemDashboardStack(
+      const verticalStackChart = new AllNeighborsSystemDashboardUPVerticalStack(
           verticalStackData,
           {},
-          '##{chart_id(tab[:id], 'vertical_stack')}',
-          {rotated: false, normalize: false}
+          verticalStackId,
+          {
+            legend: {
+              selector: verticalStackId+'_legend'
+            }
+          }
         )
       verticalStackChart.draw()
 

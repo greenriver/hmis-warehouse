@@ -15,6 +15,10 @@ class AllNeighborsSystemDashboarBar {
 
   getConfig() {
     return {
+      size: {
+        width: $(this.selector).width(),
+        height: 300,
+      },
       data: {
         x: "x",
         columns: [
@@ -32,6 +36,9 @@ class AllNeighborsSystemDashboarBar {
           show: true,
           color: '#000000',
         },
+      },
+      grid: {
+        y: {show: true}
       },
       axis: {
         x: {

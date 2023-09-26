@@ -44,7 +44,7 @@
   .pr-8{style: 'flex: 0 0 auto;width: 300px;text-align:right;'}
     %strong{class: filter_label_id(tab[:id], 'demographic')}
   %strong Average Days From ID to Housing
-%div{id: chart_id(tab[:id], 'stacked'), style: 'height:800px;'}
+%div{id: chart_id(tab[:id], 'stacked')}
 
 - content_for :page_js do
   :javascript
@@ -54,26 +54,11 @@
       var chartId = '##{chart_id(tab[:id], 'stacked')}'
       var charts = [
         {
-          chart: AllNeighborsSystemDashboardStack, 
+          chart: AllNeighborsSystemDashboardTTOHStack, 
           data: data,
           selector: chartId,
           options: {
-            legend: {selector: chartId+'_legend', type: 'simple'},
-            normalize: false, 
-            rotated: true,
-            padding: {
-              left: 300,
-              top: 20,
-              right: 20,
-              bottom: 20,
-            },
-            textPosition: {x: -40, y: 3},
-            showX: true,
-            grid: {
-              x: {
-                show: true,
-              }
-            }
+            legend: {selector: chartId+'_legend'},
           }
         },
       ]

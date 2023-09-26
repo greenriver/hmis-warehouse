@@ -83,7 +83,8 @@
     font-size: 16px;
   }
 
-  .bb-xgrid {
+  .bb-xgrid,
+  .bb-ygrid {
     stroke-dasharray:none;
   }
 
@@ -121,6 +122,16 @@
     white-space-collapse: preserve;
   }
 
+  #all-neighbors__housing_placements__total_placements__chart .bb-axis-y .domain,
+  #all-neighbors__housing_placements__total_placements__chart .bb-axis-y .tick line,
+  #all-neighbors__housing_placements__total_placements__chart .bb-axis-x .tick line {
+    display: none;
+  }
+
+  #all-neighbors__housing_placements__total_placements__chart .bb-ygrid line {
+    stroke: #DDDDDD;
+  }
+
   #all-neighbors__time_to_obtain_housing__stacked__chart .bb-xgrid,
   #all-neighbors__time_to_obtain_housing__stacked__chart .bb-axis-x line
    {
@@ -131,6 +142,7 @@
   #all-neighbors__time_to_obtain_housing__stacked__chart .bb-axis-x .domain {
     display:none;
   }
+  
 
 - content_for :full_width_banner do
   %h1 REAL Time Rehousing Initiative Community Dashboard
