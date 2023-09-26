@@ -60,6 +60,12 @@ class AllNeighborsSystemDashboardLine {
           show: true
         }
       },
+      padding: {
+        left: 50,
+        top: 10,
+        right: 0,
+        bottom:0,
+      },
       axis: {
         x: {
           type: "timeseries",

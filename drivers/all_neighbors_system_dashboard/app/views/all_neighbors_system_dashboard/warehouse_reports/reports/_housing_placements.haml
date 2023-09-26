@@ -20,8 +20,8 @@
       = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
 = render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'date_range']
 
-.border.p-8.mb-7
-  %h3.mb-4 Total Placements
+.border.p-6.mb-7
+  %h3.mb-6 Total Placements
   %div{id: chart_id(tab[:id], 'total_placements'), style: 'height:400px;'}
   .mt-5.d-flex.justify-content-center
     %div{id: "#{chart_id(tab[:id], 'total_placements')}_legend"}

@@ -5,8 +5,8 @@
 - donut_filter_label_ids = all_data.donut_data.map { |d| filter_label_id(tab[:id], d[:id]) }
 
 %h2.mb-4{class: css_namespace('all', 'tab_name')} People Experiencing Homelessness
-.border.my-7.p-4
-  %h3.mb-4 Homeless Population Over Time
+.border.my-7.p-6
+  %h3.mb-6 Homeless Population Over Time
   %div{id: chart_id(tab[:id], 'vertical_stack')}
   .d-flex.justify-content-center{id: "#{chart_id(tab[:id], 'vertical_stack')}_legend"}
 
