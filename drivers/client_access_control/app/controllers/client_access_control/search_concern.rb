@@ -61,11 +61,21 @@ module ClientAccessControl::SearchConcern
         @clients = @clients.full_housing_release_on_file
         @data_sharing = 1
       end
-      @selected_sort = params[:sort]&.to_sym.presence || :best_match
-      @clients = @clients.sort_by_option(@selected_sort)
 
-      @sort_title = GrdaWarehouse::Hud::Client::SORT_OPTIONS[@selected_sort]
+      @clients = @clients.sort_by_option(selected_sort)
       @active_filter = @data_source_id.present? || @start_date.present? || params[:data_sharing].present? || params[:vulnerability].present? || params[:population].present? || age_group.present?
+    end
+
+    private def selected_sort
+      @selected_sort ||= params[:sort]&.to_sym.presence || :best_match
+    end
+
+    private def sort_title
+      @sort_title ||= GrdaWarehouse::Hud::Client::SORT_OPTIONS[selected_sort]
+    end
+
+    private def sorted
+      selected_sort == :best_match
     end
 
     private def set_search_client
