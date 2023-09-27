@@ -69,6 +69,29 @@
       "note": ""
     },
     {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "03398b9f6e9b4fc6121f4d1213d7d04cf0cb7e457c6da533a03dfae90ba1fc7d",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "drivers/client_access_control/app/controllers/client_access_control/search_concern.rb",
+      "line": 31,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientAccessControl::SearchConcern",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "07ab3a48e4c84f40fe8acb270d962ed39424807b21c01793b91e44b25acfaf9e",
@@ -569,7 +592,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/client_search_util/name_search.rb",
-      "line": 120,
+      "line": 125,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "ClientSearchUtil::ClientSearchableName.where(\"#{csn_fn(:last_name)} ILIKE #{q_ln_pfx} AND #{csn_fn(:full_name)} ILIKE #{q_fn_pfx}\")",
       "render_path": null,
@@ -763,7 +786,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/client_search_util/name_search.rb",
-      "line": 127,
+      "line": 132,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "ClientSearchUtil::ClientSearchableName.where(\"#{search_class.connection.quote(term)} <% #{csn_fn(:full_name)}\")",
       "render_path": null,
@@ -1348,6 +1371,29 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "767755b5093a0a0e3dfa4a274187a35692b8b193ddc82131ffa7696be25fafef",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/client_search_util/name_search.rb",
+      "line": 85,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "scope.joins(\"JOIN (\\n  SELECT client_id, MAX(search_score) as search_score FROM (#{([ActiveSupport::Inflector.transliterate(original_term)] + expand_nicknames(original_term).map do\n ActiveSupport::Inflector.transliterate(variant)\n end).map do\n term_weight = if (variant == ActiveSupport::Inflector.transliterate(original_term)) then\n  1.0\nelse\n  0.75\nend\nscore_sql = term_score_sql(variant, :term_weight => ((1.0 or 0.75)))\nsearch_term_scope(variant).group(:client_id).select(:client_id, Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\"))\n end.compact.map do\n \"(#{query.to_sql})\"\n end.join(\" UNION ALL \")}) names GROUP BY 1\\n) names ON \\\"Client\\\".id = names.client_id\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientSearchUtil::NameSearch",
+        "method": "filter_clients"
+      },
+      "user_input": "([ActiveSupport::Inflector.transliterate(original_term)] + expand_nicknames(original_term).map do\n ActiveSupport::Inflector.transliterate(variant)\n end).map do\n term_weight = if (variant == ActiveSupport::Inflector.transliterate(original_term)) then\n  1.0\nelse\n  0.75\nend\nscore_sql = term_score_sql(variant, :term_weight => ((1.0 or 0.75)))\nsearch_term_scope(variant).group(:client_id).select(:client_id, Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\"))\n end.compact.map do\n \"(#{query.to_sql})\"\n end.join(\" UNION ALL \")",
+      "confidence": "Weak",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "781aac46e7b1378f886f2b9f429b4b36766b82a3ce2c8453f8be825781ea49b5",
@@ -1365,29 +1411,6 @@
       },
       "user_input": "db_user",
       "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "7b07960e8183fd903d2b5da2531174a58e52432690e67a5e83a5db857acdf1e2",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "drivers/client_access_control/app/controllers/client_access_control/search_concern.rb",
-      "line": 43,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientAccessControl::SearchConcern",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
       "cwe_id": [
         77
       ],
@@ -2435,29 +2458,6 @@
       "note": ""
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "b606981f484b210f6c91b917e6c6646588bbc30b29ada9e65ce6f7cd8e6967f1",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/client_search_util/name_search.rb",
-      "line": 80,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "scope.joins(\"JOIN (#{([ActiveSupport::Inflector.transliterate(original_term)] + expand_nicknames(original_term).map do\n ActiveSupport::Inflector.transliterate(variant)\n end).map do\n term_weight = if (variant == ActiveSupport::Inflector.transliterate(original_term)) then\n  1.0\nelse\n  0.75\nend\nscore_sql = term_score_sql(variant, :term_weight => ((1.0 or 0.75)))\nsearch_term_scope(variant).group(:client_id).select(:client_id, Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\"))\n end.compact.map do\n \"(#{query.to_sql})\"\n end.join(\" UNION \")}) names ON \\\"Client\\\".id = names.client_id\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientSearchUtil::NameSearch",
-        "method": "filter_clients"
-      },
-      "user_input": "([ActiveSupport::Inflector.transliterate(original_term)] + expand_nicknames(original_term).map do\n ActiveSupport::Inflector.transliterate(variant)\n end).map do\n term_weight = if (variant == ActiveSupport::Inflector.transliterate(original_term)) then\n  1.0\nelse\n  0.75\nend\nscore_sql = term_score_sql(variant, :term_weight => ((1.0 or 0.75)))\nsearch_term_scope(variant).group(:client_id).select(:client_id, Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\"))\n end.compact.map do\n \"(#{query.to_sql})\"\n end.join(\" UNION \")",
-      "confidence": "Weak",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "b86000207c4fe44ca5dd3bcc3d9a87789cfaab516d90a3c76a5b4a25d8e91e55",
@@ -3440,6 +3440,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-09-12 23:20:51 +0000",
+  "updated": "2023-09-27 16:03:28 +0000",
   "brakeman_version": "5.4.1"
 }

@@ -1573,19 +1573,37 @@ module GrdaWarehouse::Hud
       [:case_manager, :assigned_staff, :counselor, :outreach_counselor]
     end
 
-    def self.sort_options
-      [
-        { title: 'Last name A-Z', column: 'LastName', direction: 'asc' },
-        { title: 'Last name Z-A', column: 'LastName', direction: 'desc' },
-        { title: 'First name A-Z', column: 'FirstName', direction: 'asc' },
-        { title: 'First name Z-A', column: 'FirstName', direction: 'desc' },
-        { title: 'Youngest to Oldest', column: 'DOB', direction: 'desc' },
-        { title: 'Oldest to Youngest', column: 'DOB', direction: 'asc' },
-        { title: 'Most served', column: 'days_served', direction: 'desc' },
-        { title: 'Recently added', column: 'first_date_served', direction: 'desc' },
-        { title: 'Longest standing', column: 'first_date_served', direction: 'asc' },
-        { title: 'Most recently served', column: 'last_date_served', direction: 'desc' },
-      ]
+    SORT_OPTIONS = {
+      best_match: 'Most Relevant',
+      last_name_a_to_z: 'Last name A-Z',
+      last_name_z_to_a: 'Last name Z-A',
+      first_name_a_to_z: 'First name A-Z',
+      first_name_z_to_a: 'First name Z-A',
+      age_youngest_to_oldest: 'Youngest to Oldest',
+      age_oldest_to_youngest: 'Oldest to Youngest',
+    }.freeze
+
+    def self.sort_by_option(option)
+      option = option&.to_sym
+
+      case option
+      when :best_match
+        current_scope # no order, use text search rank
+      when :last_name_a_to_z
+        order(arel_table[:LastName].asc.nulls_last)
+      when :last_name_z_to_a
+        order(arel_table[:LastName].desc.nulls_last)
+      when :first_name_a_to_z
+        order(arel_table[:FirstName].asc.nulls_last)
+      when :first_name_z_to_a
+        order(arel_table[:FirstName].desc.nulls_last)
+      when :age_youngest_to_oldest
+        order(arel_table[:DOB].desc.nulls_last)
+      when :age_oldest_to_youngest
+        order(arel_table[:DOB].asc.nulls_last)
+      else
+        raise ArgumentError, "invalid sort option #{option.inspect}"
+      end
     end
 
     def self.housing_release_options
