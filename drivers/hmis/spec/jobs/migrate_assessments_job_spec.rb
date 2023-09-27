@@ -41,7 +41,6 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         records << create(:hmis_youth_education_status, **shared_attributes, date_created: date - 2.days)
         # Offset some of the date_updated values to ensure latest is chosen
         records << create(:hmis_employment_education, **shared_attributes, date_updated: date - 7.days)
-        # records << create(:hmis_enrollment_coc, **shared_attributes, date_updated: date - 3.days)
 
         # create 1 record per disability type
         HudUtility2024.disability_types.keys.each do |typ|
