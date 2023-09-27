@@ -140,7 +140,7 @@ module AllNeighborsSystemDashboard
             ce_enrollment = enrollments_by_hoh[[housing_enrollment.head_of_household_id, housing_enrollment.data_source_id]]&.
               select { |enrollment| enrollment.entry_date <= housing_enrollment.entry_date }&.
               first
-            next unless ce_enrollment.present?
+            next unless ce_enrollment&.enrollment.present? && ce_enrollment&.client.present?
 
             h[housing_enrollment.id] = OpenStruct.new(
               entry_date: ce_enrollment&.entry_date,
