@@ -15,7 +15,7 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   attr_writer :required_fields
 
   def self.without_optimistic_locking
-    prev = self.lock_optimistically
+    prev = lock_optimistically
     self.lock_optimistically = false
     begin
       yield
