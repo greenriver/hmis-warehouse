@@ -14,6 +14,16 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   attr_writer :skip_validations
   attr_writer :required_fields
 
+  def self.without_optimistic_locking
+    prev = self.lock_optimistically
+    self.lock_optimistically = false
+    begin
+      yield
+    ensure
+      self.lock_optimistically = prev
+    end
+  end
+
   before_validation :ensure_id
 
   scope :viewable_by, ->(_) do
