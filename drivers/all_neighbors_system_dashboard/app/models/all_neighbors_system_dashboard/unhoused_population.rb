@@ -10,7 +10,7 @@ module AllNeighborsSystemDashboard
           keys: keys,
           names: keys.map.with_index { |key, i| [key, options[:types][i]] }.to_h,
           colors: keys.map.with_index { |key, i| [key, homeless_population_type_colors[i]] }.to_h,
-          label_colors: keys.map { |key| [key, '#ffffff'] }.to_h,
+          label_colors: keys.map.with_index { |key, i| [key, label_color(homeless_population_type_colors[i])] }.to_h,
         },
       }
     end
@@ -36,7 +36,7 @@ module AllNeighborsSystemDashboard
               keys: keys,
               names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
               colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-              label_colors: keys.map { |key| [key, '#FFFFFF'] }.to_h,
+              label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
             },
             series: send(type, options.merge(homelessness_status: status)),
           }

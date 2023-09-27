@@ -28,6 +28,11 @@ module AllNeighborsSystemDashboard
       ]
     end
 
+    def label_color(background_color)
+      colors = GrdaWarehouse::SystemColor.new
+      colors.calculated_foreground_color(background_color)
+    end
+
     def project_types
       [
         'All',

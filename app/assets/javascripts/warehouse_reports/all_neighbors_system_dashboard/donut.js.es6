@@ -50,6 +50,10 @@ class AllNeighborsSystemDashboardDonut {
         type: 'donut',
         colors: this.config.colors,
         names: this.config.names,
+        labels: {
+          show: true,
+          colors: this.config.label_colors,
+        }
       },
       size: {
         width: 220,
