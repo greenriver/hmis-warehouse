@@ -5,8 +5,8 @@
   .o-filtration__container.dropdown-menu.options
     %ul.mb-0.list-unstyled
       - GrdaWarehouse::Hud::Client::SORT_OPTIONS.each do |key, title|
-        - html = if @selected_sort == key
-          - "<span class='icon-checkbox-checked'></span> #{title}".html_safe
-        - else
-          - "<span class='icon-checkbox-unchecked'></span> #{title}".html_safe
-        %li= link_to(html, { q: params[:q], sort: key })
+        - classes = if @selected_sort == key then 'icon-checkbox-checked' else 'icon-checkbox-unchecked' end
+        %li
+          = link_to({ q: params[:q], sort: key }) do
+            %span{ class: classes }
+            = title

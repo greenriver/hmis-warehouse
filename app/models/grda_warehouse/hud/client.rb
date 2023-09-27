@@ -1585,7 +1585,6 @@ module GrdaWarehouse::Hud
 
     def self.sort_by_option(option)
       option = option&.to_sym
-      raise NotImplementedError unless SORT_OPTIONS.key?(option)
 
       case option
       when :best_match
@@ -1603,7 +1602,7 @@ module GrdaWarehouse::Hud
       when :age_oldest_to_youngest
         order(arel_table[:DOB].asc.nulls_last)
       else
-        raise NotImplementedError
+        raise ArgumentError, "invalid sort option #{option.inspect}"
       end
     end
 
