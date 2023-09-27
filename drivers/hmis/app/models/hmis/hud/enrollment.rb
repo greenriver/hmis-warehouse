@@ -64,8 +64,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   validate :client_is_valid, on: :new_client_enrollment_form
 
-  alias_to_underscore [:EnrollmentCoC]
-
   SORT_OPTIONS = [
     :most_recent,
     :household_id,

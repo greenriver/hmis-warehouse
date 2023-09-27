@@ -1261,6 +1261,7 @@ type CurrentLivingSituation {
   client: Client!
   clsSubsidyType: RentalSubsidyType
   currentLivingSituation: CurrentLivingSituationOptions!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime

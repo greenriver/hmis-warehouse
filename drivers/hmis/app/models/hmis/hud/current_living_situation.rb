@@ -16,8 +16,9 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
-  alias_to_underscore [:CLSSubsidyType]
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   after_commit :warehouse_trigger_processing
 
