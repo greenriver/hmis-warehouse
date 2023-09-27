@@ -8,9 +8,9 @@
 
     %br
     During that time there were
-    = @report.clients.count
+    = number_with_delimiter(@report.clients.count)
     exits consisting of
-    #{pluralize(@report.clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
+    #{pluralize(number_with_delimiter(@report.clients.map{ |row| row[:client_id]}.uniq.count), 'unique client')}.
     %br
     This report was built to provide supporting details to the "Exiters" and Exits to Permanent Housing" sections of the Population Dashboards.
   .ml-auto.mb-2
