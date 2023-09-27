@@ -23,7 +23,9 @@ module HmisExternalApis::AcHmis
 
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
 
-        raise ActiveRecord::Rollback unless create_or_update_referral_household_members(referral)
+        Hmis::Hud::Client.without_optimistic_locking do
+          raise ActiveRecord::Rollback unless create_or_update_referral_household_members(referral)
+        end
 
         record = referral
       end
