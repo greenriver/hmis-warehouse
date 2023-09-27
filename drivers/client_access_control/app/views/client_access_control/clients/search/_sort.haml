@@ -4,9 +4,9 @@
     %span.caret
   .o-filtration__container.dropdown-menu.options
     %ul.mb-0.list-unstyled
-      - sort_options.each do |opt|
-        - if @column == opt[:column] && @direction == opt[:direction]
-          - title = "<span class='icon-checkbox-checked'></span> #{opt[:title]}".html_safe
+      - GrdaWarehouse::Hud::Client::SORT_OPTIONS.each do |key, title|
+        - html = if @selected_sort == key
+          - "<span class='icon-checkbox-checked'></span> #{title}".html_safe
         - else
-          - title = "<span class='icon-checkbox-unchecked'></span> #{opt[:title]}".html_safe
-        %li= sort_as_link(title, opt[:column], opt[:direction])
+          - "<span class='icon-checkbox-unchecked'></span> #{title}".html_safe
+        %li= link_to(html, { q: params[:q], sort: key })

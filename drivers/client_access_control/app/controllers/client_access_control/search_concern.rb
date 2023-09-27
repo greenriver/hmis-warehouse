@@ -13,18 +13,6 @@ module ClientAccessControl::SearchConcern
     include ArelHelper
 
     def sort_filter_index
-      # sort / paginate
-      default_sort = c_t[:LastName].asc
-      nulls_last = ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
-      sort = if client_processed_sort_columns.include?(sort_column)
-        @clients = @clients.joins(:processed_service_history).includes(:processed_service_history)
-        [wcp_t[sort_column.to_sym].send(sort_direction).to_sql + nulls_last.to_s, default_sort]
-      elsif sort_column == 'DOB'
-        [c_t[sort_column.to_sym].send(sort_direction).to_sql + nulls_last.to_s, default_sort]
-      else
-        [c_t[sort_column.to_sym].send(sort_direction)]
-      end
-
       # Filter by date
       if params[:start_date].present? && params[:end_date].present? && params[:start_date].to_date < params[:end_date].to_date
         @start_date = params[:start_date].to_date
@@ -73,12 +61,11 @@ module ClientAccessControl::SearchConcern
         @clients = @clients.full_housing_release_on_file
         @data_sharing = 1
       end
+      sort_option = params[:sort].presence || :best_match
+      @clients = @clients.sort_by_option(sort_option)
 
-      @clients = @clients.order(*sort) if sort.any?
-
-      @column = sort_column
-      @direction = sort_direction
-      @sort_columns = client_sort_columns + client_processed_sort_columns
+      @selected_sort = params[:sort]&.to_sym.presence || :best_match
+      @sort_title = GrdaWarehouse::Hud::Client::SORT_OPTIONS[@selected_sort]
       @active_filter = @data_source_id.present? || @start_date.present? || params[:data_sharing].present? || params[:vulnerability].present? || params[:population].present? || age_group.present?
     end
 
@@ -109,33 +96,6 @@ module ClientAccessControl::SearchConcern
       # Using 0 here against the client model will be *much* faster than trying the search again
       @client = client_source.find(0)
     end
-
-    private def client_processed_sort_columns
-      @client_processed_sort_columns ||= [
-        'days_served',
-        'first_date_served',
-        'last_date_served',
-      ]
-    end
-
-    private def client_sort_columns
-      @client_sort_columns ||= [
-        'LastName',
-        'FirstName',
-        'DOB',
-      ]
-    end
-
-    private def sort_column
-      available_sort = client_processed_sort_columns + client_sort_columns
-      available_sort.include?(params[:sort]) ? params[:sort] : 'LastName'
-    end
-    helper_method :sort_column
-
-    private def sort_direction
-      ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
-    end
-    helper_method :sort_direction
 
     private def query_string
       "%#{@query}%"
