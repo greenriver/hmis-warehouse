@@ -9,7 +9,7 @@ module Hmis
     include Hmis::Concerns::HmisArelHelper
     include NotifierConfig
 
-    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records
+    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records, :preferred_source_hash
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -37,12 +37,13 @@ module Hmis
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
-    def perform(data_source_id:, clobber: false, delete_dangling_records: false)
+    def perform(data_source_id:, clobber: false, delete_dangling_records: false, preferred_source_hash: nil)
       setup_notifier('Migrate HMIS Assessments')
 
       self.data_source_id = data_source_id
       self.soft_delete_datetime = Time.current
       self.delete_dangling_records = delete_dangling_records
+      self.preferred_source_hash = preferred_source_hash
       raise 'Not an HMIS Data source' if GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
 
       # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
@@ -111,7 +112,7 @@ module Hmis
         next if is_exit && !data_collection_stages.include?(EXIT_STAGE)
 
         group_by_fields = is_exit ? key_fields.take(2) : key_fields
-        result_fields = [:id, :user_id, :date_created, :date_updated]
+        result_fields = [:id, :user_id, :date_created, :date_updated, :source_hash]
         result_fields << :information_date unless unique_by_information_date || is_exit
         result_fields << :disability_type if klass == Hmis::Hud::Disability
         result_fields << :exit_date if is_exit
@@ -152,19 +153,9 @@ module Hmis
               metadata = merge_metadata(assessment_records[hash_key], values)
               assessment_records.deep_merge!({ hash_key => { **disability_ids, **metadata } })
             else
-              # Choose which arr index is going to be the "chosen" record (most recently updated)
-              chosen_idx = values[:date_updated].each_with_index.max_by { |dt, _| dt.to_date }.last
-              # Remove everything else
-              values_without_dups = values.transform_values { |vals| [vals[chosen_idx]] }
-              # Chosen Record ID
+              # If there were multiple records matching this key, choose 1
+              values_without_dups = remove_duplicates(values, klass)
               record_id = values_without_dups[:id].first
-
-              # If there were more than 1 matching record, log and mark others for deletion
-              if values[:id].size > 1
-                Rails.logger.info "More than 1 #{klass.name} for key. IDs: #{values[:id]}. Choosing #{record_id}."
-                ids_to_delete = values[:id].excluding(record_id)
-                mark_for_deletion(klass, ids_to_delete)
-              end
 
               # Base metadata off of the chosen record, not any of the duplicates
               metadata = merge_metadata(assessment_records[hash_key], values_without_dups)
@@ -222,6 +213,32 @@ module Hmis
     end
 
     private
+
+    # "values" has shape  {:id=>[6, 7], :user_id=>["548", "548"], :date_updated=>[yesterday, today]}
+    # returns a modified version with duplicates removed, like: {:id=>[7], :user_id=>["548"], :date_updated=>[today]}
+    def remove_duplicates(values, klass)
+      # Choose which array index is going to be the "chosen" record (most recently updated)
+      chosen_idx = values[:date_updated].each_with_index.max_by { |dt, _| dt.to_date }.last
+
+      # If a specific source hash is preferred, choose that one
+      if preferred_source_hash
+        found_idx = values[:source_hash].find_index { |hash| hash == preferred_source_hash }
+        chosen_idx = found_idx if found_idx.present?
+      end
+
+      # Remove everything else
+      values_without_dups = values.transform_values { |vals| [vals[chosen_idx]] }
+      # Chosen Record ID
+      record_id = values_without_dups[:id].first
+
+      # If there were more than 1 matching record, log and mark others for deletion
+      if values[:id].size > 1
+        Rails.logger.info "More than 1 #{klass.name} for key. IDs: #{values[:id]}. Choosing #{record_id}."
+        ids_to_delete = values[:id].excluding(record_id)
+        mark_for_deletion(klass, ids_to_delete)
+      end
+      values_without_dups
+    end
 
     def system_user
       @system_user ||= Hmis::Hud::User.system_user(data_source_id: data_source_id)

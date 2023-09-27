@@ -4,6 +4,9 @@ module HmisExternalApis::ShHmis::Importers
   # importer.select_latest_file
   # importer.fetch_and_unzip_latest_file
   # importer.run_migration!(clobber: true)
+  #
+  # To run assessment migration (WARNING! DELETES RECORDS!)
+  # Hmis::MigrateAssessmentsJob.perform_later(data_source_id: data_source_id, clobber: true, delete_dangling_records: true, preferred_source_hash: 'OP-HMIS-MIGRATION-2023')
   class S3Importer
     attr_accessor :creds
     attr_accessor :s3
