@@ -20,6 +20,7 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasHmisParticipations
     include Types::HmisSchema::HasCeParticipations
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -64,10 +65,6 @@ module Types
     field :residential_affiliation_project_ids, [ID], null: false
     field :residential_affiliation_projects, [HmisSchema::Project], null: false
     field :affiliated_projects, [HmisSchema::Project], null: false
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field

@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::CeParticipation < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     def self.configuration
       Hmis::Hud::CeParticipation.hmis_configuration(version: '2024')
     end
@@ -23,14 +25,5 @@ module Types
     hud_field :direct_services, HmisSchema::Enums::Hud::NoYes
     hud_field :housing_assessment, HmisSchema::Enums::Hud::NoYes
     hud_field :prevention_assessment, HmisSchema::Enums::Hud::NoYes
-
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
-
-    def user
-      load_ar_association(object, :user)
-    end
   end
 end
