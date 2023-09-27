@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::ClientAddress < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     field :id, ID, null: false
     field :line1, String, null: true
     field :line2, String, null: true
@@ -20,11 +22,11 @@ module Types
     field :use, HmisSchema::Enums::ClientAddressUse
     field :address_type, HmisSchema::Enums::ClientAddressType
     field :client, HmisSchema::Client, null: false
-    field :user, HmisSchema::User, null: true
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     # Object is a Hmis::Hud::CustomClientAddress
+
+    def client
+      load_ar_association(object, :client)
+    end
   end
 end
