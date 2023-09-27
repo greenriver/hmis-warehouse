@@ -121,7 +121,7 @@ module AllNeighborsSystemDashboard
           entry.
           where(project_id: GrdaWarehouse::Hud::Project.where(id: filter.secondary_project_ids).pluck(:project_id)).
           open_between(start_date: filter.start_date, end_date: filter.end_date).
-          where(id: batch.joins(:service_history_enrollment_for_head_of_household).select('service_history_enrollment_for_head_of_household.id'))
+          where(id: batch.map { |en| en.service_history_enrollment_for_head_of_household&.id }.compact)
 
         enrollments_by_hoh = ce_project_enrollments.
           preload(:client).
@@ -136,7 +136,7 @@ module AllNeighborsSystemDashboard
           group_by { |event| [event.personal_id, event.data_source_id] }
 
         {}.tap do |h|
-          batch.find_each do |housing_enrollment|
+          batch.each do |housing_enrollment|
             ce_enrollment = enrollments_by_hoh[[housing_enrollment.head_of_household_id, housing_enrollment.data_source_id]]&.
               select { |enrollment| enrollment.entry_date <= housing_enrollment.entry_date }&.
               first

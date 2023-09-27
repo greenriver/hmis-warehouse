@@ -60,7 +60,7 @@ module AllNeighborsSystemDashboard
     end
 
     def populate_universe
-      enrollment_scope.find_in_batches do |batch|
+      enrollment_scope.preload(:service_history_enrollment_for_head_of_household).find_in_batches do |batch|
         enrollments = {}
         ce_infos = ce_infos_for_batch(filter, batch)
         return_dates = return_dates_for_batch(filter, batch)
@@ -68,6 +68,7 @@ module AllNeighborsSystemDashboard
           source_enrollment = enrollment.enrollment
           hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household&.enrollment || source_enrollment
           ce_info = ce_infos[enrollment.id]
+          max_event = ce_info&.ce_event&.max_by(&:event_date)
           enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
             household_id: enrollment.household_id,
@@ -89,8 +90,8 @@ module AllNeighborsSystemDashboard
             race_list: enrollment.client.race_description(include_missing_reason: true),
             ethnicity: HudUtility.ethnicity(enrollment.client.ethnicity),
             ce_entry_date: ce_info&.entry_date,
-            ce_referral_date: ce_info&.ce_event&.event_date,
-            ce_referral_id: ce_info&.ce_event&.event_id,
+            ce_referral_date: max_event&.event_date,
+            ce_referral_id: max_event&.event_id,
             return_date: return_dates[enrollment.id],
             project_id: source_enrollment.project_id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
