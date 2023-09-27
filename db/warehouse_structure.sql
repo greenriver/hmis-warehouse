@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -17232,7 +17232,7 @@ CREATE VIEW public.hmis_services AS
             "Services".data_source_id
            FROM (public."Services"
              JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))) hud_services
-UNION
+UNION ALL
  SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     "CustomServices".id AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
@@ -59367,6 +59367,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230913184747'),
 ('20230914004821'),
 ('20230922124446'),
-('20230925131206');
-
-
+('20230925131206'),
+('20230926205059');
