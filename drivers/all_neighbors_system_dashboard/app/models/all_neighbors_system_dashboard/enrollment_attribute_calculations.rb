@@ -121,7 +121,7 @@ module AllNeighborsSystemDashboard
           entry.
           where(project_id: GrdaWarehouse::Hud::Project.where(id: filter.secondary_project_ids).pluck(:project_id)).
           open_between(start_date: filter.start_date, end_date: filter.end_date).
-          where(id: batch.joins(:service_history_enrollment_for_head_of_household).select(:id))
+          where(id: batch.joins(:service_history_enrollment_for_head_of_household).select('service_history_enrollment_for_head_of_household.id'))
 
         enrollments_by_hoh = ce_project_enrollments.
           preload(:client).
