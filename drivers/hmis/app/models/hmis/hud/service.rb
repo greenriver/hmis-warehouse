@@ -19,7 +19,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
-  alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]
+
   validates_with Hmis::Hud::Validators::ServiceValidator
 
   # On user-initiated change, validate that there is max 1 bed night per date

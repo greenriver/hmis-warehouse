@@ -11,8 +11,8 @@ module Types
     description 'HUD User'
     field :id, ID, null: false
     field :name, String, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     def name

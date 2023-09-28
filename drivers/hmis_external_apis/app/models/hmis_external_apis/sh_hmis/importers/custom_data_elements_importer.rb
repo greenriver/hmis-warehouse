@@ -34,7 +34,6 @@ module HmisExternalApis::ShHmis::Importers
         loader = loader_class.new(
           clobber: clobber,
           reader: Loaders::CsvReader.new(dir),
-          tracker: tracker,
         )
         run_loader(loader)
       end
