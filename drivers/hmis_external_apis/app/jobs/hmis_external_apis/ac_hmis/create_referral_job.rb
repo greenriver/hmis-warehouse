@@ -12,7 +12,6 @@ module HmisExternalApis::AcHmis
     # @param params [Hash] api payload
     def perform(params:)
       self.params = params.deep_symbolize_keys
-      # FIXME: add param validation and capture raw request
 
       self.errors = []
       # transact assumes we are only mutating records in the warehouse db
@@ -23,7 +22,9 @@ module HmisExternalApis::AcHmis
 
         raise ActiveRecord::Rollback unless create_referral_posting(referral)
 
-        raise ActiveRecord::Rollback unless create_or_update_referral_household_members(referral)
+        Hmis::Hud::Client.without_optimistic_locking do
+          raise ActiveRecord::Rollback unless create_or_update_referral_household_members(referral)
+        end
 
         record = referral
       end
@@ -33,9 +34,9 @@ module HmisExternalApis::AcHmis
     protected
 
     def find_or_create_referral
-      referral = HmisExternalApis::AcHmis::Referral
-        .where(identifier: params.fetch(:referral_id))
-        .first_or_initialize
+      referral = HmisExternalApis::AcHmis::Referral.
+        where(identifier: params.fetch(:referral_id)).
+        first_or_initialize
       return error_out('Referral still has active postings') unless referral.postings_inactive?
 
       referral_params = params.slice(
@@ -63,8 +64,8 @@ module HmisExternalApis::AcHmis
 
       if referral_request_id
         # the posting references an existing referral request
-        posting.referral_request = HmisExternalApis::AcHmis::ReferralRequest
-          .where(identifier: referral_request_id).first
+        posting.referral_request = HmisExternalApis::AcHmis::ReferralRequest.
+          where(identifier: referral_request_id).first
         return error_out('Referral Request not found') unless posting.referral_request
 
         return error_out('Referral Request does not match Project') unless

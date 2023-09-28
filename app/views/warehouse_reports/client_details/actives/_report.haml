@@ -1,6 +1,6 @@
 .d-flex
   %p
-    = "The following #{@report.enrollments.count} clients with #{@report.enrollments.values.flatten(1).count} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
+    = "The following #{number_with_delimiter(@report.enrollments.count)} clients with #{number_with_delimiter(@report.enrollments.values.flatten(1).count)} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
     %br
     This report was built to provide supporting details to the "Active Clients" section of the Population Dashboards.
 
