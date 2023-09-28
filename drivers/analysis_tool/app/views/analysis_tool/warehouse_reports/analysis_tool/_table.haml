@@ -11,7 +11,6 @@
             %th= cell
           - else
             %td
-
-              = link_to_if cell.count.positive?, number_with_delimiter(cell.count), details_analysis_tool_warehouse_reports_analysis_tool_index_path(link_params.merge(cell: [ci - 1, ri - 1], row_breakdown: @breakdowns[:row], col_breakdown: @breakdowns[:col]))
+              = link_to_if cell.count.positive?, number_with_delimiter(cell.count), details_analysis_tool_warehouse_reports_analysis_tool_index_path(link_params.merge(cell: [ci - 1, ri - 1], row_breakdown: breakdowns[:row], col_breakdown: breakdowns[:col]))
               %br
               #{@report.percent(cell.count)}%
