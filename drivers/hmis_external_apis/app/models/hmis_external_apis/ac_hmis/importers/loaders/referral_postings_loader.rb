@@ -132,8 +132,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # Builders
     #
 
-    # create wip enrollments for accepted pending postings
+    # create wip enrollments for accepted pending postings, AND assigned postings in walk-ins
     def build_enrollment_rows
+      assigned_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('assigned_status')
       accepted_pending_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
       enrollment_coc_by_project_id = Hmis::Hud::ProjectCoc.
         where(data_source: data_source).
@@ -143,9 +144,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       expected = 0
       seen = Set.new
       records = posting_rows.flat_map do |posting_row|
-        next unless posting_status(posting_row) == accepted_pending_status
-
         project_id = row_value(posting_row, field: 'PROGRAM_ID')
+        walkin_program = walkin_project_ids.include?(project_id)
+        status = posting_status(posting_row)
+        next unless status == accepted_pending_status || (walkin_program && status == assigned_status)
+
         referral_id = row_value(posting_row, field: 'REFERRAL_ID')
         unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
         project_pk = project_pk_by_id(project_id)
@@ -439,6 +442,13 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         where(data_source: data_source).
         pluck('external_ids.value', c_t[:id], c_t[:personal_id]).
         to_h { |mci_id, client_pk, personal_id| [mci_id, [client_pk, personal_id]] }
+    end
+
+    def walkin_project_ids
+      @walkin_project_ids ||= begin
+        walkin_project_pks = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry).values.where(value_boolean: true).pluck(:owner_id)
+        Hmis::Hud::Project.where(id: walkin_project_pks).pluck(:project_id).to_set
+      end
     end
 
     def relationship_to_hoh_string_enum(row)
