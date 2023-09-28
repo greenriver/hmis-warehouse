@@ -12,7 +12,10 @@ class HmisAdmin::AccessControlsController < ApplicationController
   before_action :set_access_control, only: [:edit, :update, :destroy]
 
   def index
-    @access_controls = access_control_scope.order(:role_id)
+    @access_controls = access_control_scope.
+      ordered.
+      filtered(params[:filter])
+
     @pagy, @access_controls = pagy(@access_controls)
   end
 

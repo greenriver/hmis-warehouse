@@ -8,6 +8,9 @@
 
 module Types
   class HmisSchema::CurrentLivingSituation < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasCustomDataElements
+
     def self.configuration
       Hmis::Hud::CurrentLivingSituation.hmis_configuration(version: '2024')
     end
@@ -16,7 +19,6 @@ module Types
 
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
-    field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
     field :information_date, GraphQL::Types::ISO8601Date, null: true
     hud_field :current_living_situation, HmisSchema::Enums::Hud::CurrentLivingSituation, default_value: 99
@@ -28,9 +30,8 @@ module Types
     hud_field :lease_own60_day, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :moved_two_or_more, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :location_details
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
+
+    custom_data_elements_field
 
     def enrollment
       load_ar_association(object, :enrollment)
@@ -38,10 +39,6 @@ module Types
 
     def client
       load_ar_association(object, :client)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
   end
 end

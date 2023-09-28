@@ -45,7 +45,7 @@
         },
         {
           "operator": "ALL",
-          "_comment": "RHY-funded non-street-outreach",
+          "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
           "parts": [
             {
               "variable": "projectFunderComponents",

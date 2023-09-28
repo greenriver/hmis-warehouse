@@ -87,6 +87,7 @@ module HmisExternalApis::AcHmis::Importers
         end
         Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
         cleanup_project_dates
+        cleanup_dangling_funders
       end
       analyze
       finish
@@ -97,7 +98,7 @@ module HmisExternalApis::AcHmis::Importers
     end
 
     def start
-      setup_notifier('HMIS Projects')
+      setup_notifier('HMIS MPER Project Importer')
       Rails.logger.info "Starting #{attempt.key}"
       attempt.attempted_at = Time.current
       attempt.status = ProjectsImportAttempt::STARTED
@@ -129,7 +130,7 @@ module HmisExternalApis::AcHmis::Importers
 
       check_columns(
         file: file,
-        expected_columns: ['FunderID', 'ProjectID', 'Funder', 'OtherFunder', 'GrantID', 'StartDate', 'EndDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        expected_columns: GrdaWarehouse::Hud::Funder.hmis_configuration(version: '2024').keys.map(&:to_s),
         critical_columns: ['FunderID'],
       )
 
@@ -145,7 +146,7 @@ module HmisExternalApis::AcHmis::Importers
 
       check_columns(
         file: file,
-        expected_columns: ['OrganizationID', 'OrganizationName', 'VictimServiceProvider', 'OrganizationCommonName', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        expected_columns: GrdaWarehouse::Hud::Organization.hmis_configuration(version: '2024').keys.map(&:to_s),
         critical_columns: ['OrganizationID'],
       )
 
@@ -184,14 +185,14 @@ module HmisExternalApis::AcHmis::Importers
       project_ids.zip(walkin).each do |(project_id, bool_str)|
         next unless bool_str.present?
 
-        cde = Hmis::Hud::CustomDataElement
-          .where(
+        cde = Hmis::Hud::CustomDataElement.
+          where(
             owner_type: 'Hmis::Hud::Project',
             owner_id: project_id,
             data_element_definition: cded,
             data_source: data_source,
-          )
-          .first_or_initialize
+          ).
+          first_or_initialize
 
         cde.update!(
           user: sys_user,
@@ -209,7 +210,7 @@ module HmisExternalApis::AcHmis::Importers
 
       check_columns(
         file: file,
-        expected_columns: ['InventoryID', 'ProjectID', 'CoCCode', 'HouseholdType', 'Availability', 'UnitInventory', 'BedInventory', 'CHVetBedInventory', 'YouthVetBedInventory', 'VetBedInventory', 'CHYouthBedInventory', 'YouthBedInventory', 'CHBedInventory', 'OtherBedInventory', 'ESBedType', 'InventoryStartDate', 'InventoryEndDate', 'DateCreated', 'DateUpdated', 'UserID', 'DateDeleted', 'ExportID'],
+        expected_columns: GrdaWarehouse::Hud::Inventory.hmis_configuration(version: '2024').keys.map(&:to_s),
         critical_columns: ['InventoryID'],
       )
 
@@ -226,14 +227,14 @@ module HmisExternalApis::AcHmis::Importers
       columns = ['ProgramID', 'UnitTypeID', 'UnitCapacity', 'IsActive']
       check_columns(file: file, expected_columns: columns, critical_columns: columns)
 
-      projects_ids_by_hud = Hmis::Hud::Project
-        .where(data_source: data_source)
-        .pluck(:ProjectID, :id)
-        .to_h
-      unit_type_ids_by_mper = Hmis::UnitType
-        .joins(:mper_id)
-        .pluck(HmisExternalApis::ExternalId.arel_table[:value], :id)
-        .to_h
+      projects_ids_by_hud = Hmis::Hud::Project.
+        where(data_source: data_source).
+        pluck(:ProjectID, :id).
+        to_h
+      unit_type_ids_by_mper = Hmis::UnitType.
+        joins(:mper_id).
+        pluck(HmisExternalApis::ExternalId.arel_table[:value], :id).
+        to_h
 
       csv = records_from_csv(file)
       records = csv.each.map do |row|
@@ -272,6 +273,8 @@ module HmisExternalApis::AcHmis::Importers
           columns: [:unit_capacity, :active],
         },
       )
+
+      @notifier.ping "Upserted #{records.size} records from #{file}"
     end
 
     # Replace "9999" end date with nil
@@ -282,6 +285,15 @@ module HmisExternalApis::AcHmis::Importers
         map(&:id)
 
       Hmis::Hud::Project.where(id: ids_to_update).update_all(operating_end_date: nil)
+    end
+
+    def cleanup_dangling_funders
+      # The Funder.csv file contains funders for Projects we don't have. Delete them.
+      valid_project_ids = Hmis::Hud::Project.where(data_source: data_source).pluck(:project_id)
+      dangling_funders = Hmis::Hud::Funder.where(data_source: data_source).where.not(project_id: valid_project_ids)
+
+      @notifier.ping "Soft-deleting #{dangling_funders.size} dangling Funder records" if dangling_funders.any?
+      dangling_funders.each(&:destroy!)
     end
 
     def analyze
@@ -383,8 +395,7 @@ module HmisExternalApis::AcHmis::Importers
 
       attempt.update_attribute(:status, "finished #{file}")
 
-      Rails.logger.info "Upserted #{result.ids.length} records"
-
+      @notifier.ping "Upserted #{result.ids.length} records from #{file}"
       result
     ensure
       self.extra_columns = []

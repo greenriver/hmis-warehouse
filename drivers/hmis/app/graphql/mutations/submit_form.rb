@@ -27,7 +27,7 @@ module Mutations
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
 
       # Determine record class
-      klass = definition.record_class_name&.constantize
+      klass = definition.owner_class
       raise HmisErrors::ApiError, 'Form Definition not configured' unless klass.present?
 
       # Find or create record
@@ -128,17 +128,6 @@ module Mutations
 
     private def perform_side_effects(record)
       case record
-      when Hmis::Hud::Client, Hmis::Hud::Enrollment
-        # If a Client record was created or updated, queue up IdentifyDuplicates job. This creates the warehouse destination client.
-        client = record.is_a?(Hmis::Hud::Enrollment) ? record.client : record
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run! if client.new_record?
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing! if client.changed?
-      when Hmis::Hud::HmisService
-        # If a HUD Service was created, process service history enrollments
-        if record.new_record? && record.hud_service? && !record.enrollment.in_progress?
-          record.enrollment.invalidate_processing!
-          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
-        end
       when Hmis::Hud::Project
         # If a project was closed, close related Funders and Inventory
         project_closed = record.operating_end_date_was.nil? && record.operating_end_date.present?

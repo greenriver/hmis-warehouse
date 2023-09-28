@@ -22,6 +22,7 @@ module Types
     include Types::HmisSchema::HasAuditHistory
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -119,10 +120,7 @@ module Types
         result
       end,
     )
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
+
     field :image, HmisSchema::ClientImage, null: true
 
     access_field do

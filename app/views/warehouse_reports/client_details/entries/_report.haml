@@ -1,6 +1,6 @@
 .d-flex
   %p
-    = pluralize(@report.enrollments.count, 'Client')
+    = pluralize(number_with_delimiter(@report.enrollments.count), 'Client')
     have entries in
     = @filter.selected_project_type_names.join(', ')
     between

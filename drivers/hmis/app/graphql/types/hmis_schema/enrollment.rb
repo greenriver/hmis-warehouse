@@ -21,6 +21,7 @@ module Types
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
@@ -131,18 +132,14 @@ module Types
     field :dependent_under6, HmisSchema::Enums::Hud::DependentUnder6, null: true
     field :hh5_plus, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :hp_screening_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :threshold_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :hp_screening_score, Integer, null: true
+    field :threshold_score, Integer, null: true
     # C4
     field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true
     field :preferred_language_different, String, null: true
 
     field :in_progress, Boolean, null: false
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     field :intake_assessment, HmisSchema::Assessment, null: true
     field :exit_assessment, HmisSchema::Assessment, null: true
     access_field do
@@ -259,10 +256,6 @@ module Types
 
     def health_and_dvs(**args)
       resolve_health_and_dvs(**args)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
 
     def current_unit

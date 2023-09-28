@@ -330,9 +330,20 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     related_records.each do |record|
       next if record.errors.none?
 
-      # Skip relation fields, to avoid errors like "Income Benefit is invalid" on the Enrollment
       ar_errors = record.errors.errors.reject do |e|
-        e.attribute.to_s.underscore.ends_with?('_id') || (record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation))
+        # Skip validations for ID fields
+        if e.attribute.to_s.underscore.ends_with?('_id')
+          true # reject
+        # Skip validations for relation fields ("Income Benefit is invalid" on the Enrollment)
+        elsif record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation)
+          true # reject
+        # Skip validations for Information Date if this is an assessment,
+        # since we validate the assessment date separately using CustomAssessmentValidator
+        elsif custom_assessment.present? && e.attribute.to_s.underscore == 'information_date'
+          true # reject
+        else
+          false
+        end
       end
       errors.add_ar_errors(ar_errors)
     end

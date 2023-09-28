@@ -48,15 +48,15 @@ module HmisExternalApis::ShHmis::Importers::Loaders
           next
         end
 
-        date_provided = parse_date(row_value(row, field: 'Date Taken'))
+        expected += 1 unless records_by_id.key?(service_id)
+
         personal_id = enrollment_id_to_personal_id[enrollment_id] if enrollment_id
         unless personal_id
           log_skipped_row(row, field: enrollment_id_header)
           next # early return
         end
 
-        expected += 1 unless records_by_id.key?(service_id)
-
+        date_provided = parse_date(row_value(row, field: 'Date Taken'))
         records_by_id[service_id] ||= model_class.new(
           EnrollmentID: enrollment_id,
           PersonalID: personal_id,

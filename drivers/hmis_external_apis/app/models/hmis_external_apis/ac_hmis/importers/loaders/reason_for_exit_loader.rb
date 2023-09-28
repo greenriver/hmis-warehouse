@@ -24,10 +24,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     end
 
     def build_records
-      exit_lookup = owner_class
-        .where(data_source: data_source)
-        .pluck(:enrollment_id, :id)
-        .to_h
+      exit_lookup = owner_class.
+        where(data_source: data_source).
+        pluck(:enrollment_id, :id).
+        to_h
       expected = 0
       actual = 0
       records = rows.flat_map do |row|
@@ -42,11 +42,26 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           next # early return
         end
 
+        # reason for exit is required, but blank values are present in csv
+        reason_for_exit = row_value(row, field: 'ReasonForExit', required: false)
+        # voluntary_termination_value is required, but blank values are present in csv
+        voluntary_termination_yn = row_value(row, field: 'VoluntaryTermination', required: false)
+
+        # Actual voluntary/involuntary status. First try to infer from the reason, then look at the Y/N given.
+        voluntary_termination = if reason_for_exit.present?
+          voluntary_reason?(reason_for_exit)
+        elsif voluntary_termination_yn.present?
+          voluntary_termination_yn == 'Y'
+        end
+
+        next if voluntary_termination.nil? # no meaningful data
+
         actual += 1
+
         ret = [
+          # string value matches pick_list_options for exit-reason questions
           new_cde_record(
-            # voluntary_termination_value is supposed to be required but is sometimes missing
-            value: row_value(row, field: 'VoluntaryTermination', required: false),
+            value: voluntary_termination ? 'Voluntary Exit' : 'Involuntary Termination',
             definition_key: :reason_for_exit_type,
           ),
           new_cde_record(
@@ -55,12 +70,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           ),
         ]
 
-        # reason for exit is required but blank values are present in csv
-        reason_for_exit = row_value(row, field: 'ReasonForExit', required: false)
         if reason_for_exit
           ret.push new_cde_record(
             value: reason_for_exit,
-            definition_key: voluntary_reason?(reason_for_exit) ? :reason_for_exit_voluntary : :reason_for_exit_involuntary,
+            definition_key: voluntary_termination ? :reason_for_exit_voluntary : :reason_for_exit_involuntary,
           )
         end
         ret.compact_blank.each { |r| r[:owner_id] = exit_pk }

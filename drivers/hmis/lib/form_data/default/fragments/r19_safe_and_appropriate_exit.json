@@ -4,23 +4,34 @@
   "text": "Safe and Appropriate Exit",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
-    "operator": "ALL",
-    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach and Homelessness Prevention",
+    "operator": "ANY",
     "parts": [
       {
-        "variable": "projectFunderComponents",
+        "operator": "ALL",
+        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach and Homelessness Prevention",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HHS: RHY"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 4
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 12
+          }
+        ]
+      },
+      {
+        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
+        "variable": "projectFunders",
         "operator": "INCLUDE",
-        "value": "HHS: RHY"
-      },
-      {
-        "variable": "projectType",
-        "operator": "NOT_EQUAL",
-        "value": 4
-      },
-      {
-        "variable": "projectType",
-        "operator": "NOT_EQUAL",
-        "value": 12
+        "value": 43
       }
     ]
   },

@@ -16,6 +16,24 @@
       "fragment": "#client_demographics"
     },
     {
+      "link_id": "client-custom-zip-group",
+      "type": "GROUP",
+      "text": "Zip Code",
+      "item": [
+        {
+          "link_id": "client-custom-zip",
+          "type": "STRING",
+          "text": "Zip Code",
+          "size": "SMALL",
+          "_comment": "TODO: should probably use a zip-specific input component here",
+          "mapping": {
+            "record_type": "CLIENT",
+            "custom_field_key": "zipcode"
+          }
+        }
+      ]
+    },
+    {
       "fragment": "#client_contact_information"
     },
     {

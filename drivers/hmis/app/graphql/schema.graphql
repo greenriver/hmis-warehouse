@@ -173,9 +173,9 @@ type Assessment {
   client: Client!
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   definition: FormDefinition!
   disabilityGroup: DisabilityGroup
   employmentEducation: EmploymentEducation
@@ -441,9 +441,9 @@ type CeAssessment {
   assessmentLocation: String!
   assessmentType: AssessmentType
   client: Client!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
   prioritizationStatus: PrioritizationStatus
@@ -465,9 +465,9 @@ type CeParticipation {
   ceParticipationStatusEndDate: ISO8601Date
   ceParticipationStatusStartDate: ISO8601Date
   crisisAssessment: NoYes
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   directServices: NoYes
   housingAssessment: NoYes
   id: ID!
@@ -533,9 +533,9 @@ type Client {
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   desertStorm: NoYesReasonsForMissingData
   differentIdentityText: String
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
@@ -603,9 +603,9 @@ type ClientAddress {
   city: String
   client: Client!
   country: String
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   district: String
   id: ID!
   line1: String
@@ -693,9 +693,9 @@ type ClientAuditEventsPaginated {
 
 type ClientContactPoint {
   client: Client!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   id: ID!
   notes: String
   system: ClientContactPointSystem
@@ -770,9 +770,9 @@ type ClientImage {
 
 type ClientName {
   client: Client!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   first: String
   id: ID!
   last: String
@@ -1262,9 +1262,10 @@ type CurrentLivingSituation {
   client: Client!
   clsSubsidyType: RentalSubsidyType
   currentLivingSituation: CurrentLivingSituationOptions!
-  dateCreated: ISO8601DateTime!
+  customDataElements: [CustomDataElement!]!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
   informationDate: ISO8601Date
@@ -1465,9 +1466,9 @@ Case Note
 type CustomCaseNote {
   client: Client!
   content: String!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
   user: User
@@ -1507,8 +1508,9 @@ enum CustomDataElementType {
 }
 
 type CustomDataElementValue {
-  dateCreated: ISO8601DateTime!
-  dateUpdated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
   id: ID!
   user: User
   valueBoolean: Boolean
@@ -2240,9 +2242,9 @@ type Disability {
   antiRetroviral: NoYesReasonsForMissingData
   client: Client!
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   disabilityResponse: DisabilityResponse!
   disabilityType: DisabilityType!
   enrollment: Enrollment!
@@ -2447,9 +2449,9 @@ HUD Employment Education
 type EmploymentEducation {
   client: Client!
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   employed: NoYesReasonsForMissingData
   employmentType: EmploymentType
   enrollment: Enrollment!
@@ -2603,13 +2605,13 @@ type Enrollment {
   currentUnit: Unit
   customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date
   dateOfEngagement: ISO8601Date
   dateOfPathStatus: ISO8601Date
   dateToStreetEssh: ISO8601Date
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   dependentUnder6: DependentUnder6
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   disabledHoh: NoYesMissing
@@ -2633,7 +2635,7 @@ type Enrollment {
   householdId: ID!
   householdShortId: ID!
   householdSize: Int!
-  hpScreeningScore: NoYesMissing
+  hpScreeningScore: Int
   id: ID!
   inProgress: Boolean!
   incarceratedAdult: IncarceratedAdult
@@ -2675,7 +2677,7 @@ type Enrollment {
   status: EnrollmentStatus!
   subsidyAtRisk: NoYesMissing
   targetScreenReqd: NoYesMissing
-  thresholdScore: NoYesMissing
+  thresholdScore: Int
   timeToHousingLoss: TimeToHousingLoss
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   translationNeeded: NoYesReasonsForMissingData
@@ -2848,9 +2850,9 @@ HUD Event
 """
 type Event {
   client: Client!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   event: EventType!
   eventDate: ISO8601DateTime!
@@ -3023,9 +3025,9 @@ type Exit {
   counselingReceived: NoYesMissing
   countOfExchangeForSex: CountExchangeForSex
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   destination: Destination!
   destinationSafeClient: NoYesReasonsForMissingData
   destinationSafeWorker: WorkerResponse
@@ -3160,8 +3162,8 @@ File
 type File {
   confidential: Boolean
   contentType: String
-  dateCreated: ISO8601DateTime!
-  dateUpdated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
   effectiveDate: ISO8601Date
   enrollment: Enrollment
   enrollmentId: ID
@@ -3386,9 +3388,9 @@ enum FormRole {
 type Funder {
   active: Boolean!
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   endDate: ISO8601Date
   funder: FundingSource!
   grantId: String
@@ -3824,9 +3826,9 @@ type HealthAndDv {
   client: Client!
   currentlyFleeing: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   dentalHealthStatus: HealthStatus
   domesticViolenceSurvivor: NoYesReasonsForMissingData
   dueDate: ISO8601Date
@@ -3901,9 +3903,9 @@ enum HealthStatus {
 }
 
 type HmisParticipation {
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   hmisParticipationStatusEndDate: ISO8601Date
   hmisParticipationStatusStartDate: ISO8601Date
   hmisParticipationType: HMISParticipationType
@@ -4135,9 +4137,9 @@ type IncomeBenefit {
   connectionWithSoar: NoYesReasonsForMissingData
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   earned: NoYesMissing
   earnedAmount: Float
   employerProvided: NoYesMissing
@@ -4278,9 +4280,9 @@ type Inventory {
   chYouthBedInventory: Int
   cocCode: String
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   esBedType: BedType
   householdType: HouseholdType
   id: ID!
@@ -5130,9 +5132,9 @@ type Organization {
   access: OrganizationAccess!
   contactInformation: String
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   description: String
   hudId: ID!
   id: ID!
@@ -7156,9 +7158,9 @@ type Project {
   Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)
   """
   dataCollectionFeatures: [DataCollectionFeature!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
@@ -7217,9 +7219,9 @@ type ProjectCoc {
   address2: String
   city: String
   cocCode: String
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   geocode: String!
   geographyType: GeographyType
   id: ID!
@@ -7824,7 +7826,11 @@ type ReferralPosting {
   chronic: Boolean
   denialNote: String
   denialReason: ReferralPostingDenialReasonType
-  hohClient: Client!
+  hohClient: Client
+
+  """
+  Enrollment for the HoH at the receiving Project (if the referral was accepted)
+  """
   hohEnrollment: Enrollment
   hohMciId: ID
   hohName: String!
@@ -7834,6 +7840,10 @@ type ReferralPosting {
   needsWheelchairAccessibleUnit: Boolean
   organization: Organization
   postingIdentifier: ID
+
+  """
+  Project that household is being referred to
+  """
   project: Project
   referralDate: ISO8601DateTime!
   referralIdentifier: ID
@@ -7841,6 +7851,10 @@ type ReferralPosting {
   referralRequest: ReferralRequest
   referralResult: ReferralResult
   referredBy: String!
+
+  """
+  Name of project or external source that the referral originated from
+  """
   referredFrom: String!
   resourceCoordinatorNotes: String
   score: Int
@@ -8462,10 +8476,10 @@ HUD or Custom Service rendered
 type Service {
   client: Client!
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateProvided: ISO8601Date
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   faAmount: Float
   faEndDate: ISO8601Date
@@ -8666,8 +8680,9 @@ enum ServiceSubTypeProvided {
 
 type ServiceType {
   category: String!
-  dateCreated: ISO8601DateTime!
-  dateUpdated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
   hudRecordType: RecordType
   hudTypeProvided: ServiceTypeProvided
   id: ID!
@@ -9760,9 +9775,9 @@ type UpdateUnitsPayload {
 HUD User
 """
 type User {
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   id: ID!
   name: String!
 }
@@ -10698,9 +10713,9 @@ type YouthEducationStatus {
   currentEdStatus: CurrentEdStatus
   currentSchoolAttend: CurrentSchoolAttended
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
   informationDate: ISO8601Date

@@ -3,18 +3,29 @@
   "link_id": "R12",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
-    "operator": "ALL",
-    "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+    "operator": "ANY",
     "parts": [
       {
-        "variable": "projectFunderComponents",
-        "operator": "INCLUDE",
-        "value": "HHS: RHY"
+        "operator": "ALL",
+        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HHS: RHY"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 4
+          }
+        ]
       },
       {
-        "variable": "projectType",
-        "operator": "NOT_EQUAL",
-        "value": 4
+        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 43
       }
     ]
   },
