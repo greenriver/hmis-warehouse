@@ -139,6 +139,8 @@ module Filter::FilterScopes
         c_t[:BlackAfAmerican],
         c_t[:NativeHIPacific],
         c_t[:White],
+        c_t[:HispanicLatinaeo],
+        c_t[:MidEastNAfrican],
       ]
       report_scope_source.joins(:client).
         where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
