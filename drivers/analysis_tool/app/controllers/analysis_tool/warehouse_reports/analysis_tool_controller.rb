@@ -47,14 +47,9 @@ module AnalysisTool::WarehouseReports
     end
 
     def breakdowns
-      # This is needed when generating the PDF
-      # if @report.blank?
-      #   set_filter
-      #   set_report
-      # end
       @breakdowns ||= {}.tap do |bd|
-        bd[:row] ||= params[:row_breakdown]&.to_sym || @report.breakdowns[:row].presence || :age
-        bd[:col] ||= params[:col_breakdown]&.to_sym || @report.breakdowns[:col].presence || :gender
+        bd[:row] ||= params[:row_breakdown]&.to_sym || @report.breakdowns[:row]
+        bd[:col] ||= params[:col_breakdown]&.to_sym || @report.breakdowns[:col]
       end
     end
     helper_method :breakdowns

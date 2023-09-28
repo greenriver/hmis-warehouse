@@ -23,6 +23,11 @@ module AnalysisTool
 
     def initialize(filter)
       @filter = filter
+      # Default breakdowns
+      self.breakdowns = {
+        row: :age,
+        col: :gender,
+      }
     end
 
     def self.viewable_by(user)
