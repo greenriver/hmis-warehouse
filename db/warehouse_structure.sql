@@ -49388,13 +49388,6 @@ CREATE INDEX "index_Services_on_DateProvided" ON public."Services" USING btree (
 
 
 --
--- Name: index_Services_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Services_on_EnrollmentID" ON public."Services" USING btree ("EnrollmentID");
-
-
---
 -- Name: index_Services_on_PersonalID; Type: INDEX; Schema: public; Owner: -
 --
 
