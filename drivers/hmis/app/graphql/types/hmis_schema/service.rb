@@ -56,6 +56,14 @@ module Types
       load_ar_association(object, :custom_service_type)
     end
 
+    def enrollment
+      load_ar_association(object, :enrollment)
+    end
+
+    def client
+      load_ar_association(object, :client)
+    end
+
     # Custom data elements are linked to the underlying record (Hmis::Hud::Service or Hmis::Hud::CustomService)
     # So we pass the record to the resolver.
     def custom_data_elements
