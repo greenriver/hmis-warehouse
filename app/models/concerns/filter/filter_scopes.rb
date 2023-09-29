@@ -240,7 +240,7 @@ module Filter::FilterScopes
     private def filter_for_prior_living_situation(scope)
       return scope if @filter.prior_living_situation_ids.blank?
 
-      scope.where(housing_status_at_entry: @filter.prior_living_situation_ids)
+      scope.joins(:enrollment).merge(GrdaWarehouse::Hud::Enrollment.where(LivingSituation: @filter.prior_living_situation_ids))
     end
 
     private def filter_for_destination(scope)
