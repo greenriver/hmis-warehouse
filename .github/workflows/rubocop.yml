@@ -9,7 +9,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Label of the container job
   rubocop:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
