@@ -472,6 +472,9 @@ module GrdaWarehouse::CasProjectClientCalculator
         m.DomesticViolenceVictim == 1 &&
         [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
       end.any?
+
+      # Return 0 so we don't drop into calling this on the client, which has different results
+      0
     end
   end
 end

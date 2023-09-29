@@ -227,8 +227,8 @@ module CensusTracking
           client.gender_multi = []
           client.gender_multi << 0 if client.woman == 1
           client.gender_multi << 1 if client.man == 1
-          client.gender_multi << 2 if client.culturally_specific
-          client.gender_multi << 3 if client.different_identity
+          client.gender_multi << 2 if client.culturally_specific == 1
+          client.gender_multi << 3 if client.different_identity == 1
           client.gender_multi << 5 if client.transgender == 1
           client.gender_multi << 4 if client.non_binary == 1
           client.gender_multi&.sort!

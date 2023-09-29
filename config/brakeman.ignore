@@ -3189,6 +3189,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "f47f3a7065a132bc6a80a941cd002157fd72f089cf801dcd4be2d52746d410fa",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/client_search_util/name_search.rb",
+      "line": 71,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"MAX(#{term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 10.0)}) AS search_score\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientSearchUtil::NameSearch",
+        "method": "filter_clients"
+      },
+      "user_input": "term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 10.0)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "f4d1c2b56088a3db75b8a9bb33adcccb86a50c1c0f36bdbd434aeef9a22dacd5",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -3394,6 +3417,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-09-27 16:03:28 +0000",
+  "updated": "2023-09-29 22:03:21 +0000",
   "brakeman_version": "5.4.1"
 }
