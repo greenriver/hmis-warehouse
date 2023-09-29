@@ -9,7 +9,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Label of the container job
   rubocop:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
@@ -19,9 +18,9 @@ jobs:
     steps:
       - id: checkout
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - id: dependencies
         name: Set up dependencies
         run: |

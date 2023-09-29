@@ -77,12 +77,12 @@ module ClientSearchUtil
         "(#{query.to_sql})"
       end.join(' UNION ALL ')
 
-      scope.joins(<<~SQL
+      sql = <<~SQL
         JOIN (
           SELECT client_id, MAX(search_score) as search_score FROM (#{name_scope_sql}) names GROUP BY 1
         ) names ON "Client".id = names.client_id
-        SQL
-      )
+      SQL
+      scope.joins(sql)
     end
 
     def term_score_sql(term, term_weight:)
