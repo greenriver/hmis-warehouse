@@ -938,6 +938,11 @@ module GrdaWarehouse::Hud
       affiliations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
       residential_affiliations.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
 
+      # FIXME: this should delete HMIS-related records, too
+      # delete Hmis::Unit
+      # delete Hmis::UnitOccupancyPeriod
+      # delete Hmis::ProjectUnitTypeMapping
+
       # Client enrollment related
       income_benefits.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
       disabilities.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
