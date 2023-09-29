@@ -542,6 +542,8 @@ module PublicReports
             find_each do |enrollment|
               client = enrollment.client
               race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
+              next unless data.key?(::HudUtility2024.race(race, multi_racial: true))
+
               data[::HudUtility2024.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
