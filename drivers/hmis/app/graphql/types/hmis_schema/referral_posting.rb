@@ -22,6 +22,7 @@ module Types
     # Fields that come from ReferralHouseholdMembers
     field :hoh_name, String, null: false
     field :hoh_mci_id, ID, null: true
+    field :hoh_client, HmisSchema::Client, null: true
     field :household_size, Integer, null: false
     field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
@@ -66,6 +67,10 @@ module Types
 
     def hoh_mci_id
       hoh_member&.mci_id
+    end
+
+    def hoh_client
+      hoh_enrollment&.client
     end
 
     def hoh_enrollment
