@@ -109,6 +109,10 @@ module HmisExternalApis::ShHmis::Importers::Loaders
       @today ||= Date.current
     end
 
+    def current_datetime
+      @current_datetime ||= Time.current
+    end
+
     def yn_boolean(str)
       case str
       when /^(y|yes)$/i
