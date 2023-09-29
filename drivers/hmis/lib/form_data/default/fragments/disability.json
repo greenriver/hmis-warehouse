@@ -12,7 +12,7 @@
       "required": false,
       "warn_if_empty": true,
       "mapping": {
-        "record_type": "DISABILITY_GROUP",
+        "record_type": "ENROLLMENT",
         "field_name": "disablingCondition"
       },
       "pick_list_reference": "NoYesReasonsForMissingData",
@@ -655,7 +655,7 @@
               "text": "Disabling Condition",
               "disabled_display": "PROTECTED_WITH_VALUE",
               "mapping": {
-                "record_type": "DISABILITY_GROUP",
+                "record_type": "ENROLLMENT",
                 "field_name": "disablingCondition"
               },
               "pick_list_reference": "NoYesReasonsForMissingData"
