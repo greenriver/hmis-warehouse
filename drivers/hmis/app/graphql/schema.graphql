@@ -2653,6 +2653,7 @@ type Enrollment {
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   moveInDate: ISO8601Date
+  numUnitsAssignedToHousehold: Int!
   openEnrollmentSummary: [EnrollmentSummary!]!
   percentAmi: PercentAMI
   physicalDisabilityFam: NoYesMissing
