@@ -243,7 +243,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     #     or(arel_table[:housing_status_at_exit].eq(5)),
     # )
     left_outer_joins(enrollment: :exit).
-      where(e_t[:LivingSituation].eq(205).or(ex_t[:HousingAssessment].eq(205)))
+      where(e_t[:LivingSituation].eq(205).or(ex_t[:HousingAssessment].eq(5)))
   end
 
   scope :grant_funded_between, ->(start_date:, end_date:) do
