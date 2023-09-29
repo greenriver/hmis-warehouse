@@ -45,36 +45,34 @@ module HmisExternalApis::AcHmis::Importers
     def run!
       s3 = remote_credential&.s3 || AwsS3.new(bucket_name: bucket_name)
 
-      s3.list_objects(prefix: prefix).each do |s3_object|
-        unless s3_object.key.match?(/.zip$/i)
-          Rails.logger.debug "Skipping a non-zip file #{s3_object.key}"
-          next
-        end
+      # Choose which file to import (most recent)
+      s3_object = s3.list_objects(prefix: prefix).first
 
-        if skip_lambda.call(s3_object)
-          Rails.logger.debug "Skipping #{s3_object.key} that was already imported, ignored, or failed"
-          next
-        end
+      if skip_lambda.call(s3_object)
+        # Note: to force re-run, delete the latest HmisExternalApis::AcHmis::Importers::ProjectsImportAttempt
+        Rails.logger.info "Most recent file #{s3_object.key} was already imported, ignored, or failed. Stopping."
+        return
+      end
 
-        Dir.mktmpdir do |dir|
-          Dir.chdir(dir) do
-            Rails.logger.info "Fetching #{s3_object.key}"
-            zip_file = s3.get_as_io(key: s3_object.key)
+      # Down the file and run ProjectsImporter
+      Dir.mktmpdir do |dir|
+        Dir.chdir(dir) do
+          Rails.logger.info "Fetching #{s3_object.key}"
+          zip_file = s3.get_as_io(key: s3_object.key)
 
-            Zip::InputStream.open(zip_file) do |zipfile|
-              while (csv = zipfile.get_next_entry)
-                next unless csv.file?
+          Zip::InputStream.open(zip_file) do |zipfile|
+            while (csv = zipfile.get_next_entry)
+              next unless csv.file?
 
-                Rails.logger.info "Found #{csv.name} in the archive."
-                found_csvs << csv.name
-                File.open(csv.name, 'w:ascii-8bit') do |f|
-                  f.write zipfile.read
-                end
+              Rails.logger.info "Found #{csv.name} in the archive."
+              found_csvs << csv.name
+              File.open(csv.name, 'w:ascii-8bit') do |f|
+                f.write zipfile.read
               end
             end
-
-            importer_class.new(dir: '.', key: s3_object.key, etag: s3_object.etag).run! if importer_class.present?
           end
+
+          importer_class.new(dir: '.', key: s3_object.key, etag: s3_object.etag).run! if importer_class.present?
         end
       end
     end
