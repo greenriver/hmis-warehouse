@@ -28,7 +28,7 @@ class TaskQueue < ApplicationRecord
       next if done[task_key.to_s].present?
 
       t = TaskQueue.create(task_key: task_key)
-      t.delay.run!
+      t.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
       t.update(queued_at: Time.current, active: true)
     end
   end
