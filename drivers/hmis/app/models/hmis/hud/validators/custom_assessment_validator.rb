@@ -5,22 +5,6 @@
 ###
 
 class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::BaseValidator
-  IGNORED = [
-    :ExportID,
-    :DateCreated,
-    :DateUpdated,
-    # CE fields are not present on the custom assessment
-    :AssessmentID,
-    :AssessmentLocation,
-    :AssessmentType,
-    :AssessmentLevel,
-    :PrioritizationStatus,
-  ].freeze
-
-  def configuration
-    Hmis::Hud::CustomAssessment.hmis_configuration(version: '2024').except(*IGNORED)
-  end
-
   # Validate assessment date
   def self.validate_assessment_date(assessment, household_members: nil, options: {})
     date = assessment.assessment_date
