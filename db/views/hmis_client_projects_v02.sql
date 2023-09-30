@@ -17,7 +17,7 @@
   WHERE
     "Client"."DateDeleted" IS NULL
 )
-UNION ALL
+UNION
 (
   -- client related to project through wip
   SELECT

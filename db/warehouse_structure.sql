@@ -13508,7 +13508,7 @@ CREATE VIEW public.hmis_client_projects AS
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
   WHERE ("Client"."DateDeleted" IS NULL)
-UNION ALL
+UNION
  SELECT (hmis_wips.client_id)::integer AS client_id,
     (hmis_wips.project_id)::integer AS project_id,
     "Enrollment".id AS enrollment_id,
