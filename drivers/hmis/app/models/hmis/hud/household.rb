@@ -17,10 +17,17 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do
-    where(HouseholdID: Hmis::Hud::Enrollment.viewable_by(user).select(:HouseholdID))
+    # where(HouseholdID: Hmis::Hud::Enrollment.viewable_by(user).select(:HouseholdID))
+
+    viewable_households = joins(:enrollments).
+      merge(Hmis::Hud::Enrollment.viewable_by(user)). # does Data Source filter
+      pluck(:HouseholdID)
+
+    where(HouseholdID: viewable_households)
   end
 
   scope :client_matches_search_term, ->(text_search) do
+    # FIXME
     matching_ids = joins(:clients).
       merge(Hmis::Hud::Client.matching_search_term(text_search.to_s)).
       pluck(:id)

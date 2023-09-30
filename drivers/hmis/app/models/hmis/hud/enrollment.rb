@@ -90,6 +90,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # WARNING UNSAFE! This does not check for can_view_project or can_view_enrollment_details.
   # This scope should almost always be used in conjunction with viewable_by.
   scope :with_access, ->(user, *permissions, **kwargs) do
+    # FIXME
     return none unless user.permissions?(*permissions)
 
     project_ids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id, :ProjectID)

@@ -21,9 +21,9 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   validate :service_is_valid
 
-  replace_scope :viewable_by, ->(user) do
-    where(enrollment_id: Hmis::Hud::Enrollment.viewable_by(user).select(:enrollment_id))
-  end
+  # replace_scope :viewable_by, ->(user) do
+  #   where(enrollment_id: Hmis::Hud::Enrollment.viewable_by(user).select(:enrollment_id))
+  # end
 
   alias_attribute :service_type, :custom_service_type
   alias_to_underscore [:DateProvided, :EnrollmentID, :PersonalID]

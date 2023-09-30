@@ -85,6 +85,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :with_access, ->(user, *permissions, **kwargs) do
+    # FIXME
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
     unenrolled_ids = user.permissions?(*permissions, **kwargs) ? unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)).pluck(:id) : []

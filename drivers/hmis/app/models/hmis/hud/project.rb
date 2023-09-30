@@ -159,6 +159,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def households_including_wip
+    # fixme
     household_ids = enrollments_including_wip.pluck(:household_id)
 
     Hmis::Hud::Household.where(HouseholdID: household_ids, data_source_id: data_source_id)

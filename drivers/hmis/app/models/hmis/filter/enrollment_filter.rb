@@ -19,6 +19,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
 
   def with_statuses(scope)
     with_filter(scope, :status) do
+      # FIXME
       if input.status.present?
         ids = []
 
