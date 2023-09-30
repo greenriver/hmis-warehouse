@@ -139,6 +139,8 @@ module Filter::FilterScopes
         c_t[:BlackAfAmerican],
         c_t[:NativeHIPacific],
         c_t[:White],
+        c_t[:HispanicLatinaeo],
+        c_t[:MidEastNAfrican],
       ]
       report_scope_source.joins(:client).
         where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
@@ -238,7 +240,7 @@ module Filter::FilterScopes
     private def filter_for_prior_living_situation(scope)
       return scope if @filter.prior_living_situation_ids.blank?
 
-      scope.where(housing_status_at_entry: @filter.prior_living_situation_ids)
+      scope.joins(:enrollment).merge(GrdaWarehouse::Hud::Enrollment.where(LivingSituation: @filter.prior_living_situation_ids))
     end
 
     private def filter_for_destination(scope)

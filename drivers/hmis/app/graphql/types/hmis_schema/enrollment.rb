@@ -149,6 +149,7 @@ module Types
     custom_data_elements_field
 
     field :current_unit, HmisSchema::Unit, null: true
+    field :num_units_assigned_to_household, Integer, null: false
     field :reminders, [HmisSchema::Reminder], null: false
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
     field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
@@ -260,6 +261,14 @@ module Types
 
     def current_unit
       load_ar_association(object, :current_unit)
+    end
+
+    # ALERT: n+1, dont use when resolving multiple enrollments
+    def num_units_assigned_to_household
+      object.household_members.
+        joins(:current_unit).
+        pluck(Hmis::Unit.arel_table[:id]).
+        uniq.size
     end
   end
 end

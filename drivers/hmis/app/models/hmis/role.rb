@@ -220,6 +220,14 @@ class Hmis::Role < ::ApplicationRecord
           'Client Access',
         ],
       },
+      can_view_hud_chronic_status: {
+        description: "Grants access to see Chronic at PIT. Gives you an idea of someones previous enrollments, even ones you can't otherwise see.",
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_enrollment_details: {
         description: 'Grants access to view enrollments',
         administrative: false,

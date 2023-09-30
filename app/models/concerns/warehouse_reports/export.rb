@@ -97,6 +97,8 @@ module WarehouseReports::Export
     end
 
     private def filter_for_sub_population(clients)
+      return clients unless filter.sub_population.present?
+
       clients.joins(:service_history_enrollments).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.homeless.public_send(filter.sub_population))
     end
