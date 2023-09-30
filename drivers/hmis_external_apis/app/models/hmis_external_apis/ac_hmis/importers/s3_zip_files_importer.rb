@@ -49,12 +49,16 @@ module HmisExternalApis::AcHmis::Importers
       s3_object = s3.list_objects(prefix: prefix).first
 
       if skip_lambda.call(s3_object)
+        # Do nothing if we already imported this file.
         # Note: to force re-run, delete the latest HmisExternalApis::AcHmis::Importers::ProjectsImportAttempt
         Rails.logger.info "Most recent file #{s3_object.key} was already imported, ignored, or failed. Stopping."
-        return
+      else
+        _run!
       end
+    end
 
-      # Down the file and run ProjectsImporter
+    def _run!
+      # Fetch the file and run ProjectsImporter
       Dir.mktmpdir do |dir|
         Dir.chdir(dir) do
           Rails.logger.info "Fetching #{s3_object.key}"
