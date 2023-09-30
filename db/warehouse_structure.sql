@@ -745,7 +745,7 @@ CREATE TABLE public."Client" (
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer
 );
 
 
@@ -953,7 +953,7 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer
 );
 
 
@@ -1764,7 +1764,7 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer
 );
 
 
@@ -13503,6 +13503,7 @@ CREATE VIEW public.hmis_client_projects AS
     "Project".id AS project_id,
     "Enrollment".id AS enrollment_id,
     "Enrollment"."EnrollmentID",
+    "Enrollment"."HouseholdID",
     "Enrollment".data_source_id
    FROM ((public."Client"
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
@@ -13513,6 +13514,7 @@ UNION
     (hmis_wips.project_id)::integer AS project_id,
     "Enrollment".id AS enrollment_id,
     "Enrollment"."EnrollmentID",
+    "Enrollment"."HouseholdID",
     "Enrollment".data_source_id
    FROM (public.hmis_wips
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".id = hmis_wips.source_id))))
@@ -18377,25 +18379,46 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT concat("Enrollment"."HouseholdID", ':', max(("Project"."ProjectID")::text), ':', max("Enrollment".data_source_id)) AS id,
-    "Enrollment"."HouseholdID",
-    max(("Project"."ProjectID")::text) AS "ProjectID",
-    max("Enrollment".data_source_id) AS data_source_id,
-    min("Enrollment"."EntryDate") AS earliest_entry,
+ SELECT concat(tmp1."HouseholdID", ':', max((tmp1."ProjectID")::text), ':', max(tmp1.data_source_id)) AS id,
+    tmp1."HouseholdID",
+    tmp1."ProjectID",
+    tmp1.data_source_id,
+    min(tmp1."EntryDate") AS earliest_entry,
         CASE
-            WHEN bool_or(("Exit"."ExitDate" IS NULL)) THEN NULL::date
-            ELSE max("Exit"."ExitDate")
+            WHEN bool_or((tmp1."ExitDate" IS NULL)) THEN NULL::date
+            ELSE max(tmp1."ExitDate")
         END AS latest_exit,
-    bool_or(("Enrollment"."ProjectID" IS NULL)) AS any_wip,
+    bool_or(tmp1.wip) AS any_wip,
     NULL::text AS "DateDeleted",
-    max("Enrollment"."DateUpdated") AS "DateUpdated",
-    min("Enrollment"."DateCreated") AS "DateCreated"
-   FROM (((public."Enrollment"
-     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-     LEFT JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project".id = hmis_wips.project_id) OR (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text)))))
-  WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
-  GROUP BY "Enrollment"."HouseholdID", "Project"."ProjectID", "Enrollment".data_source_id;
+    max(tmp1."DateUpdated") AS "DateUpdated",
+    min(tmp1."DateCreated") AS "DateCreated"
+   FROM ( SELECT "Enrollment"."HouseholdID",
+            "Project"."ProjectID",
+            false AS wip,
+            "Project".data_source_id,
+            "Enrollment"."EntryDate",
+            "Exit"."ExitDate",
+            "Enrollment"."DateUpdated",
+            "Enrollment"."DateCreated",
+            "Enrollment"."DateDeleted"
+           FROM ((public."Enrollment"
+             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
+        UNION ALL
+         SELECT "Enrollment"."HouseholdID",
+            "Project"."ProjectID",
+            true AS wip,
+            "Project".data_source_id,
+            "Enrollment"."EntryDate",
+            "Exit"."ExitDate",
+            "Enrollment"."DateUpdated",
+            "Enrollment"."DateCreated",
+            "Enrollment"."DateDeleted"
+           FROM (((public."Enrollment"
+             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+             JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
+             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))) tmp1
+  GROUP BY tmp1."HouseholdID", tmp1."ProjectID", tmp1.data_source_id;
 
 
 --
@@ -57406,7 +57429,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -60499,6 +60522,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230925131206'),
 ('20230926205059'),
 ('20230927205059'),
-('20230929205059');
+('20230929205059'),
+('20230930131206');
 
 

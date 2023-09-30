@@ -159,10 +159,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def households_including_wip
-    # fixme
-    household_ids = enrollments_including_wip.pluck(:household_id)
-
-    Hmis::Hud::Household.where(HouseholdID: household_ids, data_source_id: data_source_id)
+    # correlated subquery for performance
+    cp_t = Hmis::Hud::ClientProject.arel_table
+    hh_t = Hmis::Hud::Household.arel_table
+    Hmis::Hud::Household.where(data_source_id: data_source_id).
+      where(client_projects.where(cp_t[:HouseholdID].eq(hh_t[:HouseholdID])).arel.exists)
   end
 
   def close_related_funders_and_inventory!

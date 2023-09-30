@@ -18,7 +18,7 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
 
   def with_statuses(scope)
     with_filter(scope, :status) do
-      #FIXME
+      # FIXME
       if input.status.present?
         return scope.active if input.status == ['ACTIVE'] || input.status.sort == ['ACTIVE', 'INCOMPLETE'].sort
         return scope if input.status.sort == ['ACTIVE', 'INCOMPLETE', 'EXITED'].sort

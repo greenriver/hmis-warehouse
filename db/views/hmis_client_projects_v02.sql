@@ -5,6 +5,7 @@
     "Project"."id" AS project_id,
     "Enrollment"."id" AS enrollment_id,
     "Enrollment"."EnrollmentID",
+    "Enrollment"."HouseholdID",
     "Enrollment"."data_source_id"
   FROM
     "Client"
@@ -25,6 +26,7 @@ UNION
     "hmis_wips"."project_id"::integer AS project_id,
     "Enrollment"."id"::integer AS enrollment_id,
     "Enrollment"."EnrollmentID",
+    "Enrollment"."HouseholdID",
     "Enrollment"."data_source_id"
   FROM
     "hmis_wips"
