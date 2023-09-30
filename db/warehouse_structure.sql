@@ -745,7 +745,7 @@ CREATE TABLE public."Client" (
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
-    lock_version integer
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -953,7 +953,7 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -1764,7 +1764,7 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
-    lock_version integer
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -13508,9 +13508,9 @@ CREATE VIEW public.hmis_client_projects AS
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
   WHERE ("Client"."DateDeleted" IS NULL)
-UNION
- SELECT hmis_wips.client_id,
-    hmis_wips.project_id,
+UNION ALL
+ SELECT (hmis_wips.client_id)::integer AS client_id,
+    (hmis_wips.project_id)::integer AS project_id,
     "Enrollment".id AS enrollment_id,
     "Enrollment"."EnrollmentID",
     "Enrollment".data_source_id
@@ -18479,7 +18479,7 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 
 CREATE VIEW public.hmis_services AS
  SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
-    ("Services".id)::bigint AS owner_id,
+    "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "CustomServiceTypes".id AS custom_service_type_id,
     "Services"."EnrollmentID",
@@ -18495,7 +18495,7 @@ CREATE VIEW public.hmis_services AS
   WHERE ("Services"."DateDeleted" IS NULL)
 UNION ALL
  SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
-    "CustomServices".id AS owner_id,
+    ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
@@ -57406,7 +57406,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
 
 
 --
@@ -58620,22 +58620,6 @@ CREATE RULE attempt_client_searchable_names_del AS
 
 CREATE RULE attempt_client_searchable_names_up AS
     ON UPDATE TO public.client_searchable_names DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_client_projects attempt_hmis_client_projects_del; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_client_projects_del AS
-    ON DELETE TO public.hmis_client_projects DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_client_projects attempt_hmis_client_projects_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_client_projects_up AS
-    ON UPDATE TO public.hmis_client_projects DO INSTEAD NOTHING;
 
 
 --
@@ -60514,6 +60498,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230922124446'),
 ('20230925131206'),
 ('20230926205059'),
-('20230927205059');
+('20230927205059'),
+('20230929205059');
 
 

@@ -3,7 +3,7 @@ SELECT
 	CAST(
 		CONCAT('1', CAST("Services"."id" AS VARCHAR)) AS INT
 	) AS id,
-	CAST("Services"."id" AS bigint) AS owner_id,
+	"Services"."id" AS owner_id,
 	'Hmis::Hud::Service' AS owner_type,
 	"CustomServiceTypes"."id" AS custom_service_type_id,
 	"EnrollmentID",
@@ -27,7 +27,7 @@ SELECT
 	CAST(
 		CONCAT('2', CAST("CustomServices".id AS VARCHAR)) AS INT
 	) AS id,
-	"CustomServices".id AS owner_id,
+	"CustomServices".id::integer AS owner_id,
 	'Hmis::Hud::CustomService' AS owner_type,
 	"CustomServices"."custom_service_type_id",
 	"CustomServices"."EnrollmentID",
