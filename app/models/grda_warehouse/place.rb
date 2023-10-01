@@ -43,6 +43,7 @@ module GrdaWarehouse
       place
     rescue StandardError => e
       send_single_notification("Error contacting the OSM Nominatim API.: #{e.message}", 'NominatimWarning')
+      Sentry.capture_exception(e)
     end
 
     def self.nominatim_lookup(query, city, state, postalcode, country)
