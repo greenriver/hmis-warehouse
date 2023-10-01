@@ -6,24 +6,25 @@
 
 class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
-    scope.joins(:enrollments).
+    scope.
       yield_self(&method(:with_statuses)).
       yield_self(&method(:with_open_on_date)).
       yield_self(&method(:with_hoh_age_range)).
-      yield_self(&method(:with_search_term)).
-      yield_self(&method(:clean_scope))
+      yield_self(&method(:with_search_term))
+    # pluck id on large record sets causes perf issues
+    # yield_self(&method(:clean_scope))
   end
 
   protected
 
   def with_statuses(scope)
     with_filter(scope, :status) do
-      # FIXME
       if input.status.present?
         return scope.active if input.status == ['ACTIVE'] || input.status.sort == ['ACTIVE', 'INCOMPLETE'].sort
         return scope if input.status.sort == ['ACTIVE', 'INCOMPLETE', 'EXITED'].sort
 
         ids = []
+        # FIXME
         ids += scope.active.pluck(:id) if input.status.include?('ACTIVE')
         ids += scope.in_progress.pluck(:id) if input.status.include?('INCOMPLETE')
         ids += scope.exited.pluck(:id) if input.status.include?('EXITED')

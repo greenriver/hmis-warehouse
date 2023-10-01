@@ -1,4 +1,48 @@
 -- To update, run rails generate scenic:view hmis_households --replace
+WITH tmp1 AS (
+  (
+    SELECT
+      "Enrollment"."HouseholdID",
+      "Project"."ProjectID",
+      FALSE AS wip,
+      "Project"."data_source_id",
+      "Enrollment"."EntryDate",
+      "Exit"."ExitDate",
+      "Enrollment"."DateUpdated",
+      "Enrollment"."DateCreated",
+      "Enrollment"."DateDeleted"
+    FROM
+      "Enrollment"
+      LEFT OUTER JOIN "Exit" ON "Exit"."EnrollmentID" = "Enrollment"."EnrollmentID"
+      AND "Exit"."data_source_id" = "Enrollment"."data_source_id"
+      AND "Exit"."DateDeleted" IS NULL
+      JOIN "Project" ON "Project"."DateDeleted" IS NULL
+      AND "Project"."data_source_id" = "Enrollment"."data_source_id"
+      AND "Project"."ProjectID" = "Enrollment"."ProjectID"
+  )
+  UNION
+  ALL (
+    SELECT
+      "Enrollment"."HouseholdID",
+      "Project"."ProjectID",
+      TRUE AS wip,
+      "Project"."data_source_id",
+      "Enrollment"."EntryDate",
+      "Exit"."ExitDate",
+      "Enrollment"."DateUpdated",
+      "Enrollment"."DateCreated",
+      "Enrollment"."DateDeleted"
+    FROM
+      "Enrollment"
+      LEFT OUTER JOIN "Exit" ON "Exit"."EnrollmentID" = "Enrollment"."EnrollmentID"
+      AND "Exit"."data_source_id" = "Enrollment"."data_source_id"
+      AND "Exit"."DateDeleted" IS NULL
+      JOIN "hmis_wips" ON "hmis_wips"."source_id" = "Enrollment"."id"
+      AND "hmis_wips"."source_type" = 'Hmis::Hud::Enrollment'
+      JOIN "Project" ON "Project"."DateDeleted" IS NULL
+      AND "Project"."id" = "hmis_wips"."project_id"
+  )
+)
 SELECT
   CONCAT(
     "HouseholdID",
@@ -20,50 +64,7 @@ SELECT
   MAX("DateUpdated") AS "DateUpdated",
   MIN("DateCreated") AS "DateCreated"
 FROM
-  (
-    (
-      SELECT
-        "Enrollment"."HouseholdID",
-        "Project"."ProjectID",
-        FALSE AS wip,
-        "Project"."data_source_id",
-        "Enrollment"."EntryDate",
-        "Exit"."ExitDate",
-        "Enrollment"."DateUpdated",
-        "Enrollment"."DateCreated",
-        "Enrollment"."DateDeleted"
-      FROM
-        "Enrollment"
-        LEFT OUTER JOIN "Exit" ON "Exit"."EnrollmentID" = "Enrollment"."EnrollmentID"
-        AND "Exit"."data_source_id" = "Enrollment"."data_source_id"
-        AND "Exit"."DateDeleted" IS NULL
-        JOIN "Project" ON "Project"."DateDeleted" IS NULL
-        AND "Project"."data_source_id" = "Enrollment"."data_source_id"
-        AND "Project"."ProjectID" = "Enrollment"."ProjectID"
-    )
-    UNION
-    ALL (
-      SELECT
-        "Enrollment"."HouseholdID",
-        "Project"."ProjectID",
-        TRUE AS wip,
-        "Project"."data_source_id",
-        "Enrollment"."EntryDate",
-        "Exit"."ExitDate",
-        "Enrollment"."DateUpdated",
-        "Enrollment"."DateCreated",
-        "Enrollment"."DateDeleted"
-      FROM
-        "Enrollment"
-        LEFT OUTER JOIN "Exit" ON "Exit"."EnrollmentID" = "Enrollment"."EnrollmentID"
-        AND "Exit"."data_source_id" = "Enrollment"."data_source_id"
-        AND "Exit"."DateDeleted" IS NULL
-        JOIN "hmis_wips" ON "hmis_wips"."source_id" = "Enrollment"."id"
-        AND "hmis_wips"."source_type" = 'Hmis::Hud::Enrollment'
-        JOIN "Project" ON "Project"."DateDeleted" IS NULL
-        AND "Project"."id" = "hmis_wips"."project_id"
-    )
-  ) AS tmp1
+  tmp1
 GROUP BY
   tmp1."HouseholdID",
   tmp1."ProjectID",

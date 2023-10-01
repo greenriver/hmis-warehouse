@@ -18379,20 +18379,8 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT concat(tmp1."HouseholdID", ':', max((tmp1."ProjectID")::text), ':', max(tmp1.data_source_id)) AS id,
-    tmp1."HouseholdID",
-    tmp1."ProjectID",
-    tmp1.data_source_id,
-    min(tmp1."EntryDate") AS earliest_entry,
-        CASE
-            WHEN bool_or((tmp1."ExitDate" IS NULL)) THEN NULL::date
-            ELSE max(tmp1."ExitDate")
-        END AS latest_exit,
-    bool_or(tmp1.wip) AS any_wip,
-    NULL::text AS "DateDeleted",
-    max(tmp1."DateUpdated") AS "DateUpdated",
-    min(tmp1."DateCreated") AS "DateCreated"
-   FROM ( SELECT "Enrollment"."HouseholdID",
+ WITH tmp1 AS (
+         SELECT "Enrollment"."HouseholdID",
             "Project"."ProjectID",
             false AS wip,
             "Project".data_source_id,
@@ -18417,7 +18405,22 @@ CREATE VIEW public.hmis_households AS
            FROM (((public."Enrollment"
              LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
              JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
-             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))) tmp1
+             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))
+        )
+ SELECT concat(tmp1."HouseholdID", ':', tmp1."ProjectID", ':', tmp1.data_source_id) AS id,
+    tmp1."HouseholdID",
+    tmp1."ProjectID",
+    tmp1.data_source_id,
+    min(tmp1."EntryDate") AS earliest_entry,
+        CASE
+            WHEN bool_or((tmp1."ExitDate" IS NULL)) THEN NULL::date
+            ELSE max(tmp1."ExitDate")
+        END AS latest_exit,
+    bool_or(tmp1.wip) AS any_wip,
+    NULL::text AS "DateDeleted",
+    max(tmp1."DateUpdated") AS "DateUpdated",
+    min(tmp1."DateCreated") AS "DateCreated"
+   FROM tmp1
   GROUP BY tmp1."HouseholdID", tmp1."ProjectID", tmp1.data_source_id;
 
 
