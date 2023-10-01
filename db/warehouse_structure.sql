@@ -48784,6 +48784,20 @@ CREATE INDEX "index_CustomServiceTypes_on_custom_service_category_id" ON public.
 
 
 --
+-- Name: index_CustomServiceTypes_on_hud_record_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServiceTypes_on_hud_record_type" ON public."CustomServiceTypes" USING btree (hud_record_type);
+
+
+--
+-- Name: index_CustomServiceTypes_on_hud_type_provided; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServiceTypes_on_hud_type_provided" ON public."CustomServiceTypes" USING btree (hud_type_provided);
+
+
+--
 -- Name: index_CustomServices_on_DateProvided; Type: INDEX; Schema: public; Owner: -
 --
 
