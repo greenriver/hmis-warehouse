@@ -13503,18 +13503,16 @@ CREATE VIEW public.hmis_client_projects AS
     "Project".id AS project_id,
     "Enrollment".id AS enrollment_id,
     "Enrollment"."EnrollmentID",
-    "Enrollment"."HouseholdID",
     "Enrollment".data_source_id
    FROM ((public."Client"
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
   WHERE ("Client"."DateDeleted" IS NULL)
 UNION
- SELECT (hmis_wips.client_id)::integer AS client_id,
-    (hmis_wips.project_id)::integer AS project_id,
+ SELECT hmis_wips.client_id,
+    hmis_wips.project_id,
     "Enrollment".id AS enrollment_id,
     "Enrollment"."EnrollmentID",
-    "Enrollment"."HouseholdID",
     "Enrollment".data_source_id
    FROM (public.hmis_wips
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".id = hmis_wips.source_id))))
@@ -18379,49 +18377,25 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- WITH tmp1 AS (
-         SELECT "Enrollment"."HouseholdID",
-            "Project"."ProjectID",
-            false AS wip,
-            "Project".data_source_id,
-            "Enrollment"."EntryDate",
-            "Exit"."ExitDate",
-            "Enrollment"."DateUpdated",
-            "Enrollment"."DateCreated",
-            "Enrollment"."DateDeleted"
-           FROM ((public."Enrollment"
-             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
-        UNION ALL
-         SELECT "Enrollment"."HouseholdID",
-            "Project"."ProjectID",
-            true AS wip,
-            "Project".data_source_id,
-            "Enrollment"."EntryDate",
-            "Exit"."ExitDate",
-            "Enrollment"."DateUpdated",
-            "Enrollment"."DateCreated",
-            "Enrollment"."DateDeleted"
-           FROM (((public."Enrollment"
-             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-             JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
-             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))
-        )
- SELECT concat(tmp1."HouseholdID", ':', tmp1."ProjectID", ':', tmp1.data_source_id) AS id,
-    tmp1."HouseholdID",
-    tmp1."ProjectID",
-    tmp1.data_source_id,
-    min(tmp1."EntryDate") AS earliest_entry,
+ SELECT concat("Enrollment"."HouseholdID", ':', max(("Project"."ProjectID")::text), ':', max("Enrollment".data_source_id)) AS id,
+    "Enrollment"."HouseholdID",
+    max(("Project"."ProjectID")::text) AS "ProjectID",
+    max("Enrollment".data_source_id) AS data_source_id,
+    min("Enrollment"."EntryDate") AS earliest_entry,
         CASE
-            WHEN bool_or((tmp1."ExitDate" IS NULL)) THEN NULL::date
-            ELSE max(tmp1."ExitDate")
+            WHEN bool_or(("Exit"."ExitDate" IS NULL)) THEN NULL::date
+            ELSE max("Exit"."ExitDate")
         END AS latest_exit,
-    bool_or(tmp1.wip) AS any_wip,
+    bool_or(("Enrollment"."ProjectID" IS NULL)) AS any_wip,
     NULL::text AS "DateDeleted",
-    max(tmp1."DateUpdated") AS "DateUpdated",
-    min(tmp1."DateCreated") AS "DateCreated"
-   FROM tmp1
-  GROUP BY tmp1."HouseholdID", tmp1."ProjectID", tmp1.data_source_id;
+    max("Enrollment"."DateUpdated") AS "DateUpdated",
+    min("Enrollment"."DateCreated") AS "DateCreated"
+   FROM (((public."Enrollment"
+     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+     LEFT JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project".id = hmis_wips.project_id) OR (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text)))))
+  WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
+  GROUP BY "Enrollment"."HouseholdID", "Project"."ProjectID", "Enrollment".data_source_id;
 
 
 --
@@ -18504,24 +18478,35 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
-    "Services".id AS owner_id,
-    'Hmis::Hud::Service'::text AS owner_type,
-    "CustomServiceTypes".id AS custom_service_type_id,
-    "Services"."EnrollmentID",
-    "Services"."PersonalID",
-    "Services"."DateProvided",
-    "Services"."UserID",
-    "Services"."DateCreated",
-    "Services"."DateUpdated",
-    "Services"."DateDeleted",
-    "Services".data_source_id
-   FROM (public."Services"
-     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
-  WHERE ("Services"."DateDeleted" IS NULL)
-UNION ALL
+ SELECT hud_services.id,
+    hud_services.owner_id,
+    hud_services.owner_type,
+    hud_services.custom_service_type_id,
+    hud_services."EnrollmentID",
+    hud_services."PersonalID",
+    hud_services."DateProvided",
+    hud_services."UserID",
+    hud_services."DateCreated",
+    hud_services."DateUpdated",
+    hud_services."DateDeleted",
+    hud_services.data_source_id
+   FROM ( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+            "Services".id AS owner_id,
+            'Hmis::Hud::Service'::text AS owner_type,
+            "CustomServiceTypes".id AS custom_service_type_id,
+            "Services"."EnrollmentID",
+            "Services"."PersonalID",
+            "Services"."DateProvided",
+            "Services"."UserID",
+            "Services"."DateCreated",
+            "Services"."DateUpdated",
+            "Services"."DateDeleted",
+            "Services".data_source_id
+           FROM (public."Services"
+             JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))) hud_services
+UNION
  SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
-    ("CustomServices".id)::integer AS owner_id,
+    "CustomServices".id AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
@@ -48784,52 +48769,10 @@ CREATE INDEX "index_CustomServiceTypes_on_custom_service_category_id" ON public.
 
 
 --
--- Name: index_CustomServiceTypes_on_hud_record_type; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomServiceTypes_on_hud_record_type" ON public."CustomServiceTypes" USING btree (hud_record_type);
-
-
---
--- Name: index_CustomServiceTypes_on_hud_type_provided; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomServiceTypes_on_hud_type_provided" ON public."CustomServiceTypes" USING btree (hud_type_provided);
-
-
---
--- Name: index_CustomServices_on_DateProvided; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomServices_on_DateProvided" ON public."CustomServices" USING btree ("DateProvided");
-
-
---
--- Name: index_CustomServices_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomServices_on_EnrollmentID" ON public."CustomServices" USING btree ("EnrollmentID");
-
-
---
--- Name: index_CustomServices_on_PersonalID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomServices_on_PersonalID" ON public."CustomServices" USING btree ("PersonalID");
-
-
---
 -- Name: index_CustomServices_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "index_CustomServices_on_custom_service_type_id" ON public."CustomServices" USING btree (custom_service_type_id);
-
-
---
--- Name: index_CustomServices_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomServices_on_data_source_id" ON public."CustomServices" USING btree (data_source_id);
 
 
 --
@@ -60536,10 +60479,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230913184747'),
 ('20230914004821'),
 ('20230922124446'),
-('20230925131206'),
-('20230926205059'),
-('20230927205059'),
-('20230929205059'),
-('20230930131206');
+('20230925131206');
 
 
