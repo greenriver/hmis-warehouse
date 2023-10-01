@@ -45,14 +45,34 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   end
 
   def with_search_term(scope)
-    with_filter(scope, :search_term) { scope.merge(Hmis::Hud::Enrollment.matching_search_term(input.search_term)) }
+    with_filter(scope, :search_term) do
+      e_t = Hmis::Hud::Enrollment.arel_table
+      hh_t = Hmis::Hud::Household.arel_table
+      scope.where(
+        Hmis::Hud::Enrollment.
+          matching_search_term(input.search_term).
+          where(
+            e_t[:data_source_id].eq(hh_t[:data_source_id]).and(e_t[:HouseholdID].eq(hh_t[:HouseholdID])),
+          ).arel.exists,
+      )
+    end
   end
 
   def with_hoh_age_range(scope)
     with_filter(scope, :hoh_age_range) do
+      e_t = Hmis::Hud::Enrollment.arel_table
+      hh_t = Hmis::Hud::Household.arel_table
+
       start_age = input.hoh_age_range.begin
       end_age = input.hoh_age_range.end
-      scope.merge(Hmis::Hud::Enrollment.heads_of_households.in_age_group(start_age: start_age, end_age: end_age))
+
+      scope.where(
+        Hmis::Hud::Enrollment.
+          heads_of_households.in_age_group(start_age: start_age, end_age: end_age).
+          where(
+            e_t[:data_source_id].eq(hh_t[:data_source_id]).and(e_t[:HouseholdID].eq(hh_t[:HouseholdID])),
+          ).arel.exists,
+      )
     end
   end
 end
