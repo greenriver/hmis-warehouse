@@ -42,8 +42,12 @@ module GrdaWarehouse
       end
       place
     rescue StandardError => e
+      # Sometimes it just dies, that sends Sentry a bunch of errors we can't do anything about, so just eat them
+      return if nr.is_a?(Geocoder::Result::Nominatim) && nr.data.try(:[], 'title') == '500 Internal Server Error'
+
       send_single_notification("Error contacting the OSM Nominatim API.: #{e.message}", 'NominatimWarning')
       Sentry.capture_exception(e)
+      nil
     end
 
     def self.nominatim_lookup(query, city, state, postalcode, country)
