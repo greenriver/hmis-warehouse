@@ -50,9 +50,9 @@ module HmisExternalApis::AcHmis
 
       personal_ids = records_needing_processing.map { |r| r['clientId'] }
 
-      self.clients = Hmis::Hud::Client
-        .where(c_t[:PersonalID].in(personal_ids))
-        .where(c_t[:data_source_id].eq(data_source.id))
+      self.clients = Hmis::Hud::Client.
+        where(c_t[:PersonalID].in(personal_ids)).
+        where(c_t[:data_source_id].eq(data_source.id))
     end
 
     def fetch_mci_unique_ids
@@ -61,13 +61,13 @@ module HmisExternalApis::AcHmis
       e_t = HmisExternalApis::ExternalId.arel_table
 
       # by client_id
-      self.external_ids = HmisExternalApis::ExternalId
-        .where(e_t[:source_type].eq('Hmis::Hud::Client'))
-        .where(e_t[:source_id].in(clients.map(&:id)))
-        .where(namespace: NAMESPACE)
-        .to_a
-        .map { |eid| [eid.source_id, eid] }
-        .to_h
+      self.external_ids = HmisExternalApis::ExternalId.
+        where(e_t[:source_type].eq('Hmis::Hud::Client')).
+        where(e_t[:source_id].in(clients.map(&:id))).
+        where(namespace: NAMESPACE).
+        to_a.
+        map { |eid| [eid.source_id, eid] }.
+        to_h
     end
 
     def upsert_changes
@@ -77,9 +77,9 @@ module HmisExternalApis::AcHmis
       update_count = 0
       no_change_count = 0
 
-      client_by_personal_id = clients
-        .map { |c| [c.personal_id, c] }
-        .to_h
+      client_by_personal_id = clients.
+        map { |c| [c.personal_id, c] }.
+        to_h
 
       records_needing_processing.each do |record|
         client = client_by_personal_id[record['clientId']]
@@ -109,12 +109,12 @@ module HmisExternalApis::AcHmis
     def merge_clients_by_mci_unique_id
       e_t = HmisExternalApis::ExternalId.arel_table
 
-      self.merge_sets = HmisExternalApis::ExternalId
-        .where(e_t[:source_type].eq('Hmis::Hud::Client'))
-        .where(namespace: NAMESPACE)
-        .group(:value)
-        .having('count(*) > 1')
-        .select('value, array_agg(source_id ORDER BY source_id) AS client_ids')
+      self.merge_sets = HmisExternalApis::ExternalId.
+        where(e_t[:source_type].eq('Hmis::Hud::Client')).
+        where(namespace: NAMESPACE).
+        group(:value).
+        having('count(*) > 1').
+        select('value, array_agg(source_id ORDER BY source_id) AS client_ids')
 
       debug_msg "Found #{merge_sets.length} duplicate MCI unique IDs"
 
@@ -130,7 +130,7 @@ module HmisExternalApis::AcHmis
     end
 
     def each_record_we_are_interested_in
-      data_warehosue_api.each_change do |record|
+      data_warehouse_api.each_change do |record|
         record['last_modified_date_time'] = Time.zone.parse(record['lastModifiedDate'])
         record['mci_unique_id_date_time'] = Time.zone.parse(record['mciUniqIdDate'])
 
