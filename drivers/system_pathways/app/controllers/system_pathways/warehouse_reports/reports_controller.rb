@@ -29,7 +29,7 @@ module SystemPathways::WarehouseReports
 
     def show
       params.permit!
-      @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter, show_filter: show_filter)
+      @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @report.filter, show_filter: show_filter)
       respond_to do |format|
         format.html {}
         format.xlsx do
