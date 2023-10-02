@@ -27,7 +27,7 @@
         },
         {
           "operator": "ALL",
-          "_comment": "Override hude rule to collect for all ESG-funded programs. (HUD rule: 'HUD: ESG – Collection required for all components except ES-NbN')",
+          "_comment": "Override HUD rule to collect for all ESG-funded programs. (HUD rule: 'HUD: ESG – Collection required for all components except ES-NbN')",
           "parts": [
             {
               "variable": "projectFunderComponents",
