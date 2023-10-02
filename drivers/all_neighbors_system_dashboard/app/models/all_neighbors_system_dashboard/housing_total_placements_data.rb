@@ -12,7 +12,7 @@ module AllNeighborsSystemDashboard
               keys: keys,
               names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
               colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-              label_colors: keys.map.with_index { |key, i| [key, (options[:label_colors] || options[:colors])[i]] }.to_h,
+              label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
             },
             count_levels: count_levels.map do |count_level|
               {
@@ -77,7 +77,7 @@ module AllNeighborsSystemDashboard
         'racial_composition',
         :stack,
         options: {
-          bars: ['Unhoused\nPopulation 2023 *', 'Overall Population\n(Census 2020)'],
+          bars: ['Unhoused Population 2023 *', 'Overall Population (Census 2020)'],
           types: demographic_race,
           colors: demographic_race_colors,
           label_colors: demographic_race.map { |_| '#ffffff' },

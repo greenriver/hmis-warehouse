@@ -49,9 +49,14 @@
           = yield
         - else
           %main
+            - if content_for? :full_width_banner
+              .l-main__full-width-banner
+                .container-fluid
+                  = yield :full_width_banner
             .container-fluid.mb-4{class: container_classes}
-              .utility<
-                = render "utility"
+              - unless content_for? :full_width_banner
+                .utility<
+                  = render "utility"
               - if content_for? :modal_title
                 %h1
                   = yield :modal_title

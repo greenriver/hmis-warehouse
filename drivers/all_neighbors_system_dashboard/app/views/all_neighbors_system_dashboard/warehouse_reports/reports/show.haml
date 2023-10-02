@@ -10,49 +10,30 @@
   end_date = DateTime.current.beginning_of_month
   all_data = AllNeighborsSystemDashboard::FakeData.new(start_date, end_date)
 
-:css
-  h1 {
-    color: rgba(0, 0, 0, 0.60);
-    font-family: "Open Sans";
-    font-weight: normal;
-  }
-  h2.all-neighbors__all__tab_name {
-    font-family: "Open Sans";
-    font-weight: normal;
-  }
-  .all-neighbors__all__filter_labels h3 {
-    font-family: "Open Sans";
-    font-weight: normal;
-  }
 
-  .all-neighbors__time_to_obtain_housing__card span {
-    font-size: 36px;
-    font-weight: bold;
-  }
 
-  .all-neighbors__time_to_obtain_housing__card h3 {
-    font-family: "Open Sans";
-    font-weight: normal;
-  }
-
-  #all-neighbors__housing_placements__stacked__chart .bb-axis-x {
-    font-family: "Open Sans";
-    font-size: 1.2rem;
-  }
-
-%h1 REAL Time Rehousing Initiative Community Dashboard
-.row
-  - all_data.header_data.each do |d|
-    .col-xs-12.col-md-4
-      .d-flex
-        %div= d[:value]
-        %h4= d[:name]
-.mb-7= render 'tabs', tabs: tabs
-.tab-content
-  - tabs.each_with_index do |tab, i|
-    - pane_classes = ['tab-pane', 'fade', 'show', 'active']
-    - if i == 0
-      - pane_classes += ['js-first']
-    %div{class: pane_classes, id: tab[:id], role: 'tabpanel', aria: {labelledby: "#{tab[:id]}_tab"}}
-      = render tab[:id], tab: tab
+- content_for :full_width_banner do
+  .all-neighbors__dashboard
+    %h1 REAL Time Rehousing Initiative Community Dashboard
+    .row.mt-5{class: css_namespace('all', 'summary')}
+      - all_data.header_data.each_with_index do |d, i|
+        - size = 4
+        - if i > 0
+          - size = i == 1 ? 3 : 5
+        .col-xs-12.col-lg-4.mb-5{class: "col-md-#{size}"}
+          .d-flex
+            %div.pr-3{class: css_namespace('all', 'summary_icon')}
+              %i{class: d[:icon]}
+            %div
+              %div{class: css_namespace('all', 'summary_value')}= d[:value]
+              %div{class: css_namespace('all', 'summary_name')}= d[:name]
+.all-neighbors__dashboard
+  .mb-7= render 'tabs', tabs: tabs
+  .tab-content
+    - tabs.each_with_index do |tab, i|
+      - pane_classes = ['tab-pane', 'fade', 'show', 'active']
+      - if i == 0
+        - pane_classes += ['js-first']
+      %div{class: pane_classes, id: tab[:id], role: 'tabpanel', aria: {labelledby: "#{tab[:id]}_tab"}}
+        = render tab[:id], tab: tab
 

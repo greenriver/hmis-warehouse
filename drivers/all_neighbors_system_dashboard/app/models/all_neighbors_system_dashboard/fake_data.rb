@@ -8,21 +8,29 @@ module AllNeighborsSystemDashboard
     def header_data
       [
         {
-          icon: '',
+          id: 'individuals_housed',
+          icon: 'icon-group-alt',
           value: 1987,
           name: 'Individuals Housed To-Date',
         },
         {
-          icon: '',
+          id: 'days_to_obtain_housing',
+          icon: 'icon-house',
           value: 223,
           name: 'Days to Obtain Housing',
         },
         {
-          icon: '',
+          id: 'no_return',
+          icon: 'icon-clip-board-check',
           value: '87%',
           name: 'Did not return to homelessness after 12 months',
         },
       ]
+    end
+
+    def label_color(background_color)
+      colors = GrdaWarehouse::SystemColor.new
+      colors.calculated_foreground_color(background_color)
     end
 
     def project_types

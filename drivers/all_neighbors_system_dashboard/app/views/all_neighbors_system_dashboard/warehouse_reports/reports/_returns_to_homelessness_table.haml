@@ -7,14 +7,14 @@
 %table.table{id: id}
   %thead
     %tr
-      %th Cohort Year
-      %th Exited
-      %th Returned (Cumulative)
-      %th Rate of Return
+      %th.text-right{width: '20%'} Cohort Year
+      %th.text-center{width: '30%'} Exited
+      %th.text-center{width: '30%'} Returned (Cumulative)
+      %th.text-right{width: '20%'} Rate of Return
   %tbody
     - years.each_with_index do |year, i|
       %tr
-        %td= year
-        %td= exited[i]
-        %td= returned[i]
-        %td= rate[i]
+        %td.text-right= year
+        %td.text-center= exited[i]
+        %td.text-center= returned[i]
+        %td.text-right= rate[i]

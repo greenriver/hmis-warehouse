@@ -24,7 +24,7 @@ module AllNeighborsSystemDashboard
               keys: keys,
               names: keys.map.with_index { |key, i| [key, names[i]] }.to_h,
               colors: keys.map.with_index { |key, i| [key, colors[i]] }.to_h,
-              label_colors: keys.map { |key| [key, '#ffffff'] }.to_h,
+              label_colors: keys.map.with_index { |key, i| [key, label_color(colors[i])] }.to_h,
             },
             series: send(type, { bars: bars, demographic: demo, types: keys }),
           }

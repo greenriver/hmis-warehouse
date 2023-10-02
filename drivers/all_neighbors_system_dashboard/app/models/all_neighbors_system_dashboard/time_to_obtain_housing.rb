@@ -12,7 +12,7 @@ module AllNeighborsSystemDashboard
               keys: keys,
               names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
               colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-              label_colors: keys.map.with_index { |key, i| [key, (options[:label_colors] || options[:colors])[i]] }.to_h,
+              label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
             },
             household_types: (['All'] + household_types).map do |household_type|
               {

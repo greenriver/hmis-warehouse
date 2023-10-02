@@ -1,12 +1,14 @@
+- all_data = AllNeighborsSystemDashboard::UnhousedPopulation.new(start_date, end_date)
+- donut_ids = all_data.donut_data.map{|d| chart_id(tab[:id], d[:id])}
+- donut_filter_label_ids = all_data.donut_data.map { |d| filter_label_id(tab[:id], d[:id]) }
 - start_date = @report.filter.start_date.beginning_of_month
 - end_date = @report.filter.end_date.beginning_of_month
-- all_data = AllNeighborsSystemDashboard::UnhousedPopulation.new(@report)
-- donut_ids = all_data.donut_data.map{|d| chart_id(tab[:id], "donut_#{d[:id]}")}
-
+-
 %h2.mb-4{class: css_namespace('all', 'tab_name')} People Experiencing Homelessness
-.border.my-7.p-4
-  %h3.mb-4 Homeless Population Over Time
-  %div{id: chart_id(tab[:id], 'vertical_stack'), style: 'height:400px;'}
+.border.my-7.p-6
+  %h3.mb-6 Homeless Population Over Time
+  %div{id: chart_id(tab[:id], 'vertical_stack')}
+  .d-flex.justify-content-center{id: "#{chart_id(tab[:id], 'vertical_stack')}_legend"}
 
 .border.my-7.p-4
   .row.align-items-center.justify-content-between
@@ -20,19 +22,9 @@
   %br
   %span{class: filter_label_id(tab[:id], 'year')}
 
-.row
-  - all_data.donut_data.each do |d|
-    .col-6.mb-7
-      %h5= d[:title]
-      %div{id: chart_id(tab[:id], "donut_#{d[:id]}"), style: "height:320px;width:100%;"}
-      
+= render 'donuts', tab: tab, donut_data: all_data.donut_data, filter_label: 'year'
 
-%h3 
-  Racial Composition
-  %br
-  %span{class: filter_label_id(tab[:id], 'year')}
-
-%div{id: chart_id(tab[:id], 'racial_comp')}
+= render 'stacked_charts', data: [all_data.stacked_data], group: 'Racial Composition', filter_label: 'year', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px'
   
 
 - content_for :page_js do
@@ -40,26 +32,33 @@
     $(document).ready(function() {
       console.log('Unhoused Population -----------------')
       var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
+      var verticalStackId = '##{chart_id(tab[:id], 'vertical_stack')}'
       var donutData = #{all_data.donut_data.to_json.html_safe}
       var stackedData = #{all_data.stacked_data.to_json.html_safe}
+      var stackedId = '##{chart_id(tab[:id], "stacked_#{all_data.stacked_data[:id]}")}'
       var donutIds = #{donut_ids.to_json.html_safe}
+      var donutFilterLabelIds = #{donut_filter_label_ids.to_json.html_safe}
 
       var charts = [
         {
           chart: AllNeighborsSystemDashboardStack,
           data: stackedData,
-          selector: '##{chart_id(tab[:id], 'racial_comp')}',
+          selector: stackedId,
           options: {
-            normalize: true, 
-            rotated: true,
-            showX: false,
+            legend: {selector: stackedId+'_legend'},
           }
         }
       ].concat(donutData.map(function(d, i) {
         return {
           chart: AllNeighborsSystemDashboardDonut,
           data: d,
-          selector: '#'+donutIds[i]
+          selector: '#'+donutIds[i],
+          options: {
+            countLevelLabelSelector: '#'+donutFilterLabelIds[i],
+            legend: {
+              selector: '#'+donutIds[i]+'_legend'
+            }
+          }
         }
       }))
 
@@ -86,11 +85,15 @@
       var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
 
-      const verticalStackChart = new AllNeighborsSystemDashboardStack(
+      const verticalStackChart = new AllNeighborsSystemDashboardUPVerticalStack(
           verticalStackData,
           {},
-          '##{chart_id(tab[:id], 'vertical_stack')}',
-          {rotated: false, normalize: false}
+          verticalStackId,
+          {
+            legend: {
+              selector: verticalStackId+'_legend'
+            }
+          }
         )
       verticalStackChart.draw()
 
