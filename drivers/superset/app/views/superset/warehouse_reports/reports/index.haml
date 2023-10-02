@@ -1,0 +1,18 @@
+- title = Translation.translate('Launch Superset')
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-5= title
+
+%p Use the button below to access Superset.  Apache Superset is a business inteligence tool where you can create charts and reports based on data available in the warehouse.  Please note, at this time, user access control is not imposed on access to the data in Superset, and therefore only users with access to the full data warehouse should be granted access to this report.
+
+:ruby
+  fqdn = ENV.fetch("FQDN", "warehouse.openpath.host")
+  tokens = fqdn.split('.')
+  tokens = [tokens[0], 'superset', tokens[1..]].flatten
+  superset_fqdn = 'https://' + ENV.fetch('SUPERSET_FQDN', tokens.join('.'))
+
+.d-flex
+  .ml-auto.mr-auto
+    = link_to superset_fqdn, class: 'btn btn-primary', target: :_blank do
+      Launch to Superset
