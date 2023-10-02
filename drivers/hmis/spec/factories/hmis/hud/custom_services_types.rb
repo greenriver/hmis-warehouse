@@ -20,6 +20,9 @@ FactoryBot.define do
     name { 'Rental Assistance' }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
+
+    hud_record_type { 200 }
+    hud_type_provided { 200 }
   end
 
   factory :hmis_hud_custom_service_type, class: 'Hmis::Hud::CustomServiceType' do
