@@ -307,7 +307,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Run if we changed name/DOB/SSN
   private def warehouse_match_existing_clients
     return unless warehouse_columns_changed?
-    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('match_existing!').exists?
+    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::IdentifyDuplicates', 'match_existing!'])
 
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
   end
