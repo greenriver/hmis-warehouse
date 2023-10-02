@@ -24,11 +24,12 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
 
   private def warehouse_trigger_processing
     return unless warehouse_columns_changed?
-    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!'])
 
     # NOTE: we only really need to do this for SO at the moment, but this is future-proofing against
     # pre-processing CLS in other enrollments
     enrollment.invalidate_processing!
+    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!'])
+
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
   end
 
