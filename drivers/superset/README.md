@@ -1,3 +1,3 @@
-## Superset README
+## Superset
 
-This README file should be used to explain the functionality of the driver.
+A very simple wrapper for a report that can be assigned to users so they can launch Superset from within the warehouse.
