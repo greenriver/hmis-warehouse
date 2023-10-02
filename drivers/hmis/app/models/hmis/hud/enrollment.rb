@@ -366,6 +366,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   private def warehouse_trigger_processing
     return unless warehouse_columns_changed?
+    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment').jobs_for_class('batch_process_unprocessed!').exists?
 
     invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!

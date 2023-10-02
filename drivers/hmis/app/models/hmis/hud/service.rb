@@ -34,6 +34,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
 
   private def warehouse_trigger_processing
     return unless warehouse_columns_changed?
+    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment').jobs_for_class('batch_process_unprocessed!').exists?
 
     # NOTE: we only really need to do this for bed-nights at the moment, but this is future-proofing against
     # pre-processing all services

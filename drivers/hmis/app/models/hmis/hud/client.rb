@@ -307,12 +307,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Run if we changed name/DOB/SSN
   private def warehouse_match_existing_clients
     return unless warehouse_columns_changed?
+    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('match_existing!').exists?
 
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
   end
 
   # Run when we add a new client to the system
   private def warehouse_identify_duplicate_clients
+    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').exists?
+
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
   end
 
