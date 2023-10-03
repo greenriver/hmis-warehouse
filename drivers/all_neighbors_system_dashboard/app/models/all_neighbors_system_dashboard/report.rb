@@ -72,7 +72,7 @@ module AllNeighborsSystemDashboard
           # inherit move_in_date from hoh enrollment
           move_in_date = enrollment.move_in_date || hoh_enrollment.move_in_date
           # invalidate move_in_date if it's after the report end_date
-          move_in_date = nil if move_in_date > filter.end_date
+          move_in_date = nil if move_in_date.present? && move_in_date > filter.end_date
 
           enrollments[enrollment.id] = Enrollment.new(
             report_id: id,

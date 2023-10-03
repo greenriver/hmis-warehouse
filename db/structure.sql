@@ -740,7 +740,9 @@ CREATE TABLE public.hmis_roles (
     can_manage_outgoing_referrals boolean DEFAULT false,
     can_manage_denied_referrals boolean DEFAULT false,
     can_enroll_clients boolean DEFAULT false,
-    can_view_open_enrollment_summary boolean DEFAULT false
+    can_view_open_enrollment_summary boolean DEFAULT false,
+    can_view_project boolean DEFAULT false,
+    can_view_hud_chronic_status boolean DEFAULT false
 );
 
 
@@ -1710,6 +1712,41 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 
 
 --
+-- Name: task_queues; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.task_queues (
+    id bigint NOT NULL,
+    task_key character varying,
+    active boolean DEFAULT true NOT NULL,
+    queued_at timestamp without time zone,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: task_queues_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.task_queues_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: task_queues_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.task_queues_id_seq OWNED BY public.task_queues.id;
+
+
+--
 -- Name: tokens; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1807,6 +1844,39 @@ CREATE SEQUENCE public.translation_texts_id_seq
 --
 
 ALTER SEQUENCE public.translation_texts_id_seq OWNED BY public.translation_texts.id;
+
+
+--
+-- Name: translations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.translations (
+    id bigint NOT NULL,
+    key character varying,
+    text character varying,
+    common boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: translations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.translations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: translations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.translations_id_seq OWNED BY public.translations.id;
 
 
 --
@@ -2466,6 +2536,13 @@ ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id
 
 
 --
+-- Name: task_queues id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.task_queues ALTER COLUMN id SET DEFAULT nextval('public.task_queues_id_seq'::regclass);
+
+
+--
 -- Name: tokens id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2484,6 +2561,13 @@ ALTER TABLE ONLY public.translation_keys ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.translation_texts ALTER COLUMN id SET DEFAULT nextval('public.translation_texts_id_seq'::regclass);
+
+
+--
+-- Name: translations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations ALTER COLUMN id SET DEFAULT nextval('public.translations_id_seq'::regclass);
 
 
 --
@@ -2886,6 +2970,14 @@ ALTER TABLE ONLY public.tags
 
 
 --
+-- Name: task_queues task_queues_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.task_queues
+    ADD CONSTRAINT task_queues_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: tokens tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2907,6 +2999,14 @@ ALTER TABLE ONLY public.translation_keys
 
 ALTER TABLE ONLY public.translation_texts
     ADD CONSTRAINT translation_texts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: translations translations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations
+    ADD CONSTRAINT translations_pkey PRIMARY KEY (id);
 
 
 --
@@ -3444,6 +3544,13 @@ CREATE INDEX index_translation_texts_on_translation_key_id ON public.translation
 
 
 --
+-- Name: index_translations_on_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_translations_on_key ON public.translations USING btree (key);
+
+
+--
 -- Name: index_two_factors_memorized_devices_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3931,6 +4038,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230730021030'),
 ('20230807121912'),
 ('20230807142127'),
-('20230807193335');
+('20230807193335'),
+('20230910175113'),
+('20230910175333'),
+('20230910180118'),
+('20230916124819'),
+('20230918231940'),
+('20230923000619'),
+('20230927131152');
 
 

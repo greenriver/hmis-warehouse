@@ -39,7 +39,7 @@ module AllNeighborsSystemDashboard
     end
 
     def housed_count
-      @housed_count ||= report_enrollments_enrollment_scope.housed.count
+      @housed_count ||= report_enrollments_enrollment_scope.housed.distinct.select(:destination_client_id).count
     end
 
     def average_days_to_obtain_housing
@@ -55,8 +55,10 @@ module AllNeighborsSystemDashboard
     end
 
     def no_return_percent
-      # housed_count.to_f / report_enrollments_enrollment_scope.returned.
-      '50%' # FIXME
+      return 0 if housed_count.zero?
+
+      percent = ((report_enrollments_enrollment_scope.returned.select(:destination_client_id).count / housed_count.to_f) * 100).round
+      "#{percent}%"
     end
   end
 end
