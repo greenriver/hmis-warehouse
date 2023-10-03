@@ -76,7 +76,7 @@ module AllNeighborsSystemDashboard
 
           enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
-            client_id: enrollment.client_id,
+            destination_client_id: enrollment.client_id,
             household_id: enrollment.household_id,
             household_type: household_type(enrollment),
             prior_living_situation_category: prior_living_situation_category(hoh_enrollment),
