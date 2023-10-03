@@ -123,7 +123,7 @@ module HmisCsvTwentyTwentyFour::Importer
         GenderNone: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HudUtility2024.no_yes_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility2024.race_gender_none_options.keys.map(&:to_s).freeze },
           },
         ],
         AmIndAKNative: [
