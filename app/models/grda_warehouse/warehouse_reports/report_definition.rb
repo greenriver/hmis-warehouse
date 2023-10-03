@@ -1355,6 +1355,7 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/hud/not_one_hohs',
         'warehouse_reports/hud/incorrect_move_in_dates',
         'warehouse_reports/tableau_dashboard_export',
+        'warehouse_reports/youth_intakes',
       ]
       cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)

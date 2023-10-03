@@ -4,6 +4,8 @@
   = render 'menus/health'
   = render 'menus/admin'
   = render 'menus/admin_dashboard'
+  - if HmisEnforcement.hmis_enabled?
+    = render 'hmis/menus/hmis'
   = render 'menus/accounts'
   = render 'menus/help'
   = render 'menus/links'

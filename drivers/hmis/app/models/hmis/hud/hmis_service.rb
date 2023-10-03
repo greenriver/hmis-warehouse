@@ -44,12 +44,8 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     e_t = Hmis::Hud::Enrollment.arel_table
     hs_t = Hmis::Hud::HmisService.arel_table
 
-    enrollments = Hmis::Hud::Enrollment.viewable_by(user).
-      where(
-        e_t[:EnrollmentID].eq(hs_t[:EnrollmentID]).and(
-          e_t[:data_source_id].eq(hs_t[:data_source_id]),
-        ),
-      )
+    cond = e_t[:EnrollmentID].eq(hs_t[:EnrollmentID]).and(e_t[:data_source_id].eq(hs_t[:data_source_id]))
+    enrollments = Hmis::Hud::Enrollment.viewable_by(user).where(cond)
     where(enrollments.arel.exists)
   end
 
