@@ -11,6 +11,13 @@ module AllNeighborsSystemDashboard
       (@start_date.year .. @end_date.year).to_a
     end
 
+    def label_color(background_color)
+      return '#FFFFFF' if background_color.blank?
+
+      colors = GrdaWarehouse::SystemColor.new
+      colors.calculated_foreground_color(background_color)
+    end
+
     def project_types
       [
         'All',

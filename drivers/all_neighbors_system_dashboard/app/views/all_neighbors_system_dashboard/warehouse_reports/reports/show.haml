@@ -10,11 +10,9 @@
   end_date = DateTime.current.beginning_of_month
   all_data = AllNeighborsSystemDashboard::FakeData.new(start_date, end_date)
 
-
-
 - content_for :full_width_banner do
   .all-neighbors__dashboard
-    %h1 REAL Time Rehousing Initiative Community Dashboard
+    %h1 Community Dashboard
     .row.mt-5{class: css_namespace('all', 'summary')}
       - all_data.header_data.each_with_index do |d, i|
         - size = 4
@@ -36,4 +34,3 @@
         - pane_classes += ['js-first']
       %div{class: pane_classes, id: tab[:id], role: 'tabpanel', aria: {labelledby: "#{tab[:id]}_tab"}}
         = render tab[:id], tab: tab
-

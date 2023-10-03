@@ -61,11 +61,13 @@ module AllNeighborsSystemDashboard
 
       def exit_date(filter, enrollment)
         date = enrollment.exit_date
+        # ignore any exit date after the report end
         return nil if date.present? && date > filter.end_date
 
         date
       end
 
+      # Exit date if it occurs before the end of the report, or report end date
       def adjusted_exit_date(filter, enrollment)
         [
           enrollment.exit_date,
@@ -73,7 +75,10 @@ module AllNeighborsSystemDashboard
         ].compact.min
       end
 
-      def exit_type(enrollment)
+      def exit_type(filter, enrollment)
+        # Don't admin any exit types, unless we have an exit before report end
+        return nil unless exit_date(filter, enrollment).present?
+
         case enrollment.destination
         when nil
           nil

@@ -79,7 +79,7 @@ module AllNeighborsSystemDashboard
             move_in_date: enrollment.move_in_date,
             exit_date: exit_date(filter, enrollment),
             adjusted_exit_date: adjusted_exit_date(filter, enrollment),
-            exit_type: exit_type(enrollment),
+            exit_type: exit_type(filter, enrollment),
             destination: enrollment.destination,
             destination_text: HudUtility.destination(enrollment.destination),
             relationship: relationship(source_enrollment),
