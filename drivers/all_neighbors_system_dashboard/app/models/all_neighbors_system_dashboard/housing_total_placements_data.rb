@@ -5,6 +5,7 @@ module AllNeighborsSystemDashboard
       {
         title: title,
         id: id,
+        quarters: quarter_range,
         project_types: project_types.map do |project_type|
           {
             project_type: project_type,
@@ -15,9 +16,10 @@ module AllNeighborsSystemDashboard
               label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
             },
             count_levels: count_levels.map do |count_level|
+              opts = options[:include_project_type] ? options.merge(project_type: project_type) : options
               {
                 count_level: count_level,
-                series: send(type, options.merge(project_type: project_type)),
+                series: send(type, opts),
               }
             end,
           }
@@ -25,8 +27,23 @@ module AllNeighborsSystemDashboard
       }
     end
 
-    def line(_options)
-      date_range.map { |date| [date.strftime('%Y-%-m-%-d'), rand(10..1500)] }
+    def line_data
+      data(
+        'Total Placements',
+        'total_placements',
+        :line,
+        options: {
+          types: ['Total Placements'],
+          colors: ['#832C5A'],
+          label_colors: ['#000000'],
+        },
+      )
+    end
+
+    def line(options)
+      (options[:types] || []).map do |_|
+        super(date_range, options)
+      end
     end
 
     def donut_data
@@ -36,6 +53,7 @@ module AllNeighborsSystemDashboard
           'project_type',
           :donut,
           options: {
+            include_project_type: true,
             fake_data: true,
             types: project_types.reject { |type| type == 'All' },
             colors: project_type_colors,
@@ -77,7 +95,29 @@ module AllNeighborsSystemDashboard
         'racial_composition',
         :stack,
         options: {
+          include_project_type: true,
           bars: ['Unhoused Population 2023 *', 'Overall Population (Census 2020)'],
+          types: demographic_race,
+          colors: demographic_race_colors,
+          label_colors: demographic_race.map { |_| '#ffffff' },
+        },
+      )
+    end
+
+    def internal_stacked_data
+      return data(
+        'Racial Composition',
+        'racial_composition',
+        :stack,
+        options: {
+          bars: [
+            'Homeless Services',
+            'Coordinated Access System',
+            'Rapid Rehousing',
+            'Emergency Housing Voucher',
+            'Unhoused Population 2023 *',
+            'Overall Population (Census 2020)',
+          ],
           types: demographic_race,
           colors: demographic_race_colors,
           label_colors: demographic_race.map { |_| '#ffffff' },

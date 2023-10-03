@@ -183,6 +183,24 @@ module AllNeighborsSystemDashboard
       name.gsub(/[^a-zA-Z0-9 -]/, '').gsub(' ', '_')
     end
 
+    def quarter_range
+      quarters = []
+      current_quarter = @start_date.beginning_of_quarter
+      while current_quarter < @end_date
+        quarters.push(
+          {
+            name: "Q#{(current_quarter.month / 3.0).ceil} #{current_quarter.year}",
+            range: [
+              current_quarter.strftime('%Y-%-m-%-d'),
+              current_quarter.end_of_quarter.strftime('%Y-%-m-%-d'),
+            ],
+          },
+        )
+        current_quarter += 3.months
+      end
+      quarters
+    end
+
     def date_range
       date_range = []
       current_date = @start_date
@@ -202,6 +220,17 @@ module AllNeighborsSystemDashboard
         current_date += 1.year
       end
       years
+    end
+
+    def line(range, options)
+      random = options[:range] || [0, 1500]
+      range.map do |date|
+        if date.is_a? DateTime
+          [date.strftime('%Y-%-m-%-d'), rand(random[0]..random[1])]
+        else
+          [date[:range][0], rand(random[0]..random[1])]
+        end
+      end
     end
 
     def donut(options)

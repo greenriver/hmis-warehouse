@@ -15,7 +15,6 @@
   }
 }
 
-
 h2.all-neighbors__all__tab_name {
   font-family: "Open Sans";
   font-weight: normal;
@@ -118,7 +117,8 @@ h2.all-neighbors__all__tab_name {
 #all-neighbors__returns_to_homelessness__bar__chart .bb-axis .domain,
 #all-neighbors__returns_to_homelessness__bar__chart .bb-axis .tick line,
 .all-neighbors__all__stacked .bb-axis-x .domain,
-.all-neighbors__all__stacked .bb-axis-x .tick line {
+.all-neighbors__all__stacked .bb-axis-x .tick line,
+#all-neighbors__time_to_obtain_housing__scatter__chart .tick line {
   display: none;
 }
 
@@ -161,4 +161,23 @@ h2.all-neighbors__all__tab_name {
 .all-neighbors__returns_to_homelessness__table_toggle:hover {
   color: rgba(0, 0, 0, 0.87);
   font-size: 1.15rem;
+}
+
+#all-neighbors__time_to_obtain_housing__scatter__chart.bb svg text{
+  font-size: 0.9rem;
+  fill: rgba(0, 0, 0, 0.60);
+}
+
+#all-neighbors__time_to_obtain_housing__scatter__chart .domain {
+  stroke: rgba(0, 0, 0, 0.38);
+}
+
+#all-neighbors__time_to_obtain_housing__scatter__chart.bb svg .bb-axis-y-label,
+#all-neighbors__time_to_obtain_housing__scatter__chart.bb svg .bb-axis-x-label {
+  fill: #000000;
+}
+
+.all-neighbors__time_to_obtain_housing__scatter__chart__mean-label {
+  font-size: 14px;
+  fill: rgba(0, 0, 0, 0.60);
 }

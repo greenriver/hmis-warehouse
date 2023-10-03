@@ -10,51 +10,63 @@ class AllNeighborsSystemDashboardLine {
   init() {
     this.projectType = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
     this.countLevel = (this.projectType.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
-    this.series = this.countLevel.series || []
+    this.householdType = (this.projectType.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
+    this.demographic = (this.householdType.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
+    this.series = this.countLevel.series || this.demographic.series || []
+    this.config = this.projectType.config || {}
+    this.quarters = this.data.quarters || []
   }
 
   test() {
     console.log(this)
   }
 
-  getColumns(name) {
-    let cols = [name]
-    this.series.forEach((d) => {
-      const [year, month, day] = d[0].split('-')
-      const date = Date.parse(new Date(year, month, day))
-      const [s, e] = this.state.dateRange
-      if(date >= s && date <= e) {
-        const [x, y] = d
-        cols.push(name === "x" ? x : y)
+  getColumns() {
+    let xCols = ['x']
+    let keyCols = (this.config.keys || []).map((key, i) => {
+      let cols = [key]
+      this.series[i].forEach((d) => {
+        const [year, month, day] = d[0].split('-')
+        const date = Date.parse(new Date(year, month, day))
+        const [s, e] = this.state.dateRange
+        if(date >= s && date <= e) {
+          const [x, y] = d
+          if(xCols.indexOf(x) === -1) {
+            xCols.push(x)
+          }
+          cols.push(y)
+        }
+      })
+      return cols
+    })
+    return [xCols].concat(keyCols)
+  }
+
+  getDataConfig() {
+    return {
+      x: "x",
+      columns: this.getColumns(),
+      type: 'line',
+      colors: this.config.colors,
+      names: this.config.names,
+    }
+  }
+
+  getAxisConfig() {
+    return {
+      x: {
+        type: "timeseries",
+        tick: {
+          format: this.xAxisFormat.bind(this),
+        },
+        clipPath: false,
       }
-    })
-    return cols
+    }
   }
 
-  redraw(state) {
-    this.state = state
-    this.init()
-    this.chart.load({
-      columns: [
-        this.getColumns("x"),
-        this.getColumns("total")
-      ],
-    })
-  }
-
-  draw() {
-    this.chart = bb.generate({
-      data: {
-        x: "x",
-        columns: [this.getColumns("x"), this.getColumns("total")],
-        type: 'line',
-        colors: {
-          total: "#832C5A",
-        },
-        names: {
-          total: "Total Placements"
-        },
-      },
+  getConfig(names) {
+    return {
+      data: this.getDataConfig(),
       grid: {
         y: {
           show: true
@@ -63,32 +75,211 @@ class AllNeighborsSystemDashboardLine {
       padding: {
         left: 50,
         top: 10,
-        right: 0,
+        right: 25,
         bottom:0,
       },
-      axis: {
-        x: {
-          type: "timeseries",
-          tick: {
-            format: function(d) {
-              var names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
-              var month = names[d.getMonth()]
-              var year = d.getFullYear()
-              return month + ' ' + year
-            }
-          }
-        }
-      },
+      axis: this.getAxisConfig(),
       legend: {
         contents: {
           bindto: this.options.legend.selector,
           template: (title, color) => {
             const swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
-            return `<div class="d-flex pr-4">${swatch}<div class="chart-legend-item-label-prs1">Total Placements</div></div>`;
+            return `<div class="d-flex pr-4">${swatch}<div class="chart-legend-item-label-prs1">${this.config.names[title]}</div></div>`;
           },
         },
       },
       bindto: this.selector
+    }
+  }
+
+  xAxisFormat(d) {
+    return d.toLocaleDateString('en-us', {year: 'numeric', month: 'short'})
+  }
+
+  redraw(state) {
+    this.state = state
+    this.init()
+    this.chart.load({
+      columns: this.getColumns(),
     })
   }
+
+  draw() {
+    this.chart = bb.generate(this.getConfig())
+  }
+}
+
+class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine {
+  constructor(data, initialState, selector, options) {
+    super(data, initialState, selector, options)
+  }
+
+  getColumns() {
+    let allCols = []
+    let keyCols = (this.config.keys || []).forEach((key, i) => {
+      let cols = [key]
+      let xCols = [`${key}_x`]
+      this.series[i].forEach((d) => {
+        const [year, month, day] = d[0].split('-')
+        const date = Date.parse(new Date(year, month, day))
+        const [s, e] = this.state.dateRange
+        if(date >= s && date <= e) {
+          const [w, x, y] = d
+          xCols.push(x)
+          cols.push(y)
+        }
+      })
+      allCols.push(xCols)
+      allCols.push(cols)
+    })
+    return allCols
+  }
+
+  getDataConfig() {
+    let xs = {};
+    let dataTypes = {};
+    (this.config.keys || []).forEach((key) => {
+      xs[key] = `${key}_x`
+    })
+
+    return {
+      xs: xs,
+      columns: this.getColumns(),
+      type: 'scatter',
+      colors: this.config.colors,
+      names: this.config.names,
+    }
+  }
+
+  getConfig() {
+    const classOptions = this.options
+    const classConfig = this.config
+    const config = {
+      padding: {
+        right: 20,
+      },
+      axis: {
+        x: {
+          min: 0,
+          tick: {
+            fit: false
+          },
+          label: {
+            text: 'Number of Households Moved-In',
+            position: 'outer-center',
+          }
+        },
+        y: {
+          min: 0,
+          // tick: {
+          //   fit: false
+          // },
+          label: {
+            text: 'Average Days',
+            position: 'outer-middle',
+          }
+        }
+      },
+      grid: {
+        y: {
+          show: false,
+        },
+      },
+      point: {
+        opacity: 1,
+        r: 9,
+        pattern: Object.values(this.config.shapes).map((shape) => {
+          if(shape === 'triangle') {
+            return "<polygon points='7.5,0 0,15 15,15'></polygon>"
+          } else {
+            return shape
+          }
+        })
+      },
+      onrendered: function() {
+        const selector = this.config().bindto
+        // total move in label
+        let totals = d3.sum(this.data(), (d) => d3.sum(d.values, (n) => n.x))
+        $(`${classOptions.total.selector}`).text(d3.format(',')(totals))
+        // average day line and text
+        const chartEleId = d3.select(selector).attr('id')
+        let mean = d3.mean(this.data().map((d) => d.values.map((n) => n.value)).flat())
+        const scale = this.internal.scale
+        const container = d3.select(`${selector} .bb-chart-circles`)
+        container.selectAll(`line.${chartEleId}__mean`)
+          .data([mean])
+          .join('line')
+            .attr('class', `${chartEleId}__mean`)
+            .attr('x1', 0)
+            .attr('y1', (d) => scale.y(d))
+            .attr('x2', scale.x(scale.x.domain()[1]))
+            .attr('y2', (d) => scale.y(d))
+            .style('stroke', 'rgba(0, 0, 0, 0.38)')
+        
+        container.selectAll(`text.${chartEleId}__mean-label`)
+          .data([mean])
+          .join('text')
+            .attr('class', `${chartEleId}__mean-label`)
+            .attr('text-anchor', 'end')
+            .attr('x', scale.x(scale.x.domain()[1]))
+            .attr('y', (d) => scale.y(d)-10)
+            .attr('stroke-width', '2px')
+            .text((d) => {
+              return `Overall Average: ${d3.format('.0f')(d)} Days`
+            })
+        
+        // shapes with opacity fill and stroke
+        const shapes = d3.selectAll(`${selector} .bb-shape`)
+        shapes.each(function(d) {
+          const shape = d3.select(this)
+          const fill = shape.style('fill')
+          const color = d3.rgb(fill)
+          color.opacity = 0.5
+          shape.style('fill', color.toString())
+
+        })
+      }
+    }
+    return {...super.getConfig(), ...config}
+  }
+}
+
+class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboardLine {
+  constructor(data, initialState, selector, options) {
+    super(data, initialState, selector, options)
+  }
+
+  getDataConfig() {
+    return {...super.getDataConfig(), ...{type: 'scatter'}}
+  }
+
+  xAxisFormat(d) {
+    const quarter = this.quarters.find((q) => {
+      const [s, e] = q.range.map((r) => {
+        const [year, month, day] = r.split('-')
+        return new Date(year, month, day)
+      })
+      return d >= s && d <= e
+    })
+    return quarter ? quarter.name : d.toLocaleDateString('en-us', {year: 'numeric', month: 'short'})
+  }
+
+  getConfig() {
+    const classConfig = this.config
+    const config = {
+      point: {
+        opacity: 1,
+        r: 7.5,
+        pattern: Object.values(this.config.shapes).map((shape) => {
+          if(shape === 'triangle') {
+            return "<polygon points='7.5,0 0,15 15,15'></polygon>"
+          } else {
+            return shape
+          }
+        })
+      },
+    }
+    return {...super.getConfig(), ...config}
+  }
+
 }

@@ -35,5 +35,6 @@
       - if i == 0
         - pane_classes += ['js-first']
       %div{class: pane_classes, id: tab[:id], role: 'tabpanel', aria: {labelledby: "#{tab[:id]}_tab"}}
-        = render tab[:id], tab: tab
+        - partial = @internal ? "internal/#{tab[:id]}" : tab[:id]
+        = render render_path(partial), tab: tab
 

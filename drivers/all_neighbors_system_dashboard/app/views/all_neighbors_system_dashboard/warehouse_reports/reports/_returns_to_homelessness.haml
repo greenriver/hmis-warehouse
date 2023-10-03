@@ -5,7 +5,7 @@
 - chart_data = all_data.stacked_data
 - stacked_ids = chart_data.map { |d| chart_id(tab[:id], "stacked_#{d[:id]}") }
 
-%h2{class: css_namespace('all', 'tab_name')} Returns To Homelessness
+%h2{class: css_namespace('all', 'tab_name')}= tab[:name]
 .border.my-7
   .pt-6.px-5.border-bottom
     .d-flex.justify-content-between
