@@ -15,6 +15,16 @@ module AllNeighborsSystemDashboard
     has_one :source_project, through: :source_enrollment, class_name: 'GrdaWarehouse::Hud::Project'
     has_many :events
 
+    # exit_type is 'Permanent' or move-in date is present
+    scope :housed, -> do
+      where(exit_type: 'Permanent').
+        or(where.not(move_in_date: nil))
+    end
+
+    scope :returned, -> do
+      where.not(return_date: nil)
+    end
+
     def intervention
       case project_type
       when 9

@@ -69,14 +69,20 @@ module AllNeighborsSystemDashboard
           hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household&.enrollment || source_enrollment
           ce_info = ce_infos[enrollment.id]
           max_event = ce_info&.ce_event&.max_by(&:event_date)
+          # inherit move_in_date from hoh enrollment
+          move_in_date = enrollment.move_in_date || hoh_enrollment.move_in_date
+          # invalidate move_in_date if it's after the report end_date
+          move_in_date = nil if move_in_date > filter.end_date
+
           enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
+            client_id: enrollment.client_id,
             household_id: enrollment.household_id,
             household_type: household_type(enrollment),
             prior_living_situation_category: prior_living_situation_category(hoh_enrollment),
             enrollment_id: source_enrollment.enrollment_id,
             entry_date: enrollment.first_date_in_program,
-            move_in_date: enrollment.move_in_date,
+            move_in_date: move_in_date,
             exit_date: exit_date(filter, enrollment),
             adjusted_exit_date: adjusted_exit_date(filter, enrollment),
             exit_type: exit_type(filter, enrollment),

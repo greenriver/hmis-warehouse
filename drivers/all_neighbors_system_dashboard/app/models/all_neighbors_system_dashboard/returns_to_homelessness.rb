@@ -2,7 +2,6 @@ module AllNeighborsSystemDashboard
   class ReturnsToHomelessness < DashboardData
     def initialize(...)
       super
-      @enrollment_data ||= @report.enrollment_data
       @enrollments_in_range ||= {}
     end
 
@@ -64,7 +63,7 @@ module AllNeighborsSystemDashboard
 
     def stack_value(date, bar, demographic, label)
       year_range = date.beginning_of_year .. date.end_of_year
-      enrollments_in_range = @enrollments_in_range[year_range] ||= @enrollment_data.select { |enrollment| enrollment.exit_date.present? && date.in?(year_range) }
+      enrollments_in_range = @enrollments_in_range[year_range] ||= @report.enrollment_data.select { |enrollment| enrollment.exit_date.present? && date.in?(year_range) }
       enrollments = case bar
       when 'Exited*'
         enrollments_in_range.select { |enrollment| enrollment.exit_type == 'Permanent' }
@@ -104,7 +103,7 @@ module AllNeighborsSystemDashboard
 
     def bars
       cohort_keys = years.map { |year| "#{year} Cohort" }
-      exited_enrollments = @enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' }
+      exited_enrollments = @report.enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' }
       exited_counts = exited_enrollments.group_by { |enrollment| enrollment.exit_date.year }.transform_values!(&:count)
       returned_enrollments = exited_enrollments.select { |enrollment| enrollment.return_date.present? && enrollment.return_date <= enrollment.exit_date + 1.year }
       returned_counts = returned_enrollments.group_by { |enrollment| enrollment.exit_date.year }.transform_values!(&:count)

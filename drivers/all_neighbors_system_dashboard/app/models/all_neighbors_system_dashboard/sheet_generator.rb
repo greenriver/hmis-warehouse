@@ -45,7 +45,7 @@ module AllNeighborsSystemDashboard
               project_name: 'Program Name',
               project_type: 'Program Type INT',
             },
-            enrollment_data,
+            @report.enrollment_data,
           ],
           'CE Events' => [
             {

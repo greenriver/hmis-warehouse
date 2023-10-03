@@ -1,15 +1,5 @@
-:ruby
-  tabs = [
-    {name: 'Housing Placements'},
-    {name: 'Time To Obtain Housing'},
-    {name: 'Returns To Homelessness'},
-    {name: 'Unhoused Population'}
-  ].map{|tab| tab.merge({id: tab[:name].gsub(' ', '').underscore})}
-
-  start_date = (DateTime.current - 3.years).beginning_of_month
-  end_date = DateTime.current.beginning_of_month
-  all_data = AllNeighborsSystemDashboard::FakeData.new(start_date, end_date)
-
+- all_data = AllNeighborsSystemDashboard::Header.new(@report)
+- tabs = all_data.tabs
 - content_for :full_width_banner do
   .all-neighbors__dashboard
     %h1 Community Dashboard
@@ -23,7 +13,8 @@
             %div.pr-3{class: css_namespace('all', 'summary_icon')}
               %i{class: d[:icon]}
             %div
-              %div{class: css_namespace('all', 'summary_value')}= d[:value]
+              - display_value = if d[:display_method] then send(d[:display_method], d[:value]) else d[:value] end
+              %div{class: css_namespace('all', 'summary_value')}= display_value
               %div{class: css_namespace('all', 'summary_name')}= d[:name]
 .all-neighbors__dashboard
   .mb-7= render 'tabs', tabs: tabs

@@ -1,5 +1,5 @@
 module AllNeighborsSystemDashboard
-  class HousingTotalPlacementsData < FakeData
+  class HousingTotalPlacementsData < DashboardData
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
       {
@@ -26,7 +26,31 @@ module AllNeighborsSystemDashboard
     end
 
     def line(_options)
-      date_range.map { |date| [date.strftime('%Y-%-m-%-d'), rand(10..1500)] }
+      # raise options.inspect
+      # {:project_type=>"All"}
+      date_range.map do |date|
+        [
+          date.strftime('%Y-%-m-%-d'),
+          1_500,
+        ]
+      end # FIXME
+    end
+
+    def donut(options)
+      project_type = options[:project_type] || options[:homelessness_status]
+      options[:types].map do |type|
+        # FIXME
+        value = options[:fake_data] && project_type != 'All' && type != project_type ? 0 : 1_500 # FIXME
+        {
+          name: type,
+          series: date_range.map do |date|
+            {
+              date: date.strftime('%Y-%-m-%-d'),
+              values: [value],
+            }
+          end,
+        }
+      end
     end
 
     def donut_data
@@ -36,7 +60,6 @@ module AllNeighborsSystemDashboard
           'project_type',
           :donut,
           options: {
-            fake_data: true,
             types: project_types.reject { |type| type == 'All' },
             colors: project_type_colors,
           },
@@ -69,6 +92,24 @@ module AllNeighborsSystemDashboard
           },
         ),
       ]
+    end
+
+    def stack(options)
+      project_type = options[:project_type]
+      homelessness_status = options[:homelessness_status]
+      bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
+      bars[0] = "#{homelessness_status} #{bars[0]}" if homelessness_status.present?
+      bars.map do |bar|
+        {
+          name: bar,
+          series: date_range.map do |date|
+            {
+              date: date.strftime('%Y-%-m-%-d'),
+              values: options[:types].map { |_| 1_500 }, # FIXME
+            }
+          end,
+        }
+      end
     end
 
     def stacked_data

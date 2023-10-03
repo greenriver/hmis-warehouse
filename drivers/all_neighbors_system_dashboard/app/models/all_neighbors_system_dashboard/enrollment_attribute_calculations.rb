@@ -27,9 +27,46 @@ module AllNeighborsSystemDashboard
         14 => 446, # Referral to PSH project resource opening
         15 => 447, # Referral to Other PH project/unit/resource opening
         # 16 => 'Referral to emergency assistance/flex fund/furniture assistance',
-        17 => 1114, # Referral to Emergency Housing Voucher (EHV)
+        17 => 11314, # Referral to Emergency Housing Voucher (EHV)
         # 18 => # Referral to a Housing Stability Voucher
       }.freeze
+
+      SHELTERED_SITUATIONS = [
+        101,
+        118,
+        302,
+      ].freeze
+
+      UNSHELTERED_SITUATIONS = [
+        116,
+      ].freeze
+
+      UNKNOWN_SITUATIONS = [
+        30,
+        17,
+        37,
+        8,
+        9,
+        99,
+      ].freeze
+
+      DECEASED_SITUATIONS = [
+        24,
+      ].freeze
+
+      UNKNOWN_DESTINATIONS = [
+        30,
+        17,
+        8,
+        9,
+        99,
+      ].freeze
+
+      EXCLUDEABLE_DESTINATIONS = [
+        206,
+        24,
+        215,
+      ].freeze
 
       def household_type(enrollment)
         return 'Children Only' if enrollment.children_only?
@@ -42,17 +79,17 @@ module AllNeighborsSystemDashboard
 
       def prior_living_situation_category(enrollment)
         case enrollment.living_situation
-        when 30, 17, 37, 8, 9, 99
+        when *UNKNOWN_SITUATIONS
           'Unknown'
-        when 16
+        when *UNSHELTERED_SITUATIONS
           'Unsheltered'
-        when 1, 18, 2
+        when *SHELTERED_SITUATIONS
           'Sheltered'
-        when 15, 6, 7, 25, 4, 5
+        when HudUtility2024::SITUATION_INSTITUTIONAL_RANGE
           'Institutional'
-        when 29, 14, 32, 13, 27, 12, 22, 35, 36, 23, 26, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11
+        when HudUtility2024::SITUATION_TEMPORARY_RANGE, HudUtility2024::SITUATION_PERMANENT_RANGE
           'Housed'
-        when 24
+        when *DECEASED_SITUATIONS
           'Deceased'
         else
           'ERROR'
@@ -82,11 +119,11 @@ module AllNeighborsSystemDashboard
         case enrollment.destination
         when nil
           nil
-        when 26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34
+        when HudUtility2024::SITUATION_PERMANENT_RANGE
           'Permanent'
-        when 6, 24, 15
+        when *EXCLUDEABLE_DESTINATIONS
           'Excludable'
-        when 8, 9, 99, 30, 17
+        when *UNKNOWN_DESTINATIONS
           'Unknown'
         else
           'Non-Permanent'
@@ -160,22 +197,21 @@ module AllNeighborsSystemDashboard
         exited_enrollments = batch.
           select do |enrollment|
           enrollment.exit_date.present? &&
-            enrollment.destination.in?([26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34]) # From SPM M2
+            enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE) # From SPM M2
         end.sort_by(&:exit_date).
           index_by(&:client_id) # Index by selects the last item, should be chronologically the last exit
 
-        # Find the any enrollments entered by the clients in the reporting range, pulls all enrollments, not just
-        # the ones in the batch.
+        # Find the any enrollments entered by the clients within the reporting period and the year after so we can find anyone who returned with a year of exiting
         enrollments_by_client = GrdaWarehouse::ServiceHistoryEnrollment.
           entry.
-          where(client_id: exited_enrollments.values.map(&:client_id), entry_date: filter.range).
+          where(client_id: exited_enrollments.values.map(&:client_id), entry_date: (filter.start_date .. filter.end_date + 1.years)).
           group_by(&:client_id)
 
         # Select the enrollments for the client that are candidates for return
         re_enrollments = enrollments_by_client.map do |client_id, enrollments|
-          exit_date = exited_enrollments[client_id].exit_date
+          housed_exit_date = exited_enrollments[client_id].exit_date
           re_enrollment = enrollments.sort_by(&:entry_date).detect do |enrollment|
-            candidate_for_return?(exit_date, enrollment)
+            candidate_for_return?(housed_exit_date, enrollment)
           end
           [client_id, re_enrollment] if re_enrollment.present? # Only include clients with candidates
         end.compact.to_h
@@ -193,16 +229,24 @@ module AllNeighborsSystemDashboard
 
       # To be a candidate for return, the entry must be at last 14 days after the exit, unless the
       # exit is from PH, in which case there doesn't need to be a gap.
-      private def candidate_for_return?(exit_date, enrollment)
-        enrollment.entry_date + 14.days >= exit_date ||
-          (enrollment.entry_date >= exit_date && !enrollment.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]))
+      # Additionally, the re-entry must be within 365 days of the exit
+      private def candidate_for_return?(housed_exit_date, enrollment)
+        re_entry_window_start = if enrollment.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
+          housed_exit_date
+        else
+          housed_exit_date + 14.days
+        end
+        re_entry_window = (re_entry_window_start .. re_entry_window_start + 1.years)
+        enrollment.entry_date.in?(re_entry_window)
       end
 
       def enrollment_data
-        # Source ProjectIDs are used in the report
-        project_ids_from_groups = GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids_from_secondary_project_groups).pluck(:project_id)
-        member_ids = universe.members.where(a_t[:project_id].in(project_ids_from_groups)).pluck(:universe_membership_id)
-        Enrollment.where(id: member_ids).to_a
+        @enrollment_data ||= begin
+          # Source ProjectIDs are used in the report
+          project_ids_from_groups = GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids_from_secondary_project_groups).pluck(:project_id)
+          member_ids = universe.members.where(a_t[:project_id].in(project_ids_from_groups)).select(:universe_membership_id)
+          Enrollment.where(id: member_ids).to_a
+        end
       end
     end
   end

@@ -1,10 +1,16 @@
 module AllNeighborsSystemDashboard
   class DashboardData
+    include ArelHelper
+
     def initialize(report)
       @report = report
       @filter = @report.filter
       @start_date = @filter.start_date.beginning_of_month
       @end_date = @filter.end_date.beginning_of_month
+    end
+
+    def report_enrollments_enrollment_scope
+      Enrollment.where(report_id: @report.id)
     end
 
     def years

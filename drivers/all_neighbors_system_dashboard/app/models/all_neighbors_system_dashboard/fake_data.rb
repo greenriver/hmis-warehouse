@@ -5,204 +5,181 @@ module AllNeighborsSystemDashboard
       @end_date = end_date.beginning_of_month
     end
 
-    def header_data
-      [
-        {
-          id: 'individuals_housed',
-          icon: 'icon-group-alt',
-          value: 1987,
-          name: 'Individuals Housed To-Date',
-        },
-        {
-          id: 'days_to_obtain_housing',
-          icon: 'icon-house',
-          value: 223,
-          name: 'Days to Obtain Housing',
-        },
-        {
-          id: 'no_return',
-          icon: 'icon-clip-board-check',
-          value: '87%',
-          name: 'Did not return to homelessness after 12 months',
-        },
-      ]
-    end
+    # def label_color(background_color)
+    #   colors = GrdaWarehouse::SystemColor.new
+    #   colors.calculated_foreground_color(background_color)
+    # end
 
-    def label_color(background_color)
-      colors = GrdaWarehouse::SystemColor.new
-      colors.calculated_foreground_color(background_color)
-    end
+    # def project_types
+    #   [
+    #     'All',
+    #     'Diversion',
+    #     'Permanent Supportive Housing',
+    #     'Rapid Rehousing',
+    #   ]
+    # end
 
-    def project_types
-      [
-        'All',
-        'Diversion',
-        'Permanent Supportive Housing',
-        'Rapid Rehousing',
-      ]
-    end
+    # def project_type_colors
+    #   [
+    #     '#E6B70F',
+    #     '#B2803F',
+    #     '#1865AB',
+    #   ]
+    # end
 
-    def project_type_colors
-      [
-        '#E6B70F',
-        '#B2803F',
-        '#1865AB',
-      ]
-    end
+    # def household_types
+    #   ['Adults Only', 'Adults and Children']
+    # end
 
-    def household_types
-      ['Adults Only', 'Adults and Children']
-    end
+    # def household_type_colors
+    #   ['#3B528B', '#ABBD2A']
+    # end
 
-    def household_type_colors
-      ['#3B528B', '#ABBD2A']
-    end
+    # def count_levels
+    #   [
+    #     'Individuals',
+    #     'Households',
+    #   ]
+    # end
 
-    def count_levels
-      [
-        'Individuals',
-        'Households',
-      ]
-    end
+    # def demographics
+    #   ['Race', 'Age', 'Gender', 'Household Type']
+    # end
 
-    def demographics
-      ['Race', 'Age', 'Gender', 'Household Type']
-    end
+    # def demographic_race
+    #   [
+    #     'African American, Black, or African',
+    #     'White',
+    #     'American Indian, Alaska Native, or Indigenous',
+    #     'Asian American or Asian',
+    #     'Multi-racial',
+    #     'Other or Unknown',
+    #     'Doesn’t Know',
+    #   ]
+    # end
 
-    def demographic_race
-      [
-        'African American, Black, or African',
-        'White',
-        'American Indian, Alaska Native, or Indigenous',
-        'Asian American or Asian',
-        'Multi-racial',
-        'Other or Unknown',
-        'Doesn’t Know',
-      ]
-    end
+    # def demographic_race_colors
+    #   [
+    #     '#516478',
+    #     '#6C987A',
+    #     '#5E98CE',
+    #     '#2D2D2D',
+    #     '#96A8AA',
+    #     '#9B5479',
+    #     '#C67269',
+    #   ]
+    # end
 
-    def demographic_race_colors
-      [
-        '#516478',
-        '#6C987A',
-        '#5E98CE',
-        '#2D2D2D',
-        '#96A8AA',
-        '#9B5479',
-        '#C67269',
-      ]
-    end
+    # def demographic_age
+    #   [
+    #     'Under 18',
+    #     '18 to 24',
+    #     '25 to 39',
+    #     '40 to 49',
+    #     '50 to 62',
+    #     'Over 63',
+    #     'Unknown',
+    #   ]
+    # end
 
-    def demographic_age
-      [
-        'Under 18',
-        '18 to 24',
-        '25 to 39',
-        '40 to 49',
-        '50 to 62',
-        'Over 63',
-        'Unknown',
-      ]
-    end
+    # def demographic_age_colors
+    #   [
+    #     '#F4DB00',
+    #     '#ABBD2A',
+    #     '#3F7341',
+    #     '#00B28A',
+    #     '#31688E',
+    #     '#002A92',
+    #     '#64007C',
+    #   ]
+    # end
 
-    def demographic_age_colors
-      [
-        '#F4DB00',
-        '#ABBD2A',
-        '#3F7341',
-        '#00B28A',
-        '#31688E',
-        '#002A92',
-        '#64007C',
-      ]
-    end
+    # def demographic_gender
+    #   [
+    #     'Female',
+    #     'Male',
+    #     'Transgender',
+    #     'Unknown',
+    #   ]
+    # end
 
-    def demographic_gender
-      [
-        'Female',
-        'Male',
-        'Transgender',
-        'Unknown',
-      ]
-    end
+    # def demographic_gender_colors
+    #   [
+    #     '#336770',
+    #     '#E6B70F',
+    #     '#6F4478',
+    #     '#7FABCA',
+    #   ]
+    # end
 
-    def demographic_gender_colors
-      [
-        '#336770',
-        '#E6B70F',
-        '#6F4478',
-        '#7FABCA',
-      ]
-    end
+    # def demographic_household_type
+    #   [
+    #     'Adults Only',
+    #     'Adults and Children',
+    #   ]
+    # end
 
-    def demographic_household_type
-      [
-        'Adults Only',
-        'Adults and Children',
-      ]
-    end
+    # def demographic_household_type_colors
+    #   household_type_colors
+    # end
 
-    def demographic_household_type_colors
-      household_type_colors
-    end
+    # def homeless_population_types
+    #   [
+    #     'Unsheltered',
+    #     'Emergency Shelter',
+    #     'Transitional Housing',
+    #     'Safe Haven',
+    #   ]
+    # end
 
-    def homeless_population_types
-      [
-        'Unsheltered',
-        'Emergency Shelter',
-        'Transitional Housing',
-        'Safe Haven',
-      ]
-    end
+    # def homeless_population_type_colors
+    #   [
+    #     '#336770',
+    #     '#E3D8B3',
+    #     '#C7B266',
+    #     '#9E7C02',
+    #   ]
+    # end
 
-    def homeless_population_type_colors
-      [
-        '#336770',
-        '#E3D8B3',
-        '#C7B266',
-        '#9E7C02',
-      ]
-    end
+    # def homelessness_statuses
+    #   [
+    #     'All',
+    #     'Sheltered',
+    #     'Unsheltered',
+    #   ]
+    # end
 
-    def homelessness_statuses
-      [
-        'All',
-        'Sheltered',
-        'Unsheltered',
-      ]
-    end
+    # def homelessness_status_colors
+    #   [
+    #     '#B2803F',
+    #     '#1865AB',
+    #   ]
+    # end
 
-    def homelessness_status_colors
-      [
-        '#B2803F',
-        '#1865AB',
-      ]
-    end
+    # def to_key(name)
+    #   name.gsub(/[^a-zA-Z0-9 -]/, '').gsub(' ', '_')
+    # end
 
-    def to_key(name)
-      name.gsub(/[^a-zA-Z0-9 -]/, '').gsub(' ', '_')
-    end
+    # def date_range
+    #   date_range = []
+    #   current_date = @start_date
+    #   while current_date <= @end_date
+    #     date_range.push(current_date)
+    #     current_date += 1.month
+    #   end
+    #   date_range
+    # end
 
-    def date_range
-      date_range = []
-      current_date = @start_date
-      while current_date <= @end_date
-        date_range.push(current_date)
-        current_date += 1.month
-      end
-      date_range
-    end
-
-    def year_range
-      years = []
-      current_date = @start_date.beginning_of_year
-      end_date = @end_date.beginning_of_year
-      while current_date <= end_date
-        years.push(current_date)
-        current_date += 1.year
-      end
-      years
-    end
+    # def year_range
+    #   years = []
+    #   current_date = @start_date.beginning_of_year
+    #   end_date = @end_date.beginning_of_year
+    #   while current_date <= end_date
+    #     years.push(current_date)
+    #     current_date += 1.year
+    #   end
+    #   years
+    # end
 
     def donut(options)
       project_type = options[:project_type] || options[:homelessness_status]

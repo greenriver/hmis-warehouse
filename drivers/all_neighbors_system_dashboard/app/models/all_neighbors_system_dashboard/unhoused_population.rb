@@ -2,7 +2,6 @@ module AllNeighborsSystemDashboard
   class UnhousedPopulation < DashboardData
     def initialize(...)
       super
-      @enrollment_data ||= @report.enrollment_data
       @enrollments_in_range ||= {}
     end
 
@@ -197,7 +196,7 @@ module AllNeighborsSystemDashboard
 
     def enrollments_in_range(date)
       year_range = date.beginning_of_year .. date.end_of_year
-      @enrollments_in_range[year_range] ||= @enrollment_data.select { |enrollment| ranges_overlap?(year_range, enrollment.entry_date .. (enrollment.exit_date || Date.current)) }
+      @enrollments_in_range[year_range] ||= @report.enrollment_data.select { |enrollment| ranges_overlap?(year_range, enrollment.entry_date .. (enrollment.exit_date || Date.current)) }
     end
 
     def housing_status_values(date, label)
