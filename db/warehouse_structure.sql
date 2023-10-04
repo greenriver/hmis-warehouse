@@ -745,7 +745,7 @@ CREATE TABLE public."Client" (
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
-    lock_version integer
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -953,7 +953,7 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -1764,7 +1764,7 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
-    lock_version integer
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -6353,9 +6353,6 @@ CREATE TABLE public.cohort_tabs (
     cohort_id bigint NOT NULL,
     name character varying,
     rules jsonb,
-    "order" integer DEFAULT 0 NOT NULL,
-    permissions jsonb DEFAULT '[]'::jsonb NOT NULL,
-    base_scope character varying DEFAULT 'current_scope'::character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -18884,6 +18881,12 @@ CREATE TABLE public.homeless_summary_report_clients (
     spm_adults_with_children_where_parenting_adult_18_to_24__a_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__n_n_h_ integer,
     spm_adults_with_children_where_parenting_adult_18_to_24__h_n_h_ integer,
+    spm_all_persons__mid_east_n_afric integer,
+    spm_without_children__mid_east_n_ integer,
+    spm_with_children__mid_east_n_afr integer,
+    spm_only_children__mid_east_n_afr integer,
+    spm_without_children_and_fifty_fi integer,
+    spm_adults_with_children_where_pa integer,
     spm_all_persons__mid_east_n_african integer,
     spm_all_persons__hispanic_latinaeo integer,
     spm_without_children__mid_east_n_african integer,
@@ -33021,6 +33024,13 @@ CREATE UNIQUE INDEX dq_client_conflict_columns ON public.hud_report_dq_clients U
 --
 
 CREATE UNIQUE INDEX ds_ceparticipation_idx ON public."CEParticipation" USING btree (data_source_id, "CEParticipationID");
+
+
+--
+-- Name: ds_email_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ds_email_idx ON public."User" USING btree (data_source_id, "UserEmail");
 
 
 --
@@ -60501,6 +60511,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230925131206'),
 ('20230926205059'),
 ('20230927205059'),
-('20230929205059');
+('20230929205059'),
+('20231004203202');
 
 
