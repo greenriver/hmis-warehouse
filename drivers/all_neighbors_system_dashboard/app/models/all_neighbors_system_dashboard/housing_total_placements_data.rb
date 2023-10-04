@@ -17,7 +17,7 @@ module AllNeighborsSystemDashboard
             count_levels: count_levels.map do |count_level|
               {
                 count_level: count_level,
-                series: send(type, options.merge(project_type: project_type)),
+                series: send(type, options.merge(project_type: project_type, count_level: count_level)),
               }
             end,
           }
@@ -25,28 +25,90 @@ module AllNeighborsSystemDashboard
       }
     end
 
-    def line(_options)
-      # raise options.inspect
-      # {:project_type=>"All"}
+    def line(options)
+      # FIXME date picker and line chart are off by one month
+
       date_range.map do |date|
+        scope = report_enrollments_enrollment_scope.
+          housed.
+          distinct.
+          select(:destination_client_id)
+        scope = filter_for_type(scope, options[:project_type])
+        scope = filter_for_count_level(scope, options[:count_level])
+        scope = filter_for_date(scope, date)
         [
           date.strftime('%Y-%-m-%-d'),
-          1_500,
+          scope.count,
         ]
       end # FIXME
     end
 
+    private def filter_for_type(scope, type)
+      case type
+      when 'Permanent Supportive Housing'
+        scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
+      when 'Rapid Rehousing'
+        scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
+      when 'Diversion'
+        # FIXME
+        scope.where(destination: @report.class::EXCLUDEABLE_DESTINATIONS)
+      when 'Adults Only', 'Adults and Children'
+        scope.where(household_type: type)
+      when 'Under 18'
+        scope.where(age: 0..17)
+      when '18 to 24'
+        scope.where(age: 18..24)
+      when '25 to 39'
+        scope.where(age: 25..39)
+      when '40 to 49'
+        scope.where(age: 40..49)
+      when '50 to 62'
+        scope.where(age: 50..62)
+      when 'Over 63'
+        scope.where(age: 63..)
+      when 'Unknown'
+        scope.where(age: nil)
+      else
+        scope
+      end
+    end
+
+    private def filter_for_count_level(scope, level)
+      case level
+      when 'Individuals'
+        scope
+      when 'Households'
+        scope.where(relationship: 'SL')
+      end
+    end
+
+    private def filter_for_date(scope, date)
+      en_t = Enrollment.arel_table
+      range = date.beginning_of_month .. date.end_of_month
+      where_clause = en_t[:exit_type].eq('Permanent').and(en_t[:exit_date].between(range)).
+        or(en_t[:move_in_date].between(range))
+      scope.where(where_clause)
+    end
+
     def donut(options)
       project_type = options[:project_type] || options[:homelessness_status]
+      # {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
+      Rails.logger.info("TTTTTTT: #{options}")
       options[:types].map do |type|
-        # FIXME
-        value = options[:fake_data] && project_type != 'All' && type != project_type ? 0 : 1_500 # FIXME
         {
           name: type,
           series: date_range.map do |date|
+            scope = report_enrollments_enrollment_scope.
+              housed.
+              distinct.
+              select(:destination_client_id)
+            scope = filter_for_type(scope, project_type)
+            scope = filter_for_type(scope, type)
+            scope = filter_for_count_level(scope, options[:count_level])
+            scope = filter_for_date(scope, date)
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: [value],
+              values: [scope.count],
             }
           end,
         }
