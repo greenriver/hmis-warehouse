@@ -68,7 +68,7 @@ class Hmis::EntityAccessLoaderFactory
     check_safety(safety)
 
     resolved = case entity
-    when Hmis::File
+    when Hmis::File, Hmis::Hud::CustomCaseNote
       # Files are always linked to a client, and optionally link to a specific
       # enrollment. If the file is linked to an enrollment, access to the file
       # should be limited based on access to that enrollment.

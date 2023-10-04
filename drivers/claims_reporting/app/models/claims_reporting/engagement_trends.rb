@@ -174,14 +174,12 @@ module ClaimsReporting
       @filter = filter
       filtered_by_client = (
         filter.genders.present? ||
-        filter.races.present? ||
-        filter.ethnicities.present?
+        filter.races.present?
       )
       if filtered_by_client
         hmis_scope = ::GrdaWarehouse::Hud::Client.all
         hmis_scope = filter_for_gender(hmis_scope) if filter.genders.present?
         hmis_scope = filter_for_race(hmis_scope) if filter.races.present?
-        hmis_scope = filter_for_ethnicity(hmis_scope) if filter.ethnicities.present?
         client_ids = hmis_scope.pluck(c_t[:id])
         scope = scope.joins(:patient).merge(::Health::Patient.where(client_id: client_ids)) if client_ids.any?
       end
@@ -340,12 +338,10 @@ module ClaimsReporting
           race_asian: 'Asian',
           race_black_af_american: 'Black or African American',
           race_native_hi_other_pacific: 'Native Hawaiian or Other Pacific Islander',
+          race_hispanic_latinaeo: 'Hispanic/Latina/e/o',
+          race_mid_east_n_african: 'Middle Eastern or North African',
           race_white: 'White',
           multi_racial: 'Multi-Racial',
-        },
-        'Ethnicity' => {
-          ethnicity_non_hispanic_non_latino: 'Non-Hispanic/Non-Latino',
-          ethnicity_hispanic_latino: 'Hispanic/Latino',
         },
         'Primary Language' => {
           '1. English' => '1. English',

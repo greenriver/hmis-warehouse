@@ -37,8 +37,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
             row['HMISParticipatingProject']
           end
 
-          timestamp = Time.current
-          timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S') unless row['data_source_id'].present?
+          timestamp = row['DateUpdated']
 
           entry = {
             HMISParticipationID: participation_id,

@@ -15,13 +15,11 @@ module HmisExternalApis::AcHmis
     #
     # For LINK originating referrals the association to the enrollment is through the HouseholdID column on the
     # the referral posting. The reason for using household ids, rather than enrollment ids, is because the household
-    #  membership my change but it still needs to remain "linked" to the posting.
+    # membership may change but it still needs to remain "linked" to the posting.
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment', optional: true
 
     def postings_inactive?
-      postings.all? do |posting|
-        posting.closed_status? || posting.denied_status?
-      end
+      postings.all?(&:inactive?)
     end
   end
 end

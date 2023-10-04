@@ -33,7 +33,6 @@ module SystemPathways::ChartBase
 
     def self.known_params
       [
-        :ethnicities,
         :races,
         :veteran_statuses,
         :household_type,
@@ -50,14 +49,14 @@ module SystemPathways::ChartBase
     end
 
     def long_project_type(project_type_brief)
-      number = HudUtility.project_type_number(project_type_brief)
-      HudUtility.project_type(number)
+      number = HudUtility2024.project_type_number(project_type_brief)
+      number = 1 if number&.zero?
+      HudUtility2024.project_type(number)
     end
 
     def filtered_clients
       scope = clients
       scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
       scope = filter_for_veteran_status(scope)
       scope = filter_for_ce_involvement(scope)
       scope = filter_for_household_type(scope)
@@ -77,8 +76,8 @@ module SystemPathways::ChartBase
       return node if node.in?(['Returns to Homelessness', 'Served by Homeless System'])
 
       available = report.class.available_project_types.map do |p_type|
-        HudUtility.project_type_brief(p_type)
-      end + destination_lookup.keys + ph_projects.values
+        HudUtility2024.project_type_brief(p_type)
+      end + destination_lookup.keys + ph_projects.values + ['ES'] # combined ES
 
       available.detect { |m| m == node }
     end
@@ -164,13 +163,6 @@ module SystemPathways::ChartBase
       else
         scope.or(alternative)
       end
-    end
-
-    private def filter_for_ethnicity(scope)
-      scope = scope.where(ethnicity: filter.ethnicities) if filter.ethnicities.present?
-      scope = scope.where(ethnicity: show_filter.ethnicities) if show_filter&.ethnicities.present?
-      scope = scope.where(ethnicity: details_filter.ethnicities) if details_filter&.ethnicities.present?
-      scope
     end
 
     private def filter_for_veteran_status(scope)
@@ -291,7 +283,7 @@ module SystemPathways::ChartBase
           merge(filtered_clients.where(destination_category => true)).
           distinct
       elsif node.in?(ph_projects.values)
-        to_project_type = HudUtility.project_type_number(ph_projects.invert[node])
+        to_project_type = HudUtility2024.project_type_number(ph_projects.invert[node])
         SystemPathways::Enrollment.where(project_type: to_project_type).
           where.not(days_to_move_in: nil).
           joins(:client).
@@ -304,7 +296,8 @@ module SystemPathways::ChartBase
           merge(filtered_clients.where.not(returned_project_type: nil)).
           distinct
       else
-        to_project_type = HudUtility.project_type_number(node)
+        to_project_type = HudUtility2024.project_type_number(node)
+        to_project_type = 1 if to_project_type&.zero?
         SystemPathways::Enrollment.where(project_type: to_project_type).
           joins(:client).
           merge(filtered_clients).
@@ -327,15 +320,11 @@ module SystemPathways::ChartBase
     end
 
     private def races
-      @races ||= HudUtility.races
-    end
-
-    private def ethnicities
-      @ethnicities ||= HudUtility.ethnicities
+      @races ||= HudUtility2024.races
     end
 
     private def veteran_statuses
-      @veteran_statuses ||= HudUtility.no_yes_reasons_for_missing_data_options
+      @veteran_statuses ||= HudUtility2024.no_yes_reasons_for_missing_data_options
     end
 
     private def chronic_at_entries
@@ -347,7 +336,7 @@ module SystemPathways::ChartBase
     end
 
     private def disabling_conditions
-      @disabling_conditions ||= HudUtility.no_yes_reasons_for_missing_data_options
+      @disabling_conditions ||= HudUtility2024.no_yes_reasons_for_missing_data_options
     end
 
     private def as_table(data, headers)
@@ -381,7 +370,7 @@ module SystemPathways::ChartBase
     end
 
     private def race_columns
-      @report.race_col_lookup.map { |k, hud_k| [k, HudUtility.race(hud_k)] }.to_h
+      @report.race_col_lookup.map { |k, hud_k| [k, HudUtility2024.race(hud_k)] }.to_h
     end
 
     private def race_col_lookup

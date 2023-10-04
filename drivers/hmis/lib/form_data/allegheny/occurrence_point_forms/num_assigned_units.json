@@ -1,0 +1,14 @@
+{
+  "item": [
+    {
+      "type": "INTEGER",
+      "link_id": "num-assigned-units",
+      "text": "Number of Units Assigned to Household",
+      "read_only": true,
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "numUnitsAssignedToHousehold"
+      }
+    }
+  ]
+}

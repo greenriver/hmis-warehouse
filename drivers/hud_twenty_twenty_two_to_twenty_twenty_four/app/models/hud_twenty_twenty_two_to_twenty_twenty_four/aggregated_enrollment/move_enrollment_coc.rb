@@ -25,7 +25,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment
         end
       end
       key = enrollment_row['HouseholdID'].presence || "en_#{enrollment_row['EnrollmentID']}"
-      key += "_ds_#{row['data_source_id']}"
+      key += "_ds_#{enrollment_row['data_source_id']}"
       @entry_enrollment_coc[key]
     end
   end

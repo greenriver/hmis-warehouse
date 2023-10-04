@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::EmploymentEducation < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     def self.configuration
       Hmis::Hud::EmploymentEducation.hmis_configuration(version: '2024')
     end
@@ -16,18 +18,14 @@ module Types
 
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
-    field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
-    hud_field :information_date
+    field :information_date, GraphQL::Types::ISO8601Date, null: true
     hud_field :last_grade_completed, HmisSchema::Enums::Hud::LastGradeCompleted
     hud_field :school_status, HmisSchema::Enums::Hud::SchoolStatus
     hud_field :employed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :employment_type, HmisSchema::Enums::Hud::EmploymentType
     hud_field :not_employed_reason, HmisSchema::Enums::Hud::NotEmployedReason
-    hud_field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
+    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
 
     def enrollment
       load_ar_association(object, :enrollment)
@@ -35,10 +33,6 @@ module Types
 
     def client
       load_ar_association(object, :client)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
   end
 end

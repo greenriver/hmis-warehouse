@@ -78,7 +78,7 @@ module Health::Tracing
         address: address,
         contact_notified: notified,
         dob_or_age: [dob&.strftime('%m/%d/%Y'), estimated_age].reject(&:blank?)&.join(' / '),
-        gender: ::HudUtility.gender(gender),
+        gender: ::HudUtility2024.gender(gender),
         race: race&.reject(&:blank?)&.map { |r| ::HudUtility.race(r) }&.join(', '),
         ethnicity: ::HudUtility.ethnicity(ethnicity),
         preferred_language: preferred_language,

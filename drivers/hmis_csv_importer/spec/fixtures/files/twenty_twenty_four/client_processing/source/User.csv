@@ -1,0 +1,2 @@
+UserID,UserFirstName,UserLastName,UserPhone,UserExtension,UserEmail,DateCreated,DateUpdated,DateDeleted,ExportID
+1,User,LastName,,,user@example.com,2020-09-04 06:40:32,2021-05-05 07:48:08,,2021-01-01_User

@@ -95,6 +95,7 @@ module TxClientReports
 
     def format_demographic_value(value, index)
       case demographic_headers[index]
+        # TODO: This needs to be updated in the receiving system before we update here
       when *::HudUtility.races.values, *::HudUtility.genders.values
         ::HudUtility.no_yes_missing(value)
       when 'Ethnicity'
@@ -145,6 +146,7 @@ module TxClientReports
           'Warehouse ID',
           'Reporting Age', # NOTE: this is age at the latter of report start or entry
         ]
+        # TODO: DEPRECATED_FY2024 This needs to be updated in the receiving system before we update here
         headers += ::HudUtility.genders.values
         headers += ::HudUtility.races.values
         headers << 'Ethnicity'
@@ -162,6 +164,7 @@ module TxClientReports
       [
         :client_id,
         age_calculation,
+        # TODO: DEPRECATED_FY2024 This needs to be updated in the receiving system before we update here
         *::HudUtility.gender_fields.map { |k| c_t[k] },
         *::HudUtility.races.keys.map { |k| c_t[k] },
         c_t[:Ethnicity],

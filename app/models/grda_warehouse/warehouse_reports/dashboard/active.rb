@@ -38,7 +38,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
       @clients = []
       @enrollments = {}
-      @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort.to_h
+      @labels = HudUtility2024.homeless_type_titles.sort.to_h
       @data = {
         clients: {
           label: 'Client count',
@@ -58,7 +58,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       init() # setup some useful buckets
 
       @labels.each do |key, _|
-        project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[key]
+        project_type = HudUtility2024.residential_project_type_numbers_by_code[key]
 
         enrollment_counts_by_client = enrollment_counts(project_type)
         enrollment_count = enrollment_counts_by_client.values.sum
