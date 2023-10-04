@@ -25622,7 +25622,7 @@ CREATE TABLE public.youth_intakes (
     client_gender integer NOT NULL,
     client_lgbtq character varying NOT NULL,
     client_race jsonb NOT NULL,
-    client_ethnicity integer NOT NULL,
+    client_ethnicity integer,
     client_primary_language character varying NOT NULL,
     pregnant_or_parenting character varying NOT NULL,
     disabilities jsonb NOT NULL,
@@ -60512,6 +60512,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230926205059'),
 ('20230927205059'),
 ('20230929205059'),
+('20231004162425'),
 ('20231004203202');
 
 
