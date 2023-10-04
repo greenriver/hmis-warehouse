@@ -130,9 +130,13 @@ module MaYyaReport
       genders = client.gender_multi
       return 0 if genders == [0]
       return 1 if genders == [1]
-      return 6 if genders.include?(6)
-      return 4 if genders.include?(4) || genders == [0, 1] || genders == [0, 1, 5]
-      return 5 if genders == [0, 5] || genders == [1, 5] || genders == [5] # rubocop:disable Style/MultipleComparison
+      # No guidance on 2 or 3 CulturallySpecific, DifferentIdentity
+      return 4 if genders.include?(4)
+      return 5 if genders.include?(5)
+      # Group the following
+      return 6 if genders.include?(6) # Questioning
+      return 6 if genders.include?(8) # Doesn't know
+      return 6 if genders.include?(9) # Prefers not to answer
 
       return client.GenderNone
     end
@@ -142,7 +146,7 @@ module MaYyaReport
 
       race_fields = client.race_fields
       return 99 if race_fields.size.zero?
-      return 6 if race_fields.size > 1
+      return 10 if race_fields.size > 1
 
       return race_code[*race_fields]
     end
@@ -154,6 +158,8 @@ module MaYyaReport
         'BlackAfAmerican' => 3,
         'NativeHIOtherPacific' => 4,
         'White' => 5,
+        'HispanicLatinaeo' => 6,
+        'MidEastNAfrican' => 7,
       }.freeze
     end
 

@@ -19,19 +19,14 @@ class CohortColumnNamesController < ApplicationController
 
   def translate_columns(translations)
     columns = cohort_source.available_columns
-    locale = 'en'
     columns.each do |column|
       next unless column.attributes.include?(:translation_key)
 
       proposed_translation = translations[column.column]
       key = column.translation_key
-      translation_key = TranslationKey.find_or_create_by(key: key)
-      existing_translation = translation_key.translations.where(locale: locale).first_or_create do |translation|
-        translation.text = proposed_translation
-      end
-      existing_translation.update_attribute(:text, proposed_translation) if existing_translation != proposed_translation
-      FastGettext.expire_cache_for(key)
-      Rails.cache.write('translation-fresh-at', Time.current)
+      translation = Translation.where(key: key).first_or_create
+      translation.update(text: proposed_translation)
+      Translation.invalidate_translation_cache(key) # force re-calculation
     end
   end
 
