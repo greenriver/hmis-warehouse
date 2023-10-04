@@ -16,6 +16,9 @@ module HmisExternalApis
         requested_at: Time.current,
         response: 'pending', # can't be null
       )
+      # Capture logging to stdout too, because ExternalRequestLog creation is sometimes being rolled back in transactions
+      Rails.logger.info "ExternalRequestLog request captured: URL:#{url}, PAYLOAD:#{payload || ''}"
+
       result = nil
       begin
         result = yield
@@ -34,6 +37,8 @@ module HmisExternalApis
     end
 
     def update_log_record(record, attrs)
+      # Capture logging to stdout too, because ExternalRequestLog update is sometimes being rolled back in transactions
+      Rails.logger.info "ExternalRequestLog #{record.id} result captured: #{attrs}"
       record.update!(attrs)
     end
   end
