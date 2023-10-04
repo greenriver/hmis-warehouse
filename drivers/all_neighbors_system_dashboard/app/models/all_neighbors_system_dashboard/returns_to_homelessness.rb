@@ -87,11 +87,11 @@ module AllNeighborsSystemDashboard
           enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(50, 62) }.count
         when 'Over_63'
           enrollments.select { |enrollment| enrollment.age.present? && enrollment.age >= 63 }.count
-        when 'Unknown'
+        when 'Unknown Age'
           enrollments.select { |enrollment| enrollment.age.blank? }.count
         end
       when 'Gender'
-        if label == 'Unknown'
+        if label == 'Unknown Gender'
           enrollments.select { |enrollment| enrollment.gender.blank? || enrollment.gender.in?(unknown_genders) }.count
         else
           enrollments.select { |enrollment| enrollment.gender.present? && to_key(enrollment.gender) == label }.count

@@ -30,6 +30,10 @@ module AllNeighborsSystemDashboard
       order(updated_at: :desc)
     end
 
+    def delete_cached_values!
+      Rails.cache.delete_matched("#{[self.class.name, id].join('/')}*")
+    end
+
     def run_and_save!
       start
       begin
@@ -89,6 +93,7 @@ module AllNeighborsSystemDashboard
             destination: enrollment.destination,
             destination_text: HudUtility.destination(enrollment.destination),
             relationship: relationship(source_enrollment),
+            relationship_to_hoh: source_enrollment.relationship_to_hoh,
             personal_id: source_enrollment.personal_id,
             age: enrollment.age,
             gender: gender(enrollment),

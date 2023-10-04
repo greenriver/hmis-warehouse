@@ -151,11 +151,11 @@ module AllNeighborsSystemDashboard
           enrollments_in_range(date).select { |enrollment| enrollment.age.present? && enrollment.age.between?(50, 62) }
         when 'Over 63'
           enrollments_in_range(date).select { |enrollment| enrollment.age.present? && enrollment.age >= 63 }
-        when 'Unknown'
+        when 'Unknown Age'
           enrollments_in_range(date).select { |enrollment| enrollment.age.blank? }
         end
       when :gender
-        if label == 'Unknown'
+        if label == 'Unknown Gender'
           enrollments_in_range(date).select { |enrollment| enrollment.gender.blank? || enrollment.gender.in?(unknown_genders) }
         else
           enrollments_in_range(date).select { |enrollment| enrollment.gender.present? && enrollment.gender == label }

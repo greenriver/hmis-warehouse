@@ -21,7 +21,8 @@ class AllNeighborsSystemDashboardLine {
     let cols = [name]
     this.series.forEach((d) => {
       const [year, month, day] = d[0].split('-')
-      const date = Date.parse(new Date(year, month, day))
+      // convert string date to javascript.  Months in JS start at 0
+      const date = Date.parse(new Date(year, month - 1, day))
       const [s, e] = this.state.dateRange
       if(date >= s && date <= e) {
         const [x, y] = d

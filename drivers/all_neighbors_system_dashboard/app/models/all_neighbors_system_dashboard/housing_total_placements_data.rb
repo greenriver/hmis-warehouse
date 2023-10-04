@@ -2,27 +2,29 @@ module AllNeighborsSystemDashboard
   class HousingTotalPlacementsData < DashboardData
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      {
-        title: title,
-        id: id,
-        project_types: project_types.map do |project_type|
-          {
-            project_type: project_type,
-            config: {
-              keys: keys,
-              names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
-              colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-              label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
-            },
-            count_levels: count_levels.map do |count_level|
-              {
-                count_level: count_level,
-                series: send(type, options.merge(project_type: project_type, count_level: count_level)),
-              }
-            end,
-          }
-        end,
-      }
+      Rails.cache.fetch([@report.class.name, @report.id, self.class.name, __method__, id, type, options].join('/'), expires_in: 1.hour) do
+        {
+          title: title,
+          id: id,
+          project_types: project_types.map do |project_type|
+            {
+              project_type: project_type,
+              config: {
+                keys: keys,
+                names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
+                colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
+                label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
+              },
+              count_levels: count_levels.map do |count_level|
+                {
+                  count_level: count_level,
+                  series: send(type, options.merge(project_type: project_type, count_level: count_level)),
+                }
+              end,
+            }
+          end,
+        }
+      end
     end
 
     def line(options)
@@ -66,8 +68,12 @@ module AllNeighborsSystemDashboard
         scope.where(age: 50..62)
       when 'Over 63'
         scope.where(age: 63..)
-      when 'Unknown'
+      when 'Unknown Age'
         scope.where(age: nil)
+      when *HudUtility2024.genders.values
+        scope.where(gender: type)
+      when 'Unknown Gender'
+        scope.where(gender: nil)
       else
         scope
       end
@@ -78,7 +84,7 @@ module AllNeighborsSystemDashboard
       when 'Individuals'
         scope
       when 'Households'
-        scope.where(relationship: 'SL')
+        scope.hoh
       end
     end
 

@@ -25,6 +25,10 @@ module AllNeighborsSystemDashboard
       where.not(return_date: nil)
     end
 
+    scope :hoh, -> do
+      where(relationship_to_hoh: 1)
+    end
+
     def intervention
       case project_type
       when 9

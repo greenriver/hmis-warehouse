@@ -77,7 +77,7 @@ module AllNeighborsSystemDashboard
         '40 to 49',
         '50 to 62',
         'Over 63',
-        'Unknown',
+        'Unknown Age',
       ]
     end
 
@@ -102,7 +102,7 @@ module AllNeighborsSystemDashboard
     end
 
     def demographic_gender
-      HudUtility2024.genders.values - unknown_genders + ['Unknown']
+      HudUtility2024.genders.values - unknown_genders + ['Unknown Gender']
     end
 
     def demographic_gender_colors

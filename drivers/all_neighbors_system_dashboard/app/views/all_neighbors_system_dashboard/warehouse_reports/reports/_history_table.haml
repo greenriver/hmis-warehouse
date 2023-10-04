@@ -17,10 +17,11 @@
                 - if report.completed?
                   .mt-2
                     = link_to 'View Report', all_neighbors_system_dashboard_warehouse_reports_report_path(report), class: 'btn btn-sm btn-secondary'
-                  .mt-2
-                    = link_to all_neighbors_system_dashboard_warehouse_reports_report_path(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
-                      %i.icon-file-excel
-                      Download Excel
+                  -# Removed download for now, shape is in-flux
+                  -# .mt-2
+                  -#   = link_to all_neighbors_system_dashboard_warehouse_reports_report_path(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
+                  -#     %i.icon-file-excel
+                  -#     Download Excel
               %th.report-parameters= report.describe_filter_as_html(report.known_params)
               %td.text-nowrap
                 = report.created_at

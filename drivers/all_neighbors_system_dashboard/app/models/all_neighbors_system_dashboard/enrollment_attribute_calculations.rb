@@ -80,7 +80,7 @@ module AllNeighborsSystemDashboard
       def prior_living_situation_category(enrollment)
         case enrollment.living_situation
         when *UNKNOWN_SITUATIONS
-          'Unknown'
+          'Unknown Situation'
         when *UNSHELTERED_SITUATIONS
           'Unsheltered'
         when *SHELTERED_SITUATIONS
@@ -124,7 +124,7 @@ module AllNeighborsSystemDashboard
         when *EXCLUDEABLE_DESTINATIONS
           'Excludable'
         when *UNKNOWN_DESTINATIONS
-          'Unknown'
+          'Unknown Destination'
         else
           'Non-Permanent'
         end
@@ -231,7 +231,7 @@ module AllNeighborsSystemDashboard
       # exit is from PH, in which case there doesn't need to be a gap.
       # Additionally, the re-entry must be within 365 days of the exit
       private def candidate_for_return?(housed_exit_date, enrollment)
-        re_entry_window_start = if enrollment.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
+        re_entry_window_start = if enrollment.project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph])
           housed_exit_date
         else
           housed_exit_date + 14.days

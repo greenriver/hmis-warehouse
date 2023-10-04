@@ -2883,7 +2883,8 @@ CREATE TABLE public.ansd_enrollments (
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    destination_client_id integer
+    destination_client_id integer,
+    relationship_to_hoh integer
 );
 
 
@@ -25545,7 +25546,7 @@ CREATE TABLE public.youth_intakes (
     client_gender integer NOT NULL,
     client_lgbtq character varying NOT NULL,
     client_race jsonb NOT NULL,
-    client_ethnicity integer NOT NULL,
+    client_ethnicity integer,
     client_primary_language character varying NOT NULL,
     pregnant_or_parenting character varying NOT NULL,
     disabilities jsonb NOT NULL,
@@ -59526,6 +59527,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230914004821'),
 ('20230922124446'),
 ('20230925131206'),
-('20231003220010');
+('20231003220010'),
+('20231004162425'),
+('20231004172833');
 
 
