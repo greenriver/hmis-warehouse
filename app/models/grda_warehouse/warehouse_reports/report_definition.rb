@@ -1338,7 +1338,8 @@ module GrdaWarehouse::WarehouseReports
         }
       end
 
-      if RailsDrivers.loaded.include?(:superset)
+      # Don't enable this report in production yet
+      if RailsDrivers.loaded.include?(:superset) && ! Rails.env.production?
         r_list['Performance'] << {
           url: 'superset/warehouse_reports/reports',
           name: 'Launch Superset',
