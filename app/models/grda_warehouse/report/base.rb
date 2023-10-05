@@ -53,6 +53,7 @@ module GrdaWarehouse::Report
 
     def self.update_recent_history_table
       sql = GrdaWarehouse::ServiceHistoryService.distinct.joins(service_history_enrollment: [project: :organization]).
+        left_outer_joins(service_history_enrollment: { enrollment: :exit }).
         where(date: [13.months.ago.beginning_of_month.to_date..Date.current.end_of_month.to_date]).
         select(*sh_columns).to_sql.gsub('FROM', 'INTO recent_service_history FROM')
       connection.execute <<-SQL
@@ -153,8 +154,8 @@ module GrdaWarehouse::Report
         she_t[:project_type].to_sql,
         she_t[:project_tracking_method].to_sql,
         o_t[:id].as('organization_id').to_sql,
-        she_t[:housing_status_at_entry].to_sql,
-        she_t[:housing_status_at_exit].to_sql,
+        e_t[:LivingSituation].to_sql,
+        ex_t[:HousingAssessment].to_sql,
         :service_type,
         she_t[:computed_project_type].to_sql,
         she_t[:presented_as_individual].to_sql,

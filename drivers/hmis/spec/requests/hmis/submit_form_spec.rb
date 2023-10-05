@@ -33,6 +33,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:a1) { create :hmis_hud_assessment, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:evt1) { create :hmis_hud_event, data_source: ds1, client: c2, enrollment: e1, user: u1 }
+  let!(:custom_case_note) do
+    create(:hmis_hud_custom_case_note, data_source: ds1, client: c2, enrollment: e1, user: u1)
+  end
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
     hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
@@ -73,6 +76,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on File {
               id
             }
+            ... on CustomCaseNote {
+              id
+            }
             ... on Enrollment {
               id
               inProgress
@@ -107,6 +113,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :CURRENT_LIVING_SITUATION,
       :CE_ASSESSMENT,
       :CE_EVENT,
+      :CASE_NOTE,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -162,6 +169,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               e1.id
             when :CE_ASSESSMENT
               a1.id
+            when :CASE_NOTE
+              custom_case_note.id
             when :CE_EVENT
               evt1.id
             end
@@ -173,6 +182,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               input.delete(:enrollment_id)
             end
 
+            e1.update(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
+
             response, result = post_graphql(input: { input: input }) { mutation }
             record_id = result.dig('data', 'submitForm', 'record', 'id')
             errors = result.dig('data', 'submitForm', 'errors')
@@ -182,9 +193,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               expect(errors).to be_empty
               expect(record_id).to be_present
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
-              record = definition.record_class_name.constantize.find_by(id: record_id)
+              record = definition.owner_class.find_by(id: record_id)
               expect(record).to be_present
               expect(Hmis::Form::FormProcessor.count).to eq(0)
+
+              # Check that enrollment.processed_as: nil and enrollment.processed_hash: nil, but weren't nil before save
+              # this should be true if exit, CLS, Service, or Enrollment changed/added/deleted
+              expect(e1.reload.processed_as).to be_nil if role.in?([:ENROLLMENT, :SERVICE, :CURRENT_LIVING_SITUATION])
+
+              # check that delayed jobs are queued for when above happens or client is changed
+              expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment').count).to be_positive if role.in?([:ENROLLMENT, :SERVICE, :CURRENT_LIVING_SITUATION])
+              expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').count).to be_positive if role.in?([:CLIENT])
 
               # Expect that all of the fields that were submitted exist on the record
               expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys
@@ -235,7 +254,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           expect(result.dig('data', 'submitForm', 'errors')).to be_blank
           record_id = result.dig('data', 'submitForm', 'record', 'id')
-          record = definition.record_class_name.constantize.find_by(id: record_id)
+          record = definition.owner_class.find_by(id: record_id)
 
           if role == :FILE
             expect(record.user).to eq(hmis_user)
@@ -249,7 +268,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           _response, result = post_graphql(input: { input: next_input }) { mutation }
           record_id = result.dig('data', 'submitForm', 'record', 'id')
-          record = definition.record_class_name.constantize.find_by(id: record_id)
+          record = definition.owner_class.find_by(id: record_id)
 
           if role == :FILE
             expect(record.user_id).to eq(999)

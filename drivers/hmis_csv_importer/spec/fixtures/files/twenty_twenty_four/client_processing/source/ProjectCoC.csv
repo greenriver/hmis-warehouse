@@ -1,0 +1,3 @@
+ProjectCocID,ProjectID,CocCode,Geocode,Address1,Address2,City,State,Zip,GeographyType,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+1,1,MA-500,250250,100 Downtown Street,,Boston,MA,02110,1,2020-08-13 07:05:57,2020-08-13 07:05:57,1,,2021-01-01_User
+2,2,MA-500,250250,110 Uptown Street,,Boston,MA,02110,1,2020-08-13 07:06:04,2020-08-13 07:06:04,1,,2021-01-01_User

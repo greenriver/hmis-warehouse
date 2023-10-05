@@ -158,19 +158,19 @@ namespace :grda_warehouse do
   task initialize_service_service_homelessness: [:environment, 'log:info_to_stdout'] do
     # Clients enrolled in homeless projects are homeless
     GrdaWarehouse::ServiceHistoryService.
-      in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
+      in_project_type(HudUtility2024.homeless_project_types).
       update_all(homeless: true)
 
     # Clients enrolled in chronic projects are literally homeless
     GrdaWarehouse::ServiceHistoryService.
-      in_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
+      in_project_type(HudUtility2024.chronic_project_types).
       update_all(literally_homeless: true)
 
     # Clients enrolled in TH are not literally homeless
     # literally_homeless is defaulted to false, so we don't need to do this
     #
     # GrdaWarehouse::ServiceHistoryService.
-    #   in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).
+    #   in_project_type(HudUtility2024.residential_project_type_numbers_by_code[:th]).
     #   update_all(literally_homeless: false)
 
     # Clients enrolled in PH are literally homeless until their move-in date, or if they don't have one
@@ -178,7 +178,7 @@ namespace :grda_warehouse do
     e_t = GrdaWarehouse::Hud::Enrollment.arel_table
     GrdaWarehouse::ServiceHistoryService.
       joins(service_history_enrollment: :enrollment).
-      in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+      in_project_type(HudUtility2024.residential_project_type_numbers_by_code[:ph]).
       where(s_t[:date].lt(e_t[:MoveInDate]).or(e_t[:MoveInDate].eq(nil))).
       update_all(homeless: true, literally_homeless: true)
   end
@@ -298,6 +298,7 @@ namespace :grda_warehouse do
     GrdaWarehouse::CustomImports::Config.active.each do |config|
       config.delay.import!
     end
+    TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
   end
 
@@ -345,6 +346,11 @@ namespace :grda_warehouse do
   desc 'Process Recurring HMIS Exports'
   task process_recurring_hmis_exports: [:environment] do
     GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
+
+    if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
+      # Upload HMIS Export and Client MCI mapping to the AC Data Warehouse
+      Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+    end
   end
 
   desc 'Process location data'
@@ -373,10 +379,10 @@ namespace :grda_warehouse do
       next unless fake.map['CoCCode']
 
       fake.map['CoCCode'].each do |k, code|
-        if HudUtility.cocs.keys.include?(code)
+        if HudUtility2024.cocs.keys.include?(code)
           fake.map['CoCCode'][k] = code
         else
-          fake.map['CoCCode'][k] = HudUtility.cocs.keys.sample
+          fake.map['CoCCode'][k] = HudUtility2024.cocs.keys.sample
         end
       end
       fake.save

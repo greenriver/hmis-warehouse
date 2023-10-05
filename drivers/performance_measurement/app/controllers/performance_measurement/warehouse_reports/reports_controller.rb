@@ -136,9 +136,9 @@ module PerformanceMeasurement::WarehouseReports
 
       case key.to_s
       when /prior_living_situation$/
-        HudUtility.living_situation(cell)
+        HudUtility2024.living_situation(cell)
       when /_destination$/
-        HudUtility.destination(cell)
+        HudUtility2024.destination(cell)
       when /_days_/
         number_with_delimiter(cell)
       else

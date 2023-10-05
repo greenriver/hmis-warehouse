@@ -12,6 +12,7 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCeAssessments
+    include Types::HmisSchema::HasCustomCaseNotes
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
@@ -20,6 +21,7 @@ module Types
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
@@ -35,6 +37,7 @@ module Types
 
     description 'HUD Enrollment'
     field :id, ID, null: false
+    field :lock_version, Integer, null: false
     field :project, Types::HmisSchema::Project, null: false
     hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
@@ -43,6 +46,7 @@ module Types
     assessments_field
     events_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
+    custom_case_notes_field
     files_field
     ce_assessments_field
     income_benefits_field
@@ -57,11 +61,11 @@ module Types
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
     # 3.15.1
-    hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
+    field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     # 3.16.1
     field :enrollment_coc, String, null: true
     # 3.08
-    hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true, default_value: 99
     # 3.13.1
     field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
     # 3.20.1
@@ -128,18 +132,14 @@ module Types
     field :dependent_under6, HmisSchema::Enums::Hud::DependentUnder6, null: true
     field :hh5_plus, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :hp_screening_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :threshold_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :hp_screening_score, Integer, null: true
+    field :threshold_score, Integer, null: true
     # C4
     field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true
     field :preferred_language_different, String, null: true
 
     field :in_progress, Boolean, null: false
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     field :intake_assessment, HmisSchema::Assessment, null: true
     field :exit_assessment, HmisSchema::Assessment, null: true
     access_field do
@@ -149,6 +149,7 @@ module Types
     custom_data_elements_field
 
     field :current_unit, HmisSchema::Unit, null: true
+    field :num_units_assigned_to_household, Integer, null: false
     field :reminders, [HmisSchema::Reminder], null: false
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
     field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
@@ -234,6 +235,10 @@ module Types
       resolve_ce_assessments(**args)
     end
 
+    def custom_case_notes(...)
+      resolve_custom_case_notes(...)
+    end
+
     def files(**args)
       resolve_files(**args)
     end
@@ -254,12 +259,16 @@ module Types
       resolve_health_and_dvs(**args)
     end
 
-    def user
-      load_ar_association(object, :user)
-    end
-
     def current_unit
       load_ar_association(object, :current_unit)
+    end
+
+    # ALERT: n+1, dont use when resolving multiple enrollments
+    def num_units_assigned_to_household
+      object.household_members.
+        joins(:current_unit).
+        pluck(Hmis::Unit.arel_table[:id]).
+        uniq.size
     end
   end
 end

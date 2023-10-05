@@ -24,7 +24,7 @@
           - last_subsection = subsection
           %tr
             - subsection_label = @report.subsection_label(subsection)
-            %td{rowspan: "#{subsection_label[:rows]}", width: '20%'}
+            %td{rowspan: "#{@report.row_count(subsection)}", width: '20%'}
               %i= subsection_label[:text]
             = render 'row_contents', label: label
         - else

@@ -46,7 +46,7 @@ module Types
           # TODO: replace with call to HudUtility once project type groupings are moved there.
           # FIXME: internally our definition of "residential" includes 4 (SO) and 9 (OPH) which
           # are not valid for Residential project affiliations.
-          where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
+          where(project_type: HudUtility2024.residential_project_type_ids).
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
@@ -138,9 +138,9 @@ module Types
         unit_type_scope = unit_type_scope.where(id: unit_type_ids)
       end
 
-      unit_type_scope
-        .order(:description, :id)
-        .map(&:to_pick_list_option)
+      unit_type_scope.
+        order(:description, :id).
+        map(&:to_pick_list_option)
     end
 
     def self.coc_picklist(selected_project)
@@ -317,10 +317,11 @@ module Types
       raise 'Project required' unless project.present?
 
       # No need for viewable_by here because we know the project is already veiwable by the user
-      enrollments = project.enrollments.open_on_date
-        .heads_of_households
-        .preload(:client)
-        .preload(household: :enrollments)
+      enrollments = project.enrollments.
+        open_on_date(Date.current + 1.day). # exclude clients that exited today
+        heads_of_households.
+        preload(:client).
+        preload(household: :enrollments)
 
       enrollments.sort_by_option(:most_recent).map do |en|
         client = en.client

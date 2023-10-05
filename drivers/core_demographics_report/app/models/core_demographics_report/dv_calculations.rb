@@ -10,7 +10,7 @@ module
   included do
     def dv_detail_hash
       {}.tap do |hashes|
-        HudUtility.no_yes_reasons_for_missing_data_options.each do |key, title|
+        HudUtility2024.no_yes_reasons_for_missing_data_options.each do |key, title|
           hashes["dv_#{key}"] = {
             title: "DV Response #{title}",
             headers: client_headers,
@@ -18,7 +18,7 @@ module
             scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_dv(key)).distinct },
           }
         end
-        ::HudUtility.when_occurreds.each do |key, title|
+        ::HudUtility2024.when_occurreds.each do |key, title|
           hashes["dv_occurrence_#{key}"] = {
             title: "DV Occurrence Timing #{title}",
             headers: client_headers,
@@ -60,7 +60,7 @@ module
             merge(
               GrdaWarehouse::Hud::HealthAndDv.where(
                 InformationDate: @filter.range,
-                DomesticViolenceVictim: 1,
+                DomesticViolenceSurvivor: 1,
               ),
             ).
             distinct.
@@ -91,7 +91,7 @@ module
       rows['*DV Victim/Survivor'] ||= []
       rows['*DV Response'] ||= []
       rows['*DV Response'] += ['Response', nil, 'Count', 'Percentage', nil]
-      ::HudUtility.no_yes_reasons_for_missing_data_options.each do |id, title|
+      ::HudUtility2024.no_yes_reasons_for_missing_data_options.each do |id, title|
         rows["_DV Response_data_#{title}"] ||= []
         rows["_DV Response_data_#{title}"] += [
           title,
@@ -103,7 +103,7 @@ module
       rows['*DV Victim/Survivor - Most Recent Occurance'] ||= []
       rows['*DV Occurrence Timing'] ||= []
       rows['*DV Occurrence Timing'] += ['Timing', nil, 'Count', 'Percentage', nil]
-      ::HudUtility.when_occurreds.each do |id, title|
+      ::HudUtility2024.when_occurreds.each do |id, title|
         rows["_DV Occurrence Timing_data_#{title}"] ||= []
         rows["_DV Occurrence Timing_data_#{title}"] += [
           title,
@@ -131,7 +131,7 @@ module
           report_scope.joins(enrollment: :health_and_dvs).order(hdv_t[:InformationDate].desc).
             merge(GrdaWarehouse::Hud::HealthAndDv.where(InformationDate: @filter.range)).
             distinct.
-            pluck(:client_id, hdv_t[:DomesticViolenceVictim], hdv_t[:InformationDate]).
+            pluck(:client_id, hdv_t[:DomesticViolenceSurvivor], hdv_t[:InformationDate]).
             each do |client_id, status, _|
               clients[client_id] ||= status
             end

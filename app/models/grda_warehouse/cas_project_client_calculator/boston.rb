@@ -361,7 +361,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       return nil if cls.blank?
 
       # Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)
-      return false if cls.CurrentLivingSituation == 16
+      return false if cls.CurrentLivingSituation == 116
 
       # nil missing
       # 30 No exit interview completed
@@ -472,6 +472,9 @@ module GrdaWarehouse::CasProjectClientCalculator
         m.DomesticViolenceVictim == 1 &&
         [m.data_source_id, m.enrollment_id].in?(ongoing_enrollment_enrollment_ids(client))
       end.any?
+
+      # Return 0 so we don't drop into calling this on the client, which has different results
+      0
     end
   end
 end

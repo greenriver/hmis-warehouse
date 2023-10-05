@@ -141,9 +141,6 @@ module WarehouseReports
         :end,
         :sub_population,
         :household_type,
-        :race,
-        :ethnicity,
-        :gender,
         :veteran_status,
         :hoh_only,
         data_source_ids: [],
@@ -151,6 +148,9 @@ module WarehouseReports
         project_ids: [],
         project_group_ids: [],
         coc_codes: [],
+        races: [],
+        genders: [],
+        age_ranges: [],
       ]
     end
 

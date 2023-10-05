@@ -126,7 +126,7 @@ module Dashboards
         return {
           start: default_start_date,
           end: default_end_date,
-          project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES,
+          project_type_codes: HudUtility2024.homeless_project_type_codes,
         }
       end
 
@@ -137,7 +137,6 @@ module Dashboards
           :limit_to_vispdat,
           :hoh_only,
           races: [],
-          ethnicities: [],
           genders: [],
           organization_ids: [],
           project_ids: [],

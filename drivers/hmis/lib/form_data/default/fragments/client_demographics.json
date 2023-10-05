@@ -120,6 +120,17 @@
           "answer_boolean": false
         }
       ]
+    },
+    {
+      "fragment": "#v1_veteran_info",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "veteran-status",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
     }
   ]
 }

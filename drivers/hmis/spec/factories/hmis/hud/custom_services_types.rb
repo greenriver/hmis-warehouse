@@ -22,6 +22,11 @@ FactoryBot.define do
     DateUpdated { Date.parse('2019-01-01') }
   end
 
+  factory :hmis_custom_service_type_for_hud_service, parent: :hmis_custom_service_type do
+    hud_record_type { 200 }
+    hud_type_provided { 200 }
+  end
+
   factory :hmis_hud_custom_service_type, class: 'Hmis::Hud::CustomServiceType' do
     data_source { association :hmis_data_source }
     user { association :hmis_hud_user, data_source: data_source }

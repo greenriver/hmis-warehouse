@@ -1,0 +1,7 @@
+- if HmisEnforcement.hmis_enabled?
+  %ul.o-menu__group.list-unstyled
+    - GrdaWarehouse::DataSource.hmis.distinct.each do |hmis_ds|
+      %li.o-menu__item
+        = link_to "//#{hmis_ds.hmis}", class: 'o-menu__link', target: :_blank do
+          -# NOTE: eventually we should use the data source name here, maybe concatenated with HMIS, but currently that would be HMIS HMIS
+          HMIS

@@ -16,10 +16,13 @@
       "fragment": "#health_insurance"
     },
     {
+      "fragment": "#w3_hopwa_insurance"
+    },
+    {
       "fragment": "#disability"
     },
     {
-      "fragment": "#health_and_dv"
+      "fragment": "#health_and_dv_update"
     }
   ]
 }

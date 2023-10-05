@@ -58,15 +58,15 @@ module ClientSearchUtil
         term_weight = variant == original_term ? 1.0 : 0.75
         score_sql = term_score_sql(variant, term_weight: term_weight)
 
-        search_term_scope(variant)
-          .group(:client_id)
-          .select(:client_id, Arel.sql("MAX(#{score_sql}) AS search_score"))
+        search_term_scope(variant).
+          group(:client_id).
+          select(:client_id, Arel.sql("MAX(#{score_sql}) AS search_score"))
       end
 
       # include first/last prefix match
       prefix_query = prefix_search_term_scope(original_term)
       if prefix_query
-        score_sql = term_score_sql(original_term, term_weight: 1.0)
+        score_sql = term_score_sql(original_term, term_weight: 10.0)
         name_queries.push(
           prefix_query.group(:client_id).select(:client_id, Arel.sql("MAX(#{score_sql}) AS search_score")),
         )
@@ -75,9 +75,14 @@ module ClientSearchUtil
       # union of matches and scores for all term variants
       name_scope_sql = name_queries.compact.map do |query|
         "(#{query.to_sql})"
-      end.join(' UNION ')
+      end.join(' UNION ALL ')
 
-      scope.joins("JOIN (#{name_scope_sql}) names ON \"Client\".id = names.client_id")
+      sql = <<~SQL
+        JOIN (
+          SELECT client_id, MAX(search_score) as search_score FROM (#{name_scope_sql}) names GROUP BY 1
+        ) names ON "Client".id = names.client_id
+      SQL
+      scope.joins(sql)
     end
 
     def term_score_sql(term, term_weight:)
@@ -116,8 +121,8 @@ module ClientSearchUtil
       # q_ln_pfx = '"Smith%"'
       return unless q_fn_pfx && q_ln_pfx
 
-      ClientSearchUtil::ClientSearchableName
-        .where("#{csn_fn(:last_name)} ILIKE #{q_ln_pfx} AND #{csn_fn(:full_name)} ILIKE #{q_fn_pfx}")
+      ClientSearchUtil::ClientSearchableName.
+        where("#{csn_fn(:last_name)} ILIKE #{q_ln_pfx} AND #{csn_fn(:full_name)} ILIKE #{q_fn_pfx}")
     end
 
     def search_term_scope(term)
@@ -132,9 +137,9 @@ module ClientSearchUtil
       term = term.downcase
       parts = term.split(' ').map(&:downcase).filter { |str| str.length > 1 }
       # [name, nickname]
-      nickname_map = Nickname.joins(:nicknames)
-        .where(name: parts)
-        .pluck(:name, Arel.sql('nicknames_nicknames.name'))
+      nickname_map = Nickname.joins(:nicknames).
+        where(name: parts).
+        pluck(:name, Arel.sql('nicknames_nicknames.name'))
 
       nickname_map.map do |name, nickname|
         parts.map { |part| part == name ? nickname : part }.join(' ')

@@ -79,7 +79,7 @@ module PerformanceMeasurement
     end
 
     def coc_name
-      name = ::HudUtility.coc_name(coc_code)
+      name = ::HudUtility2024.coc_name(coc_code)
       return "#{name} (#{coc_code})" unless name == coc_code
 
       coc_code

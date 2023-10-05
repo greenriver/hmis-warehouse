@@ -10,7 +10,6 @@ module SystemPathways
     include ArelHelper
     include Memery
     include SystemPathways::ChartBase
-    include SystemPathways::TimeChart::Ethnicity
     include SystemPathways::TimeChart::Race
     include SystemPathways::TimeChart::Veteran
     include SystemPathways::TimeChart::Chronic
@@ -19,7 +18,6 @@ module SystemPathways
 
     def known_categories
       [
-        ['Ethnicity', 'ethnicity'],
         ['Race', 'race'],
         ['Veteran Status', 'veteran_status'],
         ['Disabling Condition', 'disabling_condition'],
@@ -34,8 +32,6 @@ module SystemPathways
 
     def chart_data(chart)
       data = case chart.to_s
-      when 'ethnicity'
-        ethnicity_chart_data
       when 'race'
         race_chart_data
       when 'veteran_status'
@@ -54,7 +50,7 @@ module SystemPathways
     end
 
     private def detail_node_keys
-      ethnicity_counts[:project_type_counts].keys + ethnicity_counts[:ph_counts].keys + ['Returned to Homelessness']
+      race_counts[:project_type_counts].keys + race_counts[:ph_counts].keys + ['Returned to Homelessness']
     end
   end
 end

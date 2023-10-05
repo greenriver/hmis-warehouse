@@ -9,11 +9,7 @@ class Hmis::Role < ::ApplicationRecord
   # Warehouse roles do not have a paper trail, so neither do these
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
-  has_many :user_group_members, through: :access_controls
-  has_many :users, through: :user_group_members
-
-  # has_many :user_hmis_data_source_roles, class_name: '::Hmis::UserHmisDataSourceRole'
-  # has_many :users, through: :user_hmis_data_source_roles, source: :user
+  has_many :users, through: :access_controls
 
   scope :with_all_permissions, ->(*perms) do
     where(**perms.map { |p| [p, true] }.to_h)
@@ -23,6 +19,17 @@ class Hmis::Role < ::ApplicationRecord
     rt = Hmis::Role.arel_table
     where_clause = perms.map { |perm| rt[perm.to_sym].eq(true) }.reduce(:or)
     where(where_clause)
+  end
+
+  scope :with_permissions, ->(*perms, mode: :any) do
+    case mode.to_sym
+    when :any
+      with_any_permissions(*perms)
+    when :all
+      with_all_permissions(*perms)
+    else
+      raise "Invalid permission mode: #{mode}"
+    end
   end
 
   scope :with_editable_permissions, -> do
@@ -207,6 +214,14 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_dob: {
         description: 'Grants access to view clients\' DOB',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_hud_chronic_status: {
+        description: "Grants access to see Chronic at PIT. Gives you an idea of someones previous enrollments, even ones you can't otherwise see.",
         administrative: false,
         access: [:viewable],
         categories: [

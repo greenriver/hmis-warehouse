@@ -81,7 +81,7 @@ module SystemPathways::TimeChart::Veteran
       ph_counts = veteran_status_counts[:ph_counts]
       return_counts = veteran_status_counts[:return_counts]
 
-      ethnicities.each.with_index do |(k, veteran_status), i|
+      veteran_statuses.each.with_index do |(k, veteran_status), i|
         row = [veteran_status]
         # Time in project
         project_type_node_names.each do |label|

@@ -11,7 +11,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -35,6 +35,18 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   HUD_ATTRIBUTES.each do |hud_field_name|
     define_method(hud_field_name) { hud_service&.send(hud_field_name) }
+  end
+
+  # should be effectively the same as scope in EnrollmentRelated but with
+  # better performance. May replace that implementation in future
+  replace_scope :viewable_by, ->(user) do
+    # correlated subquery
+    e_t = Hmis::Hud::Enrollment.arel_table
+    hs_t = Hmis::Hud::HmisService.arel_table
+
+    cond = e_t[:EnrollmentID].eq(hs_t[:EnrollmentID]).and(e_t[:data_source_id].eq(hs_t[:data_source_id]))
+    enrollments = Hmis::Hud::Enrollment.viewable_by(user).where(cond)
+    where(enrollments.arel.exists)
   end
 
   scope :with_service_type, ->(service_type_id) do

@@ -16,32 +16,35 @@ module Reporting::DataQualityReports
     def calculate_coc_code project:
       project.project_cocs.map(&:CoCCode).uniq.join(', ')
     end
+
     def calculate_funder project:
-      project.funders.map{ |f| HudUtility.funding_source f.Funder&.to_i }.uniq.join(', ')
+      project.funders.map { |f| HudUtility2024.funding_source f.Funder&.to_i }.uniq.join(', ')
     end
+
     def calculate_geocode project:
       project.project_cocs.map(&:Geocode).uniq.join(', ')
     end
-    def calculate_geography_type project:
+
+    def calculate_geography_type(project:)
       project.project_cocs.map do |m|
-        HudUtility.geography_type(m.GeographyType)
+        HudUtility2024.geography_type(m.GeographyType)
       end.uniq.join(', ')
     end
 
-    def calculate_unit_inventory project:, report_range:
+    def calculate_unit_inventory(project:, report_range:)
       project.inventories.within_range(report_range).map do |inventory|
         inventory.average_daily_inventory(
           range: report_range,
-          field: :UnitInventory
+          field: :UnitInventory,
         )
       end.sum
     end
 
-    def calculate_bed_inventory project:, report_range:
+    def calculate_bed_inventory(project:, report_range:)
       project.inventories.within_range(report_range).map do |inventory|
         inventory.average_daily_inventory(
           range: report_range,
-          field: :BedInventory
+          field: :BedInventory,
         )
       end.sum
     end
@@ -53,7 +56,7 @@ module Reporting::DataQualityReports
     # NOTE: this relies on service_history_service, not source data
     # Because we'll need to de-dupe these for the project group, we can't rely on the DB
     # to do the counting, we'll store client ids per date
-    def calculate_nightly_client_census project:, report_range:
+    def calculate_nightly_client_census(project:, report_range:)
       @calculate_nightly_client_census ||= begin
         counts = services_scope(project: project, report_range: report_range).
           group(:date).select(:client_id).distinct.count

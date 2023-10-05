@@ -1,6 +1,6 @@
 - @prompt = 'Search clients...'
 - content_for :title, 'Clients'
-- sort_options = GrdaWarehouse::Hud::Client.sort_options
+
 .o-page
   .o-page__header.d-flex
     %h1= content_for :title
@@ -20,12 +20,12 @@
       = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', aria: { label: 'Client Search' }, data: {placement: 'bottom'}
     .o-page__sort
       = render 'client_access_control/clients/search/filter'
-      = render 'client_access_control/clients/search/sort', sort_options: sort_options
+      = render 'client_access_control/clients/search/sort'
   -# .table-utilities
   - if @pagy.count.positive?
     .client__current-sort-filter
       Currently sorted by:
-      %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}&.first.try(:[], :title)
+      %strong= @sort_title
     = render 'common/pagination_top', item_name: 'client'
   .o-page__main-content.mt-3
     .clients__list

@@ -287,6 +287,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       referral = HmisExternalApis::AcHmis::Referral.where(identifier: params.fetch(:referral_id)).first
       expect(referral.postings.map(&:project_id)).to(eq([project.id]))
       expect(referral.household_members.size).to(eq(1))
+      expect(referral.needs_wheelchair_accessible_unit).to(be false)
       client.reload
       expected.each_pair do |key, value|
         case key

@@ -1,0 +1,15 @@
+[
+  {
+    "link_id": "current-living-situation",
+    "append_items": [
+      {
+        "link_id": "current-living-situation-custom-note",
+        "type": "TEXT",
+        "text": "Note",
+        "mapping": {
+          "custom_field_key": "current_living_sitution_note"
+        }
+      }
+    ]
+  }
+]

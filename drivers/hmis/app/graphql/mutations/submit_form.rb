@@ -9,21 +9,31 @@ module Mutations
     description 'Submit a form to create/update HUD record(s)'
 
     argument :input, Types::HmisSchema::FormInput, required: true
+    argument :record_lock_version, Integer, required: false
 
     field :record, Types::HmisSchema::SubmitFormResult, null: true
 
-    def resolve(input:)
+    def resolve(...)
+      Hmis::Hud::Base.transaction do
+        _resolve(...)
+      end
+    end
+
+    protected
+
+    def _resolve(input:, record_lock_version: nil)
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
 
       # Determine record class
-      klass = definition.record_class_name&.constantize
+      klass = definition.owner_class
       raise HmisErrors::ApiError, 'Form Definition not configured' unless klass.present?
 
       # Find or create record
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
+        record.lock_version = record_lock_version if record_lock_version
         entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else
         entity_for_permissions, record = permission_base_and_record(klass, input, current_user.hmis_data_source_id)
@@ -118,17 +128,6 @@ module Mutations
 
     private def perform_side_effects(record)
       case record
-      when Hmis::Hud::Client, Hmis::Hud::Enrollment
-        # If a Client record was created or updated, queue up IdentifyDuplicates job. This creates the warehouse destination client.
-        client = record.is_a?(Hmis::Hud::Enrollment) ? record.client : record
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run! if client.new_record?
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing! if client.changed?
-      when Hmis::Hud::HmisService
-        # If a HUD Service was created, process service history enrollments
-        if record.new_record? && record.hud_service? && !record.enrollment.in_progress?
-          record.enrollment.invalidate_processing!
-          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay.batch_process_unprocessed!
-        end
       when Hmis::Hud::Project
         # If a project was closed, close related Funders and Inventory
         project_closed = record.operating_end_date_was.nil? && record.operating_end_date.present?
@@ -174,9 +173,7 @@ module Mutations
         [project, klass.new({ project_id: project&.id })]
       when 'Hmis::File'
         [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
-      when 'Hmis::Hud::Assessment'
-        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
-      when 'Hmis::Hud::Event'
+      when 'Hmis::Hud::Assessment', 'Hmis::Hud::CustomCaseNote', 'Hmis::Hud::Event'
         [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       else
         raise "No permission base specified for creating a new record of type #{klass.name}"
