@@ -48,11 +48,12 @@ module HmisExternalApis::AcHmis
     def fetch_clients
       Rails.logger.info 'Fetching client records'
 
-      personal_ids = records_needing_processing.map { |r| r['clientId'] }
+      destination_ids = records_needing_processing.map { |r| r['clientId'] }
 
-      self.clients = Hmis::Hud::Client.
-        where(c_t[:PersonalID].in(personal_ids)).
-        where(c_t[:data_source_id].eq(data_source.id))
+      self.clients = Hmis::Hud::Client.where(data_source: data_source).
+        joins(:warehouse_client_source).
+        preload(:warehouse_client_source).
+        where(GrdaWarehouse::WarehouseClient.arel_table[:destination_id].in(destination_ids))
     end
 
     def fetch_mci_unique_ids
@@ -76,13 +77,17 @@ module HmisExternalApis::AcHmis
       insert_count = 0
       update_count = 0
       no_change_count = 0
+      unrecognized_destination_id_count = 0
 
-      client_by_personal_id = clients.
-        map { |c| [c.personal_id, c] }.
-        to_h
+      clients_by_destination_id = clients.index_by(&:warehouse_id).stringify_keys
 
       records_needing_processing.each do |record|
-        client = client_by_personal_id[record['clientId']]
+        client = clients_by_destination_id[record['clientId']]
+        if client.nil?
+          unrecognized_destination_id_count += 1
+          next
+        end
+
         external_id = external_ids[client.id]
 
         if external_id.blank?
@@ -104,6 +109,7 @@ module HmisExternalApis::AcHmis
       debug_msg "Inserted #{insert_count} MCI unique IDs"
       debug_msg "Updated #{update_count} MCI unique IDs"
       debug_msg "Ignored #{no_change_count} MCI unique IDs"
+      debug_msg "Skipped #{unrecognized_destination_id_count} unrecognized Client IDs in response"
     end
 
     def merge_clients_by_mci_unique_id
