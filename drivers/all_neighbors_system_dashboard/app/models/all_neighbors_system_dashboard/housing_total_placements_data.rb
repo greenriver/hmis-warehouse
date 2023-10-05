@@ -1,8 +1,15 @@
 module AllNeighborsSystemDashboard
   class HousingTotalPlacementsData < DashboardData
+    def self.cache_data(report)
+      instance = new(report)
+      instance.data('Total Placements', 'total_placements', :line)
+      instance.donut_data
+      instance.stacked_data
+    end
+
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      Rails.cache.fetch([@report.class.name, @report.id, self.class.name, __method__, id, type, options].join('/'), expires_in: 1.hour) do
+      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.hour) do
         {
           title: title,
           id: id,
@@ -28,8 +35,6 @@ module AllNeighborsSystemDashboard
     end
 
     def line(options)
-      # FIXME date picker and line chart are off by one month
-
       date_range.map do |date|
         scope = report_enrollments_enrollment_scope.
           housed.

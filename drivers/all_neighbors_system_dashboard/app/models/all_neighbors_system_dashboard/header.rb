@@ -4,12 +4,17 @@ module AllNeighborsSystemDashboard
       super
     end
 
+    def self.cache_data(report)
+      instance = new(report)
+      instance.header_data
+    end
+
     def tabs
       [
         { name: 'Housing Placements' },
-        # { name: 'Time To Obtain Housing' },
-        # { name: 'Returns To Homelessness' },
-        # { name: 'Unhoused Population' },
+        { name: 'Time To Obtain Housing' },
+        { name: 'Returns To Homelessness' },
+        { name: 'Unhoused Population' },
       ].map { |tab| tab.merge({ id: tab[:name].gsub(' ', '').underscore }) }
     end
 

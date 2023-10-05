@@ -5,30 +5,37 @@ module AllNeighborsSystemDashboard
       @enrollments_in_range ||= {}
     end
 
+    def self.cache_data(report)
+      instance = new(report)
+      instance.stacked_data
+    end
+
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      {
-        title: title,
-        id: id,
-        demographics: demographics.map do |demo|
-          bars = ['Exited*', 'Returned']
-          demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
-          demo_colors_meth = "demographic_#{demo.gsub(' ', '').underscore}_colors".to_sym
-          names = send(demo_names_meth)
-          keys = names.map { |key| to_key(key) }
-          colors = send(demo_colors_meth)
-          {
-            demographic: demo,
-            config: {
-              keys: keys,
-              names: keys.map.with_index { |key, i| [key, names[i]] }.to_h,
-              colors: keys.map.with_index { |key, i| [key, colors[i]] }.to_h,
-              label_colors: keys.map.with_index { |key, i| [key, label_color(colors[i])] }.to_h,
-            },
-            series: send(type, { bars: bars, demographic: demo, types: keys }),
-          }
-        end,
-      }
+      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.hour) do
+        {
+          title: title,
+          id: id,
+          demographics: demographics.map do |demo|
+            bars = ['Exited*', 'Returned']
+            demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
+            demo_colors_meth = "demographic_#{demo.gsub(' ', '').underscore}_colors".to_sym
+            names = send(demo_names_meth)
+            keys = names.map { |key| to_key(key) }
+            colors = send(demo_colors_meth)
+            {
+              demographic: demo,
+              config: {
+                keys: keys,
+                names: keys.map.with_index { |key, i| [key, names[i]] }.to_h,
+                colors: keys.map.with_index { |key, i| [key, colors[i]] }.to_h,
+                label_colors: keys.map.with_index { |key, i| [key, label_color(colors[i])] }.to_h,
+              },
+              series: send(type, { bars: bars, demographic: demo, types: keys }),
+            }
+          end,
+        }
+      end
     end
 
     def stacked_data

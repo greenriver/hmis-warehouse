@@ -1,5 +1,10 @@
 module AllNeighborsSystemDashboard
   class UnhousedPopulation < DashboardData
+    def self.cache_data(report)
+      instance = new(report)
+      instance.donut_data
+    end
+
     def initialize(...)
       super
       @enrollments_in_range ||= {}
@@ -7,17 +12,19 @@ module AllNeighborsSystemDashboard
 
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      {
-        title: title,
-        id: id,
-        series: send(type, options),
-        config: {
-          keys: keys,
-          names: keys.map.with_index { |key, i| [key, options[:types][i]] }.to_h,
-          colors: keys.map.with_index { |key, i| [key, homeless_population_type_colors[i]] }.to_h,
-          label_colors: keys.map.with_index { |key, i| [key, label_color(homeless_population_type_colors[i])] }.to_h,
-        },
-      }
+      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.hour) do
+        {
+          title: title,
+          id: id,
+          series: send(type, options),
+          config: {
+            keys: keys,
+            names: keys.map.with_index { |key, i| [key, options[:types][i]] }.to_h,
+            colors: keys.map.with_index { |key, i| [key, homeless_population_type_colors[i]] }.to_h,
+            label_colors: keys.map.with_index { |key, i| [key, label_color(homeless_population_type_colors[i])] }.to_h,
+          },
+        }
+      end
     end
 
     def vertical_stack

@@ -24,6 +24,15 @@ module AllNeighborsSystemDashboard
       colors.calculated_foreground_color(background_color)
     end
 
+    def cache_key(id, type, options)
+      [
+        self.class.name,
+        id,
+        type,
+        options,
+      ].join('/')
+    end
+
     def project_types
       [
         'All',

@@ -1,8 +1,9 @@
 module AllNeighborsSystemDashboard
   class FakeData
-    def initialize(start_date, end_date)
-      @start_date = start_date.beginning_of_month
-      @end_date = end_date.beginning_of_month
+    def initialize(report)
+      @report = report
+      @start_date = report.filter.start_date.beginning_of_month
+      @end_date = report.filter.end_date.beginning_of_month
     end
 
     # def label_color(background_color)

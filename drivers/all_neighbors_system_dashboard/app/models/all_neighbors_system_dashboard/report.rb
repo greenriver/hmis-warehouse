@@ -31,7 +31,14 @@ module AllNeighborsSystemDashboard
     end
 
     def delete_cached_values!
-      Rails.cache.delete_matched("#{[self.class.name, id].join('/')}*")
+      Rails.cache.delete_matched("#{cache_key}*")
+    end
+
+    def cache_key
+      [
+        self.class.name,
+        id,
+      ].join('/')
     end
 
     def run_and_save!
@@ -44,6 +51,7 @@ module AllNeighborsSystemDashboard
         raise e
       end
       attach_rendered_xlsx
+      cache_calculated_data
       complete
     end
 
@@ -61,6 +69,14 @@ module AllNeighborsSystemDashboard
 
     def a_t
       @a_t ||= Enrollment.arel_table
+    end
+
+    def cache_calculated_data
+      AllNeighborsSystemDashboard::Header.cache_data(self)
+      AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(self)
+      AllNeighborsSystemDashboard::ReturnsToHomelessness.cache_data(self)
+      AllNeighborsSystemDashboard::TimeToObtainHousing.cache_data(self)
+      AllNeighborsSystemDashboard::UnhousedPopulation.cache_data(self)
     end
 
     def populate_universe

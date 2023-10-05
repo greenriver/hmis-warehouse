@@ -1,6 +1,8 @@
-- start_date = (DateTime.current - 3.years).beginning_of_month
-- end_date = DateTime.current.beginning_of_month
-- all_data = AllNeighborsSystemDashboard::TimeToObtainHousing.new(start_date, end_date)
+-# - start_date = (DateTime.current - 3.years).beginning_of_month
+-# - end_date = DateTime.current.beginning_of_month
+- start_date = @report.filter.start_date
+- end_date = @report.filter.end_date
+- all_data = AllNeighborsSystemDashboard::TimeToObtainHousing.new(@report)
 
 - chart_data = all_data.stacked_data
 
@@ -14,7 +16,6 @@
         = render 'select_filter', tab: tab, name: 'household_type', label: 'Household Type', options: ['All'] + all_data.household_types
         = render 'select_filter', tab: tab, name: 'demographics', label: 'Demographics', options: all_data.demographics
 
-         
     .col-xs-12.col-md-4
       = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
 
@@ -32,9 +33,9 @@
       .card.h-100.text-center.px-4.py-3{class: css_namespace(tab[:id], 'card')}
         %span= value[:value]
         %h3= value[:name]
-  
-%h3 
-  Household Average Days form Idendification to Housing by 
+
+%h3
+  Household Average Days form Idendification to Housing by
   %span{class: filter_label_id(tab[:id], 'demographic')} Race
 .border.p-4
   .d-flex.justify-content-between.align-items-center
@@ -54,7 +55,7 @@
       var chartId = '##{chart_id(tab[:id], 'stacked')}'
       var charts = [
         {
-          chart: AllNeighborsSystemDashboardTTOHStack, 
+          chart: AllNeighborsSystemDashboardTTOHStack,
           data: data,
           selector: chartId,
           options: {
@@ -108,4 +109,3 @@
       var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
     })
-
