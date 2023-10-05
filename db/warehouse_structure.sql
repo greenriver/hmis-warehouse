@@ -57548,6 +57548,13 @@ CREATE UNIQUE INDEX "unk_Site" ON public."Geography" USING btree (data_source_id
 
 
 --
+-- Name: users_ds_email_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_ds_email_idx ON public."User" USING btree ("UserEmail", data_source_id);
+
+
+--
 -- Name: youth_ed_ev_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60527,6 +60534,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230927205059'),
 ('20230929205059'),
 ('20230930131206'),
-('20231004162425');
+('20231004162425'),
+('20231004203202');
 
 
