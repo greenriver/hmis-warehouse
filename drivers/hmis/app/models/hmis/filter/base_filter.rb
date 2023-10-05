@@ -18,7 +18,6 @@ class Hmis::Filter::BaseFilter
 
   # Utility to clean up joins or other things that could cause trouble downstream
   def clean_scope(scope)
-    # FIXME
     scope.all.klass.where(id: scope.pluck(:id))
   end
 
