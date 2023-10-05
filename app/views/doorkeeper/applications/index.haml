@@ -2,13 +2,9 @@
   %h1= t('.title')
 %p= link_to t('.new'), new_oauth_application_path, class: 'btn btn-success'
 %p
-  :ruby
-    fqdn = ENV.fetch("FQDN", "warehouse.openpath.host")
-    tokens = fqdn.split('.')
-    tokens = [tokens[0], 'superset', tokens[1..]].flatten
-    superset_fqdn = 'https://' + ENV.fetch('SUPERSET_FQDN', tokens.join('.'))
-  = link_to superset_fqdn do
-    « Go to Superset »
+  - if RailsDrivers.loaded.include?(:superset)
+    = link_to Superset.superset_base_url do
+      « Go to Superset »
 %table.table.table-striped
   %thead
     %tr
