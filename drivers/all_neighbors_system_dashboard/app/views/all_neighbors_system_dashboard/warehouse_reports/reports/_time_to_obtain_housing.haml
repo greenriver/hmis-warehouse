@@ -31,7 +31,7 @@
   - all_data.overall_data.each do |key, value|
     .col-xs-12.col-md-3.mb-4
       .card.h-100.text-center.px-4.py-3{class: css_namespace(tab[:id], 'card')}
-        %span= value[:value]
+        %span= number_with_delimiter value[:value]
         %h3= value[:name]
 
 %h3

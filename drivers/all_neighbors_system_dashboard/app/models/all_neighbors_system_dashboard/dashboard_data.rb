@@ -184,5 +184,52 @@ module AllNeighborsSystemDashboard
     def ranges_overlap?(range_a, range_b)
       range_b.begin <= range_a.end && range_a.begin <= range_b.end
     end
+
+    private def filter_for_type(scope, type)
+      case type
+      when 'Permanent Supportive Housing'
+        scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
+      when 'Rapid Rehousing'
+        scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
+      when 'Diversion'
+        # FIXME
+        scope.where(destination: @report.class::EXCLUDEABLE_DESTINATIONS)
+      when 'Unsheltered'
+        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
+      when 'Sheltered'
+        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))
+      when 'Adults Only', 'Adults and Children'
+        scope.where(household_type: type)
+      when 'Under 18'
+        scope.where(age: 0..17)
+      when '18 to 24'
+        scope.where(age: 18..24)
+      when '25 to 39'
+        scope.where(age: 25..39)
+      when '40 to 49'
+        scope.where(age: 40..49)
+      when '50 to 62'
+        scope.where(age: 50..62)
+      when 'Over 63'
+        scope.where(age: 63..)
+      when 'Unknown Age'
+        scope.where(age: nil)
+      when *HudUtility2024.genders.values
+        scope.where(gender: type)
+      when 'Unknown Gender'
+        scope.where(gender: nil)
+      else
+        scope
+      end
+    end
+
+    private def filter_for_count_level(scope, level)
+      case level
+      when 'Individuals'
+        scope
+      when 'Households'
+        scope.hoh
+      end
+    end
   end
 end

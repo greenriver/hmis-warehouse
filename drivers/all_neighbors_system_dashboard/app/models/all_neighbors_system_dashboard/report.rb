@@ -30,6 +30,8 @@ module AllNeighborsSystemDashboard
       order(updated_at: :desc)
     end
 
+    # This might be useful to confirm which keys exist
+    # Rails.cache.redis.keys.select { |m| m.include?('AllNeighborsSystemDashboard') }
     def delete_cached_values!
       Rails.cache.delete_matched("#{cache_key}*")
     end

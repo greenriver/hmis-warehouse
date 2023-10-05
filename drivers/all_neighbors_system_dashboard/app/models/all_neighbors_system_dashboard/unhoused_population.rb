@@ -5,14 +5,9 @@ module AllNeighborsSystemDashboard
       instance.donut_data
     end
 
-    def initialize(...)
-      super
-      @enrollments_in_range ||= {}
-    end
-
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}") do
+      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.years) do
         {
           title: title,
           id: id,
@@ -38,22 +33,24 @@ module AllNeighborsSystemDashboard
 
     def homelessness_status_data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      {
-        title: title,
-        id: id,
-        homelessness_statuses: homelessness_statuses.map do |status|
-          {
-            homelessness_status: status,
-            config: {
-              keys: keys,
-              names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
-              colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-              label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
-            },
-            series: send(type, options.merge(homelessness_status: status)),
-          }
-        end,
-      }
+      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.years) do
+        {
+          title: title,
+          id: id,
+          homelessness_statuses: homelessness_statuses.map do |status|
+            {
+              homelessness_status: status,
+              config: {
+                keys: keys,
+                names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
+                colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
+                label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
+              },
+              series: send(type, options.merge(homelessness_status: status)),
+            }
+          end,
+        }
+      end
     end
 
     def donut_data
@@ -107,7 +104,7 @@ module AllNeighborsSystemDashboard
         'racial_composition',
         :stack,
         options: {
-          bars: ['Unhoused Population *'], # TODO:, 'Overall Population (Census 2020)'],
+          bars: ['Unhoused Population *', 'Overall Population (Census 2020)'],
           demographic: :race,
           types: demographic_race,
           colors: demographic_race_colors,
@@ -116,59 +113,31 @@ module AllNeighborsSystemDashboard
     end
 
     def donut(options)
-      options[:types].map do |type|
+      options[:types].map do |project_type|
         {
-          name: type,
+          name: project_type,
           series: date_range.map do |date|
+            scope = report_enrollments_enrollment_scope.
+              distinct.
+              select(:destination_client_id)
+            scope = filter_for_type(scope, project_type)
+            scope = filter_for_count_level(scope, 'Individuals')
+            scope = filter_for_date(scope, date)
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: Array.wrap(donut_value(date, type, options)),
+              values: Array.wrap(scope.count),
             }
           end,
         }
       end
     end
 
-    def donut_value(date, label, options)
-      # {:data_set=>:homelessness_status,
-      #  :types=>["Sheltered", "Unsheltered"],
-      #  :colors=>["#B2803F", "#1865AB"],
-      #  :homelessness_status=>"All"}
-      data_set = options[:data_set]
-      enrollments = case data_set
-      when :homelessness_status
-        if label == 'Unsheltered'
-          enrollments_in_range(date).select { |enrollment| enrollment.project_type == HudUtility2024.project_type('Street Outreach', true) }
-        else
-          enrollments_in_range(date).reject { |enrollment| enrollment.project_type == HudUtility2024.project_type('Street Outreach', true) }
-        end
-      when :household_type
-        enrollments_in_range(date).select { |enrollment| enrollment.household_type == label }
-      when :age
-        case label
-        when 'Under 18'
-          enrollments_in_range(date).select { |enrollment| enrollment.age.present? && enrollment.age < 18 }
-        when '18 to 24'
-          enrollments_in_range(date).select { |enrollment| enrollment.age.present? && enrollment.age.between?(18, 24) }
-        when '25 to 39'
-          enrollments_in_range(date).select { |enrollment| enrollment.age.present? && enrollment.age.between?(25, 39) }
-        when '40 to 49'
-          enrollments_in_range(date).select { |enrollment| enrollment.age.present? && enrollment.age.between?(40, 49) }
-        when '50 to 62'
-          enrollments_in_range(date).select { |enrollment| enrollment.age.present? && enrollment.age.between?(50, 62) }
-        when 'Over 63'
-          enrollments_in_range(date).select { |enrollment| enrollment.age.present? && enrollment.age >= 63 }
-        when 'Unknown Age'
-          enrollments_in_range(date).select { |enrollment| enrollment.age.blank? }
-        end
-      when :gender
-        if label == 'Unknown Gender'
-          enrollments_in_range(date).select { |enrollment| enrollment.gender.blank? || enrollment.gender.in?(unknown_genders) }
-        else
-          enrollments_in_range(date).select { |enrollment| enrollment.gender.present? && enrollment.gender == label }
-        end
-      end
-      enrollments.count
+    private def filter_for_date(scope, date)
+      en_t = Enrollment.arel_table
+      range = date.beginning_of_year .. date.end_of_year
+      # Enrollment overlaps range
+      where_clause = en_t[:exit_date].gteq(range.first).or(en_t[:exit_date].eq(nil)).and(en_t[:entry_date].lteq(range.last))
+      scope.where(where_clause)
     end
 
     def stack(options)
@@ -197,49 +166,47 @@ module AllNeighborsSystemDashboard
       when :race
         race_status_values(date, bar, label)
       else
-        10
+        puts [date, demographic, bar, label].inspect
+        raise "Unknown demographic category #{demographic}"
       end
-    end
-
-    def enrollments_in_range(date)
-      year_range = date.beginning_of_year .. date.end_of_year
-      @enrollments_in_range[year_range] ||= @report.enrollment_data.select { |enrollment| ranges_overlap?(year_range, enrollment.entry_date .. (enrollment.exit_date || Date.current)) }
     end
 
     def housing_status_values(date, label)
-      enrollments = case label
-      when 'Safe Haven'
-        enrollments_in_range(date).select { |enrollment| enrollment.project_type == HudUtility2024.project_type('Safe Haven', true) }
-      when 'Transitional Housing'
-        enrollments_in_range(date).select { |enrollment| enrollment.project_type == HudUtility2024.project_type('Transitional Housing', true) }
+      scope = report_enrollments_enrollment_scope.
+        distinct.
+        select(:destination_client_id)
+      scope = filter_for_count_level(scope, 'Individuals')
+      scope = filter_for_date(scope, date)
+      scope = case label
+      when 'Safe Haven', 'Transitional Housing'
+        scope.where(project_type: HudUtility2024.project_type(label, true))
       when 'Emergency Shelter'
-        enrollments_in_range(date).select do |enrollment|
-          enrollment.project_type.in?(
-            [
-              HudUtility2024.project_type('Emergency Shelter - Entry Exit', true),
-              HudUtility2024.project_type('Emergency Shelter - Night-by-Night', true),
-            ],
-          )
-        end
+        scope.where(project_type: [HudUtility2024.project_type('Emergency Shelter - Entry Exit', true), HudUtility2024.project_type('Emergency Shelter - Night-by-Night', true)])
       when 'Unsheltered'
-        enrollments_in_range(date).select { |enrollment| enrollment.project_type == HudUtility2024.project_type('Street Outreach', true) }
+        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       end
-      enrollments.count
+      scope.count
     end
 
     def race_status_values(date, bar, label)
       population = bar.split.first
-      subpopulation = case population
+      scope = report_enrollments_enrollment_scope.
+        distinct.
+        select(:destination_client_id)
+      scope = filter_for_count_level(scope, 'Individuals')
+      scope = filter_for_date(scope, date)
+      scope = case population
       when 'All'
-        enrollments_in_range(date)
+        scope
       when 'Sheltered'
-        enrollments_in_range(date).reject { |enrollment| enrollment.project_type == HudUtility2024.project_type('Street Outreach', true) }
+        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))
       when 'Unsheltered'
-        enrollments_in_range(date).select { |enrollment| enrollment.project_type == HudUtility2024.project_type('Street Outreach', true) }
-      when 'Overall'
-        # TODO Census data
+        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
+      else
+        # FIXME: needs to return the appropriate value for census population of the race in `label`
+        return 1_500
       end
-      subpopulation.select { |enrollment| enrollment.primary_race.present? && to_key(enrollment.primary_race) == label }.count
+      scope.where(primary_race: label).count
     end
   end
 end

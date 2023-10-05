@@ -7,7 +7,7 @@ module AllNeighborsSystemDashboard
 
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}") do
+      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.years) do
         {
           title: title,
           id: id,
@@ -57,9 +57,9 @@ module AllNeighborsSystemDashboard
 
     def overall_data
       {
-        ident_to_move_in: { name: 'Identification to Move-In', value: 223 },
-        ident_to_referral: { name: 'Identification to Referral', value: 127 },
-        referral_to_move_in: { name: 'Referral to Move-In', value: 96 },
+        ident_to_move_in: { name: 'Identification to Move-In', value: 1_500 }, # FIXME
+        ident_to_referral: { name: 'Identification to Referral', value: 1_500 }, # FIXME
+        referral_to_move_in: { name: 'Referral to Move-In', value: 1_500 }, # FIXME
       }
     end
 

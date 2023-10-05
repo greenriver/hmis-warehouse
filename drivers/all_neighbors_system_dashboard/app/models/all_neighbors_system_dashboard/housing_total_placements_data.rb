@@ -9,7 +9,7 @@ module AllNeighborsSystemDashboard
 
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}") do
+      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.years) do
         {
           title: title,
           id: id,
@@ -48,49 +48,6 @@ module AllNeighborsSystemDashboard
           scope.count,
         ]
       end # FIXME
-    end
-
-    private def filter_for_type(scope, type)
-      case type
-      when 'Permanent Supportive Housing'
-        scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
-      when 'Rapid Rehousing'
-        scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
-      when 'Diversion'
-        # FIXME
-        scope.where(destination: @report.class::EXCLUDEABLE_DESTINATIONS)
-      when 'Adults Only', 'Adults and Children'
-        scope.where(household_type: type)
-      when 'Under 18'
-        scope.where(age: 0..17)
-      when '18 to 24'
-        scope.where(age: 18..24)
-      when '25 to 39'
-        scope.where(age: 25..39)
-      when '40 to 49'
-        scope.where(age: 40..49)
-      when '50 to 62'
-        scope.where(age: 50..62)
-      when 'Over 63'
-        scope.where(age: 63..)
-      when 'Unknown Age'
-        scope.where(age: nil)
-      when *HudUtility2024.genders.values
-        scope.where(gender: type)
-      when 'Unknown Gender'
-        scope.where(gender: nil)
-      else
-        scope
-      end
-    end
-
-    private def filter_for_count_level(scope, level)
-      case level
-      when 'Individuals'
-        scope
-      when 'Households'
-        scope.hoh
-      end
     end
 
     private def filter_for_date(scope, date)

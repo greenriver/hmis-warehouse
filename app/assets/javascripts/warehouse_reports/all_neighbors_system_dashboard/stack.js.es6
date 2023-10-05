@@ -72,6 +72,9 @@ class AllNeighborsSystemDashboardStack {
         show: true,
         centered: true,
         colors: this.config.label_colors,
+        format: (v, id, i, j) => {
+          return d3.format(",")(v);
+        },
       },
       stack: {
         normalize: true,
@@ -176,7 +179,7 @@ class AllNeighborsSystemDashboardStack {
     const old_columns = [...this.config.keys]
     this.state = state
     this.init()
-    
+
     const unload = old_columns.filter((old) => this.config.keys.indexOf(old) === -1)
 
     this.chart.load({
@@ -194,7 +197,7 @@ class AllNeighborsSystemDashboardStack {
       width: $(this.selector).width(),
       height: this.series.length * 90,
     })
-    
+
   }
 
   draw() {

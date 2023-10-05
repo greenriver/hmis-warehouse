@@ -35,6 +35,9 @@ class AllNeighborsSystemDashboarBar {
           centered: false,
           show: true,
           color: '#000000',
+          format: (v, id, i, j) => {
+            return d3.format(",")(v);
+          },
         },
       },
       padding: {
@@ -102,7 +105,6 @@ class AllNeighborsSystemDashboarBar {
                 .attr('dy', (d, di) => di === 0 ? 0 : 17)
                 .text((d, di) => i === 0 ? d : di == 0 ? d3.format('.1%')(percentages[ti]) : d)
           })
-          
         })
       }
     }
