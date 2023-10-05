@@ -163,10 +163,11 @@ module MaYyaReport
 
         TotalYYAServed: a_t[:currently_homeless].eq(true).or(a_t[:at_risk_of_homelessness].eq(true)),
 
-        C1: nil,
-        C3: nil,
-        TotalCollegeStudentsServed: a_t[:education_status_date].lteq(report_end_date).
-          and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].in([1, 2, 3, 4])),
+        # No longer included in FY2024 spec, leaving until we confirm it is no longer necessary
+        # C1: nil,
+        # C3: nil,
+        # TotalCollegeStudentsServed: a_t[:education_status_date].lteq(report_end_date).
+        #   and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].in([1, 2, 3, 4])),
 
         D1a: a_t[:age].lt(18),
         D1b: a_t[:gender].eq(1),
@@ -293,7 +294,7 @@ module MaYyaReport
     def section_label(label)
       @section_label ||= {
         'A' => 'A. Core Services',
-        'C' => 'C. College Student Services (all regions)',
+        # 'C' => 'C. College Student Services (all regions)',
         'D' => 'D. Demographics',
         'E' => 'E. Youth Action Board/Youth Engagement Activity',
         'F' => 'F. Outcomes',
@@ -309,8 +310,8 @@ module MaYyaReport
         'A3' => { text: '3. Assessment/Case Management/Case Coordination - Prevention' },
         'A4' => { text: '4. Assessment/Case Management/Case Coordination - Rehousing' },
         'A5' => { text: '5. Direct Financial Assistance (Flex Funds)' },
-        'C1' => { text: '1. Transitional Housing & Case Management (enrolled students)' },
-        'C3' => { text: '2. Number College students' },
+        # 'C1' => { text: '1. Transitional Housing & Case Management (enrolled students)' },
+        # 'C3' => { text: '2. Number College students' },
         'D1' => { text: '1. Age and Gender' },
         'D2' => { text: '2. Race, Ethnicity, and Language' },
         'D3' => { text: '3. Disability' },
@@ -364,8 +365,8 @@ module MaYyaReport
         A5l: 'Number of YYA who received assistance with Cell phone costs',
         A5m: 'Number of YYA who received assistance with Food/groceries',
         A5n: 'Number of YYA who received assistance with Other costs',
-        C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
-        C3: 'Number of College students not officially enrolled in the campus pilot program that are receiving services',
+        # C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
+        # C3: 'Number of College students not officially enrolled in the campus pilot program that are receiving services',
         D1a: 'Number of YYA  served who were Under 18',
         D1b: 'Number of YYA  served who identified as Man',
         D1c: 'Number of YYA  served who identified as Woman',
