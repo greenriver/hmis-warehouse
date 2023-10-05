@@ -266,9 +266,8 @@ module Types
     # ALERT: n+1, dont use when resolving multiple enrollments
     def num_units_assigned_to_household
       object.household_members.
-        joins(:current_unit).
-        pluck(Hmis::Unit.arel_table[:id]).
-        uniq.size
+        map { |hhm| hhm.current_unit&.id }.
+        compact.uniq.size
     end
   end
 end
