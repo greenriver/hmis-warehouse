@@ -25,6 +25,7 @@ class Hmis::Filter::BaseFilter
   private
 
   def with_filter(scope, filter)
+    scope = scope.all unless scope.is_a?(ActiveRecord::Relation)
     return scope unless input.respond_to?(filter) && input.send(filter)&.present?
 
     yield
