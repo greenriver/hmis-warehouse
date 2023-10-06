@@ -12,6 +12,19 @@ module HmisCsvTwentyTwentyFour::Exporter
       @options = options
     end
 
+    def process(row)
+      row = self.class.adjust_keys(row)
+      row = self.class.apply_overrides(row)
+
+      row
+    end
+
+    def self.apply_overrides(row)
+      row = replace_newlines(row, hud_field: :DifferentIdentityText)
+
+      row
+    end
+
     def self.adjust_keys(row)
       row.UserID = row.user&.id || 'op-system'
       row.PersonalID = row.id
