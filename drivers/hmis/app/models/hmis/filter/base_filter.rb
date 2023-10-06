@@ -31,7 +31,7 @@ class Hmis::Filter::BaseFilter
     yield
   end
 
-  # IMPORTANT: ensures scope is always a relation. Prevents accidents is search is passed a class instead of scope
+  # IMPORTANT: ensures scope is always a relation. Prevents accidental scope loss if passed a class instead of scope
   def ensure_scope(scope)
     scope.current_scope || scope.all
   end
