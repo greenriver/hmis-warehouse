@@ -82,6 +82,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on Enrollment {
               id
               inProgress
+              householdSize
             }
             ... on CurrentLivingSituation {
               id
@@ -478,6 +479,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       expect(response.status).to eq(200), result&.inspect
       expect(errors).to be_empty
+      household_size = result.dig('data', 'submitForm', 'record', 'householdSize')
+      expect(household_size).to eq(2) # household size is 2 even though it contains 3 enrollments
     end
 
     it 'should warn if client already enrolled' do

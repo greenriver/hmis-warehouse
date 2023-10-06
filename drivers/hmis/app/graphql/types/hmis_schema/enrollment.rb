@@ -212,7 +212,8 @@ module Types
     end
 
     def household_size
-      load_ar_association(household, :enrollments).size
+      # FIXME: how to avoid N+1 here?
+      household.clients.distinct.size
     end
 
     def in_progress
