@@ -37,18 +37,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     define_method(hud_field_name) { hud_service&.send(hud_field_name) }
   end
 
-  # should be effectively the same as scope in EnrollmentRelated but with
-  # better performance. May replace that implementation in future
-  replace_scope :viewable_by, ->(user) do
-    # correlated subquery
-    e_t = Hmis::Hud::Enrollment.arel_table
-    hs_t = Hmis::Hud::HmisService.arel_table
-
-    cond = e_t[:EnrollmentID].eq(hs_t[:EnrollmentID]).and(e_t[:data_source_id].eq(hs_t[:data_source_id]))
-    enrollments = Hmis::Hud::Enrollment.viewable_by(user).where(cond)
-    where(enrollments.arel.exists)
-  end
-
   scope :with_service_type, ->(service_type_id) do
     where(custom_service_type_id: service_type_id)
   end
