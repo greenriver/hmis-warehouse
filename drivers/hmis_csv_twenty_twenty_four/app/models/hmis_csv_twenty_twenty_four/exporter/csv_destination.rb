@@ -11,7 +11,11 @@ module HmisCsvTwentyTwentyFour::Exporter
     def initialize(options)
       @output_file = options[:output_file]
       @keys = options[:hmis_class].hmis_configuration(version: '2024').keys
-      @csv ||= CSV.open(@output_file, 'wb', force_quotes: true)
+      @strip_newline_proc = proc do |field|
+        field.respond_to?(:gsub) ? field.gsub("\n", '\\n') : field
+      end
+
+      @csv ||= CSV.open(@output_file, 'wb', force_quotes: true, write_converters: [@strip_newline_proc])
       return if @headers_written
 
       @headers_written = true
@@ -19,7 +23,7 @@ module HmisCsvTwentyTwentyFour::Exporter
     end
 
     def write(row)
-      @csv ||= CSV.open(@output_file, 'wb', force_quotes: true)
+      @csv ||= CSV.open(@output_file, 'wb', force_quotes: true, write_converters: [@strip_newline_proc])
       @csv << row.values_at(*@keys)
     end
 
