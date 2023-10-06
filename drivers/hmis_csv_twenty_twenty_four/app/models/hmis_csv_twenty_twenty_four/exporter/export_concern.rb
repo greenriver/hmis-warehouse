@@ -41,11 +41,6 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
       row
     end
 
-    def self.replace_newlines(row, hud_field:)
-      row[hud_field] = row[hud_field].gsub("\n", ' ') if row[hud_field].present?
-      row
-    end
-
     def self.note_involved_user_ids(scope:, export:)
       u_t = GrdaWarehouse::Hud::User.arel_table
 
@@ -117,17 +112,12 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
     def process(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row)
-      row = self.class.apply_overrides(row)
 
       row
     end
 
     def assign_export_id(row)
       row.ExportID = @options[:export].export_id
-      row
-    end
-
-    def self.apply_overrides(row)
       row
     end
   end
