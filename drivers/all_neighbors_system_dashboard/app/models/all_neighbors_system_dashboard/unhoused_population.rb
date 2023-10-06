@@ -204,6 +204,8 @@ module AllNeighborsSystemDashboard
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       else
         # FIXME: needs to return the appropriate value for census population of the race in `label`
+        # full_pop = get_us_census_population_by_race(year: year) || 0
+        # race_pop = get_us_census_population_by_race(race_code: race_code, year: year) || 0
         return 1_500
       end
       scope.where(primary_race: label).count
