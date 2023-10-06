@@ -456,13 +456,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.first_member_hoh_full_message)
     end
 
-    it 'should error if adding duplicate member to household' do
+    it 'should error if client already has an open enrollment in the household' do
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: '2000-01-01', household_id: e1.household_id)
       input = merge_hud_values(
-        test_input.merge(client_id: e1.client.id),
+        test_input.merge(client_id: e2.client.id),
         'householdId' => e1.household_id,
         'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
       expect_error_message(input, exact: false, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
+    end
+
+    it 'should not error if client has a closed enrollment in the household' do
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: '2000-01-01', household_id: e1.household_id)
+      create(:hmis_hud_exit, enrollment: e2, client: e2.client, data_source: ds1, exit_date: '2001-01-01')
+      input = merge_hud_values(
+        test_input.merge(client_id: e2.client.id),
+        'householdId' => e1.household_id,
+        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+      )
+      response, result = post_graphql(input: { input: input }) { mutation }
+      errors = result.dig('data', 'submitForm', 'errors')
+      expect(response.status).to eq(200), result&.inspect
+      expect(errors).to be_empty
     end
 
     it 'should warn if client already enrolled' do
