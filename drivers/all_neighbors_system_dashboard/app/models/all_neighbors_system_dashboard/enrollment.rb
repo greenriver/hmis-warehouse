@@ -18,7 +18,11 @@ module AllNeighborsSystemDashboard
     # exit_type is 'Permanent' or move-in date is present
     scope :housed, -> do
       where(exit_type: 'Permanent').
-        or(where.not(move_in_date: nil))
+        or(moved_in)
+    end
+
+    scope :moved_in, -> do
+      where.not(move_in_date: nil)
     end
 
     scope :returned, -> do

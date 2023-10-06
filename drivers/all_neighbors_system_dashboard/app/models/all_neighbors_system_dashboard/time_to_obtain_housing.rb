@@ -57,10 +57,41 @@ module AllNeighborsSystemDashboard
 
     def overall_data
       {
-        ident_to_move_in: { name: 'Identification to Move-In', value: 1_500 }, # FIXME
-        ident_to_referral: { name: 'Identification to Referral', value: 1_500 }, # FIXME
-        referral_to_move_in: { name: 'Referral to Move-In', value: 1_500 }, # FIXME
+        ident_to_move_in: { name: 'Identification to Move-In', value: identification_to_move_in },
+        ident_to_referral: { name: 'Identification to Referral', value: identification_to_referral },
+        referral_to_move_in: { name: 'Referral to Move-In', value: referral_to_move_in },
       }
+    end
+
+    private def identification_to_referral
+      moved_in_scope.average(datediff(Enrollment, 'day', referral_query, identification_query)).round.abs
+    end
+
+    private def identification_to_move_in
+      en_t = Enrollment.arel_table
+      moved_in_scope.average(datediff(Enrollment, 'day', identification_query, en_t[:move_in_date])).round.abs
+    end
+
+    private def referral_to_move_in
+      en_t = Enrollment.arel_table
+      moved_in_scope.average(datediff(Enrollment, 'day', referral_query, en_t[:move_in_date])).round.abs
+    end
+
+    # Identification occurs at the earlier or CE Entry, CE Referral, or Enrollment Entry Date
+    private def identification_query
+      en_t = Enrollment.arel_table
+      cl(en_t[:ce_entry_date], en_t[:ce_referral_date], en_t[:entry_date])
+    end
+
+    # Referral occurs at the later of CE event, CE entry, or if neither of those, enrollment entry date
+    private def referral_query
+      en_t = Enrollment.arel_table
+      cl(en_t[:ce_referral_date], en_t[:ce_entry_date], en_t[:entry_date])
+    end
+
+    private def moved_in_scope
+      report_enrollments_enrollment_scope.
+        moved_in
     end
 
     # FIXME

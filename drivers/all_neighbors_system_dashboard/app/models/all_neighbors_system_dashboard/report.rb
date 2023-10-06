@@ -92,7 +92,9 @@ module AllNeighborsSystemDashboard
           source_enrollment = enrollment.enrollment
           hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household&.enrollment || source_enrollment
           ce_info = ce_infos[enrollment.id]
-          max_event = ce_info&.ce_event&.max_by(&:event_date)
+          # Latest CE Event that occurred on or before enrollment.entry_date
+          # this would be the referral to housing (or the identification that someone needed housing)
+          max_event = ce_info&.ce_event&.select { |e| e.event_date <= enrollment.entry_date }&.max_by(&:event_date)
           # inherit move_in_date from hoh enrollment
           move_in_date = enrollment.move_in_date || hoh_enrollment.move_in_date
           # invalidate move_in_date if it's after the report end_date
