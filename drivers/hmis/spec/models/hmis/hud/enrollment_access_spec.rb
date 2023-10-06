@@ -27,6 +27,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
   let!(:c1) { create(:hmis_hud_client, data_source: ds1) }
 
   let!(:e1) { create(:hmis_hud_enrollment, client: c1, project: p1, data_source: ds1) }
+  let!(:ed1) { create(:hmis_hud_enrollment, client: c1, project: p1, data_source: ds1).tap(&:destroy!) }
   let!(:e2) { create(:hmis_hud_wip_enrollment, client: c1, project: p2, data_source: ds1) }
   let!(:e3) { create(:hmis_hud_enrollment, client: c1, project: p3, data_source: ds1) }
   let!(:e4) { create(:hmis_hud_enrollment, client: c1, project: p4, data_source: ds1) }
@@ -36,7 +37,9 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
   let!(:csc1) { create :hmis_custom_service_category, data_source: ds1 }
   let!(:cst1) { create :hmis_custom_service_type_for_hud_service, data_source: ds1, custom_service_category: csc1 }
   let!(:s1) { create :hmis_hud_service, data_source: ds1, enrollment: e1 }
+  let!(:sd1) { create(:hmis_hud_service, data_source: ds1, enrollment: e1).tap(&:destroy!) }
   let!(:cs1) { create :hmis_custom_service, data_source: ds1, enrollment: e1 }
+  let!(:csd1) { create(:hmis_custom_service, data_source: ds1, enrollment: e1).tap(&:destroy!) }
   # service on wip e2 probably doesn't make sense
   # let!(:s2) { create :hmis_hud_service, data_source: ds1, enrollment: e2 }
   let!(:s3) { create :hmis_hud_service, data_source: ds1, enrollment: e3 }
