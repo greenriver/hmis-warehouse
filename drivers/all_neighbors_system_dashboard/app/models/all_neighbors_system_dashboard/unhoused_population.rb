@@ -1,5 +1,6 @@
 module AllNeighborsSystemDashboard
   class UnhousedPopulation < DashboardData
+    include AllNeighborsSystemDashboard::CensusCalculations
     def self.cache_data(report)
       instance = new(report)
       instance.donut_data
@@ -203,10 +204,8 @@ module AllNeighborsSystemDashboard
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       else
-        # FIXME: needs to return the appropriate value for census population of the race in `label`
-        # full_pop = get_us_census_population_by_race(year: year) || 0
-        # race_pop = get_us_census_population_by_race(race_code: race_code, year: year) || 0
-        return 1_500
+        race_code = HudUtility2024.race(label, true)
+        return get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
       end
       scope.where(primary_race: label).count
     end
