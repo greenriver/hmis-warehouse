@@ -212,7 +212,7 @@ module Types
     end
 
     def household_size
-      # FIXME: how to avoid N+1 here?
+      # FIXME: N+1
       household.clients.distinct.size
     end
 

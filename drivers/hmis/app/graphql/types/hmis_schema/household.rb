@@ -33,7 +33,8 @@ module Types
     end
 
     def household_size
-      enrollments.size
+      # FIXME: N+1
+      clients.distinct.size
     end
 
     def enrollments
