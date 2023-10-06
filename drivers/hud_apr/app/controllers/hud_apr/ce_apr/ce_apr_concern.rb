@@ -66,5 +66,18 @@ module HudApr::CeApr::CeAprConcern
         fy2023: HudApr::Generators::CeApr::Fy2023::Generator,
       }
     end
+
+    def default_report_version
+      :fy2023
+    end
+
+    def available_report_versions
+      {
+        'FY 2020' => { slug: :fy2020, active: false },
+        'FY 2022' => { slug: :fy2021, active: true },
+        'FY 2023 (current)' => { slug: :fy2023, active: true },
+      }.freeze
+    end
+
   end
 end
