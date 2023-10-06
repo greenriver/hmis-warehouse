@@ -15,6 +15,14 @@ module HmisCsvTwentyTwentyFour::Exporter
     def process(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])
+      row = self.class.apply_overrides(row)
+
+      row
+    end
+
+    def self.apply_overrides(row)
+      row = replace_newlines(row, hud_field: :AssessmentResultType)
+      row = replace_newlines(row, hud_field: :AssessmentResult)
 
       row
     end
