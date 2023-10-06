@@ -10,6 +10,7 @@ module AllNeighborsSystemDashboard
 
     included do
       def categories
+        # FIXME ethnicity needs to go away
         @categories ||= HudUtility.races(multi_racial: true).values.map do |race|
           HudUtility.ethnicities.values.map do |ethnicity|
             [race, ethnicity]
@@ -29,6 +30,7 @@ module AllNeighborsSystemDashboard
           clients_by_segment = by_project.pluck(:client_id).uniq.count
           households_by_segment = by_project.where(a_t[:relationship].eq('SL')).pluck(:client_id).uniq.count
 
+          # FIXME ethnicity needs to go away
           categories.map do |race, ethnicity|
             by_category = by_project.where(a_t[:primary_race].eq(race).and(a_t[:ethnicity].eq(ethnicity)))
             next if by_category.count.zero?

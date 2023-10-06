@@ -70,7 +70,18 @@ module AllNeighborsSystemDashboard
     end
 
     def demographic_race
-      HudUtility2024.races(multi_racial: true).values
+      HudUtility2024.races(multi_racial: true).except(*ignored_races).values
+    end
+
+    # Note, the census doesn't contain MidEastNAfrican and HispanicLatinaeo is represented as ethnicity
+    # and the 2024 specs have them, so for now we're ignoring them
+    private def ignored_races
+      [
+        'HispanicLatinaeo',
+        'MidEastNAfrican',
+        'RaceNone',
+        'MultiRacial',
+      ]
     end
 
     def demographic_race_colors
@@ -193,7 +204,7 @@ module AllNeighborsSystemDashboard
         scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
       when 'Diversion'
         # FIXME
-        scope.where(destination: @report.class::EXCLUDEABLE_DESTINATIONS)
+        scope.where(destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       when 'Sheltered'

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Some semi-useful testing notes:
+# reload!; @report = AllNeighborsSystemDashboard::Report.find(244); @report.delete_cached_values!; AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(@report)
 module AllNeighborsSystemDashboard
   class Report < SimpleReports::ReportInstance
     include Rails.application.routes.url_helpers

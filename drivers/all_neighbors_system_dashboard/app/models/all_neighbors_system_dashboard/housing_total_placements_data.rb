@@ -1,5 +1,7 @@
 module AllNeighborsSystemDashboard
   class HousingTotalPlacementsData < DashboardData
+    include AllNeighborsSystemDashboard::CensusCalculations
+
     def self.cache_data(report)
       instance = new(report)
       instance.data('Total Placements', 'total_placements', :line)
@@ -47,7 +49,7 @@ module AllNeighborsSystemDashboard
           date.strftime('%Y-%-m-%-d'),
           scope.count,
         ]
-      end # FIXME
+      end
     end
 
     private def filter_for_date(scope, date)
@@ -61,7 +63,6 @@ module AllNeighborsSystemDashboard
     def donut(options)
       project_type = options[:project_type] || options[:homelessness_status]
       # {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
-      Rails.logger.info("TTTTTTT: #{options}")
       options[:types].map do |type|
         {
           name: type,
@@ -133,13 +134,35 @@ module AllNeighborsSystemDashboard
         {
           name: bar,
           series: date_range.map do |date|
+            counts = options[:types].map do |race_name|
+              race_code = HudUtility2024.race(race_name, true)
+              scope = report_enrollments_enrollment_scope.
+                housed.
+                distinct.
+                select(:destination_client_id)
+              scope = filter_for_count_level(scope, options[:count_level])
+              scope = filter_for_date(scope, date)
+              scope = scope.where(primary_race: race_name)
+              case bar
+              when 'Overall Population (Census)'
+                get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
+              when 'All'
+                scope.count
+              when 'Rapid Rehousing'
+                scope = filter_for_type(scope, bar)
+                scope.count
+              when 'Unhoused Population'
+                scope = filter_for_type(scope, 'Unsheltered')
+                scope.count
+              end
+            end
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: options[:types].map { |_| 1_500 }, # FIXME
+              values: counts,
             }
           end,
         }
-      end
+      end.compact
     end
 
     def stacked_data
@@ -148,7 +171,7 @@ module AllNeighborsSystemDashboard
         'racial_composition',
         :stack,
         options: {
-          bars: ['Unhoused Population 2023 *', 'Overall Population (Census 2020)'],
+          bars: ['Unhoused Population', 'Overall Population (Census)'],
           types: demographic_race,
           colors: demographic_race_colors,
           label_colors: demographic_race.map { |_| '#ffffff' },

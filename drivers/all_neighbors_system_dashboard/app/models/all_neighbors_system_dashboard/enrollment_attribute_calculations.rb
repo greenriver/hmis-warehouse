@@ -68,6 +68,22 @@ module AllNeighborsSystemDashboard
         215,
       ].freeze
 
+      POSITIVE_DIVERSION_DESTINATIONS = [
+        215,
+        329,
+        312,
+        313,
+        225,
+        332,
+        426,
+        411,
+        421,
+        410,
+        435,
+        422,
+        423,
+      ].freeze
+
       def household_type(enrollment)
         return 'Children Only' if enrollment.children_only?
         # The enrollment isn't children only, but contains at least one child
