@@ -54,7 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'filters households by all statuses' do
-      filters = { "status": [ "INCOMPLETE", "ACTIVE", "EXITED" ] }
+      filters = { "status": ['INCOMPLETE', 'ACTIVE', 'EXITED'] }
       response, result = post_graphql(id: p1.id, filters: filters) { query }
       expect(response.status).to eq 200
       [e1, e2, e3].map(&:household_id).tap do |expected|
