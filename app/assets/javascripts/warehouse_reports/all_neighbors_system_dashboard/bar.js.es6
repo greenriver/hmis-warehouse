@@ -1,4 +1,4 @@
-class AllNeighborsSystemDashboarBar {
+class AllNeighborsSystemDashboardBar {
   constructor(data, initialState, selector, options) {
     this.data = data
     this.state = initialState

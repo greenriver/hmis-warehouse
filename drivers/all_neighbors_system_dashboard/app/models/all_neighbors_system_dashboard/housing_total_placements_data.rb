@@ -25,14 +25,36 @@ module AllNeighborsSystemDashboard
                 label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
               },
               count_levels: count_levels.map do |count_level|
-                {
-                  count_level: count_level,
-                  series: send(type, options.merge(project_type: project_type, count_level: count_level)),
-                }
+                monthly_counts = send(type, options.merge(project_type: project_type, count_level: count_level))
+
+                if type == :line
+                  summary_counts = aggregate(monthly_counts)
+                  {
+                    count_level: count_level,
+                    series: summary_counts,
+                    monthly_counts: monthly_counts,
+                  }
+                else
+                  {
+                    count_level: count_level,
+                    series: monthly_counts,
+                  }
+                end
               end,
             }
           end,
         }
+      end
+    end
+
+    private def aggregate(series)
+      total_count = 0
+      series.map do |date, counts|
+        total_count += counts
+        [
+          date,
+          total_count,
+        ]
       end
     end
 

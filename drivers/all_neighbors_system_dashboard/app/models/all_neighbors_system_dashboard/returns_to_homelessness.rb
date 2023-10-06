@@ -1,10 +1,5 @@
 module AllNeighborsSystemDashboard
   class ReturnsToHomelessness < DashboardData
-    def initialize(...)
-      super
-      @enrollments_in_range ||= {}
-    end
-
     def self.cache_data(report)
       instance = new(report)
       instance.stacked_data
@@ -23,6 +18,11 @@ module AllNeighborsSystemDashboard
             names = send(demo_names_meth)
             keys = names.map { |key| to_key(key) }
             colors = send(demo_colors_meth)
+            scope = enrollment_scope
+            scope = filter_for_year(scope, Date.new(options[:year]))
+            scope = filter_for_count_level(scope, 'Households')
+            exited_household_count = scope.count
+            returned_household_count = scope.where.not(return_date: nil).count
             {
               demographic: demo,
               config: {
@@ -31,7 +31,9 @@ module AllNeighborsSystemDashboard
                 colors: keys.map.with_index { |key, i| [key, colors[i]] }.to_h,
                 label_colors: keys.map.with_index { |key, i| [key, label_color(colors[i])] }.to_h,
               },
-              series: send(type, { bars: bars, demographic: demo, types: keys }),
+              series: send(type, { bars: bars, demographic: demo, types: names, year: options[:year] }),
+              exited_household_count: exited_household_count,
+              returned_household_count: returned_household_count,
             }
           end,
         }
@@ -39,14 +41,14 @@ module AllNeighborsSystemDashboard
     end
 
     def stacked_data
-      years.map do |year|
+      relevant_years.map do |year|
         cohort_name = "#{year} Cohort"
 
         data(
           cohort_name,
           to_key(cohort_name),
           :stack,
-          options: {},
+          options: { year: year },
         )
       end
     end
@@ -58,66 +60,94 @@ module AllNeighborsSystemDashboard
       bars.map do |bar|
         {
           name: bar,
-          series: date_range.map do |date|
+          series: relevant_date_range.map do |date|
+            next unless date.year == options[:year]
+
             {
               date: date.strftime('%Y-%-m-%-d'),
               values: options[:types].map { |label| stack_value(date, bar, demographic, label) },
             }
-          end,
+          end.compact,
         }
       end
     end
 
+    # This tab is only relevant for years that completed over a year ago because it looks at returns within a year of exiting
+    def relevant_date_range
+      max_date = Date.current.beginning_of_year - 1.years
+      # strictly less than the beginning of the prior year
+      date_range.select { |date| date < max_date }
+    end
+
+    # This tab is only relevant for years that completed over a year ago because it looks at returns within a year of exiting
+    def relevant_years
+      max_year = (Date.current.beginning_of_year - 1.years).year
+      # strictly less than the beginning of the prior year
+      years.select { |year| year < max_year }
+    end
+
+    private def filter_for_date(scope, date)
+      en_t = Enrollment.arel_table
+      # NOTE: even though we aggregate at the year level, we calculate the month range and let JS do the aggregation
+      range = date.beginning_of_month .. date.end_of_month
+      where_clause = en_t[:exit_date].between(range).and(en_t[:exit_type].eq('Permanent'))
+      scope.where(where_clause)
+    end
+
+    private def filter_for_year(scope, date)
+      en_t = Enrollment.arel_table
+      # NOTE: even though we aggregate at the year level, we calculate the month range and let JS do the aggregation
+      range = date.beginning_of_year .. date.end_of_year
+      where_clause = en_t[:exit_date].between(range).and(en_t[:exit_type].eq('Permanent'))
+      scope.where(where_clause)
+    end
+
+    private def enrollment_scope
+      report_enrollments_enrollment_scope.
+        distinct.
+        select(:destination_client_id)
+    end
+
     def stack_value(date, bar, demographic, label)
-      year_range = date.beginning_of_year .. date.end_of_year
-      enrollments_in_range = @enrollments_in_range[year_range] ||= @report.enrollment_data.select { |enrollment| enrollment.exit_date.present? && date.in?(year_range) }
-      enrollments = case bar
+      scope = enrollment_scope
+      scope = filter_for_count_level(scope, 'Individuals')
+      scope = filter_for_date(scope, date)
+
+      scope = case bar
       when 'Exited*'
-        enrollments_in_range.select { |enrollment| enrollment.exit_type == 'Permanent' }
+        scope.where(exit_type: 'Permanent')
       when 'Returned'
-        enrollments_in_range.select { |enrollment| enrollment.exit_type == 'Permanent' && enrollment.return_date.present? }
+        scope.where(exit_type: 'Permanent').where.not(return_date: nil)
       end
-      case demographic
+
+      scope = case demographic
       when 'Race'
-        enrollments.select { |enrollment| enrollment.primary_race.present? && to_key(enrollment.primary_race) == label }.count
-      when 'Age'
-        case label
-        when 'Under_18'
-          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age < 18 }.count
-        when '18_to_24'
-          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(18, 24) }.count
-        when '25_to_39'
-          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(25, 39) }.count
-        when '40_to_49'
-          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(40, 49) }.count
-        when '50_to_62'
-          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age.between?(50, 62) }.count
-        when 'Over_63'
-          enrollments.select { |enrollment| enrollment.age.present? && enrollment.age >= 63 }.count
-        when 'Unknown Age'
-          enrollments.select { |enrollment| enrollment.age.blank? }.count
-        end
-      when 'Gender'
-        if label == 'Unknown Gender'
-          enrollments.select { |enrollment| enrollment.gender.blank? || enrollment.gender.in?(unknown_genders) }.count
-        else
-          enrollments.select { |enrollment| enrollment.gender.present? && to_key(enrollment.gender) == label }.count
-        end
+        scope.where(primary_race: label)
+      when 'Age', 'Gender'
+        filter_for_type(scope, label)
       when 'Household Type'
-        enrollments.select { |enrollment| to_key(enrollment.household_type) == label }.count
+        scope.where(household_type: label)
       end
+      scope.count
     end
 
     def bars
-      cohort_keys = years.map { |year| "#{year} Cohort" }
-      exited_enrollments = @report.enrollment_data.select { |enrollment| enrollment.exit_type == 'Permanent' }
-      exited_counts = exited_enrollments.group_by { |enrollment| enrollment.exit_date.year }.transform_values!(&:count)
-      returned_enrollments = exited_enrollments.select { |enrollment| enrollment.return_date.present? && enrollment.return_date <= enrollment.exit_date + 1.year }
-      returned_counts = returned_enrollments.group_by { |enrollment| enrollment.exit_date.year }.transform_values!(&:count)
+      # NOTE: not cached, but only a handful of queries
+      cohort_keys = relevant_years.map { |year| "#{year} Cohort" }
+      scope = enrollment_scope
+      # NOTE: there is no picker on this page currently, but this could be updated if necessary
+      scope = filter_for_count_level(scope, 'Individuals')
+      exited_counts = {}
+      returned_counts = {}
       # Make sure there are no missing years
-      years.each do |key|
-        exited_counts[key] ||= 0
-        returned_counts[key] ||= 0
+      relevant_years.each do |year|
+        start_of_year = Date.new(year)
+        exited_scope = scope.where(exit_date: start_of_year..start_of_year.end_of_year)
+        # NOTE: we filter return date on write and only add if the client returned within a year
+        returned_scope = exited_scope.where.not(return_date: nil)
+
+        exited_counts[year] = exited_scope.count
+        returned_counts[year] = returned_scope.count
       end
       rates_of_return = returned_counts.values.zip(exited_counts.values).map do |returns, exits|
         rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)

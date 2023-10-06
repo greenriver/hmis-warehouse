@@ -337,6 +337,8 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
 
   getConfig() {
     const superConfig = super.getConfig()
+    const data = this.data
+    const demographic = this.demographic
     const config = {
       padding: {
         left: 150,
@@ -346,7 +348,15 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
       },
       onrendered: function() {
         super.normalizeDataLabels(this)
-        super.drawTotals(this)
+        const selector = this.config().bindto
+        let container = d3.select(`${selector} .bb-main`)
+        container.selectAll(`.bb-text__custom-total`)
+          .data([demographic.exited_household_count, demographic.returned_household_count])
+          .join(
+            (enter) => enter.append('text').attr('class', 'bb-text__custom-total'),
+            (update) => update,
+            (exit) => exit.remove()
+          )
           .text((d) => `${d3.format(',')(d)} Households`)
           .attr('x', (d) => this.internal.scale.y(100))
           .attr('y', (d, i) => this.internal.scale.x(i))
