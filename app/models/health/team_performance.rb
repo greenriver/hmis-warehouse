@@ -26,7 +26,7 @@ module Health
     WELLCARE_WINDOW = 12.months
 
     DESCRIPTIONS = {
-      without_required_qa: "Patients with no QA in the last #{QA_WINDOW.inspect}, or, who have not completed intake and have not received a QA in the last #{QA_NO_INTAKE_WINDOW.inspect}.",
+      without_required_qa: "Patients in their outreach period with no QA in the last #{QA_NO_INTAKE_WINDOW.inspect}, or who have completed a care plan and have no QA in the last #{QA_WINDOW.inspect}.",
       without_required_f2f_visit: "Patients who have not received a face-to-face visit in the last #{F2F_WINDOW.inspect}.",
       with_discharge_followup_completed: 'Number of discharge follow-up QAs within the month.',
       with_completed_intake: 'Patients with completed initial intake (Consent, Comp Assessment, HRSN, and Care Plan).',
@@ -50,7 +50,7 @@ module Health
             id: nil,
             name: name,
             patient_referrals: patient_ids,
-            without_required_qa: patient_ids - with_completed_intake - with_required_qa,
+            without_required_qa: patient_ids - with_required_qa,
             without_required_f2f_visit: patient_ids - with_required_f2f_visit,
             with_discharge_followup_completed: with_discharge_followup_completed.select { |id| id.in?(patient_ids) },
             with_completed_intake: with_completed_intake.select { |id| id.in?(patient_ids) },
