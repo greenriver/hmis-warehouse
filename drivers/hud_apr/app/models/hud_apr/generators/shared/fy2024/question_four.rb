@@ -14,7 +14,8 @@ module HudApr::Generators::Shared::Fy2024
       'Project Name',
       'Project ID',
       'HMIS Project Type',
-      'Method for Tracking ES',
+      'RRH Subtype',
+      'Coordinated Entry Access Point',
       'Affiliated with a residential project',
       'Project IDs of affiliations',
       'CoC Number',
@@ -36,6 +37,20 @@ module HudApr::Generators::Shared::Fy2024
       }.freeze
     end
 
+    def detect_ce_participation(project)
+      # FIXME: this probably isn't right
+      # Column G should show the response to 2.09.1 effective as of the [report end date]. This element is a transactional data element, and only the most recent value for the report period is displayed.
+      records = project.ce_participations.filter do |record|
+        start = record.CEParticipationStatusStartDate || 100.years.ago
+        stop = record.CEParticipationStatusEndDate || 100.years.from_now
+        @report.start_date.between?(start, stop)
+      end
+      records = records.sort_by do |record|
+        [record.DateUpdated, record.id]
+      end
+      records.last
+    end
+
     private def q4_project_identifiers
       table_name = 'Q4a'
       @report.universe(QUESTION_NUMBER)
@@ -43,17 +58,22 @@ module HudApr::Generators::Shared::Fy2024
       project_rows = []
 
       cell_columns = ('A'..'N').to_a
-      q4_project_scope.order(ProjectName: :asc).find_each.with_index do |project, i|
+      q4_project_scope.order(ProjectName: :asc).preload(:ce_participations).find_each.with_index do |project, i|
         cell_row = i + 2
 
+        ce_participation = detect_ce_participation(project)
         project_row = [
           project.organization&.OrganizationName,
           project.OrganizationID,
           project.ProjectName,
           project.ProjectID,
           project.computed_project_type,
-          if project.computed_project_type == 1 then project.TrackingMethod else 0 end,
-          if project.computed_project_type == 6 then project.ResidentialAffiliation else 0 end,
+          # RRH Subtype
+          (project.RRHSubType == 13 ? 1 : 2),
+          # Coordinated Entry Access Point
+          ce_participation&.AccessPoint,
+          # (If 2.02.6 =6 or (13 and 2.02.6A = 1)), then 0 or 1
+          (project.computed_project_type == 6 || (project.computed_project_type == 13 && project.project.RRHSubType == 1) ? project.ResidentialAffiliation : 0),
           if project.computed_project_type == 6 && project.ResidentialAffiliation == 1 then project.residential_affiliations.map(&:ResProjectID).join(', ') else ' ' end,
           project.project_cocs.map(&:effective_coc_code).join(', '),
           project.project_cocs.map(&:effective_geocode).join(', '),
