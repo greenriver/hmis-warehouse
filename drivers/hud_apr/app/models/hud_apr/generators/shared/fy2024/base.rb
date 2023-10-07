@@ -16,6 +16,8 @@ module HudApr::Generators::Shared::Fy2024
     include HudReports::LengthOfStays
     include HudReports::Incomes
 
+    NO_CLIENT_ANSWER_DESC= "Client Doesn’t Know/Prefers Not to Answer"
+
     def self.filter_universe_members(associations)
       associations
     end
@@ -797,12 +799,18 @@ module HudApr::Generators::Shared::Fy2024
         '25-34',
         '35-44',
         '45-54',
-        '55-61',
-        '62+',
-        "Client Doesn't Know/Client Refused",
+        '55-64',
+        '65+',
+        NO_CLIENT_ANSWER_DESC,
         'Data Not Collected',
         'Total',
       ].freeze
+    end
+
+    protected def age_ranges
+      @age_ranges ||= super.transform_keys do |key|
+        key == "Client Doesn't Know/Client Refused" ? NO_CLIENT_ANSWER_DESC : key
+      end
     end
   end
 end
