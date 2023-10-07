@@ -63,18 +63,18 @@ module AllNeighborsSystemDashboard
       }
     end
 
-    private def identification_to_referral
-      moved_in_scope.average(datediff(Enrollment, 'day', referral_query, identification_query)).round.abs
+    private def identification_to_referral(scope = moved_in_scope)
+      scope.average(datediff(Enrollment, 'day', referral_query, identification_query))&.round&.abs || 0
     end
 
-    private def identification_to_move_in
+    private def identification_to_move_in(scope = moved_in_scope)
       en_t = Enrollment.arel_table
-      moved_in_scope.average(datediff(Enrollment, 'day', identification_query, en_t[:move_in_date])).round.abs
+      scope.average(datediff(Enrollment, 'day', identification_query, en_t[:move_in_date]))&.round&.abs || 0
     end
 
-    private def referral_to_move_in
+    private def referral_to_move_in(scope = moved_in_scope)
       en_t = Enrollment.arel_table
-      moved_in_scope.average(datediff(Enrollment, 'day', referral_query, en_t[:move_in_date])).round.abs
+      scope.average(datediff(Enrollment, 'day', referral_query, en_t[:move_in_date]))&.round&.abs || 0
     end
 
     # Identification occurs at the earlier or CE Entry, CE Referral, or Enrollment Entry Date
@@ -94,6 +94,13 @@ module AllNeighborsSystemDashboard
         moved_in
     end
 
+    private def filter_for_date(scope, date)
+      en_t = Enrollment.arel_table
+      range = date.beginning_of_month .. date.end_of_month
+      where_clause = en_t[:move_in_date].between(range)
+      scope.where(where_clause)
+    end
+
     # FIXME
     def stack(options)
       project_type = options[:project_type]
@@ -104,9 +111,25 @@ module AllNeighborsSystemDashboard
         {
           name: bar,
           series: date_range.map do |date|
+            household_scope = moved_in_scope.hoh.select(:destination_client_id).distinct.where(primary_race: bar)
+            household_scope = filter_for_date(household_scope, date)
+            averages = options[:types].map do |category|
+              scope = moved_in_scope
+              scope = filter_for_date(scope, date)
+              scope = filter_for_type(scope, category)
+              case category
+              when 'ID to Referral'
+                identification_to_referral(scope)
+              when 'Referral to Move-in*'
+                referral_to_move_in(scope)
+              else
+                raise "Unknown Category #{category}"
+              end
+            end
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: options[:types].map { |_| 1_500 },
+              values: averages,
+              households_count: household_scope.count,
             }
           end,
         }

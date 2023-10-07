@@ -203,7 +203,7 @@ module AllNeighborsSystemDashboard
       when 'Rapid Rehousing'
         scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
       when 'Diversion'
-        # FIXME
+        # FIXME, is this correct?
         scope.where(destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
