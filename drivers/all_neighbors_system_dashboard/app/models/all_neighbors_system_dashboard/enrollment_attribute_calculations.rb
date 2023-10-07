@@ -176,7 +176,8 @@ module AllNeighborsSystemDashboard
         # Find the active enrollments in the CE Project set for the HoH of the enrollments in the batch
         ce_project_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.
           entry.
-          where(project_id: GrdaWarehouse::Hud::Project.where(id: filter.secondary_project_ids).pluck(:project_id)).
+          joins(:project).
+          merge(GrdaWarehouse::Hud::Project.where(id: filter.secondary_project_ids)).
           open_between(start_date: filter.start_date, end_date: filter.end_date).
           where(id: batch.map { |en| en.service_history_enrollment_for_head_of_household&.id }.compact)
 

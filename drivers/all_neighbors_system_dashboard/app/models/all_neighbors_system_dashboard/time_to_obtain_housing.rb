@@ -132,7 +132,7 @@ module AllNeighborsSystemDashboard
             {
               date: date.strftime('%Y-%-m-%-d'),
               values: averages,
-              households_count: household_scope.count,
+              households_count: bracket_small_population(household_scope.count, mask: @report.mask_small_populations?),
             }
           end,
         }

@@ -1,6 +1,7 @@
 module AllNeighborsSystemDashboard
   class DashboardData
     include ArelHelper
+    include ApplicationHelper
 
     def initialize(report)
       @report = report
@@ -39,6 +40,7 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
+        'R.E.A.L. Time Initiative (8/1/2021 - 4/30/2023)',
       ]
     end
 
@@ -200,6 +202,8 @@ module AllNeighborsSystemDashboard
       case type
       when 'All', 'Overall'
         scope
+      when 'R.E.A.L. Time Initiative (8/1/2021 - 4/30/2023)'
+        scope.where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups)
       when 'Permanent Supportive Housing'
         scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
       when 'Rapid Rehousing'

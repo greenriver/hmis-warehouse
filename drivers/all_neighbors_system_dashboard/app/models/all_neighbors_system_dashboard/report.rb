@@ -79,7 +79,12 @@ module AllNeighborsSystemDashboard
     end
 
     def populate_universe
-      enrollment_scope.preload(:service_history_enrollment_for_head_of_household).find_in_batches do |batch|
+      enrollment_scope.preload(
+        :enrollment,
+        :client,
+        :project,
+        :service_history_enrollment_for_head_of_household,
+      ).find_in_batches do |batch|
         enrollments = {}
         ce_infos = ce_infos_for_batch(filter, batch)
         return_dates = return_dates_for_batch(filter, batch)
@@ -121,7 +126,7 @@ module AllNeighborsSystemDashboard
             ce_referral_date: max_event&.event_date,
             ce_referral_id: max_event&.event_id,
             return_date: return_dates[enrollment.id],
-            project_id: source_enrollment.project_id,
+            project_id: enrollment.project.id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
             project_type: enrollment.project_type,
           )
@@ -174,8 +179,7 @@ module AllNeighborsSystemDashboard
         in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
 
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        joins(:enrollment, :client).
-        preload(:enrollment, :client)
+        joins(:enrollment, :client)
 
       scope.where(id: pilot_scope.select(:id)).or(scope.where(id: implementation_scope.select(:id)))
     end

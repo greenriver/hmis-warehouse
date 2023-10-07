@@ -67,9 +67,10 @@ module AllNeighborsSystemDashboard
         scope = filter_for_type(scope, options[:project_type])
         scope = filter_for_count_level(scope, options[:count_level])
         scope = filter_for_date(scope, date)
+        count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
         [
           date.strftime('%Y-%-m-%-d'),
-          scope.count,
+          count,
         ]
       end
     end
@@ -97,9 +98,10 @@ module AllNeighborsSystemDashboard
             scope = filter_for_type(scope, type)
             scope = filter_for_count_level(scope, options[:count_level])
             scope = filter_for_date(scope, date)
+            count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: [scope.count],
+              values: [count],
             }
           end,
         }
@@ -169,13 +171,16 @@ module AllNeighborsSystemDashboard
               when 'Overall Population (Census)'
                 get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
               when 'All'
-                scope.count
+                count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+                count
               when 'Rapid Rehousing'
                 scope = filter_for_type(scope, bar)
-                scope.count
+                count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+                count
               when 'Unhoused Population'
                 scope = filter_for_type(scope, 'Unsheltered')
-                scope.count
+                count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+                count
               end
             end
             {

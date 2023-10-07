@@ -15,6 +15,11 @@ module AllNeighborsSystemDashboard
         Translation.translate('All Neighbors System Dashboard')
       end
 
+      # TODO: update once we have the internal version
+      def mask_small_populations?
+        true
+      end
+
       def report_path_array
         [
           :all_neighbors_system_dashboard,
@@ -62,7 +67,7 @@ module AllNeighborsSystemDashboard
           :secondary_project_ids,
           :secondary_project_group_ids,
         ]
-        filter.describe_filter_as_html(keys, inline: inline, labels: { secondary_projects: Translation.translate('Associated CE Projects'), secondary_project_groups: Translation.translate('Tracked Project Groups') })
+        filter.describe_filter_as_html(keys, inline: inline, labels: { secondary_projects: 'Coordinated Entry Referral Sources', secondary_project_groups: 'DRTRR Projects' })
       end
 
       def known_params

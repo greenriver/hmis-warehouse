@@ -124,9 +124,10 @@ module AllNeighborsSystemDashboard
             scope = filter_for_type(scope, project_type)
             scope = filter_for_count_level(scope, 'Individuals')
             scope = filter_for_date(scope, date)
+            count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: Array.wrap(scope.count),
+              values: Array.wrap(count),
             }
           end,
         }
@@ -186,7 +187,8 @@ module AllNeighborsSystemDashboard
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       end
-      scope.count
+      count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+      count
     end
 
     def race_status_values(date, bar, label)
@@ -207,7 +209,9 @@ module AllNeighborsSystemDashboard
         race_code = HudUtility2024.race(label, true)
         return get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
       end
-      scope.where(primary_race: label).count
+      scope = scope.where(primary_race: label)
+      count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+      count
     end
   end
 end
