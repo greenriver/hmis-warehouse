@@ -56,11 +56,13 @@ module AllNeighborsSystemDashboard
     end
 
     def overall_data
-      {
-        ident_to_move_in: { name: 'Identification to Move-In', value: identification_to_move_in },
-        ident_to_referral: { name: 'Identification to Referral', value: identification_to_referral },
-        referral_to_move_in: { name: 'Referral to Move-In', value: referral_to_move_in },
-      }
+      Rails.cache.fetch("#{@report.cache_key}/#{self.class.name}/#{__method__}", expires_in: 1.years) do
+        {
+          ident_to_move_in: { name: 'Identification to Move-In', value: identification_to_move_in },
+          ident_to_referral: { name: 'Identification to Referral', value: identification_to_referral },
+          referral_to_move_in: { name: 'Referral to Move-In', value: referral_to_move_in },
+        }
+      end
     end
 
     private def identification_to_referral(scope = moved_in_scope)
@@ -101,7 +103,6 @@ module AllNeighborsSystemDashboard
       scope.where(where_clause)
     end
 
-    # FIXME
     def stack(options)
       project_type = options[:project_type]
       homelessness_status = options[:homelessness_status]
@@ -111,12 +112,14 @@ module AllNeighborsSystemDashboard
         {
           name: bar,
           series: date_range.map do |date|
-            household_scope = moved_in_scope.hoh.select(:destination_client_id).distinct.where(primary_race: bar)
+            household_scope = moved_in_scope.hoh.select(:destination_client_id).distinct
+            household_scope = filter_for_type(household_scope, bar)
             household_scope = filter_for_date(household_scope, date)
             averages = options[:types].map do |category|
               scope = moved_in_scope
               scope = filter_for_date(scope, date)
-              scope = filter_for_type(scope, category)
+              # scope = filter_for_type(scope, category)
+              scope = filter_for_type(scope, bar)
               case category
               when 'ID to Referral'
                 identification_to_referral(scope)

@@ -198,6 +198,8 @@ module AllNeighborsSystemDashboard
 
     private def filter_for_type(scope, type)
       case type
+      when 'All', 'Overall'
+        scope
       when 'Permanent Supportive Housing'
         scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
       when 'Rapid Rehousing'
@@ -229,8 +231,10 @@ module AllNeighborsSystemDashboard
         scope.where(gender: type)
       when 'Unknown Gender'
         scope.where(gender: nil)
+      when *HudUtility2024.races.values
+        scope.where(primary_race: type)
       else
-        scope
+        raise "Unknown type: #{type}"
       end
     end
 

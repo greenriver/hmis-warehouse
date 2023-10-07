@@ -11,10 +11,10 @@ module AllNeighborsSystemDashboard
 
     def tabs
       [
-        # { name: 'Housing Placements' },
+        { name: 'Housing Placements' },
         { name: 'Time To Obtain Housing' },
-        # { name: 'Returns To Homelessness' },
-        # { name: 'Unhoused Population' },
+        { name: 'Returns To Homelessness' },
+        { name: 'Unhoused Population' },
       ].map { |tab| tab.merge({ id: tab[:name].gsub(' ', '').underscore }) }
     end
 
@@ -30,7 +30,7 @@ module AllNeighborsSystemDashboard
         {
           id: 'days_to_obtain_housing',
           icon: 'icon-house',
-          value: average_days_to_obtain_housing.round,
+          value: average_days_to_obtain_housing.round.abs,
           name: 'Average Number of Days to Obtain Housing',
           display_method: :number_with_delimiter,
         },

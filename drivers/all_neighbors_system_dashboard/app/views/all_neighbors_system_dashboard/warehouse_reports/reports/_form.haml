@@ -16,9 +16,9 @@
     %h2= Translation.translate('Additional Report Details')
     .row
       .col-sm-6
-        = f.input :secondary_project_group_ids, as: :select_two, collection: @filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, data: {placeholder: 'Choose Project Groups' }}, include_blank: false, label: Translation.translate('Tracked Project Groups')
+        = f.input :secondary_project_group_ids, as: :select_two, collection: @filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, data: {placeholder: 'Choose Project Groups' }}, include_blank: false, label: 'DRTRR Projects', hint: 'These projects will be used for any data prior to 5/1/2023'
       .col-sm-6
-        = f.input :secondary_project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.secondary_project_ids, project_types: [:ce]) } }, label: Translation.translate('Associated CE Projects')
+        = f.input :secondary_project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.secondary_project_ids, project_types: [:ce]) } }, label: 'Coordinated Entry Referral Sources', hint: 'Include any project where a client may have received a referral to housing.  This will be used to calculated time from identification to referral and referral to move-in'
 
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }

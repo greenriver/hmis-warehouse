@@ -14,10 +14,7 @@ module AllNeighborsSystemDashboard
     include Reporting::Status
 
     include ViewConfiguration
-    include SheetGenerator
-
     include EnrollmentAttributeCalculations
-    include DemographicRatioCalculations
 
     has_one_attached :result_file
 
@@ -49,12 +46,10 @@ module AllNeighborsSystemDashboard
       start
       begin
         populate_universe
-        calculate_results
       rescue Exception => e
         update(failed_at: Time.current)
         raise e
       end
-      attach_rendered_xlsx
       cache_calculated_data
       complete
     end
@@ -159,18 +154,42 @@ module AllNeighborsSystemDashboard
       end
     end
 
-    def calculate_results
-      save_project_ratios
-      save_system_ratios
-    end
+    # def calculate_results
+    #   save_project_ratios
+    #   save_system_ratios
+    # end
 
+    # NOTE: this report has two implementation phases
+    # pre 5/1/2023 it was the DRTRR which is represented by filter.effective_project_ids_from_secondary_project_groups (we'll call this the pilot period)
+    # 5/1/2023 onward is represented by filter.effective_project_ids (we'll call this the implementation period)
     def enrollment_scope
+      pilot_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        entry.
+        open_between(start_date: pilot_date_range.first, end_date: pilot_date_range.last).
+        in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids_from_secondary_project_groups))
+
+      implementation_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        entry.
+        open_between(start_date: implementation_date_range.first, end_date: implementation_date_range.last).
+        in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
+
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         joins(:enrollment, :client).
-        preload(:enrollment, :client).
-        entry.
-        open_between(start_date: filter.start_date, end_date: filter.end_date)
-      scope.in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
+        preload(:enrollment, :client)
+
+      scope.where(id: pilot_scope.select(:id)).or(scope.where(id: implementation_scope.select(:id)))
+    end
+
+    def pilot_date_range
+      start_date = [filter.start_date, Date.new(2023, 4, 30)].min
+      end_date = [filter.end_date, Date.new(2023, 4, 30)].min
+      (start_date .. end_date)
+    end
+
+    def implementation_date_range
+      start_date = [filter.start_date, Date.new(2023, 5, 1)].max
+      end_date = [filter.end_date, Date.new(2023, 5, 1)].max
+      (start_date .. end_date)
     end
 
     def event_scope
@@ -178,7 +197,7 @@ module AllNeighborsSystemDashboard
         joins(enrollment: :project).
         preload(enrollment: :project).
         within_range(filter.range).
-        where(Event: SERVICE_CODE_ID.keys)
+        where(Event: SERVICE_CODE_IDS)
     end
   end
 end

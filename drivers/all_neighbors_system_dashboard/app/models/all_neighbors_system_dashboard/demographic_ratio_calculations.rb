@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# REMOVED for now
 module AllNeighborsSystemDashboard
   module DemographicRatioCalculations
     extend ActiveSupport::Concern

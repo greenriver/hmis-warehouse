@@ -9,27 +9,26 @@ module AllNeighborsSystemDashboard
     extend ActiveSupport::Concern
 
     included do
-      # Maybe update Tableau to use HUD event numbers?
-      SERVICE_CODE_ID = {
-        1 => 433, # Referral to Prevention Assistance project
+      SERVICE_CODE_IDS = [
+        1, # Referral to Prevention Assistance project
         # 2 => # Problem Solving/Diversion/Rapid Resolution intervention or service
-        3 => 435, # Referral to scheduled Coordinated Entry Crisis Needs Assessment
-        4 => 436, # Referral to scheduled Coordinated Entry Housing Needs Assessment
-        5 => 437, # Referral to Post-placement/ follow-up case management
-        6 => 438, # Referral to Street Outreach project or services
-        7 => 439, # Referral to Housing Navigation project or services
-        8 => 440, # Referral to Non-continuum services: Ineligible for continuum services
-        9 => 441, # Referral to Non-continuum services: No availability in continuum services
+        3, # Referral to scheduled Coordinated Entry Crisis Needs Assessment
+        4, # Referral to scheduled Coordinated Entry Housing Needs Assessment
+        5, # Referral to Post-placement/ follow-up case management
+        6, # Referral to Street Outreach project or services
+        7, # Referral to Housing Navigation project or services
+        8, # Referral to Non-continuum services: Ineligible for continuum services
+        9, # Referral to Non-continuum services: No availability in continuum services
         # 10 => # Referral to Emergency Shelter bed opening
-        11 => 443, # Referral to Transitional Housing bed/unit opening
-        12 => 444, # Referral to Joint TH-RRH project/unit/resource opening
-        13 => 445, # Referral to RRH project resource opening
-        14 => 446, # Referral to PSH project resource opening
-        15 => 447, # Referral to Other PH project/unit/resource opening
+        11, # Referral to Transitional Housing bed/unit opening
+        12, # Referral to Joint TH-RRH project/unit/resource opening
+        13, # Referral to RRH project resource opening
+        14, # Referral to PSH project resource opening
+        15, # Referral to Other PH project/unit/resource opening
         # 16 => 'Referral to emergency assistance/flex fund/furniture assistance',
-        17 => 11314, # Referral to Emergency Housing Voucher (EHV)
+        17, # Referral to Emergency Housing Voucher (EHV)
         # 18 => # Referral to a Housing Stability Voucher
-      }.freeze
+      ].freeze
 
       SHELTERED_SITUATIONS = [
         101,
@@ -189,7 +188,7 @@ module AllNeighborsSystemDashboard
         # Due to the possibility of finding enrollments with the same id from other data sources, this may pull
         # more events than required, but they will end up in unused groups.
         ce_events = GrdaWarehouse::Hud::Event.
-          where(enrollment_id: ce_project_enrollments.pluck(:enrollment_group_id), event: SERVICE_CODE_ID.keys, event_date: filter.range).
+          where(enrollment_id: ce_project_enrollments.pluck(:enrollment_group_id), event: SERVICE_CODE_IDS, event_date: filter.range).
           order(event_date: :asc).
           group_by { |event| [event.personal_id, event.data_source_id] }
 
@@ -254,15 +253,6 @@ module AllNeighborsSystemDashboard
         end
         re_entry_window = (re_entry_window_start .. re_entry_window_start + 1.years)
         enrollment.entry_date.in?(re_entry_window)
-      end
-
-      def enrollment_data
-        @enrollment_data ||= begin
-          # Source ProjectIDs are used in the report
-          project_ids_from_groups = GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids_from_secondary_project_groups).pluck(:project_id)
-          member_ids = universe.members.where(a_t[:project_id].in(project_ids_from_groups)).select(:universe_membership_id)
-          Enrollment.where(id: member_ids).to_a
-        end
       end
     end
   end

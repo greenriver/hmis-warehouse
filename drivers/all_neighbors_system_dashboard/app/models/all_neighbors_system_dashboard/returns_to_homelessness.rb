@@ -132,43 +132,44 @@ module AllNeighborsSystemDashboard
     end
 
     def bars
-      # NOTE: not cached, but only a handful of queries
-      cohort_keys = relevant_years.map { |year| "#{year} Cohort" }
-      scope = enrollment_scope
-      # NOTE: there is no picker on this page currently, but this could be updated if necessary
-      scope = filter_for_count_level(scope, 'Individuals')
-      exited_counts = {}
-      returned_counts = {}
-      # Make sure there are no missing years
-      relevant_years.each do |year|
-        start_of_year = Date.new(year)
-        exited_scope = scope.where(exit_date: start_of_year..start_of_year.end_of_year)
-        # NOTE: we filter return date on write and only add if the client returned within a year
-        returned_scope = exited_scope.where.not(return_date: nil)
+      Rails.cache.fetch("#{@report.cache_key}/#{self.class.name}/#{__method__}", expires_in: 1.years) do
+        cohort_keys = relevant_years.map { |year| "#{year} Cohort" }
+        scope = enrollment_scope
+        # NOTE: there is no picker on this page currently, but this could be updated if necessary
+        scope = filter_for_count_level(scope, 'Individuals')
+        exited_counts = {}
+        returned_counts = {}
+        # Make sure there are no missing years
+        relevant_years.each do |year|
+          start_of_year = Date.new(year)
+          exited_scope = scope.where(exit_date: start_of_year..start_of_year.end_of_year)
+          # NOTE: we filter return date on write and only add if the client returned within a year
+          returned_scope = exited_scope.where.not(return_date: nil)
 
-        exited_counts[year] = exited_scope.count
-        returned_counts[year] = returned_scope.count
-      end
-      rates_of_return = returned_counts.values.zip(exited_counts.values).map do |returns, exits|
-        rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)
-        "#{rate}%"
-      end
-      {
-        title: 'Returns to Homelessness',
-        id: 'returns_to_homelessness',
-        config: {
-          colors: {
-            exited: ['#336770', '#884D01'], # FIXME
-            returned: ['#85A4A9', '#B48F5F'],
+          exited_counts[year] = exited_scope.count
+          returned_counts[year] = returned_scope.count
+        end
+        rates_of_return = returned_counts.values.zip(exited_counts.values).map do |returns, exits|
+          rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)
+          "#{rate}%"
+        end
+        {
+          title: 'Returns to Homelessness',
+          id: 'returns_to_homelessness',
+          config: {
+            colors: {
+              exited: ['#336770', '#884D01'],
+              returned: ['#85A4A9', '#B48F5F'],
+            },
+            keys: cohort_keys,
           },
-          keys: cohort_keys,
-        },
-        series: [
-          { name: 'exited', values: exited_counts.values },
-          { name: 'returned', values: returned_counts.values },
-          { name: 'rate', values: rates_of_return, table_only: true },
-        ],
-      }
+          series: [
+            { name: 'exited', values: exited_counts.values },
+            { name: 'returned', values: returned_counts.values },
+            { name: 'rate', values: rates_of_return, table_only: true },
+          ],
+        }
+      end
     end
   end
 end
