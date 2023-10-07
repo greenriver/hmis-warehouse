@@ -12,8 +12,6 @@ module HudApr::Generators::Apr::Fy2024
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
       q10a_gender_of_adults
-      q10b_gender_of_children
-      q10c_gender_of_missing_age
 
       @report.complete(QUESTION_NUMBER)
     end
