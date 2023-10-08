@@ -144,7 +144,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 383,
+      "line": 307,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -259,7 +259,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 398,
+      "line": 396,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"DROP VIEW IF EXISTS #{name}\")",
       "render_path": null,
@@ -374,7 +374,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 418,
+      "line": 416,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"CREATE OR REPLACE VIEW #{name} AS #{sql_definition}\")",
       "render_path": null,
@@ -1069,7 +1069,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 1193,
+      "line": 1184,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).where(\"#{key}_#{measure}\" => true)",
       "render_path": null,
@@ -1479,7 +1479,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 1225,
+      "line": 1216,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).where(:project_id => hud_project.id, \"#{key}_#{measure}\" => true)",
       "render_path": null,
@@ -1776,29 +1776,6 @@
       "confidence": "Weak",
       "cwe_id": [
         79
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Remote Code Execution",
-      "warning_code": 24,
-      "fingerprint": "82e659e3c26b016652cb4f7b2ff4b27a0ecc1e24e74af02de95ac355d080738e",
-      "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method `constantize` called on model attribute",
-      "file": "drivers/hmis/app/graphql/mutations/submit_form.rb",
-      "line": 21,
-      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
-      "code": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name.constantize",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Mutations::SubmitForm",
-        "method": "resolve"
-      },
-      "user_input": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name",
-      "confidence": "Medium",
-      "cwe_id": [
-        470
       ],
       "note": ""
     },
@@ -2292,7 +2269,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 412,
+      "line": 410,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"DO $$\\nBEGIN\\n  CREATE ROLE #{role} WITH NOLOGIN;\\n  EXCEPTION WHEN DUPLICATE_OBJECT THEN\\n  RAISE NOTICE 'not creating role #{role} -- it already exists';\\nEND\\n$$;\\n\")",
       "render_path": null,
@@ -2395,7 +2372,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 990,
+      "line": 949,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -3009,7 +2986,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/hmis_structure/base.rb",
-      "line": 153,
+      "line": 154,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE INDEX #{((table_name.gsub(/[^0-9a-z ]/i, \"\") + \"_\") + Digest::MD5.hexdigest(columns.join(\"_\"))[0, 4])} ON #{connection.quote_table_name(table_name)} (#{columns.map do\n connection.quote_column_name(c)\n end.join(\", \")}) INCLUDE (#{details[:include].map do\n connection.quote_column_name(c)\n end.join(\", \")})\")",
       "render_path": null,
@@ -3055,7 +3032,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 421,
+      "line": 419,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"GRANT SELECT ON #{name} TO #{\"bi\"}\")",
       "render_path": null,
@@ -3203,6 +3180,29 @@
         "method": "entered_housing"
       },
       "user_input": "period",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "f47f3a7065a132bc6a80a941cd002157fd72f089cf801dcd4be2d52746d410fa",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/client_search_util/name_search.rb",
+      "line": 71,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"MAX(#{term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 10.0)}) AS search_score\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientSearchUtil::NameSearch",
+        "method": "filter_clients"
+      },
+      "user_input": "term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 10.0)",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -3415,31 +3415,8 @@
         89
       ],
       "note": ""
-    },
-    {
-      "warning_type": "Remote Code Execution",
-      "warning_code": 24,
-      "fingerprint": "ff4e9944330ec5bf9f13b025d9b4151a4abc8f503b0191e7e6367e206a360fdf",
-      "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method `constantize` called on model attribute",
-      "file": "drivers/hmis/app/graphql/types/hmis_schema/submit_form_result.rb",
-      "line": 34,
-      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
-      "code": "Hmis::Form::Definition::FORM_ROLE_CONFIG.find do\n (value[:class_name] == object.class.name)\n end.last[:resolve_as].constantize",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Types::HmisSchema::SubmitFormResult",
-        "method": "s(:self).resolve_type"
-      },
-      "user_input": "Hmis::Form::Definition::FORM_ROLE_CONFIG.find",
-      "confidence": "Medium",
-      "cwe_id": [
-        470
-      ],
-      "note": ""
     }
   ],
-  "updated": "2023-09-27 16:03:28 +0000",
+  "updated": "2023-09-29 22:03:21 +0000",
   "brakeman_version": "5.4.1"
 }

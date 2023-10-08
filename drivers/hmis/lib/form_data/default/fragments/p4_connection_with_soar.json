@@ -23,9 +23,9 @@
         "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 33
+            "value": "VA: SSVF"
           },
           {
             "operator": "ANY",

@@ -61,6 +61,12 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
       'CEParticipation.csv' => { # Create an empty placeholder file, but we aren't populating it..
         action: :create,
         model: GrdaWarehouse::Hud::CeParticipation,
+        transformer: HudTwentyTwentyTwoToTwentyTwentyFour::CeParticipation::Csv,
+        references: {
+          project: {
+            file: 'Project.csv',
+          },
+        },
       },
       # Client File
       'Client.csv' => {
@@ -145,7 +151,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
         destination_file = File.join(destination_directory, file)
         next unless action == :create || File.exist?(source_file)
 
-        references.transform_values! do |reference|
+        new_references = references.transform_values do |reference|
           file = File.join(source_directory, reference[:file])
           next unless File.exist?(file)
 
@@ -171,7 +177,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
               destination_file: destination_file,
               encoding: encoding,
               header_converter: header_converter(model),
-              references: references,
+              references: new_references,
               destination_headers: destination_headers(model),
             ),
           )
@@ -180,7 +186,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
             ::Kiba.run(
               transformer.create(
                 destination_file: destination_file,
-                references: references,
+                references: new_references,
                 destination_headers: destination_headers(model),
               ),
             )

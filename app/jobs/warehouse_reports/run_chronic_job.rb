@@ -56,7 +56,7 @@ module WarehouseReports
       @so_clients = service_history_source.entry.so.ongoing(on_date: @filter.date).distinct.pluck(:client_id)
 
       most_recent_services = GrdaWarehouse::ServiceHistoryService.service.
-        where(client_id: @client_ids, project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
+        where(client_id: @client_ids, project_type: HudUtility2024.chronic_project_types).
         group(:client_id).
         pluck(:client_id, nf('MAX', [shs_t[:date]]).to_sql).
         to_h

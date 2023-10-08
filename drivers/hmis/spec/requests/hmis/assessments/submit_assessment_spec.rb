@@ -86,6 +86,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1.id,
+        enrollment_id: a1.enrollment.id,
         form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
@@ -113,6 +114,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1_wip.id,
+        enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
@@ -140,6 +142,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = (e1.entry_date + 5.days).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1_wip.id,
+        enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date, 'linkid-choice' => nil },
         hud_values: { 'informationDate' => new_information_date, 'linkid-choice' => nil },

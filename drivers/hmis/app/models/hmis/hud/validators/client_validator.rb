@@ -17,11 +17,12 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
     Hmis::Hud::Client.hmis_configuration(version: '2024').except(*IGNORED)
   end
 
-  def self.hmis_validate(record, options: {}, **_)
-    errors = HmisErrors::Errors.new
-    errors.add :dob, :out_of_range, severity: :error, message: future_message, **options if record.dob&.future?
-    errors.add :dob, :invalid, severity: :error, **options if record.dob && record.dob < (Date.current - 120.years)
-    errors.errors
+  def self.first_or_last_required_full_message
+    'First or Last name is required'
+  end
+
+  def self.too_old_dob_message
+    'cannot be more than 120 years ago'
   end
 
   def validate(record)
@@ -29,10 +30,18 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
       record.errors.add :gender, :required if !skipped_attributes(record).include?(:gender) && ::HudUtility2024.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
       record.errors.add :race, :required if !skipped_attributes(record).include?(:race) && ::HudUtility2024.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
 
-      # Validate exactly 1 primary name
+      if record.dob.present?
+        record.errors.add :dob, :out_of_range, message: self.class.future_message if record.dob.future?
+        record.errors.add :dob, :out_of_range, message: self.class.too_old_dob_message if record.dob < (Date.current - 120.years)
+      end
+
+      # First or Last exists
+      record.errors.add(:first_name, :invalid, full_message: self.class.first_or_last_required_full_message) unless record.first_name.present? || record.last_name.present?
+
+      # Exactly 1 primary name
       if record.names.any?
-        num_primary_names = record.names.reject(&:marked_for_destruction?).map(&:primary).count(true)
-        record.errors.add :names, :invalid, full_message: 'One primary name is required' if num_primary_names != 1
+        primary_names = record.names.reject(&:marked_for_destruction?).select(&:primary?)
+        record.errors.add :names, :invalid, full_message: 'One primary name is required' if primary_names.size != 1
       end
     end
   end

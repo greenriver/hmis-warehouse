@@ -9,13 +9,13 @@ require 'rails_helper'
 RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
   let(:user) { create(:user) }
   let(:job) { HmisExternalApis::AcHmis::WarehouseChangesJob.new }
-  let!(:client) { create(:hmis_hud_client, PersonalID: '1000019089', data_source: data_source) }
   let(:data_source) { create(:hmis_data_source, name: 'HMIS', authoritative: true) }
+  let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
   let(:default_record) do
     {
       'srcSysKey' => 123,
       'srcSysDesc' => 'Master Client Index (MCI)',
-      'clientId' => '1000019089',
+      'clientId' => client.warehouse_id.to_s,
       'mciUniqId' => 1_000_119_810,
       'firstName' => 'first',
       'middleName' => nil,

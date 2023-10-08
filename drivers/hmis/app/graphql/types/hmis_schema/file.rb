@@ -25,14 +25,14 @@ module Types
     field :own_file, Boolean, null: false
     field :redacted, Boolean, null: false
 
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     hud_field :user, HmisSchema::User, null: true
 
     # Object is a Hmis::File
 
     def name
-      unless_redacted('Confidential File') { object.name }
+      unless_redacted('Confidential File') { object.name || "File #{object.id}" }
     end
 
     def redacted

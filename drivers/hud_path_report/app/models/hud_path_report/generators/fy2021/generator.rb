@@ -23,7 +23,7 @@ module HudPathReport::Generators::Fy2021
     end
 
     def self.default_project_type_codes
-      GrdaWarehouse::Hud::Project::PATH_PROJECT_TYPE_CODES
+      HudUtility2024.path_project_type_codes
     end
 
     def url

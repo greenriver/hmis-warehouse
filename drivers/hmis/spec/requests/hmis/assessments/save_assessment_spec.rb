@@ -158,15 +158,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should error if cannot find assessment',
         ->(input) { input.merge(assessment_id: '999') },
       ],
-      [
-        'should error if neithor enrollment nor assessment are provided',
-        ->(input) { input.except(:enrollment_id, :assessment_id) },
-      ],
     ].each do |test_name, input_proc|
       it test_name do
         input = input_proc.call(test_input)
         expect_gql_error post_graphql(input: { input: input }) { mutation }
       end
+    end
+
+    it 'should error if enrollment is not provided' do
+      my_input = test_input.except(:enrollment_id)
+      expect do
+        expect_gql_error post_graphql(input: { input: my_input }) { mutation }
+      end.to raise_error(RuntimeError)
     end
 
     [

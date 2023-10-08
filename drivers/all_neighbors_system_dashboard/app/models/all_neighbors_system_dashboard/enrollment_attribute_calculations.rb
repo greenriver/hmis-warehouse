@@ -104,7 +104,7 @@ module AllNeighborsSystemDashboard
       end
 
       def gender(enrollment)
-        HudUtility.gender(enrollment.client.gender_binary)
+        HudUtility2024.gender(enrollment.client.gender_binary)
       end
 
       def primary_race(enrollment)
@@ -208,7 +208,7 @@ module AllNeighborsSystemDashboard
       # exit is from PH, in which case there doesn't need to be a gap.
       private def candidate_for_return?(exit_date, enrollment)
         enrollment.entry_date + 14.days >= exit_date ||
-          (enrollment.entry_date >= exit_date && !enrollment.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]))
+          (enrollment.entry_date >= exit_date && !enrollment.project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph]))
       end
 
       def enrollment_data

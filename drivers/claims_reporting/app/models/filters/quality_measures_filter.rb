@@ -33,7 +33,6 @@ module Filters
           acos: acos,
           races: races,
           genders: genders,
-          ethnicities: ethnicities,
           age_ranges: age_ranges,
         },
       }
@@ -57,13 +56,13 @@ module Filters
       Health::AccountableCareOrganization.where(id: acos).pluck(:short_name).sort
     end
 
-    def describe(key, value = chosen(key))
+    def describe(key, value = chosen(key), labels: {})
       return unless value.present?
 
       if key == :acos
         ['ACOs', value]
       else
-        super
+        super(key, value, labels: labels)
       end
     end
 

@@ -10,6 +10,7 @@
     %span.icon-plus
     Create a new Access Control
 - if @pagy.count.positive?
+  = render 'filter'
   = render 'common/pagination_top', item_name: 'access control list'
   .table-responsive
     %table.table.table-striped
@@ -23,7 +24,7 @@
             %i.font-weight-light Which permissions are they receiving?
           %th
             .div.mb-1 Collection
-            %i.font-weight-light Which projects are the permissions are applied to?
+            %i.font-weight-light Which projects are the permissions being applied to?
           %th
       %tbody
         - @access_controls.each do |acl|
@@ -34,7 +35,7 @@
             %td= link_to acl.role.name, hmis_admin_roles_path
             %td= link_to acl.access_group.name, edit_hmis_admin_group_path(acl.access_group)
             %td
-              .float-right
+              .d-flex.justify-content-end
                 = link_to edit_hmis_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
                   %span.icon-pencil
                   Edit

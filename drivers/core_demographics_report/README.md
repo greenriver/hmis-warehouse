@@ -16,7 +16,7 @@ between the user defined date range.
 7. Gender
 8. Long Term Disability (Y/N) – Indefinite and impairing
 9. Long Term Disability Type - list types
-10. DV Status (4.11.2 DomesticViolenceVictim, InformationDate within range,
+10. DV Status (4.11.2 DomesticViolenceSurvivor, InformationDate within range,
 WhenOccurred (4 - One year or more)
 11. Chronically Homeless – Most recent chronic calculation within chosen date range
 ### Summary Tables within Report:

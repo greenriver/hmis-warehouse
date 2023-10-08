@@ -189,7 +189,6 @@ module PublicReports
         time_homeless: time_homeless(population),
         time_housed: time_housed(population),
         race_chart: race_chart(population),
-        ethnicity_chart: ethnicity_chart(population),
         household_chart: household_chart(population),
         average_household_size: average_household_size(population),
       }
@@ -419,11 +418,11 @@ module PublicReports
             group(GrdaWarehouse::Hud::Client.gender_binary_sql_case).
             count.
             map do |gender_id, count|
-              # Force any count to be at least the minimum allowe
+              # Force any count to be at least the minimum allowed
               # Force any unknown genders to Unknown
-              gender_id = nil unless gender_id.in?([0, 1, 2, 5, 6])
+              gender_id = nil unless gender_id.in?([0, 1, 2, 3, 4, 5, 6])
               [
-                ::HudUtility.gender(gender_id) || 'Unknown',
+                ::HudUtility2024.gender(gender_id) || 'Unknown',
                 count,
               ]
             end.to_h
@@ -520,53 +519,6 @@ module PublicReports
       }.freeze
     end
 
-    private def ethnicity_chart(population)
-      {}.tap do |charts|
-        quarter_dates.each do |date|
-          data = with_service_in_quarter(report_scope, date, population).
-            joins(:client).
-            group(c_t[:Ethnicity]).
-            count.
-            map do |e_id, count|
-              # Force any unknown ethnicties to Unknown
-              e_id = nil unless e_id.in?([0, 1])
-              [
-                ::HudUtility.ethnicity(e_id) || 'Unknown',
-                count,
-              ]
-            end.to_h
-          data['Unknown'] ||= 0
-          counts = data.values
-          # Set the total string for the middle before we do cleanup
-          # Special case for families because we're actually showing ethnicity for all clients, not HoH
-          word = if population == :adults_with_children
-            word_for(nil)
-          else
-            word_for(population)
-          end
-          total = with_service_in_quarter(report_scope, date, population).select(:client_id).distinct.count
-          total = if total < 100
-            "less than #{pluralize(100, word)}"
-          else
-            pluralize(number_with_delimiter(total), word)
-          end
-
-          counts = enforce_min_threshold(counts, 'donut')
-
-          ethnicities = {}
-          data.each.with_index do |(k, _), i|
-            ethnicities[k] = counts[i]
-          end
-
-          charts[date.iso8601] = {
-            data: ethnicities.to_a,
-            title: Translation.translate('Ethnicity'),
-            total: total,
-          }
-        end
-      end
-    end
-
     private def race_chart(population)
       {}.tap do |charts|
         quarter_dates.each do |date|
@@ -575,9 +527,9 @@ module PublicReports
           data = {}
           census_data = {}
           # Add census info
-          ::HudUtility.races(multi_racial: true).each do |race_code, label|
+          ::HudUtility2024.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican').each do |race_code, label|
             census_data[label] = 0
-            data[::HudUtility.race(race_code, multi_racial: true)] ||= Set.new
+            data[::HudUtility2024.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
             census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop&.positive?
@@ -590,7 +542,9 @@ module PublicReports
             find_each do |enrollment|
               client = enrollment.client
               race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
-              data[::HudUtility.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
+              next unless data.key?(::HudUtility2024.race(race, multi_racial: true))
+
+              data[::HudUtility2024.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum

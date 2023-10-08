@@ -124,15 +124,10 @@ Gender is missing if it is blank.
 Only computed for enrollments using `VeteranStatus` if the client is an adult on the `EntryDate`.
 Veteran Status is missing if it is blank.
 
-### Ethnicity
-
-Computed for all enrollments using `Ethnicity`.
-Ethnicity is missing if it is blank.
-
 ### Race
 
 Computed for all enrollments using `RaceNone`.
-Race is missing if `RaceNone`, `AmIndAKNative`, `Asian`, `BlackAfAmerican`, `NativeHIPacific`, and `White`
+Race is missing if `RaceNone`, `AmIndAKNative`, `Asian`, `BlackAfAmerican`, `NativeHIPacific`, `White`, `HispanicLatinaeo`, and `MidEastNAfrican`
 are all blank.
 
 ### Disabling Condition

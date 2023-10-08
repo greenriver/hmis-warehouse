@@ -66,7 +66,6 @@ class ActiveClientReport
     scope = filter_for_cocs(scope)
     scope = filter_for_gender(scope)
     scope = filter_for_race(scope)
-    scope = filter_for_ethnicity(scope)
     scope
   end
 end

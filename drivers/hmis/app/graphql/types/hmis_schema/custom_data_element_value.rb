@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::CustomDataElementValue < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     field :id, ID, null: false
     field :value_float, Float, null: true
     field :value_integer, Integer, null: true
@@ -16,13 +18,5 @@ module Types
     field :value_text, String, null: true
     field :value_date, GraphQL::Types::ISO8601Date, null: true
     field :value_json, Types::JsonObject, null: true
-
-    field :user, HmisSchema::User, null: true
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-
-    def user
-      load_ar_association(object, :user)
-    end
   end
 end

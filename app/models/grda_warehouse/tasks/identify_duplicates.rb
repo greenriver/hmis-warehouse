@@ -291,7 +291,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def valid_social? ssn
-      ::HudUtility.valid_social? ssn
+      ::HudUtility2024.valid_social? ssn
     end
 
     private def check_social(ssn, ssn_group)

@@ -8,8 +8,11 @@ module Types
   class BaseField < GraphQL::Schema::Field
     argument_class Types::BaseArgument
 
-    def initialize(**kwargs, &block)
-      super
+    def initialize(*args, default_value: nil, **kwargs, &block)
+      super(*args, **kwargs, &block)
+
+      extension(DefaultValueExtension, default_value: default_value) if default_value.present?
+
       return_type = kwargs[:type]
       return unless return_type.is_a?(Class) && return_type < BasePaginated
 
@@ -38,6 +41,18 @@ module Types
 
         resolved_object = yield(object, cleaned_arguments)
         Types::PaginatedScope.new(resolved_object, **pagination_arguments)
+      end
+    end
+
+    # Support setting a default value for a field
+    # Credit:  https://github.com/rmosolgo/graphql-ruby/issues/2783#issuecomment-592960093
+    class DefaultValueExtension < GraphQL::Schema::FieldExtension
+      def after_resolve(value:, **_rest)
+        if value.nil?
+          options[:default_value]
+        else
+          value
+        end
       end
     end
   end

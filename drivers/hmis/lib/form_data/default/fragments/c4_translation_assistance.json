@@ -12,30 +12,19 @@
         "value": "HUD: CoC"
       },
       {
-        "operator": "ALL",
         "_comment": "HUD: ESG – Collection required for all components ",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HUD: ESG"
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "NOT_INCLUDE",
-            "_comment": "Exclude RUSH since it follows the next rule",
-            "value": 53
-          }
-        ]
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: ESG"
       },
       {
         "operator": "ALL",
         "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 54
+            "value": "HUD: ESG RUSH"
           },
           {
             "variable": "projectType",
@@ -56,9 +45,9 @@
       },
       {
         "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components",
-        "variable": "projectFunders",
+        "variable": "projectFunderComponents",
         "operator": "INCLUDE",
-        "value": 54
+        "value": "HUD: Unsheltered Special NOFO"
       },
       {
         "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",

@@ -353,15 +353,11 @@ module GrdaWarehouse::YouthIntake
     def race_array
       return [] if client_race == '[]'
 
-      client_race&.map { |r| ::HudUtility.race(r).presence }&.compact
-    end
-
-    def ethnicity_description
-      ::HudUtility.ethnicity(client_ethnicity)
+      client_race&.map { |r| ::HudUtility2024.race(r).presence }&.compact
     end
 
     def gender
-      ::HudUtility.gender(client_gender)
+      ::HudUtility2024.gender(client_gender)
     end
 
     def update_destination_client
@@ -370,17 +366,17 @@ module GrdaWarehouse::YouthIntake
 
       data = {
         DOBDataQuality: 1,
-
-        Ethnicity: client_ethnicity,
         AmIndAKNative: client_race.include?('AmIndAKNative') ? 1 : 0,
         Asian: client_race.include?('Asian') ? 1 : 0,
         BlackAfAmerican: client_race.include?('BlackAfAmerican') ? 1 : 0,
         NativeHIPacific: client_race.include?('NativeHIPacific') ? 1 : 0,
+        HispanicLatinaeo: client_race.include?('HispanicLatinaeo') ? 1 : 0,
+        MidEastNAfrican: client_race.include?('MidEastNAfrican') ? 1 : 0,
         White: client_race.include?('White') ? 1 : 0,
         RaceNone: compute_race_none,
         DateUpdated: Time.now,
       }
-      gender_column = ::HudUtility.gender_id_to_field_name[client_gender]
+      gender_column = ::HudUtility2024.gender_id_to_field_name[client_gender]
       data[gender_column] = 1 unless gender_column.nil?
       data[:FirstName] = first_name if first_name.present?
       data[:LastName] = last_name if last_name.present?
@@ -407,8 +403,6 @@ module GrdaWarehouse::YouthIntake
           'gender'
         when 'client_race'
           'race_array'
-        when 'client_ethnicity'
-          'ethnicity_description'
         when 'type'
           'title'
         else

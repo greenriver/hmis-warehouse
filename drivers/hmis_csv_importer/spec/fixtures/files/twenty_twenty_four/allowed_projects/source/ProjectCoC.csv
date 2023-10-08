@@ -1,0 +1,3 @@
+ProjectCoCID,ProjectID,CoCCode,Geocode,Address1,Address2,City,State,Zip,GeographyType,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+COC-C-ID,ALLOW,KY-500,,,,,,,,2015-11-30 00:00:00,2015-11-30 08:50:40,user,,ALLOW-TEST
+COC-D-ID,DENY,KY-500,,,,,,,,2015-11-30 00:00:00,2015-11-30 08:50:40,user,,ALLOW-TEST

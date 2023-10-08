@@ -66,7 +66,7 @@ module ClientSearchUtil
       # include first/last prefix match
       prefix_query = prefix_search_term_scope(original_term)
       if prefix_query
-        score_sql = term_score_sql(original_term, term_weight: 1.0)
+        score_sql = term_score_sql(original_term, term_weight: 10.0)
         name_queries.push(
           prefix_query.group(:client_id).select(:client_id, Arel.sql("MAX(#{score_sql}) AS search_score")),
         )

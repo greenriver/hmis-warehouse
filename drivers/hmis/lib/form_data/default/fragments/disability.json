@@ -12,7 +12,7 @@
       "required": false,
       "warn_if_empty": true,
       "mapping": {
-        "record_type": "DISABILITY_GROUP",
+        "record_type": "ENROLLMENT",
         "field_name": "disablingCondition"
       },
       "pick_list_reference": "NoYesReasonsForMissingData",
@@ -78,12 +78,6 @@
                 "value": "HUD: ESG"
               },
               {
-                "variable": "projectFunders",
-                "operator": "NOT_INCLUDE",
-                "_comment": "Exclude RUSH since it follows the next rule",
-                "value": 53
-              },
-              {
                 "variable": "projectType",
                 "operator": "NOT_EQUAL",
                 "value": 1
@@ -95,9 +89,9 @@
             "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
             "parts": [
               {
-                "variable": "projectFunders",
+                "variable": "projectFunderComponents",
                 "operator": "INCLUDE",
-                "value": 54
+                "value": "HUD: ESG RUSH"
               },
               {
                 "variable": "projectType",
@@ -127,9 +121,9 @@
             "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
             "parts": [
               {
-                "variable": "projectFunders",
+                "variable": "projectFunderComponents",
                 "operator": "INCLUDE",
-                "value": 54
+                "value": "HUD: Unsheltered Special NOFO"
               },
               {
                 "variable": "projectType",
@@ -166,9 +160,9 @@
           },
           {
             "_comment": "HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management",
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 20
+            "value": "HUD: HUD-VASH"
           },
           {
             "operator": "ALL",
@@ -222,19 +216,24 @@
             "_comment": "VA: GPD – Collection required for all components",
             "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": "VA: Grant Per Diem"
+            "value": "VA: GPD"
           },
           {
             "_comment": "VA: Community Contract Safe Haven",
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 30
+            "value": "VA: Community Contract Safe Haven"
           },
           {
-            "_comment": "VA: CRS Contract Residential Services",
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: CRS Contract Residential Services"
+          },
+          {
+            "_comment": "YHDP",
             "variable": "projectFunders",
             "operator": "INCLUDE",
-            "value": 27
+            "value": 43
           }
         ]
       },
@@ -383,12 +382,6 @@
                     "value": "HUD: ESG"
                   },
                   {
-                    "variable": "projectFunders",
-                    "operator": "NOT_INCLUDE",
-                    "_comment": "Exclude RUSH since it follows the next rule",
-                    "value": 53
-                  },
-                  {
                     "variable": "projectType",
                     "operator": "NOT_EQUAL",
                     "value": 1
@@ -400,9 +393,9 @@
                 "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
                 "parts": [
                   {
-                    "variable": "projectFunders",
+                    "variable": "projectFunderComponents",
                     "operator": "INCLUDE",
-                    "value": 54
+                    "value": "HUD: ESG RUSH"
                   },
                   {
                     "variable": "projectType",
@@ -432,9 +425,9 @@
                 "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
                 "parts": [
                   {
-                    "variable": "projectFunders",
+                    "variable": "projectFunderComponents",
                     "operator": "INCLUDE",
-                    "value": 54
+                    "value": "HUD: Unsheltered Special NOFO"
                   },
                   {
                     "variable": "projectType",
@@ -515,7 +508,7 @@
                 "_comment": "VA: GPD – Collection required for all components",
                 "variable": "projectFunderComponents",
                 "operator": "INCLUDE",
-                "value": "VA: Grant Per Diem"
+                "value": "VA: GPD"
               },
               {
                 "_comment": "VA: Community Contract Safe Haven",
@@ -524,10 +517,15 @@
                 "value": 30
               },
               {
-                "_comment": "VA: CRS Contract Residential Services",
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "VA: CRS Contract Residential Services"
+              },
+              {
+                "_comment": "YHDP",
                 "variable": "projectFunders",
                 "operator": "INCLUDE",
-                "value": 27
+                "value": 43
               }
             ]
           },
@@ -657,7 +655,7 @@
               "text": "Disabling Condition",
               "disabled_display": "PROTECTED_WITH_VALUE",
               "mapping": {
-                "record_type": "DISABILITY_GROUP",
+                "record_type": "ENROLLMENT",
                 "field_name": "disablingCondition"
               },
               "pick_list_reference": "NoYesReasonsForMissingData"

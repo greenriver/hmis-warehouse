@@ -18,7 +18,7 @@ module PerformanceDashboard::Overview::Coc
     coc_buckets.map do |key|
       [
         key,
-        HudUtility.coc_name(key),
+        HudUtility2024.coc_name(key),
       ]
     end.to_h
   end

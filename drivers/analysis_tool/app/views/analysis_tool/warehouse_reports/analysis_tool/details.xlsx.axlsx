@@ -10,7 +10,6 @@ wb.add_worksheet(name: @report.support_title(params)[0..30]) do |sheet|
     'Gender',
     'Veteran Status',
     'Race',
-    'Ethnicity',
   ]
   sheet.add_row(row, style: title)
   clients = @report.support_for(params)
@@ -21,9 +20,8 @@ wb.add_worksheet(name: @report.support_title(params)[0..30]) do |sheet|
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
       ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.DOB : 'Redacted',
       client.gender,
-      HudUtility.no_yes_missing(client.VeteranStatus),
+      HudUtility2024.no_yes_missing(client.VeteranStatus),
       client.race_description,
-      HudUtility.ethnicity(client.Ethnicity),
     ]
     sheet.add_row(row)
   end

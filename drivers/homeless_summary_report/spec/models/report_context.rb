@@ -13,7 +13,7 @@ RSpec.shared_context 'report context', shared_context: :metadata do
     {
       start: Date.parse('2022-01-01'),
       end: Date.parse('2022-12-31'),
-      project_type_codes: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys,
+      project_type_codes: HudUtility2024.residential_project_type_numbers_by_code.keys,
       coc_codes: ['XX-500', 'XX-501'],
     }
   end
@@ -22,7 +22,7 @@ RSpec.shared_context 'report context', shared_context: :metadata do
     {
       start: Date.parse('2022-01-01'),
       end: Date.parse('2022-12-31'),
-      project_type_codes: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys,
+      project_type_codes: HudUtility2024.residential_project_type_numbers_by_code.keys,
       coc_codes: ['XX-501'],
     }
   end

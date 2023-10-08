@@ -1074,7 +1074,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       create(:hmis_hud_custom_client_name, client: client, first: 'Atticus', primary: true)
       expect(client.names.size).to eq(1)
 
-      # Submit a form that changes the primary  name but doesn't include the old ID
+      # Submit a form that changes the primary name but doesn't include the old ID
       hud_values = complete_hud_values.merge(
         'names' => [
           {
@@ -1088,9 +1088,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       )
       form_processor = process_record(record: client, hud_values: hud_values, user: hmis_user, save: false)
 
-      expect(client.valid?).to eq(false)
+      expect(client.valid?(:client_form)).to eq(false)
       errs = form_processor.collect_active_record_errors
-      expect(errs.errors.map(&:full_message)).to contain_exactly(Hmis::Hud::CustomClientName.first_or_last_required_message)
+      expect(errs.errors.map(&:full_message)).to contain_exactly(Hmis::Hud::Validators::ClientValidator.first_or_last_required_full_message)
     end
 
     it 'fails if no names are primary' do
@@ -1099,7 +1099,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       [existing_record, new_record].each do |record|
         hud_values = complete_hud_values.merge('names' => [secondary_name.stringify_keys])
         process_record(record: record, hud_values: hud_values, user: hmis_user, save: false)
-        expect(record.valid?).to eq(false)
+        expect(record.valid?).to eq(true)
+        expect(record.valid?(:client_form)).to eq(false)
       end
     end
 
@@ -1109,7 +1110,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       [existing_record, new_record].each do |record|
         hud_values = complete_hud_values.merge('names' => [primary_name.stringify_keys, primary_name.stringify_keys])
         process_record(record: record, hud_values: hud_values, user: hmis_user, save: false)
-        expect(record.valid?).to eq(false)
+        expect(record.valid?).to eq(true)
+        expect(record.valid?(:client_form)).to eq(false)
       end
     end
 

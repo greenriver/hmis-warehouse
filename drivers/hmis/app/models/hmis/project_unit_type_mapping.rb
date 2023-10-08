@@ -21,6 +21,7 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
     unit_attrs = scope.filter(&:active?).flat_map do |record|
       unit_type = record.unit_type
       project = record.project
+      next if project.nil? # could happen if project was deleted but ProjectUnitTypeMapping wasn't properly cleaned up
 
       # If this ProjectID is already mapped to this UnitTypeID in our system, and it is marked as Active=Y, do nothing.
       key = [project.id, unit_type.id]

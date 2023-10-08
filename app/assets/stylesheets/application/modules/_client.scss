@@ -386,6 +386,14 @@ span.client__calendar-day-event__custom_events {
   i{display: none}
 }
 
+.client__service_type_0 {
+
+  /* border-bottom: 1px solid #0074D9; */
+  &.service-type__program-type,
+  .service-type__program-type {
+    background-color: #96a1fa;
+  }
+}
 .client__service_type_1 {
   /* border-bottom: 1px solid #0074D9; */
   &.service-type__program-type,

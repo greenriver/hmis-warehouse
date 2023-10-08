@@ -14,6 +14,16 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   attr_writer :skip_validations
   attr_writer :required_fields
 
+  def self.without_optimistic_locking
+    prev = lock_optimistically
+    self.lock_optimistically = false
+    begin
+      yield
+    ensure
+      self.lock_optimistically = prev
+    end
+  end
+
   before_validation :ensure_id
 
   scope :viewable_by, ->(_) do
@@ -33,6 +43,29 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
       autosave: false,
     }
     h.merge! class_name: "Hmis::Hud::#{model_name}" if model_name
+    h
+  end
+
+  def self.hmis_enrollment_relation(model_name = nil)
+    model_name = if model_name.present?
+      "Hmis::Hud::#{model_name}"
+    else
+      'Hmis::Hud::Enrollment'
+    end
+    h = {
+      primary_key: [
+        :EnrollmentID,
+        :PersonalID,
+        :data_source_id,
+      ],
+      foreign_key: [
+        :EnrollmentID,
+        :PersonalID,
+        :data_source_id,
+      ],
+      class_name: model_name,
+      autosave: false,
+    }
     h
   end
 

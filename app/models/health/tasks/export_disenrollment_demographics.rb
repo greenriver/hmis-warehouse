@@ -17,6 +17,7 @@ module Health::Tasks
     end
 
     def run!
+      # NOTE: this is not being updated for the 2024 spec changes at this time.
       CSV.open(@filename, 'wb') do |csv|
         csv << ['Race']
         HudUtility.races(multi_racial: true).keys.each do |key|
@@ -30,14 +31,6 @@ module Health::Tasks
         HudUtility.genders.values.each do |key|
           disenrolled = demographics.values.select(&:reason).count { |client| client[:gender] == key }
           total = demographics.values.count { |client| client[:gender] == key }
-          csv << [key, disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
-        end
-
-        csv << []
-        csv << ['Ethnicity']
-        HudUtility.ethnicities.values.each do |key|
-          disenrolled = demographics.values.select(&:reason).count { |client| client[:ethnicity] == key }
-          total = demographics.values.count { |client| client[:ethnicity] == key }
           csv << [key, disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
         end
 
@@ -89,10 +82,6 @@ module Health::Tasks
       HudUtility.gender(client.gender_binary)
     end
 
-    private def ethnicity(client)
-      client.ethnicity_description
-    end
-
     private def demographics
       @demographics ||= begin
         demographics = {}.tap do |h|
@@ -100,7 +89,6 @@ module Health::Tasks
             h[client.patient.medicaid_id] = OpenStruct.new(
               race: race(client),
               gender: gender(client),
-              ethnicity: ethnicity(client),
               language: 'BLANK',
               reason: nil,
             )
