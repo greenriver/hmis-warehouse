@@ -16,7 +16,7 @@ module HudApr::Generators::Shared::Fy2024
     include HudReports::LengthOfStays
     include HudReports::Incomes
 
-    NO_CLIENT_ANSWER_DESC= "Client Doesn’t Know/Prefers Not to Answer"
+    NO_CLIENT_ANSWER_DESC = "Client Doesn’t Know/Prefers Not to Answer"
 
     def self.filter_universe_members(associations)
       associations
@@ -807,10 +807,21 @@ module HudApr::Generators::Shared::Fy2024
       ].freeze
     end
 
-    protected def age_ranges
-      @age_ranges ||= super.transform_keys do |key|
-        key == "Client Doesn't Know/Client Refused" ? NO_CLIENT_ANSWER_DESC : key
-      end
+    private def age_ranges
+      {
+        'Under 5' => a_t[:age].between(0..4),
+        '5-12' => a_t[:age].between(5..12),
+        '13-17' => a_t[:age].between(13..17),
+        '18-24' => a_t[:age].between(18..24),
+        '25-34' => a_t[:age].between(25..34),
+        '35-44' => a_t[:age].between(35..44),
+        '45-54' => a_t[:age].between(45..54),
+        '55-64' => a_t[:age].between(55..64),
+        '65+' => a_t[:age].gteq(65),
+        NO_CLIENT_ANSWER_DESC => a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
+        'Data Not Collected' => a_t[:dob_quality].eq(99).and(a_t[:dob].eq(nil)),
+        'Total' => Arel.sql('1=1'), # include everyone
+      }
     end
   end
 end

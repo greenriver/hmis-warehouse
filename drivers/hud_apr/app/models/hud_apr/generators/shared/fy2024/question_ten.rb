@@ -120,7 +120,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: columns.keys.last,
         first_row: 2,
-        last_row: 9,
+        last_row: 33,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
