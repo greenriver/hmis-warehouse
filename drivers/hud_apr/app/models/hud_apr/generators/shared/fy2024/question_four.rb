@@ -57,7 +57,7 @@ module HudApr::Generators::Shared::Fy2024
 
       project_rows = []
 
-      cell_columns = ('A'..'N').to_a
+      cell_columns = ('A'..'O').to_a
       q4_project_scope.order(ProjectName: :asc).preload(:ce_participations).find_each.with_index do |project, i|
         cell_row = i + 2
 
@@ -90,14 +90,14 @@ module HudApr::Generators::Shared::Fy2024
           @report.answer(question: table_name, cell: cell_name).update(summary: value)
         end
 
-        # Note cells O and P (active clients and active households)
-        cell = "O#{cell_row}"
+        # Note cells P and Q (active clients and active households)
+        cell = "P#{cell_row}"
         answer = @report.answer(question: table_name, cell: cell)
         members = universe.members.where(a_t[:project_id].eq(project.id))
         answer.add_members(members)
         answer.update(summary: members.count)
 
-        cell = "P#{cell_row}"
+        cell = "Q#{cell_row}"
         answer = @report.answer(question: table_name, cell: cell)
         members = universe.members.where(hoh_clause).where(a_t[:project_id].eq(project.id))
         answer.add_members(members)
@@ -108,7 +108,7 @@ module HudApr::Generators::Shared::Fy2024
         header_row: TABLE_HEADER,
         row_labels: [],
         first_column: 'A',
-        last_column: 'P',
+        last_column: 'Q',
         first_row: 2,
         last_row: project_rows.size + 1,
       }
