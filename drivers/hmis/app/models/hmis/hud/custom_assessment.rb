@@ -113,6 +113,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     data_collection_stage == 3
   end
 
+  def annual?
+    data_collection_stage == 5
+  end
+
+  def update?
+    data_collection_stage == 2
+  end
+
   def save_submitted_assessment!(current_user:, as_wip: false)
     Hmis::Hud::CustomAssessment.transaction do
       # Save FormProcessor to save wip values and/or related records
