@@ -62,6 +62,10 @@ module AllNeighborsSystemDashboard::WarehouseReports
       respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_reports_path)
     end
 
+    def raw
+      render(layout: 'external')
+    end
+
     def filter_params
       filters = params.permit(filters: @filter.known_params)
 

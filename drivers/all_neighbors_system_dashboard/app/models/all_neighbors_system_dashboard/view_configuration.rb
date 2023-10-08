@@ -14,6 +14,7 @@ module AllNeighborsSystemDashboard
       def title
         Translation.translate('All Neighbors System Dashboard')
       end
+      alias_method :instance_title, :title
 
       # TODO: update once we have the internal version
       def mask_small_populations?
