@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module PublicReports::S3Toolset
+module WarehouseReports::S3Toolset
   extend ActiveSupport::Concern
   # Setup the S3 configuration if not setup if possible
   # Returns true if we're good to publish things, false if not
