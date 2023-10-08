@@ -8,11 +8,11 @@ require 'aws-sdk-s3'
 module PublicReports
   class Report < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
-    include WarehouseReports::S3Toolset
+    include ::WarehouseReports::S3Toolset
     include Filter::FilterScopes
     include ArelHelper
     include Reporting::Status
-    include WarehouseReports::Publish
+    include ::WarehouseReports::Publish
 
     MIN_THRESHOLD = 11
 

@@ -16,7 +16,7 @@ module AllNeighborsSystemDashboard
     include ViewConfiguration
     include EnrollmentAttributeCalculations
 
-    include WarehouseReports::Publish
+    include ::WarehouseReports::Publish
 
     has_one_attached :result_file
 
