@@ -64,7 +64,7 @@ module HudApr::Caper::CaperConcern
         fy2020: HudApr::Generators::Caper::Fy2020::Generator,
         fy2021: HudApr::Generators::Caper::Fy2021::Generator,
         fy2023: HudApr::Generators::Caper::Fy2023::Generator,
-        fy2024: HudApr::Generators::Caper::Fy2023::Generator,
+        fy2024: HudApr::Generators::Caper::Fy2024::Generator,
       }
     end
   end

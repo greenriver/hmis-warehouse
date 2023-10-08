@@ -47,6 +47,11 @@ Rails.application.config.hud_reports['HudApr::Generators::Caper::Fy2023::Generat
   helper: 'hud_reports_capers_path',
 }
 
+Rails.application.config.hud_reports['HudApr::Generators::Caper::Fy2024::Generator'] = {
+  title: 'Consolidated Annual Performance and Evaluation Report',
+  helper: 'hud_reports_capers_path',
+}
+
 Rails.application.config.hud_reports['HudApr::Generators::CeApr::Fy2020::Generator'] = {
   title: 'Coordinated Entry Annual Performance Report',
   helper: 'hud_reports_ce_aprs_path',

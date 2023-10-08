@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Generators::Caper::Fy2024
-  class QuestionThirteen < HudApr::Generators::Shared::Fy2023::QuestionThirteen
+  class QuestionThirteen < HudApr::Generators::Shared::Fy2024::QuestionThirteen
     QUESTION_TABLE_NUMBERS = [
       'Q13a1',
       'Q13b1',

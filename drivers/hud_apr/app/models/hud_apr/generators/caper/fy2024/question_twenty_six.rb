@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Generators::Caper::Fy2024
-  class QuestionTwentySix < HudApr::Generators::Shared::Fy2023::QuestionTwentySix
+  class QuestionTwentySix < HudApr::Generators::Shared::Fy2024::QuestionTwentySix
     QUESTION_TABLE_NUMBERS = ['Q26b'].freeze
 
     def run_question!

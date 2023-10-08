@@ -9,7 +9,7 @@ module HudApr::Generators::Caper::Fy2024
     include HudApr::CellDetailsConcern
 
     def self.fiscal_year
-      'FY 2023'
+      'FY 2024'
     end
 
     def self.generic_title

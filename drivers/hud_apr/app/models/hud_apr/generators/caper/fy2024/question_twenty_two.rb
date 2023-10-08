@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Generators::Caper::Fy2024
-  class QuestionTwentyTwo < HudApr::Generators::Shared::Fy2023::QuestionTwentyTwo
+  class QuestionTwentyTwo < HudApr::Generators::Shared::Fy2024::QuestionTwentyTwo
     QUESTION_TABLE_NUMBERS = ['Q22a2', 'Q22c', 'Q22d', 'Q22e'].freeze
 
     def run_question!

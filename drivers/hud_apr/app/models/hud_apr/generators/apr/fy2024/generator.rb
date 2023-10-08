@@ -8,7 +8,7 @@ module HudApr::Generators::Apr::Fy2024
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
     def self.fiscal_year
-      'FY 2023'
+      'FY 2024'
     end
 
     def self.generic_title
