@@ -16,7 +16,7 @@ module HudApr::Generators::Shared::Fy2024
     include HudReports::LengthOfStays
     include HudReports::Incomes
 
-    NO_CLIENT_ANSWER_DESC = "Client Doesn’t Know/Prefers Not to Answer"
+    NO_CLIENT_ANSWER_DESC = 'Client Doesn’t Know/Prefers Not to Answer'.freeze
 
     def self.filter_universe_members(associations)
       associations

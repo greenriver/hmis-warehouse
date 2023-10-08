@@ -78,6 +78,5 @@ module HudApr::CeApr::CeAprConcern
         'FY 2023 (current)' => { slug: :fy2023, active: true },
       }.freeze
     end
-
   end
 end
