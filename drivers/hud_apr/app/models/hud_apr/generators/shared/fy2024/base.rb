@@ -17,6 +17,11 @@ module HudApr::Generators::Shared::Fy2024
     include HudReports::Incomes
 
     NO_CLIENT_ANSWER_DESC = 'Client Doesn’t Know/Prefers Not to Answer'.freeze
+    INFORMATION_MISSING_DESC = 'Information Missing'.freeze
+
+    def question_sheet(question:)
+      QuestionSheet.new(report: @report, question: question)
+    end
 
     def self.filter_universe_members(associations)
       associations

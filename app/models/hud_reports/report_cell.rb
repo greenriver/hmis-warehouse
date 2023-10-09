@@ -18,6 +18,8 @@ module HudReports
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     has_many :universe_members # , dependent: :destroy # for the moment this is too slow
 
+    alias_attribute :value, :summary
+
     scope :universe, -> do
       where(universe: true)
     end

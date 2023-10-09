@@ -260,13 +260,20 @@ module HudApr::Generators::Shared::Fy2024
       total_members
     end
 
-    private def q6b_universal_data_elements # rubocop:disable Metrics/AbcSize
+    ###
+    # Q6b
+    ###
+
+    def q6b_universal_data_elements
       table_name = 'Q6b'
       metadata = {
         header_row: [
           'Data Element',
-          'Error Count',
-          '% of Error Rate',
+          NO_CLIENT_ANSWER_DESC,
+          INFORMATION_MISSING_DESC,
+          'Data Issues',
+          'Total',
+          '% of Issue Rate',
         ],
         row_labels: [
           'Veteran Status (3.07)',
@@ -276,38 +283,55 @@ module HudApr::Generators::Shared::Fy2024
           'Disabling Condition (3.08)',
         ],
         first_column: 'B',
-        last_column: 'C',
+        last_column: 'F',
         first_row: 2,
         last_row: 6,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      # veteran status
-      answer = @report.answer(question: table_name, cell: 'B2')
-      members = dq_universe_members.where(
-        adult_clause.and(a_t[:veteran_status].in([8, 9, 99]).or(a_t[:veteran_status].eq(nil))). # no veteran status data
-          or(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))), # you can't be a veteran and under 18
+      sheet = question_sheet(question: table_name)
+      q6b_veteran_row(sheet)
+      q6b_project_row(sheet)
+      q6b_hoh_relationship_row(sheet)
+      q6b_client_location_row(sheet)
+      q6b_disabling_condition_row(sheet)
+    end
+
+    def q6b_veteran_row(sheet)
+      adult_scope = dq_universe_members.where(adult_clause)
+      dkpntr_cell = sheet.update_cell_members(
+        cell: 'B2',
+        members: adult_scope.where(a_t[:veteran_status].in([8, 9])),
       )
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      missing_cell = sheet.update_cell_members(
+        cell: 'C2',
+        members: adult_scope.where(a_t[:veteran_status].in([nil, 99])),
+      )
+      issue_cell = sheet.update_cell_members(
+        cell: 'D2',
+        members: dq_universe_members.where(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))),
+      )
 
-      answer = @report.answer(question: table_name, cell: 'C2')
-      # Only adults are in the population of possible veterans
-      # Add the minors who claim veteran status to ensure that the error rate cannot be greater than 100%
-      veteran_denominator = dq_universe_members.where(adult_clause.or(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))))
-      answer.update(summary: percentage(members.count / veteran_denominator.count.to_f))
+      total_cell = sheet.update_cell_value(cell: 'E2', value: [dkpntr_cell, missing_cell, issue_cell].map(&:value).sum)
+      total_cell.add_members([dkpntr_cell, missing_cell, issue_cell].map(&:members).sum)
+      # Issue Rate
+      # Number of adults (age 18 or over) + Number of children (under age 18)
+      denominator = dq_universe_members.where(a_t[:age].not_eq(nil)).count.to_f
+      sheet.update_cell_value(cell: 'F2', value: percentage(issue_cell.value / denominator))
+    end
 
-      # project start date
-      answer = @report.answer(question: table_name, cell: 'B3')
-      members = dq_universe_members.where(a_t[:overlapping_enrollments].not_eq([]))
-      answer.add_members(members)
-      answer.update(summary: members.count)
+    def q6b_project_row(sheet)
+      issue_cell = sheet.update_cell_members(
+        cell: 'D3',
+        members: dq_universe_members.where.not(a_t[:overlapping_enrollments].eq([])),
+      )
+      total_cell = sheet.update_cell_value(cell: 'E3', value: issue_cell.value)
+      total_cell.add_members(issue_cell.members)
+      # Issue Rate
+      sheet.update_cell_value(cell: 'F3', value: percentage(issue_cell.value / dq_universe_members.count.to_f))
+    end
 
-      answer = @report.answer(question: table_name, cell: 'C3')
-      answer.update(summary: percentage(members.count / dq_universe_members.count.to_f))
-
-      # relationship to head of household
-      answer = @report.answer(question: table_name, cell: 'B4')
+    def q6b_hoh_relationship_row(sheet)
       households_with_multiple_hohs = []
       households_with_no_hoh = []
 
@@ -318,54 +342,77 @@ module HudApr::Generators::Shared::Fy2024
         households_with_no_hoh << apr_client.household_id if count_of_heads.zero?
       end
 
-      members = dq_universe_members.where(
-        a_t[:relationship_to_hoh].not_in((1..5).to_a).
-          or(a_t[:relationship_to_hoh].eq(nil)).
-          or(a_t[:household_id].in(households_with_multiple_hohs)).
-          or(a_t[:household_id].in(households_with_no_hoh)),
+      missing_cell = sheet.update_cell_members(
+        cell: 'C4',
+        members: dq_universe_members.where(a_t[:relationship_to_hoh].eq(nil)),
       )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: percentage(members.count / dq_universe_members.count.to_f))
-
-      # client location
-      answer = @report.answer(question: table_name, cell: 'B5')
-      members = dq_universe_members.
-        where(hoh_clause).
-        where(
-          a_t[:enrollment_coc].eq(nil).
-            or(a_t[:enrollment_coc].not_in(HudUtility.cocs.keys)),
-        )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      answer = @report.answer(question: table_name, cell: 'C5')
-      hoh_denominator = dq_universe_members.where(hoh_clause)
-      answer.update(summary: percentage(members.count / hoh_denominator.count.to_f))
-
-      # disabling condition
-      answer = @report.answer(question: table_name, cell: 'B6')
-      members = dq_universe_members.where(
-        a_t[:disabling_condition].in([8, 9, 99]).
-          or(a_t[:disabling_condition].eq(nil)).
-          or(a_t[:disabling_condition].eq(0).
-            and(a_t[:indefinite_and_impairs].eq(true).
-              and(a_t[:developmental_disability_latest].eq(true).
-                or(a_t[:hiv_aids_latest].eq(true)).
-                or(a_t[:physical_disability_latest].eq(true)).
-                or(a_t[:chronic_disability_latest].eq(true)).
-                or(a_t[:mental_health_problem_latest].eq(true)).
-                or(a_t[:substance_abuse_latest].eq(true)).
-                or(a_t[:indefinite_and_impairs].eq(true))))),
+      issue_cell = sheet.update_cell_members(
+        cell: 'D4',
+        members: dq_universe_members.where(
+          [
+            a_t[:relationship_to_hoh].not_in((1..5).to_a),
+            a_t[:household_id].in(households_with_multiple_hohs),
+            a_t[:household_id].in(households_with_no_hoh),
+          ].inject(&:or),
+        ),
       )
-      answer.add_members(members)
-      answer.update(summary: members.count)
 
-      answer = @report.answer(question: table_name, cell: 'C6')
-      answer.update(summary: percentage(members.count / dq_universe_members.count.to_f))
+      total_cell = sheet.update_cell_value(cell: 'E4', value: missing_cell.value + issue_cell.value)
+      total_cell.add_members(missing_cell.members + issue_cell.members)
+      # Issue Rate
+      sheet.update_cell_value(cell: 'F4', value: percentage(issue_cell.value / dq_universe_members.count.to_f))
     end
+
+    def q6b_client_location_row(sheet)
+      hoh_scope = dq_universe_members.where(hoh_clause)
+
+      missing_cell = sheet.update_cell_members(cell: 'C5', members: hoh_scope.where(a_t[:enrollment_coc].eq(nil)))
+      issue_cell = sheet.update_cell_members(cell: 'D5', members: hoh_scope.where(a_t[:enrollment_coc].not_in(HudUtility.cocs.keys)))
+
+      # Totals
+      total_cell = sheet.update_cell_value(cell: 'E5', value: missing_cell.value + issue_cell.value)
+      total_cell.add_members(missing_cell.members + issue_cell.members)
+
+      # Issue Rate
+      hoh_denominator = dq_universe_members.where(hoh_clause)
+      sheet.update_cell_value(cell: 'F5', value: percentage(issue_cell.value / hoh_denominator.count.to_f))
+    end
+
+    def q6b_disabling_condition_row(sheet)
+      dkpntr_cell = sheet.update_cell_members(
+        cell: 'B6',
+        members: dq_universe_members.where(a_t[:disabling_condition].in([8, 9])),
+      )
+      missing_cell = sheet.update_cell_members(
+        cell: 'C6',
+        members: dq_universe_members.where(a_t[:disabling_condition].in([nil, 99])),
+      )
+
+      qualifies_for_disability = [
+        a_t[:developmental_disability_latest].eq(true).or(a_t[:hiv_aids_latest].eq(true)),
+        a_t[:indefinite_and_impairs].eq(true).and(
+          [
+            a_t[:physical_disability_latest].eq(true),
+            a_t[:chronic_disability_latest].eq(true),
+            a_t[:mental_health_problem_latest].eq(true),
+            a_t[:substance_abuse_latest].eq(true),
+          ].inject(&:or),
+        ),
+      ].inject(&:or)
+      issue_cell = sheet.update_cell_members(
+        cell: 'D6',
+        members: dq_universe_members.where(a_t[:disabling_condition].eq(0)).where(qualifies_for_disability),
+      )
+
+      total_cell = sheet.update_cell_value(cell: 'E6', value: [dkpntr_cell, missing_cell, issue_cell].map(&:value).sum)
+      total_cell.add_members([dkpntr_cell, missing_cell, issue_cell].map(&:members).sum)
+      # Issue Rate
+      sheet.update_cell_value(cell: 'F6', value: percentage(issue_cell.value / dq_universe_members.count.to_f))
+    end
+
+    ###
+    # Q6c
+    ###
 
     private def q6c_income_and_housing # rubocop:disable Metrics/AbcSize
       table_name = 'Q6c'
