@@ -264,12 +264,29 @@ enum AssessmentLevel {
 }
 
 enum AssessmentRole {
+  """
+  Annual
+  """
   ANNUAL
-  CE
-  CUSTOM_ASSESSMENT
+
+  """
+  Exit
+  """
   EXIT
+
+  """
+  Intake
+  """
   INTAKE
+
+  """
+  Post exit
+  """
   POST_EXIT
+
+  """
+  Update
+  """
   UPDATE
 }
 
@@ -1585,11 +1602,34 @@ type DataCollectionFeature {
 }
 
 enum DataCollectionFeatureRole {
+  """
+  Case note
+  """
   CASE_NOTE
+
+  """
+  Ce assessment
+  """
   CE_ASSESSMENT
+
+  """
+  Ce event
+  """
   CE_EVENT
+
+  """
+  Current living situation
+  """
   CURRENT_LIVING_SITUATION
+
+  """
+  Referral request
+  """
   REFERRAL_REQUEST
+
+  """
+  Service
+  """
   SERVICE
 }
 
@@ -3371,28 +3411,119 @@ type FormItem {
 }
 
 enum FormRole {
+  """
+  Annual
+  """
   ANNUAL
+
+  """
+  Case note
+  """
   CASE_NOTE
+
+  """
+  Ce
+  """
   CE
+
+  """
+  Ce assessment
+  """
   CE_ASSESSMENT
+
+  """
+  Ce event
+  """
   CE_EVENT
+
+  """
+  Client
+  """
   CLIENT
+
+  """
+  Current living situation
+  """
   CURRENT_LIVING_SITUATION
+
+  """
+  Custom assessment
+  """
   CUSTOM_ASSESSMENT
+
+  """
+  Enrollment
+  """
   ENROLLMENT
+
+  """
+  Exit
+  """
   EXIT
+
+  """
+  File
+  """
   FILE
+
+  """
+  Funder
+  """
   FUNDER
+
+  """
+  Intake
+  """
   INTAKE
+
+  """
+  Inventory
+  """
   INVENTORY
+
+  """
+  New client enrollment
+  """
   NEW_CLIENT_ENROLLMENT
+
+  """
+  Occurrence point
+  """
   OCCURRENCE_POINT
+
+  """
+  Organization
+  """
   ORGANIZATION
+
+  """
+  Post exit
+  """
   POST_EXIT
+
+  """
+  Project
+  """
   PROJECT
+
+  """
+  Project CoC
+  """
   PROJECT_COC
+
+  """
+  Referral request
+  """
   REFERRAL_REQUEST
+
+  """
+  Service
+  """
   SERVICE
+
+  """
+  Update
+  """
   UPDATE
 }
 
