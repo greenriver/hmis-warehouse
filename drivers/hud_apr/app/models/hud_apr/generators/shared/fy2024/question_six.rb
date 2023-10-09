@@ -201,17 +201,19 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def race_and_ethnicity_quality(table_name:)
+      # in 2024, race and ethnicity are the same column
+      race_col = a_t[:race_multi]
+
       # Race DK/R / compute missing
       answer = @report.answer(question: table_name, cell: 'B5')
 
-      # FIXME: race & ethnicity, assuming the same record could count in both DK/R or missing
-      dkr_members = dq_universe_members.where(a_t[:race].in([8, 9]).or(a_t[:ethnicity].in([8, 9])))
+      dkr_members = dq_universe_members.where(race_col.in(['8', '9']))
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
       # Race missing
       answer = @report.answer(question: table_name, cell: 'C5')
-      m_members = dq_universe_members.where(a_t[:race].eq(99).or(a_t[:ethnicity].eq(99)))
+      m_members = dq_universe_members.where(race_col.eq('99'))
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
 
