@@ -212,8 +212,7 @@ module Types
     end
 
     def household_size
-      # FIXME: N+1
-      household.clients.distinct.size
+      load_ar_association(household, :enrollments).map(&:personal_id).uniq.size
     end
 
     def in_progress

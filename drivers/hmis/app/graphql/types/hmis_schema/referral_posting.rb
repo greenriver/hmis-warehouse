@@ -81,13 +81,11 @@ module Types
     end
 
     def household_members
-      # FIXME: N+1? This is called in batch for referral posting table
-      referral.household_members
+      load_ar_association(referral, :household_members)
     end
 
     def household_size
-      # FIXME: N+1? This is called in batch for referral posting table
-      household_members.size
+      household_members.map(&:client_id).uniq.size
     end
 
     def hud_chronic

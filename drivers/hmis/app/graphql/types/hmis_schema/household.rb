@@ -33,8 +33,7 @@ module Types
     end
 
     def household_size
-      # FIXME: N+1
-      clients.distinct.size
+      enrollments.map(&:personal_id).uniq.size
     end
 
     def enrollments
