@@ -8,7 +8,6 @@ module HmisUtil
   class BatchUserInvite
     # The "users" shape is meant to be easily copied from a spreadsheet.
     # Make sure that the Agency name exactly matches an Agency record's name.
-    # This DOES send out invitations to users.
     #
     # users = [['Sample Agency', 'First Last', 'example@greenriver.org']]
     # HmisUtil::BatchUserInvite.invite_users!(users, dry_run: true)
