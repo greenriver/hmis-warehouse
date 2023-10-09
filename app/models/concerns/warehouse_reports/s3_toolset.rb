@@ -109,7 +109,7 @@ module WarehouseReports::S3Toolset
         acl: 'public-read',
         bucket: bucket,
         key: key,
-        body: call(file[:content]),
+        body: file[:content].call,
         content_disposition: 'inline',
         content_type: file[:type],
       )

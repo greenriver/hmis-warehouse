@@ -9,7 +9,7 @@ module WarehouseReports::Publish
   include WarehouseReports::S3Toolset
   included do
     def self.published(path)
-      published_reports.where(path: path, state: 'published').first
+      GrdaWarehouse::PublishedReport.where(report_type: sti_name, path: path, state: 'published').first
     end
 
     # Override as necessary
@@ -25,7 +25,7 @@ module WarehouseReports::Publish
 
     def publish_warning
       previously_published = self.class.published(path)
-      return nil if previously_published.blank? && previously_published.path != path
+      return nil if previously_published.blank?
 
       "Publishing this version of the #{instance_title} will remove any similar previously published version regardless of who published it.  The currently published version is from #{previously_published.updated_at.to_date}.  Are you sure you want to un-publish the previous version and publish this version?"
     end
@@ -33,6 +33,12 @@ module WarehouseReports::Publish
     def un_publish_warning
       'Un-publishing this report will prevent anyone from accessing the published version of this report.  It will delete any existing web pages that have been published, and if the pages are embedded in a public website, those pages may not function correctly.'
     end
+
+    # Your report is required to define public_s3_directory
+    # private def public_s3_directory
+    #   # This should return a string that represends the unique path for aLl reports of this type
+    #   'path-to-report'
+    # end
 
     # Override as necessary
     def generate_publish_url
@@ -46,14 +52,22 @@ module WarehouseReports::Publish
       "#{publish_url}/index.html"
     end
 
+    def published_report
+      published&.first
+    end
+
+    private def published
+      published_reports.published
+    end
+
     def published?
-      published_reports.published.exists?
+      published.exists?
     end
 
     def published_at
       return unless published?
 
-      published_reports.published.first.updated_at
+      published_report.updated_at
     end
 
     def publish!(user_id)
@@ -64,7 +78,7 @@ module WarehouseReports::Publish
       self.class.transaction do
         unpublish_similar
         published_report = published_reports.where(path: path).first_or_create
-        published_report.update(
+        published_report.update!(
           user_id: user_id,
           html: as_html,
           published_url: generate_publish_url,
@@ -72,17 +86,17 @@ module WarehouseReports::Publish
           state: :published,
         )
       end
-      push_to_s3
+      push_all_to_s3
     end
 
     # Remove the files from S3
     # mark the report as not published
     def unpublish!
-      remove_from_s3
+      remove_all_from_s3
       published_report = published_reports.where(path: path).first
       return unless published_report.present?
 
-      published_report.update(
+      published_report.update!(
         published_url: nil,
         embed_code: nil,
         html: nil,
@@ -91,11 +105,11 @@ module WarehouseReports::Publish
     end
 
     def as_html
-      return controller_class.render(view_template, layout: 'raw_public_report', assigns: { report: self }) unless view_template.is_a?(Array)
+      return controller_class.render(view_template, layout: raw_layout, assigns: { report: self }) unless view_template.is_a?(Array)
 
       view_template.map do |template|
         string = html_section_start(template)
-        string << controller_class.render(template, layout: 'raw_public_report', assigns: { report: self })
+        string << controller_class.render(template, layout: raw_layout, assigns: { report: self })
         string << html_section_end(template)
       end.join
     end

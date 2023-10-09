@@ -64,7 +64,21 @@ module AllNeighborsSystemDashboard::WarehouseReports
     end
 
     def update
-      raise 'unimplemneted'
+      path = publish_params[:path]
+      if publish_params&.key?(:path)
+        @report.update(path: path)
+        respond_with(@report, location: path_to_report)
+      elsif publish_params[:unpublish] == @report.generate_publish_url
+        @report.unpublish!
+        flash[:notice] = 'Report has been unpublished.'
+        respond_with(@report, location: path_to_report)
+      elsif publish_params[:published_url].present?
+        @report.delay.publish!(current_user.id)
+        flash[:notice] = 'Report publishing queued, please check the public link in a few minutes.'
+        respond_with(@report, location: path_to_report)
+      else
+        redirect_to(action: :edit)
+      end
     end
 
     def raw
@@ -77,6 +91,11 @@ module AllNeighborsSystemDashboard::WarehouseReports
       filters
     end
     helper_method :filter_params
+
+    def publish_params
+      params.require(:public_report).
+        permit(:path, :published_url, :unpublish)
+    end
 
     def css_namespace(tab_id, name)
       "all-neighbors__#{tab_id}__#{name}"
@@ -129,5 +148,10 @@ module AllNeighborsSystemDashboard::WarehouseReports
     private def filter_class
       ::Filters::HudFilterBase
     end
+
+    def path_to_report
+      all_neighbors_system_dashboard_warehouse_reports_report_path(@report)
+    end
+    helper_method :path_to_report
   end
 end
