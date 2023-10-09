@@ -19,6 +19,7 @@ module AllNeighborsSystemDashboard
     include ::WarehouseReports::Publish
 
     has_one_attached :result_file
+    has_many :published_reports, dependent: :destroy, class_name: '::GrdaWarehouse::PublishedReport'
 
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
@@ -204,6 +205,46 @@ module AllNeighborsSystemDashboard
         preload(enrollment: :project).
         within_range(filter.range).
         where(Event: SERVICE_CODE_IDS)
+    end
+
+    # Publishing
+    def publish_files
+      [
+        {
+          name: 'index.html',
+          content: -> { as_html },
+          type: 'text/html',
+        },
+        {
+          name: 'bar.js',
+          content: -> { File.read(asset_path('bar.js.es6')) },
+          type: 'text/javascript',
+        },
+        {
+          name: 'donut.js',
+          content: -> { File.read(asset_path('donut.js.es6')) },
+          type: 'text/javascript',
+        },
+        {
+          name: 'filters.js',
+          content: -> { File.read(asset_path('filters.js.es6')) },
+          type: 'text/javascript',
+        },
+        {
+          name: 'line.js',
+          content: -> { File.read(asset_path('line.js.es6')) },
+          type: 'text/javascript',
+        },
+        {
+          name: 'stack.js',
+          content: -> { File.read(asset_path('stack.js.es6')) },
+          type: 'text/javascript',
+        },
+      ]
+    end
+
+    private def asset_path(asset)
+      Rails.root.join('app', 'assets', 'javascripts', 'warehouse_reports', 'all_neighbors_system_dashboard', asset)
     end
   end
 end

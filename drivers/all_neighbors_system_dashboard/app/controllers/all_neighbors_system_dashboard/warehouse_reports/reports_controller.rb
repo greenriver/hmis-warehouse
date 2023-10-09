@@ -10,6 +10,7 @@ module AllNeighborsSystemDashboard::WarehouseReports
     include BaseFilters
 
     before_action :set_report, except: [:index, :create]
+    before_action :require_can_publish_reports!, only: [:raw, :update]
 
     def index
       @pagy, @reports = pagy(report_scope.ordered)
@@ -48,18 +49,22 @@ module AllNeighborsSystemDashboard::WarehouseReports
     def show
       respond_to do |format|
         format.html {}
-        format.xlsx do
-          file = @report.result_file
-          @report.attach_rendered_xlsx if file.download.nil? # Generate the XLSX if it is missing
-          filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
-          send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
-        end
+        # format.xlsx do
+        #   file = @report.result_file
+        #   @report.attach_rendered_xlsx if file.download.nil? # Generate the XLSX if it is missing
+        #   filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+        #   send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
+        # end
       end
     end
 
     def destroy
       @report.destroy
       respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_reports_path)
+    end
+
+    def update
+      raise 'unimplemneted'
     end
 
     def raw

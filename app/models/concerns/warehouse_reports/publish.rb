@@ -8,15 +8,26 @@ module WarehouseReports::Publish
   extend ActiveSupport::Concern
   include WarehouseReports::S3Toolset
   included do
-    def self.published(version_slug)
-      where(version_slug: version_slug).where.not(published_url: nil).first
+    def self.published(path)
+      published_reports.where(path: path, state: 'published').first
+    end
+
+    # Override as necessary
+    def publish_files
+      [
+        {
+          name: 'index.html',
+          content: -> { as_html },
+          type: 'text/html',
+        },
+      ]
     end
 
     def publish_warning
-      previously_published = self.class.published(version_slug)
-      return nil if previously_published.blank? || previously_published.id == id
+      previously_published = self.class.published(path)
+      return nil if previously_published.blank? && previously_published.path != path
 
-      "Publishing this version of the #{instance_title} will remove any similar previously published version regardless of who published it.  The currently published version is from #{previously_published.completed_at.to_date}.  Are you sure you want to un-publish the previous version and publish this version?"
+      "Publishing this version of the #{instance_title} will remove any similar previously published version regardless of who published it.  The currently published version is from #{previously_published.updated_at.to_date}.  Are you sure you want to un-publish the previous version and publish this version?"
     end
 
     def un_publish_warning
@@ -31,28 +42,30 @@ module WarehouseReports::Publish
         # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
         "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}"
       end
-      publish_url = "#{publish_url}/#{version_slug}" if version_slug.present?
+      publish_url = "#{publish_url}/#{path}" if path.present?
       "#{publish_url}/index.html"
     end
 
     def published?
-      published_url.present?
+      published_reports.published.exists?
     end
 
     def published_at
       return unless published?
 
-      updated_at
+      published_reports.published.first.updated_at
     end
 
-    def publish!
+    def publish!(user_id)
       # This should:
       # 1. Take the contents of html and push it up to S3
       # 2. Populate the published_url field
       # 3. Populate the embed_code field
       self.class.transaction do
         unpublish_similar
-        update(
+        published_report = published_reports.where(path: path).first_or_create
+        published_report.update(
+          user_id: user_id,
           html: as_html,
           published_url: generate_publish_url,
           embed_code: generate_embed_code,
@@ -66,11 +79,14 @@ module WarehouseReports::Publish
     # mark the report as not published
     def unpublish!
       remove_from_s3
-      update(
+      published_report = published_reports.where(path: path).first
+      return unless published_report.present?
+
+      published_report.update(
         published_url: nil,
         embed_code: nil,
         html: nil,
-        state: 'pre-calculated',
+        state: :unpublished,
       )
     end
 
@@ -106,15 +122,13 @@ module WarehouseReports::Publish
     end
 
     private def unpublish_similar
-      self.class.
-        where(version_slug: version_slug).
-        where.not(id: id).
+      published_reports.
+        where(path: path).
         update_all(
-          type: type,
           published_url: nil,
           embed_code: nil,
           html: nil,
-          state: 'pre-calculated',
+          state: :unpublished,
         )
     end
   end

@@ -221,5 +221,80 @@ module PublicReports
     private def under_threshold
       'Under 100'
     end
+
+    # Overrides for standard publishing methods
+    def published?
+      published_url.present?
+    end
+
+    def published_at
+      return unless published?
+
+      updated_at
+    end
+
+    def self.published(version_slug)
+      where(version_slug: version_slug).where.not(published_url: nil).first
+    end
+
+    def publish_warning
+      previously_published = self.class.published(version_slug)
+      return nil if previously_published.blank? || previously_published.id == id
+
+      "Publishing this version of the #{instance_title} will remove any similar previously published version regardless of who published it.  The currently published version is from #{previously_published.completed_at.to_date}.  Are you sure you want to un-publish the previous version and publish this version?"
+    end
+
+    def generate_publish_url
+      publish_url = if ENV['S3_PUBLIC_URL'].present?
+        "#{ENV['S3_PUBLIC_URL']}/#{public_s3_directory}"
+      else
+        # "http://#{s3_bucket}.s3-website-#{ENV.fetch('AWS_REGION')}.amazonaws.com/#{public_s3_directory}"
+        "https://#{s3_bucket}.s3.amazonaws.com/#{public_s3_directory}"
+      end
+      publish_url = "#{publish_url}/#{version_slug}" if version_slug.present?
+      "#{publish_url}/index.html"
+    end
+
+    def publish!
+      # This should:
+      # 1. Take the contents of html and push it up to S3
+      # 2. Populate the published_url field
+      # 3. Populate the embed_code field
+      self.class.transaction do
+        unpublish_similar
+        update(
+          html: as_html,
+          published_url: generate_publish_url,
+          embed_code: generate_embed_code,
+          state: :published,
+        )
+      end
+      push_to_s3
+    end
+
+    # Remove the files from S3
+    # mark the report as not published
+    def unpublish!
+      remove_from_s3
+      update(
+        published_url: nil,
+        embed_code: nil,
+        html: nil,
+        state: 'pre-calculated',
+      )
+    end
+
+    private def unpublish_similar
+      self.class.
+        where(version_slug: version_slug).
+        where.not(id: id).
+        update_all(
+          type: type,
+          published_url: nil,
+          embed_code: nil,
+          html: nil,
+          state: 'pre-calculated',
+        )
+    end
   end
 end
