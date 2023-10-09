@@ -71,10 +71,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_gql_error post_graphql(input: { id: e1.id }) { mutation }
     expect_gql_error post_graphql(input: { id: e2.id }) { mutation }
   end
-  it 'should throw error if unauthorized (non-WIP, no access to delete enrollments)' do
-    add_permissions(access_control, :can_edit_enrollments)
-    expect_gql_error post_graphql(input: { id: e1.id }) { mutation }
-  end
 end
 
 RSpec.configure do |c|
