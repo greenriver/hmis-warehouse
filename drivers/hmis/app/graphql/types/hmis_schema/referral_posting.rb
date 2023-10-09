@@ -81,11 +81,11 @@ module Types
     end
 
     def household_members
-      referral.household_members
+      load_ar_association(referral, :household_members)
     end
 
     def household_size
-      household_members.size
+      household_members.map(&:client_id).uniq.size
     end
 
     def hud_chronic
