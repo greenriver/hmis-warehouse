@@ -7847,6 +7847,7 @@ type ReferralPosting {
   hohName: String!
   householdMembers: [ReferralHouseholdMember!]!
   householdSize: Int!
+  hudChronic: Boolean
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
   organization: Organization
