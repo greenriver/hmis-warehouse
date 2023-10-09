@@ -216,6 +216,31 @@ module AllNeighborsSystemDashboard
           type: 'text/html',
         },
         {
+          name: 'application.css',
+          content: -> { Rails.application.assets['application.css'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.ttf',
+          content: -> { Rails.application.assets['icons.ttf'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.svg',
+          content: -> { Rails.application.assets['icons.svg'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.eot',
+          content: -> { Rails.application.assets['icons.eot'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.woff',
+          content: -> { Rails.application.assets['icons.woff'].to_s },
+          type: 'text/css',
+        },
+        {
           name: 'bar.js',
           content: -> { File.read(asset_path('bar.js.es6')) },
           type: 'text/javascript',

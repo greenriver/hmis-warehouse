@@ -78,9 +78,18 @@ module WarehouseReports::Publish
       self.class.transaction do
         unpublish_similar
         published_report = published_reports.where(path: path).first_or_create
+        premailer = Premailer.new(
+          as_html,
+          with_html_string: true,
+          remove_scripts: false,
+          reset_contenteditable: false,
+          include_link_tags: false,
+          escape_url_attributes: false,
+        )
+
         published_report.update!(
           user_id: user_id,
-          html: as_html,
+          html: premailer.to_inline_css,
           published_url: generate_publish_url,
           embed_code: generate_embed_code,
           state: :published,

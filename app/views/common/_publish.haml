@@ -1,6 +1,6 @@
 #publish-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
-    .well.warehouse-reports__completed
+    .warehouse-reports__completed
       %p This report was generated on #{@report.completed_at.to_date} by #{@report.user&.name} with the following limits.
       .report-parameters.parameter-label= @report.filter.describe_filter_as_html(@report.known_params)
       = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
