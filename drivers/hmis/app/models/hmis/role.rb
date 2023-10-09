@@ -124,7 +124,7 @@ class Hmis::Role < ::ApplicationRecord
           'Projects',
         ],
       },
-      can_manage_inventory: {
+      can_manage_inventory: { # TODO: should be renamed to "can manage units"
         description: 'Ability to manage bed and unit capacity in the project',
         administrative: false,
         access: [:editable],
@@ -229,7 +229,7 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
       can_view_enrollment_details: {
-        description: 'Grants access to view enrollments',
+        description: 'Grants access to view enrollment details, including related records such as Assessments, Services, Current Living Situations, and more.',
         administrative: false,
         access: [:viewable],
         categories: [
@@ -245,7 +245,7 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
       can_edit_enrollments: {
-        description: 'Grants access to edit enrollments',
+        description: 'Grants access to edit enrollments, including: adding and removing household members, performing assessments, recording services, and creating and editing any other Enrollment-related records.',
         administrative: false,
         access: [:editable],
         categories: [

@@ -1338,6 +1338,17 @@ module GrdaWarehouse::WarehouseReports
         }
       end
 
+      # Don't enable this report in production yet
+      if RailsDrivers.loaded.include?(:superset) && ! Rails.env.production?
+        r_list['Performance'] << {
+          url: 'superset/warehouse_reports/reports',
+          name: 'Launch Superset',
+          description: 'An integration with the Apache Superset business inteligence tool.',
+          limitable: true,
+          health: false,
+        }
+      end
+
       r_list
     end
 
@@ -1355,7 +1366,6 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/hud/not_one_hohs',
         'warehouse_reports/hud/incorrect_move_in_dates',
         'warehouse_reports/tableau_dashboard_export',
-        'warehouse_reports/youth_intakes',
       ]
       cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
@@ -1427,6 +1437,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'client_documents_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:client_documents_report)
       cleanup << 'inactive_client_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:inactive_client_report)
       cleanup << 'all_neighbors_system_dashboard/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:all_neighbors_system_dashboard)
+      cleanup << 'superset/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:superset)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).update_all(deleted_at: Time.current)

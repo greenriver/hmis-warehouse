@@ -12231,16 +12231,18 @@ CREATE VIEW public.hmis_client_projects AS
     "Project".id AS project_id,
     "Enrollment".id AS enrollment_id,
     "Enrollment"."EnrollmentID",
+    "Enrollment"."HouseholdID",
     "Enrollment".data_source_id
    FROM ((public."Client"
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
   WHERE ("Client"."DateDeleted" IS NULL)
 UNION
- SELECT hmis_wips.client_id,
-    hmis_wips.project_id,
+ SELECT (hmis_wips.client_id)::integer AS client_id,
+    (hmis_wips.project_id)::integer AS project_id,
     "Enrollment".id AS enrollment_id,
     "Enrollment"."EnrollmentID",
+    "Enrollment"."HouseholdID",
     "Enrollment".data_source_id
    FROM (public.hmis_wips
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".id = hmis_wips.source_id))))
@@ -17206,35 +17208,24 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT hud_services.id,
-    hud_services.owner_id,
-    hud_services.owner_type,
-    hud_services.custom_service_type_id,
-    hud_services."EnrollmentID",
-    hud_services."PersonalID",
-    hud_services."DateProvided",
-    hud_services."UserID",
-    hud_services."DateCreated",
-    hud_services."DateUpdated",
-    hud_services."DateDeleted",
-    hud_services.data_source_id
-   FROM ( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
-            "Services".id AS owner_id,
-            'Hmis::Hud::Service'::text AS owner_type,
-            "CustomServiceTypes".id AS custom_service_type_id,
-            "Services"."EnrollmentID",
-            "Services"."PersonalID",
-            "Services"."DateProvided",
-            "Services"."UserID",
-            "Services"."DateCreated",
-            "Services"."DateUpdated",
-            "Services"."DateDeleted",
-            "Services".data_source_id
-           FROM (public."Services"
-             JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))) hud_services
-UNION
+ SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+    "Services".id AS owner_id,
+    'Hmis::Hud::Service'::text AS owner_type,
+    "CustomServiceTypes".id AS custom_service_type_id,
+    "Services"."EnrollmentID",
+    "Services"."PersonalID",
+    "Services"."DateProvided",
+    "Services"."UserID",
+    "Services"."DateCreated",
+    "Services"."DateUpdated",
+    "Services"."DateDeleted",
+    "Services".data_source_id
+   FROM (public."Services"
+     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
+  WHERE ("Services"."DateDeleted" IS NULL)
+UNION ALL
  SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
-    "CustomServices".id AS owner_id,
+    ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
@@ -24527,7 +24518,7 @@ CREATE TABLE public.youth_intakes (
     client_gender integer NOT NULL,
     client_lgbtq character varying NOT NULL,
     client_race jsonb NOT NULL,
-    client_ethnicity integer NOT NULL,
+    client_ethnicity integer,
     client_primary_language character varying NOT NULL,
     pregnant_or_parenting character varying NOT NULL,
     disabilities jsonb NOT NULL,
@@ -47619,10 +47610,38 @@ CREATE INDEX "index_CustomServiceTypes_on_custom_service_category_id" ON public.
 
 
 --
+-- Name: index_CustomServices_on_DateProvided; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_DateProvided" ON public."CustomServices" USING btree ("DateProvided");
+
+
+--
+-- Name: index_CustomServices_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_EnrollmentID" ON public."CustomServices" USING btree ("EnrollmentID");
+
+
+--
+-- Name: index_CustomServices_on_PersonalID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_PersonalID" ON public."CustomServices" USING btree ("PersonalID");
+
+
+--
 -- Name: index_CustomServices_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "index_CustomServices_on_custom_service_type_id" ON public."CustomServices" USING btree (custom_service_type_id);
+
+
+--
+-- Name: index_CustomServices_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_data_source_id" ON public."CustomServices" USING btree (data_source_id);
 
 
 --
@@ -56376,6 +56395,13 @@ CREATE UNIQUE INDEX "unk_Site" ON public."Geography" USING btree (data_source_id
 
 
 --
+-- Name: users_ds_email_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_ds_email_idx ON public."User" USING btree ("UserEmail", data_source_id);
+
+
+--
 -- Name: youth_ed_ev_id_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57474,22 +57500,6 @@ CREATE RULE attempt_client_searchable_names_del AS
 
 CREATE RULE attempt_client_searchable_names_up AS
     ON UPDATE TO public.client_searchable_names DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_client_projects attempt_hmis_client_projects_del; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_client_projects_del AS
-    ON DELETE TO public.hmis_client_projects DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_client_projects attempt_hmis_client_projects_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_client_projects_up AS
-    ON UPDATE TO public.hmis_client_projects DO INSTEAD NOTHING;
 
 
 --
@@ -59367,6 +59377,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230913184747'),
 ('20230914004821'),
 ('20230922124446'),
-('20230925131206');
+('20230925131206'),
+('20230926205059'),
+('20230927205059'),
+('20230929205059'),
+('20231004162425'),
+('20231004203202');
 
 
