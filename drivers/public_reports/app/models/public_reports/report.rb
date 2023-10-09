@@ -255,6 +255,10 @@ module PublicReports
       "#{publish_url}/index.html"
     end
 
+    def raw_layout
+      'raw_public_report'
+    end
+
     def publish!
       # This should:
       # 1. Take the contents of html and push it up to S3
