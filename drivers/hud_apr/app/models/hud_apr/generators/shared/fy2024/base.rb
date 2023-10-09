@@ -285,7 +285,7 @@ module HudApr::Generators::Shared::Fy2024
             prior_living_situation: enrollment.LivingSituation,
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
             project_type: last_service_history_enrollment.computed_project_type,
-            race: calculate_race(source_client),
+            race_multi: source_client.race_multi.sort.join(','),
             relationship_to_hoh: enrollment.RelationshipToHoH,
             ssn_quality: source_client.SSNDataQuality,
             ssn: source_client.SSN,
@@ -667,13 +667,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def race_fields
-      {
-        'AmIndAKNative' => 1,
-        'Asian' => 2,
-        'BlackAfAmerican' => 3,
-        'NativeHIPacific' => 4,
-        'White' => 5,
-      }.freeze
+      HudUtility2024.race_field_name_to_id.stringify_keys.except('RaceNone').freeze
     end
 
     private def race_number(code)
