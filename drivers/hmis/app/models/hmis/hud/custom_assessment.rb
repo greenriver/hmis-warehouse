@@ -177,12 +177,13 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
     case assessment_role.to_sym
     when :INTAKE, :EXIT
-      household_assessments
+      # Ensure we only return 1 assessment per enrollment
+      household_assessments.index_by(&:enrollment_id).values
     when :ANNUAL
       # If we have a source, find annuals "near" it (within threshold)
       # If we don't have a source, that means this is a new annual. Include any annuals from the past 3 months.
       source_date = source_assessment&.assessment_date || Date.current
-      household_assessments.group_by(&:personal_id).
+      household_assessments.group_by(&:enrollment_id).
         map do |_, assmts|
           nearest_assmt = assmts.min_by { |a| (source_date - a.assessment_date).abs }
           distance_in_days = (source_date - nearest_assmt.assessment_date).to_i.abs
