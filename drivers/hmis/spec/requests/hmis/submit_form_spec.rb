@@ -617,14 +617,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to contain_exactly(include({ 'attribute' => 'dobDataQuality', 'type' => 'invalid' }))
     end
 
-    # FIXME(#186002677)
-    xit 'validates client (invalid DOB)' do
+    it 'validates client (invalid DOB)' do
       input = merge_hud_values(
         test_input,
         'Client.dob' => '2200-01-01', # future dob is not valid
       )
       _, errors = submit_form(input)
-      expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'invalid' }))
+      expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'out_of_range' }))
     end
   end
 end
