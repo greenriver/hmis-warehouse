@@ -17,10 +17,11 @@ class AllNeighborsSystemDashboardStack {
     this.project = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
     this.homelessnessStatus = (this.data.homelessness_statuses || []).filter((d) => d.homelessness_status === this.state.homelessnessStatus)[0] || {}
     this.countLevel = (this.project.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
+    this.cohort = (this.countLevel.cohorts || []).filter((d) => d.cohort === this.state.cohort)[0] || {}
     this.householdType = (this.project.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     this.demographic = (this.householdType.demographics || this.data.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
-    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.data.config || {}
-    this.series = this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || []
+    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.cohort.config || this.data.config || {}
+    this.series = this.cohort.series || this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || []
   }
 
   test() {

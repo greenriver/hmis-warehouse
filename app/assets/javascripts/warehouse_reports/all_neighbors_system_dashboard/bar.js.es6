@@ -8,8 +8,55 @@ class AllNeighborsSystemDashboarBar {
   }
 
   init() {
-    this.series = (this.data.series || []).filter((d) => !d.table_only)
-    this.config = this.data.config
+    this.projectType = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
+    this.countLevel = (this.projectType.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
+    this.cohort = (this.countLevel.cohorts || []).filter((d) => d.cohort === this.state.cohort)[0] || {}
+
+    this.series = (this.cohort.series || this.data.series || []).filter((d) => !d.table_only)
+    this.config = this.cohort.config || this.data.config || {}
+  }
+
+  getColumns() {
+    return [
+      ["x"].concat(this.config.keys)
+    ].concat(this.series.map((d) => [d.name].concat(d.values)))
+  }
+
+  getDataConfig() {
+    return {
+      x: "x",
+      columns: this.getColumns(),
+      types: this.series.reduce((n, d) => ({...n, [d.name]: 'bar'}), {}),
+      colors: this.series.reduce((n, d) => {
+        return {...n, [d.name]: (d) => this.config.colors[d.id][d.index]}
+      }, {}),
+      labels: {
+        centered: false,
+        show: true,
+        color: '#000000',
+      },
+    }
+  }
+
+  getAxisConfig() {
+    return {
+      x: {
+        type: "category",
+        tick: {
+          text: {
+            position: {
+              x: 0,
+              y: 20,
+            }
+          }
+        }
+      },
+      y: {
+        tick: {
+          stepSize: 250,
+        }
+      }
+    }
   }
 
   getConfig() {
@@ -18,25 +65,7 @@ class AllNeighborsSystemDashboarBar {
         width: $(this.selector).width(),
         height: 500,
       },
-      data: {
-        x: "x",
-        columns: [
-          ["x"].concat(this.config.keys)
-        ].concat(this.series.map((d) => [d.name].concat(d.values))),
-        types: {
-          exited: "bar",
-          returned: "bar",
-        },
-        colors: {
-          exited: (d) => this.config.colors[d.id][d.index],
-          returned: (d) => this.config.colors[d.id][d.index],
-        },
-        labels: {
-          centered: false,
-          show: true,
-          color: '#000000',
-        },
-      },
+      data: this.getDataConfig(),
       padding: {
         left: 60,
         top: 40,
@@ -49,24 +78,7 @@ class AllNeighborsSystemDashboarBar {
       grid: {
         y: {show: true}
       },
-      axis: {
-        x: {
-          type: "category",
-          tick: {
-            text: {
-              position: {
-                x: 0,
-                y: 20,
-              }
-            }
-          }
-        },
-        y: {
-          tick: {
-            stepSize: 250,
-          }
-        }
-      },
+      axis: this.getAxisConfig(),
       legend: {
         show: false,
       },
@@ -112,7 +124,145 @@ class AllNeighborsSystemDashboarBar {
     console.log(this)
   }
 
+  redraw(state) {
+    this.state = state
+    this.init()
+    this.chart.load({
+      columns: this.getColumns(),
+    })
+  }
+
   draw() {
     this.chart = bb.generate(this.getConfig())
   }
+}
+
+class AllNeighborsSystemDashboarHorizontalBar extends AllNeighborsSystemDashboarBar {
+  constructor(data, initialState, selector, options) {
+    super(data, initialState, selector, options)
+  }
+
+  init() {
+    super.init()
+    this.names = {
+      total: `${this.countLevel.count_level} in Cohort`,
+      returned: `${this.countLevel.count_level} returned to homelessness`
+    }
+  }
+
+  redraw(state) {
+    this.state = state
+    this.init()
+    this.chart.load({
+      columns: this.getColumns(),
+    })
+  }
+
+  getDataConfig() {
+    const superDataConfig = super.getDataConfig()
+    const data = {
+      names: this.names,
+      colors: this.series.reduce((n, d) => {
+        return {...n, [d.name]: (d) => {
+          const hex = this.config.colors[this.config.keys[d.x]]
+          if(d.id === 'total') {
+            return hex
+          } else {
+            const color = d3.color(hex)
+            color.opacity = 0.5
+            return color.toString()
+          }
+        }}
+      }, {}),
+    }
+    return {...superDataConfig, ...data}
+  }
+
+  getAxisConfig() {
+    const superAxisConig = super.getAxisConfig()
+    const axis = {
+      rotated: true,
+      x: {
+        type: "category",
+        tick: {
+          format: (x, catName) => this.config.names[catName]
+        }
+      },
+    }
+    return {...superAxisConig, ...axis}
+  }
+
+  getConfig() {
+    const superConfig = super.getConfig()
+    const classThis = this
+    const config = {
+      bar: {},
+      size: {
+        width: $(this.selector).width(),
+        height: 400,
+      },
+      padding: {
+        left: 100,
+        top: 0,
+        right: 0,
+        bottom: 0
+      },
+      grid: {
+        y: {
+          show: false
+        }
+      },
+      onrendered: function() {
+        const chart = this
+        const selector = this.config().bindto
+        const texts = d3.selectAll(`${selector} .bb-chart-text`)
+        const countLabels = d3.selectAll(`${selector} text.bb-text`)
+        countLabels.style('fill', '#000000')
+        countLabels.each(function(d) {
+          if(d.id === 'returned') {
+            const total = chart.data().find((n) => n.id === 'total').values[d.index]
+            d3.select(this).text(d3.format('.0%')(d.value/total.value))
+          }
+        })
+        const scale = this.internal.scale
+        const labelDirection = (ele, d) => {
+          const containerBox = d3.select(`${selector} .bb-chart`).node().getBBox()
+          const x = scale.y(d.value)
+          const diff = containerBox.width - x
+          const textBox = d3.select(ele).node().getBBox()
+          return diff < textBox.width+4 ? 'left' : 'right'
+        }
+        texts.selectAll('.bb-custom-label')
+          .data((d) => d.values)
+          .join('text')
+          .attr('class', 'bb-custom-label')
+          .text((d) => classThis.names[d.id])
+          .attr('y', function(d) {
+            const bar = d3.select(`${selector} .bb-bars-${d.id} .bb-bar-${d.index}`)
+            const barBox = bar.node().getBBox()
+            const number = d3.select(`${selector} .bb-texts-${d.id} .bb-text-${d.index}`)
+            const half = barBox.height/2
+            number.attr('y', d.id != 'total' ? scale.x(d.x)+half : scale.x(d.x)-half)
+            return d.id != 'total' ? scale.x(d.x)+half : scale.x(d.x)-half
+          })
+          .attr('x', function(d) {
+            const x = scale.y(d.value)
+            const number = d3.select(`${selector} .bb-texts-${d.id} .bb-text-${d.index}`)
+            const padding = number.attr('x')-x
+            return labelDirection(this, d) === 'left' ? x-padding : x+padding
+          })
+          .attr('text-anchor', function(d) {
+            return labelDirection(this, d) === 'left' ? 'end' : 'start'
+          })
+          .attr('fill', function(d) {
+            return labelDirection(this, d) === 'left' ? '#fff' : '#000'
+          })
+          .attr('transform', 'translate(0, 16)')
+          .style('font-size', '14px')
+          .style('font-weight', 'normal')
+      }
+    }
+    return {...superConfig, ...config}
+  }
+
 }

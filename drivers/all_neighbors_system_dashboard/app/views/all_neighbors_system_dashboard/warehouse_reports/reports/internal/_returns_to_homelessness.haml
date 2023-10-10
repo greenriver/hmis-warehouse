@@ -1,1 +1,101 @@
+
 = render render_path('returns_to_homelessness'), tab: tab
+
+- start_date = (DateTime.current - 3.years).beginning_of_month
+- end_date = DateTime.current.beginning_of_month
+- all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(start_date, end_date)
+
+- bars_data = all_data.horizontal_bars_data
+- vertical_stack = all_data.internal_vertical_stack
+
+.mt-7.pt-7.d-flex.justify-content-between.align-items-center{style: 'border-top: 2px solid rgba(0, 0, 0, 0.12);'}
+  %div= render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'cohort']
+  .d-flex
+    .pr-6= render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
+    .pr-6= render 'select_filter', tab: tab, name: 'count_level', label: 'Count Level', options: all_data.count_levels
+    = render 'select_filter', tab: tab, name: 'cohort', label: 'Returns Cohort', options: all_data.return_cohorts
+
+.border.my-7
+  .py-6.px-5.border-bottom
+    .d-flex.justify-content-between.align-items-center.pb-6
+      %h3= bars_data[:title]
+    %div{id: chart_id(tab[:id], bars_data[:id])}
+    
+.border.my-7
+  .py-6.px-5.border-bottom
+    .d-flex.justify-content-between.align-items-center.pb-6
+      %h3
+        = vertical_stack[:title]
+        %span{id: filter_label_id(tab[:id], 'housing_retention')}
+        After Placement
+    %div{id: chart_id(tab[:id], vertical_stack[:id])}
+    .d-flex.justify-content-center{id: legend_id(tab[:id], vertical_stack[:id])} 
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      console.log('Internal Time To Obtain Housing -----------------')
+      var barsData = #{bars_data.to_json.html_safe}
+      var verticalStackData = #{vertical_stack.to_json.html_safe}
+      console.log('verticalStackData', verticalStackData)
+
+      var charts = [
+        {
+          chart: AllNeighborsSystemDashboarHorizontalBar,
+          data: barsData,
+          selector: '##{chart_id(tab[:id], bars_data[:id])}',
+          options: {}
+        },
+        {
+          chart: AllNeighborsSystemDashboardUPVerticalStack,
+          data: verticalStackData,
+          selector: '##{chart_id(tab[:id], vertical_stack[:id])}',
+          options: {
+            legend: {
+              selector: '##{legend_id(tab[:id], vertical_stack[:id])}'
+            }
+          }
+        }
+      ]
+
+      var filters = [
+        {
+          name: 'projectType',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'project_type')}'
+        },
+        {
+          name: 'countLevel',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'count_level')}'
+        },
+        {
+          name: 'cohort',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'cohort')}'
+        }
+      ]
+
+      var labels = [
+        {
+          name: 'projectType',
+          selector: '.#{filter_label_id(tab[:id], 'project_type')}'
+        },
+        {
+          name: 'countLevel',
+          selector: '.#{filter_label_id(tab[:id], 'count_level')}'
+        },
+        {
+          name: 'cohort',
+          selector: '.#{filter_label_id(tab[:id], 'cohort')}'
+        },
+        {
+          name: 'cohortYears',
+          selector: '##{filter_label_id(tab[:id], 'housing_retention')}'
+        }
+      ]
+
+      var filters = new AllNeighborsSystemDashboardFilters(filters, charts, labels)
+      filters.test()
+
+    })

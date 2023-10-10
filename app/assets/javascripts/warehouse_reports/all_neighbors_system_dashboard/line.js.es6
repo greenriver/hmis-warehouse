@@ -83,7 +83,16 @@ class AllNeighborsSystemDashboardLine {
         contents: {
           bindto: this.options.legend.selector,
           template: (title, color) => {
-            const swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+            let swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+            if(this.config.shapes) {
+              const shape = this.config.shapes[title]
+              if(shape === 'circle') {
+                swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg"><circle cx="6" cy="6" r="5" fill="${color}"/></svg>`;
+              }
+              if(shape === 'triangle') {
+                swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><polygon points="5,0 10,10 0,10" fill="${color}"/></svg>`;
+              }
+            }
             return `<div class="d-flex pr-4">${swatch}<div class="chart-legend-item-label-prs1">${this.config.names[title]}</div></div>`;
           },
         },
@@ -117,20 +126,23 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
   getColumns() {
     let allCols = []
     let keyCols = (this.config.keys || []).forEach((key, i) => {
-      let cols = [key]
-      let xCols = [`${key}_x`]
-      this.series[i].forEach((d) => {
-        const [year, month, day] = d[0].split('-')
-        const date = Date.parse(new Date(year, month, day))
-        const [s, e] = this.state.dateRange
-        if(date >= s && date <= e) {
-          const [w, x, y] = d
-          xCols.push(x)
-          cols.push(y)
-        }
-      })
-      allCols.push(xCols)
-      allCols.push(cols)
+      const series = this.series[i] || []
+      if(series.length > 0) {
+        let cols = [key]
+        let xCols = [`${key}_x`];
+        series.forEach((d) => {
+          const [year, month, day] = d[0].split('-')
+          const date = Date.parse(new Date(year, month-1, day))
+          const [s, e] = this.state.dateRange
+          if(date >= s && date <= e) {
+            const [w, x, y] = d
+            xCols.push(x)
+            cols.push(y)
+          }
+        })
+        allCols.push(xCols)
+        allCols.push(cols)
+      }
     })
     return allCols
   }
@@ -151,9 +163,19 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
     }
   }
 
+  stylePoints(point) {
+    const shape = d3.select(point)
+    const fill = shape.style('fill')
+    const color = d3.rgb(fill)
+    color.opacity = 0.5
+    shape.style('fill', color.toString())
+    shape.style('stroke', d3.rgb(fill).toString())
+  }
+
   getConfig() {
     const classOptions = this.options
     const classConfig = this.config
+    const styleShapes = this.stylePoints
     const config = {
       padding: {
         right: 20,
@@ -171,9 +193,6 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
         },
         y: {
           min: 0,
-          // tick: {
-          //   fit: false
-          // },
           label: {
             text: 'Average Days',
             position: 'outer-middle',
@@ -188,11 +207,12 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
       point: {
         opacity: 1,
         r: 9,
-        pattern: Object.values(this.config.shapes).map((shape) => {
+        pattern: this.config.keys.map((key) => {
+          const shape = this.config.shapes[key]
           if(shape === 'triangle') {
             return "<polygon points='7.5,0 0,15 15,15'></polygon>"
           } else {
-            return shape
+            return shape || 'circle'
           }
         })
       },
@@ -231,16 +251,25 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
         // shapes with opacity fill and stroke
         const shapes = d3.selectAll(`${selector} .bb-shape`)
         shapes.each(function(d) {
-          const shape = d3.select(this)
-          const fill = shape.style('fill')
-          const color = d3.rgb(fill)
-          color.opacity = 0.5
-          shape.style('fill', color.toString())
-
+          styleShapes(this)
         })
+        const legendItems = d3.selectAll(`${classOptions.legend.selector} .bb-legend-item svg :first-child`)
+        legendItems.each(function(d) {
+          styleShapes(this)
+        })
+
+        
       }
     }
     return {...super.getConfig(), ...config}
+  }
+
+  redraw(state) {
+    this.state = state
+    this.init()
+    // the only way I could get this to keep the point shapes consistent
+    this.chart.destroy()
+    this.chart = bb.generate(this.getConfig())
   }
 }
 

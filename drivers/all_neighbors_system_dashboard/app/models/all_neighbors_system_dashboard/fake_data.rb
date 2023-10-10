@@ -50,6 +50,15 @@ module AllNeighborsSystemDashboard
       ]
     end
 
+    def return_cohorts
+      [
+        '0 to 6 months after housing',
+        '7 to 12 months after housing',
+        '13 to 24 months after housing',
+        'Within 2 years of housing',
+      ]
+    end
+
     def household_types
       ['Adults Only', 'Adults and Children']
     end
@@ -176,6 +185,20 @@ module AllNeighborsSystemDashboard
       [
         '#B2803F',
         '#1865AB',
+      ]
+    end
+
+    def housing_retention_types
+      [
+        'Retained Housing',
+        'Returned to Homelessness',
+      ]
+    end
+
+    def housing_retention_type_colors
+      [
+        '#E4C1DE',
+        '#754F77',
       ]
     end
 

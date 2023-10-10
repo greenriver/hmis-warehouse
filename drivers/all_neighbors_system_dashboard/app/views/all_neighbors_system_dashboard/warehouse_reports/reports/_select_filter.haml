@@ -1,5 +1,5 @@
 - id = filter_id(tab[:id], name)
-.form-group.pr-6.mb-0
+.form-group.mb-0
   %label{for: id}= label
   %select.form-control{name: "#{tab[:id]}_#{name}", id: id}
     - options.each do | option |

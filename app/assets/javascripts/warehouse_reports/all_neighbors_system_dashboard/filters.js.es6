@@ -93,6 +93,9 @@ class AllNeighborsSystemDashboardFilters {
       if(label.name === 'dateRange') {
         const dateStrings = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'}))
         $(label.selector).text(`${dateStrings[0]} - ${dateStrings[1]}`)
+      } else if(label.name === 'cohortYears') {
+        const text = this.state['cohort'].replace('after housing', '').replace('of housing', '')
+        $(label.selector).text(text)
       } else {
         $(label.selector).text(this.state[label.name])
       }

@@ -10,11 +10,14 @@ module AllNeighborsSystemDashboard
           {
             project_type: project_type,
             config: {
-              keys: keys,
+              keys: options[:by_project_type] && project_type != 'All' ? [to_key(project_type)] : keys,
               names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
               colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
               label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
-              shapes: keys.map.with_index { |key, i| [key, (options[:shapes] || [])[i]] }.to_h,
+              shapes: keys.map.with_index do |key, i|
+                index = i < 3 ? i : i % 3
+                [key, (options[:shapes] || [])[index]]
+              end.to_h,
             },
             household_types: (['All'] + household_types).map do |household_type|
               {

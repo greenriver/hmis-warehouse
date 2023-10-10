@@ -181,3 +181,35 @@ h2.all-neighbors__all__tab_name {
   font-size: 14px;
   fill: rgba(0, 0, 0, 0.60);
 }
+
+#all-neighbors__returns_to_homelessness__returns_to_date_by_hh_type__chart .tick line,
+#all-neighbors__returns_to_homelessness__housing_retention__chart .tick line {
+  display: none;
+}
+
+#all-neighbors__returns_to_homelessness__returns_to_date_by_hh_type__chart .domain {
+  stroke: rgba(0, 0, 0, 0.38);
+}
+
+#all-neighbors__returns_to_homelessness__returns_to_date_by_hh_type__chart .bb-axis-y .tick text {
+  fill: rgba(0, 0, 0, 0.60);
+  font-size: 12px;
+}
+
+#all-neighbors__returns_to_homelessness__housing_retention__chart .bb-axis-y .tick text {
+  font-size: 12px;
+}
+
+#all-neighbors__returns_to_homelessness__housing_retention__chart .bb-axis-x .tick text {
+  font-size: 14px;
+}
+
+#all-neighbors__returns_to_homelessness__housing_retention__chart .domain,
+#all-neighbors__returns_to_homelessness__housing_retention__chart .bb-ygrids line {
+  stroke: #CCCCCC;
+}
+
+#all-neighbors__returns_to_homelessness__housing_retention__filter_label {
+  color: #9C27B0;
+  text-transform: capitalize;
+}

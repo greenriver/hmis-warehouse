@@ -62,5 +62,70 @@ module AllNeighborsSystemDashboard
         ],
       }
     end
+
+    def internal_data(title, id, type, options: {})
+      keys = (options[:types] || []).map { |key| to_key(key) }
+      {
+        title: title,
+        id: id,
+        quarters: quarter_range,
+        project_types: project_types.map do |project_type|
+          {
+            project_type: project_type,
+            count_levels: count_levels.map do |count_level|
+              {
+                count_level: count_level,
+                cohorts: return_cohorts.map do |cohort|
+                  {
+                    cohort: cohort,
+                    config: {
+                      keys: keys,
+                      names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
+                      colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
+                      label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
+                    },
+                    series: send(type, options),
+                  }
+                end,
+              }
+            end,
+          }
+        end,
+      }
+    end
+
+    def internal_vertical_stack
+      internal_data(
+        'Housing Retention',
+        'housing_retention',
+        :stack,
+        options: {
+          bars: quarter_range.map { |quarter| quarter[:name] },
+          types: housing_retention_types,
+          colors: housing_retention_type_colors,
+        },
+      )
+    end
+
+    def internal_bars(_options)
+      totals = [rand(150..200), rand(300..500)]
+      percentages = [rand(0..totals[0] - 100), rand(0..totals[1] - 100)]
+      [
+        { name: 'total', values: totals },
+        { name: 'returned', values: percentages },
+      ]
+    end
+
+    def horizontal_bars_data
+      internal_data(
+        'Returns to Homelessness To Date by HH Type',
+        'returns_to_date_by_hh_type',
+        :internal_bars,
+        options: {
+          types: demographic_household_type.reverse,
+          colors: demographic_household_type_colors.reverse,
+        },
+      )
+    end
   end
 end
