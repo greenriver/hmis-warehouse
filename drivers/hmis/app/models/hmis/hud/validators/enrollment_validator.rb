@@ -35,9 +35,9 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
   end
 
   def self.find_conflict_severity(enrollment)
-    conflict_scope = Hmis::Hud::Enrollment
-      .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
-      .with_conflicting_dates(project: enrollment.project, range: enrollment.entry_date...enrollment.exit_date)
+    conflict_scope = Hmis::Hud::Enrollment.
+      where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id).
+      with_conflicting_dates(project: enrollment.project, range: enrollment.entry_date...enrollment.exit_date)
 
     if enrollment.persisted?
       # If the entry date is being changed on an EXISTING enrollment, and it overlaps with another one, it should be a warning
@@ -93,9 +93,9 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
       is_hoh = record.head_of_household?
       has_hoh = household_members.any?(&:head_of_household?)
       # Error: client is already a member of this household
-      already_in_household = household_members.where(personal_id: record.personal_id).exists?
-      errors.add :base, :invalid, full_message: duplicate_member_full_message if already_in_household
-      return errors.errors if already_in_household
+      already_enrolled = household_members.open_on_date.where(personal_id: record.personal_id).exists?
+      errors.add :base, :invalid, full_message: duplicate_member_full_message if already_enrolled
+      return errors.errors if already_enrolled
 
       # Error: adding second HoH to existing hh
       errors.add :relationship_to_hoh, :invalid, full_message: one_hoh_full_message if is_hoh && has_hoh

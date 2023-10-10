@@ -16,11 +16,13 @@ module HmisExternalApis
         requested_at: Time.current,
         response: 'pending', # can't be null
       )
+
       result = nil
       begin
         result = yield
       rescue StandardError => e
-        update_log_record(record, { response: e.message || 'error' })
+        # If an exception occurred, it was on or and or a failure to connect. Storing "400" status code to indicate it was on our side (the client)
+        update_log_record(record, { response: "#{e.class.name}: #{e.message || 'Unknown error'}", http_status: 400 })
         raise
       end
       update_log_record(record, { content_type: result.content_type, response: result.body, http_status: result.status }) if result
@@ -34,6 +36,8 @@ module HmisExternalApis
     end
 
     def update_log_record(record, attrs)
+      # Capture logging to stdout too, because ExternalRequestLog is sometimes being rolled back in transactions
+      Rails.logger.info "ExternalRequestLog captured: URL:#{record.url}, REQUEST:#{record.request}, RESPONSE:#{attrs}"
       record.update!(attrs)
     end
   end

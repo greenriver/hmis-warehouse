@@ -79,6 +79,13 @@ module HmisExternalApis
         url: url,
         request_log: request_log,
       )
+    rescue OAuth2::TimeoutError, OAuth2::ConnectionError => e
+      OauthClientResult.new(
+        body: e.message.presence || 'Unknown Error',
+        error: try_parse_json(e.message) || e.message.presence || 'Unknown Error',
+        error_type: e.class.name,
+        request_log: request_log,
+      )
     rescue OAuth2::Error => e
       OauthClientResult.new(
         body: result&.body || e.message,
