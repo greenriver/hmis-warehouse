@@ -7,7 +7,9 @@
 module Hmis::Hud::Processors
   class CeParticipationProcessor < Base
     def factory_name
-      :owner_factory # fixme - allow set on new project form?
+      # Assumes that this record is only edited via its own form.
+      # To support creating/editing from the Project form, we'd need to add a separate ce_participation_factory
+      :owner_factory
     end
 
     def schema
