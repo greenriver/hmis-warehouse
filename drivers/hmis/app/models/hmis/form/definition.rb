@@ -32,6 +32,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CLIENT,
     :NEW_CLIENT_ENROLLMENT,
     :ENROLLMENT,
+    :HMIS_PARTICIPATION,
+    :CE_PARTICIPATION,
   ].freeze
 
   # Forms used for data collection on Enrollments (features that can be "toggled" on and off by specifying Instances)
@@ -90,6 +92,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     PROJECT_COC: {
       owner_class: Hmis::Hud::ProjectCoc,
+      permission: :can_edit_project_details,
+    },
+    HMIS_PARTICIPATION: {
+      owner_class: Hmis::Hud::HmisParticipation,
+      permission: :can_edit_project_details,
+    },
+    CE_PARTICIPATION: {
+      owner_class: Hmis::Hud::CeParticipation,
       permission: :can_edit_project_details,
     },
     CE_ASSESSMENT: {
