@@ -177,16 +177,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         submissions: @wip_assessment_ids,
         confirmed: true,
       }
-      response, result = post_graphql(input: input) { mutation }
-      assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
-      errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
-
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq(200), result&.inspect
-        expect(assessments).to be_nil
-        expect(errors.size).to eq(1)
-        expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Assessments must all belong to the same household.')])
-      end
+      expect_gql_error post_graphql(input: input) { mutation }
     end
   end
 
