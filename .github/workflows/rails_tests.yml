@@ -182,6 +182,22 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
+      # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
+      # data changes.  To update:
+      # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
+      # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
+      # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
+      # 4. Update the fixpoint in S3 from the newly generated file
+      - name: 'Fetch source files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_10_2023 }}
+          destination: ./drivers/datalab_testkit/spec/fixpoints/
+          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          flags: --recursive
 
       - name: 'Fetch result files'
         uses: keithweaver/aws-s3-github-action@v1.0.0
