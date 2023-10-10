@@ -33,7 +33,7 @@ module Types
     end
 
     def household_size
-      enrollments.size
+      enrollments.map(&:personal_id).uniq.size
     end
 
     def enrollments

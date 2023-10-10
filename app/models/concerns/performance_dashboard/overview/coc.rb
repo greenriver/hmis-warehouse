@@ -10,7 +10,7 @@ module PerformanceDashboard::Overview::Coc
   private def coc_buckets
     GrdaWarehouse::Hud::ProjectCoc.distinct.
       joins(:project).
-      merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports)).
       pluck(:CoCCode)
   end
 
@@ -18,7 +18,7 @@ module PerformanceDashboard::Overview::Coc
     coc_buckets.map do |key|
       [
         key,
-        HudUtility.coc_name(key),
+        HudUtility2024.coc_name(key),
       ]
     end.to_h
   end

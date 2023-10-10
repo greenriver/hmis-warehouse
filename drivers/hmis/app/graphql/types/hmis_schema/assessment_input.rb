@@ -10,13 +10,23 @@ module Types
   class HmisSchema::AssessmentInput < Types::BaseInputObject
     argument :form_definition_id, ID, 'Form Definition that was used to perform this assessment', required: true
     argument :assessment_id, ID, 'Required if updating an existing assessment', required: false
-    argument :enrollment_id, ID, 'Required if saving a new assessment', required: false
+    argument :enrollment_id, ID, 'Required if saving a new assessment', required: true
     argument :values, Types::JsonObject, 'Raw form state as JSON', required: true
     argument :hud_values, Types::JsonObject, 'Transformed HUD values as JSON', required: true
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
     argument :validate_only, Boolean, 'Validate assessment but don\'t submit it', required: false
 
+    # FIXME: this method probably doesn't belong on the form input class
     def find_or_create_assessment
+      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
+      enrollment.with_lock do
+        _find_or_create_assessment
+      end
+    end
+
+    protected
+
+    def _find_or_create_assessment
       form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
       raise HmisErrors::ApiError, 'FormDefinition not found' unless form_definition.present?
 

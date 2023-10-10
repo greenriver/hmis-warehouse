@@ -92,15 +92,17 @@ module CustomImportsBostonCommunityOfOrigin
       rows.preload(enrollment: :project, client: :destination_client).find_in_batches(batch_size: 100) do |batch|
         location_batch = []
         batch.each do |row|
-          next unless row.client.present? && row.enrollment.present?
+          next unless row.client.present? && row.enrollment.present? && row.client.destination_client.present?
 
           lat, lon = location(row)
-          location_batch << row.build_client_location(
+          location_batch << ::ClientLocationHistory::Location.new(
             client_id: row.client.destination_client.id,
             located_on: contact_date(row),
             lat: lat,
             lon: lon,
             collected_by: row.enrollment.project&.name,
+            source_id: row.id,
+            source_type: row.class.name,
           )
         end
         # Remove any pre-existing locations

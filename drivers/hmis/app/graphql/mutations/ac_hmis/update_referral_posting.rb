@@ -73,6 +73,10 @@ module Mutations
 
         raise ActiveRecord::Rollback if errors.any?
 
+        # note, cannot mark postings as accepted in this mutation, only denied. Otherwise we'd need to handle that here
+        # too
+        posting.exit_origin_household(user: hmis_user) if posting_status_change == ['denied_pending_status', 'denied_status']
+
         # send to link if:
         # * the referral came from link
         # * status has changed (status will be unchanged if user just updated note)
@@ -89,6 +93,7 @@ module Mutations
         new_request = posting.referral_request.dup
         HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(new_request)
       end
+
       { record: posting }
     end
 
@@ -108,6 +113,7 @@ module Mutations
       # Contact date should only be present when changing to AcceptedPending or DeniedPending
       contact_date = ['accepted_pending_status', 'denied_pending_status'].include?(posting.status) ? Time.current : nil
 
+      Rails.logger.info "Updating status in LINK for posting #{posting.identifier} from posting form"
       HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
         posting_id: posting.identifier,
         posting_status_id: posting.status_before_type_cast,

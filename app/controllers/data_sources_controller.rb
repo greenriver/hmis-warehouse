@@ -29,7 +29,13 @@ class DataSourcesController < ApplicationController
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
       eager_load(:projects).
-      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all)).
+      merge(
+        GrdaWarehouse::Hud::Project.viewable_by(
+          current_user,
+          confidential_scope_limiter: :all,
+          permission: :can_view_projects,
+        ),
+      ).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
   end
 
@@ -41,11 +47,12 @@ class DataSourcesController < ApplicationController
     @data_source = data_source_source.new(new_data_source_params)
     @data_source.source_type = :authoritative if new_data_source_params[:authoritative]
     if @data_source.save
-      current_user.add_viewable @data_source
+      @data_source.replace_access([current_user], scope: :editor)
+      current_user.add_viewable(@data_source) # TODO: START_ACL remove when ACL transition complete
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
-      flash[:error] = _('Unable to create new Data Source')
+      flash[:error] = Translation.translate('Unable to create new Data Source')
       render action: :new
     end
   end
@@ -70,9 +77,8 @@ class DataSourcesController < ApplicationController
 
   def destroy
     name = @data_source.name
-    @data_source.destroy_dependents!
-    @data_source.destroy
-    flash[:notice] = "Data Source: #{name} was successfully removed."
+    DeleteItemJob.perform_later(item_id: @data_source.id, item_class: @data_source.class.name)
+    flash[:notice] = "Data Source: #{name} was successfully queued for removal.  Please check back in a few minutes."
 
     redirect_to action: :index
   end

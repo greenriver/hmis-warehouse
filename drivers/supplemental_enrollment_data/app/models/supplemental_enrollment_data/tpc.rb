@@ -41,18 +41,20 @@ module SupplementalEnrollmentData
         project_name: 'Entry Exit Provider Id',
         entry_date: 'Entry Date',
         exit_date: 'Exit Date',
-        vispdat_ended_at: 'VI-SPDAT Date',
-        vispdat_type: 'VI-SPDAT Type',
-        vispdat_grand_total: 'VI-SPDAT Score',
-        vispdat_range: 'VI-SPDAT Range',
-        prioritization_tool_type: 'Prioritization Tool Type',
-        prioritization_tool_score: 'Prioritization Tool Score',
+        vispdat_ended_at: 'Housing Needs Assessment Tool Date',
+        vispdat_type: 'Housing Needs Assessment Tool Type',
+        vispdat_grand_total: 'Housing Needs Assessment Tool Score',
+        vispdat_range: 'Housing Needs Assessment Tool Range',
+        prioritization_tool_type: 'Other Prioritization Tool Type',
+        prioritization_tool_score: 'Other Prioritization Tool Score',
+        permanent_housing_priority_group: 'Permanent Housing Priority Group',
         agency_name: 'Agency Name:',
-        community: 'City/County',
+        community: 'City/County/Zip Code',
         lgbtq_household_members: 'Do any members of your household identify as LGBT?',
         client_lgbtq: 'Do you identify as LGBT?',
         dv_survivor: 'Do you consider yourself a survivor of interpersonal violence?',
         prevention_tool_score: 'Prevention Tool Score:',
+        shelter_priority: 'Shelter Priority',
       }
     end
 
@@ -118,7 +120,7 @@ module SupplementalEnrollmentData
     end
 
     def self.validate_headers(sheet, name)
-      sheet_headers = sheet.to_a[1]
+      sheet_headers = sheet.to_a[0]
       return if sheet_headers.sort == expected_headers.sort
 
       raise "Unexpected headers in: #{name} \n #{sheet_headers.inspect} \n Looking for: \n #{expected_headers.inspect}"

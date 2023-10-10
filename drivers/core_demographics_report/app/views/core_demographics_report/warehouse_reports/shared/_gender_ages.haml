@@ -20,12 +20,12 @@
                 %th Count
                 %th Percentage
             %tbody
-              - HudUtility.genders.each do |gender, gender_title|
+              - report.genders.each do |gender_col, gender_label|
                 - report.age_categories.each do |age_range, age_title|
                   %tr
-                    %th= gender_title
+                    %th= gender_label
                     %th= age_title
                     %td
-                      = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.gender_age_count(gender: gender, age_range: age_range)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "age_#{age_range}_gender_#{gender}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
-                    %td= number_to_percentage(report.gender_age_percentage(gender: gender, age_range: age_range), precision: 2)
+                      = link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.gender_age_count(gender: gender_col, age_range: age_range)), polymorphic_path(@report.detail_path_array, report.filter.for_params.deep_merge(key: "age_#{age_range}_gender_#{gender_col}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                    %td= number_to_percentage(report.gender_age_percentage(gender: gender_col, age_range: age_range), precision: 2)
       = render 'common/panel_collapse', id: "gender-age-#{index}", title: 'Gender Age Breakdowns', content: "_gender_age_#{index}", panel_body_padded: 'n', default_open: @pdf ? 'yes' : 'no', allow_toggle: @pdf ? 'no' : 'yes'

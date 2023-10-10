@@ -56,11 +56,11 @@ module SystemPathways
     end
 
     def title
-      _(self.class.untranslated_title)
+      Translation.translate(self.class.untranslated_title)
     end
 
     def description
-      _('A tool to look at client pathways through the continuum including some equity analysis.')
+      Translation.translate('A tool to look at client pathways through the continuum including some equity analysis.')
     end
 
     def describe_filter_as_html(keys = nil, inline: false, limited: true)
@@ -91,7 +91,6 @@ module SystemPathways
 
     def known_detail_params
       known_params + [
-        :ethnicities,
         :races,
         :veteran_statuses,
         :household_type,
@@ -175,7 +174,7 @@ module SystemPathways
 
     def project_type_ids
       # any project type we know how to display plus CE
-      allowed_states[nil] + [HudUtility.project_type_number('CE')]
+      allowed_states[nil] + [HudUtility2024.project_type_number('CE')]
     end
 
     def default_project_type_codes
@@ -183,18 +182,18 @@ module SystemPathways
         :ph,
         :oph,
         :th,
-        :es,
+        :es_nbn,
+        :es_entry_exit,
         :so,
         :sh,
         :ce,
-        :ca, # Note, this is currently :ca, not :ce
         :rrh,
         :psh,
       ]
     end
 
     def self.available_project_types
-      [1, 2, 3, 4, 8, 9, 10, 13, 14]
+      [0, 1, 2, 3, 4, 8, 9, 10, 13, 14]
     end
 
     def detail_headers
@@ -211,23 +210,20 @@ module SystemPathways
         'Last Name' => ->(en) {
           en.client.last_name
         },
-        'Ethnicity' => ->(en) {
-          HudUtility.ethnicity(en.client.ethnicity)
-        },
         'Race' => ->(en) {
           races = []
           race_col_lookup.each_key do |k|
             races << race_col_lookup[k] if en.client[k]
           end
           races.map do |r|
-            HudUtility.race(r)
+            HudUtility2024.race(r)
           end.join(',')
         },
         'Disabling Condition' => ->(en) {
-          HudUtility.no_yes_reasons_for_missing_data(en.disabling_condition)
+          HudUtility2024.no_yes_reasons_for_missing_data(en.disabling_condition)
         },
         'Veteran Status' => ->(en) {
-          HudUtility.veteran_status(en.client.veteran_status)
+          HudUtility2024.veteran_status(en.client.veteran_status)
         },
         'Stay Length' => ->(en) {
           en.stay_length
@@ -261,6 +257,8 @@ module SystemPathways
         'black_af_american' => 'BlackAfAmerican',
         'native_hi_pacific' => 'NativeHIPacific',
         'white' => 'White',
+        'hispanic_latinaeo' => 'HispanicLatinaeo',
+        'mid_east_n_african' => 'MidEastNAfrican',
         'race_none' => 'RaceNone',
       }
     end
@@ -278,6 +276,7 @@ module SystemPathways
       {
         # Transition order is defined by array
         # ES (1), SH (8), TH (2), SO (4), PH - RRH (13), PH - PSH (3), PH - PH (9), PH - OPH (10)
+        # NOTE: we're treating ES Entry/Exit (0) as ES NBN (1)
         nil => [1, 8, 2, 4, 13, 3, 9, 10],
         1 => [2, 3, 9, 10, 13],
         2 => [3, 9, 10, 13],
@@ -295,14 +294,14 @@ module SystemPathways
 
       enrollment = subsequent_enrollments.first
       # If the next enrollment is in the allowed categories
-      if allowed_states[current_project_type].include?(enrollment.computed_project_type)
+      if allowed_states[current_project_type].include?(enrollment.computed_project_type_group_es)
         # Push it into the accepted batch
         accepted_enrollments << enrollment
         # and return if it is a "final" enrollment
-        return accepted_enrollments if enrollment.exit_date.blank? || HudUtility.destination_type(enrollment.destination) == 'Permanent'
+        return accepted_enrollments if enrollment.exit_date.blank? || HudUtility2024.destination_type(enrollment.destination) == 'Permanent'
 
         # otherwise move on to the next
-        accept_enrollments(subsequent_enrollments.drop(1), enrollment.computed_project_type, accepted_enrollments)
+        accept_enrollments(subsequent_enrollments.drop(1), enrollment.computed_project_type_group_es, accepted_enrollments)
       else
         # if it's not in the acceptable types, just move on to the next one
         accept_enrollments(subsequent_enrollments.drop(1), current_project_type, accepted_enrollments)
@@ -330,7 +329,7 @@ module SystemPathways
             reject(&:ce?). # remove CE, we only use it for filtering
             # move the most-recently exited or open enrollments to the end
             sort_by { |en| en.exit_date || Date.tomorrow }.
-            group_by(&:computed_project_type).
+            group_by(&:computed_project_type_group_es).
             # keep only the last enrollment in each category
             transform_values(&:last).
             values
@@ -343,7 +342,7 @@ module SystemPathways
             # If we're still enrolled, we can't return
             next false if final_enrollment.exit_date.blank?
             # If our final enrollment didn't exit to a permanent destination we can't return
-            next false unless HudUtility.destination_type(final_enrollment.destination) == 'Permanent'
+            next false unless HudUtility2024.destination_type(final_enrollment.destination) == 'Permanent'
             # If this enrollment starts before the end of the final enrollment, we can't have returned
             next false unless en.entry_date > final_enrollment.exit_date
 
@@ -367,9 +366,12 @@ module SystemPathways
             black_af_american: client.black_af_american == 1,
             native_hi_pacific: client.native_hi_pacific == 1,
             white: client.white == 1,
-            ethnicity: client.ethnicity,
-            male: client.male == 1,
-            female: client.female == 1,
+            hispanic_latinaeo: client.hispanic_latinaeo == 1,
+            mid_east_n_african: client.mid_east_n_african == 1,
+            man: client.man == 1,
+            woman: client.woman == 1,
+            culturally_specific: client.culturally_specific == 1,
+            different_identity: client.different_identity == 1,
             transgender: client.transgender == 1,
             questioning: client.questioning == 1,
             no_single_gender: client.no_single_gender == 1,
@@ -377,12 +379,12 @@ module SystemPathways
             involves_ce: served_by_ce,
             ce_assessment: ce_assessment,
             destination: final_enrollment.destination,
-            destination_homeless: HudUtility.destination_type(final_enrollment.destination) == 'Homeless',
-            destination_temporary: HudUtility.destination_type(final_enrollment.destination) == 'Temporary',
-            destination_institutional: HudUtility.destination_type(final_enrollment.destination) == 'Institutional',
-            destination_other: HudUtility.destination_type(final_enrollment.destination) == 'Other',
-            destination_permanent: HudUtility.destination_type(final_enrollment.destination) == 'Permanent',
-            returned_project_type: returned_enrollment&.computed_project_type,
+            destination_homeless: HudUtility2024.destination_type(final_enrollment.destination) == 'Homeless',
+            destination_temporary: HudUtility2024.destination_type(final_enrollment.destination) == 'Temporary',
+            destination_institutional: HudUtility2024.destination_type(final_enrollment.destination) == 'Institutional',
+            destination_other: HudUtility2024.destination_type(final_enrollment.destination) == 'Other',
+            destination_permanent: HudUtility2024.destination_type(final_enrollment.destination) == 'Permanent',
+            returned_project_type: returned_enrollment&.computed_project_type_group_es,
             returned_project_name: returned_enrollment&.project&.name,
             returned_project_entry_date: returned_enrollment&.entry_date,
             returned_project_enrollment_id: returned_enrollment&.enrollment&.enrollment_id,
@@ -393,7 +395,7 @@ module SystemPathways
 
           accepted_enrollments.each.with_index do |en, i|
             from_project_type = nil
-            from_project_type = accepted_enrollments[i - 1].computed_project_type if i.positive?
+            from_project_type = accepted_enrollments[i - 1].computed_project_type_group_es if i.positive?
             stay_length = (en.entry_date .. [en.exit_date, filter.end].compact.min).count
             household_id = get_hh_id(en)
             household_type = household_makeup(household_id, date)
@@ -408,7 +410,7 @@ module SystemPathways
               from_project_type: from_project_type,
               project_id: en.project_id,
               enrollment_id: en.enrollment&.enrollment_id,
-              project_type: en.computed_project_type,
+              project_type: en.computed_project_type_group_es,
               destination: en.destination || 99,
               project_name: en.project.name,
               entry_date: en.entry_date,
@@ -511,7 +513,7 @@ module SystemPathways
     end
 
     private def nbn_with_no_service?(enrollment)
-      enrollment.project_tracking_method == 3 &&
+      enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn)) &&
         ! enrollment.service_history_services.
           bed_night.
           service_within_date_range(start_date: filter.start, end_date: filter.end).

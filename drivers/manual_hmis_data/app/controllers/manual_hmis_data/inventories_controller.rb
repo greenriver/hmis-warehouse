@@ -53,7 +53,7 @@ module ManualHmisData
     end
 
     private def inventory_scope
-      inventory_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all))
+      inventory_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_projects))
     end
 
     private def inventory_source
@@ -109,7 +109,7 @@ module ManualHmisData
         },
         Availability: {
           type: :select_two,
-          collection: HudUtility.availabilities.invert,
+          collection: HudUtility2024.availabilities.invert,
         },
         CoCCode: {
           type: :select_two,
@@ -123,7 +123,7 @@ module ManualHmisData
         },
         ESBedType: {
           type: :select_two,
-          collection: HudUtility.bed_types.invert,
+          collection: HudUtility2024.bed_types.invert,
         },
       }
     end

@@ -297,7 +297,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let(:dates) do
         [
           {
-            ProjectType: 1,
+            ProjectType: 0,
             EntryDate: '2015-03-04',
             ExitDate: '2015-05-22',
             new_episode_expected: true,
@@ -316,13 +316,13 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             new_episode_expected: false,
           },
           {
-            ProjectType: 1,
+            ProjectType: 0,
             EntryDate: '2015-11-04',
             ExitDate: '2015-12-12',
             new_episode_expected: false,
           },
           {
-            ProjectType: 1,
+            ProjectType: 0,
             EntryDate: '2016-03-04',
             ExitDate: '2016-04-12',
             new_episode_expected: true,

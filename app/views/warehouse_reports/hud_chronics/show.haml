@@ -82,6 +82,6 @@
         var high = $(this).closest('.rollup').data('high');
         var clientID = $(this).closest('.rollup').data('clientId');
         new App.Rollups.Loader($('.jClientID-' + clientID), rollupPath, manyClients, clients, high);
-        $(this).closest('.rollup-content').replaceWith('<p class="jRemoveWhenComplete">Loading...</p>');
+        $(this).closest('.rollup-content').replaceWith('<p class="jRemoveWhenComplete"></p>');
       });
     })(jQuery);

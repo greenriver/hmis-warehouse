@@ -2,7 +2,7 @@
   = link_to hud_reports_legacy_spms_path do
     = "« Legacy System Performance Measures"
 
-%h1= _("Report Result: #{@report.name}")
+%h1= Translation.translate("Report Result: #{@report.name}")
 
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'report'

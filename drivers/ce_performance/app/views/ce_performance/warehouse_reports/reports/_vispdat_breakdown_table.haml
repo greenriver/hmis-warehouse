@@ -11,7 +11,7 @@
       %table.table.table-striped
         %thead
           %tr
-            %th VI-SPDAT Range
+            %th Housing Needs Assessment Range
             %th= comparison_year
             %th= report_year
         %tbody
@@ -19,7 +19,7 @@
             %tr
               %th= vispdat_range
               - [[:comparison, comparison[vispdat_range]], [:reporting, v]].each do |period, value|
-                %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, value, clients_ce_performance_warehouse_reports_report_path(@report, period: period, vispdat_range: vispdat_range, key: @key, category_name: @category_name)
+                %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, number_with_delimiter(value), clients_ce_performance_warehouse_reports_report_path(@report, period: period, vispdat_range: vispdat_range, key: @key, category_name: @category_name)
     - data = @result.data_for_vispdat_types(@report)
     - reporting = data[:reporting]
     - comparison = data[:comparison]
@@ -30,7 +30,7 @@
       %table.table.table-striped
         %thead
           %tr
-            %th VI-SPDAT Type
+            %th Housing Needs Assessment Type
             %th= comparison_year
             %th= report_year
         %tbody
@@ -38,4 +38,4 @@
             %tr
               %th= vispdat_type
               - [[:comparison, comparison[vispdat_type]], [:reporting, v]].each do |period, value|
-                %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, value, clients_ce_performance_warehouse_reports_report_path(@report, period: period, vispdat_type: vispdat_type, key: @key, category_name: @category_name)
+                %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, number_with_delimiter(value), clients_ce_performance_warehouse_reports_report_path(@report, period: period, vispdat_type: vispdat_type, key: @key, category_name: @category_name)

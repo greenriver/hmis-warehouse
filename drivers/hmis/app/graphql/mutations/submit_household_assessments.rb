@@ -8,7 +8,7 @@ module Mutations
   class SubmitHouseholdAssessments < BaseMutation
     description 'Submit multiple assessments in a household'
 
-    argument :assessment_ids, [ID], required: true
+    argument :submissions, [Types::HmisSchema::VersionedRecordInput], required: true
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
     argument :validate_only, Boolean, 'Validate assessments but don\'t submit them', required: false
     # TODO: this should accept a Form Definition ID, to ensure that forms are validated against the
@@ -16,29 +16,33 @@ module Mutations
 
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
-    def resolve(assessment_ids:, confirmed:, validate_only: false)
+    def resolve(submissions:, confirmed:, validate_only: false)
+      submissions_by_id = submissions.index_by(&:id)
       assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
-        where(id: assessment_ids).
-        preload(:enrollment, :form_processor)
+        where(id: submissions_by_id.keys).
+        preload(:enrollment, :form_processor).to_a
+
+      # Error: not all assessments found
+      raise 'Assessments not found' if assessments.count != submissions.size
+
+      # setup optimistic locking
+      assessments.each do |assessment|
+        lock_version = submissions_by_id[assessment.id.to_s].lock_version
+        assessment.lock_version = lock_version if lock_version
+      end
 
       enrollments = assessments.map(&:enrollment)
 
-      errors = HmisErrors::Errors.new
       # Error: insufficient permissions
-      errors.add :assessment, :not_allowed if enrollments.first.present? && !current_user.permissions_for?(enrollments.first, :can_edit_enrollments)
-      return { errors: errors } if errors.any?
-
-      # Error: not all assessments found
-      errors.add :assessment, :not_found if assessments.count != assessment_ids.size
+      raise 'Insufficient permissions' unless current_user.permissions_for?(enrollments.first, :can_edit_enrollments)
 
       # Error: assessments do not all belong to the same household
       household_ids = enrollments.map(&:household_id).uniq
-      errors.add :assessment, :invalid, full_message: 'Assessments must all belong to the same household.' if household_ids.count != 1
+      raise "Assessments must all belong to the same household. #{household_ids}" if household_ids.count != 1
 
       # Error: assessments do not have the same data collection stage
-      data_collection_stages = assessments.pluck(:data_collection_stage).uniq
-      errors.add :assessment, :invalid, full_message: 'Assessments must have the same data collection stage.' if data_collection_stages.count != 1
-      return { errors: errors } if errors.any?
+      data_collection_stages = assessments.map(&:data_collection_stage).uniq
+      raise "Assessments must have the same data collection stage. #{data_collection_stages}" if data_collection_stages.count != 1
 
       is_exit = assessments.first.exit?
       is_intake = assessments.first.intake?
@@ -47,6 +51,7 @@ module Mutations
       household_enrollments_not_included = enrollments.first.household_members.where.not(enrollment_id: enrollments.map(&:enrollment_id))
 
       # FIXME: several of the below errors are duplicative of SubmitAssessment error checks. They should be moved into the CustomAssessmentValidator instead.
+      errors = HmisErrors::Errors.new
 
       # HoH Exit constraints
       if is_exit && includes_hoh

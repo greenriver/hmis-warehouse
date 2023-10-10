@@ -12,14 +12,14 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
-  alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]
+
   validates_with Hmis::Hud::Validators::ServiceValidator
 
   # On user-initiated change, validate that there is max 1 bed night per date
@@ -29,4 +29,21 @@ class Hmis::Hud::Service < Hmis::Hud::Base
                           on: [:form_submission, :bed_nights_mutation]
 
   scope :bed_nights, -> { where(RecordType: 200) }
+
+  after_commit :warehouse_trigger_processing
+
+  private def warehouse_trigger_processing
+    return unless warehouse_columns_changed?
+
+    # NOTE: we only really need to do this for bed-nights at the moment, but this is future-proofing against
+    # pre-processing all services
+    enrollment.invalidate_processing!
+    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!'])
+
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['DateProvided', 'RecordType', 'TypeProvided', 'DateDeleted']).any?
+  end
 end

@@ -24,7 +24,7 @@ module CePerformance
     end
 
     def self.title
-      _('Average Youth VI-SPDAT Score')
+      'Average Youth Housing Needs Assessment Score'
     end
 
     def self.category
@@ -32,11 +32,11 @@ module CePerformance
     end
 
     def description
-      'Average Youth VI-SPDAT score for clients enrolled during the report period.'
+      'Average Youth Housing Needs Assessment score for clients enrolled during the report period.'
     end
 
     def self.calculation
-      'The average of the most recent Youth VI-SPDAT scores collected before the end of the report period for clients enrolled during the reporting period.'
+      'The average of the most recent Youth Housing Needs Assessment scores collected before the end of the report period for clients enrolled during the reporting period.'
     end
 
     def display_vispdat_breakdown?
@@ -50,7 +50,7 @@ module CePerformance
     end
 
     def detail_link_text
-      'VI-SPDAT details'
+      'Housing Needs Assessment details'
     end
 
     def unit

@@ -1,10 +1,10 @@
-- content_for :title,  _('Data Sources')
+- content_for :title,  Translation.translate('Data Sources')
 - if can_manage_some_ad_hoc_ds?
   %ul.nav.nav-tabs
     %li.nav-item.active
-      = link_to _('HMIS Data Sources'), data_sources_path, class: 'nav-link'
+      = link_to Translation.translate('HMIS Data Sources'), data_sources_path, class: 'nav-link'
     %li.nav-item
-      = link_to _('Ad-Hoc Data Sources'), ad_hoc_data_sources_path, class: 'nav-link'
+      = link_to Translation.translate('Ad-Hoc Data Sources'), ad_hoc_data_sources_path, class: 'nav-link'
 
 .row
   .col-sm-8

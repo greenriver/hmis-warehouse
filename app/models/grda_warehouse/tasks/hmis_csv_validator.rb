@@ -6,19 +6,32 @@
 
 require 'csv'
 require 'memery'
+# validator = GrdaWarehouse::Tasks::HmisCsvValidator.new(path)
+# validator.run!
+# validator.write_errors_to_csv!("validator_output.csv")
 module GrdaWarehouse::Tasks
   class HmisCsvValidator
     include Memery
-    attr_accessor :errors, :project_ids, :enrollment_ids, :export_id, :path
-    def initialize(path)
+    attr_accessor :errors, :project_ids, :enrollment_ids, :export_id, :path, :version
+    def initialize(path, version: '2024')
       @path = path
+      @version = version
     end
 
     def run!
       return unless path.present? && File.directory?(path)
 
-      Rails.logger.debug "Processing HMIS data from #{path}"
-      HmisCsvTwentyTwentyTwo.importable_files_map.each do |filename, klass_name|
+      Rails.logger.debug "Processing HMIS data from #{path} as #{@version}"
+      klass = case @version
+      when '2022'
+        HmisCsvTwentyTwentyTwo
+      when '2024'
+        HmisCsvTwentyTwentyFour
+      else
+        raise 'invalid version'
+      end
+
+      klass.importable_files_map.each do |filename, klass_name|
         Rails.logger.debug "Checking #{filename}"
         file_path = File.join(path, filename)
         downcase_converter = ->(header) { header.downcase }
@@ -26,7 +39,7 @@ module GrdaWarehouse::Tasks
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
         if File.exist?(file_path)
-          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true).each do |row|
+          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true, encoding: 'iso-8859-1:utf-8').each do |row|
             unique_keys << row[klass.hud_key.to_s.downcase]
             export_ids << row['exportid']
             self.export_id ||= row['exportid'] if filename == 'Export.csv'
@@ -39,6 +52,39 @@ module GrdaWarehouse::Tasks
 
         add_error(filename, klass.hud_key.to_s, "#{unique_keys.length - unique_keys.uniq.length} Duplicate unique keys found") if duplicate_keys?(unique_keys)
         add_error(filename, 'ExportID', 'Incorrect ExportIDs', export_ids.uniq) if incorrect_export_ids?(export_ids)
+      end
+    end
+
+    def write_errors_to_csv!(filename)
+      rows = []
+      errors.each do |file, file_errors|
+        file_errors.each do |field_name, field_errors|
+          field_errors.each do |err_name, details|
+            example = details[:example] if details[:example].is_a?(Hash)
+            example = example&.select { |k, _| k&.end_with?('id') } # Drop PII, only keep IDs
+            rows << [
+              file,
+              field_name,
+              err_name,
+              details[:count],
+              example&.to_json,
+            ]
+          end
+        end
+      end
+      rows.compact!
+
+      headers = [
+        'File',
+        'Column',
+        'Error Type',
+        'Count',
+        'Example',
+      ]
+      CSV.open(filename, 'wb+', write_headers: true, headers: headers) do |writer|
+        rows.each do |row|
+          writer << row
+        end
       end
     end
 
@@ -68,7 +114,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def validations(klass)
-      klass.hmis_configuration(version: '2022').map do |column, structure|
+      klass.hmis_configuration(version: @version).map do |column, structure|
         validation_methods = []
         validation_methods << case structure[:type]
         when :integer
@@ -89,7 +135,7 @@ module GrdaWarehouse::Tasks
         end
         if structure[:check].present? && structure[:check] == :money
           validation_methods << {
-            error_message: 'Must be a humber with two decimal places',
+            error_message: 'Must be a number with two decimal places',
             check: :money_check,
           }
         end

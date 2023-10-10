@@ -1,21 +1,24 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Chronic Clients Housed") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row([
-    'Warehouse Client ID',
-    'First Name',
-    'Last Name',
-    'On Lists',
-    'Housed On',
-  ])
+wb.add_worksheet(name: 'Chronic Clients Housed') do |sheet|
+  sheet.add_row(
+    [
+      'Warehouse Client ID',
+      'First Name',
+      'Last Name',
+      'On Lists',
+      'Housed On',
+    ],
+  )
   @clients.each do |_, exits|
     client = exits.first
-    sheet.add_row([
-      client.client_id,
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.first_name : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.last_name : 'Redacted',
-      @chronics[client.client_id].map(&:date).uniq.join('; '),
-      exits.map{|ex| [ex.exit_date, HudUtility.destination(ex.destination)].join(' - ')}.uniq.join(';'),
-    ])
+    sheet.add_row(
+      [
+        client.client_id,
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.first_name : 'Redacted',
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.last_name : 'Redacted',
+        @chronics[client.client_id].map(&:date).uniq.join('; '),
+        exits.map { |ex| [ex.exit_date, HudUtility2024.destination(ex.destination)].join(' - ') }.uniq.join(';'),
+      ],
+    )
   end
 end

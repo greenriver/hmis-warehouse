@@ -18,6 +18,12 @@ module ApplicationHelper
   end
   # END Permissions
 
+  # Backwards compatible translations for views so we don't have to
+  # update files in S3
+  def _(text)
+    Translation.translate(text)
+  end
+
   def yes_no(boolean, include_icon: true)
     case boolean
     when nil
@@ -201,11 +207,6 @@ module ApplicationHelper
     end
   end
 
-  # because this comes up a fair bit...
-  def hud_1_8(id)
-    lighten_no HudUtility.no_yes_reasons_for_missing_data(id)
-  end
-
   # make no less visually salient
   def lighten_no(value)
     if strip_tags(value&.to_s)&.strip&.downcase == 'no'
@@ -250,7 +251,7 @@ module ApplicationHelper
   end
 
   def translated?(text)
-    _(text) != text
+    Translation.translate(text) != text
   end
 
   def options_for_available_tags(grouped_tags, _selected_name)

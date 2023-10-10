@@ -19,7 +19,7 @@ module HmisDataQualityTool::DocumentExports
       {
         report: report,
         filter: filter,
-        title: _('HMIS Data Quality Tool'),
+        title: Translation.translate('HMIS Data Quality Tool'),
         pdf: true,
       }
     end
@@ -39,7 +39,7 @@ module HmisDataQualityTool::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{_('HMIS Data Quality Tool')} #{DateTime.current.to_s(:db)}",
+          file_name: "#{Translation.translate('HMIS Data Quality Tool')} #{DateTime.current.to_s(:db)}",
           options: {
             print_background: true,
             display_header_footer: true,

@@ -1,0 +1,40 @@
+- title = "Manage Collections"
+- content_for :title, title
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+  .alert.alert-info
+    %i.icon-warning.mr-4
+    %p Collections can be used to assign access to particular sets of data.  Users are assigned groups and inherit data access from the group.  Roles are then assigned to users to grant access to sections of the warehouse.  When used in combination a user can be given access to a sub-set of warehouse data within a specified limited context.
+  .text-right
+    = link_to new_admin_collection_path, class: 'btn btn-primary mb-2' do
+      %span.icon-plus
+      Add Collection
+  - if @pagy.count.positive?
+    = render 'common/pagination_top', item_name: 'group'
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Name
+            %th.text-center Access Controls
+            %th.text-center
+              System Collection
+              %i.icon-info{data: {toggle: :tooltip, title: 'System collections are automatically maintained, and cannot be removed.'}}
+            %th
+        %tbody
+          - @collections.each do |collection|
+            %tr
+              %td= link_to collection.name, edit_admin_collection_path(collection)
+              %td.text-center= collection.access_controls.count
+              %td.text-center= checkmark(collection.must_exist?, style: :svg)
+              %td
+                - unless collection.access_controls.count.positive? || collection.must_exist?
+                  = link_to admin_collection_path(collection),  method: :delete, data: {confirm: "Would you really like to delete the collection #{collection.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                    %span.icon-cross
+                    Delete
+    = render 'common/pagination_bottom', item_name: 'collection'
+  - else
+    .none-found No collections found.

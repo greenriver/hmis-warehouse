@@ -36,11 +36,8 @@ module Hmis::Hud::Processors
       # Create Household ID if not present. Should only be the case if this is a new Enrollment creation.
       enrollment.household_id ||= Hmis::Hud::Base.generate_uuid if enrollment.new_record?
 
-      # If there is only 1 possible Enrollment CoC, set it
-      unless enrollment.enrollment_coc.present?
-        coc_codes = enrollment.project&.project_cocs&.pluck(:CoCCode) || []
-        enrollment.enrollment_coc = coc_codes.first if coc_codes.size == 1
-      end
+      # Try to infer EnrollmentCoC
+      enrollment.enrollment_coc ||= determine_enrollment_coc(enrollment)
 
       # Set HUD metadata
       enrollment.assign_attributes(
@@ -49,12 +46,27 @@ module Hmis::Hud::Processors
       )
     end
 
+    private def determine_enrollment_coc(enrollment)
+      # If non-HoH member, return the HoH's CoC
+      unless enrollment.head_of_household?
+        hoh_coc_code = enrollment.household_members.heads_of_households.first&.enrollment_coc
+        return hoh_coc_code if hoh_coc_code.present?
+      end
+
+      # If Project only operates in one CoC, return that CoC
+      project_cocs = enrollment.project&.project_cocs&.pluck(:CoCCode)&.uniq&.compact || []
+      return project_cocs.first if project_cocs.size == 1
+
+      nil
+    end
+
     private def assign_unit(unit_id)
       return unless unit_id.present?
 
       enrollment = @processor.send(factory_name)
       unit = enrollment.project.units.find(unit_id)
       raise "Unit not found: #{unit_id}" unless unit.present?
+      raise 'Cannot assign unit to exited enrollment' if enrollment.exit&.exit_date.present?
 
       active_unit_occupancy = enrollment.active_unit_occupancy
       # If already assigned to this unit: do nothing

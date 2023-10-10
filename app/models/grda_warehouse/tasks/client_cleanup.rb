@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
         merge(
           GrdaWarehouse::Hud::Project.
           with_project_type(
-            GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten,
+            HudUtility2024.performance_reporting.values.flatten,
           ),
         ).
         where.not(HouseholdID: nil).
@@ -208,7 +208,7 @@ module GrdaWarehouse::Tasks
     # where the client has no enrollments.  These generally arise from
     # clients being merged or deleted in the sending system.
     def remove_unused_source_clients
-      ds_ids = GrdaWarehouse::DataSource.importable.source.pluck(:id)
+      ds_ids = GrdaWarehouse::DataSource.importable.source.not_hmis.pluck(:id)
       with_enrollments = GrdaWarehouse::Hud::Client.source.
         where(data_source_id: ds_ids).
         joins(:enrollments).
@@ -344,7 +344,6 @@ module GrdaWarehouse::Tasks
       dest_attr = choose_best_veteran_status(dest_attr, source_clients)
       dest_attr = choose_best_gender(dest_attr, source_clients)
       dest_attr = choose_best_race(dest_attr, source_clients)
-      dest_attr = choose_best_ethnicity(dest_attr, source_clients)
 
       dest_attr
     end
@@ -482,7 +481,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def gender_columns
-      @gender_columns ||= ::HudUtility.gender_fields - [:GenderNone]
+      @gender_columns ||= ::HudUtility2024.gender_fields - [:GenderNone]
     end
 
     def choose_best_race dest_attr, source_clients
@@ -528,32 +527,6 @@ module GrdaWarehouse::Tasks
       @race_columns ||= GrdaWarehouse::Hud::Client.race_fields.map(&:to_sym) - [:RaceNone]
     end
 
-    def choose_best_ethnicity dest_attr, source_clients
-      # Most recent 0 or 1 if no 0 or 1 use the most recent value
-      known_values = [0, 1]
-      # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
-      col = :Ethnicity
-      sorted_source_clients.each do |source_client|
-        value = source_client[col]
-        current_value = dest_attr[col]
-        # if we have a 0 or 1 use it
-        # otherwise only replace if the current value isn't a 0 or 1
-        dest_attr[col] = if known_values.include?(value)
-          value
-        elsif !known_values.include?(current_value)
-          value
-        else
-          current_value
-        end
-
-        # Since these are sorted in reverse chronological order, if we hit a 1 or 0, we'll consider that
-        # the destination client response
-        break if known_values.include?(value)
-      end
-      dest_attr
-    end
-
     # Populate source client changes onto the destination client
     # Loop over all destination clients
     #   1. Sort source clients by UpdatedDate desc
@@ -573,9 +546,11 @@ module GrdaWarehouse::Tasks
       changed_count = 0
       changed = {
         dobs: Set.new,
-        females: Set.new,
-        males: Set.new,
-        nosinglegenders: Set.new,
+        women: Set.new,
+        men: Set.new,
+        culturally_specific: Set.new,
+        different_identity: Set.new,
+        nonbinary: Set.new,
         transgenders: Set.new,
         questionings: Set.new,
         gendernones: Set.new,
@@ -605,8 +580,9 @@ module GrdaWarehouse::Tasks
             sc.BlackAfAmerican ||= 99
             sc.NativeHIPacific ||= 99
             sc.White ||= 99
+            sc.HispanicLatinaeo ||= 99
+            sc.MidEastNAfrican ||= 99
             sc.RaceNone ||= 99
-            sc.Ethnicity ||= 99
             sc.DateCreated ||= 10.years.ago.to_date
             sc.DateUpdated ||= 10.years.ago.to_date
             sc
@@ -623,9 +599,11 @@ module GrdaWarehouse::Tasks
           changed_batch << dest if dest.changed? && ! @dry_run
 
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
-          changed[:females] << dest.id if dest.Female != dest_attr[:Female]
-          changed[:males] << dest.id if dest.Male != dest_attr[:Male]
-          changed[:nosinglegenders] << dest.id if dest.NoSingleGender != dest_attr[:NoSingleGender]
+          changed[:women] << dest.id if dest.Woman != dest_attr[:Woman]
+          changed[:men] << dest.id if dest.Man != dest_attr[:Man]
+          changed[:culturally_specific] << dest.id if dest.CulturallySpecific != dest_attr[:CulturallySpecific]
+          changed[:different_identity] << dest.id if dest.DifferentIdentity != dest_attr[:DifferentIdentity]
+          changed[:nonbinary] << dest.id if dest.NonBinary != dest_attr[:NonBinary]
           changed[:transgenders] << dest.id if dest.Transgender != dest_attr[:Transgender]
           changed[:questionings] << dest.id if dest.Questioning != dest_attr[:Questioning]
           changed[:gendernones] << dest.id if dest.GenderNone != dest_attr[:GenderNone]
@@ -680,9 +658,11 @@ module GrdaWarehouse::Tasks
         LastName: c_t[:LastName].to_sql,
         SSN: c_t[:SSN].to_sql,
         DOB: c_t[:DOB].to_sql,
-        Female: c_t[:Female].to_sql,
-        Male: c_t[:Male].to_sql,
-        NoSingleGender: c_t[:NoSingleGender].to_sql,
+        Woman: c_t[:Woman].to_sql,
+        Man: c_t[:Man].to_sql,
+        CulturallySpecific: c_t[:CulturallySpecific].to_sql,
+        DifferentIdentity: c_t[:DifferentIdentity].to_sql,
+        NonBinary: c_t[:NonBinary].to_sql,
         Transgender: c_t[:Transgender].to_sql,
         Questioning: c_t[:Questioning].to_sql,
         GenderNone: c_t[:GenderNone].to_sql,
@@ -699,8 +679,9 @@ module GrdaWarehouse::Tasks
         BlackAfAmerican: cl(c_t[:BlackAfAmerican], 99).as('BlackAfAmerican').to_sql,
         NativeHIPacific: cl(c_t[:NativeHIPacific], 99).as('NativeHIPacific').to_sql,
         White: cl(c_t[:White], 99).as('White').to_sql,
+        HispanicLatinaeo: cl(c_t[:HispanicLatinaeo], 99).as('White').to_sql,
+        MidEastNAfrican: cl(c_t[:MidEastNAfrican], 99).as('White').to_sql,
         RaceNone: cl(c_t[:RaceNone], 99).as('RaceNone').to_sql,
-        Ethnicity: cl(c_t[:Ethnicity], 99).as('Ethnicity').to_sql,
       }
     end
 

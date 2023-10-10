@@ -8,9 +8,9 @@
 
     %br
     During that time there were
-    = @report.clients.count
+    = number_with_delimiter(@report.clients.count)
     exits consisting of
-    #{pluralize(@report.clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
+    #{pluralize(number_with_delimiter(@report.clients.map{ |row| row[:client_id]}.uniq.count), 'unique client')}.
     %br
     This report was built to provide supporting details to the "Exiters" and Exits to Permanent Housing" sections of the Population Dashboards.
   .ml-auto.mb-2
@@ -31,7 +31,7 @@
       - @report.buckets.each do |destination_id, count|
         %tr
           %td
-            = HudUtility.destination(destination_id)
+            = HudUtility2024.destination(destination_id)
 
           %td
             = count
@@ -58,5 +58,5 @@
           %tr
             %td= link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(id: enrollment.client_id)
             %td= enrollment.last_date_in_program
-            %td= HudUtility.destination(enrollment.destination)
+            %td= HudUtility2024.destination(enrollment.destination)
             %td= enrollment.project.name(current_user)

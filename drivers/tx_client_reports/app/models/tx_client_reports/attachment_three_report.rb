@@ -100,7 +100,6 @@ module TxClientReports
         'AMI %',
         'Gender of Applicant',
         'Race of Household',
-        'Ethnicity of Household',
         'Veteran in Household?',
         'Older Adult (62+) in household?',
         'Children under 18 in household?',
@@ -126,9 +125,9 @@ module TxClientReports
           row[:hh_size],
           row[:income],
           '', # % AMI
-          row[:genders].map { |k| ::HudUtility.gender(k) }.join(', '),
-          row[:races].map { |f| ::HudUtility.race(f) }.join(', '),
-          ::HudUtility.ethnicity(row[:ethnicity]),
+          # TODO: this needs to be updated in the receiving system before we update here
+          row[:genders].map { |k| ::HudUtility2024.gender(k) }.join(', '),
+          row[:races].map { |f| ::HudUtility2024.race(f) }.join(', '),
           (if row[:any_veterans] then 'Yes' else 'No' end),
           (if row[:over_62_in_household] then 'Yes' else 'No' end),
           (if row[:child_in_household] then 'Yes' else 'No' end),
@@ -149,6 +148,8 @@ module TxClientReports
         ['BlackAfAmerican'],
         ['NativeHIPacific'],
         ['White'],
+        ['HispanicLatinaeo'],
+        ['MidEastNAfrican'],
         ['AmIndAKNative', 'White'].sort,
         ['BlackAfAmerican', 'White'].sort,
         ['BlackAfAmerican', 'AmIndAKNative'].sort,
@@ -186,7 +187,6 @@ module TxClientReports
           street_address: enrollment.project.project_cocs&.first&.Address1, # Shelter address
           age: enrollment.age, # Age at project entry to keep report stable
           genders: client.gender_multi,
-          ethnicity: client.Ethnicity,
           races: client.race_fields,
           race_description: client.race_description,
           disabled: client_disabled?(client),

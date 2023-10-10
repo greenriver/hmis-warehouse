@@ -80,8 +80,8 @@ SET default_table_access_method = heap;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -385,7 +385,12 @@ CREATE TABLE public.warehouse_houseds (
     nosinglegender integer,
     transgender integer,
     questioning integer,
-    gendernone integer
+    gendernone integer,
+    woman integer,
+    man integer,
+    nonbinary integer,
+    culturallyspecific integer,
+    differentidentity integer
 );
 
 
@@ -715,7 +720,12 @@ CREATE TABLE public.warehouse_returns (
     nosinglegender integer,
     transgender integer,
     questioning integer,
-    gendernone integer
+    gendernone integer,
+    woman integer,
+    man integer,
+    nonbinary integer,
+    culturallyspecific integer,
+    differentidentity integer
 );
 
 
@@ -1725,6 +1735,14 @@ ALTER TABLE ONLY public.warehouse_returns ALTER COLUMN id SET DEFAULT nextval('p
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -2848,13 +2866,6 @@ CREATE INDEX pdq_rep_act_ext_head_enr ON public.warehouse_data_quality_report_en
 
 
 --
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
-
-
---
 -- Name: warehouse_partitioned_monthly_reports monthly_reports_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -2894,6 +2905,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20200724150305'),
 ('20210405180920'),
 ('20210916150948'),
-('20210920002734');
+('20210920002734'),
+('20230824172741'),
+('20230902232754');
 
 

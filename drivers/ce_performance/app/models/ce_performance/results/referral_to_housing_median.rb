@@ -44,7 +44,7 @@ module CePerformance
     end
 
     def self.title
-      _('Median Length of Time from Housing Referral to Housing Start')
+      Translation.translate('Median Length of Time from Housing Referral to Housing Start')
     end
 
     def self.category
@@ -72,7 +72,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "Median: #{value.to_i} #{unit}"
+      "Median: #{number_with_delimiter(value.to_i)} #{unit}"
     end
 
     def unit

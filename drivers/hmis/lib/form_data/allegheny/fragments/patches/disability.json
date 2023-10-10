@@ -1,93 +1,223 @@
 [
   {
-    "link_id": "disability",
+    "link_id": "disability-table",
     "rule": {
-      "operator": "ALL",
+      "operator": "ANY",
+      "_comment": "Collect for all HUD-funded programs, plus some local funding sources. Some HUD funder components are excluded because there are no programs with funding from them.",
       "parts": [
         {
-          "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Non-contracted Permanent Housing"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: ESG"
+        },
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: CoC"
+        },
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: PATH"
+        },
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Non-contracted Case Management"
+          "operator": "INCLUDE",
+          "value": "ARPA Emergency Shelter (entry/exit)"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Non-contracted Emergency Shelter (night by night)"
+          "operator": "INCLUDE",
+          "value": "ARPA Emergency shelter (night by night)"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Non-contracted Emergency Shelter (entry/exit)"
+          "operator": "INCLUDE",
+          "value": "ARPA Street Outreach"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Non-contracted street outreach"
+          "operator": "INCLUDE",
+          "value": "County Mental Health Base Funding"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Non-contracted Transitional Housing"
+          "operator": "INCLUDE",
+          "value": "HAP Bridge Housing"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Non-contracted Homelessness Prevention"
+          "operator": "INCLUDE",
+          "value": "HAP Emergency Shelter (entry/exit)"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "HAP Case Management"
+          "operator": "INCLUDE",
+          "value": "HAP Emergency Shelter (night by night)"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "HAP Innovative"
+          "operator": "INCLUDE",
+          "value": "HAP Penn Free Bridge RRH"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "HAP Rental Assistance"
+          "operator": "INCLUDE",
+          "value": "Human Services Block Grant Bridge Housing"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Needs-Based Block Grant Homelessness Prevention"
+          "operator": "INCLUDE",
+          "value": "Human Services Block Grant Emergency Shelter (entry/exit)"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "ARPA Homelessness Prevention"
+          "operator": "INCLUDE",
+          "value": "Human Services Block Grant Emergency Shelter (night by night)"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "ARPA Case Management"
+          "operator": "INCLUDE",
+          "value": "Human Services Block Grant Street Outreach"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "PHFA Home 4 Good Homelessness Prevention"
+          "operator": "INCLUDE",
+          "value": "Needs-Based Block Grant Case Management"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "PHFA Case Management"
+          "operator": "INCLUDE",
+          "value": "Needs-Based Block Grant Emergency Shelter (entry/exit)"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Human Services Block Grant Homelessness Prevention"
+          "operator": "INCLUDE",
+          "value": "PHFA Emergency Shelter (entry/exit)"
         },
         {
           "variable": "projectOtherFunders",
-          "operator": "NOT_INCLUDE",
-          "value": "Human Services Block Grant Case Management"
+          "operator": "INCLUDE",
+          "value": "PHFA Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "PHFA Street Outreach"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "disability-table-r4",
+    "rule": {
+      "operator": "ANY",
+      "_comment": "Same as above, but without PATH",
+      "parts": [
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: ESG"
+        },
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: CoC"
+        },
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "ARPA Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "ARPA Emergency shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "ARPA Street Outreach"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "County Mental Health Base Funding"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Bridge Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Penn Free Bridge RRH"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "Human Services Block Grant Bridge Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "Human Services Block Grant Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "Human Services Block Grant Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "Human Services Block Grant Street Outreach"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "Needs-Based Block Grant Case Management"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "Needs-Based Block Grant Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "PHFA Emergency Shelter (entry/exit)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "PHFA Emergency Shelter (night by night)"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "PHFA Street Outreach"
         }
       ]
     }

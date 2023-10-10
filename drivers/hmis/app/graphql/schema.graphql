@@ -173,9 +173,9 @@ type Assessment {
   client: Client!
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   definition: FormDefinition!
   disabilityGroup: DisabilityGroup
   employmentEducation: EmploymentEducation
@@ -186,6 +186,7 @@ type Assessment {
   id: ID!
   inProgress: Boolean!
   incomeBenefit: IncomeBenefit
+  lockVersion: Int!
   role: AssessmentRole!
   user: User
   wipValues: JsonObject
@@ -219,7 +220,7 @@ input AssessmentInput {
   """
   Required if saving a new assessment
   """
-  enrollmentId: ID
+  enrollmentId: ID!
 
   """
   Form Definition that was used to perform this assessment
@@ -264,32 +265,27 @@ enum AssessmentLevel {
 
 enum AssessmentRole {
   """
-  (ANNUAL) Annual Assessment
+  Annual
   """
   ANNUAL
 
   """
-  (CE) Coordinated Entry
-  """
-  CE
-
-  """
-  (EXIT) Exit Assessment
+  Exit
   """
   EXIT
 
   """
-  (INTAKE) Intake Assessment
+  Intake
   """
   INTAKE
 
   """
-  (POST_EXIT) Post-Exit Assessment
+  Post exit
   """
   POST_EXIT
 
   """
-  (UPDATE) Update Assessment
+  Update
   """
   UPDATE
 }
@@ -462,9 +458,9 @@ type CeAssessment {
   assessmentLocation: String!
   assessmentType: AssessmentType
   client: Client!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
   prioritizationStatus: PrioritizationStatus
@@ -486,9 +482,9 @@ type CeParticipation {
   ceParticipationStatusEndDate: ISO8601Date
   ceParticipationStatusStartDate: ISO8601Date
   crisisAssessment: NoYes
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   directServices: NoYes
   housingAssessment: NoYes
   id: ID!
@@ -552,10 +548,11 @@ type Client {
   auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
+  customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   desertStorm: NoYesReasonsForMissingData
   differentIdentityText: String
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
@@ -570,6 +567,7 @@ type Client {
   firstName: String
   gender: [Gender!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
+  hudChronic: Boolean
   id: ID!
   image: ClientImage
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
@@ -577,6 +575,7 @@ type Client {
   iraqOnd: NoYesReasonsForMissingData
   koreanWar: NoYesReasonsForMissingData
   lastName: String
+  lockVersion: Int!
   middleName: String
   militaryBranch: MilitaryBranch
   nameDataQuality: NameDataQuality!
@@ -621,9 +620,9 @@ type ClientAddress {
   city: String
   client: Client!
   country: String
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   district: String
   id: ID!
   line1: String
@@ -675,6 +674,11 @@ enum ClientAddressUse {
   old
 
   """
+  School
+  """
+  school
+
+  """
   Temp
   """
   temp
@@ -711,9 +715,9 @@ type ClientAuditEventsPaginated {
 
 type ClientContactPoint {
   client: Client!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   id: ID!
   notes: String
   system: ClientContactPointSystem
@@ -762,6 +766,11 @@ enum ClientContactPointUse {
   old
 
   """
+  School
+  """
+  school
+
+  """
   Temp
   """
   temp
@@ -788,9 +797,9 @@ type ClientImage {
 
 type ClientName {
   client: Client!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   first: String
   id: ID!
   last: String
@@ -887,6 +896,11 @@ enum ClientSortOption {
   Age: Youngest to Oldest
   """
   AGE_YOUNGEST_TO_OLDEST
+
+  """
+  Most Relevant
+  """
+  BEST_MATCH
 
   """
   First Name: A-Z
@@ -1275,12 +1289,13 @@ type CurrentLivingSituation {
   client: Client!
   clsSubsidyType: RentalSubsidyType
   currentLivingSituation: CurrentLivingSituationOptions!
-  dateCreated: ISO8601DateTime!
+  customDataElements: [CustomDataElement!]!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
-  informationDate: ISO8601Date!
+  informationDate: ISO8601Date
   leaseOwn60Day: NoYesReasonsForMissingData
   leaveSituation14Days: NoYesReasonsForMissingData
   locationDetails: String
@@ -1472,8 +1487,31 @@ enum CurrentSchoolAttended {
   NOT_CURRENTLY_ENROLLED_IN_ANY_SCHOOL_OR_EDUCATIONAL_COURSE
 }
 
+"""
+Case Note
+"""
+type CustomCaseNote {
+  client: Client!
+  content: String!
+  dateCreated: ISO8601DateTime
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
+  enrollment: Enrollment!
+  id: ID!
+  user: User
+}
+
+type CustomCaseNotesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CustomCaseNote!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 type CustomDataElement {
-  atOccurrence: Boolean!
   fieldType: CustomDataElementType!
   id: ID!
   key: String!
@@ -1497,8 +1535,9 @@ enum CustomDataElementType {
 }
 
 type CustomDataElementValue {
-  dateCreated: ISO8601DateTime!
-  dateUpdated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
   id: ID!
   user: User
   valueBoolean: Boolean
@@ -1555,6 +1594,45 @@ enum DataCollectedAbout {
   VETERAN_HOH
 }
 
+type DataCollectionFeature {
+  dataCollectedAbout: DataCollectedAbout!
+  id: ID!
+  legacy: Boolean!
+  role: DataCollectionFeatureRole!
+}
+
+enum DataCollectionFeatureRole {
+  """
+  Case note
+  """
+  CASE_NOTE
+
+  """
+  Ce assessment
+  """
+  CE_ASSESSMENT
+
+  """
+  Ce event
+  """
+  CE_EVENT
+
+  """
+  Current living situation
+  """
+  CURRENT_LIVING_SITUATION
+
+  """
+  Referral request
+  """
+  REFERRAL_REQUEST
+
+  """
+  Service
+  """
+  SERVICE
+}
+
 """
 5.03.1
 """
@@ -1594,6 +1672,8 @@ enum DataCollectionStage {
 Autogenerated input type of DeleteAssessment
 """
 input DeleteAssessmentInput {
+  assessmentLockVersion: Int
+
   """
   A unique identifier for the client performing the mutation.
   """
@@ -1714,6 +1794,8 @@ type DeleteClientImagePayload {
 Autogenerated input type of DeleteClient
 """
 input DeleteClientInput {
+  clientLockVersion: Int
+
   """
   A unique identifier for the client performing the mutation.
   """
@@ -1759,6 +1841,14 @@ type DeleteCurrentLivingSituationPayload {
   """
   clientMutationId: String
   currentLivingSituation: CurrentLivingSituation
+  errors: [ValidationError!]!
+}
+
+"""
+Autogenerated return type of DeleteCustomCaseNote.
+"""
+type DeleteCustomCaseNotePayload {
+  customCaseNote: CustomCaseNote
   errors: [ValidationError!]!
 }
 
@@ -2202,15 +2292,15 @@ type Disability {
   antiRetroviral: NoYesReasonsForMissingData
   client: Client!
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   disabilityResponse: DisabilityResponse!
   disabilityType: DisabilityType!
   enrollment: Enrollment!
   id: ID!
   indefiniteAndImpairs: Int
-  informationDate: ISO8601Date!
+  informationDate: ISO8601Date
   tCellCount: Int
   tCellCountAvailable: NoYesReasonsForMissingData
   tCellSource: TCellSourceViralLoadSource
@@ -2409,14 +2499,14 @@ HUD Employment Education
 type EmploymentEducation {
   client: Client!
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   employed: NoYesReasonsForMissingData
   employmentType: EmploymentType
   enrollment: Enrollment!
   id: ID!
-  informationDate: ISO8601Date!
+  informationDate: ISO8601Date
   lastGradeCompleted: LastGradeCompleted
   notEmployedReason: NotEmployedReason
   schoolStatus: SchoolStatus
@@ -2563,14 +2653,15 @@ type Enrollment {
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   currentPregnant: NoYesMissing
   currentUnit: Unit
+  customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateOfBcpStatus: ISO8601Date
   dateOfEngagement: ISO8601Date
   dateOfPathStatus: ISO8601Date
   dateToStreetEssh: ISO8601Date
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   dependentUnder6: DependentUnder6
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   disabledHoh: NoYesMissing
@@ -2594,7 +2685,7 @@ type Enrollment {
   householdId: ID!
   householdShortId: ID!
   householdSize: Int!
-  hpScreeningScore: NoYesMissing
+  hpScreeningScore: Int
   id: ID!
   inProgress: Boolean!
   incarceratedAdult: IncarceratedAdult
@@ -2608,10 +2699,12 @@ type Enrollment {
   lengthOfStay: ResidencePriorLengthOfStay
   literalHomelessHistory: LiteralHomelessHistory
   livingSituation: PriorLivingSituation
+  lockVersion: Int!
   losUnderThreshold: NoYesMissing
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   moveInDate: ISO8601Date
+  numUnitsAssignedToHousehold: Int!
   openEnrollmentSummary: [EnrollmentSummary!]!
   percentAmi: PercentAMI
   physicalDisabilityFam: NoYesMissing
@@ -2635,7 +2728,7 @@ type Enrollment {
   status: EnrollmentStatus!
   subsidyAtRisk: NoYesMissing
   targetScreenReqd: NoYesMissing
-  thresholdScore: NoYesMissing
+  thresholdScore: Int
   timeToHousingLoss: TimeToHousingLoss
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   translationNeeded: NoYesReasonsForMissingData
@@ -2808,9 +2901,9 @@ HUD Event
 """
 type Event {
   client: Client!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   event: EventType!
   eventDate: ISO8601DateTime!
@@ -2983,9 +3076,9 @@ type Exit {
   counselingReceived: NoYesMissing
   countOfExchangeForSex: CountExchangeForSex
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   destination: Destination!
   destinationSafeClient: NoYesReasonsForMissingData
   destinationSafeWorker: WorkerResponse
@@ -3120,8 +3213,8 @@ File
 type File {
   confidential: Boolean
   contentType: String
-  dateCreated: ISO8601DateTime!
-  dateUpdated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
   effectiveDate: ISO8601Date
   enrollment: Enrollment
   enrollmentId: ID
@@ -3164,6 +3257,7 @@ type FormDefinition {
   definition: FormDefinitionJson!
   id: ID!
   role: FormRole!
+  title: String!
 }
 
 type FormDefinitionJson {
@@ -3316,132 +3410,119 @@ type FormItem {
   warnIfEmpty: Boolean!
 }
 
-"""
-Form Role
-"""
 enum FormRole {
   """
-  (ANNUAL) Annual Assessment
+  Annual
   """
   ANNUAL
 
   """
-  (CE) Coordinated Entry
+  Case note
+  """
+  CASE_NOTE
+
+  """
+  Ce
   """
   CE
 
   """
-  (CE_ASSESSMENT) CE Assessment
+  Ce assessment
   """
   CE_ASSESSMENT
 
   """
-  (CE_EVENT) CE Event
+  Ce event
   """
   CE_EVENT
 
   """
-  (CLIENT) Client
+  Client
   """
   CLIENT
 
   """
-  (CURRENT_LIVING_SITUATION) Current Living Situation
+  Current living situation
   """
   CURRENT_LIVING_SITUATION
 
   """
-  (CUSTOM) Custom Assessment
+  Custom assessment
   """
-  CUSTOM
+  CUSTOM_ASSESSMENT
 
   """
-  (DATE_OF_ENGAGEMENT) Date of Engagement
-  """
-  DATE_OF_ENGAGEMENT
-
-  """
-  (ENROLLMENT) Enrollment
+  Enrollment
   """
   ENROLLMENT
 
   """
-  (EXIT) Exit Assessment
+  Exit
   """
   EXIT
 
   """
-  (FILE) File
+  File
   """
   FILE
 
   """
-  (FUNDER) Funder
+  Funder
   """
   FUNDER
 
   """
-  (INTAKE) Intake Assessment
+  Intake
   """
   INTAKE
 
   """
-  (INVENTORY) Inventory
+  Inventory
   """
   INVENTORY
 
   """
-  (MOVE_IN_DATE) Move-in Date
-  """
-  MOVE_IN_DATE
-
-  """
-  (NEW_CLIENT_ENROLLMENT) New Client Enrollment
+  New client enrollment
   """
   NEW_CLIENT_ENROLLMENT
 
   """
-  (ORGANIZATION) Organization
+  Occurrence point
+  """
+  OCCURRENCE_POINT
+
+  """
+  Organization
   """
   ORGANIZATION
 
   """
-  (PATH_STATUS) PATH Status
-  """
-  PATH_STATUS
-
-  """
-  (POST_EXIT) Post-Exit Assessment
+  Post exit
   """
   POST_EXIT
 
   """
-  (PROJECT) Project
+  Project
   """
   PROJECT
 
   """
-  (PROJECT_COC) Project CoC
+  Project CoC
   """
   PROJECT_COC
 
   """
-  (REFERRAL_REQUEST) Referral Request
+  Referral request
   """
   REFERRAL_REQUEST
 
   """
-  (SERVICE) Service
+  Service
   """
   SERVICE
 
   """
-  (UNIT_ASSIGNMENT) Unit Assignment
-  """
-  UNIT_ASSIGNMENT
-
-  """
-  (UPDATE) Update Assessment
+  Update
   """
   UPDATE
 }
@@ -3449,15 +3530,15 @@ enum FormRole {
 type Funder {
   active: Boolean!
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   endDate: ISO8601Date
   funder: FundingSource!
-  grantId: String!
+  grantId: String
   id: ID!
   otherFunder: String
-  startDate: ISO8601Date!
+  startDate: ISO8601Date
   user: User
 }
 
@@ -3887,16 +3968,16 @@ type HealthAndDv {
   client: Client!
   currentlyFleeing: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   dentalHealthStatus: HealthStatus
   domesticViolenceSurvivor: NoYesReasonsForMissingData
   dueDate: ISO8601Date
   enrollment: Enrollment!
   generalHealthStatus: HealthStatus
   id: ID!
-  informationDate: ISO8601Date!
+  informationDate: ISO8601Date
   mentalHealthStatus: HealthStatus
   pregnancyStatus: NoYesReasonsForMissingData
   user: User
@@ -3964,9 +4045,9 @@ enum HealthStatus {
 }
 
 type HmisParticipation {
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   hmisParticipationStatusEndDate: ISO8601Date
   hmisParticipationStatusStartDate: ISO8601Date
   hmisParticipationType: HMISParticipationType
@@ -4198,9 +4279,9 @@ type IncomeBenefit {
   connectionWithSoar: NoYesReasonsForMissingData
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   earned: NoYesMissing
   earnedAmount: Float
   employerProvided: NoYesMissing
@@ -4210,7 +4291,7 @@ type IncomeBenefit {
   id: ID!
   incomeFromAnySource: NoYesReasonsForMissingData
   indianHealthServices: NoYesMissing
-  informationDate: ISO8601Date!
+  informationDate: ISO8601Date
   insuranceFromAnySource: NoYesReasonsForMissingData
   medicaid: NoYesMissing
   medicare: NoYesMissing
@@ -4339,16 +4420,16 @@ type Inventory {
   chBedInventory: Int
   chVetBedInventory: Int
   chYouthBedInventory: Int
-  cocCode: String!
+  cocCode: String
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   esBedType: BedType
-  householdType: HouseholdType!
+  householdType: HouseholdType
   id: ID!
   inventoryEndDate: ISO8601Date
-  inventoryStartDate: ISO8601Date!
+  inventoryStartDate: ISO8601Date
   otherBedInventory: Int
   unitInventory: Int!
   user: User
@@ -4863,6 +4944,7 @@ type Mutation {
     """
     input: DeleteCurrentLivingSituationInput!
   ): DeleteCurrentLivingSituationPayload
+  deleteCustomCaseNote(id: ID!): DeleteCustomCaseNotePayload
   deleteEnrollment(
     """
     Parameters for DeleteEnrollment
@@ -4963,12 +5045,6 @@ type Mutation {
     """
     input: UpdateClientImageInput!
   ): UpdateClientImagePayload
-  updateCustomEnrollmentValue(
-    """
-    Parameters for UpdateCustomEnrollmentValue
-    """
-    input: UpdateCustomEnrollmentValueInput!
-  ): UpdateCustomEnrollmentValuePayload
 
   """
   Update a referral posting
@@ -5183,6 +5259,12 @@ enum NotEmployedReason {
   UNABLE_TO_WORK
 }
 
+type OccurrencePointForm {
+  dataCollectedAbout: DataCollectedAbout!
+  definition: FormDefinition!
+  id: ID!
+}
+
 """
 Results from client/project omnisearch
 """
@@ -5192,9 +5274,9 @@ type Organization {
   access: OrganizationAccess!
   contactInformation: String
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   description: String
   hudId: ID!
   id: ID!
@@ -7213,9 +7295,14 @@ type Project {
   contactInformation: String
   continuumProject: NoYes
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+
+  """
+  Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)
+  """
+  dataCollectionFeatures: [DataCollectionFeature!]!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
@@ -7227,8 +7314,13 @@ type Project {
   id: ID!
   incomingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
+
+  """
+  Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)
+  """
+  occurrencePointForms: [OccurrencePointForm!]!
   operatingEndDate: ISO8601Date
-  operatingStartDate: ISO8601Date!
+  operatingStartDate: ISO8601Date
   organization: Organization!
   outgoingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
   projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
@@ -7268,10 +7360,10 @@ type ProjectCoc {
   address1: String
   address2: String
   city: String
-  cocCode: String!
-  dateCreated: ISO8601DateTime!
+  cocCode: String
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   geocode: String!
   geographyType: GeographyType
   id: ID!
@@ -7557,7 +7649,6 @@ type QueryAccess {
   canAdministerHmis: Boolean!
   canAuditClients: Boolean!
   canDeleteAssessments: Boolean!
-  canDeleteAssignedProjectData: Boolean!
   canDeleteClients: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteOrganization: Boolean!
@@ -7579,8 +7670,10 @@ type QueryAccess {
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
+  canViewHudChronicStatus: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
+  canViewProject: Boolean!
   id: ID!
 }
 
@@ -7875,15 +7968,25 @@ type ReferralPosting {
   chronic: Boolean
   denialNote: String
   denialReason: ReferralPostingDenialReasonType
+  hohClient: Client
+
+  """
+  Enrollment for the HoH at the receiving Project (if the referral was accepted)
+  """
   hohEnrollment: Enrollment
   hohMciId: ID
   hohName: String!
   householdMembers: [ReferralHouseholdMember!]!
   householdSize: Int!
+  hudChronic: Boolean
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
   organization: Organization
   postingIdentifier: ID
+
+  """
+  Project that household is being referred to
+  """
   project: Project
   referralDate: ISO8601DateTime!
   referralIdentifier: ID
@@ -7891,6 +7994,10 @@ type ReferralPosting {
   referralRequest: ReferralRequest
   referralResult: ReferralResult
   referredBy: String!
+
+  """
+  Name of project or external source that the referral originated from
+  """
   referredFrom: String!
   resourceCoordinatorNotes: String
   score: Int
@@ -8113,7 +8220,7 @@ enum ReferralSource {
   JUVENILE_JUSTICE
 
   """
-  (35) Law Enforcement/ Police
+  (35) Law Enforcement/Police
   """
   LAW_ENFORCEMENT_POLICE
 
@@ -8131,11 +8238,6 @@ enum ReferralSource {
   (7) Outreach Project
   """
   OUTREACH_PROJECT
-
-  """
-  (10) Outreach project: other
-  """
-  OUTREACH_PROJECT_OTHER
 
   """
   (18) Residential Project
@@ -8429,6 +8531,8 @@ enum SSNDataQuality {
 Autogenerated input type of SaveAssessment
 """
 input SaveAssessmentInput {
+  assessmentLockVersion: Int
+
   """
   A unique identifier for the client performing the mutation.
   """
@@ -8515,10 +8619,10 @@ HUD or Custom Service rendered
 type Service {
   client: Client!
   customDataElements: [CustomDataElement!]!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateProvided: ISO8601Date!
-  dateUpdated: ISO8601DateTime!
+  dateProvided: ISO8601Date
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   faAmount: Float
   faEndDate: ISO8601Date
@@ -8719,8 +8823,9 @@ enum ServiceSubTypeProvided {
 
 type ServiceType {
   category: String!
-  dateCreated: ISO8601DateTime!
-  dateUpdated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
   hudRecordType: RecordType
   hudTypeProvided: ServiceTypeProvided
   id: ID!
@@ -9319,6 +9424,8 @@ enum SexualOrientation {
 Autogenerated input type of SubmitAssessment
 """
 input SubmitAssessmentInput {
+  assessmentLockVersion: Int
+
   """
   A unique identifier for the client performing the mutation.
   """
@@ -9348,6 +9455,7 @@ input SubmitFormInput {
   """
   clientMutationId: String
   input: FormInput!
+  recordLockVersion: Int
 }
 
 """
@@ -9365,14 +9473,12 @@ type SubmitFormPayload {
 """
 Union type of allowed records for form submission response
 """
-union SubmitFormResult = CeAssessment | Client | CurrentLivingSituation | Enrollment | Event | File | Funder | Inventory | Organization | Project | ProjectCoc | ReferralRequest | Service
+union SubmitFormResult = CeAssessment | Client | CurrentLivingSituation | CustomCaseNote | Enrollment | Event | File | Funder | Inventory | Organization | Project | ProjectCoc | ReferralRequest | Service
 
 """
 Autogenerated input type of SubmitHouseholdAssessments
 """
 input SubmitHouseholdAssessmentsInput {
-  assessmentIds: [ID!]!
-
   """
   A unique identifier for the client performing the mutation.
   """
@@ -9382,6 +9488,7 @@ input SubmitHouseholdAssessmentsInput {
   Whether warnings have been confirmed
   """
   confirmed: Boolean
+  submissions: [VersionedRecordInput!]!
 
   """
   Validate assessments but don't submit them
@@ -9745,36 +9852,6 @@ type UpdateClientImagePayload {
 }
 
 """
-Autogenerated input type of UpdateCustomEnrollmentValue
-"""
-input UpdateCustomEnrollmentValueInput {
-  """
-  A unique identifier for the client performing the mutation.
-  """
-  clientMutationId: String
-  customDataElementDefinitionId: ID!
-  enrollmentId: ID!
-  valueBoolean: Boolean
-  valueDate: ISO8601Date
-  valueFloat: Float
-  valueInteger: Int
-  valueString: String
-  valueText: String
-}
-
-"""
-Autogenerated return type of UpdateCustomEnrollmentValue.
-"""
-type UpdateCustomEnrollmentValuePayload {
-  """
-  A unique identifier for the client performing the mutation.
-  """
-  clientMutationId: String
-  enrollment: Enrollment!
-  errors: [ValidationError!]!
-}
-
-"""
 Autogenerated return type of UpdateReferralPosting.
 """
 type UpdateReferralPostingPayload {
@@ -9796,6 +9873,7 @@ input UpdateRelationshipToHoHInput {
   """
   confirmed: Boolean
   enrollmentId: ID!
+  enrollmentLockVersion: Int
   relationshipToHoH: RelationshipToHoH!
 }
 
@@ -9840,9 +9918,9 @@ type UpdateUnitsPayload {
 HUD User
 """
 type User {
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   id: ID!
   name: String!
 }
@@ -10647,6 +10725,11 @@ enum VamcStationNumber {
   NUM_757_COLUMBUS_OH
 }
 
+input VersionedRecordInput {
+  id: ID!
+  lockVersion: Int
+}
+
 """
 W4.3
 """
@@ -10773,12 +10856,12 @@ type YouthEducationStatus {
   currentEdStatus: CurrentEdStatus
   currentSchoolAttend: CurrentSchoolAttended
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
-  informationDate: ISO8601Date!
+  informationDate: ISO8601Date
   mostRecentEdStatus: MostRecentEdStatus
   user: User
 }

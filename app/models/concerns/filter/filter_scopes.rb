@@ -9,7 +9,7 @@ module Filter::FilterScopes
   included do
     private def filter_for_user_access(scope)
       scope.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
     end
 
     private def filter_for_range(scope)
@@ -32,12 +32,12 @@ module Filter::FilterScopes
     end
 
     private def filter_for_enrollment_cocs(scope)
-      scope.left_outer_joins(enrollment: :enrollment_coc_at_entry).
+      scope.left_outer_joins(:enrollment).
         # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
         merge(
-          GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @filter.coc_codes).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),
+          GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @filter.coc_codes).
+          or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
+          or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudUtility2024.cocs.keys)),
         )
     end
 
@@ -106,10 +106,10 @@ module Filter::FilterScopes
       scope = scope.joins(:client)
       gender_scope = nil
       @filter.genders.each do |value|
-        column = HudUtility.gender_id_to_field_name[value]
+        column = HudUtility2024.gender_id_to_field_name[value]
         next unless column
 
-        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HudUtility.gender_comparison_value(value)))
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HudUtility2024.gender_comparison_value(value)))
         gender_scope = add_alternative(gender_scope, gender_query)
       end
       scope.merge(gender_scope)
@@ -139,6 +139,8 @@ module Filter::FilterScopes
         c_t[:BlackAfAmerican],
         c_t[:NativeHIPacific],
         c_t[:White],
+        c_t[:HispanicLatinaeo],
+        c_t[:MidEastNAfrican],
       ]
       report_scope_source.joins(:client).
         where(Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98))
@@ -156,12 +158,6 @@ module Filter::FilterScopes
       report_scope_source.joins(:client).where(c_t[key].eq(1))
     end
 
-    private def filter_for_ethnicity(scope)
-      return scope unless @filter.ethnicities.present?
-
-      scope.joins(:client).where(c_t[:Ethnicity].in(@filter.ethnicities))
-    end
-
     private def filter_for_veteran_status(scope)
       return scope unless @filter.veteran_statuses.present?
 
@@ -173,7 +169,7 @@ module Filter::FilterScopes
 
       # Make this backwards compatible with a pre-set set of project_types.
       p_types = @project_types.presence || @filter.project_type_ids
-      p_types += GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca] if @filter.coordinated_assessment_living_situation_homeless || @filter.ce_cls_as_homeless
+      p_types += HudUtility2024.performance_reporting[:ce] if @filter.coordinated_assessment_living_situation_homeless || @filter.ce_cls_as_homeless
 
       return scope if p_types.empty?
 
@@ -195,13 +191,13 @@ module Filter::FilterScopes
 
       return scope if project_ids.blank?
 
-      scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+      scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
     end
 
     private def filter_for_projects_hud(scope)
       return scope.none if @filter.project_ids.blank?
 
-      scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+      scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports))
     end
 
     private def filter_for_cohorts(scope)
@@ -214,7 +210,7 @@ module Filter::FilterScopes
       return scope if @filter.funder_ids.blank?
       return scope unless @filter.user.report_filter_visible?(:funder_ids)
 
-      project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user).
+      project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user, permission: :can_view_assigned_reports).
         where(Funder: @filter.funder_ids).
         joins(:project).
         select(p_t[:id])
@@ -244,7 +240,7 @@ module Filter::FilterScopes
     private def filter_for_prior_living_situation(scope)
       return scope if @filter.prior_living_situation_ids.blank?
 
-      scope.where(housing_status_at_entry: @filter.prior_living_situation_ids)
+      scope.joins(:enrollment).merge(GrdaWarehouse::Hud::Enrollment.where(LivingSituation: @filter.prior_living_situation_ids))
     end
 
     private def filter_for_destination(scope)
@@ -285,7 +281,7 @@ module Filter::FilterScopes
         merge(
           GrdaWarehouse::Hud::HealthAndDv.where(
             InformationDate: @filter.range,
-            DomesticViolenceVictim: @filter.dv_status,
+            DomesticViolenceSurvivor: @filter.dv_status,
           ),
         )
     end
@@ -366,7 +362,7 @@ module Filter::FilterScopes
         partition_by(:client_id, order_by: { last_date_in_program: :desc }).
         select_window(:row_number, over: :client_window, as: :row_id)
       client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.from(exits).
-        where("row_id = 1 and destination in (#{HudUtility.permanent_destinations.join(', ')})")
+        where("row_id = 1 and destination in (#{HudUtility2024.permanent_destinations.join(', ')})")
 
       scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
     end
@@ -379,8 +375,8 @@ module Filter::FilterScopes
 
       p_types = @project_types.presence || @filter.project_type_ids
       scope.joins(:enrollment).where(
-        she_t[:computed_project_type].in(GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]).
-        and(e_t[:LivingSituation].in(HudUtility.homeless_situations(as: :prior))).
+        she_t[:computed_project_type].in(HudUtility2024.performance_reporting[:ce]).
+        and(e_t[:LivingSituation].in(HudUtility2024.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(p_types)),
       )
     end
@@ -388,7 +384,7 @@ module Filter::FilterScopes
     private def filter_for_ce_cls_homeless(scope)
       return scope unless @filter.ce_cls_as_homeless
 
-      client_ids_with_two_homeless_cls = scope.ca.joins(enrollment: :current_living_situations).
+      client_ids_with_two_homeless_cls = scope.ce.joins(enrollment: :current_living_situations).
         merge(GrdaWarehouse::Hud::CurrentLivingSituation.homeless.between(start_date: @filter.start_date, end_date: @filter.end_date)).group(she_t[:client_id]).
         having(nf('COUNT', [she_t[:client_id]]).gt(1)).
         select(:client_id)

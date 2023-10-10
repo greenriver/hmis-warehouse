@@ -29,7 +29,7 @@ module SystemPathways::WarehouseReports
 
     def show
       params.permit!
-      @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @filter, show_filter: show_filter)
+      @pathways_chart = SystemPathways::PathwaysChart.new(report: @report, filter: @report.filter, show_filter: show_filter)
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -104,14 +104,17 @@ module SystemPathways::WarehouseReports
         @details_title = @node
       elsif @target.in?(@chart.destination_lookup.keys)
         # Looking at Project Type -> Destination transition
-        source_project_number = HudUtility.project_type_number(@source)
+        source_project_number = HudUtility2024.project_type_number(@source)
+        source_project_number = 1 if source_project_number&.zero? || @source == 'ES'
         target_group = @chart.destination_lookup[@target]
         @clients = @chart.transition_clients(source_project_number, target_group).distinct
         @source_title = @source
         @details_title = "#{@source} → #{@target}"
       else
-        target_project_number = HudUtility.project_type_number(@target)
-        source_project_number = HudUtility.project_type_number(@source)
+        target_project_number = HudUtility2024.project_type_number(@target)
+        target_project_number = 1 if target_project_number&.zero?
+        source_project_number = HudUtility2024.project_type_number(@source)
+        source_project_number = 1 if source_project_number&.zero?
         @clients = @chart.transition_clients(source_project_number, target_project_number).distinct
         @source_title = if @source.present?
           @source

@@ -30,7 +30,7 @@ module  HudPit::Generators::Pit::Fy2023
     end
 
     def self.default_project_type_codes
-      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
+      HudUtility2024.homeless_project_type_codes
     end
 
     def url

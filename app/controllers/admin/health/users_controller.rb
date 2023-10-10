@@ -23,16 +23,15 @@ module Admin::Health
       error = false
       users_params.each do |_, user_info|
         ::User.transaction do
-          id = user_info[:id].to_i
-          user = ::User.find(id)
+          user = ::User.find(user_info[:id].to_i)
           roles = user_info[:roles]
           available_role_ids = Role.health.pluck(:id)
           enabled_role_ids = []
           enabled_role_ids = roles.keys.map(&:to_i) & available_role_ids if roles.present?
           disabled_role_ids = available_role_ids - enabled_role_ids
-          current_roles = user.roles
+          current_roles = user.health_roles
           new_roles = current_roles + Role.where(id: enabled_role_ids) - Role.where(id: disabled_role_ids)
-          user.roles = new_roles
+          user.health_roles = new_roles
         end
       rescue ActiveRecord::ActiveRecordError
         flash[:error] = 'Unable to update roles'

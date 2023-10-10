@@ -47,7 +47,7 @@ module GrdaWarehouse
       end
 
       def self.all_we_need?
-        count >= 30_000
+        count >= 33_000
       end
 
       def self.calculate_states

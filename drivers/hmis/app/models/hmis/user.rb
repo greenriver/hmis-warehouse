@@ -9,7 +9,7 @@
 # u = Hmis::User.first; u.hmis_data_source_id = 3
 # g = Hmis::AccessGroup.create(name: 'test')
 # ac = u.access_controls.create(role: r, access_group: g)
-# u.user_access_controls.create(user: u, access_control: ac)
+# u.user_group_members.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
 class Hmis::User < ApplicationRecord
@@ -17,8 +17,9 @@ class Hmis::User < ApplicationRecord
   include HasRecentItems
   self.table_name = :users
 
-  has_many :user_access_controls, class_name: '::Hmis::UserAccessControl', dependent: :destroy, inverse_of: :user
-  has_many :access_controls, through: :user_access_controls
+  has_many :user_group_members, dependent: :destroy, inverse_of: :user
+  has_many :user_groups, through: :user_group_members
+  has_many :access_controls, through: :user_groups
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
 
@@ -114,17 +115,26 @@ class Hmis::User < ApplicationRecord
     check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
   end
 
-  def entities_with_permissions(model, *permissions, **kwargs)
-    model.where(
-      id: Hmis::GroupViewableEntity.where(
-        access_group_id: access_groups.with_permissions(*permissions, **kwargs).pluck(:id),
-        entity_type: model.sti_name,
-      ).select(:entity_id),
-    )
+  def entities_with_permissions(model, *permissions, mode: :any)
+    # Get all the roles that have this permission
+    roles_with_permission = Hmis::Role.with_permissions(*permissions, mode: mode).pluck(:id)
+
+    # Find the Access Controls that this user is assigned to that have any of the approved Roles,
+    # and pluck the Access Group (aka Collection). The user has access <permission>-level access for
+    # any entity in these access groups.
+    access_group_ids = access_controls.where(role_id: roles_with_permission).pluck(:access_group_id)
+
+    entity_ids = Hmis::GroupViewableEntity.where(
+      access_group_id: access_group_ids,
+      entity_type: model.sti_name,
+    ).select(:entity_id)
+
+    model.where(id: entity_ids)
   end
 
   private def viewable(model)
-    entities_with_permissions(model, *Hmis::Role.permissions_for_access(:viewable), mode: 'any')
+    # An entity is only considered "viewable" if the user has can_view_project permission for it.
+    entities_with_permissions(model, :can_view_project)
   end
 
   def viewable_data_sources

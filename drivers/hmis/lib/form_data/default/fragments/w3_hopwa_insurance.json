@@ -1,15 +1,21 @@
 {
   "type": "GROUP",
-  "link_id": "hopwa-insurance",
-  "text": "HOPWA Insurance Questions",
-  "data_collected_about": "ALL_CLIENTS_WITH_HIV_AIDS",
+  "link_id": "medical-assistance",
+  "text": "Medical Assistance",
+  "data_collected_about": "ALL_CLIENTS",
   "prefill": true,
+  "rule": {
+    "_comment": "HUD: HOPWA – Collection required for all components",
+    "variable": "projectFunderComponents",
+    "operator": "INCLUDE",
+    "value": "HUD: HOPWA"
+  },
   "item": [
     {
       "type": "CHOICE",
       "link_id": "W3.3",
       "required": false,
-      "text": "Receiving AIDS Drug Assistance Program",
+      "text": "Receiving AIDS Drug Assistance Program (ADAP)",
       "pick_list_reference": "NoYesReasonsForMissingData",
       "mapping": {
         "record_type": "INCOME_BENEFIT",

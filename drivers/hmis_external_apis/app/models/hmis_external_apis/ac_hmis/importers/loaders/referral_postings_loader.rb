@@ -13,10 +13,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         # warning- this destroys all referrals regardless of data source
         referral_class.destroy_all
         # is it okay to just destroy all in-progress enrollments?
-        Hmis::Hud::Enrollment
-          .where(data_source: data_source)
-          .in_progress
-          .find_each(&:really_destroy!)
+        Hmis::Hud::Enrollment.
+          where(data_source: data_source).
+          in_progress.
+          find_each(&:really_destroy!)
       end
 
       import_enrollment_records
@@ -24,6 +24,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       import_referral_posting_records
       delete_orphan_referral_posting_records
       import_referral_household_members_records
+      fixup_hoh_on_referrals
       assign_unit_occupancies
     end
 
@@ -98,6 +99,27 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       orphans.find_each(&:destroy!)
     end
 
+    def fixup_hoh_on_referrals
+      hoh_client_pks_by_household_id = Hmis::Hud::Enrollment.order(:id).
+        hmis.heads_of_households.
+        joins(:client).
+        pluck(Arel.sql('"Enrollment"."HouseholdID", "Client".id')).
+        to_h
+
+      HmisExternalApis::AcHmis::Referral.preload(:postings, :household_members).find_each do |referral|
+        hoh_members = referral.household_members.filter(&:self_head_of_household?)
+        # we could check if the enrollment HoH matches. Could also check if there are multiple HoHs
+        next unless hoh_members.empty?
+
+        log_info "Referral #{referral.identifier} has no HoHs, assigning new HoH"
+        posting = referral.postings.first!
+        enrollment_hoh_client_id = hoh_client_pks_by_household_id[posting.household_id]
+        found_hoh = referral.household_members.detect { |hm| hm.client_id == enrollment_hoh_client_id }
+        found_hoh ||= referral.household_members.min_by(&:id)
+        found_hoh.update!(relationship_to_hoh: 'self_head_of_household')
+      end
+    end
+
     def import_referral_household_members_records
       ar_import(
         HmisExternalApis::AcHmis::ReferralHouseholdMember,
@@ -110,20 +132,23 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # Builders
     #
 
-    # create wip enrollments for accepted pending postings
+    # create wip enrollments for accepted pending postings, AND assigned postings in walk-ins
     def build_enrollment_rows
+      assigned_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('assigned_status')
       accepted_pending_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
-      enrollment_coc_by_project_id = Hmis::Hud::ProjectCoc
-        .where(data_source: data_source)
-        .pluck(:project_id, :coc_code)
-        .to_h
+      enrollment_coc_by_project_id = Hmis::Hud::ProjectCoc.
+        where(data_source: data_source).
+        pluck(:project_id, :coc_code).
+        to_h
 
       expected = 0
       seen = Set.new
       records = posting_rows.flat_map do |posting_row|
-        next unless posting_status(posting_row) == accepted_pending_status
-
         project_id = row_value(posting_row, field: 'PROGRAM_ID')
+        walkin_program = walkin_project_ids.include?(project_id)
+        status = posting_status(posting_row)
+        next unless status == accepted_pending_status || (walkin_program && status == assigned_status)
+
         referral_id = row_value(posting_row, field: 'REFERRAL_ID')
         unit_type_mper_id = row_value(posting_row, field: 'UNIT_TYPE_ID')
         project_pk = project_pk_by_id(project_id)
@@ -146,7 +171,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
             personal_id: personal_id,
             entry_date: entry_date,
             household_id: household_id,
-            relationship_to_hoh: relationship_to_hoh(member_row),
+            relationship_to_hoh: row_value(member_row, field: 'RELATIONSHIP_TO_HOH_ID'),
             enrollment_coc: enrollment_coc_by_project_id[project_id],
           }
           enrollment.build_wip(
@@ -202,10 +227,10 @@ module HmisExternalApis::AcHmis::Importers::Loaders
     # assign inferred unit occupancy
     def assign_unit_occupancies
       accepted_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_status')
-      enrollment_pk_by_id = Hmis::Hud::Enrollment
-        .where(data_source: data_source)
-        .pluck(:enrollment_id, :id)
-        .to_h
+      enrollment_pk_by_id = Hmis::Hud::Enrollment.
+        where(data_source: data_source).
+        pluck(:enrollment_id, :id).
+        to_h
 
       expected = 0
       actual = 0
@@ -264,7 +289,7 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         end
         HmisExternalApis::AcHmis::ReferralHouseholdMember.new(
           referral_id: referral_id,
-          relationship_to_hoh: relationship_to_hoh(row),
+          relationship_to_hoh: relationship_to_hoh_string_enum(row),
           mci_id: mci_id,
           client_id: client_pk,
         )
@@ -273,20 +298,41 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       records
     end
 
+    def household_id_from_member_rows(referral_id, project_id)
+      # find household id for this posting:
+      # 1) find the head-of-household's MCI for this referral
+      hoh_member_row = household_member_rows_by_referral(referral_id).detect do |mr|
+        row_value(mr, field: 'RELATIONSHIP_TO_HOH_ID') == '1'
+      end
+
+      if hoh_member_row
+        referral_household_id(row_value(hoh_member_row, field: 'MCI_ID'), project_id)
+      else
+        # No HOH found, fallback to first member where can find a household id
+        household_ids = household_member_rows_by_referral(referral_id).map do |mr|
+          referral_household_id(row_value(mr, field: 'MCI_ID'), project_id)
+        end
+        household_ids.compact.first
+      end
+    end
+
     def build_posting_records
       accepted_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_status')
       accepted_pending_status = HmisExternalApis::AcHmis::ReferralPosting.statuses.fetch('accepted_pending_status')
 
       referral_pks_by_id = referral_class.pluck(:identifier, :id).to_h
-      projects_pks_by_id = Hmis::Hud::Project
-        .where(data_source: data_source)
-        .pluck(:project_id, :id)
-        .to_h
-
-      unit_types_by_mper = Hmis::UnitType
-        .joins(:mper_id)
-        .pluck('external_ids.value', :id)
-        .to_h
+      projects_pks_by_id = Hmis::Hud::Project.
+        where(data_source: data_source).
+        pluck(:project_id, :id).
+        to_h
+      household_id_by_enrollment_id = Hmis::Hud::Enrollment.
+        where(data_source: data_source).
+        pluck(:enrollment_id, :household_id).
+        to_h
+      unit_types_by_mper = Hmis::UnitType.
+        joins(:mper_id).
+        pluck('external_ids.value', :id).
+        to_h
 
       seen = Set.new
       expected = 0
@@ -294,26 +340,30 @@ module HmisExternalApis::AcHmis::Importers::Loaders
         project_id = row_value(row, field: 'PROGRAM_ID')
         referral_id = row_value(row, field: 'REFERRAL_ID')
 
-        # find household id for this posting:
-        # 1) find the head-of-household's MCI for this referral
-        hoh_member_row = household_member_rows_by_referral(referral_id).detect do |mr|
-          row_value(mr, field: 'RELATIONSHIP_TO_HOH_ID') == '1'
-        end
-        if hoh_member_row.nil?
-          log_info "#{row.context} Skipping Referral #{referral_id} - no HoH"
-          next
-        end
-        hoh_mci_id = row_value(hoh_member_row, field: 'MCI_ID')
-        # 2) find the household_id for the project enrollment with that MCI
-        household_id = referral_household_id(hoh_mci_id, project_id)
-        # Household must be present for Accepted and Accepted Pending postings
+        # There is one row per household member in the referral, but we only need to process one of them.
+        next if seen.include?(referral_id)
+
         status = posting_status(row)
+        # 2) Find the household_id for the enrollment linked to this ReferralPosting row, if any.
+        household_id = nil
+        if status == accepted_status
+          # For Accepted referrals, the Enrollment ID should be present on the row.
+          enrollment_id = row_value(row, field: 'ENROLLMENTID', required: false)
+          unless enrollment_id.present?
+            log_info("#{row.context} ENROLLMENTID missing from Accepted referral")
+            next
+          end
+          household_id = household_id_by_enrollment_id[enrollment_id]
+        elsif status == accepted_pending_status
+          # find the household_id for the project enrollment with that MCI
+          household_id = household_id_from_member_rows(referral_id, project_id)
+        end
+
+        # Household MUST be present on Accepted and Accepted Pending postings
         if household_id.nil? && [accepted_status, accepted_pending_status].include?(status)
           log_info "#{row.context} No enrollments match Referral #{referral_id} with status #{status}. Skipping"
           next
         end
-
-        next if seen.include?(referral_id)
 
         expected += 1
 
@@ -321,6 +371,8 @@ module HmisExternalApis::AcHmis::Importers::Loaders
           log_info "#{row.context} Skipping posting for referral #{referral_id} because the referral didn't get created."
           next
         end
+
+        # Only add to "seen" once we successfully processed the row
         seen.add(referral_id)
 
         HmisExternalApis::AcHmis::ReferralPosting.new(
@@ -357,11 +409,11 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def household_id_by_personal_id_project_id
       # {[personal_id, project_id] => [enrollment_pk, household_id]}
-      @household_id_by_personal_id_project_id ||= Hmis::Hud::Enrollment
-        .where(data_source: data_source)
-        .open_including_wip
-        .preload(wip: :project)
-        .map do |e|
+      @household_id_by_personal_id_project_id ||= Hmis::Hud::Enrollment.
+        where(data_source: data_source).
+        open_including_wip.
+        preload(wip: :project).
+        map do |e|
           # avoid n+1 problems when calling enrollment.project
           project_id = e.project_id || e.wip&.project&.project_id
           next unless project_id
@@ -385,17 +437,24 @@ module HmisExternalApis::AcHmis::Importers::Loaders
 
     def client_ids_by_mci_id
       # {mci_id => [client_pk, personal_id]}
-      @client_ids_by_mci_id ||= Hmis::Hud::Client
-        .joins(:ac_hmis_mci_ids)
-        .where(data_source: data_source)
-        .pluck('external_ids.value', c_t[:id], c_t[:personal_id])
-        .to_h { |mci_id, client_pk, personal_id| [mci_id, [client_pk, personal_id]] }
+      @client_ids_by_mci_id ||= Hmis::Hud::Client.
+        joins(:ac_hmis_mci_ids).
+        where(data_source: data_source).
+        pluck('external_ids.value', c_t[:id], c_t[:personal_id]).
+        to_h { |mci_id, client_pk, personal_id| [mci_id, [client_pk, personal_id]] }
     end
 
-    def relationship_to_hoh(row)
-      @posting_status_map ||= HmisExternalApis::AcHmis::ReferralHouseholdMember
-        .relationship_to_hohs
-        .invert.stringify_keys
+    def walkin_project_ids
+      @walkin_project_ids ||= begin
+        walkin_project_pks = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry).values.where(value_boolean: true).pluck(:owner_id)
+        Hmis::Hud::Project.where(id: walkin_project_pks).pluck(:project_id).to_set
+      end
+    end
+
+    def relationship_to_hoh_string_enum(row)
+      @posting_status_map ||= HmisExternalApis::AcHmis::ReferralHouseholdMember.
+        relationship_to_hohs.
+        invert.stringify_keys
       @posting_status_map.fetch(row_value(row, field: 'RELATIONSHIP_TO_HOH_ID'))
     end
 

@@ -23,7 +23,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   let!(:ds_access_control) do
-    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_enrollment_details])
+    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_project, :can_view_enrollment_details])
   end
 
   before(:each) do
@@ -127,14 +127,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'minimizes n+1 queries' do
       expect do
         _, result = post_graphql(**variables) { query }
-        expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size)
+        expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size), result.inspect
       end.to make_database_queries(count: 10..30)
     end
 
     it 'is responsive' do
       expect do
         _, result = post_graphql(**variables) { query }
-        expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size)
+        expect(result.dig('data', 'project', 'households', 'nodes').size).to eq(enrollments.size), result.inspect
       end.to perform_under(300).ms
     end
 
@@ -152,7 +152,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'should only return a household once if there are both WIP and completed members' do
         _, result = post_graphql({ id: p2.id.to_s, filters: { status: ['ACTIVE', 'INCOMPLETE'] } }) { query }
         expect(Hmis::Hud::Household.where(household_id: '1').count).to eq(1)
-        expect(result.dig('data', 'project', 'households', 'nodes').count).to eq(1)
+        expect(result.dig('data', 'project', 'households', 'nodes').count).to eq(1), result.inspect
       end
     end
   end
