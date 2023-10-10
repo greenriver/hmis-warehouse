@@ -13,6 +13,9 @@ module HmisDataCleanup
     include ArelHelper
 
     # Assign Household ID where missing
+    #
+    # Note: If this gets to be a large number, an upsert is probably worth doing.
+    # We could `scope.find_in_batches` and then enrollment.assign_attributes and finally "import" the batch with a conflict key of id.
     def self.assign_missing_household_ids!
       scope = Hmis::Hud::Enrollment.hmis.where(household_id: nil)
       Rails.logger.info "Assigning household id to #{scope.size} enrollments"
@@ -102,8 +105,10 @@ module HmisDataCleanup
       end
     end
 
-    # Change ProjectID of a project. Used in staging. Probably should never be run in Prod.
-    def self.change_project_id!(old_id, new_id)
+    # Change ProjectID of a project. Useful in staging environment if need a project ID to match prod.
+    def self.change_project_id!(old_id, new_id, force: false)
+      return if Rails.env.production? && !force
+
       project = ::Hmis::Hud::Project.hmis.find_by(project_id: old_id)
       return unless project
 
