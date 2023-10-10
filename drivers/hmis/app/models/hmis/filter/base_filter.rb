@@ -10,15 +10,16 @@ class Hmis::Filter::BaseFilter
     self.input = input
   end
 
-  def filter_scope(scope)
-    scope
-  end
+  # implement in subclass
+  # def filter_scope(scope)
+  #   scope = ensure_scope(scope)
+  #   scope...
+  # end
 
   protected
 
   # Utility to clean up joins or other things that could cause trouble downstream
   def clean_scope(scope)
-    # FIXME
     scope.all.klass.where(id: scope.pluck(:id))
   end
 
@@ -28,5 +29,10 @@ class Hmis::Filter::BaseFilter
     return scope unless input.respond_to?(filter) && input.send(filter)&.present?
 
     yield
+  end
+
+  # IMPORTANT: ensures scope is always a relation. Prevents accidental scope loss if passed a class instead of scope
+  def ensure_scope(scope)
+    scope.current_scope || scope.all
   end
 end

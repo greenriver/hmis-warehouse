@@ -212,7 +212,7 @@ module Types
     end
 
     def household_size
-      load_ar_association(household, :enrollments).size
+      load_ar_association(household, :enrollments).map(&:personal_id).uniq.size
     end
 
     def in_progress
@@ -266,9 +266,8 @@ module Types
     # ALERT: n+1, dont use when resolving multiple enrollments
     def num_units_assigned_to_household
       object.household_members.
-        joins(:current_unit).
-        pluck(Hmis::Unit.arel_table[:id]).
-        uniq.size
+        map { |hhm| hhm.current_unit&.id }.
+        compact.uniq.size
     end
   end
 end
