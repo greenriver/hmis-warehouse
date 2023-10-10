@@ -29,6 +29,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, user: u1, end_date: nil }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500', user: u1 }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
+  let!(:hmis_particip1) { create :hmis_hud_hmis_participation, data_source: ds1, project: p1 }
+  let!(:ce_particip1) { create :hmis_hud_ce_participation, data_source: ds1, project: p1 }
+
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:a1) { create :hmis_hud_assessment, data_source: ds1, client: c2, enrollment: e1, user: u1 }
@@ -93,6 +96,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on Event {
               id
             }
+            ... on HmisParticipation {
+              id
+            }
+            ... on CeParticipation {
+              id
+            }
           }
           #{error_fields}
         }
@@ -106,6 +115,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :FUNDER,
       :PROJECT_COC,
       :INVENTORY,
+      :HMIS_PARTICIPATION,
+      :CE_PARTICIPATION,
       :ORGANIZATION,
       :CLIENT,
       :SERVICE,
@@ -162,6 +173,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               f1.id
             when :INVENTORY
               i1.id
+            when :HMIS_PARTICIPATION
+              hmis_particip1.id
+            when :CE_PARTICIPATION
+              ce_particip1.id
             when :SERVICE
               hmis_hud_service1.id
             when :FILE
