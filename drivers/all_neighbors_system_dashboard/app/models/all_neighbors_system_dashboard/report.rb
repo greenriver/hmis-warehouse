@@ -159,29 +159,16 @@ module AllNeighborsSystemDashboard
       end
     end
 
-    # def calculate_results
-    #   save_project_ratios
-    #   save_system_ratios
-    # end
-
+    # TODO: move this to the filtering of the data when filtering by DRTRR
     # NOTE: this report has two implementation phases
     # pre 5/1/2023 it was the DRTRR which is represented by filter.effective_project_ids_from_secondary_project_groups (we'll call this the pilot period)
     # 5/1/2023 onward is represented by filter.effective_project_ids (we'll call this the implementation period)
     def enrollment_scope
-      pilot_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+      GrdaWarehouse::ServiceHistoryEnrollment.
+        joins(:enrollment, :client).
         entry.
-        open_between(start_date: pilot_date_range.first, end_date: pilot_date_range.last).
-        in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids_from_secondary_project_groups))
-
-      implementation_scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
-        open_between(start_date: implementation_date_range.first, end_date: implementation_date_range.last).
+        open_between(start_date: filter.start_date, end_date: filter.end_date).
         in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
-
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        joins(:enrollment, :client)
-
-      scope.where(id: pilot_scope.select(:id)).or(scope.where(id: implementation_scope.select(:id)))
     end
 
     def pilot_date_range
