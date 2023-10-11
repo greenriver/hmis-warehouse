@@ -121,17 +121,10 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    it 'Q10b' do
+    it 'Q10d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        question: 'Q10b',
-      )
-    end
-
-    it 'Q10c' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q10c',
+        question: 'Q10d',
       )
     end
 
@@ -285,13 +278,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    it 'Q22a2' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q22a2',
-      )
-    end
-
     it 'Q22b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -303,13 +289,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22c',
-      )
-    end
-
-    it 'Q22d' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q22d',
       )
     end
 
@@ -352,13 +331,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q23e',
-      )
-    end
-
-    it 'Q24a' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q24a',
       )
     end
 
@@ -457,13 +429,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26e',
-      )
-    end
-
-    it 'Q26f' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q26f',
       )
     end
 
