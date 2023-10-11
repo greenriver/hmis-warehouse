@@ -77,13 +77,13 @@ jobs:
     env:
       CLIENT: test
       DATABASE_ADAPTER: postgresql
-      DATABASE_APP_DB_TEST: boston_hmis_test
-      DATABASE_DB_TEST: boston_cas_test
-      DATABASE_APP_DB: boston_db
+      DATABASE_APP_DB_TEST: warehouse_app_test
+      DATABASE_DB_TEST: warehouse_test
+      DATABASE_APP_DB: warehouse_app_test
       DATABASE_HOST: postgres
       DATABASE_PASS: postgres
       DATABASE_USER: postgres
-      DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
+      DATABASE_WAREHOUSE_DB_TEST: warehouse_test
       DEFAULT_FROM: greenriver.testing@mailinator.com
       ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
       FQDN: openpath.host
@@ -99,7 +99,7 @@ jobs:
       PORT: 80
       RAILS_ENV: test
       REPORTING_DATABASE_ADAPTER: postgresql
-      REPORTING_DATABASE_DB_TEST: test_boston_reporting
+      REPORTING_DATABASE_DB_TEST: reporting_test
       REPORTING_DATABASE_HOST: postgres
       REPORTING_DATABASE_PASS: postgres
       REPORTING_DATABASE_USER: postgres
@@ -108,9 +108,9 @@ jobs:
       WAREHOUSE_DATABASE_HOST: postgres
       WAREHOUSE_DATABASE_PASS: postgres
       WAREHOUSE_DATABASE_USER: postgres
-      WAREHOUSE_DATABASE_DB: warehouse_db
-      HEALTH_DATABASE_DB: health_db
-      REPORTING_DATABASE_DB: reporting_db
+      WAREHOUSE_DATABASE_DB: warehouse_test
+      HEALTH_DATABASE_DB: health_test
+      REPORTING_DATABASE_DB: reporting_test
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
