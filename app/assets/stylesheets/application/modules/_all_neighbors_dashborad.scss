@@ -11,15 +11,15 @@
 
   .bb-xgrid,
   .bb-ygrid {
-    stroke-dasharray:none;
+    stroke-dasharray: none;
   }
 }
-
 
 h2.all-neighbors__all__tab_name {
   font-family: "Open Sans";
   font-weight: normal;
 }
+
 .all-neighbors__all__filter_labels h3 {
   font-family: "Open Sans";
   font-weight: normal;
@@ -137,8 +137,7 @@ h2.all-neighbors__all__tab_name {
 }
 
 #all-neighbors__time_to_obtain_housing__stacked__chart .bb-xgrid,
-#all-neighbors__time_to_obtain_housing__stacked__chart .bb-axis-x line
- {
+#all-neighbors__time_to_obtain_housing__stacked__chart .bb-axis-x line {
   stroke: rgba(0, 0, 0, 0.04);
 }
 

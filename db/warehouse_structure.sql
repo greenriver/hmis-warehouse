@@ -22173,6 +22173,45 @@ ALTER SEQUENCE public.public_report_settings_id_seq OWNED BY public.public_repor
 
 
 --
+-- Name: published_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.published_reports (
+    id bigint NOT NULL,
+    report_type character varying NOT NULL,
+    report_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    state character varying,
+    published_url character varying,
+    path character varying,
+    embed_code text,
+    html text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: published_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.published_reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: published_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.published_reports_id_seq OWNED BY public.published_reports.id;
+
+
+--
 -- Name: recent_items; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -24103,7 +24142,8 @@ CREATE TABLE public.simple_report_instances (
     started_at timestamp without time zone,
     completed_at timestamp without time zone,
     failed_at timestamp without time zone,
-    goal_configuration_id bigint
+    goal_configuration_id bigint,
+    path character varying
 );
 
 
@@ -28320,6 +28360,13 @@ ALTER TABLE ONLY public.public_report_settings ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: published_reports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.published_reports ALTER COLUMN id SET DEFAULT nextval('public.published_reports_id_seq'::regclass);
+
+
+--
 -- Name: recent_items id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32163,6 +32210,14 @@ ALTER TABLE ONLY public.public_report_reports
 
 ALTER TABLE ONLY public.public_report_settings
     ADD CONSTRAINT public_report_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: published_reports published_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.published_reports
+    ADD CONSTRAINT published_reports_pkey PRIMARY KEY (id);
 
 
 --
@@ -53131,6 +53186,20 @@ CREATE INDEX index_public_report_reports_on_user_id ON public.public_report_repo
 
 
 --
+-- Name: index_published_reports_on_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_published_reports_on_report ON public.published_reports USING btree (report_type, report_id);
+
+
+--
+-- Name: index_published_reports_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_published_reports_on_user_id ON public.published_reports USING btree (user_id);
+
+
+--
 -- Name: index_recent_items_on_item; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59543,6 +59612,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231003220010'),
 ('20231004162425'),
 ('20231004172833'),
-('20231004203202');
+('20231004203202'),
+('20231009121430');
 
 

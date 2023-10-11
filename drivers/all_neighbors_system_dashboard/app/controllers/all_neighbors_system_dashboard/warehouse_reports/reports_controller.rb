@@ -10,6 +10,7 @@ module AllNeighborsSystemDashboard::WarehouseReports
     include BaseFilters
 
     before_action :set_report, except: [:index, :create]
+    before_action :require_can_publish_reports!, only: [:raw, :update]
 
     def index
       @pagy, @reports = pagy(report_scope.ordered)
@@ -48,12 +49,12 @@ module AllNeighborsSystemDashboard::WarehouseReports
     def show
       respond_to do |format|
         format.html {}
-        format.xlsx do
-          file = @report.result_file
-          @report.attach_rendered_xlsx if file.download.nil? # Generate the XLSX if it is missing
-          filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
-          send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
-        end
+        # format.xlsx do
+        #   file = @report.result_file
+        #   @report.attach_rendered_xlsx if file.download.nil? # Generate the XLSX if it is missing
+        #   filename = "#{@report.title&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+        #   send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
+        # end
       end
     end
 
@@ -62,12 +63,39 @@ module AllNeighborsSystemDashboard::WarehouseReports
       respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_reports_path)
     end
 
+    def update
+      path = publish_params[:path]
+      if publish_params&.key?(:path)
+        @report.update(path: path)
+        respond_with(@report, location: path_to_report)
+      elsif publish_params[:unpublish] == @report.generate_publish_url
+        @report.unpublish!
+        flash[:notice] = 'Report has been unpublished.'
+        respond_with(@report, location: path_to_report)
+      elsif publish_params[:published_url].present?
+        @report.delay.publish!(current_user.id)
+        flash[:notice] = 'Report publishing queued, please check the public link in a few minutes.'
+        respond_with(@report, location: path_to_report)
+      else
+        redirect_to(action: :edit)
+      end
+    end
+
+    def raw
+      render(layout: 'external')
+    end
+
     def filter_params
       filters = params.permit(filters: @filter.known_params)
 
       filters
     end
     helper_method :filter_params
+
+    def publish_params
+      params.require(:public_report).
+        permit(:path, :published_url, :unpublish)
+    end
 
     def css_namespace(tab_id, name)
       "all-neighbors__#{tab_id}__#{name}"
@@ -120,5 +148,10 @@ module AllNeighborsSystemDashboard::WarehouseReports
     private def filter_class
       ::Filters::HudFilterBase
     end
+
+    def path_to_report
+      all_neighbors_system_dashboard_warehouse_reports_report_path(@report)
+    end
+    helper_method :path_to_report
   end
 end

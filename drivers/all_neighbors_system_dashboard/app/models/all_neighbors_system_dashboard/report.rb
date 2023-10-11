@@ -16,7 +16,10 @@ module AllNeighborsSystemDashboard
     include ViewConfiguration
     include EnrollmentAttributeCalculations
 
+    include ::WarehouseReports::Publish
+
     has_one_attached :result_file
+    has_many :published_reports, dependent: :destroy, class_name: '::GrdaWarehouse::PublishedReport'
 
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
@@ -189,6 +192,89 @@ module AllNeighborsSystemDashboard
         preload(enrollment: :project).
         within_range(filter.range).
         where(Event: SERVICE_CODE_IDS)
+    end
+
+    # Publishing
+    def publish_files
+      [
+        {
+          name: 'index.html',
+          content: -> { as_html },
+          type: 'text/html',
+        },
+        {
+          name: 'application.css',
+          content: -> {
+            css = Rails.application.assets['application.css'].to_s
+            # need to replace the paths to the font files
+            [
+              'icons.ttf',
+              'icons.svg',
+              'icons.eot',
+              'icons.woff',
+              'icons.woff2',
+            ].each do |filename|
+              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+            end
+            css
+          },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.ttf',
+          content: -> { Rails.application.assets['icons.ttf'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.svg',
+          content: -> { Rails.application.assets['icons.svg'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.eot',
+          content: -> { Rails.application.assets['icons.eot'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.woff',
+          content: -> { Rails.application.assets['icons.woff'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.woff2',
+          content: -> { Rails.application.assets['icons.woff'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'bar.js',
+          content: -> { File.read(asset_path('bar.js.es6')) },
+          type: 'text/javascript',
+        },
+        {
+          name: 'donut.js',
+          content: -> { File.read(asset_path('donut.js.es6')) },
+          type: 'text/javascript',
+        },
+        {
+          name: 'filters.js',
+          content: -> { File.read(asset_path('filters.js.es6')) },
+          type: 'text/javascript',
+        },
+        {
+          name: 'line.js',
+          content: -> { File.read(asset_path('line.js.es6')) },
+          type: 'text/javascript',
+        },
+        {
+          name: 'stack.js',
+          content: -> { File.read(asset_path('stack.js.es6')) },
+          type: 'text/javascript',
+        },
+      ]
+    end
+
+    private def asset_path(asset)
+      Rails.root.join('app', 'assets', 'javascripts', 'warehouse_reports', 'all_neighbors_system_dashboard', asset)
     end
   end
 end
