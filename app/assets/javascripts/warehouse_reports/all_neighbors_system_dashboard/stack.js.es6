@@ -149,7 +149,7 @@ class AllNeighborsSystemDashboardStack {
 
   normalizeDataLabels(chart) {
     // is there a better way to do this with billboard config?
-    const selector = chart.config().bindto
+    const selector = chart.internal.config.bindto
     chart.data().forEach((d) => {
       d.values.forEach((v) => {
         const text = $(`${selector} .bb-texts-${d.id.replaceAll('_', '-')} .bb-text-${v.x}`)
@@ -164,7 +164,7 @@ class AllNeighborsSystemDashboardStack {
         return d.values[i].value
       }))
     })
-    const selector = chart.config().bindto
+    const selector = chart.internal.config.bindto
     let container = d3.select(`${selector} .bb-main`)
     return container.selectAll(`.bb-text__custom-total`)
       .data(sums)
@@ -315,7 +315,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       },
       padding: padding,
       onrendered: function() {
-        const selector = this.config().bindto
+        const selector = this.internal.config.bindto
         $(`${selector} .bb-axis-x .tick line`).attr('x2', padding.left*-1)
         superDrawTotals(this)
           .text((d) => d)
@@ -350,7 +350,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
       },
       onrendered: function() {
         superNormalizeDataLabels(this)
-        const selector = this.config().bindto
+        const selector = this.internal.config.bindto
         let container = d3.select(`${selector} .bb-main`)
         container.selectAll(`.bb-text__custom-total`)
           .data([demographic.exited_household_count, demographic.returned_household_count])
