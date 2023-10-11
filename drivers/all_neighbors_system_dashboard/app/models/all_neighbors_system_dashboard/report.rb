@@ -217,7 +217,20 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'application.css',
-          content: -> { Rails.application.assets['application.css'].to_s },
+          content: -> {
+            css = Rails.application.assets['application.css'].to_s
+            # need to replace the paths to the font files
+            [
+              'icons.ttf',
+              'icons.svg',
+              'icons.eot',
+              'icons.woff',
+              'icons.woff2',
+            ].each do |filename|
+              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+            end
+            css
+          },
           type: 'text/css',
         },
         {
@@ -237,6 +250,11 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'icons.woff',
+          content: -> { Rails.application.assets['icons.woff'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.woff2',
           content: -> { Rails.application.assets['icons.woff'].to_s },
           type: 'text/css',
         },
