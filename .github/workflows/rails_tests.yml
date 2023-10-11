@@ -21,10 +21,10 @@ jobs:
       fail-fast: false
       matrix:
         test_group:
-          # - drivers/{a,b,c,d,e,f,g}*
+          - drivers/{a,b,c,d,e,f,g}*
           - drivers/{h,i}*
-          # - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
-          # - spec
+          - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
+          - spec
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
@@ -230,8 +230,7 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
         run: |
-          ls -lh ./drivers/datalab_testkit/spec/fixpoints/
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
+          bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "${{ matrix.test_group }}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
       - name: Run logging tests
