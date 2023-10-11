@@ -4,13 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
-  describe 'Datalab 2023 CAPER - ES NBN' do
-    let(:results_dir) { 'caper/es_nbn_esg' }
+RSpec.shared_context 'datalab organization s es caper', shared_context: :metadata do
+  describe 'Datalab 2024 CAPER - Organization S ES' do
+    let(:results_dir) { 'caper/organization_s_es' }
     before(:all) do
-      generator = HudApr::Generators::Caper::Fy2023::Generator
-      # Current version only runs against one project, note space at end of name
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: 'DataLab - ES-NbN ESG').pluck(:id)
+      generator = HudApr::Generators::Caper::Fy2024::Generator
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization S ES']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
@@ -20,8 +19,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
         question: 'Q4a',
         skip: [
           'L2', # Is the generator name, so not expected to match
-          # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recgp2w3zwaOXgBOp (58)
-          'P2',
         ],
       )
     end
@@ -37,9 +34,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6a',
-        skip: [
-          'F3', # rounding error: Q6a F3: expected '0.1400' (0.1447), got '0.1500' (0.1456)
-        ],
       )
     end
 
@@ -75,11 +69,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6f',
-        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recktUJPRVhf8sPD6 (54)
-        skip: [
-          'B2',
-          'C2',
-        ],
       )
     end
 
@@ -108,13 +97,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8b',
-        # https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recX2c4U4io8SQg3M (55)
-        # Counts the household 'h_849204', although it has no HoH. This appears to differ from the 2022 Glossary,
-        # but not from 2024
-        skip: [
-          'B4',
-          'E4',
-        ],
       )
     end
 
@@ -139,20 +121,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q10b' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q10b',
-      )
-    end
-
-    it 'Q10c' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q10c',
-      )
-    end
-
     it 'Q10d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -167,17 +135,10 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q12a' do
+    it 'Q12' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        question: 'Q12a',
-      )
-    end
-
-    it 'Q12b' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q12b',
+        question: 'Q12',
       )
     end
 
@@ -262,17 +223,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22a2',
-        # 2023 testkit appears to count service on exit days, check if fixed in 2024
-        skip: [
-          'B3',
-          'C3',
-          'B4',
-          'C4',
-          'B5',
-          'C5',
-          'B6',
-          'C6',
-        ],
       )
     end
 
@@ -287,18 +237,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22d',
-        # 2023 testkit appears to count service on exit days, check if fixed in 2024
-        skip: [
-          'B3',
-          'D3',
-          'B4',
-          'C4',
-          'D4',
-          'B5',
-          'C5',
-          'B6',
-          'C6',
-        ],
       )
     end
 
@@ -309,6 +247,20 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       )
     end
 
+    it 'Q22f' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q22f',
+      )
+    end
+
+    it 'Q22g' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q22g',
+      )
+    end
+
     it 'Q23c' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -316,10 +268,31 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q24' do
+    it 'Q23d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        question: 'Q24',
+        question: 'Q23d',
+      )
+    end
+
+    it 'Q23e' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q23e',
+      )
+    end
+
+    it 'Q24a' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q24a',
+      )
+    end
+
+    it 'Q24d' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q24d',
       )
     end
 
@@ -340,5 +313,5 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab es nbn esg caper', include_shared: true
+  rspec.include_context 'datalab organization s es caper', include_shared: true
 end

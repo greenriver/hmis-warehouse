@@ -5,10 +5,10 @@
 ###
 
 RSpec.shared_context 'datalab th ce ce apr', shared_context: :metadata do
-  describe 'Datalab 2023 CE APR - CE Only' do
+  describe 'Datalab 2024 CE APR - CE Only' do
     let(:results_dir) { 'ce_apr/ce' }
     before(:all) do
-      generator = HudApr::Generators::CeApr::Fy2023::Generator
+      generator = HudApr::Generators::CeApr::Fy2024::Generator
       project_ids = GrdaWarehouse::Hud::Project.all.pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end

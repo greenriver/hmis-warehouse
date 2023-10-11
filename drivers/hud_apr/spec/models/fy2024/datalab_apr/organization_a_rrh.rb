@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata do
-  describe 'Datalab 2024 APR - Multiple Projects' do
-    let(:results_dir) { 'apr/multiple_projects' }
+RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata do
+  describe 'Datalab 2024 APR - Organization A - RRH' do
+    let(:results_dir) { 'apr/organization_a_rrh' }
     before(:all) do
       generator = HudApr::Generators::Apr::Fy2024::Generator
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization A - RRH - 2', 'Organization S - RRH - 2']).pluck(:id)
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization A - RRH - 2']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
@@ -526,5 +526,5 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab multiple projects apr', include_shared: true
+  rspec.include_context 'datalab organization a rrh apr', include_shared: true
 end

@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
-  describe 'Datalab 2023 CAPER - SO ESG' do
-    let(:results_dir) { 'caper/so_esg' }
+RSpec.shared_context 'datalab organization m es caper', shared_context: :metadata do
+  describe 'Datalab 2024 CAPER - Organization M ES' do
+    let(:results_dir) { 'caper/organization_m_es' }
     before(:all) do
-      generator = HudApr::Generators::Caper::Fy2023::Generator
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: 'DataLab - SO ESG').pluck(:id)
+      generator = HudApr::Generators::Caper::Fy2024::Generator
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization M ES']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
@@ -48,14 +48,6 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6c',
-        detail_columns: [
-          :last_name,
-          :first_name,
-          :income_sources_at_exit,
-          :income_date_at_exit,
-          :last_date_in_program,
-          :income_from_any_source_at_exit,
-        ],
       )
     end
 
@@ -129,20 +121,6 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q10b' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q10b',
-      )
-    end
-
-    it 'Q10c' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q10c',
-      )
-    end
-
     it 'Q10d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -157,17 +135,10 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q12a' do
+    it 'Q12' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        question: 'Q12a',
-      )
-    end
-
-    it 'Q12b' do
-      compare_results(
-        file_path: result_file_prefix + results_dir,
-        question: 'Q12b',
+        question: 'Q12',
       )
     end
 
@@ -276,6 +247,20 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       )
     end
 
+    it 'Q22f' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q22f',
+      )
+    end
+
+    it 'Q22g' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q22g',
+      )
+    end
+
     it 'Q23c' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -283,10 +268,31 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q24' do
+    it 'Q23d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
-        question: 'Q24',
+        question: 'Q23d',
+      )
+    end
+
+    it 'Q23e' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q23e',
+      )
+    end
+
+    it 'Q24a' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q24a',
+      )
+    end
+
+    it 'Q24d' do
+      compare_results(
+        file_path: result_file_prefix + results_dir,
+        question: 'Q24d',
       )
     end
 
@@ -307,5 +313,5 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab so esg caper', include_shared: true
+  rspec.include_context 'datalab organization m es caper', include_shared: true
 end
