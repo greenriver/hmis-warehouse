@@ -11,63 +11,53 @@ module HudApr::Generators::Shared::Fy2024
     def self.table_descriptions
       {
         'Question 12' => 'Race & Ethnicity',
-        'Q12a' => 'Race',
-        'Q12b' => 'Ethnicity',
       }.freeze
     end
 
-    private def q12a_race
-      table_name = 'Q12a'
+    def table_rows
+      race_col = a_t[:race_multi]
+      [
+        {
+          label: 'White',
+          cond: race_col.eq('5')
+        },
+        {
+          label: 'Asian or Asian American & American Indian, Alaska Native, or Indigenous',
+          cond: race_col.eq('1,2')
+        },
+        {
+          label: 'Multiracial – more than 2 races/ethnicity, with one being Hispanic/Latina/e/o',
+          # 6 & two or more of 1, 2, 3, 4, 5, or 7
+          cond: race_col.matches_regexp('(\d+,){3,}').and(race_col.matches_regexp('\y6\y'))
+        },
+        {
+          label: 'Multiracial – more than 2 races, where no option is Hispanic/Latina/e/o',
+          # Three or more of 1, 2, 3, 4, 5, or 7
+          cond: race_col.matches_regexp('(\d+,){3,}').and(race_col.does_not_match_regexp('\y6\y'))
+        }
+      ].each.with_index { |h, idx| h[:number] = 2 + idx }
+    end
+
+    def q12a_race_and_ethnicity
+      table_name = 'Q12'
       metadata = {
         header_row: [' '] + sub_populations.keys,
         row_labels: races.map { |_, m| m[:label] },
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
-        last_row: 10,
+        last_row: 34,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      sub_populations.values.each_with_index do |population_clause, col_index|
-        races.each_with_index do |(_, race), row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-
-          answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.
-            where(population_clause).
-            where(race[:clause])
-          answer.add_members(members)
-          answer.update(summary: members.count)
-        end
-      end
-    end
-
-    private def q12b_ethnicity
-      table_name = 'Q12b'
-      metadata = {
-        header_row: [' '] + sub_populations.keys,
-        row_labels: ethnicities.map { |_, m| m[:label] },
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 6,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      sub_populations.values.each_with_index do |population_clause, col_index|
-        ethnicities.each_with_index do |(_, ethnicity), row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-
-          answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.
-            where(population_clause).
-            where(ethnicity[:clause])
-          answer.add_members(members)
-          answer.update(summary: members.count)
+      sheet = question_sheet(question: table_name)
+      table_rows.each do |row|
+        sub_populations.values.each_with_index do |population_clause, col_index|
+          sheet.update_cell_members(
+            cell: "#{cols[col_index]}#{row[:number]}",
+            members: universe.members.where(population_clause).where(row[:cond])
+          )
         end
       end
     end
