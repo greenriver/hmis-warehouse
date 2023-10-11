@@ -45,6 +45,16 @@ module HudConcerns::Client
       end
     end
 
+    def race_multi
+      ret = []
+      HudUtility2024.race_field_name_to_id.except(:RaceNone).each do |k, v|
+        ret << v if self[k] == 1
+      end
+      # Per the data standards, only look to RaceNone if we don't have a more specific response
+      ret << self.RaceNone if ret.empty? && self.RaceNone.in?([8, 9, 99])
+      ret
+    end
+
     scope :age_group, ->(start_age: 0, end_age: nil) do
       start_age = 0 unless start_age.is_a?(Integer)
       end_age   = nil unless end_age.is_a?(Integer)

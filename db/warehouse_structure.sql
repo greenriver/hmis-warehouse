@@ -19210,7 +19210,8 @@ CREATE TABLE public.hud_report_apr_clients (
     los_under_threshold integer,
     project_id integer,
     client_created_at timestamp without time zone,
-    personal_id character varying
+    personal_id character varying,
+    race_multi character varying
 );
 
 
@@ -59613,6 +59614,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231004162425'),
 ('20231004172833'),
 ('20231004203202'),
-('20231009121430');
+('20231009121430'),
+('20231009190301');
 
 

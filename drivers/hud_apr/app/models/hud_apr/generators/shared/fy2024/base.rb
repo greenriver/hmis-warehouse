@@ -17,6 +17,11 @@ module HudApr::Generators::Shared::Fy2024
     include HudReports::Incomes
 
     NO_CLIENT_ANSWER_DESC = 'Client Doesn’t Know/Prefers Not to Answer'.freeze
+    INFORMATION_MISSING_DESC = 'Information Missing'.freeze
+
+    def question_sheet(question:)
+      QuestionSheet.new(report: @report, question: question)
+    end
 
     def self.filter_universe_members(associations)
       associations
@@ -285,7 +290,7 @@ module HudApr::Generators::Shared::Fy2024
             prior_living_situation: enrollment.LivingSituation,
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
             project_type: last_service_history_enrollment.computed_project_type,
-            race: calculate_race(source_client),
+            race_multi: source_client.race_multi.sort.join(','),
             relationship_to_hoh: enrollment.RelationshipToHoH,
             ssn_quality: source_client.SSNDataQuality,
             ssn: source_client.SSN,
@@ -567,36 +572,6 @@ module HudApr::Generators::Shared::Fy2024
       @a_t ||= report_client_universe.arel_table
     end
 
-    private def ethnicities
-      {
-        '0' => {
-          order: 1,
-          label: 'Non-Hispanic/Non-Latin(a)(o)(x)',
-          clause: a_t[:ethnicity].eq(0),
-        },
-        '1' => {
-          order: 2,
-          label: 'Hispanic/Latin(a)(o)(x)',
-          clause: a_t[:ethnicity].eq(1),
-        },
-        '8 or 9' => {
-          order: 3,
-          label: 'Client Doesn\'t Know/Client Refused',
-          clause: a_t[:ethnicity].in([8, 9]),
-        },
-        '99' => {
-          order: 4,
-          label: 'Data Not Collected',
-          clause: a_t[:ethnicity].eq(99).or(a_t[:ethnicity].eq(nil)),
-        },
-        'Total' => {
-          order: 5,
-          label: 'Total',
-          clause: Arel.sql('1=1'),
-        },
-      }.sort_by { |_, m| m[:order] }.freeze
-    end
-
     private def disability_clauses(suffix)
       {
         'Mental Health Disorder' => a_t["mental_health_problem_#{suffix}".to_sym].eq(1),
@@ -667,13 +642,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def race_fields
-      {
-        'AmIndAKNative' => 1,
-        'Asian' => 2,
-        'BlackAfAmerican' => 3,
-        'NativeHIPacific' => 4,
-        'White' => 5,
-      }.freeze
+      HudUtility2024.race_field_name_to_id.stringify_keys.except('RaceNone').freeze
     end
 
     private def race_number(code)
