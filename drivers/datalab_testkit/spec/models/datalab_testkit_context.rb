@@ -45,9 +45,15 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
       excluded_tables: default_excluded_tables,
       model: ApplicationRecord,
     )
+    puts 'Warehouse Fixture Exists?'
+    puts warehouse_fixture.exists?.inspect
+    puts 'App Fixture Exists?'
+    puts app_fixture.exists?.inspect
     if warehouse_fixture.exists? && app_fixture.exists?
+      puts "Restoring Fixtures #{Time.current}"
       warehouse_fixture.restore
       app_fixture.restore
+      puts "Fixtures Restored #{Time.current}"
     else
       Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
         # puts "*** #{file_path} ***"
