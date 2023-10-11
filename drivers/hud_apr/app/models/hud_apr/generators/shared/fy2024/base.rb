@@ -572,36 +572,6 @@ module HudApr::Generators::Shared::Fy2024
       @a_t ||= report_client_universe.arel_table
     end
 
-    private def ethnicities
-      {
-        '0' => {
-          order: 1,
-          label: 'Non-Hispanic/Non-Latin(a)(o)(x)',
-          clause: a_t[:ethnicity].eq(0),
-        },
-        '1' => {
-          order: 2,
-          label: 'Hispanic/Latin(a)(o)(x)',
-          clause: a_t[:ethnicity].eq(1),
-        },
-        '8 or 9' => {
-          order: 3,
-          label: 'Client Doesn\'t Know/Client Refused',
-          clause: a_t[:ethnicity].in([8, 9]),
-        },
-        '99' => {
-          order: 4,
-          label: 'Data Not Collected',
-          clause: a_t[:ethnicity].eq(99).or(a_t[:ethnicity].eq(nil)),
-        },
-        'Total' => {
-          order: 5,
-          label: 'Total',
-          clause: Arel.sql('1=1'),
-        },
-      }.sort_by { |_, m| m[:order] }.freeze
-    end
-
     private def disability_clauses(suffix)
       {
         'Mental Health Disorder' => a_t["mental_health_problem_#{suffix}".to_sym].eq(1),
