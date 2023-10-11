@@ -1,9 +1,5 @@
 module AllNeighborsSystemDashboard
   class Header < DashboardData
-    def initialize(...)
-      super
-    end
-
     def self.cache_data(report)
       instance = new(report)
       instance.header_data

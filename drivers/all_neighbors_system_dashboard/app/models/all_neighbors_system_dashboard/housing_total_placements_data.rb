@@ -83,9 +83,9 @@ module AllNeighborsSystemDashboard
       scope.where(where_clause)
     end
 
+    # Example format of options: {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
     def donut(options)
       project_type = options[:project_type] || options[:homelessness_status]
-      # {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
       options[:types].map do |type|
         {
           name: type,

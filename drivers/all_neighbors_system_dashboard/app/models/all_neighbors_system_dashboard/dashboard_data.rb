@@ -203,6 +203,10 @@ module AllNeighborsSystemDashboard
       when 'All', 'Overall'
         scope
       when 'R.E.A.L. Time Initiative (8/1/2021 - 4/30/2023)'
+        # TODO: this needs updating to use pilot and implementation date ranges for the particular item being filtered
+        # pilot range should use filter.effective_project_ids_from_secondary_project_groups
+        # implementation range should use filter.effective_project_ids
+        # we'll need to pass an additional argument to indicate which date is being filtered
         scope.where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups)
       when 'Permanent Supportive Housing'
         scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
@@ -210,6 +214,7 @@ module AllNeighborsSystemDashboard
         scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
       when 'Diversion'
         # FIXME, is this correct?
+        # TODO: needs to be limited to projects chosen in filter.secondary_project_ids
         scope.where(destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))

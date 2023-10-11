@@ -10,19 +10,18 @@ module AllNeighborsSystemDashboard
     include GrdaWarehouse::UsCensusApi::Aggregates
     included do
       private def get_us_census_population_by_race(race_code: 'All', year:)
-        race_var = \
-          case race_code
-          when 'AmIndAKNative' then NATIVE_AMERICAN
-          when 'Asian' then ASIAN
-          when 'BlackAfAmerican' then BLACK
-          when 'NativeHIPacific' then PACIFIC_ISLANDER
-          when 'White' then WHITE
-          when 'RaceNone' then OTHER_RACE
-          when 'MultiRacial' then TWO_OR_MORE_RACES
-          when 'All' then ALL_PEOPLE
-          else
-            raise "Invalid race code: #{race_code}"
-          end
+        race_var = case race_code
+        when 'AmIndAKNative' then NATIVE_AMERICAN
+        when 'Asian' then ASIAN
+        when 'BlackAfAmerican' then BLACK
+        when 'NativeHIPacific' then PACIFIC_ISLANDER
+        when 'White' then WHITE
+        when 'RaceNone' then OTHER_RACE
+        when 'MultiRacial' then TWO_OR_MORE_RACES
+        when 'All' then ALL_PEOPLE
+        else
+          raise "Invalid race code: #{race_code}"
+        end
         result = state_geometry.population(internal_names: race_var, year: year)
 
         if result.error
