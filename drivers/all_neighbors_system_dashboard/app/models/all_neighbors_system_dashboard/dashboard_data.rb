@@ -216,7 +216,7 @@ module AllNeighborsSystemDashboard
         scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
       when 'Diversion'
         scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
-      when 'Unsheltered'
+      when 'Unsheltered', 'Unhoused Population'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       when 'Sheltered'
         scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))

@@ -197,7 +197,6 @@ module AllNeighborsSystemDashboard
         distinct.
         select(:destination_client_id)
       scope = filter_for_count_level(scope, 'Individuals')
-      scope = filter_for_date(scope, date)
       scope = case label
       when 'Safe Haven', 'Transitional Housing'
         scope.where(project_type: HudUtility2024.project_type(label, true))
@@ -206,7 +205,8 @@ module AllNeighborsSystemDashboard
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       end
-      count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+      scope = filter_for_date(scope, date)
+      count = bracket_small_population(scope.distinct.select(:destination_client_id).count, mask: @report.mask_small_populations?)
       count
     end
 

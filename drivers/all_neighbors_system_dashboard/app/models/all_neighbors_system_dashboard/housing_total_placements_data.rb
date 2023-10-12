@@ -185,12 +185,8 @@ module AllNeighborsSystemDashboard
               when 'All'
                 count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
                 count
-              when 'Rapid Rehousing'
+              else
                 scope = filter_for_type(scope, bar)
-                count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
-                count
-              when 'Unhoused Population'
-                scope = filter_for_type(scope, 'Unsheltered')
                 count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
                 count
               end
