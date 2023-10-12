@@ -305,7 +305,7 @@ module HudApr::Generators::Shared::Fy2024
       )
       missing_cell = sheet.update_cell_members(
         cell: 'C2',
-        members: adult_scope.where(a_t[:veteran_status].in([nil, 99])),
+        members: adult_scope.where(a_t[:veteran_status].eq(99).or(a_t[:veteran_status].eq(nil))),
       )
       issue_cell = sheet.update_cell_members(
         cell: 'D2',
@@ -385,7 +385,7 @@ module HudApr::Generators::Shared::Fy2024
       )
       missing_cell = sheet.update_cell_members(
         cell: 'C6',
-        members: dq_universe_members.where(a_t[:disabling_condition].in([nil, 99])),
+        members: dq_universe_members.where(a_t[:disabling_condition].eq(99).or(a_t[:disabling_condition].eq(99))),
       )
 
       qualifies_for_disability = [
