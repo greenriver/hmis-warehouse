@@ -109,7 +109,6 @@ module MaYyaReport
         # A4c: nil,
 
         A5a: a_t[:direct_assistance].eq(true),
-        # FIXME: Check that the labels match those in ETO
         A5b: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
                 json_contains_text(:flex_funds, 'Move-in'),
@@ -171,7 +170,6 @@ module MaYyaReport
         # TotalCollegeStudentsServed: a_t[:education_status_date].lteq(report_end_date).
         #   and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].in([1, 2, 3, 4])),
 
-        # FIXME All D should be limited to HoH
         D1a: a_t[:age].lt(18).and(a_t[:head_of_household].eq(true)),
         D1b: a_t[:gender].eq(1).and(a_t[:head_of_household].eq(true)),
         D1c: a_t[:gender].eq(0).and(a_t[:head_of_household].eq(true)),
