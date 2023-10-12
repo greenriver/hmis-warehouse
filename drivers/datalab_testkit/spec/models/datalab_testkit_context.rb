@@ -42,12 +42,14 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
     )
     app_fixture = PgFixtures.new(
       directory: 'drivers/datalab_testkit/spec/fixpoints',
-      excluded_tables: ['versions'],
+      excluded_tables: default_excluded_tables,
       model: ApplicationRecord,
     )
     if warehouse_fixture.exists? && app_fixture.exists?
+      puts "Restoring Fixtures #{Time.current}"
       warehouse_fixture.restore
       app_fixture.restore
+      puts "Fixtures Restored #{Time.current}"
     else
       Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
         # puts "*** #{file_path} ***"
