@@ -84,9 +84,9 @@ module HudApr::Generators::Shared::Fy2024
         '$1,001 - $1,500' => a_t["income_total_at_#{suffix}".to_sym].between(1_001..1_500),
         '$1,501 - $2,000' => a_t["income_total_at_#{suffix}".to_sym].between(1_501..2_000),
         '$2,001+' => a_t["income_total_at_#{suffix}".to_sym].gt(2_000),
-        'Client Doesn\'t Know/Client Refused' => a_t["income_total_at_#{suffix}".to_sym].eq(nil).
+        NO_CLIENT_ANSWER_DESC => a_t["income_total_at_#{suffix}".to_sym].eq(nil).
           and(a_t["income_from_any_source_at_#{suffix}".to_sym].in([8, 9])),
-        'Data Not Collected' => not_collected,
+        DATA_NOT_COLLECTED_DESC => not_collected,
         'Number of adult stayers not yet required to have an annual assessment' => adult_clause.
           and(stayers_clause).
           and(a_t[:annual_assessment_expected].eq(false)),
