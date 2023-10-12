@@ -18,6 +18,17 @@ module HudApr::Generators::Shared::Fy2024
 
     NO_CLIENT_ANSWER_DESC = 'Client Doesn’t Know/Prefers Not to Answer'.freeze
     INFORMATION_MISSING_DESC = 'Information Missing'.freeze
+    DATA_NOT_COLLECTED_DESC = 'Data Not Collected'.freeze
+
+    def yes_know_dkn_clauses(column)
+      {
+        'Yes' => column.eq(1),
+        'No' => column.eq(0),
+        NO_CLIENT_ANSWER_DESC => column.in([8, 9]),
+        DATA_NOT_COLLECTED_DESC => column.eq(99).or(column.eq(nil)),
+        'Total' => Arel.sql('1=1'),
+      }
+    end
 
     def question_sheet(question:)
       QuestionSheet.new(report: @report, question: question)

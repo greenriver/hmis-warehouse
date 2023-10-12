@@ -122,7 +122,7 @@ module HudApr::Generators::Shared::Fy2024
           cond: race_col.eq('8').or(race_col.eq('9')),
         },
         {
-          label: 'Data Not Collected',
+          label: DATA_NOT_COLLECTED_DESC,
           cond: race_col.eq(nil).or(race_col.eq('99')),
         },
       ]
