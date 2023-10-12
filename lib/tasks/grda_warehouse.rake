@@ -346,6 +346,11 @@ namespace :grda_warehouse do
   desc 'Process Recurring HMIS Exports'
   task process_recurring_hmis_exports: [:environment] do
     GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
+
+    if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
+      # Upload HMIS Export and Client MCI mapping to the AC Data Warehouse
+      Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+    end
   end
 
   desc 'Process location data'

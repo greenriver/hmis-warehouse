@@ -22,6 +22,7 @@ module Types
     include Types::HmisSchema::HasAuditHistory
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -70,6 +71,7 @@ module Types
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
+    field :hud_chronic, Boolean, null: true
     enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
     income_benefits_field
     disabilities_field
@@ -118,10 +120,7 @@ module Types
         result
       end,
     )
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
+
     field :image, HmisSchema::ClientImage, null: true
 
     access_field do
@@ -251,6 +250,14 @@ module Types
 
     def addresses
       load_ar_association(object, :addresses)
+    end
+
+    def hud_chronic
+      return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
+
+      # client.hud_chronic causes n+1 queries
+      enrollments = object.enrollments.hmis
+      !!object.hud_chronic?(scope: enrollments)
     end
 
     def resolve_audit_history

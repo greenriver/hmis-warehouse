@@ -50,7 +50,7 @@ module Mutations
             record.enrollment&.accept_referral!(current_user: current_user) if record.exit? && !is_wip
 
             # Deleting the Intake Assessment deletes the enrollment
-            record.enrollment&.destroy if record.intake?
+            record.enrollment&.destroy! if record.intake?
           end,
         )
 

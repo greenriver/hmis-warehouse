@@ -371,10 +371,10 @@ module PerformanceMeasurement
           key: :served_on_pit_date,
           data: ->(filter) {
             {}.tap do |project_types_by_client_id|
-              report_scope.joins(:service_history_services, :project, :client).
+              report_scope.joins(:service_history_services, :project, :client, :enrollment).
                 where(shs_t[:date].eq(filter.pit_date)).
                 homeless.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id], :housing_status_at_entry, :head_of_household).
+                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household).
                 each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
                   project_types_by_client_id[client_id] ||= {
                     value: true,
@@ -398,10 +398,10 @@ module PerformanceMeasurement
           key: :served_on_pit_date_unsheltered, # note, actually yearly overall count
           data: ->(_) {
             {}.tap do |project_types_by_client_id|
-              report_scope.joins(:service_history_services, :project, :client).
+              report_scope.joins(:service_history_services, :project, :client, :enrollment).
                 # where(shs_t[:date].eq(filter.pit_date)). # removed to become yearly to match SPM M3 3.2
                 so.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id], :housing_status_at_entry, :head_of_household).
+                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household).
                 each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
                   project_types_by_client_id[client_id] ||= {
                     value: true,

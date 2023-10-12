@@ -25,28 +25,16 @@
         %td= data_link(:one_b)
         %td “Outreach contacts” are contacts made by EOHHS funded staff  who go off-site and create a first point of contact with a YYA
       %tr
-        %th{rowspan: 3} 2. Referrals Received
+        %th{rowspan: 2} 2. Referrals Received
         %th a. Number of initial contacts: YYA experiencing homelessness
         %td= data_link(:two_a)
         %td Incoming contacts.  Include walk-ins, calls, referrals from other providers, as well as program in-reach.
       %tr
         %th b. Number of initial contacts: YYA considered “at-risk” of homelessness
         %td= data_link(:two_b)
-      %tr
-        %th c. Referral sources (number of YYA, if available)
-        %td
-          %ul.list-unstyled
-            %li
-              All referrals (
-              = data_link(:two_c)
-              )
-            - @report.two_c.each do |label, count|
-              %li= "#{label} (#{count.count})"
-        %td List agencies & numbers referred by each agency, if available, e.g.Org1 (4), Org2 (1)
-
 
       %tr
-        %th{rowspan: 3} 3. Assessment/ Case Management/ Case Coordination - Prevention
+        %th{rowspan: 2} 3. Assessment/ Case Management/ Case Coordination - Prevention
         %th
           %i.icon-info{data: { toggle: :tooltip, title: 'Counts youth who have an intake with an engagement date within the chosen date range, who also reported being at risk, either on the initial intake, or in a case management note during the date range.'}}
           a. Number of YYA completing new intake: YYA considered “at-risk” of homelessness
@@ -58,13 +46,9 @@
           b. Number of YYA continuing in case management
         %td= data_link(:three_b)
         %td Clients who received case management through EOHHS funds, excluding new enrollments
-      %tr
-        %th c. Number of YYA turned away
-        %td= data_link(:three_c)
-        %td Include YYA who were not served due to ineligibility, please detail in narrative
 
       %tr
-        %th{rowspan: 3} 4. Assessment/ Case Management/ Case Coordination - Rehousing
+        %th{rowspan: 2} 4. Assessment/ Case Management/ Case Coordination - Rehousing
         %th a. Number of YYA completing new intake: YYA experiencing homelessness
         %td= data_link(:four_a)
         %td Include brief & full intakes (unduplicated clients) and clients who enrolled in case management provided through EOHHS funds
@@ -74,28 +58,10 @@
           b. Number of YYA continuing in case management
         %td= data_link(:four_b)
         %td Clients who received case management through EOHHS funds, excluding new enrollments
-      %tr
-        %th d. Number of YYA turned away
-        %td= data_link(:four_c)
-        %td Include YYA who were not served due to ineligibility
-      %tr
-        %th{rowspan: 2}
-          Stably Housed
-          %br
-          %em.text-xs This section is not reported to EOHHS, but included for completeness.
-        %th a. Number of YYA completing new intake: YYA not at risk and not homeless
-        %td= data_link(:stably_housed_a)
-        %td Include brief & full intakes (unduplicated clients) and clients who enrolled in case management provided through EOHHS funds
 
       %tr
-        %th
-          %i.icon-info{data: {toggle: :tooltip, title: 'Youth with at least one case management note during the reporting period who\'s intake was started before the reporting period and no case management notes indicating the youth was at risk or homeless.'}}
-          b. Number of YYA continuing in case management
-        %td= data_link(:stably_housed_b)
-        %td Clients who received case management through EOHHS funds, excluding new enrollments
-      %tr
         %th{rowspan: 14} 5. Direct Financial Assistance (Flex Funds)
-        %th a. Total number of YYA who received direct financial assistance/ flex funds
+        %th a. Total number of unduplicated YYA who received direct financial assistance/ flex funds
         %td= data_link(:five_a)
         %td Unduplicated count. Report EOHHS flex funds only
       %tr
@@ -149,74 +115,6 @@
         %td Please list in Narrative Section
 
       %tr
-        %th{rowspan: 17} 6. Referrals to Other Providers
-        %th a. Total number of YYA who received referrals out
-        %td= data_link(:six_a)
-        %td Unduplicated count. Include referrals to other units within the same agency and services provided with non-EOHHS funds
-      %tr
-        %th b. Number of YYA who were referred to Health services (excluding mental health)
-        %td= data_link(:six_b)
-        %td 6.b.-6.n:. List as many types of services as applicable. Duplication allowed across categories.
-      %tr
-        %th c. Number of YYA who were referred to Mental health services
-        %td= data_link(:six_c)
-        %td Mental health services, including support groups
-      %tr
-        %th d. Number of YYA who were referred to substance use services
-        %td= data_link(:six_d)
-        %td Substance use services, including support groups
-      %tr
-        %th e. Number of YYA who were referred to Employment & job training services
-        %td= data_link(:six_e)
-      %tr
-        %th f. Number of YYA who were referred to Education services
-        %td= data_link(:six_f)
-      %tr
-        %th g. Number of YYA who were referred to Parenting resources
-        %td= data_link(:six_g)
-      %tr
-        %th h. Number of YYA who were referred to Domestic violence-related services
-        %td= data_link(:six_h)
-      %tr
-        %th i. Number of YYA who were referred to Life skills/ financial literacy services
-        %td= data_link(:six_i)
-      %tr
-        %th j. Number of YYA who were referred to Legal services
-        %td= data_link(:six_j)
-      %tr
-        %th k. Number of YYA who were referred to Language-related resources
-        %td= data_link(:six_k)
-      %tr
-        %th l. Number of YYA who were referred to Housing supports
-        %td= data_link(:six_l)
-        %td Include housing supports provided with non-EOHHS funding including housing search, subsidies, RAFT, FUP, direct financial support
-      %tr
-        %th m. Number of YYA who were referred to Benefits (excluding health insurance)
-        %td= data_link(:six_m)
-        %td Such as SNAP,SSI, WIC
-      %tr
-        %th n. Number of YYA who were referred to health insurance providers
-        %td= data_link(:six_n)
-        %td Include MassHealth, private insurance
-      %tr
-        %th o. Number of YYA who were referred to other state agencies
-        %td= data_link(:six_o)
-        %td Such as DMH, DDS
-      %tr
-        %th p. Number of YYA who were referred to Cultural/ recreation activities
-        %td= data_link(:six_p)
-      %tr
-        %th q. Number of YYA who were referred to Other services or activities
-        %td
-          %ul.list-unstyled
-            %li
-              All referrals (
-              = data_link(:six_q)
-              )
-            - @report.six_q.each do |label, count|
-              %li= "#{label} (#{count.count})"
-
-      %tr
         %th TOTAL YYA SERVED
         %th Number of  UNDUPLICATED YYA served (update each quarter)
         %td
@@ -237,46 +135,6 @@
                   )
         %td Please update YTD each quarter.  Unduplicated count of all YYA who received Assessment/ Case Management/ Case Coordination and/or Direct Financial Assistance, provided with EOHHS Funds. Include clients served as part of Winter Response and College Student Services.
 
-%h2 B. Winter Response (Oct 01- April 30)
-.card.mb-4
-  %table.table.table-sm
-    %tbody
-      %tr
-        %th 1. Additional Shelter /Crisis Beds
-        %th a) QI only: Number of EOHHS-funded YYA-dedicated shelter beds available in winter
-        %td (Not collected in the warehouse)
-        %td "Includes YYA-only shelter, YYA- designated beds in larger shelter, and other stationary crisis-response beds. In narrative, please clarify if these are year round. Note: these beds do not include motel beds (describe funds used to pay for motel beds in narrative).
-      %tr
-        %th
-        %th b) QI only: Number of non-EOHHS-funded YYA-dedicated shelter beds available in winter
-        %td (Not collected in the warehouse)
-      %tr
-        %th TOTAL number of YYA-dedicated Shelter/ crisis beds
-
-
-%h2 C. College Student Services (all regions)
-.card.mb-4
-  %table.table.table-sm
-    %tbody
-      %tr
-        %th
-          1. Transitional Housing & Case Management (enrolled students)
-        %th
-          Number of Pilot Program  students receiving Transitional Housing & Case Management services
-        %td= data_link(:c_one_college_pilot)
-      %tr
-        %th
-          3. Number College students
-        %th
-          Number of College students not officially enrolled in the campus pilot program that are receiving services
-        %td= data_link(:c_three_college_non_pilot)
-        %td All regions can fill this out
-      %tr
-        %th TOTAL COLLEGE STUDENTS SERVED
-        %th Number of College Student YYA served
-        %td= data_link(:total_college)
-        %td Unduplicated count of all college students YYA who received services provided with EOHHS Funds
-
 .row.mt-4
   .col-6
     %h2 D. Demographics
@@ -290,30 +148,33 @@
   %table.table.table-sm
     %tbody
       %tr
-        %th{rowspan: 5} 1. Age and Gender
+        %th{rowspan: 7} 1. Age and Gender
         %th a. Number of YYA served who were Under 18
         %td= data_link(:d_one_a)
         %td Report age at start of reporting period
       %tr
-        %th b. Number of YYA  served who identified as Male
+        %th b. Number of YYA  served who identified as Man
         %td= data_link(:d_one_b)
       %tr
-        %th c. Number of YYA  served who identified as Female
+        %th c. Number of YYA  served who identified as Woman
         %td= data_link(:d_one_c)
       %tr
         %th d. Number of YYA  served who identified as Transgender
         %td= data_link(:d_one_d)
       %tr
-        %th
-          e. Number of YYA  served who identified as Other
+        %th e. Number of YYA  served who identified as Non-Binary
         %td= data_link(:d_one_e)
-        %td
-          Include YYA who identified as other than male or female
-          %br
-          %i does not include refused or not collected
+      %tr
+        %th
+          f. Number of YYA  served who  are questioning gender/Client doesn’t know/Client prefers not to answer.
+        %td= data_link(:d_one_f)
+      %tr
+        %th
+          g.Number of YYA served with no Gender Data collected
+        %td= data_link(:d_one_f)
 
     %tr
-      %th{rowspan: 10} 2. Race, Ethnicity and Language
+      %th{rowspan: 11} 2. Race, Ethnicity and Language
       %th a. Number of YYA  served who identified as White (race)
       %td= data_link(:d_two_a)
     %tr
@@ -329,21 +190,24 @@
       %th e. Number of YYA served who identified as Native Hawaiian/Pacific Islander (race)
       %td= data_link(:d_two_e)
     %tr
-      %th f. Number of YYA served who identified as Other/ Multi-racial (race)
+      %th f. Number of YYA  served who identified as Middle Eastern or North African (race)
       %td= data_link(:d_two_f)
     %tr
-      %th g. Number of YYA  served who identified as Hispanic (ethnicity)
+      %th g. Number of YYA  served who identified as Hispanic/Latina/e/o (race)
       %td= data_link(:d_two_g)
-      %td Could be any race.
     %tr
-      %th h. Number of YYA  served whose primary language was English (language)
+      %th h. Number of YYA  served who identified as Other/ Multi-racial (race)
       %td= data_link(:d_two_h)
+
     %tr
-      %th i. Number of YYA  served whose primary language was Spanish (language)
+      %th i. Number of YYA  served whose primary language was English (language)
       %td= data_link(:d_two_i)
     %tr
-      %th j. Number of YYA  served whose primary language was Other (language)
+      %th j. Number of YYA  served whose primary language was Spanish (language)
       %td= data_link(:d_two_j)
+    %tr
+      %th k. Number of YYA  served whose primary language was Other (language)
+      %td= data_link(:d_two_k)
 
     %tr
       %th{rowspan: 4} 3. Disability
@@ -361,7 +225,7 @@
 
     %tr
       %th{rowspan: 8} 4. Other
-      %th a. Number of YYA served who were Pregnant or Parenting
+      %th a. Number of YYA served who were Pregnant or Custodial Parenting
       %td= data_link(:d_four_a)
     %tr
       %th b. Number of YYA served who were LGBTQ+
@@ -370,30 +234,14 @@
       %th c. Number of YYA served who had Completed high school or GED/HiSET
       %td= data_link(:d_four_c)
     %tr
-      %th d. Number of YYA served who were Enrolled in school during the reporting period
+      %th d.Number of YYA served who were enrolled (full or part time) in a 2 or 4 year college
       %td= data_link(:d_four_d)
     %tr
-      %th e. Number of YYA served who were Enrolled in college during the reporting period
+      %th e. Number of YYA served who were enrolled and pursuing other post-secondary credential (i.e. votech or certificate program)
       %td= data_link(:d_four_e)
     %tr
-      %th f. Number of YYA  served who were involved with Other State Agencies
-      %td= data_link(:d_four_f)
-    %tr
-      %th g. Number of YYA served who had Health insurance
+      %th f. Number of YYA served who had Health insurance at intake
       %td= data_link(:d_four_g)
-
-%h2 E. Youth Action Board / Youth Engagement Activity
-.card.mb-4
-  %table.table.table-sm
-    %tbody
-      %tr
-        %th Youth Action Board 
-        %th a. . Number of Meetings 
-        %td (Not collected in the warehouse)
-      %tr
-        %th
-        %th b. Number of unduplicated participants 
-        %td (Not collected in the warehouse)
 
 %h2 F. Outcomes
 .card.mb-4
@@ -438,30 +286,36 @@
   %table.table.table-sm
     %tbody
       %tr
-        %th{rowspan: 5} 1. Age and Gender
+        %th{rowspan: 7} 1. Age and Gender
         %th a. Number of YYA served who were Under 18
         %td= data_link(:g_one_a)
         %td Report age at start of reporting period
       %tr
-        %th b. Number of YYA  served who identified as Male
+        %th b. Number of YYA  served who identified as Man
         %td= data_link(:g_one_b)
       %tr
-        %th c. Number of YYA  served who identified as Female
+        %th c. Number of YYA  served who identified as Woman
         %td= data_link(:g_one_c)
       %tr
         %th d. Number of YYA  served who identified as Transgender
         %td= data_link(:g_one_d)
       %tr
-        %th
-          e. Number of YYA  served who identified as Other
+        %th e. Number of YYA  served who identified as Non-Binary
         %td= data_link(:g_one_e)
+      %tr
+        %th f. Number of YYA  served who  are questioning gender/Client doesn’t know/Client prefers not to answer.
+        %td= data_link(:g_one_f)
+      %tr
+        %th
+          g.Number of YYA served with no Gender Data collected
+        %td= data_link(:g_one_g)
         %td
           Include YYA who identified as other than male or female
           %br
           %i does not include refused or not collected
 
     %tr
-      %th{rowspan: 7} 2. Race, Ethnicity and Language
+      %th{rowspan: 8} 2. Race, Ethnicity and Language
       %th a. Number of YYA  served who identified as White (race)
       %td= data_link(:g_two_a)
     %tr
@@ -477,74 +331,16 @@
       %th e. Number of YYA served who identified as Native Hawaiian/Pacific Islander (race)
       %td= data_link(:g_two_e)
     %tr
-      %th f. Number of YYA served who identified as Other/ Multi-racial (race)
+      %th f. Number of YYA  served who identified as Middle Eastern or North African (race)
       %td= data_link(:g_two_f)
     %tr
-      %th g. Number of YYA  served who identified as Hispanic (ethnicity)
+      %th g. Number of YYA  served who identified as Hispanic/Latina/e/o (race)
       %td= data_link(:g_two_g)
-      %td Could be any race.
+    %tr
+      %th h. Number of YYA  served who identified as Other/ Multi-racial (race)
+      %td= data_link(:g_two_h)
     %tr
       %th 3. Other
-      %th b. Number of YYA served who were LGBTQ+
+      %th a. Number of YYA served who were LGBTQ+
       %td= data_link(:g_three_b)
-      %td
-
-.row
-  .col-sm-8
-    %h2 H. Demographics of Rehousing Prevention: youth who identified as at risk, and remained housed
-  .col-sm-4
-    YTD should be unpuplicated and match F1a "Number of YYA contacted for follow up 3 mos. after receiving prevention services"
-.card.mb-4
-  %table.table.table-sm
-    %tbody
-      %tr
-        %th{rowspan: 5} 1. Age and Gender
-        %th a. Number of YYA served who were Under 18
-        %td= data_link(:h_one_a)
-        %td Report age at start of reporting period
-      %tr
-        %th b. Number of YYA  served who identified as Male
-        %td= data_link(:h_one_b)
-      %tr
-        %th c. Number of YYA  served who identified as Female
-        %td= data_link(:h_one_c)
-      %tr
-        %th d. Number of YYA  served who identified as Transgender
-        %td= data_link(:h_one_d)
-      %tr
-        %th
-          e. Number of YYA  served who identified as Other
-        %td= data_link(:h_one_e)
-        %td
-          Include YYA who identified as other than male or female
-          %br
-          %i does not include refused or not collected
-
-    %tr
-      %th{rowspan: 7} 2. Race, Ethnicity and Language
-      %th a. Number of YYA  served who identified as White (race)
-      %td= data_link(:h_two_a)
-    %tr
-      %th b. Number of YYA  served who identified as African American (race)
-      %td= data_link(:h_two_b)
-    %tr
-      %th c. Number of YYA  served who identified as Asian (race)
-      %td= data_link(:h_two_c)
-    %tr
-      %th d. Number of YYA  served who identified as American Indian/Alaska Native (race)
-      %td= data_link(:h_two_d)
-    %tr
-      %th e. Number of YYA served who identified as Native Hawaiian/Pacific Islander (race)
-      %td= data_link(:h_two_e)
-    %tr
-      %th f. Number of YYA served who identified as Other/ Multi-racial (race)
-      %td= data_link(:h_two_f)
-    %tr
-      %th g. Number of YYA  served who identified as Hispanic (ethnicity)
-      %td= data_link(:h_two_g)
-      %td Could be any race.
-    %tr
-      %th 3. Other
-      %th b. Number of YYA served who were LGBTQ+
-      %td= data_link(:h_three_b)
       %td

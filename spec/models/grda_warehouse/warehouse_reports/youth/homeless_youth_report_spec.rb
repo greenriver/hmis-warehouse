@@ -70,12 +70,6 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
       expect(report.two_b).to include new_at_risk_contact.client_id
     end
 
-    it 'itemizes referral sources' do
-      expect(report.two_c.keys.count).to eq 2
-      expect(report.two_c.keys).to include 'Example'
-      expect(report.two_c.keys).to include 'Another'
-    end
-
     # A3
 
     it 'counts youth at risk of homelessness at start' do
@@ -87,11 +81,6 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
     it 'counts continuing clients with case management' do
       expect(report.three_b.count).to eq 1
       expect(report.three_b).to include new_case_management_existing_client.client_id
-    end
-
-    it 'counts at risk turned away' do
-      expect(report.three_c.count).to eq 1
-      expect(report.three_c).to include turned_away_at_risk.client_id
     end
 
     # A4
@@ -114,12 +103,6 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
 
     it 'counts clients with financial assistance in interval' do
       expect(report.five_a.count).to eq 1
-    end
-
-    # A6
-
-    it 'count clients with referrals out in the interval' do
-      expect(report.six_a.count).to eq 1
     end
 
     # Follow Ups

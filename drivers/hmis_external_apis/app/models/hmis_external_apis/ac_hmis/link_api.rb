@@ -29,24 +29,24 @@ module HmisExternalApis::AcHmis
     end
 
     def create_referral_request(payload)
-      conn.post('Referral/ReferralRequest', format_payload(payload))
-        .then { |r| handle_error(r) }
+      conn.post('Referral/ReferralRequest', format_payload(payload)).
+        then { |r| handle_error(r) }
     end
 
     def void_referral_request(referral_request_id:, requested_by:)
       payload = format_payload({ is_void: true, requested_by: requested_by })
-      conn.patch("Referral/ReferralRequest/#{referral_request_id}", payload)
-        .then { |r| handle_error(r) }
+      conn.patch("Referral/ReferralRequest/#{referral_request_id}", payload).
+        then { |r| handle_error(r) }
     end
 
     def update_unit_capacity(payload)
-      conn.patch('Unit/Capacity', format_payload(payload))
-        .then { |r| handle_error(r) }
+      conn.patch('Unit/Capacity', format_payload(payload)).
+        then { |r| handle_error(r) }
     end
 
     def update_referral_posting_status(payload)
-      conn.patch('Referral/PostingStatus', format_payload(payload, id_variant: 'Id'))
-        .then { |r| handle_error(r) }
+      conn.patch('Referral/PostingStatus', format_payload(payload, id_variant: 'Id')).
+        then { |r| handle_error(r) }
     end
 
     def active_referral_mci_ids

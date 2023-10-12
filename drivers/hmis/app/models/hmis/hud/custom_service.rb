@@ -22,7 +22,7 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   has_one :organization, through: :project
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
-  alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]
+
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator
 

@@ -17,8 +17,18 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ClientContactsLoade
         'PersonalID' => client.PersonalID,
         'PHONE_TYPE' => 'Home',
         'SYSTM' => 'PHONE',
-        'VALUE' => '8675309',
+        'VALUE' => '(123) 867-5309',
         'NOTES' => 'test notes',
+        'UserID' => '',
+        'DateCreated' => '7/1/2020 16:10',
+        'DateUpdated' => '7/1/2020 16:10',
+      },
+      {
+        'PersonalID' => client.PersonalID,
+        'PHONE_TYPE' => 'EMAIL',
+        'SYSTM' => 'EMAIL',
+        'VALUE' => 'foo123@gmail.com',
+        'NOTES' => '',
         'UserID' => '',
         'DateCreated' => '7/1/2020 16:10',
         'DateUpdated' => '7/1/2020 16:10',
@@ -30,6 +40,11 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ClientContactsLoade
     csv_files = { 'ClientContacts.csv' => rows }
     expect do
       run_cde_import(csv_files: csv_files, clobber: true)
-    end.to change(client.contact_points, :count).by(1)
+    end.to change(client.contact_points, :count).by(2)
+
+    expect(client.contact_points.phones.count).to eq(1)
+    expect(client.contact_points.phones.first.value).to eq('1238675309')
+    expect(client.contact_points.emails.count).to eq(1)
+    expect(client.contact_points.emails.first.value).to eq('foo123@gmail.com')
   end
 end

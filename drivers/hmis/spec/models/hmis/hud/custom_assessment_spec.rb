@@ -56,9 +56,9 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     let!(:assessment) { create(:hmis_custom_assessment, data_source: ds1, enrollment: e1) }
 
     def apply_assessment_date(date)
-      assessment.update(assessment_date: date)
-      assessment.enrollment.update(entry_date: date) if assessment.intake?
-      assessment.enrollment.exit.update(exit_date: date) if assessment.exit?
+      assessment.assessment_date = date
+      assessment.enrollment.entry_date = date if assessment.intake?
+      assessment.enrollment.exit.exit_date = date if assessment.exit?
     end
 
     [:INTAKE, :UPDATE, :ANNUAL, :EXIT].each do |role|

@@ -16,12 +16,14 @@ module Types
     field :referred_by, String, null: false
     field :referral_notes, String
     field :chronic, Boolean
+    field :hud_chronic, Boolean
     field :score, Integer
     field :needs_wheelchair_accessible_unit, Boolean
 
     # Fields that come from ReferralHouseholdMembers
     field :hoh_name, String, null: false
     field :hoh_mci_id, ID, null: true
+    field :hoh_client, HmisSchema::Client, null: true
     field :household_size, Integer, null: false
     field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
@@ -68,6 +70,10 @@ module Types
       hoh_member&.mci_id
     end
 
+    def hoh_client
+      hoh_enrollment&.client
+    end
+
     def hoh_enrollment
       return unless object.household_id.present?
 
@@ -75,11 +81,24 @@ module Types
     end
 
     def household_members
-      referral.household_members
+      load_ar_association(referral, :household_members)
     end
 
     def household_size
-      household_members.size
+      household_members.map(&:client_id).uniq.size
+    end
+
+    def hud_chronic
+      # HUD Chronic status for the client that was referred as HoH
+      referred_hoh_client = hoh_member&.client
+      return unless referred_hoh_client.present?
+
+      # Users can see HUD Chronic status for clients being referred to their program, even if the client isn't enrolled yet.
+      # That's why the "entity" is project and not client.
+      return unless current_permission?(permission: :can_view_hud_chronic_status, entity: project)
+
+      # client.hud_chronic causes n+1 queries, only use when resolving 1 posting
+      !!referred_hoh_client.hud_chronic?(scope: referred_hoh_client.enrollments)
     end
 
     def referred_from

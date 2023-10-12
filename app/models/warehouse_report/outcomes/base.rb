@@ -997,7 +997,6 @@ class WarehouseReport::Outcomes::Base
           row[:days_to_return],
           row[:destination],
           row[:race],
-          row[:gender],
         ]
       end
     when :return_after_exit_to_any
@@ -1015,7 +1014,6 @@ class WarehouseReport::Outcomes::Base
           row[:days_to_return],
           row[:destination],
           row[:race],
-          row[:gender],
         ]
       end
     when :percent_exiting_pre_placement
@@ -1035,7 +1033,6 @@ class WarehouseReport::Outcomes::Base
           row[:search_end],
           row[:housed_date],
           row[:race],
-          row[:gender],
         ]
       end
     when :percent_in_stabilization
@@ -1059,7 +1056,6 @@ class WarehouseReport::Outcomes::Base
           row[:project_id],
           row[:hmis_project_id],
           row[:race],
-          row[:gender],
         ]
       end
     when :percent_exiting_stabilization
@@ -1081,7 +1077,6 @@ class WarehouseReport::Outcomes::Base
           row[:project_id],
           row[:hmis_project_id],
           row[:race],
-          row[:gender],
         ]
       end
     when :destination
@@ -1097,7 +1092,6 @@ class WarehouseReport::Outcomes::Base
           row[:project_id],
           row[:hmis_project_id],
           row[:race],
-          row[:gender],
         ]
       end
     end

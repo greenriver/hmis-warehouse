@@ -6,6 +6,7 @@
 
 class Hmis::Filter::ServiceFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
+    scope = ensure_scope(scope)
     scope.
       yield_self(&method(:with_date_provided)).
       yield_self(&method(:with_service_category)).

@@ -21,6 +21,7 @@ module Types
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
@@ -139,10 +140,6 @@ module Types
     field :preferred_language_different, String, null: true
 
     field :in_progress, Boolean, null: false
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     field :intake_assessment, HmisSchema::Assessment, null: true
     field :exit_assessment, HmisSchema::Assessment, null: true
     access_field do
@@ -152,6 +149,7 @@ module Types
     custom_data_elements_field
 
     field :current_unit, HmisSchema::Unit, null: true
+    field :num_units_assigned_to_household, Integer, null: false
     field :reminders, [HmisSchema::Reminder], null: false
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
     field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
@@ -214,7 +212,7 @@ module Types
     end
 
     def household_size
-      load_ar_association(household, :enrollments).size
+      load_ar_association(household, :enrollments).map(&:personal_id).uniq.size
     end
 
     def in_progress
@@ -261,12 +259,15 @@ module Types
       resolve_health_and_dvs(**args)
     end
 
-    def user
-      load_ar_association(object, :user)
-    end
-
     def current_unit
       load_ar_association(object, :current_unit)
+    end
+
+    # ALERT: n+1, dont use when resolving multiple enrollments
+    def num_units_assigned_to_household
+      object.household_members.
+        map { |hhm| hhm.current_unit&.id }.
+        compact.uniq.size
     end
   end
 end
