@@ -3,7 +3,8 @@ BostonHmis::Application.routes.draw do
     namespace :warehouse_reports do
       resources :reports do
         member do
-          get 'internal'
+          get :internal
+          get :raw
         end
       end
     end

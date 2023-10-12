@@ -1,4 +1,4 @@
-class AllNeighborsSystemDashboarBar {
+class AllNeighborsSystemDashboardBar {
   constructor(data, initialState, selector, options) {
     this.data = data
     this.state = initialState
@@ -66,6 +66,28 @@ class AllNeighborsSystemDashboarBar {
         height: 500,
       },
       data: this.getDataConfig(),
+      // data: {
+      //   x: "x",
+      //   columns: [
+      //     ["x"].concat(this.config.keys)
+      //   ].concat(this.series.map((d) => [d.name].concat(d.values))),
+      //   types: {
+      //     exited: "bar",
+      //     returned: "bar",
+      //   },
+      //   colors: {
+      //     exited: (d) => this.config.colors[d.id][d.index],
+      //     returned: (d) => this.config.colors[d.id][d.index],
+      //   },
+      //   labels: {
+      //     centered: false,
+      //     show: true,
+      //     color: '#000000',
+      //     format: (v, id, i, j) => {
+      //       return d3.format(",")(v);
+      //     },
+      //   },
+      // },
       padding: {
         left: 60,
         top: 40,
@@ -84,7 +106,7 @@ class AllNeighborsSystemDashboarBar {
       },
       bindto: this.selector,
       onrendered: function() {
-        const selector = this.config().bindto
+        const selector = this.internal.config.bindto
         const data = this.data()
         const percentages = data[0].values.map((d, i) => {
           const returned = data[1].values[i]
@@ -100,7 +122,7 @@ class AllNeighborsSystemDashboarBar {
           const barBox = bar.node().getBBox()
           const text = textGroup.selectAll('text')
           text.attr('transform', i === 0 ? `translate(${barBox.width/2*-1}, -20)` : `translate(${barBox.width/2}, -20)`)
-          const xYears = this.config().data.columns[0].slice(1)
+          const xYears = this.internal.config.data_columns[0].slice(1)
           text.each(function(t, ti) {
             const ele = d3.select(this)
             const currentLabel = ele.text()
@@ -114,7 +136,6 @@ class AllNeighborsSystemDashboarBar {
                 .attr('dy', (d, di) => di === 0 ? 0 : 17)
                 .text((d, di) => i === 0 ? d : di == 0 ? d3.format('.1%')(percentages[ti]) : d)
           })
-          
         })
       }
     }

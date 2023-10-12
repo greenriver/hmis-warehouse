@@ -1,6 +1,13 @@
+-# fake data
 - start_date = (DateTime.current - 3.years).beginning_of_month
 - end_date = DateTime.current.beginning_of_month
 - all_data = AllNeighborsSystemDashboard::FakeUnhousedPopulation.new(start_date, end_date)
+-# 
+  real data
+  - start_date = @report.filter.start_date.beginning_of_month
+  - end_date = @report.filter.end_date.beginning_of_month
+  - all_data = AllNeighborsSystemDashboard::UnhousedPopulation.new(@report)
+
 - donut_ids = all_data.donut_data.map{|d| chart_id(tab[:id], d[:id])}
 - donut_filter_label_ids = all_data.donut_data.map { |d| filter_label_id(tab[:id], d[:id]) }
 
@@ -16,16 +23,16 @@
       = render 'select_filter', tab: tab, name: 'homelessness_status', label: 'Homelessness Status', options: all_data.homelessness_statuses
     .col-xs-12.col-md-4
       = render 'year_filter', tab: tab, name: 'year', label: 'Choose Time Period', label_hint: 'Selection affects charts below', date: end_date, start_date: start_date, end_date: end_date
-  
-%h3 
+
+%h3
   Sheltered & Unsheltered
   %br
   %span{class: filter_label_id(tab[:id], 'year')}
 
-= render 'donuts', tab: tab, donut_data: all_data.donut_data, filter_label: 'year'      
+= render 'donuts', tab: tab, donut_data: all_data.donut_data, filter_label: 'year'
 
 = render 'stacked_charts', data: [all_data.stacked_data], group: 'Racial Composition', filter_label: 'year', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px'
-  
+
 
 - content_for :page_js do
   :javascript

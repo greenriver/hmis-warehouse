@@ -1,5 +1,5 @@
 class AllNeighborsSystemDashboardFilters {
-  
+
   constructor(filters, charts, filterLabels) {
     this.initFilters(filters)
     this.initState(filters)
@@ -27,9 +27,13 @@ class AllNeighborsSystemDashboardFilters {
         this.state[filter.name] = this.filters[filter.name].val()
       }
       if(filter.type === 'dateRange') {
+        let startDp = this.filters[filter.name].start.datepicker('getDate')
+        startDp = new Date(startDp.getFullYear(), startDp.getMonth(), 1);
+        let endDp = this.filters[filter.name].end.datepicker('getDate')
+        endDp = new Date(endDp.getFullYear(), endDp.getMonth() + 1, 1);
         this.state[filter.name] = [
-          Date.parse(this.filters[filter.name].start.datepicker('getDate')),
-          Date.parse(this.filters[filter.name].end.datepicker('getDate'))
+          Date.parse(startDp),
+          Date.parse(endDp)
         ]
       }
       if(filter.type === 'quarterRange') {

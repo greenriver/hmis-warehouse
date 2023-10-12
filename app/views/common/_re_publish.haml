@@ -1,0 +1,17 @@
+- if @report.published?
+  .warehouse-reports__completed.d-flex
+    .mr-2
+      %p
+        This report was published on #{@report.published_at.to_date} and is is publicly available at this url:
+        %br
+        = link_to @report.published_report.published_url, @report.published_report.published_url, target: :_blank
+      %p You can use the following embed code as a starting point for including the published report in any website.
+      %code= @report.published_report.embed_code
+    .ml-auto
+      .mb-4
+        = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
+          = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
+          = f.submit 'Re-Publish', data: { confirm: @report.publish_warning }
+      = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
+        = f.input :unpublish, as: :hidden, input_html: { value: @report.generate_publish_url }
+        = f.button :submit, 'Un-Publish', data: { confirm: @report.un_publish_warning }, class: 'btn btn-danger'

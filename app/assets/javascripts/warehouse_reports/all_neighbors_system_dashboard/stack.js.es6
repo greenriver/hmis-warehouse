@@ -81,6 +81,9 @@ class AllNeighborsSystemDashboardStack {
         show: true,
         centered: true,
         colors: this.config.label_colors,
+        format: (v, id, i, j) => {
+          return d3.format(",")(v);
+        },
       },
       stack: {
         normalize: true,
@@ -155,7 +158,7 @@ class AllNeighborsSystemDashboardStack {
 
   normalizeDataLabels(chart) {
     // is there a better way to do this with billboard config?
-    const selector = chart.config().bindto
+    const selector = chart.internal.config.bindto
     chart.data().forEach((d) => {
       d.values.forEach((v) => {
         const text = $(`${selector} .bb-texts-${d.id.replaceAll('_', '-')} .bb-text-${v.x}`)
@@ -170,7 +173,7 @@ class AllNeighborsSystemDashboardStack {
         return d.values[i].value
       }))
     })
-    const selector = chart.config().bindto
+    const selector = chart.internal.config.bindto
     let container = d3.select(`${selector} .bb-main`)
     return container.selectAll(`.bb-text__custom-total`)
       .data(sums)
@@ -185,7 +188,6 @@ class AllNeighborsSystemDashboardStack {
     this.state = state
     this.init()
     this.chart.destroy()
-    this.chart = bb.generate(this.getConfig())
     this.draw()
   }
 
@@ -293,6 +295,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
 
   getConfig() {
     const superConfig = super.getConfig()
+    const superDrawTotals = super.drawTotals
     const padding = this.padding
     const config = {
       data: this.getDataConfig(),
@@ -302,9 +305,9 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       },
       padding: padding,
       onrendered: function() {
-        const selector = this.config().bindto
+        const selector = this.internal.config.bindto
         $(`${selector} .bb-axis-x .tick line`).attr('x2', padding.left*-1)
-        super.drawTotals(this)
+        superDrawTotals(this)
           .text((d) => d)
           .attr('x', (d) => this.internal.scale.y(d))
           .attr('y', (d, i) => this.internal.scale.x(i))
@@ -325,6 +328,9 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
 
   getConfig() {
     const superConfig = super.getConfig()
+    const superNormalizeDataLabels = super.normalizeDataLabels
+    const data = this.data
+    const demographic = this.demographic
     const config = {
       padding: {
         left: 150,
@@ -333,8 +339,16 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
         bottom: 0,
       },
       onrendered: function() {
-        super.normalizeDataLabels(this)
-        super.drawTotals(this)
+        superNormalizeDataLabels(this)
+        const selector = this.internal.config.bindto
+        let container = d3.select(`${selector} .bb-main`)
+        container.selectAll(`.bb-text__custom-total`)
+          .data([demographic.exited_household_count, demographic.returned_household_count])
+          .join(
+            (enter) => enter.append('text').attr('class', 'bb-text__custom-total'),
+            (update) => update,
+            (exit) => exit.remove()
+          )
           .text((d) => `${d3.format(',')(d)} Households`)
           .attr('x', (d) => this.internal.scale.y(100))
           .attr('y', (d, i) => this.internal.scale.x(i))

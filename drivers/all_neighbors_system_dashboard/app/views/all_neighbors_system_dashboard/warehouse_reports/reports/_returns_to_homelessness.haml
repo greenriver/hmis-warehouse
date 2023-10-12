@@ -1,6 +1,10 @@
+-#fake data
 - start_date = (DateTime.current - 3.years).beginning_of_month
 - end_date = DateTime.current.beginning_of_month
 - all_data = AllNeighborsSystemDashboard::FakeReturnsToHomelessness.new(start_date, end_date)
+-#
+  real data
+  - all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(@report)
 
 - chart_data = all_data.stacked_data
 - stacked_ids = chart_data.map { |d| chart_id(tab[:id], "stacked_#{d[:id]}") }
@@ -12,7 +16,7 @@
       %h3 Returns to Homelessness
       %small * after exiting to permanent destination
     %div{id: chart_id(tab[:id], 'bar')}
-  
+
   - table_id = table_id(tab[:id], 'returns_to_homelessness')
   .p-4.border-top
     = link_to "javascript:void(0)", data: {toggle: 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace(tab[:id], 'table_toggle')}" do
@@ -32,8 +36,8 @@
       var data = #{chart_data.to_json.html_safe}
       var barData = #{all_data.bars.to_json.html_safe}
       var stackedIds = #{stacked_ids.to_json.html_safe}
-      
-      var bar = new AllNeighborsSystemDashboarBar(
+
+      var bar = new AllNeighborsSystemDashboardBar(
         barData,
         {},
         '##{chart_id(tab[:id], 'bar')}',
@@ -43,7 +47,7 @@
 
       var charts = data.map(function(d, i) {
         return {
-          chart: AllNeighborsSystemDashboardRTHStack, 
+          chart: AllNeighborsSystemDashboardRTHStack,
           data: d,
           selector: '#'+stackedIds[i],
           options: {

@@ -319,3 +319,4 @@ class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboa
   }
 
 }
+
