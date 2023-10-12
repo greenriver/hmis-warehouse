@@ -11,40 +11,48 @@ module AllNeighborsSystemDashboard
 
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.years) do
-        {
-          title: title,
-          id: id,
-          project_types: project_types.map do |project_type|
-            {
-              project_type: project_type,
-              config: {
-                keys: keys,
-                names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
-                colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-                label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
-              },
-              count_levels: count_levels.map do |count_level|
-                monthly_counts = send(type, options.merge(project_type: project_type, count_level: count_level))
+      identifier = "#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}"
+      existing = @report.datasets.find_by(identifier: identifier)
+      return existing.data.with_indifferent_access if existing.present?
 
-                if type == :line
-                  summary_counts = aggregate(monthly_counts)
-                  {
-                    count_level: count_level,
-                    series: summary_counts,
-                    monthly_counts: monthly_counts,
-                  }
-                else
-                  {
-                    count_level: count_level,
-                    series: monthly_counts,
-                  }
-                end
-              end,
-            }
-          end,
-        }
-      end
+      data = {
+        title: title,
+        id: id,
+        project_types: project_types.map do |project_type|
+          {
+            project_type: project_type,
+            config: {
+              keys: keys,
+              names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
+              colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
+              label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
+            },
+            count_levels: count_levels.map do |count_level|
+              monthly_counts = send(type, options.merge(project_type: project_type, count_level: count_level))
+
+              if type == :line
+                summary_counts = aggregate(monthly_counts)
+                {
+                  count_level: count_level,
+                  series: summary_counts,
+                  monthly_counts: monthly_counts,
+                }
+              else
+                {
+                  count_level: count_level,
+                  series: monthly_counts,
+                }
+              end
+            end,
+          }
+        end,
+      }
+
+      @report.datasets.create!(
+        identifier: identifier,
+        data: data,
+      )
+      data
     end
 
     private def aggregate(series)
@@ -76,11 +84,15 @@ module AllNeighborsSystemDashboard
     end
 
     private def filter_for_date(scope, date)
-      en_t = Enrollment.arel_table
       range = date.beginning_of_month .. date.end_of_month
-      where_clause = en_t[:exit_type].eq('Permanent').and(en_t[:exit_date].between(range)).
-        or(en_t[:move_in_date].between(range))
+      where_clause = date_query(range)
       scope.where(where_clause)
+    end
+
+    private def date_query(range)
+      en_t = Enrollment.arel_table
+      en_t[:exit_type].eq('Permanent').and(en_t[:exit_date].between(range)).
+        or(en_t[:move_in_date].between(range))
     end
 
     # Example format of options: {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}

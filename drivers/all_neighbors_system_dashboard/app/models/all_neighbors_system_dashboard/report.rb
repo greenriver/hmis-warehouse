@@ -17,6 +17,7 @@ module AllNeighborsSystemDashboard
     include EnrollmentAttributeCalculations
 
     has_one_attached :result_file
+    has_many :datasets, class_name: '::GrdaWarehouse::Dataset', as: :source
 
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
@@ -29,10 +30,8 @@ module AllNeighborsSystemDashboard
       order(updated_at: :desc)
     end
 
-    # This might be useful to confirm which keys exist
-    # Rails.cache.redis.keys.select { |m| m.include?('AllNeighborsSystemDashboard') }
     def delete_cached_values!
-      Rails.cache.delete_matched("#{cache_key}/*")
+      datasets.delete_all
     end
 
     def cache_key
@@ -169,18 +168,6 @@ module AllNeighborsSystemDashboard
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date).
         in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
-    end
-
-    def pilot_date_range
-      start_date = [filter.start_date, Date.new(2023, 4, 30)].min
-      end_date = [filter.end_date, Date.new(2023, 4, 30)].min
-      (start_date .. end_date)
-    end
-
-    def implementation_date_range
-      start_date = [filter.start_date, Date.new(2023, 5, 1)].max
-      end_date = [filter.end_date, Date.new(2023, 5, 1)].max
-      (start_date .. end_date)
     end
 
     def event_scope

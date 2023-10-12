@@ -40,7 +40,7 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
-        'R.E.A.L. Time Initiative (8/1/2021 - 4/30/2023)',
+        'R.E.A.L. Time Initiative',
       ]
     end
 
@@ -194,28 +194,28 @@ module AllNeighborsSystemDashboard
       date_range
     end
 
-    def ranges_overlap?(range_a, range_b)
-      range_b.begin <= range_a.end && range_a.begin <= range_b.end
-    end
-
     private def filter_for_type(scope, type)
       case type
       when 'All', 'Overall'
         scope
-      when 'R.E.A.L. Time Initiative (8/1/2021 - 4/30/2023)'
-        # TODO: this needs updating to use pilot and implementation date ranges for the particular item being filtered
-        # pilot range should use filter.effective_project_ids_from_secondary_project_groups
-        # implementation range should use filter.effective_project_ids
+      when 'R.E.A.L. Time Initiative'
+        # TODO:
         # we'll need to pass an additional argument to indicate which date is being filtered
-        scope.where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups)
+        pilot_scope = Enrollment.
+          where(date_query(pilot_date_range)).
+          where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups).
+          select(:id)
+        implementation_scope = Enrollment.
+          where(date_query(implementation_date_range)).
+          where(project_id: @report.filter.effective_project_ids).
+          select(:id)
+        scope.where(id: pilot_scope).or(scope.where(id: implementation_scope))
       when 'Permanent Supportive Housing'
         scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
       when 'Rapid Rehousing'
         scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
       when 'Diversion'
-        # FIXME, is this correct?
-        # TODO: needs to be limited to projects chosen in filter.secondary_project_ids
-        scope.where(destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
+        scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       when 'Sheltered'
@@ -254,6 +254,18 @@ module AllNeighborsSystemDashboard
       when 'Households'
         scope.hoh
       end
+    end
+
+    def pilot_date_range
+      start_date = [@report.filter.start_date, Date.new(2023, 4, 30)].min
+      end_date = [@report.filter.end_date, Date.new(2023, 4, 30)].min
+      (start_date .. end_date)
+    end
+
+    def implementation_date_range
+      start_date = [@report.filter.start_date, Date.new(2023, 5, 1)].max
+      end_date = [@report.filter.end_date, Date.new(2023, 5, 1)].max
+      (start_date .. end_date)
     end
   end
 end

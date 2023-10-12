@@ -7,37 +7,44 @@ module AllNeighborsSystemDashboard
 
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.years) do
-        {
-          title: title,
-          id: id,
-          demographics: demographics.map do |demo|
-            bars = ['Exited*', 'Returned']
-            demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
-            demo_colors_meth = "demographic_#{demo.gsub(' ', '').underscore}_colors".to_sym
-            names = send(demo_names_meth)
-            keys = names.map { |key| to_key(key) }
-            colors = send(demo_colors_meth)
-            scope = enrollment_scope
-            scope = filter_for_year(scope, Date.new(options[:year]))
-            scope = filter_for_count_level(scope, 'Households')
-            exited_household_count = scope.count
-            returned_household_count = scope.where.not(return_date: nil).count
-            {
-              demographic: demo,
-              config: {
-                keys: keys,
-                names: keys.map.with_index { |key, i| [key, names[i]] }.to_h,
-                colors: keys.map.with_index { |key, i| [key, colors[i]] }.to_h,
-                label_colors: keys.map.with_index { |key, i| [key, label_color(colors[i])] }.to_h,
-              },
-              series: send(type, { bars: bars, demographic: demo, types: names, year: options[:year] }),
-              exited_household_count: exited_household_count,
-              returned_household_count: returned_household_count,
-            }
-          end,
-        }
-      end
+      identifier = "#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}"
+      existing = @report.datasets.find_by(identifier: identifier)
+      return existing.data.with_indifferent_access if existing.present?
+
+      data = {
+        title: title,
+        id: id,
+        demographics: demographics.map do |demo|
+          bars = ['Exited*', 'Returned']
+          demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
+          demo_colors_meth = "demographic_#{demo.gsub(' ', '').underscore}_colors".to_sym
+          names = send(demo_names_meth)
+          keys = names.map { |key| to_key(key) }
+          colors = send(demo_colors_meth)
+          scope = enrollment_scope
+          scope = filter_for_year(scope, Date.new(options[:year]))
+          scope = filter_for_count_level(scope, 'Households')
+          exited_household_count = scope.count
+          returned_household_count = scope.where.not(return_date: nil).count
+          {
+            demographic: demo,
+            config: {
+              keys: keys,
+              names: keys.map.with_index { |key, i| [key, names[i]] }.to_h,
+              colors: keys.map.with_index { |key, i| [key, colors[i]] }.to_h,
+              label_colors: keys.map.with_index { |key, i| [key, label_color(colors[i])] }.to_h,
+            },
+            series: send(type, { bars: bars, demographic: demo, types: names, year: options[:year] }),
+            exited_household_count: exited_household_count,
+            returned_household_count: returned_household_count,
+          }
+        end,
+      }
+      @report.datasets.create!(
+        identifier: identifier,
+        data: data,
+      )
+      data
     end
 
     def stacked_data
@@ -87,18 +94,21 @@ module AllNeighborsSystemDashboard
     end
 
     private def filter_for_date(scope, date)
-      en_t = Enrollment.arel_table
       # NOTE: even though we aggregate at the year level, we calculate the month range and let JS do the aggregation
       range = date.beginning_of_month .. date.end_of_month
-      where_clause = en_t[:exit_date].between(range).and(en_t[:exit_type].eq('Permanent'))
+      where_clause = date_query(range)
       scope.where(where_clause)
     end
 
-    private def filter_for_year(scope, date)
+    private def date_query(range)
       en_t = Enrollment.arel_table
+      en_t[:exit_date].between(range).and(en_t[:exit_type].eq('Permanent'))
+    end
+
+    private def filter_for_year(scope, date)
       # NOTE: even though we aggregate at the year level, we calculate the month range and let JS do the aggregation
       range = date.beginning_of_year .. date.end_of_year
-      where_clause = en_t[:exit_date].between(range).and(en_t[:exit_type].eq('Permanent'))
+      where_clause = date_query(range)
       scope.where(where_clause)
     end
 
@@ -133,44 +143,51 @@ module AllNeighborsSystemDashboard
     end
 
     def bars
-      Rails.cache.fetch("#{@report.cache_key}/#{self.class.name}/#{__method__}", expires_in: 1.years) do
-        cohort_keys = relevant_years.map { |year| "#{year} Cohort" }
-        scope = enrollment_scope
-        # NOTE: there is no picker on this page currently, but this could be updated if necessary
-        scope = filter_for_count_level(scope, 'Individuals')
-        exited_counts = {}
-        returned_counts = {}
-        # Make sure there are no missing years
-        relevant_years.each do |year|
-          start_of_year = Date.new(year)
-          exited_scope = scope.where(exit_date: start_of_year..start_of_year.end_of_year)
-          # NOTE: we filter return date on write and only add if the client returned within a year
-          returned_scope = exited_scope.where.not(return_date: nil)
+      identifier = "#{@report.cache_key}/#{self.class.name}/#{__method__}"
+      existing = @report.datasets.find_by(identifier: identifier)
+      return existing.data.with_indifferent_access if existing.present?
 
-          exited_counts[year] = bracket_small_population(exited_scope.count, mask: @report.mask_small_populations?)
-          returned_counts[year] = bracket_small_population(returned_scope.count, mask: @report.mask_small_populations?)
-        end
-        rates_of_return = returned_counts.values.zip(exited_counts.values).map do |returns, exits|
-          rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)
-          "#{rate}%"
-        end
-        {
-          title: 'Returns to Homelessness',
-          id: 'returns_to_homelessness',
-          config: {
-            colors: {
-              exited: ['#336770', '#884D01'],
-              returned: ['#85A4A9', '#B48F5F'],
-            },
-            keys: cohort_keys,
-          },
-          series: [
-            { name: 'exited', values: exited_counts.values },
-            { name: 'returned', values: returned_counts.values },
-            { name: 'rate', values: rates_of_return, table_only: true },
-          ],
-        }
+      cohort_keys = relevant_years.map { |year| "#{year} Cohort" }
+      scope = enrollment_scope
+      # NOTE: there is no picker on this page currently, but this could be updated if necessary
+      scope = filter_for_count_level(scope, 'Individuals')
+      exited_counts = {}
+      returned_counts = {}
+      # Make sure there are no missing years
+      relevant_years.each do |year|
+        start_of_year = Date.new(year)
+        exited_scope = scope.where(exit_date: start_of_year..start_of_year.end_of_year)
+        # NOTE: we filter return date on write and only add if the client returned within a year
+        returned_scope = exited_scope.where.not(return_date: nil)
+
+        exited_counts[year] = bracket_small_population(exited_scope.count, mask: @report.mask_small_populations?)
+        returned_counts[year] = bracket_small_population(returned_scope.count, mask: @report.mask_small_populations?)
       end
+      rates_of_return = returned_counts.values.zip(exited_counts.values).map do |returns, exits|
+        rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)
+        "#{rate}%"
+      end
+      data = {
+        title: 'Returns to Homelessness',
+        id: 'returns_to_homelessness',
+        config: {
+          colors: {
+            exited: ['#336770', '#884D01'],
+            returned: ['#85A4A9', '#B48F5F'],
+          },
+          keys: cohort_keys,
+        },
+        series: [
+          { name: 'exited', values: exited_counts.values },
+          { name: 'returned', values: returned_counts.values },
+          { name: 'rate', values: rates_of_return, table_only: true },
+        ],
+      }
+      @report.datasets.create!(
+        identifier: identifier,
+        data: data,
+      )
+      data
     end
   end
 end

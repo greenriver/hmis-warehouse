@@ -7,39 +7,47 @@ module AllNeighborsSystemDashboard
 
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
-      Rails.cache.fetch("#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}", expires_in: 1.years) do
-        {
-          title: title,
-          id: id,
-          project_types: project_types.map do |project_type|
-            {
-              project_type: project_type,
-              config: {
-                keys: keys,
-                names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
-                colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-                label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
-              },
-              household_types: (['All'] + household_types).map do |household_type|
-                {
-                  household_type: household_type,
-                  demographics: demographics.map do |demo|
-                    demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
-                    filter_bars = demo_names_meth == :demographic_household_type && household_type != 'All'
-                    demo_names = send(demo_names_meth)
-                    demo_bars = filter_bars ? demo_names.select { |bar| bar == household_type } : demo_names
-                    bars = (['Overall'] + demo_bars)
-                    {
-                      demographic: demo,
-                      series: send(type, options.merge({ bars: bars })),
-                    }
-                  end,
-                }
-              end,
-            }
-          end,
-        }
-      end
+      identifier = "#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}"
+      existing = @report.datasets.find_by(identifier: identifier)
+      return existing.data.with_indifferent_access if existing.present?
+
+      data = {
+        title: title,
+        id: id,
+        project_types: project_types.map do |project_type|
+          {
+            project_type: project_type,
+            config: {
+              keys: keys,
+              names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
+              colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
+              label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
+            },
+            household_types: (['All'] + household_types).map do |household_type|
+              {
+                household_type: household_type,
+                demographics: demographics.map do |demo|
+                  demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
+                  filter_bars = demo_names_meth == :demographic_household_type && household_type != 'All'
+                  demo_names = send(demo_names_meth)
+                  demo_bars = filter_bars ? demo_names.select { |bar| bar == household_type } : demo_names
+                  bars = (['Overall'] + demo_bars)
+                  {
+                    demographic: demo,
+                    series: send(type, options.merge({ bars: bars })),
+                  }
+                end,
+              }
+            end,
+          }
+        end,
+      }
+
+      @report.datasets.create!(
+        identifier: identifier,
+        data: data,
+      )
+      data
     end
 
     def stacked_data
@@ -56,13 +64,20 @@ module AllNeighborsSystemDashboard
     end
 
     def overall_data
-      Rails.cache.fetch("#{@report.cache_key}/#{self.class.name}/#{__method__}", expires_in: 1.years) do
-        {
-          ident_to_move_in: { name: 'Identification to Move-In', value: identification_to_move_in },
-          ident_to_referral: { name: 'Identification to Referral', value: identification_to_referral },
-          referral_to_move_in: { name: 'Referral to Move-In', value: referral_to_move_in },
-        }
-      end
+      identifier = "#{@report.cache_key}/#{self.class.name}/#{__method__}"
+      existing = @report.datasets.find_by(identifier: identifier)
+      return existing.data.with_indifferent_access if existing.present?
+
+      data = {
+        ident_to_move_in: { name: 'Identification to Move-In', value: identification_to_move_in },
+        ident_to_referral: { name: 'Identification to Referral', value: identification_to_referral },
+        referral_to_move_in: { name: 'Referral to Move-In', value: referral_to_move_in },
+      }
+      @report.datasets.create!(
+        identifier: identifier,
+        data: data,
+      )
+      data
     end
 
     private def identification_to_referral(scope = moved_in_scope)
@@ -97,10 +112,14 @@ module AllNeighborsSystemDashboard
     end
 
     private def filter_for_date(scope, date)
-      en_t = Enrollment.arel_table
       range = date.beginning_of_month .. date.end_of_month
-      where_clause = en_t[:move_in_date].between(range)
+      where_clause = date_query(range)
       scope.where(where_clause)
+    end
+
+    private def date_query(range)
+      en_t = Enrollment.arel_table
+      en_t[:move_in_date].between(range)
     end
 
     def stack(options)
@@ -118,7 +137,6 @@ module AllNeighborsSystemDashboard
             averages = options[:types].map do |category|
               scope = moved_in_scope
               scope = filter_for_date(scope, date)
-              # scope = filter_for_type(scope, category)
               scope = filter_for_type(scope, bar)
               case category
               when 'ID to Referral'
